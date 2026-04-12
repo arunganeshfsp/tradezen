@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Butterfly Straddle - Nifty50 Options Strategy</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --green: #3fb950;
+    --green-bg: #0d2d14;
+    --red: #f85149;
+    --red-bg: #2d0d0d;
+    --yellow: #d29922;
+    --yellow-bg: #2d1f0a;
+    --blue: #58a6ff;
+    --blue-bg: #0d1f3c;
+    --purple: #bc8cff;
+    --purple-bg: #1e0d2d;
+    --accent: #f78166;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans Tamil', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #1a0a2e 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at center, rgba(188,140,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--purple-bg);
+    color: var(--purple);
+    border: 1px solid rgba(188,140,255,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    font-family: 'Space Mono', monospace;
+  }
+  .hero h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .sebi-alert {
+    background: var(--yellow-bg);
+    border: 1px solid rgba(210,153,34,0.4);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 1.5rem auto;
+    max-width: 700px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+  }
+  .sebi-alert .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .sebi-alert strong { color: var(--yellow); }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    padding: 0 1rem;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 14px 20px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-family: 'Noto Sans Tamil', sans-serif;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+  .content { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+    font-family: 'Space Mono', monospace;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 600px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+  }
+
+  .metric { background: var(--bg3); border-radius: 8px; padding: 1rem; text-align: center; }
+  .metric-val { font-size: 1.6rem; font-weight: 700; font-family: 'Space Mono', monospace; }
+  .metric-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .green { color: var(--green); }
+  .red { color: var(--red); }
+  .yellow { color: var(--yellow); }
+  .blue { color: var(--blue); }
+  .purple { color: var(--purple); }
+
+  .strike-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .strike-table th {
+    background: var(--bg3);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .strike-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    vertical-align: middle;
+  }
+  .strike-table tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+  }
+  .badge-buy { background: var(--green-bg); color: var(--green); }
+  .badge-sell { background: var(--red-bg); color: var(--red); }
+  .badge-atm { background: var(--blue-bg); color: var(--blue); }
+
+  /* Payoff diagram */
+  .chart-wrap { position: relative; width: 100%; height: 300px; margin-top: 1rem; }
+
+  /* Scenario cards */
+  .scenario {
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid;
+  }
+  .scenario-profit { background: var(--green-bg); border-color: var(--green); }
+  .scenario-loss { background: var(--red-bg); border-color: var(--red); }
+  .scenario-neutral { background: var(--yellow-bg); border-color: var(--yellow); }
+  .scenario h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .scenario p { font-size: 13px; color: var(--muted); }
+
+  /* Calculator */
+  .calc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    gap: 12px;
+  }
+  .calc-row:last-of-type { border-bottom: none; }
+  .calc-label { font-size: 13px; color: var(--muted); flex: 1; }
+  .calc-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    width: 130px;
+    text-align: right;
+  }
+  .calc-input:focus { outline: none; border-color: var(--purple); }
+  .result-box {
+    background: var(--bg3);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+  }
+  .result-item { text-align: center; }
+  .result-val { font-size: 1.2rem; font-weight: 700; font-family: 'Space Mono', monospace; }
+  .result-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .btn {
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Noto Sans Tamil', sans-serif;
+    transition: opacity 0.2s;
+    width: 100%;
+    margin-top: 1rem;
+    font-weight: 600;
+  }
+  .btn:hover { opacity: 0.85; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 1.25rem;
+  }
+  .tl-dot {
+    position: absolute;
+    left: -2rem;
+    top: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--purple);
+    border: 2px solid var(--bg);
+  }
+  .tl-item h4 { font-size: 13px; font-weight: 600; color: var(--purple); margin-bottom: 4px; }
+  .tl-item p { font-size: 13px; color: var(--muted); }
+
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 600px) { .tips-grid { grid-template-columns: 1fr; } }
+  .tip-card {
+    background: var(--bg3);
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid var(--border);
+  }
+  .tip-card .tip-icon { font-size: 22px; margin-bottom: 8px; }
+  .tip-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .tip-card p { font-size: 12px; color: var(--muted); }
+
+  .tag {
+    display: inline-block;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    margin: 2px;
+    color: var(--muted);
+  }
+
+  h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
+  h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; }
+  p { margin-bottom: 0.75rem; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 1.25rem; }
+
+  .info-block {
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--blue-bg);
+    border: 1px solid rgba(88,166,255,0.2);
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+  }
+  .info-block .ico { font-size: 16px; flex-shrink: 0; }
+  .warn-block {
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--red-bg);
+    border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+  }
+
+  .vs-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: center; margin-bottom: 1rem; }
+  .vs-label { background: var(--bg3); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); font-family: 'Space Mono', monospace; }
+  .vs-card { background: var(--bg3); border-radius: 10px; padding: 1rem; }
+  .vs-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .vs-card ul { font-size: 12px; color: var(--muted); list-style: none; }
+  .vs-card ul li::before { content: '• '; color: var(--purple); }
+</style>
+</head>
+<body>
+<style>.tz-nav{position:sticky;top:0;z-index:9999;background:rgba(7,16,29,0.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:sans-serif;}.tz-nav-inner{max-width:1100px;margin:0 auto;height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:8px;}.tz-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}.tz-logo-mark{width:30px;height:30px;background:#2dd4bf;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#07101d;flex-shrink:0;font-family:monospace;}.tz-logo-txt{font-family:monospace;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px;}.tz-logo-txt span{color:#2dd4bf;}.tz-links{display:flex;gap:2px;margin-left:auto;}.tz-links a{text-decoration:none;color:#6e87a2;font-size:12px;padding:5px 11px;border-radius:8px;transition:all 0.18s;white-space:nowrap;}.tz-links a:hover{color:#dce8f5;background:rgba(255,255,255,0.07);}@media(max-width:600px){.tz-links .tz-hide{display:none;}}</style><nav class="tz-nav"><div class="tz-nav-inner"><a href="index.html" class="tz-logo"><div class="tz-logo-mark">TZ</div><span class="tz-logo-txt">Trade<span>Zen</span></span></a><div class="tz-links"><a href="butterfly_straddle_tamil.html" class="tz-hide">🦋 Butterfly</a><a href="options_entry_tool_tamil.html" class="tz-hide">🎯 Entry Tool</a><a href="theta_decay_tamil.html" class="tz-hide">⏳ Theta</a><a href="contact.html" class="tz-hide">✉ Contact</a><a href="index.html" style="background:rgba(45,212,191,0.12);color:#2dd4bf;">⌂ Home</a></div></div></nav>
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;">Butterfly Straddle Options Strategy - Interactive Guide in Tamil for Nifty50</h2>
+
+<div class="hero">
+  <div class="hero-badge">NIFTY 50 · OPTION SELLING · SEBI 2026</div>
+  <h1>🦋 Butterfly Straddle</h1>
+  <h1>விற்பனை உத்தி வழிகாட்டி</h1>
+  <p style="margin-top: 0.5rem;">உங்கள் மனைவிக்கான Nifty50 Options Trading · தமிழில் முழு விளக்கம்</p>
+
+  <div class="sebi-alert">
+    <span class="icon">⚠️</span>
+    <div>
+      <strong>SEBI புதிய விதி (Apr 1, 2026):</strong> Nifty50 Expiry தேதி <strong>வியாழன் (Thursday) → செவ்வாய் (Tuesday)</strong> மாற்றப்பட்டது. உங்கள் strategy timing ஐ அதற்கேற்ப மாற்றவும். 0DTE trades புதிய schedule-ஐ பின்பற்றவும்.
+    </div>
+  </div>
+</div>
+
+<div class="tabs" role="tablist">
+  <div class="tab active" onclick="showTab('basics')" role="tab">📚 அடிப்படை</div>
+  <div class="tab" onclick="showTab('setup')" role="tab">🔧 Setup</div>
+  <div class="tab" onclick="showTab('payoff')" role="tab">📈 Payoff Chart</div>
+  <div class="tab" onclick="showTab('scenarios')" role="tab">✅❌ சூழல்கள்</div>
+  <div class="tab" onclick="showTab('calculator')" role="tab">🧮 Calculator</div>
+  <div class="tab" onclick="showTab('tips')" role="tab">💡 Best Practices</div>
+</div>
+
+<!-- SECTION 1: BASICS -->
+<div id="basics" class="content section active">
+  <h2>Butterfly Straddle என்றால் என்ன?</h2>
+  <p class="subtitle">Option selling-ல் சிறு லாபம் நிறைவாக சம்பாதிக்க உதவும் குறைந்த ரிஸ்க் உத்தி</p>
+
+  <div class="card">
+    <div class="card-title">எளிய விளக்கம்</div>
+    <p>Butterfly Straddle என்பது <span style="color:var(--purple);font-weight:600;">3 strike price-களை</span> பயன்படுத்தும் options strategy. சந்தை அதிகம் மாறாமல் ஒரே இடத்தில் இருக்கும் போது <span style="color:var(--green);font-weight:600;">maximum profit</span> கிடைக்கும். இது Butterfly Spread + Straddle-ஐ இணைத்த உத்தி.</p>
+    <p style="margin-bottom:0;">🎯 <strong>குறிக்கோள்:</strong> Nifty50 expiry வரும் போது ATM strike-ல் close ஆனால் maximum profit. அதிகமாக move ஆனால் loss தவிர்க்கப்படும் (hedged).</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">எப்போது பயன்படுத்தவும்?</div>
+      <div style="font-size:13px;">
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); display:flex; gap:8px;"><span style="color:var(--green)">✓</span> Budget presentation / RBI policy வார இறுதி</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); display:flex; gap:8px;"><span style="color:var(--green)">✓</span> Low VIX (India VIX &lt; 15) நிலை</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); display:flex; gap:8px;"><span style="color:var(--green)">✓</span> Range-bound market எதிர்பார்க்கும் போது</div>
+        <div style="padding: 8px 0; display:flex; gap:8px;"><span style="color:var(--green)">✓</span> Expiry-க்கு 2-5 நாள் முன்பு</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">எப்போது தவிர்க்கவும்?</div>
+      <div style="font-size:13px;">
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); display:flex; gap:8px;"><span style="color:var(--red)">✗</span> Election results / Major event days</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); display:flex; gap:8px;"><span style="color:var(--red)">✗</span> High VIX (&gt; 20) சமயம்</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); display:flex; gap:8px;"><span style="color:var(--red)">✗</span> US Fed meeting / Global crisis</div>
+        <div style="padding: 8px 0; display:flex; gap:8px;"><span style="color:var(--red)">✗</span> Earnings season spike நேரத்தில்</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Butterfly vs Straddle ஒப்பீடு</div>
+    <div class="vs-grid">
+      <div class="vs-card">
+        <h4 style="color:var(--blue)">Plain Straddle</h4>
+        <ul>
+          <li>ATM Call + Put வாங்கு</li>
+          <li>Movement வேண்டும்</li>
+          <li>Unlimited Profit</li>
+          <li>High Premium cost</li>
+        </ul>
+      </div>
+      <div style="display:flex;justify-content:center;"><div class="vs-label">VS</div></div>
+      <div class="vs-card">
+        <h4 style="color:var(--purple)">Butterfly Straddle</h4>
+        <ul>
+          <li>3 strike combination</li>
+          <li>Sideways market வேண்டும்</li>
+          <li>Limited but steady profit</li>
+          <li>Low net premium</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">புதிய SEBI விதிகள் - Tuesday Expiry Impact</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <h4>Thursday Expiry (பழைய முறை)</h4>
+        <p>வியாழன் 3:30pm வரை options active. அதிக time decay நன்மை.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--green)"></div>
+        <h4>Tuesday Expiry (புதிய முறை - Apr 2026~)</h4>
+        <p>செவ்வாய் 3:30pm expiry. Weekend effect இல்லை. Monday-Tuesday theta decay கவனிக்கவும்.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--yellow)"></div>
+        <h4>உங்கள் Trade Plan மாற்றம்</h4>
+        <p>பழைய: Monday/Tuesday-ல் enter → Thursday exit.<br>புதிய: Friday/Monday-ல் enter → Tuesday exit.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: SETUP -->
+<div id="setup" class="content section">
+  <h2>Butterfly Straddle Setup</h2>
+  <p class="subtitle">4 legs கொண்ட strategy — 2 Sell + 2 Buy</p>
+
+  <div class="info-block">
+    <span class="ico">ℹ️</span>
+    <div><strong>உதாரண Nifty50 Price:</strong> 24,500 | Expiry: Tuesday | ATM Strike: 24,500 | Strike Gap: 100 pts</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">4 Leg Structure</div>
+    <table class="strike-table">
+      <thead>
+        <tr>
+          <th>Leg</th>
+          <th>Action</th>
+          <th>Option Type</th>
+          <th>Strike Price</th>
+          <th>Qty (Lots)</th>
+          <th>Premium (~)</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--muted)">Leg 1</strong></td>
+          <td><span class="badge badge-buy">BUY</span></td>
+          <td>Call (CE)</td>
+          <td><span class="tag">24,400</span> <span style="font-size:11px;color:var(--muted)">(ITM)</span></td>
+          <td>1 lot</td>
+          <td style="color:var(--red)">₹180</td>
+          <td style="color:var(--blue);font-size:12px;">Lower Wing</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--muted)">Leg 2</strong></td>
+          <td><span class="badge badge-sell">SELL</span></td>
+          <td>Call (CE)</td>
+          <td><span class="tag">24,500</span> <span style="font-size:11px;color:var(--blue)">ATM</span></td>
+          <td>2 lots</td>
+          <td style="color:var(--green)">₹120 × 2</td>
+          <td style="color:var(--purple);font-size:12px;">Body (Core Sell)</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--muted)">Leg 3</strong></td>
+          <td><span class="badge badge-buy">BUY</span></td>
+          <td>Call (CE)</td>
+          <td><span class="tag">24,600</span> <span style="font-size:11px;color:var(--muted)">(OTM)</span></td>
+          <td>1 lot</td>
+          <td style="color:var(--red)">₹70</td>
+          <td style="color:var(--blue);font-size:12px;">Upper Wing</td>
+        </tr>
+        <tr style="background:rgba(188,140,255,0.05)">
+          <td colspan="5"><strong>Net Premium (Credit Received)</strong></td>
+          <td><strong style="color:var(--green)">+₹(240-250) = ~₹-10 to +₹10</strong></td>
+          <td style="font-size:12px;">Low cost entry</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid3">
+    <div class="metric">
+      <div class="metric-val green">+₹4,500</div>
+      <div class="metric-label">Max Profit (per lot pair)<br>ATM-ல் expire ஆனால்</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val red">-₹500</div>
+      <div class="metric-label">Max Loss<br>Wings-க்கு வெளியே போனால்</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val yellow">1:9</div>
+      <div class="metric-label">Risk:Reward Ratio<br>சிறந்த ratio</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <div class="card-title">Strike Selection Guide (Nifty50)</div>
+    <div style="font-size:13px;">
+      <div class="calc-row">
+        <span class="calc-label">📍 Current Nifty Price கண்டுபிடி</span>
+        <span style="color:var(--blue)">NSE website / Zerodha Kite-ல் பார்க்கவும்</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">🎯 ATM Strike தேர்வு</span>
+        <span style="color:var(--purple)">நெருங்கிய 50-multiple strike</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">⬇️ Lower Wing (Buy)</span>
+        <span style="color:var(--green)">ATM − 100 points</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">⬆️ Upper Wing (Buy)</span>
+        <span style="color:var(--green)">ATM + 100 points</span>
+      </div>
+      <div class="calc-row" style="border:none;">
+        <span class="calc-label">📅 Entry Timing</span>
+        <span style="color:var(--yellow)">Friday EOD / Monday morning</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: PAYOFF -->
+<div id="payoff" class="content section">
+  <h2>Payoff Diagram</h2>
+  <p class="subtitle">Expiry-ல் Nifty level-க்கு ஏற்ப Profit/Loss</p>
+
+  <div class="card">
+    <div class="card-title">Interactive Payoff Chart — உதாரணம்: ATM = 24,500</div>
+    <div class="chart-wrap">
+      <canvas id="payoffChart" role="img" aria-label="Butterfly Straddle payoff diagram showing profit peak at ATM strike 24500 and losses beyond breakeven points">Payoff chart for butterfly straddle: max profit at 24500, losses beyond 24400 and 24600.</canvas>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="metric">
+      <div class="metric-val" style="color:var(--red)">24,390</div>
+      <div class="metric-label">Lower Breakeven<br>கீழ் இயல்நிலை புள்ளி</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val" style="color:var(--green)">24,500</div>
+      <div class="metric-label">Max Profit Zone<br>சிறந்த Expiry புள்ளி</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val" style="color:var(--red)">24,610</div>
+      <div class="metric-label">Upper Breakeven<br>மேல் இயல்நிலை புள்ளி</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <div class="card-title">Profit/Loss அட்டவணை</div>
+    <table class="strike-table">
+      <thead>
+        <tr>
+          <th>Nifty Expiry Level</th>
+          <th>Market நிலை</th>
+          <th>P&L (per lot)</th>
+          <th>முடிவு</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>24,200</td>
+          <td>தீவிர வீழ்ச்சி</td>
+          <td style="color:var(--red)">-₹500</td>
+          <td><span class="badge" style="background:var(--red-bg);color:var(--red)">Max Loss</span></td>
+        </tr>
+        <tr>
+          <td>24,390</td>
+          <td>Lower Breakeven</td>
+          <td>₹0</td>
+          <td><span class="badge" style="background:var(--bg3);color:var(--muted)">Breakeven</span></td>
+        </tr>
+        <tr>
+          <td>24,450</td>
+          <td>சிறிய வீழ்ச்சி</td>
+          <td style="color:var(--green)">+₹2,000</td>
+          <td><span class="badge" style="background:var(--green-bg);color:var(--green)">Profit</span></td>
+        </tr>
+        <tr style="background:rgba(63,185,80,0.07)">
+          <td><strong>24,500</strong></td>
+          <td><strong>ATM (சிறந்தது!)</strong></td>
+          <td style="color:var(--green)"><strong>+₹4,500</strong></td>
+          <td><span class="badge" style="background:var(--green-bg);color:var(--green)">⭐ Max Profit</span></td>
+        </tr>
+        <tr>
+          <td>24,550</td>
+          <td>சிறிய ஏற்றம்</td>
+          <td style="color:var(--green)">+₹2,000</td>
+          <td><span class="badge" style="background:var(--green-bg);color:var(--green)">Profit</span></td>
+        </tr>
+        <tr>
+          <td>24,610</td>
+          <td>Upper Breakeven</td>
+          <td>₹0</td>
+          <td><span class="badge" style="background:var(--bg3);color:var(--muted)">Breakeven</span></td>
+        </tr>
+        <tr>
+          <td>24,800</td>
+          <td>தீவிர ஏற்றம்</td>
+          <td style="color:var(--red)">-₹500</td>
+          <td><span class="badge" style="background:var(--red-bg);color:var(--red)">Max Loss</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION 4: SCENARIOS -->
+<div id="scenarios" class="content section">
+  <h2>சூழல் பகுப்பாய்வு</h2>
+  <p class="subtitle">நல்ல, கெட்ட, மற்றும் நடுநிலை நிலைமைகள்</p>
+
+  <h3 style="color:var(--green);margin-bottom:0.75rem;">✅ நல்ல சூழல்கள் (Profitable Cases)</h3>
+
+  <div class="scenario scenario-profit">
+    <h4 style="color:var(--green)">🎯 சூழல் 1: Range-Bound Market</h4>
+    <p><strong>என்ன நடக்கும்:</strong> Nifty Monday-ல் 24,480 → Tuesday expiry-ல் 24,510. <br>
+    <strong>ஏன் லாபம்:</strong> ATM-க்கு மிகவும் அருகில் expire ஆகிறது. Theta decay maximum.<br>
+    <strong>உங்கள் P&L:</strong> <span style="color:var(--green)">+₹3,500 to ₹4,500</span></p>
+  </div>
+
+  <div class="scenario scenario-profit">
+    <h4 style="color:var(--green)">📉 சூழல் 2: Slight Pullback</h4>
+    <p><strong>என்ன நடக்கும்:</strong> Nifty 24,600-ல் இருந்து Tuesday-ல் 24,450-க்கு வருகிறது.<br>
+    <strong>ஏன் லாபம்:</strong> Profit zone-ல் expire ஆகிறது. Implied Volatility குறைந்தால் double benefit.<br>
+    <strong>உங்கள் P&L:</strong> <span style="color:var(--green)">+₹1,500 to ₹2,500</span></p>
+  </div>
+
+  <div class="scenario scenario-profit">
+    <h4 style="color:var(--green)">⏱️ சூழல் 3: Theta Decay பயன்</h4>
+    <p><strong>என்ன நடக்கும்:</strong> Market ஒரே இடத்தில் நின்று, நேரம் கடக்கிறது.<br>
+    <strong>ஏன் லாபம்:</strong> நீங்கள் Sell செய்த options value குறைகிறது (Time Decay உங்கள் நண்பன்).<br>
+    <strong>உங்கள் P&L:</strong> <span style="color:var(--green)">Daily +₹300 to ₹600 (last 2 days)</span></p>
+  </div>
+
+  <h3 style="color:var(--red);margin-top:1.5rem;margin-bottom:0.75rem;">❌ கெட்ட சூழல்கள் (Loss Cases)</h3>
+
+  <div class="scenario scenario-loss">
+    <h4 style="color:var(--red)">🔥 சூழல் 4: Strong Breakout</h4>
+    <p><strong>என்ன நடக்கும்:</strong> Nifty திடீரென்று 24,700 தாண்டுகிறது (FII big buy / Global rally).<br>
+    <strong>ஏன் இழப்பு:</strong> Upper wing-க்கு வெளியே போகிறது. Buy wing-கள் loss-ஐ limit செய்யும்.<br>
+    <strong>உங்கள் P&L:</strong> <span style="color:var(--red)">-₹500 (Maximum! Limited loss)</span></p>
+  </div>
+
+  <div class="scenario scenario-loss">
+    <h4 style="color:var(--red)">📉 சூழல் 5: Sharp Fall</h4>
+    <p><strong>என்ன நடக்கும்:</strong> Nifty 24,300 கீழே போகிறது (Market crash / Bad news).<br>
+    <strong>ஏன் இழப்பு:</strong> Lower wing-க்கு வெளியே. ஆனால் loss capped!<br>
+    <strong>உங்கள் P&L:</strong> <span style="color:var(--red)">-₹500 (Maximum! Wings protect you)</span></p>
+  </div>
+
+  <div class="scenario scenario-loss">
+    <h4 style="color:var(--red)">💥 சூழல் 6: VIX Spike</h4>
+    <p><strong>என்ன நடக்கும்:</strong> India VIX திடீரென்று 18 → 25 ஆகிறது.<br>
+    <strong>ஏன் இழப்பு:</strong> Sell செய்த options premium உயரும். Mark-to-market loss.<br>
+    <strong>தீர்வு:</strong> <span style="color:var(--yellow)">Stop loss வை. Positions adjust செய்யலாம்.</span></p>
+  </div>
+
+  <h3 style="color:var(--yellow);margin-top:1.5rem;margin-bottom:0.75rem;">⚖️ நடுநிலை சூழல்கள்</h3>
+
+  <div class="scenario scenario-neutral">
+    <h4 style="color:var(--yellow)">🔄 சூழல் 7: Breakeven Zone-ல் Expire</h4>
+    <p><strong>என்ன நடக்கும்:</strong> Nifty 24,390 அல்லது 24,610-ல் expire ஆகிறது.<br>
+    <strong>முடிவு:</strong> ஏறக்குறைய zero P&L. Premium cost கழித்தால் சிறிய minus.<br>
+    <strong>பாடம்:</strong> <span style="color:var(--yellow)">Strike selection மேலும் கவனமாக செய்யவும்.</span></p>
+  </div>
+
+  <div class="warn-block" style="margin-top:1rem;">
+    <span>⚠️</span>
+    <div><strong>முக்கிய குறிப்பு:</strong> Butterfly Straddle-ல் maximum loss ALWAYS limited. இது option selling-ல் மிகவும் safe strategy. ஆனால் profit-ஐ maximize செய்ய Nifty ATM-ல் expire ஆக வேண்டும். Confidence building-க்கு ideal!</div>
+  </div>
+</div>
+
+<!-- SECTION 5: CALCULATOR -->
+<div id="calculator" class="content section">
+  <h2>Profit/Loss Calculator</h2>
+  <p class="subtitle">உங்கள் trade-ஐ உள்ளிட்டு P&L கணக்கிடவும்</p>
+
+  <div class="card">
+    <div class="card-title">உங்கள் Trade Details</div>
+    <div class="calc-row">
+      <span class="calc-label">📍 ATM Strike Price (₹)</span>
+      <input class="calc-input" id="atmStrike" type="number" value="24500" step="50">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">↔️ Wing Width (points)</span>
+      <input class="calc-input" id="wingWidth" type="number" value="100" step="50">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">💰 ATM Call Premium Sold (₹)</span>
+      <input class="calc-input" id="sellPrem" type="number" value="120" step="5">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">💸 Lower Wing Buy Premium (₹)</span>
+      <input class="calc-input" id="buyLow" type="number" value="180" step="5">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">💸 Upper Wing Buy Premium (₹)</span>
+      <input class="calc-input" id="buyHigh" type="number" value="70" step="5">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">📦 Lot Size (Nifty = 75)</span>
+      <input class="calc-input" id="lotSize" type="number" value="75" step="25">
+    </div>
+    <div class="calc-row" style="border:none;">
+      <span class="calc-label">📅 Expiry-ல் Nifty Level (₹)</span>
+      <input class="calc-input" id="expiryLevel" type="number" value="24500" step="50">
+    </div>
+    <button class="btn" onclick="calculate()">⚡ கணக்கிடு (Calculate)</button>
+  </div>
+
+  <div class="result-box" id="resultBox" style="display:none;">
+    <div class="result-item">
+      <div class="result-val" id="r_netprem">-</div>
+      <div class="result-lbl">Net Premium (Credit/Debit)</div>
+    </div>
+    <div class="result-item">
+      <div class="result-val" id="r_maxprofit">-</div>
+      <div class="result-lbl">Maximum Profit</div>
+    </div>
+    <div class="result-item">
+      <div class="result-val" id="r_maxloss">-</div>
+      <div class="result-lbl">Maximum Loss</div>
+    </div>
+    <div class="result-item">
+      <div class="result-val" id="r_lbe">-</div>
+      <div class="result-lbl">Lower Breakeven</div>
+    </div>
+    <div class="result-item">
+      <div class="result-val" id="r_ube">-</div>
+      <div class="result-lbl">Upper Breakeven</div>
+    </div>
+    <div class="result-item">
+      <div class="result-val" id="r_pnl">-</div>
+      <div class="result-lbl">P&L at Entered Level</div>
+    </div>
+  </div>
+
+  <div id="resultMsg" style="margin-top:1rem;padding:1rem;border-radius:10px;display:none;font-size:13px;"></div>
+</div>
+
+<!-- SECTION 6: BEST PRACTICES -->
+<div id="tips" class="content section">
+  <h2>Best Practices & Tips</h2>
+  <p class="subtitle">அனுபவமிக்க traders பின்பற்றும் விதிகள்</p>
+
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tip-icon">⏰</div>
+      <h4 style="color:var(--purple)">Entry Timing</h4>
+      <p>புதிய Tuesday expiry schedule-ல் <strong>Friday 3pm அல்லது Monday morning</strong> enter செய்யவும். Market open ஆன உடனே அல்ல.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🛑</div>
+      <h4 style="color:var(--red)">Stop Loss விதி</h4>
+      <p>Sell premium-ல் <strong>50% loss</strong> வந்தால் exit செய்யவும். உதாரணம்: ₹120-ல் sell → ₹180 ஆனால் exit.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">📊</div>
+      <h4 style="color:var(--blue)">VIX கண்காணிப்பு</h4>
+      <p>India VIX <strong>12-15 zone</strong>-ல் இருக்கும் போது enter. 18+ ஆனால் strategy avoid செய்யவும்.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">💼</div>
+      <h4 style="color:var(--green)">Position Sizing</h4>
+      <p>Capital-ல் <strong>10-15% மட்டும்</strong> ஒரு trade-ல் போடவும். ஆரம்பத்தில் 1 lot மட்டும்.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🔄</div>
+      <h4 style="color:var(--yellow)">Adjustment Strategy</h4>
+      <p>Market உங்கள் strike-ஐ தாண்டினால், <strong>ATM-ஐ shift</strong> செய்யலாம். Rolling என்று சொல்வார்கள்.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">📝</div>
+      <h4 style="color:var(--accent)">Trade Journal</h4>
+      <p>ஒவ்வொரு trade-ஐயும் எழுதி வையுங்கள். Entry, Exit, P&L, reason. <strong>கற்றுக்கொள்வதே profit.</strong></p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <div class="card-title">🗓️ Weekly Trade Checklist (Tuesday Expiry)</div>
+    <div style="font-size:13px;">
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--muted);min-width:90px;">Friday</span>
+        <span>Market analysis, VIX check, next week trend identify செய்யவும்</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--purple);min-width:90px;">Monday AM</span>
+        <span>Position enter — ATM identify, 4 legs execute. Limit orders use செய்யவும்</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--blue);min-width:90px;">Monday PM</span>
+        <span>Position monitor. Stop loss orders place செய்யவும்</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--green);min-width:90px;">Tuesday AM</span>
+        <span>Final check. Market 100pts உங்களுக்கு எதிராக போனால் consider exit</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 0;">
+        <span style="color:var(--yellow);min-width:90px;">Tuesday 3:15</span>
+        <span>Expiry. Remaining positions auto-expire. P&L note செய்யவும்</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🧠 தவறான நம்பிக்கைகள் (Common Myths)</div>
+    <div style="font-size:13px;">
+      <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--red)">✗ தவறு: </span>"Options selling always profitable"<br>
+        <span style="color:var(--green)">✓ சரி: </span>Butterfly போல் hedged strategies-ல் risk limited ஆனால் market understanding முக்கியம்
+      </div>
+      <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--red)">✗ தவறு: </span>"Last minute-ல் trade close செய்யலாம்"<br>
+        <span style="color:var(--green)">✓ சரி: </span>Expiry day-ல் liquidity குறையும். Tuesday 1pm-க்கு முன்பாகவே consider exit
+      </div>
+      <div style="padding:8px 0;">
+        <span style="color:var(--red)">✗ தவறு: </span>"Maximum lot-ல் trade செய்தால் அதிக profit"<br>
+        <span style="color:var(--green)">✓ சரி: </span>Confidence வரும் வரை 1-2 lots. Capital preservation first!
+      </div>
+    </div>
+  </div>
+
+  <div class="info-block">
+    <span class="ico">💛</span>
+    <div>உங்கள் மனைவியின் journey-க்கு ஒரு சிறிய குறிப்பு: <strong>ஒவ்வொரு ₹500 profit-ம் ஒரு lesson.</strong> Butterfly Straddle-ல் maximum loss ₹500 மட்டுமே (1 lot). அதனால் இது confidence build செய்ய perfect strategy. Paper trading-ல் முதலில் practice செய்யுங்கள்!</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'payoff') setTimeout(drawPayoff, 100);
+}
+
+let payoffChart = null;
+function drawPayoff() {
+  const ctx = document.getElementById('payoffChart');
+  if (!ctx) return;
+  if (payoffChart) payoffChart.destroy();
+
+  const atm = 24500, wing = 100;
+  const netCredit = (120*2) - 180 - 70;
+  const labels = [];
+  const data = [];
+  for (let n = atm - 300; n <= atm + 300; n += 25) {
+    labels.push(n);
+    let pnl;
+    if (n <= atm - wing) pnl = -wing + netCredit;
+    else if (n <= atm) pnl = (n - (atm - wing)) + netCredit;
+    else if (n <= atm + wing) pnl = (atm + wing - n) + netCredit;
+    else pnl = -wing + netCredit;
+    data.push(Math.round(pnl));
+  }
+
+  const colors = data.map(v => v >= 0 ? 'rgba(63,185,80,0.8)' : 'rgba(248,81,73,0.8)');
+  const borderColors = data.map(v => v >= 0 ? '#3fb950' : '#f85149');
+
+  payoffChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'P&L (Points)',
+        data,
+        backgroundColor: colors,
+        borderColor: borderColors,
+        borderWidth: 1,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => 'Nifty: ' + ctx[0].label,
+            label: ctx => 'P&L: ' + (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y + ' pts (' + (ctx.parsed.y >= 0 ? '+' : '') + '₹' + (Math.abs(ctx.parsed.y) * 75).toLocaleString('en-IN') + ')'
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#8b949e',
+            font: { size: 10, family: 'Space Mono' },
+            maxRotation: 45,
+            autoSkip: true,
+            maxTicksLimit: 12
+          },
+          grid: { color: 'rgba(48,54,61,0.5)' }
+        },
+        y: {
+          ticks: { color: '#8b949e', font: { size: 11, family: 'Space Mono' } },
+          grid: { color: 'rgba(48,54,61,0.5)' },
+          title: { display: true, text: 'Profit / Loss (Points)', color: '#8b949e', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function calculate() {
+  const atm = parseFloat(document.getElementById('atmStrike').value);
+  const wing = parseFloat(document.getElementById('wingWidth').value);
+  const sellPrem = parseFloat(document.getElementById('sellPrem').value);
+  const buyLow = parseFloat(document.getElementById('buyLow').value);
+  const buyHigh = parseFloat(document.getElementById('buyHigh').value);
+  const lotSize = parseFloat(document.getElementById('lotSize').value);
+  const expLevel = parseFloat(document.getElementById('expiryLevel').value);
+
+  const netCredit = (sellPrem * 2) - buyLow - buyHigh;
+  const maxProfit = wing + netCredit;
+  const maxLoss = -wing + netCredit;
+  const lbe = atm - wing - netCredit;
+  const ube = atm + wing + netCredit;
+
+  let pnl;
+  if (expLevel <= atm - wing) pnl = maxLoss;
+  else if (expLevel <= atm) pnl = (expLevel - (atm - wing)) + netCredit;
+  else if (expLevel <= atm + wing) pnl = (atm + wing - expLevel) + netCredit;
+  else pnl = maxLoss;
+
+  document.getElementById('r_netprem').textContent = (netCredit >= 0 ? '+' : '') + '₹' + netCredit.toFixed(0);
+  document.getElementById('r_netprem').style.color = netCredit >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('r_maxprofit').textContent = '+₹' + (maxProfit * lotSize).toLocaleString('en-IN');
+  document.getElementById('r_maxprofit').style.color = 'var(--green)';
+  document.getElementById('r_maxloss').textContent = '-₹' + Math.abs(maxLoss * lotSize).toLocaleString('en-IN');
+  document.getElementById('r_maxloss').style.color = 'var(--red)';
+  document.getElementById('r_lbe').textContent = lbe.toFixed(0);
+  document.getElementById('r_ube').textContent = ube.toFixed(0);
+  document.getElementById('r_pnl').textContent = (pnl >= 0 ? '+' : '') + '₹' + (pnl * lotSize).toLocaleString('en-IN');
+  document.getElementById('r_pnl').style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+  document.getElementById('resultBox').style.display = 'grid';
+
+  const msg = document.getElementById('resultMsg');
+  if (pnl > 0) {
+    msg.style.background = 'var(--green-bg)';
+    msg.style.border = '1px solid rgba(63,185,80,0.3)';
+    msg.innerHTML = '✅ <strong>லாப நிலை!</strong> Nifty ' + expLevel + '-ல் expire ஆனால் ' + (pnl >= 0 ? '+' : '') + '₹' + (pnl * lotSize).toLocaleString('en-IN') + ' profit. ATM-ல் இருக்கும் வரை நல்ல நிலை!';
+  } else if (pnl === 0) {
+    msg.style.background = 'var(--yellow-bg)';
+    msg.style.border = '1px solid rgba(210,153,34,0.3)';
+    msg.innerHTML = '⚖️ <strong>Breakeven நிலை.</strong> Loss இல்லை, Profit இல்லை. Strike selection-ஐ reconsider செய்யவும்.';
+  } else {
+    msg.style.background = 'var(--red-bg)';
+    msg.style.border = '1px solid rgba(248,81,73,0.3)';
+    msg.innerHTML = '❌ <strong>இழப்பு நிலை.</strong> Maximum loss: -₹' + Math.abs(maxLoss * lotSize).toLocaleString('en-IN') + '. Wings hedge செய்துள்ளதால் இதற்கு மேல் போகாது.';
+  }
+  msg.style.display = 'block';
+}
+
+window.onload = () => {
+  if (document.getElementById('payoff').classList.contains('active')) drawPayoff();
+};
+</script>
+</body>
+</html>

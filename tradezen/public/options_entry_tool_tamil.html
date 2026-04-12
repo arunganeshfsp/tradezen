@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options Entry Tool · Nifty50 · தமிழ்</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080f1a;
+  --bg2:      #0d1825;
+  --bg3:      #111f30;
+  --bg4:      #162540;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.14);
+  --text:     #e2eaf4;
+  --muted:    #7a8fa8;
+  --faint:    #3a4e62;
+  --green:    #22d47a;
+  --green2:   #0f7a43;
+  --green-bg: rgba(34,212,122,0.08);
+  --red:      #f05252;
+  --red2:     #8b1a1a;
+  --red-bg:   rgba(240,82,82,0.08);
+  --amber:    #f5a623;
+  --amber-bg: rgba(245,166,35,0.08);
+  --blue:     #4da6ff;
+  --blue-bg:  rgba(77,166,255,0.08);
+  --teal:     #2dd4bf;
+  --teal-bg:  rgba(45,212,191,0.08);
+  --gold:     #ffd700;
+  --accent:   #4da6ff;
+  --radius:   12px;
+  --radius-sm: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* animated grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(77,166,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(77,166,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -30%; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, rgba(77,166,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  animation: fadeDown 0.6s ease both;
+}
+.header .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(77,166,255,0.12);
+  border: 1px solid rgba(77,166,255,0.25);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 11px;
+  color: var(--blue);
+  letter-spacing: 1.5px;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 1rem;
+}
+.header h1 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+}
+.header h1 span { color: var(--blue); }
+.header p { color: var(--muted); font-size: 13px; }
+
+/* ── SETUP PANEL ── */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.5s 0.1s ease both;
+}
+.setup-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.setup-card label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.setup-card input, .setup-card select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 8px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.setup-card input:focus, .setup-card select:focus {
+  border-color: var(--blue);
+}
+.setup-card select option { background: var(--bg3); }
+
+/* ── INDICATOR CARDS ── */
+.section-title {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 1.5rem 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.ind-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  transition: border-color 0.25s, background 0.25s;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.5s ease both;
+}
+.ind-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--faint);
+  border-radius: 3px 0 0 3px;
+  transition: background 0.25s;
+}
+.ind-card.state-yes { border-color: rgba(34,212,122,0.3); background: rgba(34,212,122,0.04); }
+.ind-card.state-yes::before { background: var(--green); }
+.ind-card.state-no  { border-color: rgba(240,82,82,0.3);  background: rgba(240,82,82,0.04); }
+.ind-card.state-no::before  { background: var(--red); }
+.ind-card.state-na  { border-color: rgba(245,166,35,0.3);  background: rgba(245,166,35,0.04); }
+.ind-card.state-na::before  { background: var(--amber); }
+
+.ind-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.6rem;
+  gap: 8px;
+}
+.ind-icon { font-size: 20px; flex-shrink: 0; }
+.ind-name { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 1px; }
+.ind-sub  { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.ind-weight {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--bg4);
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ind-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+.ind-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 0.75rem;
+}
+.rule-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--bg3);
+}
+.rule-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-ce { background: var(--green); }
+.dot-pe { background: var(--red); }
+.dot-warn { background: var(--amber); }
+.rule-txt { flex: 1; }
+.rule-txt .tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 3px;
+}
+.tag-ce { background: rgba(34,212,122,0.15); color: var(--green); }
+.tag-pe { background: rgba(240,82,82,0.15); color: var(--red); }
+.tag-warn { background: rgba(245,166,35,0.15); color: var(--amber); }
+
+/* signal toggle */
+.sig-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.sig-label { font-size: 11px; color: var(--muted); margin-right: 2px; }
+.sig-btn {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'Noto Sans Tamil', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+}
+.sig-btn:hover { border-color: var(--border2); background: var(--bg4); }
+.sig-btn.active-yes { background: var(--green-bg); border-color: rgba(34,212,122,0.4); color: var(--green); font-weight: 600; }
+.sig-btn.active-no  { background: var(--red-bg);   border-color: rgba(240,82,82,0.4);  color: var(--red);   font-weight: 600; }
+.sig-btn.active-na  { background: var(--amber-bg); border-color: rgba(245,166,35,0.4); color: var(--amber); font-weight: 600; }
+
+/* ── VERDICT PANEL ── */
+.verdict-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.verdict-panel.verd-buy-ce  { border-color: rgba(34,212,122,0.4); }
+.verdict-panel.verd-buy-pe  { border-color: rgba(240,82,82,0.4); }
+.verdict-panel.verd-wait    { border-color: rgba(245,166,35,0.4); }
+.verdict-panel.verd-skip    { border-color: rgba(240,82,82,0.3); }
+
+.verdict-glow {
+  position: absolute;
+  top: 0; right: 0;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.06;
+  transition: background 0.3s;
+}
+.verd-buy-ce  .verdict-glow { background: radial-gradient(circle, var(--green), transparent); }
+.verd-buy-pe  .verdict-glow { background: radial-gradient(circle, var(--red),   transparent); }
+.verd-wait    .verdict-glow { background: radial-gradient(circle, var(--amber), transparent); }
+
+.verdict-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.verdict-icon { font-size: 3rem; line-height: 1; }
+.verdict-title { font-size: 1.5rem; font-weight: 700; color: #fff; }
+.verdict-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.score-bar-wrap { margin-bottom: 1rem; }
+.score-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.score-bar {
+  height: 8px;
+  background: var(--bg4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.score-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.3s;
+  background: var(--faint);
+}
+
+.verdict-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+@media(max-width:550px){ .verdict-checklist{ grid-template-columns:1fr; } }
+.vcheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--bg3);
+}
+.vcheck-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.vcheck.pass .vcheck-dot { background: var(--green); }
+.vcheck.fail .vcheck-dot { background: var(--red); }
+.vcheck.skip-c .vcheck-dot { background: var(--amber); }
+
+.verdict-action {
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.6;
+  border: 1px solid var(--border);
+}
+
+/* ── OI TABLE ── */
+.oi-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.5s 0.3s ease both;
+}
+.oi-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+.oi-side { display: flex; flex-direction: column; gap: 6px; }
+.oi-item {
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+.oi-strike { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.oi-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.oi-ce { color: var(--green); background: var(--green-bg); }
+.oi-pe { color: var(--red);   background: var(--red-bg); }
+.oi-center {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.oi-center .spot-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--blue);
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.oi-signal {
+  display: flex;
+  gap: 6px;
+  margin-top: 0.75rem;
+}
+.oi-signal-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--muted);
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+}
+.oi-signal-btn.active { font-weight: 600; }
+.oi-signal-btn.oi-ce-active { background: var(--green-bg); border-color: rgba(34,212,122,0.4); color: var(--green); }
+.oi-signal-btn.oi-pe-active { background: var(--red-bg);   border-color: rgba(240,82,82,0.4);  color: var(--red); }
+.oi-signal-btn.oi-neutral   { background: var(--amber-bg); border-color: rgba(245,166,35,0.4); color: var(--amber); }
+
+/* ── QUICK REFERENCE ── */
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.ref-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.ref-title {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.6rem;
+}
+.ref-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.ref-item:last-child { border: none; }
+.ref-item .ref-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+/* ── RESET BTN ── */
+.reset-btn {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 2rem;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.reset-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+
+/* ── animations ── */
+@keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+.pulse { animation: pulse 1.5s infinite; }
+
+/* ── responsive ── */
+@media(max-width:600px){
+  .indicators-grid { grid-template-columns: 1fr; }
+  .oi-grid { grid-template-columns: 1fr; }
+  .oi-center { order: -1; }
+}
+</style>
+</head>
+<body>
+<style>.tz-nav{position:sticky;top:0;z-index:9999;background:rgba(7,16,29,0.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:sans-serif;}.tz-nav-inner{max-width:1100px;margin:0 auto;height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:8px;}.tz-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}.tz-logo-mark{width:30px;height:30px;background:#2dd4bf;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#07101d;flex-shrink:0;font-family:monospace;}.tz-logo-txt{font-family:monospace;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px;}.tz-logo-txt span{color:#2dd4bf;}.tz-links{display:flex;gap:2px;margin-left:auto;}.tz-links a{text-decoration:none;color:#6e87a2;font-size:12px;padding:5px 11px;border-radius:8px;transition:all 0.18s;white-space:nowrap;}.tz-links a:hover{color:#dce8f5;background:rgba(255,255,255,0.07);}@media(max-width:600px){.tz-links .tz-hide{display:none;}}</style><nav class="tz-nav"><div class="tz-nav-inner"><a href="index.html" class="tz-logo"><div class="tz-logo-mark">TZ</div><span class="tz-logo-txt">Trade<span>Zen</span></span></a><div class="tz-links"><a href="butterfly_straddle_tamil.html" class="tz-hide">🦋 Butterfly</a><a href="options_entry_tool_tamil.html" class="tz-hide">🎯 Entry Tool</a><a href="theta_decay_tamil.html" class="tz-hide">⏳ Theta</a><a href="contact.html" class="tz-hide">✉ Contact</a><a href="index.html" style="background:rgba(45,212,191,0.12);color:#2dd4bf;">⌂ Home</a></div></div></nav>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="badge">NIFTY 50 · OPTIONS ENTRY · DECISION TOOL</div>
+  <h1>Options Entry <span>முடிவு கருவி</span></h1>
+  <p>Support &amp; Resistance புள்ளிகள் கொடுத்து — சரியான entry signal கண்டுபிடிக்கவும்</p>
+</div>
+
+<!-- SETUP -->
+<div class="section-title">அமைப்பு — இன்றைய தரவு</div>
+<div class="setup-grid">
+  <div class="setup-card">
+    <label>NIFTY SPOT (தற்போது)</label>
+    <input type="number" id="spotPrice" placeholder="24500" value="" oninput="updateOICenter()">
+  </div>
+  <div class="setup-card">
+    <label>HIGH BREAKING POINT (எதிர்ப்பு)</label>
+    <input type="number" id="highBP" placeholder="24600" value="">
+  </div>
+  <div class="setup-card">
+    <label>LOW BREAKING POINT (ஆதரவு)</label>
+    <input type="number" id="lowBP" placeholder="24400" value="">
+  </div>
+  <div class="setup-card">
+    <label>INDIA VIX</label>
+    <input type="number" id="vixVal" placeholder="13.5" step="0.1" value="" oninput="updateVIX()">
+  </div>
+  <div class="setup-card">
+    <label>TRADE DIRECTION</label>
+    <select id="tradeDir" onchange="updateVerdict()">
+      <option value="">— தேர்வு செய்யவும் —</option>
+      <option value="CE">CE வாங்க (Bullish)</option>
+      <option value="PE">PE வாங்க (Bearish)</option>
+    </select>
+  </div>
+  <div class="setup-card">
+    <label>TIMEFRAME</label>
+    <select id="timeframe">
+      <option value="5">5 நிமிட Chart</option>
+      <option value="15">15 நிமிட Chart</option>
+      <option value="3">3 நிமிட Chart</option>
+    </select>
+  </div>
+</div>
+
+<!-- INDICATORS -->
+<div class="section-title">5 முக்கிய Indicators</div>
+<div class="indicators-grid" id="indicatorsGrid">
+
+  <!-- 1. CANDLE -->
+  <div class="ind-card" id="card-candle">
+    <div class="ind-header">
+      <div>
+        <div class="ind-name">🕯️ Candlestick Pattern</div>
+        <div class="ind-sub">S&amp;R-ல் candle confirmation</div>
+      </div>
+      <div class="ind-weight" id="w-candle">முக்கியம் #1</div>
+    </div>
+    <div class="ind-desc">
+      Support அல்லது Resistance-ல் price touch ஆகும்போது <strong>5 நிமிட candle close</strong> பார்க்கவும். இது மிக முக்கியமான confirmation. Candle இல்லாமல் entry வேண்டாம்.
+    </div>
+    <div class="ind-rules">
+      <div class="rule-row">
+        <div class="rule-dot dot-ce"></div>
+        <div class="rule-txt"><span class="tag tag-ce">CE வாங்க</span> Low BP-ல் Hammer / Bullish Engulfing candle</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-pe"></div>
+        <div class="rule-txt"><span class="tag tag-pe">PE வாங்க</span> High BP-ல் Shooting Star / Bearish Engulfing candle</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-warn"></div>
+        <div class="rule-txt"><span class="tag tag-warn">தவிர்</span> Doji / Spinning top மட்டும் தெரிந்தால் — wait செய்யவும்</div>
+      </div>
+    </div>
+    <div class="sig-row">
+      <span class="sig-label">Signal:</span>
+      <button class="sig-btn" onclick="setSignal('candle','yes',this)">✓ உள்ளது</button>
+      <button class="sig-btn" onclick="setSignal('candle','no',this)">✗ இல்லை</button>
+      <button class="sig-btn" onclick="setSignal('candle','na',this)">~ தெளிவில்லை</button>
+    </div>
+  </div>
+
+  <!-- 2. RSI -->
+  <div class="ind-card" id="card-rsi">
+    <div class="ind-header">
+      <div>
+        <div class="ind-name">📊 RSI (14)</div>
+        <div class="ind-sub">Relative Strength Index</div>
+      </div>
+      <div class="ind-weight">முக்கியம் #2</div>
+    </div>
+    <div class="ind-desc">
+      RSI 0–100 scale. <strong>40 கீழே</strong> oversold (CE வாய்ப்பு), <strong>60 மேலே</strong> overbought (PE வாய்ப்பு). RSI Divergence மிகவும் powerful signal.
+    </div>
+    <div class="ind-rules">
+      <div class="rule-row">
+        <div class="rule-dot dot-ce"></div>
+        <div class="rule-txt"><span class="tag tag-ce">CE</span> RSI &lt; 40 + திரும்பி மேலே வருகிறது — strong buy</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-ce"></div>
+        <div class="rule-txt"><span class="tag tag-ce">Divergence</span> Price கீழே போகிறது, RSI மேலே வருகிறது</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-pe"></div>
+        <div class="rule-txt"><span class="tag tag-pe">PE</span> RSI &gt; 60 + flat ஆகுது / கீழே திரும்புகிறது</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-warn"></div>
+        <div class="rule-txt"><span class="tag tag-warn">தவிர்</span> RSI 70+ ஆனால் CE வாங்காதீர்கள் — late entry</div>
+      </div>
+    </div>
+    <div style="margin-bottom:0.75rem;">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;font-family:'JetBrains Mono',monospace;">தற்போதைய RSI மதிப்பு:</label>
+      <input type="range" id="rsiSlider" min="0" max="100" value="50" step="1" oninput="updateRSI()" style="width:100%;accent-color:var(--blue);">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:3px;">
+        <span style="color:var(--green)">0 — Oversold</span>
+        <span id="rsiDisplay" style="color:var(--blue);font-weight:600;">50</span>
+        <span style="color:var(--red)">100 — Overbought</span>
+      </div>
+    </div>
+    <div class="sig-row">
+      <span class="sig-label">Signal:</span>
+      <button class="sig-btn" onclick="setSignal('rsi','yes',this)">✓ சாதகம்</button>
+      <button class="sig-btn" onclick="setSignal('rsi','no',this)">✗ எதிர்</button>
+      <button class="sig-btn" onclick="setSignal('rsi','na',this)">~ நடுவில்</button>
+    </div>
+  </div>
+
+  <!-- 3. VWAP -->
+  <div class="ind-card" id="card-vwap">
+    <div class="ind-header">
+      <div>
+        <div class="ind-name">📈 VWAP</div>
+        <div class="ind-sub">Volume Weighted Average Price</div>
+      </div>
+      <div class="ind-weight">முக்கியம் #3</div>
+    </div>
+    <div class="ind-desc">
+      VWAP = intraday-ல் மிக முக்கியமான dynamic support/resistance. Price VWAP-க்கு மேலே = bullish, கீழே = bearish. ஒவ்வொரு நாளும் reset ஆகும்.
+    </div>
+    <div class="ind-rules">
+      <div class="rule-row">
+        <div class="rule-dot dot-ce"></div>
+        <div class="rule-txt"><span class="tag tag-ce">CE</span> Support bounce + VWAP-ஐ reclaim செய்கிறது — strong CE signal</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-pe"></div>
+        <div class="rule-txt"><span class="tag tag-pe">PE</span> Resistance reject + VWAP கீழே உடைகிறது — PE buy</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-warn"></div>
+        <div class="rule-txt"><span class="tag tag-warn">கவனம்</span> VWAP-கிட்டே இருக்கும்போது — direction தெளிவில்லை</div>
+      </div>
+    </div>
+    <div class="sig-row">
+      <span class="sig-label">Price vs VWAP:</span>
+      <button class="sig-btn" onclick="setSignal('vwap','yes',this)">↑ மேலே</button>
+      <button class="sig-btn" onclick="setSignal('vwap','no',this)">↓ கீழே</button>
+      <button class="sig-btn" onclick="setSignal('vwap','na',this)">~ அருகில்</button>
+    </div>
+  </div>
+
+  <!-- 4. VOLUME -->
+  <div class="ind-card" id="card-volume">
+    <div class="ind-header">
+      <div>
+        <div class="ind-name">📦 Volume</div>
+        <div class="ind-sub">Spot market volume confirmation</div>
+      </div>
+      <div class="ind-weight">முக்கியம் #4</div>
+    </div>
+    <div class="ind-desc">
+      S&amp;R-ல் bounce/break ஆகும் candle-ல் <strong>volume அதிகமாக</strong> இருக்க வேண்டும். Low volume reversal = weak signal. Options volume அல்ல — Nifty Spot volume பார்க்கவும்.
+    </div>
+    <div class="ind-rules">
+      <div class="rule-row">
+        <div class="rule-dot dot-ce"></div>
+        <div class="rule-txt"><span class="tag tag-ce">Strong</span> S&amp;R candle-ல் volume 20-candle avg-ஐ விட அதிகம்</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-pe"></div>
+        <div class="rule-txt"><span class="tag tag-pe">Strong</span> Resistance reject candle high volume உடன் உள்ளது</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-warn"></div>
+        <div class="rule-txt"><span class="tag tag-warn">Weak</span> Low volume bounce — fail ஆகலாம், entry postpone</div>
+      </div>
+    </div>
+    <div class="sig-row">
+      <span class="sig-label">Volume:</span>
+      <button class="sig-btn" onclick="setSignal('volume','yes',this)">↑ அதிகம்</button>
+      <button class="sig-btn" onclick="setSignal('volume','no',this)">↓ குறைவு</button>
+      <button class="sig-btn" onclick="setSignal('volume','na',this)">~ சாதாரண</button>
+    </div>
+  </div>
+
+  <!-- 5. OI -->
+  <div class="ind-card" id="card-oi">
+    <div class="ind-header">
+      <div>
+        <div class="ind-name">📋 Open Interest (OI)</div>
+        <div class="ind-sub">Options Chain Analysis</div>
+      </div>
+      <div class="ind-weight">முக்கியம் #5</div>
+    </div>
+    <div class="ind-desc">
+      OI = எத்தனை traders open position வைத்திருக்கிறார்கள். அதிக CE OI = sellers defend (resistance strong). அதிக PE OI = support strong. OI unwinding = move genuine.
+    </div>
+    <div class="ind-rules">
+      <div class="rule-row">
+        <div class="rule-dot dot-ce"></div>
+        <div class="rule-txt"><span class="tag tag-ce">CE buy</span> PE OI குறைகிறது (PE writers close ஆகுது) — CE buy confirm</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-pe"></div>
+        <div class="rule-txt"><span class="tag tag-pe">PE buy</span> CE OI குறைகிறது — CE sellers exit = bearish move</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-warn"></div>
+        <div class="rule-txt"><span class="tag tag-warn">கவனம்</span> ATM-ல் 80L+ OI build up = sellers strongly defending</div>
+      </div>
+    </div>
+    <div class="sig-row">
+      <span class="sig-label">OI Signal:</span>
+      <button class="sig-btn" onclick="setSignal('oi','yes',this)">✓ சாதகம்</button>
+      <button class="sig-btn" onclick="setSignal('oi','no',this)">✗ எதிர்</button>
+      <button class="sig-btn" onclick="setSignal('oi','na',this)">~ நடுவில்</button>
+    </div>
+  </div>
+
+  <!-- BONUS: VIX -->
+  <div class="ind-card" id="card-vix">
+    <div class="ind-header">
+      <div>
+        <div class="ind-name">⚡ India VIX</div>
+        <div class="ind-sub">Volatility Index — premium cost</div>
+      </div>
+      <div class="ind-weight" id="vix-badge">சரிபார்</div>
+    </div>
+    <div class="ind-desc">
+      VIX = options-ல் எவ்வளவு premium செலுத்துகிறோம். <strong>VIX குறைவாக</strong> இருக்கும்போது options buy cheap ஆக இருக்கும். VIX அதிகமாக இருந்தால் — அதிக premium + IV crush risk.
+    </div>
+    <div class="ind-rules">
+      <div class="rule-row">
+        <div class="rule-dot dot-ce"></div>
+        <div class="rule-txt"><span class="tag tag-ce">சிறந்தது</span> VIX 10–15 — low premium, options buy ideal</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-warn"></div>
+        <div class="rule-txt"><span class="tag tag-warn">கவனம்</span> VIX 15–20 — premium அதிகம், tight SL வேண்டும்</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-dot dot-pe"></div>
+        <div class="rule-txt"><span class="tag tag-warn">தவிர்</span> VIX 20+ — IV crush risk, options buy avoid</div>
+      </div>
+    </div>
+    <div id="vixStatus" style="padding:8px;border-radius:6px;background:var(--bg3);font-size:12px;text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+      VIX மதிப்பு enter செய்யவும் ↑
+    </div>
+  </div>
+
+</div>
+
+<!-- OI CHAIN QUICK READ -->
+<div class="section-title">Options Chain — OI பகுப்பாய்வு</div>
+<div class="oi-section">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:0.5rem;">Strike-களில் OI பார்த்து signal தேர்வு செய்யவும் (NSE Options Chain page-ல் இருந்து)</div>
+  <div class="oi-grid">
+    <div>
+      <div style="font-size:11px;color:var(--green);font-family:'JetBrains Mono',monospace;margin-bottom:6px;text-align:center;">CE OI (லட்சத்தில்)</div>
+      <div class="oi-side" id="ceOiSide">
+        <div class="oi-item"><span class="oi-strike" id="ce1-strike">ATM+100</span><input type="number" placeholder="OI" style="width:70px;background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--text);padding:3px 6px;font-size:11px;font-family:'JetBrains Mono',monospace;"></div>
+        <div class="oi-item"><span class="oi-strike" id="ce2-strike">ATM+50</span><input type="number" placeholder="OI" style="width:70px;background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--text);padding:3px 6px;font-size:11px;font-family:'JetBrains Mono',monospace;"></div>
+        <div class="oi-item" style="border:1px solid rgba(77,166,255,0.3);"><span class="oi-strike" id="ce3-strike" style="color:var(--blue);">ATM</span><input type="number" placeholder="OI" style="width:70px;background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--blue);padding:3px 6px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;"></div>
+      </div>
+    </div>
+    <div class="oi-center">
+      <span style="font-size:11px;color:var(--muted);">SPOT</span>
+      <span class="spot-val" id="oiSpotDisplay">—</span>
+      <div style="margin-top:8px;font-size:10px;color:var(--faint);">↑ CE sells<br>↓ PE sells</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--red);font-family:'JetBrains Mono',monospace;margin-bottom:6px;text-align:center;">PE OI (லட்சத்தில்)</div>
+      <div class="oi-side">
+        <div class="oi-item" style="border:1px solid rgba(77,166,255,0.3);"><span class="oi-strike" id="pe1-strike" style="color:var(--blue);">ATM</span><input type="number" placeholder="OI" style="width:70px;background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--red);padding:3px 6px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;"></div>
+        <div class="oi-item"><span class="oi-strike" id="pe2-strike">ATM-50</span><input type="number" placeholder="OI" style="width:70px;background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--text);padding:3px 6px;font-size:11px;font-family:'JetBrains Mono',monospace;"></div>
+        <div class="oi-item"><span class="oi-strike" id="pe3-strike">ATM-100</span><input type="number" placeholder="OI" style="width:70px;background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--text);padding:3px 6px;font-size:11px;font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="oi-signal">
+    <button class="oi-signal-btn" onclick="setOISignal('ce',this)">📗 CE சாதகம்<br><span style="font-size:10px;">PE OI குறைகிறது</span></button>
+    <button class="oi-signal-btn" onclick="setOISignal('neutral',this)">📘 நடுவில்<br><span style="font-size:10px;">Both OI stable</span></button>
+    <button class="oi-signal-btn" onclick="setOISignal('pe',this)">📕 PE சாதகம்<br><span style="font-size:10px;">CE OI குறைகிறது</span></button>
+  </div>
+</div>
+
+<!-- VERDICT -->
+<div class="section-title">இறுதி முடிவு — Entry Signal</div>
+<div class="verdict-panel" id="verdictPanel">
+  <div class="verdict-glow"></div>
+  <div class="verdict-top">
+    <div class="verdict-icon" id="verdictIcon">⏳</div>
+    <div>
+      <div class="verdict-title" id="verdictTitle">Indicators பூர்த்தி செய்யவும்</div>
+      <div class="verdict-sub" id="verdictSub">மேலே உள்ள அனைத்து signals-ஐயும் select செய்யவும்</div>
+    </div>
+  </div>
+  <div class="score-bar-wrap">
+    <div class="score-label">
+      <span>Score</span>
+      <span id="scoreText">0 / 5 signals</span>
+    </div>
+    <div class="score-bar">
+      <div class="score-fill" id="scoreFill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="verdict-checklist" id="verdictChecklist"></div>
+  <div class="verdict-action" id="verdictAction" style="background:var(--bg3);color:var(--muted);">
+    அனைத்து indicators-ஐயும் check செய்த பிறகு entry decision இங்கே தெரியும்.
+  </div>
+</div>
+
+<!-- QUICK REFERENCE -->
+<div class="section-title">விரைவு குறிப்பு</div>
+<div class="ref-grid">
+  <div class="ref-card">
+    <div class="ref-title">VIX Zone</div>
+    <div class="ref-item"><span>10–15</span><span class="ref-val" style="color:var(--green)">Buy ideal</span></div>
+    <div class="ref-item"><span>15–18</span><span class="ref-val" style="color:var(--amber)">கவனம்</span></div>
+    <div class="ref-item"><span>18–20</span><span class="ref-val" style="color:var(--red)">SL tight</span></div>
+    <div class="ref-item"><span>20+</span><span class="ref-val" style="color:var(--red)">தவிர்</span></div>
+  </div>
+  <div class="ref-card">
+    <div class="ref-title">RSI Zone</div>
+    <div class="ref-item"><span>&lt; 30</span><span class="ref-val" style="color:var(--green)">CE strong buy</span></div>
+    <div class="ref-item"><span>30–40</span><span class="ref-val" style="color:var(--green)">CE watch</span></div>
+    <div class="ref-item"><span>40–60</span><span class="ref-val" style="color:var(--amber)">Neutral zone</span></div>
+    <div class="ref-item"><span>60–70</span><span class="ref-val" style="color:var(--red)">PE watch</span></div>
+    <div class="ref-item"><span>&gt; 70</span><span class="ref-val" style="color:var(--red)">PE strong</span></div>
+  </div>
+  <div class="ref-card">
+    <div class="ref-title">Entry Score Rule</div>
+    <div class="ref-item"><span>5/5 signals</span><span class="ref-val" style="color:var(--green)">Strong entry</span></div>
+    <div class="ref-item"><span>4/5 signals</span><span class="ref-val" style="color:var(--green)">Enter</span></div>
+    <div class="ref-item"><span>3/5 signals</span><span class="ref-val" style="color:var(--amber)">Small qty</span></div>
+    <div class="ref-item"><span>2/5 அல்லது குறைவு</span><span class="ref-val" style="color:var(--red)">Skip</span></div>
+  </div>
+  <div class="ref-card">
+    <div class="ref-title">Candle Patterns</div>
+    <div class="ref-item"><span>Hammer</span><span class="ref-val" style="color:var(--green)">CE buy</span></div>
+    <div class="ref-item"><span>Bullish Engulf</span><span class="ref-val" style="color:var(--green)">CE buy</span></div>
+    <div class="ref-item"><span>Shooting Star</span><span class="ref-val" style="color:var(--red)">PE buy</span></div>
+    <div class="ref-item"><span>Bear Engulf</span><span class="ref-val" style="color:var(--red)">PE buy</span></div>
+    <div class="ref-item"><span>Doji</span><span class="ref-val" style="color:var(--amber)">Wait</span></div>
+  </div>
+  <div class="ref-card">
+    <div class="ref-title">Time Rules</div>
+    <div class="ref-item"><span>9:15–9:30</span><span class="ref-val" style="color:var(--amber)">Market open — wait</span></div>
+    <div class="ref-item"><span>9:30–11:30</span><span class="ref-val" style="color:var(--green)">Best window</span></div>
+    <div class="ref-item"><span>11:30–2:00</span><span class="ref-val" style="color:var(--amber)">Low liquidity</span></div>
+    <div class="ref-item"><span>2:00–3:00</span><span class="ref-val" style="color:var(--green)">Good window</span></div>
+    <div class="ref-item"><span>3:00–3:30</span><span class="ref-val" style="color:var(--red)">Theta — avoid buy</span></div>
+  </div>
+  <div class="ref-card">
+    <div class="ref-title">Stop Loss Guide</div>
+    <div class="ref-item"><span>CE buy SL</span><span class="ref-val" style="color:var(--red)">Low BP கீழ் close</span></div>
+    <div class="ref-item"><span>PE buy SL</span><span class="ref-val" style="color:var(--red)">High BP மேல் close</span></div>
+    <div class="ref-item"><span>Max loss</span><span class="ref-val" style="color:var(--red)">Premium 40-50%</span></div>
+    <div class="ref-item"><span>Trail SL</span><span class="ref-val" style="color:var(--green)">30 pts profit பிறகு</span></div>
+  </div>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">↺ அனைத்தையும் Reset செய்யவும்</button>
+
+</div><!-- wrap -->
+
+<script>
+const signals = { candle: null, rsi: null, vwap: null, volume: null, oi: null };
+let oiSignal = null;
+
+function setSignal(key, val, btn) {
+  signals[key] = val;
+  const card = document.getElementById('card-' + key);
+  const btns = btn.parentElement.querySelectorAll('.sig-btn');
+  btns.forEach(b => { b.classList.remove('active-yes','active-no','active-na'); });
+  btn.classList.add('active-' + val);
+  card.className = 'ind-card state-' + val;
+  updateVerdict();
+}
+
+function setOISignal(val, btn) {
+  oiSignal = val;
+  signals.oi = (val === 'neutral') ? 'na' : 'yes';
+  document.querySelectorAll('.oi-signal-btn').forEach(b => {
+    b.classList.remove('oi-ce-active','oi-pe-active','oi-neutral','active');
+  });
+  if (val === 'ce')      btn.classList.add('oi-ce-active','active');
+  else if (val === 'pe') btn.classList.add('oi-pe-active','active');
+  else                   btn.classList.add('oi-neutral','active');
+
+  // sync oi card buttons
+  const oiBtns = document.querySelectorAll('#card-oi .sig-btn');
+  oiBtns.forEach(b => b.classList.remove('active-yes','active-no','active-na'));
+  if (val !== 'neutral') oiBtns[0].classList.add('active-yes');
+  else                   oiBtns[2].classList.add('active-na');
+  document.getElementById('card-oi').className = 'ind-card state-' + signals.oi;
+  updateVerdict();
+}
+
+function updateRSI() {
+  const v = parseInt(document.getElementById('rsiSlider').value);
+  document.getElementById('rsiDisplay').textContent = v;
+  document.getElementById('rsiDisplay').style.color =
+    v < 30 ? 'var(--green)' : v > 70 ? 'var(--red)' : v < 45 ? '#7ade9a' : v > 55 ? '#f08080' : 'var(--blue)';
+}
+
+function updateVIX() {
+  const v = parseFloat(document.getElementById('vixVal').value);
+  const el = document.getElementById('vixStatus');
+  const badge = document.getElementById('vix-badge');
+  if (isNaN(v)) { el.textContent = 'VIX மதிப்பு enter செய்யவும் ↑'; el.style.color = 'var(--muted)'; return; }
+  const card = document.getElementById('card-vix');
+  if (v <= 15) {
+    el.innerHTML = `VIX <strong style="color:var(--green)">${v}</strong> — சிறந்த நிலை! Options buy ideal 🟢`;
+    el.style.color = 'var(--green)'; card.style.borderColor = 'rgba(34,212,122,0.3)';
+    badge.textContent = '✓ Ideal'; badge.style.color = 'var(--green)';
+  } else if (v <= 18) {
+    el.innerHTML = `VIX <strong style="color:var(--amber)">${v}</strong> — கவனமாக இருங்கள், premium அதிகம் 🟡`;
+    el.style.color = 'var(--amber)'; card.style.borderColor = 'rgba(245,166,35,0.3)';
+    badge.textContent = '⚠ கவனம்'; badge.style.color = 'var(--amber)';
+  } else {
+    el.innerHTML = `VIX <strong style="color:var(--red)">${v}</strong> — அதிக risk! Options buy தவிர்க்கவும் 🔴`;
+    el.style.color = 'var(--red)'; card.style.borderColor = 'rgba(240,82,82,0.3)';
+    badge.textContent = '✗ Avoid'; badge.style.color = 'var(--red)';
+  }
+  updateVerdict();
+}
+
+function updateOICenter() {
+  const v = document.getElementById('spotPrice').value;
+  document.getElementById('oiSpotDisplay').textContent = v ? parseInt(v).toLocaleString('en-IN') : '—';
+}
+
+function updateVerdict() {
+  const dir = document.getElementById('tradeDir').value;
+  const vix = parseFloat(document.getElementById('vixVal').value);
+  const rsi = parseInt(document.getElementById('rsiSlider').value);
+
+  let score = 0;
+  let checks = [];
+
+  // Candle
+  if (signals.candle === 'yes') { score++; checks.push({label:'Candle Pattern', pass:true}); }
+  else if (signals.candle === 'no') { checks.push({label:'Candle Pattern', pass:false}); }
+  else if (signals.candle === 'na') { checks.push({label:'Candle Pattern', pass:null}); }
+  else { checks.push({label:'Candle Pattern', pass:null}); }
+
+  // RSI
+  const rsiOk = dir === 'CE' ? rsi < 50 : dir === 'PE' ? rsi > 50 : null;
+  if (signals.rsi === 'yes') { score++; checks.push({label:'RSI சாதகம்', pass:true}); }
+  else if (signals.rsi === 'no') { checks.push({label:'RSI சாதகம்', pass:false}); }
+  else { checks.push({label:'RSI சாதகம்', pass:null}); }
+
+  // VWAP
+  const vwapOk = dir === 'CE' ? signals.vwap === 'yes' : dir === 'PE' ? signals.vwap === 'no' : signals.vwap === 'yes';
+  if (signals.vwap === 'yes' || signals.vwap === 'no') {
+    const favourable = (dir === 'CE' && signals.vwap === 'yes') || (dir === 'PE' && signals.vwap === 'no') || !dir;
+    if (favourable) { score++; checks.push({label:'VWAP Position', pass:true}); }
+    else { checks.push({label:'VWAP Position', pass:false}); }
+  } else { checks.push({label:'VWAP Position', pass:null}); }
+
+  // Volume
+  if (signals.volume === 'yes') { score++; checks.push({label:'Volume அதிகம்', pass:true}); }
+  else if (signals.volume === 'no') { checks.push({label:'Volume குறைவு', pass:false}); }
+  else { checks.push({label:'Volume', pass:null}); }
+
+  // OI
+  if (signals.oi === 'yes') { score++; checks.push({label:'OI Signal', pass:true}); }
+  else if (signals.oi === 'no') { checks.push({label:'OI Signal', pass:false}); }
+  else { checks.push({label:'OI Signal', pass:null}); }
+
+  const total = 5;
+  const pct = (score / total) * 100;
+
+  // Score bar
+  document.getElementById('scoreText').textContent = `${score} / ${total} signals`;
+  const fill = document.getElementById('scoreFill');
+  fill.style.width = pct + '%';
+  fill.style.background = score >= 4 ? 'var(--green)' : score >= 3 ? 'var(--amber)' : 'var(--red)';
+
+  // Checklist
+  const cl = document.getElementById('verdictChecklist');
+  cl.innerHTML = checks.map(c =>
+    `<div class="vcheck ${c.pass === true ? 'pass' : c.pass === false ? 'fail' : 'skip-c'}">
+      <div class="vcheck-dot"></div>
+      <span style="font-size:12px">${c.label}</span>
+      <span style="margin-left:auto;font-size:11px;font-family:'JetBrains Mono',monospace;">
+        ${c.pass === true ? '✓' : c.pass === false ? '✗' : '?'}
+      </span>
+    </div>`
+  ).join('');
+
+  // VIX override
+  const vixBad = !isNaN(vix) && vix > 20;
+  const vixCaution = !isNaN(vix) && vix > 17;
+
+  // Verdict
+  const panel = document.getElementById('verdictPanel');
+  const icon  = document.getElementById('verdictIcon');
+  const title = document.getElementById('verdictTitle');
+  const sub   = document.getElementById('verdictSub');
+  const action= document.getElementById('verdictAction');
+
+  panel.className = 'verdict-panel';
+
+  if (vixBad) {
+    panel.classList.add('verd-skip');
+    icon.textContent = '🚫';
+    title.textContent = 'Trade தவிர்க்கவும்!';
+    sub.textContent = `VIX ${vix} — மிக அதிகம். IV crush risk.`;
+    action.style.background = 'var(--red-bg)';
+    action.style.color = 'var(--red)';
+    action.innerHTML = '⚠️ VIX 20+ ஆகியிருக்கிறது. Options buy-ல் அதிக premium செலுத்துவீர்கள் மற்றும் move சரியாக இருந்தாலும் IV crush காரணமாக loss வரலாம். இன்று options selling மட்டுமே consider செய்யவும்.';
+    return;
+  }
+
+  const allSelected = Object.values(signals).every(v => v !== null);
+
+  if (!dir) {
+    icon.textContent = '⏳';
+    title.textContent = 'Direction தேர்வு செய்யவும்';
+    sub.textContent  = 'CE அல்லது PE — மேலே select செய்யவும்';
+    action.style.background = 'var(--bg3)'; action.style.color = 'var(--muted)';
+    action.textContent = 'Trade direction தேர்வு செய்த பிறகு verdict கிடைக்கும்.';
+    return;
+  }
+
+  if (score >= 4) {
+    if (dir === 'CE') {
+      panel.classList.add('verd-buy-ce');
+      icon.textContent = '🟢';
+      title.textContent = 'CE வாங்கலாம்! ✅';
+      sub.textContent  = `${score}/5 signals சாதகம் — Strong Buy Signal`;
+      action.style.background = 'var(--green-bg)';
+      action.style.color = 'var(--green)';
+      action.innerHTML = `<strong>Entry Plan:</strong><br>
+        • High BP-ஐ தாண்டும் candle close-ல் CE entry செய்யவும்<br>
+        • Stop Loss: Low BP-க்கு கீழ் candle close ஆனால் exit<br>
+        • Target: High BP + (High BP − Low BP) × 0.6<br>
+        • Maximum loss: Premium-ல் 40–50% மட்டும்${vixCaution ? '<br>⚠️ VIX ' + vix + ' — SL tight-ஆக வைக்கவும்' : ''}`;
+    } else {
+      panel.classList.add('verd-buy-pe');
+      icon.textContent = '🔴';
+      title.textContent = 'PE வாங்கலாம்! ✅';
+      sub.textContent  = `${score}/5 signals சாதகம் — Strong Sell Signal`;
+      action.style.background = 'var(--red-bg)';
+      action.style.color = 'var(--red)';
+      action.innerHTML = `<strong>Entry Plan:</strong><br>
+        • Low BP-ஐ உடைக்கும் candle close-ல் PE entry செய்யவும்<br>
+        • Stop Loss: High BP-க்கு மேல் candle close ஆனால் exit<br>
+        • Target: Low BP − (High BP − Low BP) × 0.6<br>
+        • Maximum loss: Premium-ல் 40–50% மட்டும்${vixCaution ? '<br>⚠️ VIX ' + vix + ' — SL tight-ஆக வைக்கவும்' : ''}`;
+    }
+  } else if (score === 3) {
+    panel.classList.add('verd-wait');
+    icon.textContent = '🟡';
+    title.textContent = 'கொஞ்சம் காத்திருங்கள்';
+    sub.textContent  = `${score}/5 signals மட்டுமே சாதகம்`;
+    action.style.background = 'var(--amber-bg)';
+    action.style.color = 'var(--amber)';
+    action.innerHTML = `3/5 signals உள்ளது — entry possible ஆனால் risky. <br>
+      • Lot size குறைக்கவும் (1 lot மட்டும்)<br>
+      • SL-ஐ மிக tight-ஆக வைக்கவும்<br>
+      • மற்ற 2 signals-க்காக சில நிமிடம் காத்திருங்கள்`;
+  } else {
+    panel.classList.add('verd-skip');
+    icon.textContent = '⛔';
+    title.textContent = 'இப்போது வேண்டாம்';
+    sub.textContent  = `${score}/5 மட்டுமே — Signals insufficient`;
+    action.style.background = 'var(--bg3)';
+    action.style.color = 'var(--muted)';
+    action.innerHTML = `${score}/5 signals மட்டுமே சாதகமாக உள்ளன. Entry skip செய்யவும். அடுத்த S&R level வரும்வரை காத்திருங்கள். Forced entry = Loss entry.`;
+  }
+}
+
+function resetAll() {
+  Object.keys(signals).forEach(k => signals[k] = null);
+  oiSignal = null;
+  document.querySelectorAll('.sig-btn').forEach(b => b.classList.remove('active-yes','active-no','active-na'));
+  document.querySelectorAll('.ind-card').forEach(c => c.className = 'ind-card');
+  document.querySelectorAll('.oi-signal-btn').forEach(b => b.classList.remove('oi-ce-active','oi-pe-active','oi-neutral','active'));
+  document.getElementById('tradeDir').value = '';
+  document.getElementById('rsiSlider').value = 50;
+  updateRSI();
+  const panel = document.getElementById('verdictPanel');
+  panel.className = 'verdict-panel';
+  document.getElementById('verdictIcon').textContent = '⏳';
+  document.getElementById('verdictTitle').textContent = 'Indicators பூர்த்தி செய்யவும்';
+  document.getElementById('verdictSub').textContent = 'மேலே உள்ள அனைத்து signals-ஐயும் select செய்யவும்';
+  document.getElementById('scoreFill').style.width = '0%';
+  document.getElementById('scoreText').textContent = '0 / 5 signals';
+  document.getElementById('verdictChecklist').innerHTML = '';
+  document.getElementById('verdictAction').style.background = 'var(--bg3)';
+  document.getElementById('verdictAction').style.color = 'var(--muted)';
+  document.getElementById('verdictAction').textContent = 'அனைத்து indicators-ஐயும் check செய்த பிறகு entry decision இங்கே தெரியும்.';
+  document.getElementById('vixStatus').textContent = 'VIX மதிப்பு enter செய்யவும் ↑';
+  document.getElementById('vixVal').value = '';
+  document.getElementById('spotPrice').value = '';
+  document.getElementById('oiSpotDisplay').textContent = '—';
+}
+
+// stagger card animations
+document.querySelectorAll('.ind-card').forEach((c,i) => {
+  c.style.animationDelay = (i * 0.07) + 's';
+});
+
+updateRSI();
+</script>
+</body>
+</html>
