@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07101d;--bg2:#0b1929;--bg3:#0f2035;--bg4:#152843;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#dce8f5;--muted:#6e87a2;--faint:#2e4259;
+  --teal:#2dd4bf;--teal2:#0d9488;--teal-bg:rgba(45,212,191,0.08);
+  --gold:#f5c842;--gold-bg:rgba(245,200,66,0.08);
+  --amber:#f5a623;--r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-serif;font-size:14px;line-height:1.8;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(45,212,191,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(45,212,191,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(7,16,29,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-wrap{max-width:1100px;margin:0 auto;height:58px;padding:0 1.5rem;display:flex;align-items:center;gap:1rem;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:34px;height:34px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:#07101d;flex-shrink:0;}
+.logo-text{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:#fff;letter-spacing:1px;}
+.logo-text span{color:var(--teal);}
+.nav-links{display:flex;gap:2px;margin-left:auto;}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:12px;padding:7px 14px;border-radius:var(--r);transition:all 0.2s;}
+.nav-links a:hover{color:var(--text);background:var(--bg4);}
+@media(max-width:640px){.nav-links{display:none;}}
+
+main{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:4rem 1.5rem;}
+
+.contact-card{
+  max-width:560px;width:100%;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:18px;
+  padding:3rem 2.5rem;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.contact-card::before{
+  content:'';position:absolute;
+  top:-60px;left:50%;transform:translateX(-50%);
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,200,66,0.07),transparent 70%);
+  pointer-events:none;
+}
+
+/* animated construction bars */
+.construction{
+  display:flex;justify-content:center;gap:5px;
+  margin-bottom:1.75rem;
+}
+.bar{
+  width:18px;
+  border-radius:3px;
+  animation:bounce 1.2s ease-in-out infinite;
+}
+.bar:nth-child(1){height:28px;background:var(--amber);animation-delay:0s;}
+.bar:nth-child(2){height:40px;background:var(--gold);animation-delay:0.15s;}
+.bar:nth-child(3){height:52px;background:var(--amber);animation-delay:0.3s;}
+.bar:nth-child(4){height:40px;background:var(--gold);animation-delay:0.45s;}
+.bar:nth-child(5){height:28px;background:var(--amber);animation-delay:0.6s;}
+@keyframes bounce{0%,100%{transform:scaleY(0.6);opacity:0.5;}50%{transform:scaleY(1);opacity:1;}}
+
+.uc-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--gold-bg);
+  border:1px solid rgba(245,200,66,0.25);
+  border-radius:20px;
+  padding:5px 16px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--gold);
+  letter-spacing:1.5px;
+  margin-bottom:1.5rem;
+}
+.uc-title{
+  font-family:'Noto Serif Tamil',serif;
+  font-size:1.7rem;font-weight:700;color:#fff;
+  margin-bottom:0.75rem;
+  line-height:1.3;
+}
+.uc-sub{
+  font-size:13px;color:var(--muted);
+  line-height:1.8;
+  margin-bottom:2rem;
+  max-width:400px;margin-left:auto;margin-right:auto;
+}
+
+.info-items{
+  display:flex;flex-direction:column;gap:10px;
+  margin-bottom:2rem;
+  text-align:left;
+}
+.info-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px 16px;
+  font-size:13px;
+}
+.info-item .ii-icon{font-size:18px;flex-shrink:0;}
+.info-item .ii-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;display:block;margin-bottom:2px;}
+.info-item .ii-val{color:var(--text);font-size:13px;}
+
+.progress-section{margin-bottom:2rem;}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:6px;}
+.progress-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.progress-bar{height:100%;background:var(--teal);border-radius:3px;width:0;animation:fill 1.5s 0.5s ease forwards;}
+@keyframes fill{to{width:30%;}}
+
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--teal);color:#07101d;
+  font-family:'Noto Sans Tamil',sans-serif;
+  font-weight:700;font-size:13px;
+  padding:11px 24px;border-radius:var(--r);
+  text-decoration:none;transition:all 0.2s;
+}
+.back-btn:hover{background:#5eead4;transform:translateY(-1px);}
+
+footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-wrap">
+    <a href="index.html" class="logo">
+      <div class="logo-mark">TZ</div>
+      <span class="logo-text">Trade<span>Zen</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+      <a href="options_entry_tool_tamil.html">🎯 Entry Tool</a>
+      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+      <a href="contact.html" style="color:var(--teal);">✉ Contact</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="contact-card">
+    <div class="construction">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+
+    <div class="uc-badge">🚧 UNDER CONSTRUCTION</div>
+    <h1 class="uc-title">Contact Us</h1>
+    <p class="uc-sub">
+      இந்த page தற்போது உருவாக்கப்பட்டு வருகிறது. விரைவில் இங்கே
+      feedback மற்றும் கேள்விகள் அனுப்புவதற்கான வசதி கிடைக்கும்.
+    </p>
+
+    <div class="progress-section">
+      <div class="progress-label">
+        <span>DEVELOPMENT PROGRESS</span>
+        <span>30%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+
+    <div class="info-items">
+      <div class="info-item">
+        <span class="ii-icon">📬</span>
+        <div>
+          <span class="ii-label">COMING SOON</span>
+          <span class="ii-val">Contact Form — கேள்விகள் & Feedback</span>
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="ii-icon">💬</span>
+        <div>
+          <span class="ii-label">COMING SOON</span>
+          <span class="ii-val">Community Discussion — Traders forum</span>
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="ii-icon">📢</span>
+        <div>
+          <span class="ii-label">PLANNED</span>
+          <span class="ii-val">Trade Alerts & Updates notification</span>
+        </div>
+      </div>
+    </div>
+
+    <a href="index.html" class="back-btn">← முகப்பு பக்கம்</a>
+  </div>
+</main>
+
+<footer>© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</footer>
+
+</body>
+</html>

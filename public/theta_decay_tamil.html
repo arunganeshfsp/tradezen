@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>தீட்டா டிகே - Theta Decay கற்றுக்கொள்வோம்</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Serif+Tamil:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --navy: #0D1B2A;
+    --navy2: #142233;
+    --navy3: #1C2F44;
+    --gold: #E8A117;
+    --gold-light: #F5C04A;
+    --gold-pale: #FDF0D0;
+    --teal: #1DB8A4;
+    --teal-light: #4DD6C5;
+    --red: #E84040;
+    --red-light: #FF6B6B;
+    --green: #2ECC71;
+    --green-light: #55E08A;
+    --text: #F0EEE8;
+    --text-muted: #9BA8B5;
+    --border: rgba(232,161,23,0.2);
+    --card: rgba(28,47,68,0.7);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Noto Sans Tamil', sans-serif;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* Background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(232,161,23,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(29,184,164,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(232,161,23,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(232,161,23,0.3);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif Tamil', serif;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 600;
+    color: var(--gold-light);
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 span { color: var(--teal-light); }
+  .hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  /* SECTION */
+  .section { padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+  .section-title {
+    font-family: 'Noto Serif Tamil', serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+  .section-sub { font-size: 13.5px; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+  /* CONCEPT CARDS */
+  .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+  @media(max-width:540px){ .concept-grid { grid-template-columns: 1fr; } }
+  .concept-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+  }
+  .concept-card .cc-icon { font-size: 22px; margin-bottom: 6px; }
+  .concept-card .cc-title { font-size: 14px; font-weight: 600; color: var(--gold-light); margin-bottom: 4px; }
+  .concept-card .cc-body { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+
+  /* FORMULA BOX */
+  .formula-box {
+    background: rgba(29,184,164,0.08);
+    border: 1px solid rgba(29,184,164,0.25);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 13.5px;
+    color: var(--teal-light);
+    margin: 1rem 0;
+    text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  /* CHART AREA */
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .chart-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
+  .chart-wrap { position: relative; width: 100%; height: 280px; }
+  canvas { border-radius: 6px; }
+
+  /* CONTROLS */
+  .ctrl-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .ctrl-label { font-size: 12.5px; color: var(--text-muted); min-width: 100px; }
+  .ctrl-val { font-size: 13px; font-weight: 600; color: var(--gold); min-width: 60px; }
+  input[type=range] {
+    flex: 1; min-width: 100px;
+    -webkit-appearance: none;
+    height: 4px;
+    background: rgba(232,161,23,0.3);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+  }
+  .seg-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .seg-btn {
+    font-family: 'Noto Sans Tamil', sans-serif;
+    font-size: 12px; padding: 5px 14px;
+    border: 1px solid rgba(232,161,23,0.3);
+    background: transparent; color: var(--text-muted);
+    border-radius: 20px; cursor: pointer; transition: all 0.2s;
+  }
+  .seg-btn.active { background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+  .seg-btn:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+
+  /* STAT PILLS */
+  .stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 1rem 0; }
+  .stat-pill {
+    background: rgba(13,27,42,0.8);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-pill .sp-val { font-size: 1.3rem; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .stat-pill .sp-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* EXAMPLE CARDS - POSITIVE / NEGATIVE */
+  .eg-card {
+    border-radius: 14px;
+    padding: 1.4rem;
+    margin-bottom: 1.2rem;
+    border: 1px solid;
+  }
+  .eg-card.positive {
+    background: rgba(46,204,113,0.06);
+    border-color: rgba(46,204,113,0.25);
+  }
+  .eg-card.negative {
+    background: rgba(232,64,64,0.06);
+    border-color: rgba(232,64,64,0.25);
+  }
+  .eg-card .eg-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;
+  }
+  .eg-badge {
+    font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600;
+  }
+  .positive .eg-badge { background: rgba(46,204,113,0.2); color: var(--green-light); }
+  .negative .eg-badge { background: rgba(232,64,64,0.2); color: var(--red-light); }
+  .eg-title { font-size: 15px; font-weight: 600; }
+  .positive .eg-title { color: var(--green-light); }
+  .negative .eg-title { color: var(--red-light); }
+
+  /* STEP TABLE */
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0.8rem 0; }
+  .step-table th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); padding: 6px 10px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+  .step-table tr:last-child td { border-bottom: none; }
+  .tag-profit { color: var(--green-light); font-family: 'DM Mono', monospace; font-weight: 600; }
+  .tag-loss   { color: var(--red-light);   font-family: 'DM Mono', monospace; font-weight: 600; }
+  .tag-warn   { color: var(--gold);        font-family: 'DM Mono', monospace; font-weight: 600; }
+  .tag-neutral{ color: var(--text-muted);  font-family: 'DM Mono', monospace; }
+
+  /* DAY LABELS */
+  .day-bar { display: flex; gap: 4px; margin-top: 6px; }
+  .day-chip {
+    flex: 1; text-align: center; padding: 4px 2px;
+    border-radius: 6px; font-size: 10px;
+    background: rgba(232,161,23,0.1); color: var(--gold);
+    border: 1px solid rgba(232,161,23,0.2);
+  }
+  .day-chip.expiry { background: rgba(232,64,64,0.15); color: var(--red-light); border-color: rgba(232,64,64,0.3); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+  .leg { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
+  .leg-sq { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* RULES BOX */
+  .rules-box {
+    background: rgba(232,161,23,0.07);
+    border: 1px solid rgba(232,161,23,0.25);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+  }
+  .rule-item { display: flex; gap: 10px; padding: 6px 0; font-size: 13.5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-num { color: var(--gold); font-weight: 700; min-width: 22px; font-family: 'DM Mono', monospace; }
+  .rule-text { color: var(--text); }
+  .rule-text span { color: var(--teal-light); font-weight: 600; }
+
+  /* SUMMARY */
+  .summary-card {
+    background: linear-gradient(135deg, rgba(232,161,23,0.12) 0%, rgba(29,184,164,0.08) 100%);
+    border: 1px solid rgba(232,161,23,0.3);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+    margin: 1.5rem 0;
+  }
+  .summary-card h3 {
+    font-family: 'Noto Serif Tamil', serif;
+    font-size: 1.2rem; color: var(--gold-light); margin-bottom: 0.6rem;
+  }
+  .summary-card p { font-size: 13.5px; color: var(--text-muted); max-width: 500px; margin: 0 auto; }
+
+  /* FOOTER */
+  .footer {
+    text-align: center; padding: 2rem 1rem;
+    font-size: 12px; color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+  .footer strong { color: var(--gold); }
+
+  /* PROGRESS BAR for premium decay */
+  .pbar-wrap { margin: 8px 0; }
+  .pbar-label { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 4px; }
+  .pbar-label .pb-day { color: var(--text-muted); }
+  .pbar-label .pb-val { color: var(--gold); font-family: 'DM Mono', monospace; }
+  .pbar-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+  .pbar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+</style>
+</head>
+<body>
+<style>.tz-nav{position:sticky;top:0;z-index:9999;background:rgba(7,16,29,0.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:sans-serif;}.tz-nav-inner{max-width:1100px;margin:0 auto;height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:8px;}.tz-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}.tz-logo-mark{width:30px;height:30px;background:#2dd4bf;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#07101d;flex-shrink:0;font-family:monospace;}.tz-logo-txt{font-family:monospace;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px;}.tz-logo-txt span{color:#2dd4bf;}.tz-links{display:flex;gap:2px;margin-left:auto;}.tz-links a{text-decoration:none;color:#6e87a2;font-size:12px;padding:5px 11px;border-radius:8px;transition:all 0.18s;white-space:nowrap;}.tz-links a:hover{color:#dce8f5;background:rgba(255,255,255,0.07);}@media(max-width:600px){.tz-links .tz-hide{display:none;}}</style><nav class="tz-nav"><div class="tz-nav-inner"><a href="index.html" class="tz-logo"><div class="tz-logo-mark">TZ</div><span class="tz-logo-txt">Trade<span>Zen</span></span></a><div class="tz-links"><a href="butterfly_straddle_tamil.html" class="tz-hide">🦋 Butterfly</a><a href="options_entry_tool_tamil.html" class="tz-hide">🎯 Entry Tool</a><a href="theta_decay_tamil.html" class="tz-hide">⏳ Theta</a><a href="contact.html" class="tz-hide">✉ Contact</a><a href="index.html" style="background:rgba(45,212,191,0.12);color:#2dd4bf;">⌂ Home</a></div></div></nav>
+
+<!-- HERO -->
+<div class="container">
+  <div class="hero">
+    <div class="hero-badge">📘 Nifty Options · தொடக்க வழிகாட்டி</div>
+    <h1>தீட்டா <span>டிகே</span> என்றால் என்ன?<br>Theta Decay புரிந்துகொள்வோம்</h1>
+    <p>ஒவ்வொரு நாளும் Options-ன் நேரம் மதிப்பு எப்படி கரைகிறது என்பதை எளிய தமிழில் கற்றுக்கொள்வோம்</p>
+  </div>
+
+  <!-- SECTION 1: WHAT IS THETA -->
+  <div class="section">
+    <div class="section-title">தீட்டா என்றால் என்ன?</div>
+    <div class="section-sub">ஒரு Option-ன் நேர மதிப்பு (Time Value) ஒவ்வொரு நாளும் குறைவதே தீட்டா டிகே</div>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="cc-icon">⏳</div>
+        <div class="cc-title">நேர மதிப்பு (Time Value)</div>
+        <div class="cc-body">ஒரு Option-ல் இரண்டு மதிப்புகள் இருக்கும் — உள் மதிப்பு (Intrinsic) + நேர மதிப்பு (Time). காலம் கடக்க கடக்க நேர மதிப்பு மட்டும் தினமும் கரைகிறது.</div>
+      </div>
+      <div class="concept-card">
+        <div class="cc-icon">📅</div>
+        <div class="cc-title">Expiry நெருங்க நெருங்க...</div>
+        <div class="cc-body">Expiry-க்கு (இப்போது Tuesday) நெருங்க நெருங்க, கரைவு வேகம் அதிகரிக்கும். கடைசி 2 நாளில் மொத்த நேர மதிப்பின் 40%-ம் கரையும்.</div>
+      </div>
+      <div class="concept-card">
+        <div class="cc-icon">💰</div>
+        <div class="cc-title">விற்பவருக்கு (Seller) லாபம்</div>
+        <div class="cc-body">நீங்கள் Option விற்றால் — நேர மதிப்பு கரையும் போது உங்கள் கையில் பணம் சேரும். தினமும் உங்களுக்கு ஆதாயம்.</div>
+      </div>
+      <div class="concept-card">
+        <div class="cc-icon">📉</div>
+        <div class="cc-title">வாங்குபவருக்கு (Buyer) நஷ்டம்</div>
+        <div class="cc-body">நீங்கள் Option வாங்கினால் — சந்தை உங்களுக்கு சாதகமாக நகரவில்லை என்றால், தினமும் உங்கள் முதலீடு கரைகிறது.</div>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      Option Premium = உள் மதிப்பு (Intrinsic Value) + நேர மதிப்பு (Time Value)<br>
+      தீட்டா = ஒவ்வொரு நாளும் கரையும் நேர மதிப்பு (புள்ளிகளில்)
+    </div>
+  </div>
+
+  <!-- SECTION 2: INTERACTIVE CHART -->
+  <div class="section">
+    <div class="section-title">தீட்டா கிராஃப் — நேரடியாக பார்க்கலாம்</div>
+    <div class="section-sub">Thursday அன்று trade போட்டால், Tuesday Expiry வரை Premium எப்படி கரைகிறது என்று பாரும்</div>
+
+    <div class="seg-row">
+      <button class="seg-btn active" onclick="setMode('atm',this)">ATM (சரியான விலை)</button>
+      <button class="seg-btn" onclick="setMode('otm',this)">OTM (அகன்ற வித்தியாசம்)</button>
+      <button class="seg-btn" onclick="setMode('itm',this)">ITM (உள்ளே இருக்கும்)</button>
+    </div>
+
+    <div class="ctrl-row">
+      <span class="ctrl-label">ஆரம்ப Premium</span>
+      <input type="range" min="40" max="200" step="5" value="100" id="premSlider" oninput="updatePrem(this.value)">
+      <span class="ctrl-val" id="premValShow">100 pts</span>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-pill">
+        <div class="sp-val" id="s1" style="color:var(--gold);">—</div>
+        <div class="sp-label">Thu — நுழைவு நாள்</div>
+      </div>
+      <div class="stat-pill">
+        <div class="sp-val" id="s2" style="color:var(--teal-light);">—</div>
+        <div class="sp-label">Mon — மதி நாள்</div>
+      </div>
+      <div class="stat-pill">
+        <div class="sp-val" id="s3" style="color:var(--red-light);">—</div>
+        <div class="sp-label">Tue — Expiry</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="legend">
+        <div class="leg"><span class="leg-sq" style="background:#E8A117;"></span>Premium மீதமிருப்பு</div>
+        <div class="leg"><span class="leg-sq" style="background:#E84040; border-radius:50%;"></span>தினசரி கரைவு</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="mainChart" role="img" aria-label="Theta decay chart showing premium erosion from Thursday entry to Tuesday expiry"></canvas>
+      </div>
+      <div class="day-bar" style="margin-top:10px;">
+        <div class="day-chip">வியாழன்<br>Thu</div>
+        <div class="day-chip">வெள்ளி<br>Fri</div>
+        <div class="day-chip">வார<br>இறுதி</div>
+        <div class="day-chip">திங்கள்<br>Mon</div>
+        <div class="day-chip">செவ்வாய்<br>Tue AM</div>
+        <div class="day-chip expiry">Expiry<br>செவ்வாய்</div>
+      </div>
+    </div>
+
+    <div id="modeInsight" style="font-size:13px; color:var(--text-muted); padding:10px 14px; border-left:3px solid var(--gold); background:rgba(232,161,23,0.07); border-radius:0 8px 8px 0;"></div>
+  </div>
+
+  <!-- SECTION 3: POSITIVE SIDE (SELLER) -->
+  <div class="section">
+    <div class="section-title">✅ நேர்மறை பக்கம் — Option விற்பவர் (Seller)</div>
+    <div class="section-sub">தீட்டா உங்களுக்கு நண்பன் — ஒவ்வொரு நாளும் லாபம் சேர்கிறது</div>
+
+    <div class="eg-card positive">
+      <div class="eg-header">
+        <span class="eg-badge">SELLER</span>
+        <span class="eg-title">உதாரணம் 1 — ATM Straddle விற்கிறோம்</span>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:1rem;">
+        Nifty 23,500 இல் இருக்கிறது. <strong style="color:var(--text);">Thursday அன்று</strong> 23500 CE + 23500 PE இரண்டையும் விற்கிறோம்.<br>
+        மொத்த Premium சேகரிக்கப்பட்டது: <strong style="color:var(--green-light);">100 புள்ளிகள் = ₹7,500</strong> (1 lot × 75 units)
+      </p>
+
+      <div id="sellerBars"></div>
+
+      <table class="step-table">
+        <thead>
+          <tr>
+            <th>நாள்</th>
+            <th>Premium மீதி</th>
+            <th>உங்கள் லாபம்</th>
+            <th>₹ மதிப்பு</th>
+            <th>நிலை</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>வியாழன் (நுழைவு)</td>
+            <td class="tag-neutral">100 pts</td>
+            <td class="tag-neutral">₹0</td>
+            <td class="tag-neutral">—</td>
+            <td>🔵 Trade போட்டோம்</td>
+          </tr>
+          <tr>
+            <td>வெள்ளி</td>
+            <td class="tag-neutral">74 pts</td>
+            <td class="tag-profit">+26 pts</td>
+            <td class="tag-profit">+₹1,950</td>
+            <td>✅ லாபம் சேருகிறது</td>
+          </tr>
+          <tr>
+            <td>திங்கள்</td>
+            <td class="tag-neutral">36 pts</td>
+            <td class="tag-profit">+64 pts</td>
+            <td class="tag-profit">+₹4,800</td>
+            <td>✅ நல்ல நிலை</td>
+          </tr>
+          <tr>
+            <td>செவ்வாய் காலை</td>
+            <td class="tag-neutral">16 pts</td>
+            <td class="tag-profit">+84 pts</td>
+            <td class="tag-profit">+₹6,300</td>
+            <td>🏃 வெளியேறு நேரம்!</td>
+          </tr>
+          <tr>
+            <td>Expiry (செவ்வாய்)</td>
+            <td class="tag-neutral">2 pts</td>
+            <td class="tag-profit">+98 pts</td>
+            <td class="tag-profit">+₹7,350</td>
+            <td>⚠️ Gamma Risk அதிகம்</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px;">
+        <strong style="color:var(--green-light);">💡 Seller-ன் உத்தி:</strong>
+        <span style="color:var(--text-muted);"> செவ்வாய் காலை 10AM-க்கு முன்பே <strong style="color:var(--text);">+84 புள்ளிகள் = ₹6,300 லாபம்</strong> எடுத்து வெளியேறுவது சிறந்தது. Expiry நாள் Gamma risk மிகவும் அதிகம்!</span>
+      </div>
+    </div>
+
+    <div class="eg-card positive">
+      <div class="eg-header">
+        <span class="eg-badge">SELLER SAFE</span>
+        <span class="eg-title">உதாரணம் 2 — Iron Condor (பாதுகாப்பான முறை)</span>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:1rem;">
+        Nifty 23,500. <strong style="color:var(--text);">4 legs</strong> போடுகிறோம் — அதிகபட்ச நஷ்டம் கட்டுப்படுத்தப்பட்டது.<br>
+        <strong style="color:var(--gold);">Sell:</strong> 23800 CE + 23200 PE &nbsp;|&nbsp; <strong style="color:var(--teal-light);">Buy:</strong> 23900 CE + 23100 PE
+      </p>
+      <table class="step-table">
+        <thead>
+          <tr><th>விவரம்</th><th>புள்ளிகள்</th><th>₹ மதிப்பு (1 lot)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>சேகரித்த Premium (Sell)</td><td class="tag-profit">+50 pts</td><td class="tag-profit">+₹3,750</td></tr>
+          <tr><td>செலுத்திய Premium (Buy hedge)</td><td class="tag-loss">-15 pts</td><td class="tag-loss">-₹1,125</td></tr>
+          <tr><td>நிகர Premium (Net)</td><td class="tag-warn">35 pts</td><td class="tag-warn">₹2,625</td></tr>
+          <tr><td>அதிகபட்ச நஷ்டம் (Max Loss)</td><td class="tag-loss">-65 pts</td><td class="tag-loss">-₹4,875</td></tr>
+          <tr><td>Breakeven Range</td><td colspan="2" style="color:var(--teal-light); font-family:'DM Mono',monospace;">23,165 முதல் 23,835 வரை</td></tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(29,184,164,0.08); border:1px solid rgba(29,184,164,0.2); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--text-muted);">
+        <strong style="color:var(--teal-light);">💡 ஏன் இது சிறந்தது?</strong> நஷ்டம் கட்டுப்படுத்தப்பட்டது. சந்தை 335 புள்ளிக்கு நகராமல் இருந்தால் ஒவ்வொரு வாரமும் <strong style="color:var(--text);">₹2,625</strong> லாபம்!
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: NEGATIVE SIDE (BUYER) -->
+  <div class="section">
+    <div class="section-title">❌ எதிர்மறை பக்கம் — Option வாங்குபவர் (Buyer)</div>
+    <div class="section-sub">தீட்டா உங்களுக்கு எதிரி — சந்தை நகராவிட்டால் தினமும் நஷ்டம்</div>
+
+    <div class="eg-card negative">
+      <div class="eg-header">
+        <span class="eg-badge">BUYER RISK</span>
+        <span class="eg-title">உதாரணம் 3 — Call Option வாங்குகிறோம்</span>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:1rem;">
+        Nifty 23,500. Thursday அன்று <strong style="color:var(--text);">23500 CE வாங்குகிறோம்</strong>.<br>
+        Premium செலுத்தியது: <strong style="color:var(--red-light);">50 புள்ளிகள் = ₹3,750</strong> — சந்தை நகரவில்லை என்றால்...
+      </p>
+      <table class="step-table">
+        <thead>
+          <tr>
+            <th>நாள்</th>
+            <th>Premium மதிப்பு</th>
+            <th>நஷ்டம்</th>
+            <th>₹ நஷ்டம்</th>
+            <th>நிலை</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>வியாழன் (வாங்கியது)</td>
+            <td class="tag-neutral">50 pts</td>
+            <td class="tag-neutral">₹0</td>
+            <td class="tag-neutral">—</td>
+            <td>🔵 வாங்கினோம்</td>
+          </tr>
+          <tr>
+            <td>வெள்ளி</td>
+            <td class="tag-loss">37 pts</td>
+            <td class="tag-loss">-13 pts</td>
+            <td class="tag-loss">-₹975</td>
+            <td>📉 கரைகிறது</td>
+          </tr>
+          <tr>
+            <td>திங்கள்</td>
+            <td class="tag-loss">18 pts</td>
+            <td class="tag-loss">-32 pts</td>
+            <td class="tag-loss">-₹2,400</td>
+            <td>⚠️ பாதிக்கு மேல் போச்சு</td>
+          </tr>
+          <tr>
+            <td>செவ்வாய் காலை</td>
+            <td class="tag-loss">8 pts</td>
+            <td class="tag-loss">-42 pts</td>
+            <td class="tag-loss">-₹3,150</td>
+            <td>😟 கிட்டத்தட்ட முழுமையாக</td>
+          </tr>
+          <tr>
+            <td>Expiry</td>
+            <td class="tag-loss">1 pt</td>
+            <td class="tag-loss">-49 pts</td>
+            <td class="tag-loss">-₹3,675</td>
+            <td>💀 98% நஷ்டம்!</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(232,64,64,0.1); border:1px solid rgba(232,64,64,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--text-muted);">
+        <strong style="color:var(--red-light);">⚠️ முக்கியமான பாடம்:</strong> சந்தை <em>நகராவிட்டாலே</em> Option Buyer ₹3,750 இழக்கிறார்! சந்தை உங்களுக்கு சாதகமாக <strong style="color:var(--text);">குறைந்தது 50 புள்ளியாவது நகர வேண்டும்</strong> — இல்லாவிட்டால் நஷ்டமே.
+      </div>
+    </div>
+
+    <!-- COMPARISON CHART -->
+    <div class="chart-card" style="margin-top:1rem;">
+      <div class="chart-title">Seller vs Buyer — ஒரே Trade-ல் இரு கோணங்கள்</div>
+      <div class="chart-wrap" style="height:260px;">
+        <canvas id="compareChart" role="img" aria-label="Comparison chart showing seller profit growing vs buyer loss growing over time when market stays flat"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: PREMIUM DECAY VISUAL -->
+  <div class="section">
+    <div class="section-title">💸 Premium எப்படி கரைகிறது — காட்சி விவரம்</div>
+    <div class="section-sub">100 புள்ளி Premium-ஐ Thursday முதல் Tuesday Expiry வரை பார்க்கலாம்</div>
+
+    <div style="padding:1rem 0;" id="progressBars">
+      <!-- Generated by JS -->
+    </div>
+
+    <div style="background:rgba(29,184,164,0.07); border:1px solid rgba(29,184,164,0.2); border-radius:10px; padding:14px; margin-top:0.5rem; font-size:13.5px;">
+      <strong style="color:var(--teal-light);">🔑 பொன்னான விதி — 50% விதி:</strong>
+      <span style="color:var(--text-muted);"> Premium <strong style="color:var(--text);">50% கரைந்தவுடன்</strong> Trade-ஐ மூடுங்கள். 100 pts விற்றால் → 50 pts-க்கு வந்தவுடன் வெளியேறுங்கள். அது <strong style="color:var(--green-light);">₹3,750 லாபம்</strong> — பாதுகாப்பாக!</span>
+    </div>
+  </div>
+
+  <!-- SECTION 6: GOLDEN RULES -->
+  <div class="section">
+    <div class="section-title">📋 தினசரி Trading விதிகள்</div>
+    <div class="section-sub">இந்த விதிகளை கடைப்பிடித்தால் முதலீடு பாதுகாப்பாக இருக்கும்</div>
+    <div class="rules-box">
+      <div class="rule-item">
+        <span class="rule-num">01</span>
+        <span class="rule-text"><span>Thursday அன்று</span> மட்டுமே நுழைவு — 6 நாள் theta decay கிடைக்கும். VIX 16-க்கு மேல் இருந்தால் skip செய்யுங்கள்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">02</span>
+        <span class="rule-text">காலை <span>9:45-க்கு பிறகே</span> trade போடுங்கள் — ஆரம்ப 15 நிமிட chaos-ஐ தவிர்க்கவும்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">03</span>
+        <span class="rule-text"><span>Premium இரட்டிப்பானால்</span> உடனடியாக வெளியேறுங்கள். ₹80-க்கு விற்றால் → ₹160-க்கு வந்தவுடன் exit.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">04</span>
+        <span class="rule-text"><span>Monday மாலை 3PM-க்கு முன்</span> exit செய்யுங்கள் — Tuesday Expiry-ல் Gamma spike மிகவும் ஆபத்தானது.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">05</span>
+        <span class="rule-text">RBI, Budget, US Fed news நாட்களில் <span>trade வேண்டாம்</span> — Premium explode ஆகும்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">06</span>
+        <span class="rule-text">ஒரு trade-ல் மொத்த முதலீட்டின் <span>2-3% மட்டுமே</span> risk எடுங்கள். ₹1 லட்சம் இருந்தால் → max ₹2,000-3,000 risk.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-card">
+    <h3>🌟 நினைவில் வைத்துக்கொள்ள வேண்டியது</h3>
+    <p style="margin-bottom:8px;">தீட்டா என்பது <strong style="color:var(--gold-light);">Option Seller-ன் நண்பன்</strong>, Buyer-ன் எதிரி. சந்தை அசையாமல் இருந்தாலே Seller-க்கு லாபம்!</p>
+    <p>Iron Condor போட்டு, Thursday-ல் நுழைந்து, Monday-ல் வெளியேறுவது — இதுவே <strong style="color:var(--teal-light);">மிகவும் பாதுகாப்பான</strong> தொடக்க உத்தி.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>⚠️ எச்சரிக்கை:</strong> இது கல்வி நோக்கத்திற்காக மட்டுமே. Options trading-ல் நஷ்ட ஆபத்து உண்டு.<br>
+    எப்போதும் Stop-Loss பயன்படுத்துங்கள். SEBI-பதிவு பெற்ற ஆலோசகரிடம் கலந்தாலோசியுங்கள்.<br><br>
+    <strong style="color:var(--teal-light);">உங்கள் முதலீடு பாதுகாப்பாக இருக்கட்டும்! 💪</strong>
+  </div>
+</div>
+
+<script>
+let mode = 'atm';
+let basePrem = 100;
+
+const factors = {
+  atm: [1.00, 0.74, 0.56, 0.36, 0.16, 0.02],
+  otm: [1.00, 0.82, 0.66, 0.46, 0.22, 0.04],
+  itm: [1.00, 0.78, 0.60, 0.40, 0.18, 0.06]
+};
+
+const insights = {
+  atm: 'ATM Options-ல் Theta மிக வேகமாக வேலை செய்கிறது. சந்தை ஒரே இடத்தில் இருந்தால் Seller-க்கு அதிக லாபம். ஆனால் இரு பக்க ஆபத்தும் சமம் — Stop-Loss கட்டாயம்.',
+  otm: 'OTM Options மெதுவாக கரைகின்றன — ஆனால் Expiry நெருங்கும்போது கடுமையாக கரையும். சந்தை Strike-ஐ நெருங்கினால் Gamma ஆபத்து அதிகமாகும்.',
+  itm: 'ITM Options-ல் Intrinsic Value அதிகம் — ஆனால் Time Value மட்டுமே கரைகிறது. Premium அதிகம், ஆனால் Margin தேவையும் அதிகம். இது advanced strategy.'
+};
+
+const xLabels = ['வியாழன்\n(நுழைவு)', 'வெள்ளி', 'வார இறுதி', 'திங்கள்', 'செவ்வாய்\nகாலை', 'Expiry\nசெவ்வாய்'];
+
+let mainChart = null;
+
+function buildVals() {
+  return factors[mode].map(f => Math.round(basePrem * f));
+}
+
+function buildDeltas(vals) {
+  return vals.map((v, i) => i === 0 ? 0 : Math.round(vals[i-1] - v));
+}
+
+function renderMain() {
+  const vals = buildVals();
+  const deltas = buildDeltas(vals);
+
+  document.getElementById('s1').textContent = vals[0] + ' pts';
+  document.getElementById('s2').textContent = vals[3] + ' pts';
+  document.getElementById('s3').textContent = vals[5] + ' pts';
+  document.getElementById('modeInsight').textContent = insights[mode];
+
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (mainChart) mainChart.destroy();
+
+  mainChart = new Chart(ctx, {
+    data: {
+      labels: xLabels,
+      datasets: [
+        {
+          type: 'line',
+          label: 'Premium மீதி',
+          data: vals,
+          borderColor: '#E8A117',
+          backgroundColor: 'rgba(232,161,23,0.1)',
+          fill: true,
+          tension: 0.45,
+          pointRadius: 6,
+          pointBackgroundColor: '#E8A117',
+          pointBorderColor: '#0D1B2A',
+          pointBorderWidth: 2,
+          borderWidth: 2.5,
+          yAxisID: 'y'
+        },
+        {
+          type: 'bar',
+          label: 'தினசரி கரைவு',
+          data: deltas,
+          backgroundColor: deltas.map((d,i) => i===0 ? 'transparent' : 'rgba(232,64,64,0.5)'),
+          borderColor: deltas.map((d,i) => i===0 ? 'transparent' : '#E84040'),
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'y2'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,27,42,0.95)',
+          borderColor: 'rgba(232,161,23,0.3)',
+          borderWidth: 1,
+          titleColor: '#E8A117',
+          bodyColor: '#9BA8B5',
+          padding: 10,
+          callbacks: {
+            title: ctx => 'நாள்: ' + xLabels[ctx[0].dataIndex].replace('\n',' '),
+            label: ctx => {
+              if (ctx.datasetIndex === 0) return ' Premium மீதி: ' + ctx.parsed.y + ' pts (₹' + (ctx.parsed.y * 75).toLocaleString('en-IN') + ')';
+              if (ctx.parsed.y === 0) return null;
+              return ' கரைவு: −' + ctx.parsed.y + ' pts (₹' + (ctx.parsed.y * 75).toLocaleString('en-IN') + ')';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(155,168,181,0.1)' },
+          ticks: { font: { size: 10, family: 'Noto Sans Tamil' }, color: '#9BA8B5' }
+        },
+        y: {
+          position: 'left',
+          title: { display: true, text: 'Premium (pts)', font: { size: 11 }, color: '#9BA8B5' },
+          grid: { color: 'rgba(155,168,181,0.1)' },
+          ticks: { font: { size: 11 }, color: '#E8A117' },
+          min: 0, max: Math.round(basePrem * 1.15)
+        },
+        y2: {
+          position: 'right',
+          title: { display: true, text: 'கரைவு/நாள்', font: { size: 11 }, color: '#E84040' },
+          grid: { drawOnChartArea: false },
+          ticks: { font: { size: 11 }, color: '#E84040' },
+          min: 0
+        }
+      }
+    }
+  });
+
+  renderProgressBars(vals);
+}
+
+function renderProgressBars(vals) {
+  const days = ['வியாழன் (நுழைவு)', 'வெள்ளி', 'வார இறுதி', 'திங்கள்', 'செவ்வாய் காலை', 'Expiry (செவ்வாய்)'];
+  const colors = ['#E8A117', '#E8A117', '#F5C04A', '#E84040', '#E84040', '#E84040'];
+  let html = '';
+  vals.forEach((v, i) => {
+    const pct = Math.round((v / basePrem) * 100);
+    const rupee = (v * 75).toLocaleString('en-IN');
+    html += `<div class="pbar-wrap">
+      <div class="pbar-label">
+        <span class="pb-day">${days[i]}</span>
+        <span class="pb-val">${v} pts = ₹${rupee}</span>
+      </div>
+      <div class="pbar-track">
+        <div class="pbar-fill" style="width:${pct}%; background:${colors[i]};"></div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('progressBars').innerHTML = html;
+}
+
+function renderCompare() {
+  const sellerVals = [0, 26, 44, 64, 84, 98];
+  const buyerVals  = [0, -13, -22, -32, -42, -49];
+  const labels = ['Thu', 'Fri', 'Weekend', 'Mon', 'Tue AM', 'Tue Exp'];
+
+  const ctx2 = document.getElementById('compareChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Seller லாபம்',
+          data: sellerVals,
+          borderColor: '#2ECC71',
+          backgroundColor: 'rgba(46,204,113,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointBackgroundColor: '#2ECC71',
+          pointBorderColor: '#0D1B2A',
+          pointBorderWidth: 2,
+          borderWidth: 2,
+          borderDash: []
+        },
+        {
+          label: 'Buyer நஷ்டம்',
+          data: buyerVals,
+          borderColor: '#E84040',
+          backgroundColor: 'rgba(232,64,64,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointBackgroundColor: '#E84040',
+          pointBorderColor: '#0D1B2A',
+          pointBorderWidth: 2,
+          borderWidth: 2,
+          borderDash: [5, 3]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,27,42,0.95)',
+          borderColor: 'rgba(232,161,23,0.3)',
+          borderWidth: 1,
+          titleColor: '#E8A117',
+          bodyColor: '#9BA8B5',
+          padding: 10,
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              const rs = Math.abs(v * 75).toLocaleString('en-IN');
+              if (ctx.datasetIndex === 0) return ` Seller லாபம்: +${v} pts = +₹${rs}`;
+              return ` Buyer நஷ்டம்: ${v} pts = -₹${rs}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(155,168,181,0.1)' },
+          ticks: { font: { size: 11 }, color: '#9BA8B5' }
+        },
+        y: {
+          grid: { color: 'rgba(155,168,181,0.1)' },
+          ticks: {
+            font: { size: 11 }, color: '#9BA8B5',
+            callback: v => (v >= 0 ? '+' : '') + v + ' pts'
+          }
+        }
+      }
+    }
+  });
+}
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMain();
+}
+
+function updatePrem(v) {
+  basePrem = parseInt(v);
+  document.getElementById('premValShow').textContent = v + ' pts';
+  renderMain();
+}
+
+renderMain();
+renderCompare();
+</script>
+</body>
+</html>
