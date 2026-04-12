@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: tradezen-elearning
-    env: node
-    buildCommand: "npm install"
-    startCommand: "npm start"
