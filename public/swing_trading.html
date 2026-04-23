@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeZen Swing Tool</title>
+
+<style>
+body{background:#0f0a00;color:#f5e8c8;font-family:'Noto Sans Tamil',sans-serif;margin:0;padding:20px}
+.wrap{max-width:1100px;margin:auto}
+.card{background:#1a1100;border:1px solid #2e1f00;border-radius:10px;padding:15px;margin-bottom:15px}
+select,input{width:100%;padding:8px;background:#231700;color:#fff;border:1px solid #3a2800;border-radius:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.signal{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2e1f00}
+.green{color:#4ade80}
+.red{color:#f87171}
+.yellow{color:#fb923c}
+.verdict{padding:20px;border-radius:10px;background:#231700}
+button{margin:2px;padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="tz-bg-orb tz-orb1"></div>
+<div class="tz-bg-orb tz-orb2"></div>
+<div class="tz-grid"></div>
+<nav class="tz-nav">
+  <div class="tz-nav-inner">
+    <a href="index.html" class="tz-logo">
+      <div class="tz-logo-mark">TZ</div>
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+    </a>
+    <span class="tz-nav-slash">/</span>
+    <span class="tz-nav-chip">SWING TOOL</span>
+    <div class="tz-nav-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+      <a href="options_entry_tool_tamil.html">🎯 Buying</a>
+      <a href="options_selling_tool_tamil.html">💰 Selling</a>
+      <a href="swing_trading_tool_tamil.html" class="tz-active">📈 Swing</a>
+      <a href="theta_decay_tamil.html">⏳ Theta</a>
+      <a href="fno_signal.html">🤖 F&O</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+    <a href="swing_trading_tool_tamil.html" class="tz-nav-cta teal">🆕 New Tool →</a>
+  </div>
+</nav>
+<div class="wrap">
+
+<h2>📈 TradeZen Swing Trading Tool</h2>
+
+<div class="card">
+<label>Select Stock</label>
+<select id="stockSelect">
+<option value="">Select</option>
+<option value="INFY">Infosys</option>
+<option value="TCS">TCS</option>
+<option value="RELIANCE">Reliance</option>
+<option value="HDFCBANK">HDFC Bank</option>
+</select>
+</div>
+
+<div class="card grid">
+<div><label>CMP</label><input id="cmpVal" readonly></div>
+<div><label>52W High</label><input id="highVal" readonly></div>
+<div><label>52W Low</label><input id="lowVal" readonly></div>
+<div><label>RSI</label><input id="rsiVal" readonly></div>
+<div><label>Trend</label><input id="trendVal" readonly></div>
+<div><label>Volume</label><input id="volumeVal" readonly></div>
+</div>
+
+<div class="card">
+<h3>Signals</h3>
+<div class="signal"><span>Trend</span><span id="s-trend"></span></div>
+<div class="signal"><span>RSI</span><span id="s-rsi"></span></div>
+<div class="signal"><span>Zone</span><span id="s-zone"></span></div>
+<div class="signal"><span>Volume</span><span id="s-volume"></span></div>
+<div class="signal"><span>Candle</span><span id="s-candle"></span></div>
+<div class="signal"><span>Index</span><span id="s-index"></span></div>
+<div class="signal"><span>Event</span><span id="s-event"></span></div>
+</div>
+
+<div class="verdict">
+<h2 id="v-title">Waiting...</h2>
+<p id="v-score">Score: -</p>
+<p id="v-reason">Select stock</p>
+</div>
+
+</div>
+
+<script>
+const API = "/api/stock-data";
+const el = id => document.getElementById(id);
+
+el("stockSelect").addEventListener("change", fetchStock);
+
+async function fetchStock(){
+  const symbol = el("stockSelect").value;
+  if(!symbol) return;
+
+  try{
+    const res = await fetch(`${API}?symbol=${symbol}`);
+    const data = await res.json();
+
+    fillData(data);
+    const signals = generateSignals(data);
+    applyVerdict(signals);
+  }catch(err){
+    console.error(err);
+    alert("API Error");
+  }
+}
+
+function fillData(d){
+  el("cmpVal").value = d.cmp;
+  el("highVal").value = d.high_52w;
+  el("lowVal").value = d.low_52w;
+  el("rsiVal").value = d.rsi;
+  el("trendVal").value = d.trend;
+  el("volumeVal").value = d.volume;
+}
+
+function generateSignals(d){
+  let score = 0;
+
+  // Trend
+  if(d.trend === "UP"){ set("s-trend","UP","green"); score++; }
+  else set("s-trend","DOWN","red");
+
+  // RSI
+  if(d.rsi < 45){ set("s-rsi","BUY","green"); score++; }
+  else if(d.rsi > 70){ set("s-rsi","SELL","red"); }
+  else set("s-rsi","NEUTRAL","yellow");
+
+  // Zone
+  const range = d.high_52w - d.low_52w;
+  if(d.cmp < d.low_52w + range*0.2){ set("s-zone","SUPPORT","green"); score++; }
+  else if(d.cmp > d.high_52w - range*0.2){ set("s-zone","RESIST","red"); }
+  else set("s-zone","MID","yellow");
+
+  // Volume
+  if(d.volume > 1000000){ set("s-volume","STRONG","green"); score++; }
+  else set("s-volume","LOW","red");
+
+  // Others
+  set("s-candle","NA","yellow");
+  set("s-index","NA","yellow");
+  set("s-event","NA","yellow");
+
+  return {score};
+}
+
+function set(id,text,color){
+  const e = el(id);
+  e.textContent = text;
+  e.className = color;
+}
+
+function applyVerdict(s){
+  const score = s.score;
+  el("v-score").textContent = `Score: ${score} / 7`;
+
+  if(score >= 5){
+    el("v-title").textContent = "🚀 BUY";
+    el("v-title").className = "green";
+    el("v-reason").textContent = "Strong setup";
+  }
+  else if(score >= 3){
+    el("v-title").textContent = "🟡 WAIT";
+    el("v-title").className = "yellow";
+    el("v-reason").textContent = "Partial confirmation";
+  }
+  else{
+    el("v-title").textContent = "⛔ AVOID";
+    el("v-title").className = "red";
+    el("v-reason").textContent = "Weak setup";
+  }
+}
+</script>
+
+<footer class="tz-footer">
+  <div class="tz-footer-inner">
+    <div class="tz-footer-brand">
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+      <p class="tz-footer-desc">Nifty50 Options buying மற்றும் selling strategies, tools-ஐ தமிழில் கற்றுத்தரும் இலவச தளம். SEBI 2026 விதிகளுக்கு ஏற்ப தொடர்ந்து update ஆகும்.</p>
+      <p class="tz-footer-copy">© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</p>
+    </div>
+    <div class="tz-footer-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly Straddle</a>
+      <a href="options_entry_tool_tamil.html">🎯 Options Buying Tool</a>
+      <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing Trading Tool</a>
+      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+      <a href="fno_signal.html">🤖 F&amp;O AI Signal</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

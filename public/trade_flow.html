@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ta-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Decision Flow | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Tamil:ital@0;1&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
+  --border:#252a44; --border2:#323868;
+  --accent:#7c6af7; --blue:#5b8af5;
+  --green:#2ecc71; --green2:#27ae60; --green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c;   --red2:#c0392b;   --red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623; --yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;
+  --text:#e8ecf4; --dim:#9ba3bf; --muted:#4a5070;
+  --r:10px; --r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
+.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover{color:var(--text);background:var(--bg3)}
+.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);padding:3px 10px;border-radius:20px}
+
+/* ── HERO ── */
+.hero{position:relative;overflow:hidden;padding:60px 28px 44px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.15) 0%,transparent 65%),var(--bg)}
+.hero-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:300px;background:radial-gradient(ellipse,rgba(91,138,245,0.1) 0%,transparent 70%);pointer-events:none}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:20px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,52px);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1.5px;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-ta{font-family:'Tiro Tamil',serif;font-size:17px;color:var(--dim);margin-bottom:32px;line-height:1.8}
+
+/* live status bar */
+.live-bar{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+.live-chip{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 16px;border-radius:20px;border:1px solid var(--border)}
+.lc-time{background:rgba(0,212,255,0.08);color:var(--cyan);border-color:rgba(0,212,255,0.25)}
+.lc-phase{background:rgba(124,106,247,0.1);color:var(--accent);border-color:rgba(124,106,247,0.25)}
+.lc-ltp{background:rgba(46,204,113,0.08);color:var(--green);border-color:rgba(46,204,113,0.25)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulseAnim 1.4s infinite}
+@keyframes pulseAnim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(0.7)}}
+
+/* time badges */
+.time-badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.tbadge{padding:8px 20px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px;transition:all .3s}
+.tb-pre{background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.25)}
+.tb-open{background:rgba(245,166,35,0.1);color:var(--yellow);border:1px solid rgba(245,166,35,0.25)}
+.tb-orb{background:rgba(46,204,113,0.1);color:var(--green);border:1px solid rgba(46,204,113,0.25)}
+.tbadge.active-phase{box-shadow:0 0 12px rgba(124,106,247,0.3);transform:scale(1.04)}
+
+/* ── SCENARIO SWITCHER ── */
+.scenario-bar{max-width:1100px;margin:28px auto 0;padding:0 28px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.sc-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.sc-btn{padding:9px 22px;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:all .2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:7px}
+.sc-btn:hover{border-color:var(--border2);color:var(--text)}
+.sc-btn.bull-active{background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.4);color:var(--green)}
+.sc-btn.bear-active{background:rgba(231,76,60,0.12);border-color:rgba(231,76,60,0.4);color:var(--red)}
+.sc-btn.skip-active{background:rgba(245,166,35,0.12);border-color:rgba(245,166,35,0.4);color:var(--yellow)}
+.auto-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:2px 8px;border-radius:10px}
+
+/* ── MAIN LAYOUT ── */
+.page{max-width:1100px;margin:0 auto;padding:28px 28px 80px;display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start}
+@media(max-width:900px){.page{grid-template-columns:1fr}}
+
+/* ── FLOW PANEL (left) ── */
+.flow-panel{position:sticky;top:72px}
+
+/* phase header */
+.phase-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--r) var(--r) 0 0;border:1px solid var(--border);border-bottom:none;margin-top:20px}
+.phase-head:first-of-type{margin-top:0}
+.ph-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ph-pre{background:rgba(0,212,255,0.1)}.ph-open{background:rgba(245,166,35,0.1)}.ph-orb{background:rgba(46,204,113,0.1)}
+.ph-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.ph-time{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
+
+/* step items */
+.steps-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:0 0 var(--r) var(--r);overflow:hidden;margin-bottom:4px}
+.step-item{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;position:relative}
+.step-item:last-child{border-bottom:none}
+.step-item:hover{background:var(--bg3)}
+.step-item.active{background:rgba(124,106,247,0.08);border-left:3px solid var(--accent)}
+.step-item.done{opacity:.55}
+.step-item.done .step-num{background:var(--green2);border-color:var(--green2);color:#fff}
+.step-num{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--bg3);border:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--dim);display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px}
+.step-item.active .step-num{background:var(--accent);border-color:var(--accent);color:#fff}
+.step-content{flex:1}
+.step-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.step-ta{font-family:'Tiro Tamil',serif;font-size:12px;color:var(--dim);line-height:1.6}
+.step-status{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:10px;margin-top:5px;display:inline-block}
+.ss-pending{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+.ss-done{background:rgba(46,204,113,0.1);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.ss-active{background:rgba(124,106,247,0.1);color:var(--accent);border:1px solid rgba(124,106,247,0.3)}
+.ss-skip{background:rgba(245,166,35,0.1);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+
+/* verdict badge */
+.verdict{border-radius:var(--r);padding:16px 18px;display:flex;align-items:center;gap:14px;margin-top:16px}
+.v-bull{background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3)}
+.v-bear{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3)}
+.v-skip{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3)}
+.v-icon{font-size:28px;flex-shrink:0}
+.v-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:3px}
+.vt-bull{color:var(--green)}.vt-bear{color:var(--red)}.vt-skip{color:var(--yellow)}
+.v-sub{font-size:12px;color:var(--dim);line-height:1.5}
+
+/* ── DETAIL PANEL (right) ── */
+.detail-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;display:none;animation:fadeUp .3s ease both}
+.detail-card.visible{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.dc-head{background:var(--bg3);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.dc-num{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.dc-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;flex:1}
+.dc-time-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:10px}
+.dt-pre{background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.2)}
+.dt-open{background:rgba(245,166,35,0.1);color:var(--yellow);border:1px solid rgba(245,166,35,0.2)}
+.dt-orb{background:rgba(46,204,113,0.1);color:var(--green);border:1px solid rgba(46,204,113,0.2)}
+
+.dc-body{padding:20px}
+
+/* sub sections */
+.sub-head{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sub-head::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* scenario data box */
+.scenario-box{border-radius:var(--r2);padding:14px 16px;margin-bottom:16px;border-left:3px solid}
+.sb-bull{background:var(--green-bg);border-color:var(--green)}
+.sb-bear{background:var(--red-bg);border-color:var(--red)}
+.sb-skip{background:var(--yellow-bg);border-color:var(--yellow)}
+.sb-neutral{background:rgba(91,138,245,0.06);border-color:var(--blue)}
+
+.sb-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.sb-body{font-size:13px;color:var(--dim);line-height:1.7}
+.sb-body.ta{font-family:'Tiro Tamil',serif;font-size:13px;line-height:1.9;margin-top:8px}
+
+/* data row */
+.data-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(37,42,69,0.5)}
+.data-row:last-child{border-bottom:none}
+.dr-label{font-size:13px;color:var(--dim)}
+.dr-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.dv-green{color:var(--green)}.dv-red{color:var(--red)}.dv-yellow{color:var(--yellow)}.dv-blue{color:var(--blue)}.dv-dim{color:var(--dim)}
+
+/* checklist */
+.checklist{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.chk{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--r2);background:var(--bg3);border:1px solid var(--border)}
+.chk-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.chk-text{font-size:13px;color:var(--dim);line-height:1.6;flex:1}
+.chk-text strong{color:var(--text)}
+.chk-text.ta{font-family:'Tiro Tamil',serif;font-size:13px;line-height:1.9}
+.chk.pass{background:rgba(46,204,113,0.06);border-color:rgba(46,204,113,0.2)}
+.chk.fail{background:rgba(231,76,60,0.06);border-color:rgba(231,76,60,0.2)}
+.chk.warn{background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2)}
+
+/* score card */
+.score-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.sc-item{text-align:center}
+.sci-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.sci-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+
+/* final result box */
+.final-result{border-radius:var(--r);padding:20px 22px;text-align:center;position:relative;overflow:hidden}
+.fr-bull{background:linear-gradient(135deg,rgba(46,204,113,0.15),rgba(39,174,96,0.08));border:1px solid rgba(46,204,113,0.3)}
+.fr-bear{background:linear-gradient(135deg,rgba(231,76,60,0.15),rgba(192,57,43,0.08));border:1px solid rgba(231,76,60,0.3)}
+.fr-skip{background:linear-gradient(135deg,rgba(245,166,35,0.15),rgba(230,126,34,0.08));border:1px solid rgba(245,166,35,0.3)}
+.fr-icon{font-size:40px;margin-bottom:10px}
+.fr-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px}
+.fr-sub{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:12px}
+.fr-ta{font-family:'Tiro Tamil',serif;font-size:14px;color:var(--dim);line-height:1.9}
+.fr-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.fr-chip{padding:6px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.fc-bull{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.fc-bear{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.fc-yellow{background:rgba(245,166,35,0.15);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+
+/* comparison table */
+.compare-table{width:100%;border-collapse:collapse;font-size:12px}
+.compare-table th{padding:9px 14px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(37,42,69,0.5);font-size:13px;color:var(--dim)}
+.compare-table td:first-child{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* tip strip */
+.tip-strip{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:var(--r2);padding:12px 16px;font-size:12px;color:var(--dim);line-height:1.7;margin-top:12px}
+.tip-strip .tip-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--yellow);margin-bottom:5px}
+
+/* level map */
+.level-row{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:6px;margin-bottom:6px}
+.level-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;width:32px;flex-shrink:0}
+.level-bar{flex:1;height:4px;border-radius:2px}
+.level-price{font-family:'JetBrains Mono',monospace;font-size:13px;min-width:62px;text-align:right}
+.level-desc{font-size:11px;color:var(--muted);min-width:110px;text-align:right}
+
+/* no-data placeholder */
+.no-data{background:var(--bg3);border:1px dashed var(--border);border-radius:var(--r2);padding:20px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px}
+.no-data .nd-icon{font-size:24px;margin-bottom:6px}
+.no-data .nd-ta{font-family:'Tiro Tamil',serif;font-size:12px;margin-top:4px}
+
+/* refresh indicator */
+.refresh-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:right;margin-bottom:8px}
+
+/* ── FOOTER ── */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.fbrand{display:flex;align-items:center;gap:8px}
+.flogo{width:26px;height:26px;border-radius:5px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.fbrand span{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
+.fnote{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.fnote em{color:var(--yellow);font-style:normal}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="brand" href="index.html"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links">
+    <a class="nl" href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+    <a class="nl" href="options_entry_tool_tamil.html">🎯 Buying</a>
+    <a class="nl" href="options_selling_tool_tamil.html">💰 Selling</a>
+    <a class="nl" href="swing_trading_tool_tamil.html">📈 Swing</a>
+    <a class="nl" href="fno_signal.html">🤖 F&amp;O</a>
+    <a class="nl on" href="trade_flow.html">🧭 Flow</a>
+    <a class="nl" href="index.html">⌂ Home</a>
+  </div>
+  <div class="nav-r"><span class="nav-badge">LIVE · SEBI 2026</span></div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="htag">🧭 Trade Decision Framework · வர்த்தக முடிவு வழிகாட்டி</div>
+  <h1>Pre-Market to<br><em>Trade Entry Flow</em></h1>
+  <p class="hero-ta">8:45 AM முதல் 9:30 AM வரை — ஒவ்வொரு நடவடிக்கையும் live data-உடன்</p>
+
+  <!-- Live status bar -->
+  <div class="live-bar">
+    <div class="live-chip lc-time" id="chip-time">⏰ --:--:--</div>
+    <div class="live-chip lc-phase" id="chip-phase">◉ Loading...</div>
+    <div class="live-chip lc-ltp"><span class="pulse"></span> NIFTY <span id="chip-ltp">--</span></div>
+  </div>
+
+  <div class="time-badges">
+    <div class="tbadge tb-pre" id="badge-pre">⏰ 8:45–9:15 AM · Pre-Market</div>
+    <div class="tbadge tb-open" id="badge-open">🔔 9:15 AM · Market Open</div>
+    <div class="tbadge tb-orb" id="badge-orb">📊 9:30 AM · ORB Formed</div>
+  </div>
+</div>
+
+<!-- MANUAL OHLC ENTRY (shown only when CPR data is missing) -->
+<div id="ohlc-banner" style="display:none;max-width:1100px;margin:20px auto 0;padding:0 28px">
+  <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:14px 20px;display:flex;align-items:center;flex-wrap:wrap;gap:14px">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--yellow)">⚠️ PREV DAY OHLC NOT LOADED</span>
+    <span style="font-size:12px;color:var(--dim);flex:1">CPR calculation needs yesterday's High / Low / Close. Enter manually:</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="inp-high"  type="number" placeholder="High"  step="0.05" style="width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:12px">
+      <input id="inp-low"   type="number" placeholder="Low"   step="0.05" style="width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:12px">
+      <input id="inp-close" type="number" placeholder="Close" step="0.05" style="width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:12px">
+      <button onclick="submitOhlc('inp')" style="background:var(--yellow);color:#000;border:none;border-radius:6px;padding:6px 16px;font-weight:700;font-size:12px;cursor:pointer">Set CPR</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO SWITCHER -->
+<div class="scenario-bar">
+  <span class="sc-label">Scenario:</span>
+  <button class="sc-btn bull-active" id="btn-bull" onclick="setScenario('bull')">🟢 Bull Scenario — ஏற்றம்</button>
+  <button class="sc-btn" id="btn-bear" onclick="setScenario('bear')">🔴 Bear Scenario — இறக்கம்</button>
+  <button class="sc-btn" id="btn-skip" onclick="setScenario('skip')">🟡 Conflict — Skip Trade</button>
+  <span class="auto-tag" id="auto-tag" style="display:none">⚡ AUTO</span>
+</div>
+
+<!-- MAIN -->
+<div class="page">
+
+<!-- LEFT: FLOW PANEL -->
+<div class="flow-panel">
+
+  <!-- PRE-MARKET phase -->
+  <div class="phase-head">
+    <div class="ph-icon ph-pre">⏰</div>
+    <div><div class="ph-label">Phase 1</div><div class="ph-time">8:45 – 9:15 AM · Pre-Market</div></div>
+  </div>
+  <div class="steps-wrap">
+    <div class="step-item active" id="step1-item" onclick="showStep(1)">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Check GIFT Nifty</div>
+        <div class="step-ta">Gap up அல்லது down என்று கண்டறியுங்கள்</div>
+        <div class="step-status ss-active" id="s1-status">● ACTIVE</div>
+      </div>
+    </div>
+    <div class="step-item" id="step2-item" onclick="showStep(2)">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Calculate CPR</div>
+        <div class="step-ta">Narrow அல்லது Wide என்று தீர்மானிங்கள்</div>
+        <div class="step-status ss-pending" id="s2-status">○ PENDING</div>
+      </div>
+    </div>
+    <div class="step-item" id="step3-item" onclick="showStep(3)">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Mark S&amp;R Levels on Chart</div>
+        <div class="step-ta">R1, R2, S1, S2 chart-ல் குறிக்கவும்</div>
+        <div class="step-status ss-pending" id="s3-status">○ PENDING</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9:15 AM phase -->
+  <div class="phase-head" style="margin-top:12px">
+    <div class="ph-icon ph-open">🔔</div>
+    <div><div class="ph-label">Phase 2</div><div class="ph-time">9:15 AM · Market Opens</div></div>
+  </div>
+  <div class="steps-wrap">
+    <div class="step-item" id="step4-item" onclick="showStep(4)">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Opening Price vs CPR</div>
+        <div class="step-ta">TC மேலே = Bullish · BC கீழே = Bearish</div>
+        <div class="step-status ss-pending" id="s4-status">○ PENDING</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9:30 AM phase -->
+  <div class="phase-head" style="margin-top:12px">
+    <div class="ph-icon ph-orb">📊</div>
+    <div><div class="ph-label">Phase 3</div><div class="ph-time">9:30 AM · ORB Formed</div></div>
+  </div>
+  <div class="steps-wrap">
+    <div class="step-item" id="step5-item" onclick="showStep(5)">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">ORB High &amp; Low Formed</div>
+        <div class="step-ta">9:15–9:30 மெழுகுவர்த்தி நிறைவு</div>
+        <div class="step-status ss-pending" id="s5-status">○ PENDING</div>
+      </div>
+    </div>
+    <div class="step-item" id="step6-item" onclick="showStep(6)">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-title">Wait for Breakout + Volume</div>
+        <div class="step-ta">Volume-உடன் ORB break உறுதி செய்யுங்கள்</div>
+        <div class="step-status ss-pending" id="s6-status">○ PENDING</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div id="verdict-bull" class="verdict v-bull" style="display:none">
+    <div class="v-icon">✅</div>
+    <div>
+      <div class="v-title vt-bull">HIGH PROBABILITY LONG</div>
+      <div class="v-sub">ORB ✅ + CPR ✅ + Volume ✅<br><span style="font-family:'Tiro Tamil',serif">மூன்றும் சேர்ந்தால் → Long எடுங்கள்!</span></div>
+    </div>
+  </div>
+  <div id="verdict-bear" class="verdict v-bear" style="display:none">
+    <div class="v-icon">✅</div>
+    <div>
+      <div class="v-title vt-bear">HIGH PROBABILITY SHORT</div>
+      <div class="v-sub">ORB ✅ + CPR ✅ + Volume ✅<br><span style="font-family:'Tiro Tamil',serif">மூன்றும் சேர்ந்தால் → Short எடுங்கள்!</span></div>
+    </div>
+  </div>
+  <div id="verdict-skip" class="verdict v-skip" style="display:none">
+    <div class="v-icon">❌</div>
+    <div>
+      <div class="v-title vt-skip">SKIP / REDUCE SIZE</div>
+      <div class="v-sub">ORB ≠ CPR direction conflict<br><span style="font-family:'Tiro Tamil',serif">திசை முரண்பட்டால் → Trade வேண்டாம்</span></div>
+    </div>
+  </div>
+
+</div><!-- /flow-panel -->
+
+<!-- RIGHT: DETAIL PANEL -->
+<div class="detail-panel">
+  <div class="refresh-note" id="refresh-note">Last update: --:--:--</div>
+
+  <!-- ── STEP 1: GIFT Nifty ── -->
+  <div class="detail-card visible" id="detail1">
+    <div class="dc-head">
+      <div class="dc-num">1</div>
+      <div class="dc-title">Check GIFT Nifty — Gap Analysis</div>
+      <div class="dc-time-tag dt-pre">8:45 AM</div>
+    </div>
+    <div class="dc-body">
+      <div class="sub-head">Pre-Market Data</div>
+
+      <div id="s1-content">
+        <div class="no-data">
+          <div class="nd-icon">⏰</div>
+          <div>Loading pre-market data…</div>
+          <div class="nd-ta">தகவல் ஏற்றுகிறது…</div>
+        </div>
+      </div>
+
+      <div class="tip-strip">
+        <div class="tip-lbl">💡 Tip</div>
+        Gap Up/Down &gt;50 pts = Directional day. &lt;20 pts = Wait and watch. GIFT Nifty alone is not enough — always confirm with CPR and ORB.
+        <br><span style="font-family:'Tiro Tamil',serif;font-size:12px">50+ Gap = திசை உறுதி. 20-க்கும் குறைவு = காத்திருங்கள்.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: CPR ── -->
+  <div class="detail-card" id="detail2">
+    <div class="dc-head">
+      <div class="dc-num">2</div>
+      <div class="dc-title">Calculate CPR — Narrow or Wide?</div>
+      <div class="dc-time-tag dt-pre">Before 9:15 AM</div>
+    </div>
+    <div class="dc-body">
+      <div class="sub-head" id="cpr-sub-head">CPR Calculation</div>
+
+      <div id="s2-content">
+        <div class="no-data">
+          <div class="nd-icon">📐</div>
+          <div>CPR தரவு கணக்கிடுகிறது… engine-ல் இருந்து தகவல் எடுக்கிறது.</div>
+        </div>
+      </div>
+
+      <div class="sub-head">Width Interpretation</div>
+      <table class="compare-table" style="margin-bottom:16px">
+        <thead><tr><th>CPR Width</th><th>Type</th><th>Expected Day</th><th>Strategy</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--green)">&lt;40 pts</td><td>Narrow</td><td>Strong trend</td><td>Trade breakout aggressively</td></tr>
+          <tr><td style="color:var(--yellow)">40–80 pts</td><td>Moderate</td><td>Mixed</td><td>Confirm with ORB</td></tr>
+          <tr><td style="color:var(--red)">&gt;80 pts</td><td>Wide</td><td>Sideways/choppy</td><td>Reduce size or avoid</td></tr>
+        </tbody>
+      </table>
+      <div id="s2-analysis"></div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: S&R Levels ── -->
+  <div class="detail-card" id="detail3">
+    <div class="dc-head">
+      <div class="dc-num">3</div>
+      <div class="dc-title">Mark S&amp;R Levels on Chart</div>
+      <div class="dc-time-tag dt-pre">Before 9:15 AM</div>
+    </div>
+    <div class="dc-body">
+      <div class="sub-head">Today's Key Levels — Mark These on TradingView</div>
+      <div id="s3-levels">
+        <div class="no-data">
+          <div class="nd-icon">📊</div>
+          <div>CPR data available ஆனதும் இங்கே levels தோன்றும்.</div>
+        </div>
+      </div>
+      <div class="tip-strip">
+        <div class="tip-lbl">💡 TradingView-ல் எப்படி குறிப்பிடுவது</div>
+        Chart திறந்து → Alt+Click (Horizontal line) → Price level type செய்யுங்கள். TC, BC-ஐ dashed line-ஆகவும், R1/S1-ஐ solid line-ஆகவும் வைக்கவும். PP-ஐ bold yellow line-ஆக குறிக்கவும்.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: Opening Price vs CPR ── -->
+  <div class="detail-card" id="detail4">
+    <div class="dc-head">
+      <div class="dc-num">4</div>
+      <div class="dc-title">Opening Price vs CPR — Bias Confirmation</div>
+      <div class="dc-time-tag dt-open">9:15 AM</div>
+    </div>
+    <div class="dc-body">
+      <div class="sub-head" id="open-sub-head">CPR Levels</div>
+      <div id="s4-content">
+        <div class="no-data">
+          <div class="nd-icon">🔔</div>
+          <div>9:15 AM-ல் திறந்ததும் opening price data கிடைக்கும்.</div>
+          <div class="nd-ta">Market திறந்த பிறகு தகவல் தோன்றும்.</div>
+        </div>
+      </div>
+      <div class="tip-strip">
+        <div class="tip-lbl">💡 Opening Rule Summary</div>
+        Above TC → 🟢 Look for Longs only &nbsp;|&nbsp; Inside CPR → ⚠️ Wait &nbsp;|&nbsp; Below BC → 🔴 Look for Shorts only
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 5: ORB H&L ── -->
+  <div class="detail-card" id="detail5">
+    <div class="dc-head">
+      <div class="dc-num">5</div>
+      <div class="dc-title">ORB High &amp; Low Formed (9:15–9:30 Candle)</div>
+      <div class="dc-time-tag dt-orb">9:30 AM</div>
+    </div>
+    <div class="dc-body">
+      <div class="sub-head">9:15–9:30 AM Candle Data</div>
+      <div id="s5-content">
+        <div class="no-data">
+          <div class="nd-icon">📊</div>
+          <div>9:30 AM-ல் முதல் candle close ஆனதும் ORB data கிடைக்கும்.</div>
+          <div class="nd-ta">9:30 AM வரை காத்திருங்கள்.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 6: Breakout + Volume ── -->
+  <div class="detail-card" id="detail6">
+    <div class="dc-head">
+      <div class="dc-num">6</div>
+      <div class="dc-title">Wait for Breakout + Volume Confirmation</div>
+      <div class="dc-time-tag dt-orb">After 9:30 AM</div>
+    </div>
+    <div class="dc-body">
+      <div class="sub-head">Final Confluence Check</div>
+      <div id="s6-content">
+        <div class="no-data">
+          <div class="nd-icon">🎯</div>
+          <div>ORB form ஆனதும் இங்கே final trade decision தோன்றும்.</div>
+          <div class="nd-ta">அனைத்து phases முடிந்த பிறகு verdict கிடைக்கும்.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /detail-panel -->
+</div><!-- /page -->
+
+<footer>
+  <div class="fbrand"><div class="flogo">TZ</div><span>TradeZen</span></div>
+  <div class="fnote">Nifty50 · CPR + ORB Framework · <em>SEBI 2026</em> · தமிழில் விளக்கம்</div>
+  <div class="fnote" style="font-size:10px;">© 2026 · Educational purposes only · நிதி ஆலோசனை அல்ல</div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+let currentScenario = 'bull';
+let currentStep     = 1;
+let flowData        = null;   // latest /api/trade-flow response
+let autoScenario    = null;   // scenario from server
+let editingOhlc     = false;  // true while OHLC edit form is open — pauses Step 2 re-render
+let giftRefClose    = null;   // reference close for gap = GIFT Nifty − giftRefClose
+                              // defaults to prev_day.close but user can set to futures close
+
+// ─────────────────────────────────────────────
+// Navigation helpers
+// ─────────────────────────────────────────────
+function showStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.step-item').forEach((el, i) => {
+    el.classList.remove('active', 'done');
+    if (i + 1 === n) el.classList.add('active');
+    else if (i + 1 < n) el.classList.add('done');
+  });
+  for (let i = 1; i <= 6; i++) {
+    const s = document.getElementById('s' + i + '-status');
+    if (!s) continue;
+    if (i < n)      { s.className = 'step-status ss-done';    s.textContent = '✓ DONE'; }
+    else if (i === n) { s.className = 'step-status ss-active'; s.textContent = '● ACTIVE'; }
+    else            { s.className = 'step-status ss-pending'; s.textContent = '○ PENDING'; }
+  }
+  document.querySelectorAll('.detail-card').forEach(c => c.classList.remove('visible'));
+  const dc = document.getElementById('detail' + n);
+  if (dc) dc.classList.add('visible');
+
+  document.getElementById('verdict-bull').style.display = (n === 6 && currentScenario === 'bull') ? 'flex' : 'none';
+  document.getElementById('verdict-bear').style.display = (n === 6 && currentScenario === 'bear') ? 'flex' : 'none';
+  document.getElementById('verdict-skip').style.display = (n === 6 && currentScenario === 'skip') ? 'flex' : 'none';
+}
+
+function setScenario(sc, fromAuto) {
+  currentScenario = sc;
+  document.getElementById('btn-bull').className = 'sc-btn' + (sc === 'bull' ? ' bull-active' : '');
+  document.getElementById('btn-bear').className = 'sc-btn' + (sc === 'bear' ? ' bear-active' : '');
+  document.getElementById('btn-skip').className = 'sc-btn' + (sc === 'skip' ? ' skip-active' : '');
+  const atag = document.getElementById('auto-tag');
+  if (fromAuto) { atag.style.display = ''; }
+  // Re-render current step to refresh scenario content
+  renderFlowData(flowData);
+  showStep(currentStep);
+}
+
+// ─────────────────────────────────────────────
+// Number formatting helpers
+// ─────────────────────────────────────────────
+function fmt(n)  { return n != null ? n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '—'; }
+function fmtDiff(n) {
+  if (n == null) return '—';
+  const sign = n >= 0 ? '+' : '';
+  return sign + fmt(n) + ' pts';
+}
+function colorClass(n, positiveGreen) {
+  if (n == null) return 'dv-dim';
+  if (positiveGreen) return n >= 0 ? 'dv-green' : 'dv-red';
+  return n <= 0 ? 'dv-green' : 'dv-red'; // inverted: below level = bearish
+}
+
+// ─────────────────────────────────────────────
+// Render functions
+// ─────────────────────────────────────────────
+function gapLabel(gap) {
+  // Returns direction string that always matches the sign
+  if (gap == null) return '🟡 No data';
+  if (gap > 50)  return `🟢 Gap Up ${fmtDiff(gap)}`;
+  if (gap < -50) return `🔴 Gap Down ${fmtDiff(gap)}`;
+  if (gap > 0)   return `🟡 Mild Gap Up ${fmtDiff(gap)} (Not conclusive)`;
+  if (gap < 0)   return `🟡 Mild Gap Down ${fmtDiff(gap)} (Not conclusive)`;
+  return `🟡 Flat (0 pts)`;
+}
+
+function renderStep1(d) {
+  const el = document.getElementById('s1-content');
+  if (!d) return;
+  const prev = d.prev_day;
+  const cpr  = d.cpr;
+
+  if (!prev) {
+    el.innerHTML = `<div class="no-data"><div class="nd-icon">⚠️</div>
+      <div>Previous day OHLC data இல்லை. Engine restart செய்யவும்.</div></div>`;
+    return;
+  }
+
+  const isPreMkt = (d.phase === 'pre_market');
+
+  // ── Pre-market: use manually supplied GIFT Nifty price only ──────────────
+  // We do NOT use nifty_ltp as a proxy — that token (26000) shows the NSE
+  // closing price, not the GIFT Nifty which trades on NSE IFSC separately.
+  if (isPreMkt) {
+    const gift = d.gift_nifty;   // null until user sets it via the form
+
+    // Default reference close to prev_day.close the first time
+    if (giftRefClose === null && prev) giftRefClose = prev.close;
+    const refClose = giftRefClose || prev.close;
+
+    if (!gift) {
+      el.innerHTML = `
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
+                    padding:16px 20px">
+          <div style="font-size:13px;color:var(--text);margin-bottom:6px;font-weight:600">
+            Enter Pre-Market Values
+          </div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:12px">
+            GIFT Nifty trades on NSE IFSC — not available via Angel One feed.
+            Get it from your broker terminal or
+            <a href="https://www.nseindia.com/gift" target="_blank"
+               style="color:var(--cyan)">nseindia.com/gift</a>.
+          </div>
+          <div style="font-family:'Tiro Tamil',serif;font-size:12px;color:var(--dim);margin-bottom:14px">
+            GIFT Nifty price-ஐ உங்கள் broker terminal-ல் இருந்து உள்ளிடுங்கள்.
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;
+                           letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);
+                           margin-bottom:5px">GIFT Nifty Current</div>
+              <input id="inp-gift" type="number" placeholder="e.g. 24181" step="0.05"
+                style="width:100%;background:var(--bg);border:1px solid var(--border2);
+                       color:var(--text);border-radius:6px;padding:7px 10px;
+                       font-family:'JetBrains Mono',monospace;font-size:13px">
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;
+                           letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);
+                           margin-bottom:5px">Reference Close ⓘ</div>
+              <input id="inp-gift-ref" type="number" placeholder="Prev futures close" step="0.05"
+                value="${refClose}"
+                style="width:100%;background:var(--bg);border:1px solid var(--border2);
+                       color:var(--text);border-radius:6px;padding:7px 10px;
+                       font-family:'JetBrains Mono',monospace;font-size:13px">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:12px;
+                      background:var(--bg);border:1px solid var(--border);
+                      border-left:3px solid var(--yellow);border-radius:4px;padding:8px 12px">
+            <strong style="color:var(--yellow)">Gap = GIFT Nifty − Reference Close</strong><br>
+            Moneycontrol/NSE use <em>previous NIFTY Futures settlement</em> as reference (not spot close).
+            Futures close is usually 10–20 pts below spot close near expiry.
+            Change "Reference Close" to match your broker's gap figure.
+          </div>
+          <button onclick="submitGiftNifty()"
+            style="background:var(--cyan);color:#000;border:none;border-radius:6px;
+                   padding:7px 18px;font-weight:700;font-size:13px;cursor:pointer">
+            Calculate Gap
+          </button>
+        </div>`;
+      return;
+    }
+
+    // We have a GIFT Nifty price — compute gap vs reference close
+    const gap      = gift - refClose;
+    const isBull   = gap > 50;
+    const isBear   = gap < -50;
+    const boxClass = isBull ? 'sb-bull' : isBear ? 'sb-bear' : 'sb-neutral';
+    const checks   = isBull ? `
+      <div class="chk pass"><span class="chk-icon">✅</span>
+        <div class="chk-text"><strong>Gap Up &gt;50 pts</strong> = Strong bullish opening expected at 9:15 AM</div></div>
+      <div class="chk pass"><span class="chk-icon">✅</span>
+        <div class="chk-text ta">Gap up-உடன் TC (${fmt(cpr ? cpr.tc : null)})-க்கு மேலே திறக்கும் →
+          <strong style="color:var(--green)">Bullish bias confirmed</strong></div></div>`
+    : isBear ? `
+      <div class="chk fail"><span class="chk-icon">🔴</span>
+        <div class="chk-text"><strong>Gap Down &gt;50 pts</strong> = Strong bearish opening expected at 9:15 AM</div></div>
+      <div class="chk fail"><span class="chk-icon">🔴</span>
+        <div class="chk-text ta">Gap down-உடன் BC (${fmt(cpr ? cpr.bc : null)})-க்கு கீழே திறக்கும் →
+          <strong style="color:var(--red)">Bearish bias confirmed</strong></div></div>`
+    : `
+      <div class="chk warn"><span class="chk-icon">⚠️</span>
+        <div class="chk-text"><strong>Mild gap (< 50 pts)</strong> = Not conclusive. Wait for CPR and ORB confirmation.</div></div>
+      <div class="chk warn"><span class="chk-icon">⚠️</span>
+        <div class="chk-text ta">Gap போதுமான தகவல் இல்லை. CPR மற்றும் ORB-ஐ கவனமாக பாருங்கள்.</div></div>`;
+
+    el.innerHTML = `
+      <div class="scenario-box ${boxClass}">
+        <div class="sb-title">${label}</div>
+        <div class="data-row"><span class="dr-label">Previous Nifty Close</span>
+          <span class="dr-val">${fmt(prev.close)} (${prev.date})</span></div>
+        <div class="data-row"><span class="dr-label">GIFT Nifty (manual)</span>
+          <span class="dr-val ${gap >= 0 ? 'dv-green' : 'dv-red'}">${fmt(gift)}</span></div>
+        <div class="data-row"><span class="dr-label">Reference Close</span>
+          <span class="dr-val dv-dim">${fmt(refClose)}</span></div>
+        <div class="data-row"><span class="dr-label">Gap = GIFT − Ref</span>
+          <span class="dr-val ${gap >= 0 ? 'dv-green' : 'dv-red'}">${fmtDiff(gap)}</span></div>
+        <div class="data-row"><span class="dr-label">Signal</span>
+          <span class="dr-val">${label}</span></div>
+      </div>
+      <div class="checklist">${checks}</div>
+      <button onclick="clearGiftNifty()"
+        style="margin-top:8px;background:transparent;border:1px solid var(--border);
+               color:var(--muted);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer">
+        ✏️ Update GIFT Nifty / Ref Close
+      </button>`;
+    return;
+  }
+
+  // ── After 9:15 AM: gap = actual opening price – prev close ───────────────
+  const openPrice = d.nifty_open ? d.nifty_open.price : d.nifty_ltp;
+  const gap       = (openPrice && prev.close) ? openPrice - prev.close : null;
+  const label     = gapLabel(gap);
+  const isBull    = gap != null && gap > 50;
+  const isBear    = gap != null && gap < -50;
+  const boxClass  = isBull ? 'sb-bull' : isBear ? 'sb-bear' : 'sb-neutral';
+
+  el.innerHTML = `
+    <div class="scenario-box ${boxClass}">
+      <div class="sb-title">${label}</div>
+      <div class="data-row"><span class="dr-label">Previous Nifty Close</span>
+        <span class="dr-val">${fmt(prev.close)} (${prev.date})</span></div>
+      <div class="data-row"><span class="dr-label">NIFTY Open (actual)</span>
+        <span class="dr-val ${gap != null ? (gap >= 0 ? 'dv-green' : 'dv-red') : ''}">${fmt(openPrice)}</span></div>
+      <div class="data-row"><span class="dr-label">Gap (Open − Prev Close)</span>
+        <span class="dr-val ${gap != null ? (gap >= 0 ? 'dv-green' : 'dv-red') : 'dv-dim'}">${gap != null ? fmtDiff(gap) : '—'}</span></div>
+      <div class="data-row"><span class="dr-label">Signal</span>
+        <span class="dr-val">${label}</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">
+      Gap locked at market open. See Step 4 for opening price vs CPR position.
+    </div>`;
+}
+
+function renderStep2(d) {
+  if (editingOhlc) return;   // user is typing — don't clobber the form
+  const cpr  = d && d.cpr;
+  const prev = d && d.prev_day;
+
+  // ── OHLC source box — always visible so user can verify / correct ─────────
+  const ohlcHtml = prev
+    ? `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);
+                   padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;
+                   justify-content:space-between;flex-wrap:wrap;gap:10px">
+         <div>
+           <span style="font-family:'JetBrains Mono',monospace;font-size:10px;
+                        letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">
+             PREV DAY SOURCE (${prev.date})
+           </span>
+           <div style="margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:13px">
+             H <span style="color:var(--green)">${fmt(prev.high)}</span>
+             &nbsp;·&nbsp;
+             L <span style="color:var(--red)">${fmt(prev.low)}</span>
+             &nbsp;·&nbsp;
+             C <span style="color:var(--yellow)">${fmt(prev.close)}</span>
+           </div>
+           <div style="font-size:11px;color:var(--muted);margin-top:3px">
+             ⚠️ If these differ from NSE/broker values, update below.
+           </div>
+         </div>
+         <button onclick="toggleOhlcEdit()"
+           style="background:transparent;border:1px solid var(--border2);color:var(--dim);
+                  border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer">
+           ✏️ Update H/L/C
+         </button>
+       </div>
+       <div id="ohlc-edit-form" style="display:none;background:var(--bg3);border:1px solid var(--border2);
+            border-radius:var(--r2);padding:12px 16px;margin-bottom:14px">
+         <div style="font-size:12px;color:var(--dim);margin-bottom:8px">
+           Enter actual previous day NIFTY spot values (from NSE / TradingView):
+         </div>
+         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+           <input id="s2-inp-high"  type="number" placeholder="High"  step="0.05"
+             value="${prev.high}"
+             style="width:100px;background:var(--bg);border:1px solid var(--border2);
+                    color:var(--text);border-radius:6px;padding:6px 8px;
+                    font-family:'JetBrains Mono',monospace;font-size:12px">
+           <input id="s2-inp-low"   type="number" placeholder="Low"   step="0.05"
+             value="${prev.low}"
+             style="width:100px;background:var(--bg);border:1px solid var(--border2);
+                    color:var(--text);border-radius:6px;padding:6px 8px;
+                    font-family:'JetBrains Mono',monospace;font-size:12px">
+           <input id="s2-inp-close" type="number" placeholder="Close" step="0.05"
+             value="${prev.close}"
+             style="width:100px;background:var(--bg);border:1px solid var(--border2);
+                    color:var(--text);border-radius:6px;padding:6px 8px;
+                    font-family:'JetBrains Mono',monospace;font-size:12px">
+           <button onclick="submitOhlc('s2-inp')"
+             style="background:var(--yellow);color:#000;border:none;border-radius:6px;
+                    padding:6px 16px;font-weight:700;font-size:12px;cursor:pointer">
+             Recalculate CPR
+           </button>
+           <button onclick="cancelOhlcEdit()"
+             style="background:transparent;border:1px solid var(--border);color:var(--dim);
+                    border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">
+             Cancel
+           </button>
+         </div>
+       </div>`
+    : `<div class="no-data"><div class="nd-icon">📐</div>
+         <div>Prev day OHLC data இல்லை. Engine restart செய்யவும்.</div>
+       </div>`;
+
+  if (!cpr || !prev) {
+    document.getElementById('cpr-sub-head').textContent = 'CPR Calculation';
+    document.getElementById('s2-content').innerHTML = ohlcHtml;
+    document.getElementById('s2-analysis').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('cpr-sub-head').textContent =
+    `CPR Calculation — Prev H=${fmt(prev.high)} · L=${fmt(prev.low)} · C=${fmt(prev.close)}`;
+
+  const typeColor = cpr.type === 'narrow' ? 'dv-green' : (cpr.type === 'wide' ? 'dv-red' : 'dv-yellow');
+  document.getElementById('s2-content').innerHTML = ohlcHtml + `
+    <div class="scenario-box sb-neutral" style="margin-bottom:16px">
+      <div class="data-row">
+        <span class="dr-label">PP = (${fmt(prev.high)}+${fmt(prev.low)}+${fmt(prev.close)}) ÷ 3</span>
+        <span class="dr-val dv-yellow">${fmt(cpr.pp)}</span>
+      </div>
+      <div class="data-row">
+        <span class="dr-label">Midpoint BC = (H+L) ÷ 2</span>
+        <span class="dr-val dv-red">${fmt(cpr.bc)}</span>
+      </div>
+      <div class="data-row">
+        <span class="dr-label">TC = 2×PP − BC</span>
+        <span class="dr-val dv-green">${fmt(cpr.tc)}</span>
+      </div>
+      <div class="data-row">
+        <span class="dr-label">CPR Width = |TC − BC|</span>
+        <span class="dr-val ${typeColor}">${fmt(cpr.width)} pts (${cpr.type.toUpperCase()})</span>
+      </div>
+    </div>`;
+
+  const sc = currentScenario;
+  let analysisHtml = '';
+  if (sc === 'bull') {
+    analysisHtml = `<div class="checklist">
+      <div class="chk pass"><span class="chk-icon">✅</span>
+        <div class="chk-text"><strong>CPR Width = ${fmt(cpr.width)} pts</strong> (${cpr.type}).
+          Opening above TC (${fmt(cpr.tc)}) → trend day confirmed.</div></div>
+      <div class="chk pass"><span class="chk-icon">✅</span>
+        <div class="chk-text ta">CPR width ${fmt(cpr.width)} pts. TC (${fmt(cpr.tc)})-க்கு மேலே திறப்பு →
+          <strong style="color:var(--green)">போக்கு நாள் எதிர்பார்க்கலாம்</strong>.</div></div>
+    </div>`;
+  } else if (sc === 'bear') {
+    analysisHtml = `<div class="checklist">
+      <div class="chk fail"><span class="chk-icon">🔴</span>
+        <div class="chk-text"><strong>CPR Width = ${fmt(cpr.width)} pts</strong> (${cpr.type}).
+          Opening below BC (${fmt(cpr.bc)}) → bearish trend day expected.</div></div>
+      <div class="chk fail"><span class="chk-icon">🔴</span>
+        <div class="chk-text ta">BC (${fmt(cpr.bc)})-க்கு கீழே திறப்பு →
+          <strong style="color:var(--red)">இறக்க போக்கு நாள் உறுதி</strong>.</div></div>
+    </div>`;
+  } else {
+    analysisHtml = `<div class="checklist">
+      <div class="chk warn"><span class="chk-icon">⚠️</span>
+        <div class="chk-text"><strong>CPR Width = ${fmt(cpr.width)} pts</strong> (${cpr.type}).
+          Opening inside CPR (${fmt(cpr.bc)}–${fmt(cpr.tc)}) possible → choppy day risk.</div></div>
+      <div class="chk warn"><span class="chk-icon">⚠️</span>
+        <div class="chk-text ta">CPR-க்குள் (${fmt(cpr.bc)}–${fmt(cpr.tc)}) திறக்கும் வாய்ப்பு.
+          கவனமாக இருங்கள்.</div></div>
+    </div>`;
+  }
+  document.getElementById('s2-analysis').innerHTML = analysisHtml;
+}
+
+function toggleOhlcEdit() {
+  editingOhlc = !editingOhlc;
+  const form = document.getElementById('ohlc-edit-form');
+  if (form) form.style.display = editingOhlc ? '' : 'none';
+}
+
+function renderStep3(d) {
+  const cpr = d && d.cpr;
+  const el  = document.getElementById('s3-levels');
+  if (!cpr) {
+    el.innerHTML = `<div class="no-data"><div class="nd-icon">📊</div><div>CPR data available ஆனதும் இங்கே levels தோன்றும்.</div></div>`;
+    return;
+  }
+  const levels = [
+    { lbl:'R2', price:cpr.r2, bar:'linear-gradient(90deg,var(--green),#27ae60)', bg:'rgba(46,204,113,0.08)', bc:'rgba(46,204,113,0.2)',  col:'var(--green)', desc:'Extreme bull target' },
+    { lbl:'R1', price:cpr.r1, bar:'var(--green)',                                bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'First bull target' },
+    { lbl:'TC', price:cpr.tc, bar:'rgba(46,204,113,0.5)',                        bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'CPR upper' },
+    { lbl:'PP', price:cpr.pp, bar:'var(--yellow)',                               bg:'rgba(245,166,35,0.08)', bc:'rgba(245,166,35,0.2)',  col:'var(--yellow)',desc:'Pivot magnet' },
+    { lbl:'BC', price:cpr.bc, bar:'rgba(231,76,60,0.5)',                         bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'CPR lower' },
+    { lbl:'S1', price:cpr.s1, bar:'var(--red)',                                  bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'First bear target' },
+    { lbl:'S2', price:cpr.s2, bar:'linear-gradient(90deg,var(--red),#c0392b)',   bg:'rgba(231,76,60,0.08)', bc:'rgba(231,76,60,0.2)',    col:'var(--red)',   desc:'Extreme bear target' },
+  ];
+  el.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+    ${levels.map(lv => `
+      <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:${lv.bg};border:1px solid ${lv.bc};border-radius:6px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:${lv.col};width:32px">${lv.lbl}</span>
+        <div style="flex:1;height:4px;background:${lv.bar};border-radius:2px"></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:${lv.col}">${fmt(lv.price)}</span>
+        <span style="font-size:11px;color:var(--muted)">${lv.desc}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderStep4(d) {
+  const cpr  = d && d.cpr;
+  const open = d && d.nifty_open;
+  const el   = document.getElementById('s4-content');
+
+  if (!cpr) {
+    el.innerHTML = `<div class="no-data"><div class="nd-icon">📐</div><div>CPR data not available. Engine restart செய்யவும்.</div></div>`;
+    return;
+  }
+
+  document.getElementById('open-sub-head').textContent =
+    `CPR Levels: TC=${fmt(cpr.tc)} · PP=${fmt(cpr.pp)} · BC=${fmt(cpr.bc)}`;
+
+  if (!open) {
+    el.innerHTML = `<div class="no-data">
+      <div class="nd-icon">🔔</div>
+      <div>9:15 AM-ல் திறந்ததும் opening price data கிடைக்கும்.</div>
+      <div class="nd-ta">Market திறந்த பிறகு தகவல் தோன்றும்.</div>
+    </div>`;
+    return;
+  }
+
+  let boxClass, posLabel, checks;
+  const sc = currentScenario;
+  if (open.position === 'above_tc') {
+    boxClass = 'sb-bull';
+    posLabel = `<span class="dv-green">Open ${fmtDiff(open.vs_tc)} ABOVE TC ✅</span>`;
+    checks = `
+      <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text">Opening <strong>above TC</strong> = CPR band is now support below. Market will try to stay above TC all day.</div></div>
+      <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text ta">${fmt(open.price)}-ல் திறப்பு → TC (${fmt(cpr.tc)})-க்கு ${fmtDiff(open.vs_tc)} மேலே. <strong style="color:var(--green)">வலுவான ஏற்ற நாள்</strong> உறுதி. Long trades மட்டும்.</div></div>`;
+  } else if (open.position === 'below_bc') {
+    boxClass = 'sb-bear';
+    posLabel = `<span class="dv-red">Open ${fmtDiff(open.vs_bc)} BELOW BC ✅</span>`;
+    checks = `
+      <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text">Opening <strong>below BC</strong> = CPR band is now resistance above. Market will try to stay below BC all day.</div></div>
+      <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text ta">${fmt(open.price)}-ல் திறப்பு → BC (${fmt(cpr.bc)})-க்கு கீழே. <strong style="color:var(--red)">வலுவான இறக்க நாள்</strong> உறுதி. Short trades மட்டும்.</div></div>`;
+  } else {
+    boxClass = 'sb-neutral';
+    posLabel = `<span class="dv-yellow">INSIDE CPR BAND ⚠️</span>`;
+    checks = `
+      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text">Opening <strong>inside CPR</strong> (${fmt(cpr.bc)}–${fmt(cpr.tc)}) = choppy, indecisive day. No clear bias. Wait for price to exit CPR before trading.</div></div>
+      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text ta">${fmt(open.price)} → CPR-க்குள் திறப்பு. <strong style="color:var(--yellow)">திசை தெரியவில்லை.</strong> CPR-ஐ உடைத்து வெளியே சென்ற பிறகே trade எடுங்கள்.</div></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="scenario-box ${boxClass}">
+      <div class="sb-title">Market Opens at ${fmt(open.price)}</div>
+      <div class="data-row"><span class="dr-label">Opening Price</span><span class="dr-val">${fmt(open.price)}</span></div>
+      <div class="data-row"><span class="dr-label">vs TC (${fmt(cpr.tc)})</span>${posLabel}</div>
+      <div class="data-row"><span class="dr-label">vs BC (${fmt(cpr.bc)})</span><span class="dr-val ${open.vs_bc >= 0 ? 'dv-green' : 'dv-red'}">${fmtDiff(open.vs_bc)}</span></div>
+      <div class="data-row"><span class="dr-label">Bias</span><span class="dr-val">${open.position === 'above_tc' ? '🟢 STRONG BULLISH' : open.position === 'below_bc' ? '🔴 STRONG BEARISH' : '🟡 INSIDE CPR — Wait'}</span></div>
+    </div>
+    <div class="checklist">${checks}</div>`;
+}
+
+function renderStep5(d) {
+  const cpr = d && d.cpr;
+  const orb = d && d.orb;
+  const el  = document.getElementById('s5-content');
+
+  if (!orb) {
+    el.innerHTML = `<div class="no-data">
+      <div class="nd-icon">📊</div>
+      <div>9:30 AM-ல் முதல் candle close ஆனதும் ORB data கிடைக்கும்.</div>
+      <div class="nd-ta">9:30 AM வரை காத்திருங்கள்.</div>
+    </div>`;
+    return;
+  }
+
+  let boxClass, orbNote;
+  if (orb.vs_cpr === 'above_tc') {
+    boxClass = 'sb-bull';
+    orbNote = `Both ORB H&L above TC (${fmt(cpr ? cpr.tc : null)}) ✅`;
+  } else if (orb.vs_cpr === 'below_bc') {
+    boxClass = 'sb-bear';
+    orbNote = `Both ORB H&L below BC (${fmt(cpr ? cpr.bc : null)}) ✅`;
+  } else {
+    boxClass = 'sb-neutral';
+    orbNote = `ORB straddles CPR band ⚠️`;
+  }
+
+  const sc = currentScenario;
+  const isBull = (sc === 'bull');
+  const isBear = (sc === 'bear');
+
+  el.innerHTML = `
+    <div class="scenario-box ${boxClass}">
+      <div class="sb-title">${isBull ? '🟢 Bull' : isBear ? '🔴 Bear' : '🟡 Conflict'} Scenario ORB</div>
+      <div class="data-row"><span class="dr-label">ORB High</span><span class="dr-val dv-green">${fmt(orb.high)}</span></div>
+      <div class="data-row"><span class="dr-label">ORB Low</span><span class="dr-val dv-red">${fmt(orb.low)}</span></div>
+      <div class="data-row"><span class="dr-label">ORB Range</span><span class="dr-val dv-yellow">${fmt(orb.range)} pts</span></div>
+      <div class="data-row"><span class="dr-label">ORB vs CPR</span><span class="dr-val">${orbNote}</span></div>
+      ${isBull ? `
+      <div class="data-row"><span class="dr-label">Bull T1 target</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range)} = ${fmt(orb.t1_bull)}</span></div>
+      <div class="data-row"><span class="dr-label">Bull T2 target</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range * 2)} = ${fmt(orb.t2_bull)}</span></div>
+      <div class="data-row"><span class="dr-label">Stop Loss</span><span class="dr-val dv-red">${fmt(orb.high)} − 20 = ${fmt(orb.sl_bull)}</span></div>
+      ` : isBear ? `
+      <div class="data-row"><span class="dr-label">Bear T1 target</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range)} = ${fmt(orb.t1_bear)}</span></div>
+      <div class="data-row"><span class="dr-label">Bear T2 target</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range * 2)} = ${fmt(orb.t2_bear)}</span></div>
+      <div class="data-row"><span class="dr-label">Stop Loss</span><span class="dr-val dv-green">${fmt(orb.low)} + 20 = ${fmt(orb.sl_bear)}</span></div>
+      ` : `
+      <div class="data-row"><span class="dr-label">Conflict</span><span class="dr-val dv-yellow">ORB direction unclear</span></div>
+      `}
+    </div>`;
+}
+
+function renderStep6(d) {
+  const cpr  = d && d.cpr;
+  const orb  = d && d.orb;
+  const open = d && d.nifty_open;
+  const el   = document.getElementById('s6-content');
+
+  if (!orb) {
+    el.innerHTML = `<div class="no-data">
+      <div class="nd-icon">🎯</div>
+      <div>ORB form ஆனதும் இங்கே final trade decision தோன்றும்.</div>
+      <div class="nd-ta">அனைத்து phases முடிந்த பிறகு verdict கிடைக்கும்.</div>
+    </div>`;
+    return;
+  }
+
+  const sc     = currentScenario;
+  const isBull = (sc === 'bull');
+  const isBear = (sc === 'bear');
+
+  // Confluence flags
+  const giftOk  = (sc === 'bull' || sc === 'bear') ? '✅' : '⚠️';
+  const cprOk   = (open && (open.position === 'above_tc' || open.position === 'below_bc')) ? '✅' : (open ? '❌' : '⚠️');
+  const orbOk   = (isBull && orb.vs_cpr === 'above_tc') || (isBear && orb.vs_cpr === 'below_bc') ? '✅' : '⚠️';
+
+  const giftColor = giftOk === '✅' ? 'var(--green)' : 'var(--yellow)';
+  const cprColor  = cprOk  === '✅' ? 'var(--green)' : (cprOk === '❌' ? 'var(--red)' : 'var(--yellow)');
+  const orbColor  = orbOk  === '✅' ? 'var(--green)' : 'var(--yellow)';
+
+  if (isBull && orb.vs_cpr === 'above_tc') {
+    el.innerHTML = `
+      <div class="score-card">
+        <div class="sc-item"><div class="sci-label">GIFT Nifty</div><div class="sci-val" style="color:${giftColor}">${giftOk}</div></div>
+        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprColor}">${cprOk}</div></div>
+        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:${orbColor}">${orbOk}</div></div>
+      </div>
+      <div class="checklist">
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>GIFT Nifty</strong> — Gap Up → Bullish pre-market signal</div></div>
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>CPR Bias</strong> — Open ${open ? fmt(open.price) : '—'} above TC (${fmt(cpr.tc)}) → Bullish confirmed</div></div>
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>ORB Breakout</strong> — Price closes above ORB High (${fmt(orb.high)}) with 2× average volume → Entry signal</div></div>
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text ta">மூன்றும் சேர்ந்தால் = <strong style="color:var(--green)">High Probability Long Trade</strong>. Entry: ${fmt(orb.high)} · Target: ${fmt(orb.t1_bull)} → ${fmt(orb.t2_bull)} · Stop: ${fmt(orb.sl_bull)}</div></div>
+      </div>
+      <div class="final-result fr-bull">
+        <div class="fr-icon">🚀</div>
+        <div class="fr-title" style="color:var(--green)">✅ HIGH PROBABILITY LONG TRADE</div>
+        <div class="fr-sub">All 3 signals aligned — Enter Long confidently</div>
+        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → நம்பிக்கையுடன் Long எடுங்கள்</div>
+        <div class="fr-chips">
+          <span class="fr-chip fc-bull">Entry: ${fmt(orb.high)}</span>
+          <span class="fr-chip fc-bull">T1: ${fmt(orb.t1_bull)}</span>
+          <span class="fr-chip fc-bull">T2: ${fmt(orb.t2_bull)}</span>
+          <span class="fr-chip" style="background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)">SL: ${fmt(orb.sl_bull)}</span>
+        </div>
+      </div>`;
+  } else if (isBear && orb.vs_cpr === 'below_bc') {
+    el.innerHTML = `
+      <div class="score-card">
+        <div class="sc-item"><div class="sci-label">GIFT Nifty</div><div class="sci-val" style="color:${giftColor}">${giftOk}</div></div>
+        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprColor}">${cprOk}</div></div>
+        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:${orbColor}">${orbOk}</div></div>
+      </div>
+      <div class="checklist">
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>GIFT Nifty</strong> — Gap Down → Strong bearish pre-market signal</div></div>
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>CPR Bias</strong> — Open ${open ? fmt(open.price) : '—'} below BC (${fmt(cpr.bc)}) → Bearish confirmed</div></div>
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>ORB Breakdown</strong> — Price closes below ORB Low (${fmt(orb.low)}) with 2× average volume → Short entry</div></div>
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text ta">மூன்றும் சேர்ந்தால் = <strong style="color:var(--red)">High Probability Short Trade</strong>. Entry: ${fmt(orb.low)} · Target: ${fmt(orb.t1_bear)} → ${fmt(orb.t2_bear)} · Stop: ${fmt(orb.sl_bear)}</div></div>
+      </div>
+      <div class="final-result fr-bear">
+        <div class="fr-icon">📉</div>
+        <div class="fr-title" style="color:var(--red)">✅ HIGH PROBABILITY SHORT TRADE</div>
+        <div class="fr-sub">All 3 signals aligned — Enter Short confidently</div>
+        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → நம்பிக்கையுடன் Short எடுங்கள்</div>
+        <div class="fr-chips">
+          <span class="fr-chip fc-bear">Entry: ${fmt(orb.low)}</span>
+          <span class="fr-chip fc-bear">T1: ${fmt(orb.t1_bear)}</span>
+          <span class="fr-chip fc-bear">T2: ${fmt(orb.t2_bear)}</span>
+          <span class="fr-chip" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)">SL: ${fmt(orb.sl_bear)}</span>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="score-card">
+        <div class="sc-item"><div class="sci-label">GIFT Nifty</div><div class="sci-val" style="color:var(--yellow)">⚠️</div></div>
+        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:var(--red)">❌</div></div>
+        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:var(--yellow)">⚠️</div></div>
+      </div>
+      <div class="checklist">
+        <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text"><strong>GIFT Nifty</strong> — Mild gap, not conclusive</div></div>
+        <div class="chk warn"><span class="chk-icon">❌</span><div class="chk-text"><strong>CPR Conflict</strong> — Open inside CPR or direction mismatch. No clear bias.</div></div>
+        <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text"><strong>ORB</strong> — Straddles CPR band. Risk of false breakout is HIGH.</div></div>
+        <div class="chk warn"><span class="chk-icon">❌</span><div class="chk-text ta">ORB breakout-ஐ CPR confirm செய்யவில்லை. <strong style="color:var(--red)">false breakout</strong> ஆகும் வாய்ப்பு அதிகம். Trade எடுக்க வேண்டாம்.</div></div>
+      </div>
+      <div class="final-result fr-skip">
+        <div class="fr-icon">🚫</div>
+        <div class="fr-title" style="color:var(--yellow)">❌ SKIP TRADE / REDUCE SIZE</div>
+        <div class="fr-sub">ORB break but CPR disagrees — high risk of false breakout</div>
+        <div class="fr-ta">ORB மற்றும் CPR திசை முரண்படுகின்றன → Trade தவிர்க்கவும்</div>
+        <div class="fr-chips">
+          <span class="fr-chip fc-yellow">No Trade Today</span>
+          <span class="fr-chip fc-yellow">Wait for Next Day</span>
+          <span class="fr-chip fc-yellow">Capital Preserved ✅</span>
+        </div>
+      </div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Master render
+// ─────────────────────────────────────────────
+function renderFlowData(d) {
+  if (!d) return;
+  renderStep1(d);
+  renderStep2(d);
+  renderStep3(d);
+  renderStep4(d);
+  renderStep5(d);
+  renderStep6(d);
+}
+
+// ─────────────────────────────────────────────
+// Hero chips + phase badge update
+// ─────────────────────────────────────────────
+const PHASE_LABELS = {
+  pre_market:  '⏰ Pre-Market',
+  market_open: '🔔 Market Open',
+  orb:         '📊 ORB Phase',
+  closed:      '🔒 Market Closed',
+  unknown:     '◉ Loading...',
+};
+function updateHero(d) {
+  if (!d) return;
+  document.getElementById('chip-phase').textContent = PHASE_LABELS[d.phase] || d.phase;
+  if (d.nifty_ltp) document.getElementById('chip-ltp').textContent = d.nifty_ltp.toLocaleString('en-IN');
+
+  const badgeIds   = ['badge-pre', 'badge-open', 'badge-orb'];
+  const phaseMap   = { pre_market:0, market_open:1, orb:2, closed:2 };
+  const activeIdx  = phaseMap[d.phase] ?? -1;
+  badgeIds.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.toggle('active-phase', i === activeIdx);
+  });
+}
+
+// ─────────────────────────────────────────────
+// Clock ticker (every second, client-side)
+// ─────────────────────────────────────────────
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;   // +5:30 in ms
+
+function tickClock() {
+  const now = new Date();
+  // getTime() is always UTC ms — add IST offset, then read with getUTC* methods
+  const ist = new Date(now.getTime() + IST_OFFSET_MS);
+  const pad = n => String(n).padStart(2, '0');
+  const timeStr = `${pad(ist.getUTCHours())}:${pad(ist.getUTCMinutes())}:${pad(ist.getUTCSeconds())} IST`;
+  document.getElementById('chip-time').textContent = '⏰ ' + timeStr;
+}
+
+// ─────────────────────────────────────────────
+// Data fetch
+// ─────────────────────────────────────────────
+async function submitGiftNifty() {
+  const price = parseFloat(document.getElementById('inp-gift').value);
+  const ref   = parseFloat(document.getElementById('inp-gift-ref').value);
+  if (!price || isNaN(price)) { alert('Valid GIFT Nifty price-ஐ உள்ளிடுங்கள்.'); return; }
+  // Save reference close locally (persists for this session)
+  if (!isNaN(ref) && ref > 0) giftRefClose = ref;
+  try {
+    const res = await fetch('/api/set-gift-nifty', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ price }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await fetchFlowData();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+async function clearGiftNifty() {
+  try {
+    await fetch('/api/set-gift-nifty', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ price: 0 }),
+    });
+  } catch (_) {}
+  giftRefClose = flowData?.prev_day?.close ?? null;   // reset to spot close default
+  if (flowData) { flowData.gift_nifty = null; renderStep1(flowData); }
+}
+
+function cancelOhlcEdit() {
+  editingOhlc = false;
+  const form = document.getElementById('ohlc-edit-form');
+  if (form) form.style.display = 'none';
+}
+
+// Called by the top banner (ids: inp-high / inp-low / inp-close)
+// Called by the Step-2 inline form (ids: s2-inp-high / s2-inp-low / s2-inp-close)
+async function submitOhlc(prefix) {
+  const p     = prefix || 'inp';
+  const high  = parseFloat(document.getElementById(p + '-high').value);
+  const low   = parseFloat(document.getElementById(p + '-low').value);
+  const close = parseFloat(document.getElementById(p + '-close').value);
+  if (isNaN(high) || isNaN(low) || isNaN(close) || !high || !low || !close) {
+    alert('Please fill in High, Low, and Close.');
+    return;
+  }
+  try {
+    const res = await fetch('/api/set-prev-ohlc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ high, low, close }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    editingOhlc = false;
+    document.getElementById('ohlc-banner').style.display = 'none';
+    await fetchFlowData();
+  } catch (err) {
+    alert('Error setting OHLC: ' + err.message);
+  }
+}
+
+async function fetchFlowData() {
+  try {
+    const res = await fetch('/api/trade-flow');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const d = await res.json();
+    flowData = d;
+
+    // Top banner only appears when no OHLC at all (CPR fully absent)
+    document.getElementById('ohlc-banner').style.display = d.prev_day ? 'none' : '';
+
+    // Auto-set scenario when we have enough data
+    if (d.scenario && d.scenario !== 'unknown' && autoScenario !== d.scenario) {
+      autoScenario = d.scenario;
+      setScenario(d.scenario, true);
+    }
+
+    updateHero(d);
+    renderFlowData(d);
+
+    const now = new Date();
+    document.getElementById('refresh-note').textContent =
+      `Last update: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+    // Advance step progress based on phase
+    if (d.phase === 'market_open' && currentStep < 4) showStep(4);
+    else if (d.phase === 'orb'    && currentStep < 5) showStep(5);
+    else if (d.orb                && currentStep < 6) showStep(6);
+
+  } catch (err) {
+    console.warn('Trade flow fetch error:', err.message);
+    document.getElementById('chip-phase').textContent = '⚠️ Engine offline';
+  }
+}
+
+// ─────────────────────────────────────────────
+// Boot
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  setScenario('bull');
+  showStep(1);
+  setInterval(tickClock, 1000);
+  tickClock();
+  await fetchFlowData();
+  setInterval(fetchFlowData, 30000);  // refresh every 30 s
+});
+</script>
+</body>
+</html>

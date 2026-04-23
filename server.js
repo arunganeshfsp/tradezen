@@ -1,17 +1,17 @@
 const express = require("express");
 const path = require("path");
 
+const stockRoutes = require("./routes/stockRoute");
+
 const app = express();
 
 app.use(express.json());
 
-// Simple in-memory login check
+// LOGIN LOGIC (keep as is)
 const USER = "admin";
 const PASS = "Trade123";
-
 let isLoggedIn = false;
 
-// Serve login page first
 app.get("/", (req, res) => {
   if (!isLoggedIn) {
     return res.sendFile(path.join(__dirname, "public/login.html"));
@@ -19,7 +19,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// Login API
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -30,7 +29,11 @@ app.post("/login", (req, res) => {
   res.sendStatus(401);
 });
 
-// Serve other static files
+// 👉 Plug routes
+app.use("/api", stockRoutes);
+
+// Static files
 app.use(express.static(path.join(__dirname, "public")));
 
-app.listen(3000, () => console.log("Running..."));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Running on ${PORT}`));

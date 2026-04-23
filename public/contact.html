@@ -2,9 +2,11 @@
 <html lang="ta">
 <head>
 <meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact Us — TradeZen</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --bg:#07101d;--bg2:#0b1929;--bg3:#0f2035;--bg4:#152843;
@@ -125,18 +127,23 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:1
 </style>
 </head>
 <body>
-
-<nav>
-  <div class="nav-wrap">
-    <a href="index.html" class="logo">
-      <div class="logo-mark">TZ</div>
-      <span class="logo-text">Trade<span>Zen</span></span>
+<div class="tz-bg-orb tz-orb1"></div>
+<div class="tz-bg-orb tz-orb2"></div>
+<div class="tz-grid"></div>
+<nav class="tz-nav">
+  <div class="tz-nav-inner">
+    <a href="index.html" class="tz-logo">
+      <div class="tz-logo-mark">TZ</div>
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
     </a>
-    <div class="nav-links">
+    <div class="tz-nav-links">
       <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
-      <a href="options_entry_tool_tamil.html">🎯 Entry Tool</a>
-      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
-      <a href="contact.html" style="color:var(--teal);">✉ Contact</a>
+      <a href="options_entry_tool_tamil.html">🎯 Buying</a>
+      <a href="options_selling_tool_tamil.html">💰 Selling</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing</a>
+      <a href="theta_decay_tamil.html">⏳ Theta</a>
+      <a href="fno_signal.html">🤖 F&O</a>
+      <a href="contact.html" class="tz-active">✉ Contact</a>
     </div>
   </div>
 </nav>
@@ -196,7 +203,23 @@ footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:1
   </div>
 </main>
 
-<footer>© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</footer>
-
+<footer class="tz-footer">
+  <div class="tz-footer-inner">
+    <div class="tz-footer-brand">
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+      <p class="tz-footer-desc">Nifty50 Options buying மற்றும் selling strategies, tools-ஐ தமிழில் கற்றுத்தரும் இலவச தளம். SEBI 2026 விதிகளுக்கு ஏற்ப தொடர்ந்து update ஆகும்.</p>
+      <p class="tz-footer-copy">© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</p>
+    </div>
+    <div class="tz-footer-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly Straddle</a>
+      <a href="options_entry_tool_tamil.html">🎯 Options Buying Tool</a>
+      <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing Trading Tool</a>
+      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+      <a href="fno_signal.html">🤖 F&amp;O AI Signal</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+  </div>
+</footer>
 </body>
 </html>

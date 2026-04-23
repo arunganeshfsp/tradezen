@@ -2,10 +2,12 @@
 <html lang="ta">
 <head>
 <meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TradeZen — Nifty50 Options கற்றுக்கொள்வோம்</title>
 <meta name="description" content="TradeZen — Nifty50 Options strategies, indicators, and tools in Tamil. Learn Butterfly Straddle, Theta Decay, Entry signals and more.">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700;800&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --bg:       #07101d;
@@ -256,6 +258,12 @@ nav{
   grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
   gap:18px;
 }
+@media(min-width:640px){
+  .tool-card[style*="grid-column:span 2"],.tool-card[style*="grid-column: span 2"]{grid-column:span 2;}
+}
+@media(max-width:640px){
+  .tool-card[style*="grid-column:span 2"],.tool-card[style*="grid-column: span 2"]{grid-column:span 1;}
+}
 .tool-card{
   background:var(--bg2);
   border:1px solid var(--border);
@@ -454,6 +462,28 @@ footer{
 </style>
 </head>
 <body>
+<div class="tz-bg-orb tz-orb1"></div>
+<div class="tz-bg-orb tz-orb2"></div>
+<div class="tz-grid"></div>
+<nav class="tz-nav">
+  <div class="tz-nav-inner">
+    <a href="index.html" class="tz-logo">
+      <div class="tz-logo-mark">TZ</div>
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+    </a>
+    <div class="tz-nav-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+      <a href="options_entry_tool_tamil.html">🎯 Buying</a>
+      <a href="options_selling_tool_tamil.html">💰 Selling</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing</a>
+      <a href="theta_decay_tamil.html">⏳ Theta</a>
+      <a href="fno_signal.html">🤖 F&O</a>
+      <a href="trade_flow.html">🧭 Flow</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+    <a href="swing_trading_tool_tamil.html" class="tz-nav-cta green">📈 Swing →</a>
+  </div>
+</nav>
 
 <div class="bg-orb orb1"></div>
 <div class="bg-orb orb2"></div>
@@ -461,22 +491,6 @@ footer{
 <div class="bg-grid"></div>
 
 <!-- NAV -->
-<nav>
-  <div class="nav-wrap">
-    <a href="index.html" class="logo">
-      <div class="logo-mark">TZ</div>
-      <span class="logo-text">Trade<span>Zen</span></span>
-    </a>
-    <div class="nav-links">
-      <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
-      <a href="options_entry_tool_tamil.html">🎯 Buying</a>
-      <a href="options_selling_tool_tamil.html">💰 Selling</a>
-      <a href="theta_decay_tamil.html">⏳ Theta</a>
-      <a href="contact.html">✉ Contact</a>
-    </div>
-    <a href="options_selling_tool_tamil.html" class="nav-cta" style="background:var(--gold);color:#07101d;">💰 Sell Tool →</a>
-  </div>
-</nav>
 
 <!-- HERO -->
 <section class="hero">
@@ -496,13 +510,16 @@ footer{
     <a href="options_selling_tool_tamil.html" class="btn-primary" style="background:var(--gold);color:#07101d;">
       💰 Selling Tool
     </a>
+    <a href="swing_trading_tool_tamil.html" class="btn-primary" style="background:var(--green);color:#07101d;">
+      📈 Swing Tool
+    </a>
     <a href="#tools" class="btn-secondary">
       📚 அனைத்து tools →
     </a>
   </div>
   <div class="hero-stats">
     <div class="stat">
-      <span class="stat-val">5</span>
+      <span class="stat-val">6</span>
       <span class="stat-lbl">கருவிகள் & வழிகாட்டிகள்</span>
     </div>
     <div class="stat">
@@ -522,24 +539,55 @@ footer{
 
 <!-- SEBI BANNER -->
 <div class="sebi-banner reveal">
-  <div class="sebi-icon">⚡</div>
+  <div class="tz-sebi-icon">⚡</div>
   <div class="sebi-text">
     <h4>SEBI புதிய விதி — April 2026</h4>
     <p>Nifty50 Expiry தேதி மாற்றம்: Thursday → <strong>Tuesday</strong>. எல்லா tools-உம் புதிய schedule-க்கு ஏற்ப update ஆகியுள்ளன.</p>
   </div>
 </div>
 
-<div class="divider" style="margin-top:3rem;"></div>
+<div class="tz-divider" style="margin-top:3rem;"></div>
 
 <!-- TOOLS -->
 <section class="section" id="tools">
-  <div class="reveal">
+  <div class="tz-reveal">
     <span class="section-badge">TOOLS & GUIDES</span>
     <h2 class="section-title">எங்கள் கருவிகள்</h2>
     <p class="section-sub">Buying மற்றும் Selling — இரண்டுக்கும் தனித்தனி tools. ஒவ்வொரு கருவியும் நேரடியாக trade-ல் பயன்படுத்தக்கூடியது.</p>
   </div>
 
   <div class="tools-grid reveal">
+
+    <!-- F&O AI SIGNAL DASHBOARD — FEATURED -->
+    <a href="fno_signal.html" class="tool-card" style="border-color:rgba(45,212,191,0.2);background:linear-gradient(135deg,rgba(45,212,191,0.05) 0%,var(--bg2) 60%);grid-column:span 2;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <div class="card-icon" style="background:rgba(45,212,191,0.15);width:56px;height:56px;font-size:26px;">🤖</div>
+          <span class="card-tag" style="background:var(--teal-bg);color:var(--teal);">LIVE TOOL · F&O · AI ENGINE</span>
+          <h3 class="card-title" style="font-size:18px;">NIFTY F&O AI Signal Dashboard <span style="font-size:11px;color:var(--teal);font-family:'JetBrains Mono',monospace;margin-left:8px;">NEW ✦</span></h3>
+          <p class="card-desc" style="max-width:540px;">
+            Real-time ATM CE/PE WebSocket data. OI build-up / unwinding, Volume spike detection,
+            Bid/Ask imbalance, PCR gauge — multi-factor confidence score (0–100) கொண்டு BUY CALL / BUY PUT / SIDEWAYS signal.
+          </p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;">
+          <div style="background:var(--green-bg);border:1px solid rgba(34,212,122,0.3);border-radius:8px;padding:8px 14px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:2px;">SIGNAL ENGINE</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--green);">v2.0 LIVE</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-pills" style="margin-top:1rem;">
+        <span class="pill">OI Build-up</span>
+        <span class="pill">OI Unwinding</span>
+        <span class="pill">Volume Spike</span>
+        <span class="pill">Bid/Ask Imbalance</span>
+        <span class="pill">PCR Gauge</span>
+        <span class="pill">Confidence Score</span>
+        <span class="pill">Signal Log</span>
+      </div>
+      <div class="card-arrow" style="margin-top:1rem;">F&O Dashboard திறக்க →</div>
+    </a>
 
     <!-- Butterfly Straddle -->
     <a href="butterfly_straddle_tamil.html" class="tool-card">
@@ -610,6 +658,41 @@ footer{
       <div class="card-arrow">கற்றுக்கொள்ள &rarr;</div>
     </a>
 
+    <!-- Swing Trading Tool -->
+    <a href="swing_trading_tool_tamil.html" class="tool-card">
+      <div class="card-icon" style="background:rgba(34,212,122,0.12);">📈</div>
+      <span class="card-tag" style="background:var(--green-bg);color:var(--green);">LIVE TOOL · SWING</span>
+      <h3 class="card-title">Swing Trading Tool</h3>
+      <p class="card-desc">
+        Nifty50 பங்குகளுக்கு 7 signals — RSI, EMA Trend, Volume, Support/Resistance, Candle Pattern, Index Trend, Event Risk — live data-உடன் தானாகவே check செய்து entry decision தரும் கருவி.
+      </p>
+      <div class="card-pills">
+        <span class="pill">RSI · EMA</span>
+        <span class="pill">Live CMP</span>
+        <span class="pill">7 Signals</span>
+        <span class="pill">P&L Calc</span>
+      </div>
+      <div class="card-arrow" style="color:var(--green);">Tool திறக்க &rarr;</div>
+    </a>
+
+    <!-- Nifty Trade Flow -->
+    <a href="trade_flow.html" class="tool-card">
+      <div class="card-icon" style="background:rgba(124,106,247,0.12);">🧭</div>
+      <span class="card-tag" style="background:rgba(124,106,247,0.1);color:#a59af5;">LIVE TOOL · INTRADAY</span>
+      <h3 class="card-title">Nifty Trade Flow <span style="font-size:11px;color:#a59af5;font-family:'JetBrains Mono',monospace;margin-left:6px;">NEW ✦</span></h3>
+      <p class="card-desc">
+        8:45 AM முதல் 9:30 AM வரை 6-step decision framework. CPR calculation, Opening price vs CPR bias, ORB breakout — live data-உடன் தானாகவே Bull/Bear/Skip scenario தீர்மானிக்கும்.
+      </p>
+      <div class="card-pills">
+        <span class="pill">CPR Levels</span>
+        <span class="pill">ORB Framework</span>
+        <span class="pill">Auto Scenario</span>
+        <span class="pill">S&R Levels</span>
+        <span class="pill">Pre-Market</span>
+      </div>
+      <div class="card-arrow" style="color:#a59af5;">Flow திறக்க &rarr;</div>
+    </a>
+
     <!-- Contact -->
     <a href="contact.html" class="tool-card coming-soon">
       <div class="card-icon" style="background:rgba(240,82,82,0.1);">✉️</div>
@@ -651,18 +734,18 @@ footer{
   </div>
 </section>
 
-<div class="divider"></div>
+<div class="tz-divider"></div>
 
 <!-- HOW IT WORKS -->
 <section class="section">
-  <div class="reveal">
+  <div class="tz-reveal">
     <span class="section-badge">HOW IT WORKS</span>
     <h2 class="section-title">எப்படி பயன்படுத்துவது?</h2>
     <p class="section-sub">Buying மற்றும் Selling-க்கு தனித்தனி flow. ஒவ்வொரு trading day-லும் இதை பின்பற்றுங்கள்.</p>
   </div>
 
   <!-- Buying flow -->
-  <div class="reveal" style="margin-bottom:1rem;">
+  <div class="tz-reveal" style="margin-bottom:1rem;">
     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(77,166,255,0.08);border:1px solid rgba(77,166,255,0.2);border-radius:8px;padding:5px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;color:#4da6ff;letter-spacing:1px;margin-bottom:1rem;">🎯 OPTIONS BUYING FLOW</div>
   </div>
   <div class="steps-row reveal">
@@ -685,7 +768,7 @@ footer{
   </div>
 
   <!-- Selling flow -->
-  <div class="reveal" style="margin-top:2rem;margin-bottom:1rem;">
+  <div class="tz-reveal" style="margin-top:2rem;margin-bottom:1rem;">
     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,192,48,0.08);border:1px solid rgba(245,192,48,0.2);border-radius:8px;padding:5px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;color:#f5c842;letter-spacing:1px;margin-bottom:1rem;">💰 OPTIONS SELLING FLOW</div>
   </div>
   <div class="steps-row reveal">
@@ -708,16 +791,16 @@ footer{
   </div>
 </section>
 
-<div class="divider"></div>
+<div class="tz-divider"></div>
 
 <!-- BUY vs SELL COMPARE BAND -->
 <section class="section" style="padding:3rem 1.5rem;">
-  <div class="reveal">
+  <div class="tz-reveal">
     <span class="section-badge">BUYING vs SELLING</span>
     <h2 class="section-title">எந்த tool எப்போது?</h2>
     <p class="section-sub">Market condition-ஐ பார்த்து சரியான tool தேர்வு செய்யுங்கள்.</p>
   </div>
-  <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:1.5rem;">
+  <div class="tz-reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:1.5rem;">
     <a href="options_entry_tool_tamil.html" style="text-decoration:none;background:rgba(77,166,255,0.05);border:1px solid rgba(77,166,255,0.2);border-radius:var(--rl);padding:1.5rem;display:block;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(77,166,255,0.5)'" onmouseout="this.style.borderColor='rgba(77,166,255,0.2)'">
       <div style="font-size:1.5rem;margin-bottom:0.75rem;">🎯</div>
       <div style="font-size:13px;font-weight:700;color:#4da6ff;margin-bottom:0.5rem;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">OPTIONS BUYING TOOL</div>
@@ -745,35 +828,16 @@ footer{
   </div>
 </section>
 
-<div class="divider"></div>
-<div class="quote-band">
-  <blockquote class="quote-text">
+<div class="tz-divider"></div>
+<div class="tz-quote-band">
+  <blockquote class="tz-quote-text">
     "ஒரு நல்ல trade-ஐ skip செய்வதும் ஒரு profit தான் —<br>
     தவறான trade-ல் இழப்பதை விட."
   </blockquote>
-  <p class="quote-attr">— TradeZen · Nifty50 Options Philosophy</p>
+  <p class="tz-quote-attr">— TradeZen · Nifty50 Options Philosophy</p>
 </div>
 
 <!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <span class="logo-text">Trade<span style="color:var(--teal);">Zen</span></span>
-      <p class="footer-desc">
-        Nifty50 Options buying மற்றும் selling strategies, tools-ஐ தமிழில் கற்றுத்தரும் இலவச தளம்.
-        SEBI 2026 விதிகளுக்கு ஏற்ப தொடர்ந்து update ஆகும்.
-      </p>
-      <p class="footer-copy">© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</p>
-    </div>
-    <div class="footer-links">
-      <a href="butterfly_straddle_tamil.html">🦋 Butterfly Straddle</a>
-      <a href="options_entry_tool_tamil.html">🎯 Options Buying Tool</a>
-      <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
-      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
-      <a href="contact.html">✉ Contact</a>
-    </div>
-  </div>
-</footer>
 
 <script>
 const obs = new IntersectionObserver(entries => {
@@ -784,5 +848,24 @@ document.querySelectorAll('.reveal').forEach((el,i) => {
   obs.observe(el);
 });
 </script>
+<footer class="tz-footer">
+  <div class="tz-footer-inner">
+    <div class="tz-footer-brand">
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+      <p class="tz-footer-desc">Nifty50 Options buying மற்றும் selling strategies, tools-ஐ தமிழில் கற்றுத்தரும் இலவச தளம். SEBI 2026 விதிகளுக்கு ஏற்ப தொடர்ந்து update ஆகும்.</p>
+      <p class="tz-footer-copy">© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</p>
+    </div>
+    <div class="tz-footer-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly Straddle</a>
+      <a href="options_entry_tool_tamil.html">🎯 Options Buying Tool</a>
+      <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing Trading Tool</a>
+      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+      <a href="fno_signal.html">🤖 F&amp;O AI Signal</a>
+      <a href="trade_flow.html">🧭 Nifty Trade Flow</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+  </div>
+</footer>
 </body>
 </html>

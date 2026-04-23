@@ -1,0 +1,3806 @@
+<!DOCTYPE html>
+<html lang="ta">
+
+<head>
+  <meta charset="UTF-8">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="tradezen.css">
+  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeZen — F&O AI Signal Dashboard</title>
+  <meta name="description"
+    content="Real-time NIFTY F&O options signal engine — Option Chain + AI Signal. Tamil trading tools.">
+
+  <style>
+    /* ══════════════════════════════════════════════════
+   VARIABLES & RESET
+══════════════════════════════════════════════════ */
+    :root {
+      --bg: #07101d;
+      --bg2: #0b1929;
+      --bg3: #0f2035;
+      --bg4: #152843;
+      --bg5: #1a3254;
+      --border: rgba(255, 255, 255, 0.07);
+      --border2: rgba(255, 255, 255, 0.14);
+      --text: #dce8f5;
+      --muted: #6e87a2;
+      --faint: #2a3d52;
+      --teal: #2dd4bf;
+      --teal-bg: rgba(45, 212, 191, 0.08);
+      --gold: #f5c842;
+      --gold-bg: rgba(245, 200, 66, 0.09);
+      --green: #22d47a;
+      --green-bg: rgba(34, 212, 122, 0.09);
+      --red: #f05252;
+      --red-bg: rgba(240, 82, 82, 0.09);
+      --amber: #f5a623;
+      --amber-bg: rgba(245, 166, 35, 0.09);
+      --blue: #4da6ff;
+      --r: 8px;
+      --rl: 14px;
+      --nav-h: 54px;
+      --toolbar-h: 46px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans Tamil', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(90px);
+      opacity: 0.1;
+    }
+
+    .orb1 {
+      width: 600px;
+      height: 600px;
+      top: -150px;
+      left: -220px;
+      background: radial-gradient(circle, #2dd4bf, transparent 70%);
+    }
+
+    .orb2 {
+      width: 500px;
+      height: 500px;
+      bottom: -80px;
+      right: -120px;
+      background: radial-gradient(circle, #4da6ff, transparent 70%);
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(45, 212, 191, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(45, 212, 191, 0.018) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+
+    /* ══════════ NAV ══════════ */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 300;
+      height: var(--nav-h);
+      background: rgba(7, 16, 29, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      gap: 0.6rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 30px;
+      height: 30px;
+      background: var(--teal);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 13px;
+      color: #07101d;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .logo-text span {
+      color: var(--teal);
+    }
+
+    .nav-slash {
+      color: var(--faint);
+      font-size: 16px;
+      margin: 0 2px;
+    }
+
+    .nav-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--teal);
+      background: var(--teal-bg);
+      border: 1px solid rgba(45, 212, 191, 0.2);
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .nav-chip::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.25;
+      }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1px;
+      margin-left: auto;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      transition: all 0.18s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: var(--bg4);
+    }
+
+    .nav-back {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: all 0.18s;
+      margin-left: 4px;
+    }
+
+    .nav-back:hover {
+      color: var(--text);
+      border-color: var(--teal);
+    }
+
+    @media(max-width:900px) {
+      .nav-links {
+        display: none;
+      }
+    }
+
+    /* ══════════ TOOLBAR ══════════ */
+    .toolbar {
+      position: sticky;
+      top: var(--nav-h);
+      z-index: 200;
+      height: var(--toolbar-h);
+      background: rgba(11, 25, 41, 0.97);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .index-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      padding: 4px 10px;
+    }
+
+    .idx-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .idx-ltp {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .idx-chg {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .idx-chg.pos {
+      color: var(--green);
+    }
+
+    .idx-chg.neg {
+      color: var(--red);
+    }
+
+    .tb-sep {
+      color: var(--faint);
+      font-size: 14px;
+    }
+
+    .tb-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .expiry-sel {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 10px;
+      border-radius: var(--r);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+
+    .expiry-sel:focus {
+      border-color: var(--teal);
+    }
+
+    .expiry-sel option {
+      background: #0f2035;
+    }
+
+    .mode-tabs {
+      display: flex;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+
+    .mode-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 4px 11px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.18s;
+      border: none;
+      background: transparent;
+    }
+
+    .mode-tab.active {
+      background: var(--bg5);
+      color: var(--text);
+    }
+
+    .status-pill {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .s-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--amber);
+      flex-shrink: 0;
+    }
+
+    .s-dot.live {
+      background: var(--green);
+      box-shadow: 0 0 5px var(--green);
+      animation: gpulse 2s infinite;
+    }
+
+    .s-dot.err {
+      background: var(--red);
+    }
+
+    @keyframes gpulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.35;
+      }
+    }
+
+    .ref-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: var(--r);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.18s;
+    }
+
+    .ref-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    /* SL / TP toolbar group */
+    .sl-tp-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      padding: 3px 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+    }
+    .sl-tp-sep { color: var(--faint); margin: 0 3px; }
+    .sl-lbl { color: var(--red);   font-size: 10px; font-weight: 600; }
+    .tp-lbl { color: var(--green); font-size: 10px; font-weight: 600; }
+    .sl-tp-input {
+      width: 34px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--faint);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      padding: 0 2px;
+    }
+    .sl-tp-input:focus { border-bottom-color: var(--teal); }
+    .sl-tp-unit { color: var(--muted); font-size: 10px; }
+
+    .ref-btn.spin-active .spin {
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .spin {
+      display: inline-block;
+    }
+
+    /* ══════════ SPLIT LAYOUT ══════════ */
+    .split {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      /* Signal panel is primary (left/center); chain is the right sidebar */
+      grid-template-columns: minmax(0, 1fr) 630px;
+      min-height: calc(100vh - var(--nav-h) - var(--toolbar-h));
+      align-items: start;
+    }
+
+    @media(max-width:1080px) {
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ══════════════════════════════════════════════════
+   RIGHT: OPTION CHAIN (visually on right via CSS order)
+══════════════════════════════════════════════════ */
+    .chain-panel {
+      order: 2;                          /* render after signal panel */
+      border-left: 1px solid var(--border);
+      overflow-x: auto;                  /* compact screens can scroll chain */
+      transition: min-width 0.22s ease, max-width 0.22s ease;
+      min-width: 0;
+    }
+
+    /* ── Chain panel top header (title + toggle) ── */
+    .chain-panel-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px 6px 12px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: calc(var(--nav-h) + var(--toolbar-h));
+      z-index: 11;
+      gap: 6px;
+    }
+
+    .chain-panel-hdr-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .chain-toggle-btn {
+      flex-shrink: 0;
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .chain-toggle-btn:hover {
+      color: var(--text);
+      border-color: var(--teal);
+    }
+
+    /* Collapsed state */
+    .chain-panel.collapsed {
+      overflow: hidden;
+    }
+
+    .chain-panel.collapsed .chain-panel-hdr {
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px 0;
+      gap: 10px;
+    }
+
+    .chain-panel.collapsed .chain-panel-hdr-title {
+      writing-mode: vertical-rl;
+      letter-spacing: 3px;
+      font-size: 8px;
+    }
+
+    .chain-panel.collapsed .chain-head,
+    .chain-panel.collapsed #chainBody {
+      display: none;
+    }
+
+    /* Sticky column header */
+    .chain-head {
+      display: grid;
+      /* cols controlled entirely by JS (renderChain sets head.style.gridTemplateColumns) */
+      background: var(--bg3);
+      border-bottom: 2px solid var(--border2);
+      position: sticky;
+      top: calc(var(--nav-h) + var(--toolbar-h) + 38px); /* below chain-panel-hdr */
+      z-index: 10;
+    }
+
+    .ch {
+      padding: 7px 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ch:last-child {
+      border-right: none;
+    }
+
+    .ch.ce {
+      color: rgba(34, 212, 122, 0.65);
+    }
+
+    .ch.pe {
+      color: rgba(240, 82, 82, 0.65);
+    }
+
+    .ch.str {
+      color: var(--text);
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Chain rows */
+    .cr {
+      display: grid;
+      grid-template-columns: 80px 68px 72px 72px 92px 72px 72px 68px 80px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      transition: background 0.12s;
+    }
+
+    .cr:hover {
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .cr.atm {
+      background: rgba(45, 212, 191, 0.035);
+    }
+
+    .cr.atm::after {
+      content: 'ATM';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7px;
+      letter-spacing: 1px;
+      color: var(--teal);
+      background: var(--teal-bg);
+      padding: 1px 5px;
+      border-radius: 0 3px 3px 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .cr.hi-ce-oi .cc-ceoi {
+      background: rgba(34, 212, 122, 0.06) !important;
+    }
+
+    .cr.hi-pe-oi .cc-peoi {
+      background: rgba(240, 82, 82, 0.06) !important;
+    }
+
+    /* Cells */
+    .cc {
+      padding: 6px 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-align: right;
+      border-right: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .cc:last-child {
+      border-right: none;
+    }
+
+    .cc .bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    .cc .bar.cebar {
+      right: 0;
+      background: rgba(34, 212, 122, 0.07);
+    }
+
+    .cc .bar.pebar {
+      left: 0;
+      background: rgba(240, 82, 82, 0.07);
+    }
+
+    .v {
+      position: relative;
+      z-index: 1;
+      font-size: 11px;
+    }
+
+    .v.sm {
+      font-size: 9px;
+    }
+
+    .v.c {
+      color: var(--green);
+    }
+
+    .v.r {
+      color: var(--red);
+    }
+
+    .v.m {
+      color: var(--muted);
+    }
+
+    .v.w {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .v.gp {
+      color: var(--green);
+      font-size: 9px;
+    }
+
+    .v.rn {
+      color: var(--red);
+      font-size: 9px;
+    }
+
+    /* Strike cell */
+    .cc-str {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 5px 4px;
+    }
+
+    .str-v {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .str-btns {
+      display: flex;
+      gap: 3px;
+    }
+
+    .sbtn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.5px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.14s;
+      opacity: 0.65;
+    }
+
+    .sbtn:hover {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+
+    .sbtn.ce-btn {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid rgba(34, 212, 122, 0.25);
+    }
+
+    .sbtn.pe-btn {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid rgba(240, 82, 82, 0.25);
+    }
+
+    .sbtn.on {
+      opacity: 1;
+      box-shadow: 0 0 7px rgba(34, 212, 122, 0.35);
+    }
+
+    .sbtn.pe-btn.on {
+      box-shadow: 0 0 7px rgba(240, 82, 82, 0.35);
+    }
+
+    /* chain states */
+    .chain-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1rem;
+      gap: 0.75rem;
+      color: var(--muted);
+    }
+
+    .spin-lg {
+      font-size: 1.8rem;
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    /* ══════════════════════════════════════════════════
+   LEFT/CENTER: SIGNAL PANEL (primary focus)
+══════════════════════════════════════════════════ */
+    .sig-panel {
+      order: 1;                          /* render before chain panel */
+      position: sticky;
+      top: calc(var(--nav-h) + var(--toolbar-h));
+      max-height: calc(100vh - var(--nav-h) - var(--toolbar-h));
+      overflow-y: auto;
+      padding: 1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg4) transparent;
+    }
+
+    /* No contract selected */
+    .no-sel {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .no-sel-icon {
+      font-size: 2.2rem;
+      opacity: 0.35;
+    }
+
+    .no-sel-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .no-sel-sub {
+      font-size: 11px;
+      color: var(--faint);
+      line-height: 1.7;
+    }
+
+    /* Contract header card */
+    .ctr-card {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--rl);
+      padding: 0.85rem 0.9rem;
+    }
+
+    .ctr-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .ctr-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .ctr-meta {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ctr-ltp {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .ctr-ltp.ce {
+      color: var(--green);
+    }
+
+    .ctr-ltp.pe {
+      color: var(--red);
+    }
+
+    /* Signal card */
+    .sig-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 0.9rem;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .sig-card.bull {
+      border-color: rgba(34, 212, 122, 0.3);
+      background: linear-gradient(135deg, rgba(34, 212, 122, 0.04), var(--bg2) 55%);
+    }
+
+    .sig-card.bear {
+      border-color: rgba(240, 82, 82, 0.3);
+      background: linear-gradient(135deg, rgba(240, 82, 82, 0.04), var(--bg2) 55%);
+    }
+
+    .sig-card.side {
+      border-color: rgba(245, 200, 66, 0.3);
+      background: linear-gradient(135deg, rgba(245, 200, 66, 0.04), var(--bg2) 55%);
+    }
+
+    .sig-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .sig-lbl {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .sig-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .sig-val.bull {
+      color: var(--green);
+    }
+
+    .sig-val.bear {
+      color: var(--red);
+    }
+
+    .sig-val.side {
+      color: var(--gold);
+    }
+
+    .sig-val.wait {
+      color: var(--muted);
+    }
+
+    /* confidence ring */
+    .ring {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      flex-shrink: 0;
+    }
+
+    .ring svg {
+      width: 68px;
+      height: 68px;
+      transform: rotate(-90deg);
+    }
+
+    .ring circle {
+      fill: none;
+      stroke-width: 5;
+    }
+
+    .ring-bg {
+      stroke: var(--bg4);
+    }
+
+    .ring-arc {
+      stroke: var(--teal);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.8s ease, stroke 0.3s;
+    }
+
+    .ring-arc.bull {
+      stroke: var(--green);
+    }
+
+    .ring-arc.bear {
+      stroke: var(--red);
+    }
+
+    .ring-arc.side {
+      stroke: var(--gold);
+    }
+
+    .ring-arc.wait {
+      stroke: var(--muted);
+    }
+
+    .ring-ctr {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .ring-unit {
+      font-size: 8px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .sig-reason {
+      margin-top: 0.6rem;
+      padding: 0.55rem 0.7rem;
+      background: var(--bg3);
+      border-radius: var(--r);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.6;
+      border: 1px solid var(--border);
+    }
+
+    .sig-reason b {
+      color: var(--text);
+    }
+
+    .sig-ts {
+      margin-top: 0.35rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--faint);
+    }
+
+    .held-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 1px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: rgba(245,166,35,0.12);
+      color: var(--amber);
+      border: 1px solid rgba(245,166,35,0.25);
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Mini grid — 4 columns now that panel has more space */
+    .mg {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+
+    @media(max-width:1080px) {
+      .mg { grid-template-columns: 1fr 1fr; }
+    }
+
+    .mc {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 0.6rem 0.7rem;
+    }
+
+    .mc-lbl {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .mc-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .mc-val.g {
+      color: var(--green);
+    }
+
+    .mc-val.r {
+      color: var(--red);
+    }
+
+    .mc-val.a {
+      color: var(--amber);
+    }
+
+    /* Price chart */
+    .chart-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      overflow: hidden;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.8rem 0.3rem;
+    }
+
+    .chart-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+
+    .chart-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chart-ltp {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chart-ltp.ce { color: var(--green); }
+    .chart-ltp.pe { color: var(--red);   }
+
+    .chart-chg {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+    }
+
+    .chart-chg.pos { color: var(--green); }
+    .chart-chg.neg { color: var(--red);   }
+
+    .chart-legend {
+      display: flex;
+      gap: 8px;
+      padding: 0 0.8rem 0.4rem;
+    }
+
+    .chart-leg-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      color: var(--muted);
+    }
+
+    .chart-leg-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Score bar */
+    .score-bar-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 0.8rem;
+    }
+
+    .score-bar-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .score-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 5px;
+    }
+
+    .score-bar-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      width: 34px;
+      flex-shrink: 0;
+    }
+
+    .score-bar-track {
+      flex: 1;
+      height: 7px;
+      background: var(--bg4);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .score-bar-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      width: 26px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Why card */
+    .why-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 0.8rem;
+    }
+
+    .why-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .why-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .why-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 0.45rem 0.6rem;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+    }
+
+    .why-item.bull { background: rgba(34,212,122,0.05); border-color: rgba(34,212,122,0.15); }
+    .why-item.bear { background: rgba(240,82,82,0.05);  border-color: rgba(240,82,82,0.15);  }
+    .why-item.side { background: rgba(245,200,66,0.05); border-color: rgba(245,200,66,0.15); }
+    .why-item.neu  { background: var(--bg3); }
+
+    .why-icon { font-size: 13px; flex-shrink: 0; line-height: 1.5; }
+
+    .why-text {
+      font-size: 11px;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .why-text .why-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .why-tag.bull { background: var(--green-bg); color: var(--green); }
+    .why-tag.bear { background: var(--red-bg);   color: var(--red);   }
+    .why-tag.side { background: var(--gold-bg);  color: var(--gold);  }
+    .why-tag.neu  { background: var(--bg4);      color: var(--muted); }
+
+    .why-empty {
+      text-align: center;
+      padding: 0.6rem;
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    /* Factor section */
+    .fsec {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 0.8rem;
+    }
+
+    .fsec-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .frows {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .frow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .frow-lbl {
+      font-size: 11px;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .frow-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .fpill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+
+    .fp-bull {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .fp-bear {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .fp-side {
+      background: var(--gold-bg);
+      color: var(--gold);
+    }
+
+    .fp-neu {
+      background: var(--bg4);
+      color: var(--muted);
+    }
+
+    .fp-spk {
+      background: var(--amber-bg);
+      color: var(--amber);
+    }
+
+    /* PCR */
+    .pcr-sec {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 0.8rem;
+    }
+
+    .pcr-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .pcr-track {
+      height: 9px;
+      background: var(--bg4);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .pcr-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.7s ease, background 0.3s;
+    }
+
+    .pcr-lbls {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+    }
+
+    .pcr-lbls .r {
+      color: var(--red);
+    }
+
+    .pcr-lbls .m {
+      color: var(--muted);
+    }
+
+    .pcr-lbls .g {
+      color: var(--green);
+    }
+
+    .pcr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.55rem;
+    }
+
+    .pcr-big {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .pcr-txt {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* Log */
+    .log-sec {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 0.75rem;
+    }
+
+    .log-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.45rem;
+      gap: 6px;
+    }
+
+    .log-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+
+    /* Alert toggle button */
+    .alert-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--bg4);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .alert-btn::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .alert-btn.on {
+      color: var(--teal);
+      border-color: rgba(45,212,191,0.3);
+      background: var(--teal-bg);
+    }
+
+    .alert-btn.on::before {
+      background: var(--teal);
+    }
+
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 160px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg4) transparent;
+    }
+
+    .li {
+      display: grid;
+      grid-template-columns: 56px auto auto auto 1fr;
+      gap: 5px;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      background: var(--bg3);
+      border-left: 2px solid transparent;
+      transition: border-color 0.15s;
+      position: relative;
+    }
+
+    .li.bull { border-left-color: var(--green); }
+    .li.bear { border-left-color: var(--red); }
+    .li.side { border-left-color: var(--gold); }
+    .li.wait { border-left-color: var(--faint); }
+    .li.exit {
+      border-left-color: var(--amber);
+      background: rgba(245, 166, 35, 0.05);
+    }
+    .li.sl-exit {
+      border-left-color: var(--red);
+      background: rgba(240, 82, 82, 0.07);
+    }
+    .li.tp-exit {
+      border-left-color: var(--green);
+      background: rgba(34, 212, 122, 0.07);
+    }
+
+    .li-t {
+      color: var(--faint);
+      white-space: nowrap;
+    }
+
+    .li-s {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .li-s.bull { color: var(--green); }
+    .li-s.bear { color: var(--red); }
+    .li-s.side { color: var(--gold); }
+    .li-s.wait { color: var(--muted); }
+    .li-s.exit { color: var(--amber); }
+
+    .li-c {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .li-n {
+      color: var(--blue);
+      font-size: 8px;
+      white-space: nowrap;
+    }
+
+    .li-r {
+      color: var(--muted);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 8px;
+    }
+
+    /* "NEW" flash badge on latest log row */
+    @keyframes fadeNew {
+      0%   { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .li-new {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 7px;
+      letter-spacing: 1px;
+      background: var(--teal-bg);
+      color: var(--teal);
+      border: 1px solid rgba(45,212,191,0.25);
+      border-radius: 3px;
+      padding: 1px 4px;
+      animation: fadeNew 3s forwards;
+      pointer-events: none;
+    }
+
+    .log-empty {
+      text-align: center;
+      padding: 0.75rem;
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    /* Mobile signal bar */
+    .mob-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 400;
+      background: rgba(11, 25, 41, 0.97);
+      border-top: 1px solid var(--border2);
+      padding: 0.65rem 1rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .mob-sig {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .mob-sig.bull {
+      color: var(--green);
+    }
+
+    .mob-sig.bear {
+      color: var(--red);
+    }
+
+    .mob-sig.side {
+      color: var(--gold);
+    }
+
+    .mob-sig.wait {
+      color: var(--muted);
+    }
+
+    .mob-sub {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .mob-toggle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 5px 12px;
+      border-radius: var(--r);
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    @media(max-width:1080px) {
+      .mob-bar {
+        display: flex;
+      }
+
+      .sig-panel {
+        display: none;
+      }
+
+      .sig-panel.mob-open {
+        display: flex;
+        position: fixed;
+        bottom: 52px;
+        left: 0;
+        right: 0;
+        z-index: 390;
+        max-height: 72vh;
+        background: rgba(11, 25, 41, 0.98);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border2);
+        border-radius: 16px 16px 0 0;
+        padding: 1rem;
+        overflow-y: auto;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .anim {
+      animation: fadeUp 0.3s ease both;
+    }
+
+    /* Disclaimer */
+    .disc {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--faint);
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Chart signal tooltip ────────────────────── */
+    #chartTooltip {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      pointer-events: auto;   /* allow close-button click */
+      background: #0d1e30;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 9px;
+      padding: 10px 13px 10px 13px;
+      min-width: 195px;
+      max-width: 320px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.7);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+      transform: translate(14px, -50%);
+    }
+    .ct-close {
+      position: absolute;
+      top: 6px; right: 8px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .ct-close:hover { color: var(--text); }
+    .ct-sig {
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .ct-sig.bull    { color: var(--green); }
+    .ct-sig.bear    { color: var(--red); }
+    .ct-sig.exit    { color: var(--amber); }
+    .ct-sig.sl-exit { color: var(--red); }
+    .ct-sig.tp-exit { color: var(--green); }
+    .ct-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .ct-val { color: var(--text); }
+    .ct-pnl {
+      font-weight: 700;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+    .ct-pnl.pos { color: var(--green); }
+    .ct-pnl.neg { color: var(--red); }
+    .ct-reason {
+      color: var(--muted);
+      font-size: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 5px;
+      margin-top: 6px;
+      line-height: 1.55;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    /* ── Indicator toggle panel ────────────────── */
+    .ind-panel {
+      padding: 0.55rem 0.8rem 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+    .ind-panel-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.45rem;
+    }
+    .ind-panel-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+    .ind-panel-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      color: var(--faint);
+    }
+    .ind-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .ind-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px 4px 7px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      user-select: none;
+      transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+    }
+    .ind-chip input[type="checkbox"] { display: none; }
+    .ind-chip:hover { border-color: var(--teal); }
+    .ind-chip.ind-off { opacity: 0.4; border-style: dashed; background: transparent; }
+    .ind-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--faint); flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .ind-name { color: var(--text); font-weight: 500; }
+    .ind-val {
+      font-size: 8px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--bg4);
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    /* Chip colour states */
+    .ind-chip.ind-bull .ind-dot { background: var(--green); }
+    .ind-chip.ind-bull .ind-val { background: var(--green-bg); color: var(--green); }
+    .ind-chip.ind-bull { border-color: rgba(34,212,122,0.3); background: rgba(34,212,122,0.04); }
+    .ind-chip.ind-bear .ind-dot { background: var(--red); }
+    .ind-chip.ind-bear .ind-val { background: var(--red-bg); color: var(--red); }
+    .ind-chip.ind-bear { border-color: rgba(240,82,82,0.3); background: rgba(240,82,82,0.04); }
+    .ind-chip.ind-side .ind-dot { background: var(--gold); }
+    .ind-chip.ind-side .ind-val { background: var(--gold-bg); color: var(--gold); }
+    .ind-chip.ind-side { border-color: rgba(245,200,66,0.3); background: rgba(245,200,66,0.04); }
+    /* Override: off state always neutral regardless of activity */
+    .ind-chip.ind-off { border-color: var(--faint) !important; background: transparent !important; }
+    .ind-chip.ind-off .ind-dot { background: var(--faint) !important; }
+    .ind-chip.ind-off .ind-val { background: var(--bg4) !important; color: var(--faint) !important; }
+    .ind-filter-note {
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      color: var(--amber);
+      display: none;
+      letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="tz-bg-orb tz-orb1"></div>
+  <div class="tz-bg-orb tz-orb2"></div>
+  <div class="tz-grid"></div>
+  <nav class="tz-nav">
+    <div class="tz-nav-inner">
+      <a href="index.html" class="tz-logo">
+        <div class="tz-logo-mark">TZ</div>
+        <span class="tz-logo-text">Trade<span>Zen</span></span>
+      </a>
+      <span class="tz-nav-slash">/</span>
+      <span class="tz-nav-chip">F&O SIGNAL</span>
+      <div class="tz-nav-links">
+        <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+        <a href="options_entry_tool_tamil.html">🎯 Buying</a>
+        <a href="options_selling_tool_tamil.html">💰 Selling</a>
+        <a href="swing_trading_tool_tamil.html">📈 Swing</a>
+        <a href="theta_decay_tamil.html">⏳ Theta</a>
+        <a href="fno_signal.html" class="tz-active">🤖 F&O</a>
+        <a href="fno_guide.html">📖 Guide</a>
+        <a href="contact.html">✉ Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-grid"></div>
+
+  <!-- ════ NAV ════ -->
+
+  <!-- ════ TOOLBAR ════ -->
+  <div class="toolbar">
+    <!-- NIFTY Index -->
+    <div class="index-badge">
+      <span class="idx-name">NIFTY 50</span>
+      <span class="idx-ltp" id="niftyLtp">—</span>
+      <span class="idx-chg" id="niftyChg"></span>
+    </div>
+    <span class="tb-sep">|</span>
+
+    <!-- Expiry -->
+    <span class="tb-label">EXPIRY</span>
+    <select class="expiry-sel" id="expirySelect" onchange="onExpiryChange()">
+      <option>Loading…</option>
+    </select>
+
+    <!-- Mode -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabBoth" onclick="setMode('both')">BOTH</button>
+      <button class="mode-tab" id="tabCE" onclick="setMode('CE')">CE</button>
+      <button class="mode-tab" id="tabPE" onclick="setMode('PE')">PE</button>
+    </div>
+
+    <!-- Status -->
+    <div class="status-pill">
+      <div class="s-dot" id="sDot"></div>
+      <span id="sTxt">Connecting…</span>
+    </div>
+
+    <!-- SL / TP inputs -->
+    <div class="sl-tp-group" title="Stop Loss % / Target % from option entry price">
+      <span class="sl-lbl">SL</span>
+      <input class="sl-tp-input" id="slInput" type="number" min="5" max="80" value="25" step="1"
+             onchange="slPct = Math.max(5, Math.min(80, +this.value || 25))" title="Stop Loss %">
+      <span class="sl-tp-unit">%</span>
+      <span class="sl-tp-sep">|</span>
+      <span class="tp-lbl">TP</span>
+      <input class="sl-tp-input" id="tpInput" type="number" min="5" max="300" value="40" step="1"
+             onchange="tpPct = Math.max(5, Math.min(300, +this.value || 40))" title="Target %">
+      <span class="sl-tp-unit">%</span>
+    </div>
+
+    <!-- Refresh -->
+    <button class="ref-btn" id="refBtn" onclick="fullRefresh()">
+      <span class="spin" id="spinIcon">⟳</span> Refresh
+    </button>
+
+    <!-- Guide -->
+    <a href="fno_guide.html" class="ref-btn" target="_blank" title="Open full guide in new tab" style="text-decoration:none;">📖 Guide</a>
+  </div>
+
+  <!-- ════ SPLIT ════ -->
+  <div class="split">
+
+    <!-- ══ LEFT: OPTION CHAIN ══ -->
+    <div class="chain-panel" id="chainPanel">
+      <!-- Panel header: title + collapse toggle -->
+      <div class="chain-panel-hdr">
+        <span class="chain-panel-hdr-title">OPTION CHAIN</span>
+        <button class="chain-toggle-btn" id="chainToggleBtn" onclick="toggleChain()" title="Collapse chain">‹</button>
+      </div>
+      <!-- Column header -->
+      <div class="chain-head" id="chainHead">
+        <div class="ch ce">OI (L)</div>
+        <div class="ch ce">OI CHG</div>
+        <div class="ch ce">VOL</div>
+        <div class="ch ce">LTP</div>
+        <div class="ch str">STRIKE</div>
+        <div class="ch pe">LTP</div>
+        <div class="ch pe">VOL</div>
+        <div class="ch pe">OI CHG</div>
+        <div class="ch pe">OI (L)</div>
+      </div>
+      <!-- Rows -->
+      <div id="chainBody">
+        <div class="chain-empty">
+          <span class="spin-lg">⟳</span>
+          <span>Option chain ஏற்றுகிறது…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RIGHT: SIGNAL PANEL ══ -->
+    <div class="sig-panel" id="sigPanel">
+
+      <!-- No selection placeholder -->
+      <div id="noSel" class="no-sel">
+        <div class="no-sel-icon">👆</div>
+        <div class="no-sel-title">Contract தேர்வு செய்யவும்</div>
+        <div class="no-sel-sub">
+          Option chain-ல் ஒரு Strike-ஐ பார்த்து<br>
+          <b>CE</b> அல்லது <b>PE</b> button அழுத்தவும்.<br><br>
+          அந்த contract-க்கான live<br>
+          AI signal இங்கே காட்டும்.
+        </div>
+      </div>
+
+      <!-- Signal content -->
+      <div id="sigContent" style="display:none;flex-direction:column;gap:0.7rem;min-width:0;">
+
+        <!-- Contract header -->
+        <div class="ctr-card anim">
+          <div class="ctr-tag">SELECTED CONTRACT</div>
+          <div class="ctr-name" id="ctrName">—</div>
+          <div class="ctr-meta">
+            <span id="ctrExp">—</span>
+            <span id="ctrStrike">—</span>
+            <span id="ctrType">—</span>
+          </div>
+          <div class="ctr-ltp ce" id="ctrLtp">—</div>
+        </div>
+
+        <!-- Main signal -->
+        <div class="sig-card wait anim" id="sigCard">
+          <div class="sig-top">
+            <div>
+              <div class="sig-lbl">AI SIGNAL</div>
+              <div class="sig-val wait" id="sigVal">WAIT</div>
+            </div>
+            <!-- Ring -->
+            <div class="ring">
+              <svg viewBox="0 0 68 68">
+                <circle class="ring-bg" cx="34" cy="34" r="28" />
+                <circle class="ring-arc" id="ringArc" cx="34" cy="34" r="28" stroke-dasharray="175.9"
+                  stroke-dashoffset="175.9" />
+              </svg>
+              <div class="ring-ctr">
+                <span class="ring-num" id="ringNum">0</span>
+                <span class="ring-unit" id="ringUnit">SCORE</span>
+              </div>
+            </div>
+          </div>
+          <div class="sig-reason" id="sigReason"><b>காரணம்:</b> Waiting…</div>
+          <div class="sig-ts" id="sigTs">—</div>
+        </div>
+
+        <!-- Price Chart -->
+        <div class="chart-card anim">
+          <div class="chart-header">
+            <span class="chart-title">PRICE CHART</span>
+            <div class="chart-meta">
+              <span class="chart-ltp ce" id="chartLtp">—</span>
+              <span class="chart-chg" id="chartChg"></span>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="chart-leg-item">
+              <div class="chart-leg-dot" style="background:var(--green)"></div> BUY CALL
+            </div>
+            <div class="chart-leg-item">
+              <div class="chart-leg-dot" style="background:var(--red)"></div> BUY PUT
+            </div>
+            <div class="chart-leg-item">
+              <div class="chart-leg-dot" style="background:var(--gold)"></div> SIDEWAYS
+            </div>
+          </div>
+          <div id="priceChart" style="height:180px;"></div>
+          <!-- Indicator toggle panel -->
+          <div class="ind-panel" id="indPanel" style="display:none;">
+            <div class="ind-panel-hdr">
+              <span class="ind-panel-title">INDICATORS — click to toggle</span>
+              <span class="ind-panel-hint">uncheck to exclude from signal</span>
+            </div>
+            <div class="ind-chips" id="indChips"></div>
+            <div class="ind-filter-note" id="indFilterNote">
+              ⚠ Custom filter active · chart markers &amp; SL/TP use full signal
+            </div>
+          </div>
+        </div>
+
+        <!-- Score bar -->
+        <div class="score-bar-wrap anim" id="scoreBarWrap">
+          <div class="score-bar-title">SIGNAL SCORE BREAKDOWN</div>
+          <div class="score-bar-row">
+            <span class="score-bar-label" style="color:var(--green)">BULL</span>
+            <div class="score-bar-track"><div class="score-bar-fill" id="sbBull" style="background:var(--green);width:0%"></div></div>
+            <span class="score-bar-num" style="color:var(--green)" id="sbBullN">0</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label" style="color:var(--red)">BEAR</span>
+            <div class="score-bar-track"><div class="score-bar-fill" id="sbBear" style="background:var(--red);width:0%"></div></div>
+            <span class="score-bar-num" style="color:var(--red)" id="sbBearN">0</span>
+          </div>
+          <div class="score-bar-row">
+            <span class="score-bar-label" style="color:var(--gold)">SIDE</span>
+            <div class="score-bar-track"><div class="score-bar-fill" id="sbSide" style="background:var(--gold);width:0%"></div></div>
+            <span class="score-bar-num" style="color:var(--gold)" id="sbSideN">0</span>
+          </div>
+          <div style="margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--faint)">
+            Entry ≥ <span id="sbEntry">50</span> · Flip ≥ <span id="sbFlip">65</span> · Exit &lt; <span id="sbExit">20</span>
+          </div>
+          <div id="sbHoldNote" style="display:none;margin-top:5px;font-size:9px;color:var(--amber);line-height:1.5;"></div>
+        </div>
+
+        <!-- Why this signal -->
+        <div class="why-card anim">
+          <div class="why-title">WHY THIS SIGNAL? (கற்றுக்கொள்ளுங்கள்)</div>
+          <div class="why-list" id="whyList">
+            <div class="why-empty">Signal வரும்போது காரணம் காட்டும்</div>
+          </div>
+        </div>
+
+        <!-- Mini metrics -->
+        <div class="mg anim">
+          <div class="mc">
+            <div class="mc-lbl">LTP</div>
+            <div class="mc-val" id="mLtp">—</div>
+          </div>
+          <div class="mc">
+            <div class="mc-lbl">OI (Lacs)</div>
+            <div class="mc-val" id="mOI">—</div>
+          </div>
+          <div class="mc">
+            <div class="mc-lbl">VOLUME</div>
+            <div class="mc-val" id="mVol">—</div>
+          </div>
+          <div class="mc">
+            <div class="mc-lbl">BID/ASK</div>
+            <div class="mc-val" id="mBA">—</div>
+          </div>
+        </div>
+
+        <!-- Factors -->
+        <div class="fsec anim">
+          <div class="fsec-title">SIGNAL FACTORS</div>
+          <div class="frows">
+            <div class="frow">
+              <span class="frow-lbl">OI Trend</span>
+              <span class="frow-val" id="fOi">—</span>
+              <span class="fpill fp-neu" id="fOiP">—</span>
+            </div>
+            <div class="frow">
+              <span class="frow-lbl">Volume Spike</span>
+              <span class="frow-val" id="fVol">—</span>
+              <span class="fpill fp-neu" id="fVolP">—</span>
+            </div>
+            <div class="frow">
+              <span class="frow-lbl">Bid/Ask Pressure</span>
+              <span class="frow-val" id="fImb">—</span>
+              <span class="fpill fp-neu" id="fImbP">—</span>
+            </div>
+            <div class="frow">
+              <span class="frow-lbl">PCR Bias</span>
+              <span class="frow-val" id="fPcr">—</span>
+              <span class="fpill fp-neu" id="fPcrP">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PCR gauge -->
+        <div class="pcr-sec anim">
+          <div class="pcr-title">PUT-CALL RATIO GAUGE</div>
+          <div class="pcr-track">
+            <div class="pcr-fill" id="pcrFill" style="width:50%;background:var(--muted);"></div>
+          </div>
+          <div class="pcr-lbls">
+            <span class="r">← BEARISH</span><span class="m">NEUTRAL</span><span class="g">BULLISH →</span>
+          </div>
+          <div class="pcr-row">
+            <span class="pcr-big" id="pcrBig" style="color:var(--muted)">—</span>
+            <span class="pcr-txt" id="pcrTxt">—</span>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="log-sec anim">
+          <div class="log-title-row">
+            <span class="log-title">SIGNAL HISTORY</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="alert-btn" id="exportBtn" onclick="exportLog()" title="Export signal log as CSV">⬇ CSV</button>
+              <button class="alert-btn" id="alertBtn" onclick="toggleAlerts()" title="Enable signal alerts">ALERTS</button>
+            </div>
+          </div>
+          <div class="log-list" id="logList">
+            <div class="log-empty">Contract தேர்ந்தெடுத்த பிறகு history காட்டும்</div>
+          </div>
+        </div>
+
+      </div><!-- #sigContent -->
+    </div><!-- .sig-panel -->
+
+  </div><!-- .split -->
+
+  <!-- Mobile bar -->
+  <div class="mob-bar" id="mobBar">
+    <div>
+      <div class="mob-sig wait" id="mobSig">Strike தேர்வு செய்யவும்</div>
+      <div class="mob-sub" id="mobSub">CE / PE button அழுத்தவும்</div>
+    </div>
+    <button class="mob-toggle" onclick="toggleMob()">விவரம் ▲</button>
+  </div>
+
+  <div class="disc">⚠️ Educational purpose only · Not SEBI registered · Signals are for learning only, not investment
+    advice</div>
+
+  <!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+  <script>
+    // ── CONFIG ──────────────────────────────────
+    const API_SIGNAL   = "/api/ai-signal";
+    const API_CHAIN    = "/api/option-chain";
+    const API_EXPIRIES = "/api/expiries";
+    const POLL_CHAIN  = 5000;
+    const POLL_SIGNAL = 2000;
+    const MAX_LOG = 50;
+
+    // ── STATE ───────────────────────────────────
+    let chainData = [];
+    let currentExpiry = null;
+    let viewMode = "both";
+    let selToken = null;
+    let selType = null;
+    let selStrike = null;
+    let selSymbol = null;
+    let selExpiry = null;
+    let signalLog = [];
+    let maxCeOI = 0, maxPeOI = 0;
+
+    // ── ALERT STATE ─────────────────────────────
+    let prevSignal    = null;   // last rendered signal (for transition detection)
+    let alertsEnabled = false;
+    let notifGranted  = false;
+    let audioCtx      = null;  // shared AudioContext — created once on user gesture
+
+    // ── CHART STATE ─────────────────────────────
+    let chart        = null;
+    let priceSeries  = null;
+    let priceBuffer  = [];    // [{time (Unix s), value}]
+    let markerBuffer = [];    // LW Charts marker objects
+    let lastChartSignal = null;
+    const MAX_CHART_PTS = 300;  // ~10 min at 2s poll
+
+    // ── MARKER TOOLTIP STATE ─────────────────────
+    // signalEntryPrice: option LTP when the current signal was first emitted.
+    //   Always stores the price of the SIGNAL-direction contract:
+    //   BUY CALL → CE price at entry,  BUY PUT → PE price at entry.
+    //   This is separate from `priceBuffer` which tracks the user-selected leg.
+    // markerMeta: Map<unixSecs → {type, signal, reason, entryPrice, exitPrice, pnl}>
+    //   Parallel store for marker data that LW Charts marker objects can't hold.
+    let signalEntryPrice  = null;
+    let signalEntryType   = null;   // "CE" or "PE" — which contract P&L is based on
+    const markerMeta      = new Map();
+
+    // Live prices for BOTH legs of the selected strike.
+    // Updated by renderChain on every chain poll so P&L always uses the correct leg.
+    let cePriceLive = null;
+    let pePriceLive = null;
+    let tooltipPinned     = false;
+    let tooltipPinnedTime = null;
+
+    // ── SL / TP STATE ─────────────────────────────
+    let slPct = 25;   // stop-loss %  (default 25 — matches toolbar input)
+    let tpPct = 40;   // take-profit % (default 40)
+
+    // Minimum entry age before SL/TP can fire.
+    // Prevents a freshly-entered signal from being immediately SL'd on the same
+    // price tick that established it (e.g. rapid score bounce + tight 2.5% SL).
+    const MIN_ENTRY_AGE_MS = 10000;  // 10 seconds
+    let signalEntryTime    = 0;       // epoch ms when signalEntryPrice was last set
+
+    // Post-exit cooldown — after SL/TP fires, suppress same-direction re-entry
+    // for COOLDOWN_SECS so the signal panel doesn't immediately flip back to
+    // "BUY CALL/PUT" before the user has processed the exit.
+    const SLTP_COOLDOWN_SECS = 60;
+    let postExitDir    = null;   // which direction was just SL/TP exited
+    let postExitKind   = null;   // "SL" | "TP"
+    let postExitTimer  = null;   // clearTimeout handle
+    let postExitUntil  = 0;      // epoch ms when cooldown expires
+
+    // ── INDICATOR FILTER STATE ──────────────────
+    // Mirror of signal_engine._aggregate() — used for client-side score recalc
+    // when the user toggles indicators.  Chart markers + SL/TP always use the
+    // backend signal so toggling never breaks trade tracking.
+    const INDICATORS = [
+      { key: "oi",        name: "OI Trend",        desc: "OI build / unwind" },
+      { key: "price",     name: "Price Trend",      desc: "EMA price direction" },
+      { key: "vol",       name: "Volume Spike",     desc: "Volume anomaly" },
+      { key: "imbalance", name: "Bid/Ask Pressure", desc: "Order book depth" },
+      { key: "pcr",       name: "PCR Bias",         desc: "Put-Call Ratio" },
+      { key: "spot",      name: "NIFTY Spot",       desc: "Underlying EMA" },
+      { key: "vwap",      name: "VWAP",             desc: "Session fair value" },
+    ];
+
+    // Default: all indicators active
+    let activeIndicators = new Set(INDICATORS.map(i => i.key));
+
+    // Last raw API response — kept so we can re-render when indicators change
+    let lastApiData = null;
+
+    // ── FORMAT ──────────────────────────────────
+    const fmt = (n, d = 2) => n == null || isNaN(n) ? "—" : Number(n).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d });
+    const fmtK = n => { if (n == null) return "—"; if (n >= 1e7) return (n / 1e7).toFixed(1) + "Cr"; if (n >= 1e5) return (n / 1e5).toFixed(1) + "L"; if (n >= 1e3) return (n / 1e3).toFixed(1) + "K"; return String(n); };
+    const fmtL = n => n == null ? "—" : (n / 100000).toFixed(2);
+    const fmtT = ts => ts ? new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : "--:--:--";
+    const sCls = s => { if (!s) return "wait"; const u = s.toUpperCase(); if (u.includes("CALL") || (u.includes("BUY") && !u.includes("PUT"))) return "bull"; if (u.includes("PUT") || u.includes("BEAR")) return "bear"; if (u.includes("SIDEWAYS")) return "side"; return "wait"; };
+
+    // ── EXPIRY ──────────────────────────────────
+    let nearestExpiry = null;   // set by fetchExpiries(), used to show "(Current)" label
+
+    async function fetchExpiries() {
+      try {
+        const res  = await fetch(API_EXPIRIES);
+        if (!res.ok) return;
+        const json = await res.json();
+        nearestExpiry = json.nearest;
+        const sel  = document.getElementById("expirySelect");
+        sel.innerHTML = (json.upcoming || []).map(e => {
+          const label = e === json.nearest ? `${e} (Current)` : e;
+          return `<option value="${e}">${label}</option>`;
+        }).join("");
+        // Set default to nearest if nothing selected yet
+        if (!currentExpiry || !json.upcoming.includes(currentExpiry)) {
+          currentExpiry = json.nearest;
+        }
+        sel.value = currentExpiry;
+      } catch (e) {
+        console.warn("fetchExpiries:", e.message);
+      }
+    }
+
+    function onExpiryChange() {
+      currentExpiry = document.getElementById("expirySelect").value;
+      fetchChain();   // re-fetch chain for the selected expiry
+    }
+
+    // ── CHAIN PANEL EXPAND / COLLAPSE ───────────
+    let chainCollapsed = false;
+    // Dismiss the chart signal tooltip — called by the × button (global scope)
+    function hideChartTooltip() {
+      const t = document.getElementById("chartTooltip");
+      if (t) t.style.display = "none";
+      tooltipPinned     = false;
+      tooltipPinnedTime = null;
+    }
+
+    function toggleChain() {
+      chainCollapsed = !chainCollapsed;
+      const panel  = document.getElementById("chainPanel");
+      const split  = document.querySelector(".split");
+      const btn    = document.getElementById("chainToggleBtn");
+      panel.classList.toggle("collapsed", chainCollapsed);
+      split.style.gridTemplateColumns = chainCollapsed
+        ? "minmax(0,1fr) 44px"
+        : "minmax(0,1fr) 630px";
+      btn.textContent   = chainCollapsed ? "›" : "‹";
+      btn.title         = chainCollapsed ? "Expand chain" : "Collapse chain";
+    }
+
+    // ── MODE TABS ───────────────────────────────
+    function setMode(m) {
+      viewMode = m;
+      ["Both", "CE", "PE"].forEach(t => document.getElementById("tab" + t).classList.toggle("active", t.toLowerCase() === m || t === m));
+      renderChain();
+    }
+
+    function getChangeClass(val) {
+      if (val > 0) return "c";   // green
+      if (val < 0) return "r";   // red
+      return "m";
+    }
+
+    // ── RENDER CHAIN ────────────────────────────
+    function renderChain() {
+      const body = document.getElementById("chainBody");
+
+      const rows = chainData.filter(r => (r.ce?.expiry || r.pe?.expiry) === currentExpiry);
+      if (!rows.length) { body.innerHTML = `<div class="chain-empty"><span>Data இல்லை</span></div>`; return; }
+
+      maxCeOI = Math.max(...rows.map(r => r.ce?.oi || 0));
+      maxPeOI = Math.max(...rows.map(r => r.pe?.oi || 0));
+
+      // Adjust grid for mode
+      const head = document.getElementById("chainHead");
+      const cols = viewMode === "CE"
+        ? "80px 68px 72px 72px 92px 0 0 0 0"
+        : viewMode === "PE"
+          ? "0 0 0 0 92px 72px 72px 68px 80px"
+          : "80px 68px 72px 72px 92px 72px 72px 68px 80px";
+      head.style.gridTemplateColumns = cols;
+
+      body.innerHTML = rows.map(row => {
+        const ce = row.ce || {}, pe = row.pe || {};
+        const strike = row.strike;
+        const isATM = !!row.atm;
+        const ceTok = String(ce.token || "");
+        const peTok = String(pe.token || "");
+        const ceOI = ce.oi || 0, peOI = pe.oi || 0;
+        const ceVol = ce.volume || 0, peVol = pe.volume || 0;
+
+        // OI delta from last snapshot
+        const dCe = ce.oi_change || 0;
+        const dPe = pe.oi_change || 0;
+
+        console.log("dCe : "+dCe)
+        console.log("dPe : "+dPe)
+
+        const dCeSign = dCe > 0 ? "+" : "";
+        const dPeSign = dPe > 0 ? "+" : "";
+
+        const dCeCls = dCe > 0 ? "gp" : dCe < 0 ? "rn" : "m";
+        const dPeCls = dPe > 0 ? "gp" : dPe < 0 ? "rn" : "m";
+        console.log("dCeCls : "+dCeCls)
+        console.log("dPeCls : "+dPeCls)
+
+        // OI bar widths
+        const ceBar = maxCeOI ? Math.round(ceOI / maxCeOI * 100) : 0;
+        const peBar = maxPeOI ? Math.round(peOI / maxPeOI * 100) : 0;
+
+        const ceOn = selToken === ceTok && selType === "CE";
+        const peOn = selToken === peTok && selType === "PE";
+        const ceMax = ceOI === maxCeOI && ceOI > 0 ? "w" : "";
+        const peMax = peOI === maxPeOI && peOI > 0 ? "w" : "";
+
+        // visibility:hidden keeps cells in their grid columns (display:none would shift siblings)
+        const ceHide = viewMode === "PE" ? "visibility:hidden; border:none;" : "";
+        const peHide = viewMode === "CE" ? "visibility:hidden; border:none;" : "";
+
+        const ceChange = ce.price_change || 0;
+        const ceCls = ceChange > 0 ? "c" : ceChange < 0 ? "r" : "m";
+        const ceSign = ceChange > 0 ? "+" : "";
+
+        const peChange = pe.price_change || 0;
+        const peCls = peChange > 0 ? "c" : peChange < 0 ? "r" : "m";
+        const peSign = peChange > 0 ? "+" : "";
+
+        return `<div class="cr ${isATM ? "atm" : ""}" style="grid-template-columns:${cols}">
+      <!-- CE OI -->
+      <div class="cc cc-ceoi" style="${ceHide}">
+        <div class="bar cebar" style="width:${ceBar}%"></div>
+        <span class="v ${ceMax}">${fmtL(ceOI)}</span>
+      </div>
+      <!-- CE OI CHG -->
+      <div class="cc" style="${ceHide}"><span class="v ${dCeCls}">${dCeSign}${fmtL(dCe)}</span></div>
+      <!-- CE VOL -->
+      <div class="cc" style="${ceHide}"><span class="v m sm">${fmtK(ceVol)}</span></div>
+      <!-- CE LTP -->
+      <div class="cc" style="${ceHide}">
+        <span class="v ${ceCls}">
+          ${ce.price != null ? "₹" + fmt(ce.price, 1) : "—"}
+        </span>
+        <div class="v sm ${ceCls}">
+          ${ceSign}${ceChange.toFixed(1)}
+        </div>
+      </div>
+
+      <!-- STRIKE -->
+      <div class="cc-str">
+        <span class="str-v">${Number(strike).toFixed(0)}</span>
+        <div class="str-btns">
+          <button class="sbtn ce-btn ${ceOn ? "on" : ""}"
+            onclick="selContract('${ceTok}','CE',${strike},'${ce.symbol || ""}','${ce.expiry || ""}')">CE</button>
+          <button class="sbtn pe-btn ${peOn ? "on" : ""}"
+            onclick="selContract('${peTok}','PE',${strike},'${pe.symbol || ""}','${pe.expiry || ""}')">PE</button>
+        </div>
+      </div>
+
+      <!-- PE LTP -->
+      <div class="cc" style="${peHide}">
+        <span class="v ${peCls}">
+          ${pe.price != null ? "₹" + fmt(pe.price, 1) : "—"}
+        </span>
+        <div class="v sm ${peCls}">
+          ${peSign}${peChange.toFixed(1)}
+        </div>
+      </div>
+      <!-- PE VOL -->
+      <div class="cc" style="${peHide}"><span class="v m sm">${fmtK(peVol)}</span></div>
+      <!-- PE OI CHG -->
+      <div class="cc" style="${peHide}"><span class="v ${dPeCls}">${dPeSign}${fmtL(dPe)}</span></div>
+      <!-- PE OI -->
+      <div class="cc cc-peoi" style="${peHide}">
+        <div class="bar pebar" style="width:${peBar}%"></div>
+        <span class="v ${peMax}">${fmtL(peOI)}</span>
+      </div>
+    </div>`;
+      }).join("");
+
+      // Update live LTP in contract card if selected + push to price chart
+      if (selToken) {
+        const row = rows.find(r => String(r.ce?.token) === selToken || String(r.pe?.token) === selToken);
+        if (row) {
+          // Always track both legs — P&L uses the signal-direction contract,
+          // not necessarily the user-selected one.
+          if (row.ce?.price != null) cePriceLive = row.ce.price;
+          if (row.pe?.price != null) pePriceLive = row.pe.price;
+
+          const leg = selType === "CE" ? row.ce : row.pe;
+          if (leg) {
+            const ltp = leg.price != null ? "₹" + fmt(leg.price, 2) : "—";
+            document.getElementById("ctrLtp").textContent = ltp;
+            document.getElementById("mLtp").textContent = ltp;
+            document.getElementById("mOI").textContent = fmtL(leg.oi) + "L";
+            document.getElementById("mVol").textContent = fmtK(leg.volume);
+            const ba = (leg.buy_qty && leg.sell_qty) ? fmt(leg.buy_qty / leg.sell_qty, 2) + "×" : "—";
+            document.getElementById("mBA").textContent = ba;
+            document.getElementById("mLtp").className = "mc-val " + (selType === "CE" ? "g" : "r");
+
+            // ── Drive price chart from chain (chain has the real contract LTP) ──
+            if (leg.price != null) {
+              const firstPrice = priceBuffer.length ? priceBuffer[0].value : leg.price;
+              pushChartPoint(leg.price, Date.now());
+              updateChartHeader(leg.price, firstPrice);
+              // SL / TP guard — check every price update
+              checkSlTp(leg.price);
+            }
+          }
+        }
+      }
+      setTimeout(() => {
+        document.querySelectorAll(".cc").forEach((el, i) => {
+          const row = rows[Math.floor(i / 9)];
+          if (!row) return;
+
+          const ceChange = row.ce?.price_change || 0;
+          const peChange = row.pe?.price_change || 0;
+
+          applyFlash(el, ceChange || peChange);
+        });
+      }, 0);
+    }
+
+    function applyFlash(el, change) {
+      el.classList.remove("flash-up", "flash-down");
+
+      if (change > 0) el.classList.add("flash-up");
+      else if (change < 0) el.classList.add("flash-down");
+    }
+
+    // ── CONTRACT SELECTION ───────────────────────
+    function selContract(token, type, strike, symbol, expiry) {
+      // Toggle off if same
+      if (selToken === token && selType === type) {
+        selToken = null; selType = null; selStrike = null; selSymbol = null; selExpiry = null;
+        document.getElementById("noSel").style.display = "";
+        document.getElementById("sigContent").style.display = "none";
+        document.getElementById("mobBar").style.display = "none";
+        renderChain(); return;
+      }
+      selToken = token; selType = type; selStrike = strike; selSymbol = symbol; selExpiry = expiry;
+      prevSignal        = null;
+      signalLog         = [];
+      signalEntryPrice  = null;
+      signalEntryType   = null;
+      signalEntryTime   = 0;
+      cePriceLive       = null;
+      pePriceLive       = null;
+      markerMeta.clear();
+      hideChartTooltip();
+      // Clear any pending cooldown for the previous contract
+      clearTimeout(postExitTimer);
+      postExitDir = null; postExitKind = null; postExitUntil = 0;
+      renderLog();
+
+      document.getElementById("noSel").style.display = "none";
+      document.getElementById("sigContent").style.display = "flex";
+      document.getElementById("mobBar").style.display = "flex";
+
+      document.getElementById("ctrName").textContent = symbol || `NIFTY ${strike} ${type}`;
+      document.getElementById("ctrExp").textContent = "Expiry: " + (expiry || "—");
+      document.getElementById("ctrStrike").textContent = "Strike: " + strike;
+      document.getElementById("ctrType").textContent = type;
+      document.getElementById("ctrLtp").className = "ctr-ltp " + (type === "CE" ? "ce" : "pe");
+
+      // Reset indicator panel
+      lastApiData = null;
+      activeIndicators = new Set(INDICATORS.map(i => i.key));
+      renderIndChips();
+      updateIndFilterNote();
+      const indPanel = document.getElementById("indPanel");
+      if (indPanel) indPanel.style.display = "block";
+
+      // Reset and initialise a fresh chart for the new contract
+      initChart();
+
+      renderChain();
+      fetchSignal();
+    }
+
+    // ── FETCH CHAIN ─────────────────────────────
+    async function fetchChain() {
+      try {
+        const url = currentExpiry ? `${API_CHAIN}?expiry=${currentExpiry}` : API_CHAIN;
+        const res  = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json();
+        const rows = json.data || [];
+        if (!rows.length) return;
+
+        // Mark ATM row (only meaningful for live / nearest expiry)
+        const ltpRaw = document.getElementById("niftyLtp").textContent.replace(/[₹,]/g, "");
+        const spot   = parseFloat(ltpRaw) || 0;
+        if (spot > 0 && json.live) {
+          let minD = Infinity, idx = 0;
+          rows.forEach((r, i) => { const d = Math.abs(r.strike - spot); if (d < minD) { minD = d; idx = i; } });
+          rows.forEach(r => delete r.atm);
+          rows[idx].atm = true;
+        }
+
+        chainData = rows;
+
+        // Show a "Reference only — no live prices" note for non-nearest expiries
+        const chainTitle = document.querySelector(".chain-panel-hdr-title");
+        if (chainTitle) {
+          chainTitle.textContent = json.live
+            ? "OPTION CHAIN"
+            : `OPTION CHAIN · ${json.expiry} (Reference — no live data)`;
+        }
+
+        renderChain();
+        setStatus("live", "Live · " + fmtT(Date.now()));
+      } catch (e) {
+        setStatus("err", "Chain error: " + e.message);
+        console.warn("Chain fetch:", e.message);
+      }
+    }
+
+    // ── FETCH NIFTY SPOT ─────────────────────────
+    async function fetchSpot() {
+      try {
+        const res = await fetch(API_SIGNAL, { signal: AbortSignal.timeout(2000) });
+        if (!res.ok) return;
+        const d = await res.json();
+        if (d.nifty_ltp) {
+          document.getElementById("niftyLtp").textContent = "₹" + fmt(d.nifty_ltp, 2);
+          if (d.nifty_chg != null) {
+            const c = Number(d.nifty_chg).toFixed(2);
+            const el = document.getElementById("niftyChg");
+            el.textContent = (c >= 0 ? "+" : "") + c + "%";
+            el.className = "idx-chg " + (c >= 0 ? "pos" : "neg");
+          }
+        }
+      } catch { }
+    }
+
+    // ── FETCH SIGNAL ─────────────────────────────
+    async function fetchSignal() {
+      if (!selToken) return;
+      try {
+        const res = await fetch(API_SIGNAL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        lastApiData = data;    // cache for indicator toggle re-renders
+        updateSigPanel(data);
+        addLog(data);
+        // Mobile bar — use filtered signal for display
+        const displayData = applyIndicatorFilter(data);
+        const sc = sCls(displayData.signal);
+        document.getElementById("mobSig").textContent = displayData.signal || "WAIT";
+        document.getElementById("mobSig").className = "mob-sig " + sc;
+        document.getElementById("mobSub").textContent = (displayData.confidence || 0) + "% confidence";
+      } catch (e) { console.warn("Signal:", e.message); }
+    }
+
+    // ── CHART ───────────────────────────────────
+    function initChart() {
+      const container = document.getElementById("priceChart");
+      if (!container || typeof LightweightCharts === "undefined") return;
+
+      if (chart) { chart.remove(); chart = null; priceSeries = null; }
+      priceBuffer      = [];
+      markerBuffer     = [];
+      lastChartSignal  = null;
+      markerMeta.clear();
+      signalEntryPrice = null;
+
+      const color = selType === "CE" ? "#22d47a" : "#f05252";
+
+      // LightweightCharts renders timestamps as UTC by default.
+      // IST = UTC + 5h 30m — apply offset in the formatter so the X-axis
+      // shows Indian market time without changing any stored timestamps.
+      const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+
+      chart = LightweightCharts.createChart(container, {
+        autoSize: true,
+        height:   180,
+        layout: {
+          background:  { color: "#0b1929" },
+          textColor:   "#6e87a2",
+          fontFamily:  "'JetBrains Mono', monospace",
+          fontSize:    10,
+        },
+        localization: {
+          timeFormatter: (unixSecs) => {
+            const d = new Date(unixSecs * 1000 + IST_OFFSET_MS);
+            const hh = String(d.getUTCHours()).padStart(2, "0");
+            const mm = String(d.getUTCMinutes()).padStart(2, "0");
+            const ss = String(d.getUTCSeconds()).padStart(2, "0");
+            return `${hh}:${mm}:${ss}`;
+          },
+        },
+        grid: {
+          vertLines: { color: "#0f2035", style: 1 },
+          horzLines: { color: "#0f2035", style: 1 },
+        },
+        crosshair: { mode: 1 },
+        rightPriceScale: {
+          borderColor: "#152843",
+          textColor:   "#6e87a2",
+          scaleMargins: { top: 0.15, bottom: 0.15 },
+        },
+        timeScale: {
+          borderColor:    "#152843",
+          timeVisible:    true,
+          secondsVisible: true,
+          rightOffset:    5,
+          fixLeftEdge:    false,
+          lockVisibleTimeRangeOnResize: true,
+          tickMarkFormatter: (unixSecs) => {
+            const d = new Date(unixSecs * 1000 + IST_OFFSET_MS);
+            const hh = String(d.getUTCHours()).padStart(2, "0");
+            const mm = String(d.getUTCMinutes()).padStart(2, "0");
+            return `${hh}:${mm}`;
+          },
+        },
+        handleScroll: { mouseWheel: true, pressedMouseMove: true },
+        handleScale:  { mouseWheel: true, pinch: true },
+      });
+
+      priceSeries = chart.addLineSeries({
+        color:                  color,
+        lineWidth:              2,
+        lastValueVisible:       true,
+        priceLineVisible:       true,
+        priceLineColor:         color,
+        priceLineWidth:         1,
+        priceLineStyle:         2,   // dashed
+        crosshairMarkerVisible: true,
+        crosshairMarkerRadius:  4,
+        crosshairMarkerBorderColor: color,
+        crosshairMarkerBackgroundColor: "#0b1929",
+      });
+
+      // Update header ltp color to match
+      const ltpEl = document.getElementById("chartLtp");
+      if (ltpEl) ltpEl.className = "chart-ltp " + (selType === "CE" ? "ce" : "pe");
+
+      // ── Click tooltip — pin signal info on click, dismiss on re-click ──
+      const chartEl = document.getElementById("priceChart");
+      const tooltip = document.getElementById("chartTooltip");
+
+      function buildTooltipHtml(meta) {
+        let html = `<button class="ct-close" onclick="hideChartTooltip()" title="Close">×</button>`;
+        html += `<div class="ct-sig ${meta.sc}">${meta.signal}</div>`;
+
+        if (meta.entryPrice != null) {
+          html += `<div class="ct-row"><span>Entry</span><span class="ct-val">₹${fmt(meta.entryPrice)}</span></div>`;
+        }
+        if (meta.type === "exit" && meta.exitPrice != null) {
+          html += `<div class="ct-row"><span>Exit</span><span class="ct-val">₹${fmt(meta.exitPrice)}</span></div>`;
+          if (meta.pnl != null) {
+            const sign   = meta.pnl >= 0 ? "+" : "−";
+            const pnlAbs = Math.abs(meta.pnl);
+            const pnlPct = meta.entryPrice
+              ? `(${meta.pnl >= 0 ? "+" : "−"}${Math.abs(meta.pnl / meta.entryPrice * 100).toFixed(1)}%)`
+              : "";
+            const cls    = meta.pnl >= 0 ? "pos" : "neg";
+            const label  = meta.pnl >= 0 ? "PROFIT" : "LOSS";
+            html += `<div class="ct-pnl ${cls}">${sign}₹${fmt(pnlAbs)} ${pnlPct} ${label}</div>`;
+          }
+          if (meta.signalType) {
+            html += `<div class="ct-row" style="font-size:0.7em;opacity:0.55;margin-top:2px">
+              <span>P&amp;L based on</span><span class="ct-val">${meta.signalType} contract</span>
+            </div>`;
+          }
+        }
+        if (meta.reason) {
+          html += `<div class="ct-reason">${meta.reason}</div>`;
+        }
+        return html;
+      }
+
+      function positionTooltip(point) {
+        const rect = chartEl.getBoundingClientRect();
+        const rawX = rect.left + point.x + 18;
+        const rawY = rect.top  + point.y;
+        const left = (rawX + 340 > window.innerWidth)
+          ? (rect.left + point.x - 340) : rawX;
+        tooltip.style.left = left + "px";
+        tooltip.style.top  = rawY + "px";
+      }
+
+      chart.subscribeClick(param => {
+        if (!param.time || !param.point) { hideChartTooltip(); return; }
+
+        // Wider ±2s tolerance — markers snap to the nearest bar second
+        const meta = markerMeta.get(param.time)
+                  || markerMeta.get(param.time - 1)
+                  || markerMeta.get(param.time + 1)
+                  || markerMeta.get(param.time - 2)
+                  || markerMeta.get(param.time + 2);
+
+        if (!meta) { hideChartTooltip(); return; }
+
+        // Toggle: clicking the same marker again dismisses the tooltip
+        if (tooltipPinned && tooltipPinnedTime === param.time) {
+          hideChartTooltip(); return;
+        }
+
+        tooltip.innerHTML = buildTooltipHtml(meta);
+        positionTooltip(param.point);
+        tooltip.style.display = "block";
+        tooltipPinned     = true;
+        tooltipPinnedTime = param.time;
+      });
+    }
+
+    function pushChartPoint(price, tsMs) {
+      if (!priceSeries || !price) return;
+      const time = Math.floor(tsMs / 1000);
+
+      // Same second → update in place instead of adding a duplicate
+      if (priceBuffer.length && priceBuffer[priceBuffer.length - 1].time === time) {
+        priceBuffer[priceBuffer.length - 1].value = price;
+      } else {
+        priceBuffer.push({ time, value: price });
+        if (priceBuffer.length > MAX_CHART_PTS) priceBuffer.shift();
+      }
+
+      try {
+        priceSeries.setData(priceBuffer);
+        if (markerBuffer.length) priceSeries.setMarkers(markerBuffer);
+        chart.timeScale().scrollToRealTime();
+      } catch (_) {}
+    }
+
+    function pushSignalMarker(signal, tsMs, reason) {
+      if (!priceSeries || !signal || signal === "WAIT") return;
+      const sc   = sCls(signal);
+      const time = Math.floor(tsMs / 1000);
+
+      const colourMap = { bull: "#22d47a", bear: "#f05252", side: "#f5c842" };
+      const shapeMap  = { bull: "arrowUp", bear: "arrowDown", side: "circle" };
+      // Entry arrows: BUY CALL rises from below bar; BUY PUT falls from above bar
+      const posMap    = { bull: "belowBar", bear: "aboveBar", side: "inBar" };
+
+      markerBuffer = markerBuffer.filter(m => m.time !== time || m.id === "exit");
+      markerBuffer.push({
+        time,
+        position: posMap[sc]    || "inBar",
+        color:    colourMap[sc] || "#6e87a2",
+        shape:    shapeMap[sc]  || "circle",
+        text:     signal,
+        size:     1,
+      });
+      markerBuffer.sort((a, b) => a.time - b.time);
+      if (markerBuffer.length > 60) markerBuffer.shift();
+
+      // Store tooltip metadata — entry price captured from latest chart point
+      const entryPrice = priceBuffer.length ? priceBuffer[priceBuffer.length - 1].value : null;
+      markerMeta.set(time, { type: "entry", signal, sc, reason: reason || "", entryPrice });
+
+      try { priceSeries.setMarkers(markerBuffer); } catch (_) {}
+    }
+
+    // Stamp an EXIT marker when transitioning away from an active signal.
+    // Uses amber square on the opposite side from entry arrows so they don't overlap:
+    //   EXIT CALL → aboveBar (entry was belowBar)
+    //   EXIT PUT  → belowBar (entry was aboveBar)
+    // kind   = "SL" | "TP" | null (score-based)
+    //   Controls marker colour: SL=red, TP=green, score-based=amber
+    // exitReason = human-readable string shown in the tooltip
+    //
+    // P&L is always  exitPrice − entryPrice  regardless of signal direction.
+    // Any option buyer profits when the premium RISES, so this is the correct
+    // direction for both CE (BUY CALL) and PE (BUY PUT) contracts.
+    function pushExitMarker(prevSig, tsMs, exitReason, kind) {
+      if (!priceSeries) return;
+      const time      = Math.floor(tsMs / 1000);
+      const isCall    = prevSig === "BUY CALL";
+
+      // Colour: SL = red, TP = green, score/manual = amber
+      const markerColor = kind === "SL" ? "#f05252"
+                        : kind === "TP" ? "#22d47a"
+                        : "#f5a623";
+
+      // Label on chart: prefix with kind so you can tell at a glance
+      const kindPrefix = kind === "SL" ? "SL " : kind === "TP" ? "TP " : "";
+      const exitLabel  = kindPrefix + (isCall ? "EXIT CALL" : "EXIT PUT");
+
+      markerBuffer.push({
+        id:       "exit",
+        time,
+        position: isCall ? "aboveBar" : "belowBar",
+        color:    markerColor,
+        shape:    "square",
+        text:     exitLabel,
+        size:     1,
+      });
+      markerBuffer.sort((a, b) => a.time - b.time);
+      if (markerBuffer.length > 60) markerBuffer.shift();
+
+      // P&L uses the SIGNAL-direction contract price:
+      // BUY CALL exit → CE price;  BUY PUT exit → PE price.
+      // This is independent of which leg the user has selected in the chain,
+      // so a user watching CE won't see a false LOSS on a profitable PUT trade.
+      const exitPrice = isCall ? cePriceLive : pePriceLive;
+      let pnl = null;
+      if (signalEntryPrice != null && exitPrice != null) {
+        pnl = Math.round((exitPrice - signalEntryPrice) * 100) / 100;
+      }
+
+      // sc drives tooltip header colour: sl-exit=red, tp-exit=green, exit=amber
+      const sc = kind === "SL" ? "sl-exit" : kind === "TP" ? "tp-exit" : "exit";
+
+      markerMeta.set(time, {
+        type:        "exit",
+        signal:      exitLabel,
+        sc,
+        reason:      exitReason || "Signal exited",
+        entryPrice:  signalEntryPrice,
+        exitPrice,
+        pnl,
+        signalType:  isCall ? "CE" : "PE",   // shown in tooltip so user knows which contract
+      });
+
+      try { priceSeries.setMarkers(markerBuffer); } catch (_) {}
+    }
+
+    function updateChartHeader(price, firstPrice) {
+      const ltpEl = document.getElementById("chartLtp");
+      const chgEl = document.getElementById("chartChg");
+      if (!ltpEl || !chgEl || price == null) return;
+
+      ltpEl.textContent = "₹" + fmt(price, 2);
+
+      if (firstPrice && firstPrice !== price) {
+        const chgPct = ((price - firstPrice) / firstPrice * 100).toFixed(2);
+        const isPos  = price >= firstPrice;
+        chgEl.textContent  = (isPos ? "+" : "") + chgPct + "%";
+        chgEl.className    = "chart-chg " + (isPos ? "pos" : "neg");
+      } else {
+        chgEl.textContent = "";
+      }
+    }
+
+    // ── BUILD "WHY" EXPLANATION ──────────────────
+    function buildWhy(data) {
+      const facts = [];
+      const f = data.factors || {};
+      const d = data.diagnostic || {};
+      const oi  = f.oi_trend   || {};
+      const vol = f.vol_spike  || {};
+      const imb = f.imbalance  || {};
+      const pcr = f.pcr        || {};
+      const pt  = f.price_trend|| {};
+      const sp  = f.spot_trend || {};
+      const vw  = f.vwap       || {};
+
+      // OI trend
+      if (oi.ce_dir === "BUILD" && oi.ce_chg != null)
+        facts.push({ cls:"bull", icon:"📊", indKey:"oi",
+          text:`CE Open Interest <b>+${oi.ce_chg}%</b> அதிகரித்தது — புதிய CALL வாங்குபவர்கள் சேர்கிறார்கள்`,
+          tag:"BULLISH", tc:"bull" });
+      if (oi.pe_dir === "BUILD" && oi.pe_chg != null)
+        facts.push({ cls:"bear", icon:"📊", indKey:"oi",
+          text:`PE Open Interest <b>+${oi.pe_chg}%</b> அதிகரித்தது — புதிய PUT வாங்குபவர்கள் சேர்கிறார்கள்`,
+          tag:"BEARISH", tc:"bear" });
+      if (oi.ce_dir === "UNWIND")
+        facts.push({ cls:"bull", icon:"↩️", indKey:"oi",
+          text:`CE OI குறைகிறது & CE விலை ஏறுகிறது — CALL short-sellers திரும்ப வாங்குகிறார்கள் <i>(Short Covering)</i>`,
+          tag:"BULLISH", tc:"bull" });
+      if (oi.pe_dir === "UNWIND")
+        facts.push({ cls:"bear", icon:"↩️", indKey:"oi",
+          text:`PE OI குறைகிறது & PE விலை ஏறுகிறது — PUT short-sellers திரும்ப வாங்குகிறார்கள் <i>(Short Covering)</i>`,
+          tag:"BEARISH", tc:"bear" });
+
+      // Price trend
+      if (pt.ce_up && pt.ce_mom != null)
+        facts.push({ cls:"bull", icon:"📈", indKey:"price",
+          text:`CE EMA trend: <b>${pt.ce_mom > 0 ? "+" : ""}${pt.ce_mom}%</b> — CALL விலை uptrend-ல் உள்ளது`,
+          tag:"BULLISH", tc:"bull" });
+      if (pt.pe_up && pt.pe_mom != null)
+        facts.push({ cls:"bear", icon:"📉", indKey:"price",
+          text:`PE EMA trend: <b>${pt.pe_mom > 0 ? "+" : ""}${pt.pe_mom}%</b> — PUT விலை uptrend-ல் உள்ளது`,
+          tag:"BEARISH", tc:"bear" });
+
+      // Volume
+      if (vol.ce_spike)
+        facts.push({ cls:"bull", icon:"🔥", indKey:"vol",
+          text:`CE Volume spike <b>×${vol.ce_mult}</b> — சராசரியை விட அதிக CALL வாங்கல் நடக்கிறது`,
+          tag:"BULLISH", tc:"bull" });
+      if (vol.pe_spike)
+        facts.push({ cls:"bear", icon:"🔥", indKey:"vol",
+          text:`PE Volume spike <b>×${vol.pe_mult}</b> — சராசரியை விட அதிக PUT வாங்கல் நடக்கிறது`,
+          tag:"BEARISH", tc:"bear" });
+
+      // Imbalance
+      if (imb.ce_bull)
+        facts.push({ cls:"bull", icon:"💰", indKey:"imbalance",
+          text:`CE Bid pressure <b>${imb.ce_ratio}×</b> vs PE <b>${imb.pe_ratio}×</b> — CALL-ல் வாங்கும் அழுத்தம் அதிகம்`,
+          tag:"BULLISH", tc:"bull" });
+      if (imb.pe_bull)
+        facts.push({ cls:"bear", icon:"💰", indKey:"imbalance",
+          text:`PE Bid pressure <b>${imb.pe_ratio}×</b> vs CE <b>${imb.ce_ratio}×</b> — PUT-ல் வாங்கும் அழுத்தம் அதிகம்`,
+          tag:"BEARISH", tc:"bear" });
+
+      // PCR
+      if (pcr.bias === "BULL")
+        facts.push({ cls:"bull", icon:"⚖️", indKey:"pcr",
+          text:`PCR <b>${pcr.pcr}</b> அதிகமாக உள்ளது — PUT writers அதிகம் = Institutions bullish நம்பிக்கையில் உள்ளனர்`,
+          tag:"BULLISH", tc:"bull" });
+      else if (pcr.bias === "BEAR")
+        facts.push({ cls:"bear", icon:"⚖️", indKey:"pcr",
+          text:`PCR <b>${pcr.pcr}</b> குறைவாக உள்ளது — CALL writers அதிகம் = Institutions bearish நம்பிக்கையில் உள்ளனர்`,
+          tag:"BEARISH", tc:"bear" });
+      else if (pcr.pcr)
+        facts.push({ cls:"neu", icon:"⚖️", indKey:"pcr",
+          text:`PCR <b>${pcr.pcr}</b> — Neutral zone; திசை தெளிவில்லை`,
+          tag:"NEUTRAL", tc:"neu" });
+
+      // Spot trend
+      if (sp.direction === "UP")
+        facts.push({ cls:"bull", icon:"📈", indKey:"spot",
+          text:`NIFTY Spot EMA ஏறுகிறது (<b>${sp.diff_pct > 0 ? "+" : ""}${sp.diff_pct}%</b>) — Underlying trend BUY CALL-ஐ confirm செய்கிறது`,
+          tag:"CONFIRMS", tc:"bull" });
+      else if (sp.direction === "DOWN")
+        facts.push({ cls:"bear", icon:"📉", indKey:"spot",
+          text:`NIFTY Spot EMA இறங்குகிறது (<b>${sp.diff_pct}%</b>) — Underlying trend BUY PUT-ஐ confirm செய்கிறது`,
+          tag:"CONFIRMS", tc:"bear" });
+      else if (sp.direction === "FLAT")
+        facts.push({ cls:"side", icon:"➡️", indKey:"spot",
+          text:`NIFTY Spot flat — திசை இல்லை; sideways movement சாத்தியம்`,
+          tag:"SIDEWAYS", tc:"side" });
+
+      // VWAP session bias
+      if (vw.direction === "ABOVE")
+        facts.push({ cls:"bull", icon:"📐", indKey:"vwap",
+          text:`NIFTY Spot VWAP-க்கு மேலே (<b>+${vw.diff_pct}%</b>) — session fair value BUY CALL-ஐ support செய்கிறது`,
+          tag:"VWAP ABOVE", tc:"bull" });
+      else if (vw.direction === "BELOW")
+        facts.push({ cls:"bear", icon:"📐", indKey:"vwap",
+          text:`NIFTY Spot VWAP-க்கு கீழே (<b>${vw.diff_pct}%</b>) — session fair value BUY PUT-ஐ support செய்கிறது`,
+          tag:"VWAP BELOW", tc:"bear" });
+      else if (vw.direction === "AT")
+        facts.push({ cls:"side", icon:"📐", indKey:"vwap",
+          text:`NIFTY Spot VWAP அருகில் உள்ளது — fair value zone; திசை தெளிவாக இல்லை`,
+          tag:"VWAP AT", tc:"side" });
+
+      // Scores summary
+      facts.push({ cls:"neu", icon:"🧮",
+        text:`Score: <b style="color:var(--green)">${d.bull||0} BULL</b> vs <b style="color:var(--red)">${d.bear||0} BEAR</b> vs <b style="color:var(--gold)">${d.side||0} SIDE</b> — Entry ≥ ${d.entry_needed||45}`,
+        tag: data.signal || "WAIT",
+        tc: sCls(data.signal) });
+
+      return facts;
+    }
+
+    function renderWhy(data) {
+      const el = document.getElementById("whyList");
+      const facts = buildWhy(data);
+      if (!facts.length) {
+        el.innerHTML = `<div class="why-empty">இந்த tick-ல் signal காரணங்கள் இல்லை</div>`;
+        return;
+      }
+      el.innerHTML = facts.map(f => {
+        // Dim items whose indicator has been disabled by the user
+        const isDisabled = f.indKey && !activeIndicators.has(f.indKey);
+        const dimStyle   = isDisabled
+          ? 'style="opacity:0.3;filter:grayscale(1);" title="Indicator disabled"'
+          : "";
+        return `<div class="why-item ${isDisabled ? "neu" : f.cls}" ${dimStyle}>
+          <span class="why-icon">${f.icon}</span>
+          <span class="why-text">${f.text}<span class="why-tag ${isDisabled ? "neu" : f.tc}">${f.tag}</span></span>
+        </div>`;
+      }).join("");
+    }
+
+    // ── UPDATE SIGNAL PANEL ──────────────────────
+    function updateSigPanel(data) {
+      // ── Chart: signal marker uses BACKEND signal (never filtered) ──
+      const sig  = data.signal;
+      const tsMs = data.timestamp || Date.now();
+      if (sig && sig !== "WAIT" && sig !== lastChartSignal) {
+        pushSignalMarker(sig, tsMs, data.reason || "");
+        lastChartSignal = sig;
+      }
+      if (sig === "WAIT") lastChartSignal = null;
+
+      // ── Apply indicator filter for display only ──
+      const displayData = applyIndicatorFilter(data);
+      renderSigDisplay(displayData);
+      renderScoreBars(displayData);
+
+      // ── Indicator chips ──
+      updateIndChips(data);
+
+      // Why card — passes activeIndicators so it can grey out disabled ones
+      renderWhy(data);
+
+      // Factors section (always shows raw values regardless of filter)
+      if (data.factors) {
+        const f = data.factors;
+        const oi = f.oi_trend || {};
+        const oiChg = selType === "CE" ? oi.ce_chg : oi.pe_chg;
+        const oiDir = selType === "CE" ? oi.ce_dir : oi.pe_dir;
+        document.getElementById("fOi").textContent = oiChg != null ? oiChg + "%" : "—";
+        setPill("fOiP", oiDir || "—", { BUILD: "fp-bull", UNWIND: "fp-bear", NEUTRAL: "fp-neu" }[oiDir] || "fp-neu");
+
+        const vol = f.vol_spike || {};
+        const vm = selType === "CE" ? vol.ce_mult : vol.pe_mult;
+        const vs = selType === "CE" ? vol.ce_spike : vol.pe_spike;
+        document.getElementById("fVol").textContent = vm != null ? "×" + vm : "—";
+        setPill("fVolP", vs ? "SPIKE" : "NORMAL", vs ? "fp-spk" : "fp-neu");
+
+        const imb = f.imbalance || {};
+        const ir = selType === "CE" ? imb.ce_ratio : imb.pe_ratio;
+        const ib = selType === "CE" ? imb.ce_bull : imb.pe_bull;
+        document.getElementById("fImb").textContent = ir != null ? ir + "×" : "—";
+        setPill("fImbP", ib ? "PRESSURE" : "NEUTRAL", ib ? "fp-bull" : "fp-neu");
+
+        const pcr = f.pcr || {};
+        document.getElementById("fPcr").textContent = pcr.pcr || "—";
+        setPill("fPcrP", pcr.bias || "—", { BULL: "fp-bull", BEAR: "fp-bear", NEUTRAL: "fp-neu" }[pcr.bias] || "fp-neu");
+      }
+
+      // PCR gauge
+      const pv = data.pcr || data.factors?.pcr?.pcr;
+      if (pv != null) {
+        const pct = Math.min(100, Math.max(0, (pv / 2) * 100));
+        const col = pv > 1.2 ? "var(--green)" : pv < 0.8 ? "var(--red)" : "var(--amber)";
+        document.getElementById("pcrFill").style.width = pct + "%";
+        document.getElementById("pcrFill").style.background = col;
+        document.getElementById("pcrBig").textContent = Number(pv).toFixed(3);
+        document.getElementById("pcrBig").style.color = col;
+        const txt = { BULL: "🟢 Bullish — Put writers active", BEAR: "🔴 Bearish — Call writers active", NEUTRAL: "🟡 Neutral" };
+        const b = pv > 1.2 ? "BULL" : pv < 0.8 ? "BEAR" : "NEUTRAL";
+        document.getElementById("pcrTxt").textContent = txt[b];
+      }
+    }
+    function setPill(id, label, cls) {
+      const el = document.getElementById(id);
+      el.textContent = label;
+      el.className = "fpill " + cls;
+    }
+
+    // ── AUDIO ALERT ─────────────────────────────
+    // Uses the shared audioCtx (created on user gesture in toggleAlerts).
+    // Browsers block AudioContext creation outside a user gesture — never call
+    // new AudioContext() from a polling interval.
+    function playTone(signal) {
+      if (!audioCtx || audioCtx.state === "closed") return;
+      try {
+        // Resume if suspended (e.g. page was hidden)
+        if (audioCtx.state === "suspended") audioCtx.resume();
+
+        const master = audioCtx.createGain();
+        master.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        master.connect(audioCtx.destination);
+
+        // BUY CALL: ascending 3-tone (optimistic)
+        // BUY PUT : descending 3-tone (cautious)
+        // WAIT exit: single neutral beep
+        const freqs = signal === "BUY CALL" ? [440, 550, 660]
+                    : signal === "BUY PUT"  ? [660, 550, 440]
+                    : [330];
+
+        freqs.forEach((f, i) => {
+          const osc = audioCtx.createOscillator();
+          const g   = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+          const t0 = audioCtx.currentTime + i * 0.1;
+          g.gain.setValueAtTime(0, t0);
+          g.gain.linearRampToValueAtTime(1, t0 + 0.02);
+          g.gain.linearRampToValueAtTime(0, t0 + 0.15);
+          osc.connect(g);
+          g.connect(master);
+          osc.start(t0);
+          osc.stop(t0 + 0.16);
+        });
+      } catch (e) { console.warn("Audio:", e); }
+    }
+
+    // ── BROWSER NOTIFICATION ────────────────────
+    function sendNotif(signal, niftyLtp, symbol) {
+      if (!notifGranted) return;
+      const icons = { "BUY CALL": "📈", "BUY PUT": "📉", "WAIT": "⏸" };
+      const icon  = icons[signal] || "🔔";
+      const body  = `${symbol || selSymbol || "NIFTY"} · NIFTY ${niftyLtp ? niftyLtp : ""}`;
+      try {
+        new Notification(`${icon} ${signal}`, { body, silent: true, tag: "tradezen-signal" });
+      } catch (e) {}
+    }
+
+    // ── ALERT TOGGLE ────────────────────────────
+    async function toggleAlerts() {
+      if (!alertsEnabled) {
+        // ① Create shared AudioContext inside this user gesture click.
+        //    Must happen here — browsers block AudioContext from interval callbacks.
+        try {
+          if (!audioCtx || audioCtx.state === "closed") {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (audioCtx.state === "suspended") await audioCtx.resume();
+        } catch (e) { console.warn("AudioContext:", e); }
+
+        // ② Request browser notification permission
+        if ("Notification" in window) {
+          if (Notification.permission === "default") {
+            const perm = await Notification.requestPermission();
+            notifGranted = perm === "granted";
+          } else {
+            notifGranted = Notification.permission === "granted";
+          }
+        }
+
+        alertsEnabled = true;
+        // Play a test tone so the user knows audio is working
+        playTone("BUY CALL");
+      } else {
+        alertsEnabled = false;
+        // Don't close audioCtx — re-enable should reuse it without another gesture
+      }
+      const btn = document.getElementById("alertBtn");
+      btn.classList.toggle("on", alertsEnabled);
+      btn.title = alertsEnabled ? "Alerts ON — click to disable" : "Enable signal alerts";
+    }
+
+    // ── LOG ─────────────────────────────────────
+    function addLog(data) {
+      const sig   = data.signal || "WAIT";
+      const conf  = data.confidence || 0;
+      const nifty = data.nifty_ltp ? "₹" + data.nifty_ltp : null;
+      const now   = Date.now();
+
+      // Detect signal transition
+      const isTransition = sig !== prevSignal;
+      const isActionable = sig === "BUY CALL" || sig === "BUY PUT";
+      const wasActive    = prevSignal === "BUY CALL" || prevSignal === "BUY PUT";
+
+      if (!isTransition) return;   // nothing changed — skip
+
+      // ── Post-SL/TP cooldown guard ─────────────────────────────────────────
+      // After SL/TP fires, the Python engine may still emit the same direction
+      // for up to MIN_SIGNAL_HOLD seconds.  Absorb those ticks silently so the
+      // user doesn't see an immediate re-entry in the same direction.
+      if (postExitDir && sig === postExitDir) {
+        // Update prevSignal to prevent this from re-triggering every tick
+        prevSignal = sig;
+        return;
+      }
+      // If direction changed or signal went to WAIT, cooldown is no longer needed
+      if (postExitDir && sig !== postExitDir) {
+        clearTimeout(postExitTimer);
+        postExitDir  = null;
+        postExitKind = null;
+        postExitUntil = 0;
+      }
+
+      // ── If we were in an active signal, log EXIT before the new signal ──
+      if (wasActive) {
+        const exitLabel = prevSignal === "BUY CALL" ? "EXIT CALL" : "EXIT PUT";
+        const exitReason = isActionable
+          ? `Signal flipped to ${sig === "BUY CALL" ? "bullish" : "bearish"}`
+          : "Signal score dropped — market direction unclear";
+
+        // Chart: stamp EXIT marker with specific reason
+        pushExitMarker(prevSignal, now, exitReason);
+
+        // History: insert EXIT row
+        signalLog.unshift({
+          time:   fmtT(now),
+          signal: exitLabel,
+          conf:   0,
+          nifty,
+          reason: exitReason,
+          isNew:  false,
+          isExit: true,
+        });
+        if (signalLog.length > MAX_LOG) signalLog.pop();
+      }
+
+      // ── Alert (entry/exit) ──
+      if (alertsEnabled && (isActionable || wasActive)) {
+        playTone(sig);
+        sendNotif(sig, data.nifty_ltp);
+      }
+
+      prevSignal = sig;
+
+      // Update signalEntryPrice for the NEW signal that just started.
+      // Use the SIGNAL-direction contract price (CE for CALL, PE for PUT),
+      // not necessarily the user-selected contract. This ensures P&L is
+      // always calculated on the option the signal is actually recommending.
+      // Must happen AFTER pushExitMarker (which reads the old signalEntryPrice).
+      if (isActionable) {
+        signalEntryType  = (sig === "BUY CALL") ? "CE" : "PE";
+        signalEntryPrice = (sig === "BUY CALL") ? cePriceLive : pePriceLive;
+        signalEntryTime  = Date.now();
+      } else {
+        signalEntryPrice = null;
+        signalEntryType  = null;
+        signalEntryTime  = 0;
+      }
+
+      // ── Log new signal ──
+      signalLog.unshift({
+        time:   fmtT(now),
+        signal: sig,
+        conf,
+        nifty,
+        reason: data.reason || "",
+        isNew:  true,
+      });
+      setTimeout(() => { if (signalLog[0]) signalLog[0].isNew = false; renderLog(); }, 3100);
+
+      if (signalLog.length > MAX_LOG) signalLog.pop();
+      renderLog();
+    }
+
+    // ── SL / TP PRICE GUARD ──────────────────────────────────────────────────
+    // Called every time a new chain price arrives (in renderChain).
+    // Compares the live premium against the entry price that was stored when
+    // the signal first fired.  If the move exceeds the configured SL or TP
+    // threshold, a forced exit is immediately stamped without waiting for the
+    // signal score to drop.
+    function checkSlTp(currentPrice) {
+      if (!signalEntryPrice || !prevSignal) return;
+      if (prevSignal !== "BUY CALL" && prevSignal !== "BUY PUT") return;
+      if (Date.now() - signalEntryTime < MIN_ENTRY_AGE_MS) return;
+
+      // Always use the signal-direction contract price for SL/TP check.
+      // BUY CALL → watch CE price;  BUY PUT → watch PE price.
+      // Ignoring which leg the user has selected prevents false SL/TP
+      // triggers (e.g. CE falling while a PUT trade is actually profitable).
+      const sigPrice = (prevSignal === "BUY CALL") ? cePriceLive : pePriceLive;
+      if (sigPrice == null) return;
+
+      const pnlPct = (sigPrice - signalEntryPrice) / signalEntryPrice * 100;
+
+      if      (pnlPct <= -slPct) triggerSlTpExit("SL", pnlPct);
+      else if (pnlPct >=  tpPct) triggerSlTpExit("TP", pnlPct);
+    }
+
+    function triggerSlTpExit(kind, pnlPct) {
+      // kind = "SL" | "TP"
+      const now       = Date.now();
+      const wasSignal = prevSignal;   // capture before clearing
+      const isTp      = kind === "TP";
+      const leg       = wasSignal === "BUY CALL" ? "CALL" : "PUT";
+      const sign      = pnlPct >= 0 ? "+" : "";
+      const exitReason = isTp
+        ? `Target achieved: ${sign}${pnlPct.toFixed(1)}% profit`
+        : `Stop Loss triggered: ${sign}${pnlPct.toFixed(1)}%`;
+
+      // Stamp exit marker on chart — pass kind so SL gets red, TP gets green
+      pushExitMarker(wasSignal, now, exitReason, kind);
+
+      // Signal-history row
+      signalLog.unshift({
+        time:   fmtT(now),
+        signal: `${kind} ${leg}`,
+        conf:   0,
+        nifty:  null,
+        reason: exitReason,
+        isNew:  false,
+        isExit: true,
+        isTp,
+        isSl:   !isTp,
+      });
+      if (signalLog.length > MAX_LOG) signalLog.pop();
+
+      // Alert
+      if (alertsEnabled) { playTone("WAIT"); sendNotif(`${kind} ${leg}`, null); }
+
+      // Clear active trade — must happen AFTER pushExitMarker reads signalEntryPrice
+      prevSignal       = "WAIT";
+      signalEntryPrice = null;
+      signalEntryTime  = 0;
+
+      // ── Post-exit cooldown ──────────────────────────────────────────────
+      // Block same-direction re-entry for SLTP_COOLDOWN_SECS seconds so the
+      // signal panel doesn't immediately show BUY CALL/PUT again before the
+      // Python engine has had a chance to reassess.
+      clearTimeout(postExitTimer);
+      postExitDir   = wasSignal;
+      postExitKind  = kind;
+      postExitUntil = now + SLTP_COOLDOWN_SECS * 1000;
+      postExitTimer = setTimeout(() => {
+        postExitDir  = null;
+        postExitKind = null;
+        postExitUntil = 0;
+        // Reset prevSignal so the next identical signal logs as a fresh entry
+        if (prevSignal === "WAIT") prevSignal = null;
+      }, SLTP_COOLDOWN_SECS * 1000);
+
+      renderLog();
+    }
+
+    function renderLog() {
+      const el = document.getElementById("logList");
+      if (!signalLog.length) {
+        el.innerHTML = `<div class="log-empty">Signal transition இல்லை</div>`;
+        return;
+      }
+      el.innerHTML = signalLog.map((e, i) => {
+        const sc = e.isSl ? "sl-exit" : e.isTp ? "tp-exit" : e.isExit ? "exit" : sCls(e.signal);
+        const confTxt = e.isExit ? "—" : e.conf + "%";
+        return `<div class="li ${sc}">
+          <span class="li-t">${e.time}</span>
+          <span class="li-s ${sc}">${e.signal}</span>
+          <span class="li-c">${confTxt}</span>
+          ${e.nifty ? `<span class="li-n">${e.nifty}</span>` : `<span class="li-n">—</span>`}
+          <span class="li-r">${e.reason}</span>
+          ${i === 0 && e.isNew ? `<span class="li-new">NEW</span>` : ""}
+        </div>`;
+      }).join("");
+    }
+
+    // ── EXPORT LOG ──────────────────────────────
+    function exportLog() {
+      if (!signalLog.length) {
+        alert("No signal history to export. Select a contract first.");
+        return;
+      }
+
+      // Contract context — used as filename and first column
+      const contract = selSymbol || (selStrike ? `${selStrike}${selType}` : "UNKNOWN");
+      const expiry   = selExpiry  || currentExpiry || "";
+      const dateStr  = new Date().toISOString().slice(0, 10);   // YYYY-MM-DD
+
+      // CSV header
+      const cols = ["Time", "Contract", "Expiry", "Signal", "Confidence%", "NIFTY_LTP", "Reason"];
+      const rows = signalLog.map(e => [
+        e.time,
+        contract,
+        expiry,
+        e.signal,
+        e.isExit ? "" : e.conf,
+        e.nifty  ? e.nifty.replace("₹", "") : "",
+        // Wrap reason in quotes and escape any internal quotes
+        `"${(e.reason || "").replace(/"/g, '""')}"`,
+      ]);
+
+      // Log is newest-first — reverse so CSV is chronological (oldest at top)
+      rows.reverse();
+
+      const csv = [cols.join(","), ...rows.map(r => r.join(","))].join("\n");
+
+      // Trigger browser download
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = `tradezen_signal_${contract}_${dateStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ── STATUS ──────────────────────────────────
+    function setStatus(state, txt) {
+      document.getElementById("sDot").className = "s-dot " + (state === "live" ? "live" : state === "err" ? "err" : "");
+      document.getElementById("sTxt").textContent = txt;
+    }
+
+    // ── MOBILE PANEL ────────────────────────────
+    function toggleMob() {
+      const panel = document.getElementById("sigPanel");
+      panel.classList.toggle("mob-open");
+      document.querySelector(".mob-toggle").textContent = panel.classList.contains("mob-open") ? "மூடு ▼" : "விவரம் ▲";
+    }
+
+    // ── FULL REFRESH ────────────────────────────
+    async function fullRefresh() {
+      const btn = document.getElementById("refBtn");
+      btn.classList.add("spin-active");
+      await Promise.all([fetchChain(), fetchSignal(), fetchSpot()]);
+      setTimeout(() => btn.classList.remove("spin-active"), 700);
+    }
+
+    // ── INDICATOR CHIPS ─────────────────────────
+
+    /** Render static chip shells into #indChips (called once on contract select) */
+    function renderIndChips() {
+      const el = document.getElementById("indChips");
+      if (!el) return;
+      el.innerHTML = INDICATORS.map(ind =>
+        `<label class="ind-chip" id="ic-${ind.key}" title="${ind.desc}" onclick="toggleIndicator('${ind.key}')">
+          <input type="checkbox" checked id="icb-${ind.key}">
+          <span class="ind-dot"></span>
+          <span class="ind-name">${ind.name}</span>
+          <span class="ind-val" id="iv-${ind.key}">—</span>
+        </label>`
+      ).join("");
+    }
+
+    /** Toggle an indicator on/off and re-render the signal display */
+    function toggleIndicator(key) {
+      if (activeIndicators.has(key)) activeIndicators.delete(key);
+      else activeIndicators.add(key);
+
+      const chipEl = document.getElementById("ic-" + key);
+      const cbEl   = document.getElementById("icb-" + key);
+      if (chipEl) chipEl.classList.toggle("ind-off", !activeIndicators.has(key));
+      if (cbEl)   cbEl.checked = activeIndicators.has(key);
+
+      updateIndFilterNote();
+
+      // Re-render signal display using cached data
+      if (lastApiData) {
+        const filtered = applyIndicatorFilter(lastApiData);
+        renderSigDisplay(filtered);
+        renderScoreBars(filtered);
+        renderWhy(lastApiData);   // why-list filters by activeIndicators internally
+      }
+    }
+
+    /** Update chip values + colour from latest factor data */
+    function updateIndChips(data) {
+      if (!data || !data.factors) return;
+      const f    = data.factors;
+      const oi   = f.oi_trend    || {};
+      const pt   = f.price_trend || {};
+      const vol  = f.vol_spike   || {};
+      const imb  = f.imbalance   || {};
+      const pcr  = f.pcr         || {};
+      const spot = f.spot_trend  || {};
+      const vw   = f.vwap        || {};
+
+      function setChip(key, state, valText) {
+        const chip = document.getElementById("ic-" + key);
+        const val  = document.getElementById("iv-" + key);
+        if (!chip || !val) return;
+        chip.classList.remove("ind-bull", "ind-bear", "ind-side");
+        if (!chip.classList.contains("ind-off")) chip.classList.add("ind-" + state);
+        val.textContent = valText;
+      }
+
+      // OI Trend — show whichever side is most active
+      const oiBullish = oi.ce_dir === "BUILD" || oi.pe_dir === "UNWIND";
+      const oiBearish = oi.pe_dir === "BUILD" || oi.ce_dir === "UNWIND";
+      const oiState = oiBullish && !oiBearish ? "bull"
+                    : oiBearish && !oiBullish ? "bear"
+                    : (oiBullish && oiBearish) ? "side" : "neu";
+      const oiVal = oi.ce_dir && oi.ce_dir !== "NEUTRAL"
+                  ? `CE ${oi.ce_dir}`
+                  : oi.pe_dir && oi.pe_dir !== "NEUTRAL"
+                  ? `PE ${oi.pe_dir}` : "NEUTRAL";
+      setChip("oi", oiState, oiVal);
+
+      // Price Trend
+      const ptState = pt.ce_up && !pt.pe_up ? "bull"
+                    : pt.pe_up && !pt.ce_up ? "bear"
+                    : (pt.ce_up && pt.pe_up) ? "side" : "neu";
+      const ptVal = pt.ce_up ? `CE▲${pt.ce_mom > 0 ? "+" : ""}${(pt.ce_mom||0).toFixed(1)}%`
+                  : pt.pe_up ? `PE▲${pt.pe_mom > 0 ? "+" : ""}${(pt.pe_mom||0).toFixed(1)}%`
+                  : "FLAT";
+      setChip("price", ptState, ptVal);
+
+      // Volume Spike
+      const volState = vol.ce_spike && !vol.pe_spike ? "bull"
+                     : vol.pe_spike && !vol.ce_spike ? "bear"
+                     : (vol.ce_spike && vol.pe_spike) ? "side" : "neu";
+      const volVal = vol.ce_spike ? `CE×${vol.ce_mult}`
+                   : vol.pe_spike ? `PE×${vol.pe_mult}` : "NORMAL";
+      setChip("vol", volState, volVal);
+
+      // Bid/Ask Pressure
+      const imbState = imb.ce_bull && !imb.pe_bull ? "bull"
+                     : imb.pe_bull && !imb.ce_bull ? "bear"
+                     : (imb.ce_bull && imb.pe_bull) ? "side" : "neu";
+      const imbVal = imb.ce_bull ? `CE ${imb.ce_ratio}×`
+                   : imb.pe_bull ? `PE ${imb.pe_ratio}×` : "NEUTRAL";
+      setChip("imbalance", imbState, imbVal);
+
+      // PCR
+      const pcrState = pcr.bias === "BULL" ? "bull"
+                     : pcr.bias === "BEAR" ? "bear"
+                     : pcr.pcr != null ? "side" : "neu";
+      const pcrVal = pcr.pcr != null ? `${pcr.pcr} ${pcr.bias||""}` : "—";
+      setChip("pcr", pcrState, pcrVal);
+
+      // NIFTY Spot
+      const spotState = spot.direction === "UP"   ? "bull"
+                      : spot.direction === "DOWN" ? "bear"
+                      : spot.direction === "FLAT" ? "side" : "neu";
+      const spotVal = spot.direction && spot.direction !== "UNKNOWN"
+                    ? `${spot.direction} ${spot.diff_pct > 0 ? "+" : ""}${(spot.diff_pct||0).toFixed(2)}%`
+                    : "—";
+      setChip("spot", spotState, spotVal);
+
+      // VWAP
+      const vwapState = vw.direction === "ABOVE" ? "bull"
+                      : vw.direction === "BELOW" ? "bear"
+                      : vw.direction === "AT"    ? "side" : "neu";
+      const vwapVal = vw.direction && vw.direction !== "UNKNOWN" && vw.vwap != null
+                    ? `${vw.direction} ₹${vw.vwap}`
+                    : "—";
+      setChip("vwap", vwapState, vwapVal);
+    }
+
+    function updateIndFilterNote() {
+      const note = document.getElementById("indFilterNote");
+      if (!note) return;
+      note.style.display = activeIndicators.size < INDICATORS.length ? "block" : "none";
+    }
+
+    // ── CLIENT-SIDE SCORE RECALCULATION ─────────────────────────────────────
+    // Mirrors signal_engine._aggregate() so indicator toggles give accurate results.
+    // Limitation: no hysteresis / hold — simple per-tick recompute.
+    const VOL_FALLBACK_JS  = 1.4;   // matches Python VOL_SPIKE_FALLBACK
+    const VWAP_MAX_SCORE_JS = 12;   // matches Python VWAP_MAX_SCORE in vwap.py
+
+    function computeFilteredScores(factors) {
+      const oi   = factors.oi_trend    || {};
+      const pt   = factors.price_trend || {};
+      const vol  = factors.vol_spike   || {};
+      const imb  = factors.imbalance   || {};
+      const pcr  = factors.pcr         || {};
+      const spot = factors.spot_trend  || {};
+      const vwap = factors.vwap        || {};
+
+      const useOi   = activeIndicators.has("oi");
+      const usePt   = activeIndicators.has("price");
+      const useVol  = activeIndicators.has("vol");
+      const useImb  = activeIndicators.has("imbalance");
+      const usePcr  = activeIndicators.has("pcr");
+      const useSpot = activeIndicators.has("spot");
+      const useVwap = activeIndicators.has("vwap");
+
+      // When price trend disabled, assume both directions active (don't block OI)
+      const ceUp = usePt ? !!pt.ce_up : true;
+      const peUp = usePt ? !!pt.pe_up : true;
+
+      let bull = 0, bear = 0, side = 0;
+
+      // OI build + price confirmation
+      if (useOi) {
+        if (ceUp && oi.ce_dir === "BUILD") bull += 20 * Math.min(oi.ce_str || 0, 2.0);
+        if (peUp && oi.pe_dir === "BUILD") bear += 20 * Math.min(oi.pe_str || 0, 2.0);
+        if (oi.ce_dir === "BUILD" && oi.pe_dir === "BUILD" && !ceUp && !peUp) side += 20;
+        // Short covering
+        if (oi.ce_dir === "UNWIND" && ceUp) bull += 15;
+        if (oi.pe_dir === "UNWIND" && peUp) bear += 15;
+      }
+
+      // Volume spike
+      if (useVol) {
+        if (vol.ce_spike && ceUp)
+          bull += 10 * Math.min((vol.ce_mult || 1) / VOL_FALLBACK_JS, 2.0);
+        if (vol.pe_spike && peUp)
+          bear += 10 * Math.min((vol.pe_mult || 1) / VOL_FALLBACK_JS, 2.0);
+      }
+
+      // Bid/Ask pressure
+      if (useImb) {
+        if (imb.ce_bull) bull += 15;
+        if (imb.pe_bull) bear += 15;
+      }
+
+      // PCR
+      if (usePcr) {
+        if (pcr.bias === "BULL")      bull += 15;
+        else if (pcr.bias === "BEAR") bear += 15;
+        else if (pcr.pcr != null)     side += 10;
+      }
+
+      // NIFTY Spot + dampening
+      if (useSpot) {
+        const dir = spot.direction, str = spot.strength || 0;
+        if (dir === "UP")        bull += Math.min(10 * str, 15);
+        else if (dir === "DOWN") bear += Math.min(10 * str, 15);
+        else if (dir === "FLAT") side += 5;
+        // Dampening
+        if (dir === "DOWN" && str >= 1.2) {
+          const f = Math.max(0.4, 1.0 - (str - 1.2) * 0.25);
+          bull *= f;
+        } else if (dir === "UP" && str >= 1.2) {
+          const f = Math.max(0.4, 1.0 - (str - 1.2) * 0.25);
+          bear *= f;
+        }
+      }
+
+      // VWAP session bias — price above/below session fair value
+      if (useVwap) {
+        const vdir = vwap.direction, vstr = vwap.strength || 0;
+        if      (vdir === "ABOVE") bull += VWAP_MAX_SCORE_JS * vstr;
+        else if (vdir === "BELOW") bear += VWAP_MAX_SCORE_JS * vstr;
+        else if (vdir === "AT")    side += 5;
+      }
+
+      return { bull: Math.round(bull), bear: Math.round(bear), side: Math.round(side) };
+    }
+
+    /** Returns a copy of data with signal/confidence overridden by filtered scores.
+        If all indicators are active, returns the original data unchanged. */
+    function applyIndicatorFilter(data) {
+      if (activeIndicators.size === INDICATORS.length) return data;   // no filter
+      if (!data || !data.factors) return data;
+
+      const scores = computeFilteredScores(data.factors);
+      const { bull, bear, side } = scores;
+      const maxScore = Math.max(bull, bear, side);
+      const entryConf = (data.diagnostic && data.diagnostic.entry_needed) || 50;
+
+      let filteredSig = "WAIT";
+      if (maxScore >= entryConf) {
+        if      (bull > bear  && bull  >= side) filteredSig = "BUY CALL";
+        else if (bear > bull  && bear  >= side) filteredSig = "BUY PUT";
+        else if (side >= bull && side  >= bear) filteredSig = "SIDEWAYS";
+      }
+
+      return Object.assign({}, data, {
+        signal:         filteredSig,
+        confidence:     maxScore,
+        _filtered:      true,
+        _filteredScores: scores,
+      });
+    }
+
+    // ── SIGNAL DISPLAY (display-only, no chart / log side-effects) ───────────
+    // Called with applyIndicatorFilter(data) so it shows the filtered signal.
+    function renderSigDisplay(displayData) {
+      const sc = sCls(displayData.signal);
+      document.getElementById("sigCard").className = "sig-card " + sc + " anim";
+
+      const diag2    = lastApiData ? (lastApiData.diagnostic || {}) : {};
+      const isHeld   = !displayData._filtered && !!diag2.held;
+      const inLock   = !displayData._filtered && !!diag2.in_min_hold;
+      const lockSecs = diag2.min_hold_remaining;
+      const exitIn   = diag2.exit_in_secs;
+
+      const heldLabel = (!displayData._filtered && isHeld)
+        ? `<span class="held-badge">${
+              inLock && lockSecs != null
+                ? `LOCKED · ${lockSecs}s`
+                : exitIn != null
+                  ? `HOLD · exits in ${exitIn}s`
+                  : "HOLDING"
+          }</span>`
+        : "";
+
+      const cooldownRemaining = postExitDir
+        ? Math.max(0, Math.round((postExitUntil - Date.now()) / 1000))
+        : 0;
+      const cooldownLabel = postExitDir && cooldownRemaining > 0
+        ? `<span class="held-badge" style="background:rgba(45,212,191,0.12);color:var(--teal);border-color:rgba(45,212,191,0.25);">`
+          + `${postExitKind} EXIT · re-entry in ${cooldownRemaining}s</span>`
+        : "";
+
+      document.getElementById("sigVal").innerHTML =
+        (displayData.signal || "WAIT") + (cooldownLabel || heldLabel);
+      document.getElementById("sigVal").className = "sig-val " + sc;
+
+      // Confidence ring
+      const conf       = displayData.confidence || 0;
+      const entryThresh = diag2.entry_needed || 50;
+      const circ        = 175.9;
+      const arc         = document.getElementById("ringArc");
+      const fillPct     = sc === "wait"
+        ? Math.min(conf / entryThresh, 1)
+        : Math.min(conf / 100, 1);
+      arc.style.strokeDashoffset = circ - fillPct * circ;
+      arc.className = "ring-arc " + sc;
+      document.getElementById("ringNum").textContent = conf;
+      document.getElementById("ringUnit").textContent = sc === "wait" ? "SCORE" : "CONF%";
+
+      const raw = lastApiData || displayData;
+      document.getElementById("sigReason").innerHTML =
+        "<b>காரணம்:</b> " + (raw.reason || "—");
+      document.getElementById("sigTs").textContent =
+        "Updated: " + fmtT(raw.timestamp || Date.now());
+    }
+
+    /** Render score bars using filtered or raw scores */
+    function renderScoreBars(displayData) {
+      const diag2 = (lastApiData || displayData).diagnostic || {};
+      const fs    = displayData._filteredScores;
+      const bull  = fs ? fs.bull : (diag2.bull || 0);
+      const bear  = fs ? fs.bear : (diag2.bear || 0);
+      const side  = fs ? fs.side : (diag2.side || 0);
+      const maxScore = Math.max(bull, bear, side, 1);
+      const toW = v => Math.min(100, Math.round(v / maxScore * 100)) + "%";
+      document.getElementById("sbBull").style.width  = toW(bull);
+      document.getElementById("sbBear").style.width  = toW(bear);
+      document.getElementById("sbSide").style.width  = toW(side);
+      document.getElementById("sbBullN").textContent = bull;
+      document.getElementById("sbBearN").textContent = bear;
+      document.getElementById("sbSideN").textContent = side;
+      if (diag2.entry_needed != null) document.getElementById("sbEntry").textContent = diag2.entry_needed;
+      if (diag2.flip_conf    != null) document.getElementById("sbFlip").textContent  = diag2.flip_conf;
+      if (diag2.exit_at      != null) document.getElementById("sbExit").textContent  = diag2.exit_at;
+      const sbNote = document.getElementById("sbHoldNote");
+      if (sbNote) {
+        const isHeld = !displayData._filtered && !!diag2.held;
+        if (isHeld && diag2.exit_in_secs != null) {
+          sbNote.textContent = `⚠ Signal holding. Score below entry — clears in ${diag2.exit_in_secs}s if it stays low.`;
+          sbNote.style.display = "block";
+        } else if (isHeld) {
+          sbNote.textContent = "⚠ Signal holding from earlier strong tick.";
+          sbNote.style.display = "block";
+        } else {
+          sbNote.style.display = "none";
+        }
+      }
+    }
+
+    // ── POLLING ─────────────────────────────────
+    async function boot() {
+      await fetchExpiries();    // populate dropdown first, then fetch chain
+      fetchChain();
+      fetchSpot();
+      setInterval(fetchChain, POLL_CHAIN);
+      setInterval(() => { fetchSignal(); fetchSpot(); }, POLL_SIGNAL);
+      // Refresh expiry list once an hour (catches Thursday rollover mid-session)
+      setInterval(fetchExpiries, 60 * 60 * 1000);
+      // Show mobile bar if small screen
+      if (window.innerWidth <= 920) document.getElementById("mobBar").style.display = "flex";
+    }
+
+    boot();
+  </script>
+
+  <footer class="tz-footer">
+    <div class="tz-footer-inner">
+      <div class="tz-footer-brand">
+        <span class="tz-logo-text">Trade<span>Zen</span></span>
+        <p class="tz-footer-desc">Nifty50 Options buying மற்றும் selling strategies, tools-ஐ தமிழில் கற்றுத்தரும் இலவச
+          தளம். SEBI 2026 விதிகளுக்கு ஏற்ப தொடர்ந்து update ஆகும்.</p>
+        <p class="tz-footer-copy">© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</p>
+      </div>
+      <div class="tz-footer-links">
+        <a href="butterfly_straddle_tamil.html">🦋 Butterfly Straddle</a>
+        <a href="options_entry_tool_tamil.html">🎯 Options Buying Tool</a>
+        <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
+        <a href="swing_trading_tool_tamil.html">📈 Swing Trading Tool</a>
+        <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+        <a href="fno_signal.html">🤖 F&amp;O AI Signal</a>
+        <a href="contact.html">✉ Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Chart signal tooltip — shown on crosshair hover over markers -->
+  <div id="chartTooltip"></div>
+</body>
+
+</html>

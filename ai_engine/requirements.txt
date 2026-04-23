@@ -1,0 +1,28 @@
+# SmartAPI core
+smartapi-python==1.4.8
+
+# Required dependencies (NOT auto-installed properly)
+logzero
+websocket-client
+
+# Auth
+pyotp
+
+# API layer
+fastapi
+uvicorn
+
+# Data processing
+pandas
+numpy
+
+# Storage
+sqlalchemy
+pyarrow
+
+# Utils
+python-dotenv
+
+# Optional (future - for indicators / AI)
+scipy
+scikit-learn

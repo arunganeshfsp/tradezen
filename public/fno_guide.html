@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeZen — F&O Signal முழு வழிகாட்டி</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #07101d;
+  --bg2:     #0b1929;
+  --bg3:     #0f2035;
+  --bg4:     #152843;
+  --bg5:     #1a3254;
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.14);
+  --text:    #dce8f5;
+  --muted:   #6e87a2;
+  --faint:   #2a3d52;
+  --teal:    #2dd4bf;
+  --teal-bg: rgba(45,212,191,0.08);
+  --gold:    #f5c842;
+  --gold-bg: rgba(245,200,66,0.09);
+  --green:   #22d47a;
+  --green-bg:rgba(34,212,122,0.09);
+  --red:     #f05252;
+  --red-bg:  rgba(240,82,82,0.09);
+  --amber:   #f5a623;
+  --amber-bg:rgba(245,166,35,0.09);
+  --blue:    #4da6ff;
+  --blue-bg: rgba(77,166,255,0.09);
+  --r:8px; --rl:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Noto Sans Tamil',sans-serif;
+  font-size:14px;
+  line-height:1.8;
+  overflow-x:hidden;
+}
+.bg-orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(90px);opacity:0.08;}
+.orb1{width:700px;height:700px;top:-200px;left:-250px;background:radial-gradient(circle,#2dd4bf,transparent 70%);}
+.orb2{width:600px;height:600px;bottom:-100px;right:-150px;background:radial-gradient(circle,#4da6ff,transparent 70%);}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:300;
+  background:rgba(7,16,29,0.95);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0 1.2rem;height:52px;
+}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-mark{width:28px;height:28px;background:var(--teal);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;color:#07101d;flex-shrink:0;}
+.logo-text{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:#fff;}
+.logo-text span{color:var(--teal);}
+.nav-back{margin-left:auto;text-decoration:none;color:var(--muted);font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);transition:all .18s;}
+.nav-back:hover{color:var(--text);border-color:var(--teal);}
+
+/* ── LAYOUT ── */
+.page{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+
+/* ── TOC SIDEBAR ── */
+.doc-wrap{display:grid;grid-template-columns:220px 1fr;gap:2rem;align-items:start;}
+.toc{position:sticky;top:68px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1rem;max-height:calc(100vh - 90px);overflow-y:auto;}
+.toc-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:.75rem;}
+.toc a{display:block;font-size:12px;color:var(--muted);text-decoration:none;padding:4px 6px;border-radius:5px;transition:all .15s;line-height:1.5;}
+.toc a:hover{color:var(--text);background:var(--bg4);}
+.toc a.active{color:var(--teal);background:var(--teal-bg);}
+.toc-group{margin-top:.6rem;}
+.toc-group-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--faint);padding:2px 6px;margin-top:.3rem;}
+.toc a.sub{padding-left:14px;font-size:11px;}
+@media(max-width:800px){.doc-wrap{grid-template-columns:1fr;}.toc{display:none;}}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:3rem 0 2.5rem;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--teal);background:var(--teal-bg);border:1px solid rgba(45,212,191,.2);padding:4px 14px;border-radius:20px;margin-bottom:1.2rem;}
+.hero-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--teal);}
+.hero h1{font-family:'Noto Serif Tamil',serif;font-size:2rem;font-weight:700;color:#fff;line-height:1.3;margin-bottom:.75rem;}
+.hero h1 span{color:var(--teal);}
+.hero-sub{font-size:14px;color:var(--muted);max-width:600px;margin:0 auto 1.5rem;}
+.hero-pills{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;}
+.hero-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid;}
+.hp-tech{color:var(--blue);border-color:rgba(77,166,255,.3);background:var(--blue-bg);}
+.hp-guide{color:var(--gold);border-color:rgba(245,200,66,.3);background:var(--gold-bg);}
+.hp-ta{color:var(--green);border-color:rgba(34,212,122,.3);background:var(--green-bg);}
+
+/* ── SECTION HEADERS ── */
+.part-divider{margin:3rem 0 1.5rem;display:flex;align-items:center;gap:1rem;}
+.part-divider::before,.part-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.part-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;padding:4px 14px;border-radius:20px;white-space:nowrap;}
+.part-tech{color:var(--blue);background:var(--blue-bg);border:1px solid rgba(77,166,255,.25);}
+.part-guide{color:var(--gold);background:var(--gold-bg);border:1px solid rgba(245,200,66,.25);}
+
+.section{margin-bottom:2.5rem;scroll-margin-top:80px;}
+.section-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--teal);margin-bottom:.9rem;display:flex;align-items:center;gap:.6rem;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+h2{font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:.6rem;line-height:1.4;}
+h3{font-size:1rem;font-weight:600;color:var(--text);margin:1.2rem 0 .5rem;}
+h4{font-size:.875rem;font-weight:600;color:var(--muted);margin:.9rem 0 .3rem;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;}
+p{color:var(--muted);margin-bottom:.75rem;line-height:1.9;}
+p strong{color:var(--text);}
+ul,ol{color:var(--muted);padding-left:1.2rem;margin-bottom:.75rem;}
+li{margin-bottom:.3rem;line-height:1.9;}
+li strong{color:var(--text);}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem;}
+.card-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;margin-bottom:1rem;}
+
+.signal-demo{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;border-radius:var(--r);border:1px solid;}
+.sd-call{background:var(--green-bg);border-color:rgba(34,212,122,.25);}
+.sd-put{background:var(--red-bg);border-color:rgba(240,82,82,.25);}
+.sd-wait{background:var(--bg3);border-color:var(--border);}
+.sd-exit{background:var(--amber-bg);border-color:rgba(245,166,35,.25);}
+.sd-icon{font-size:1.5rem;flex-shrink:0;}
+.sd-body .sd-label{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.95rem;}
+.sd-body .sd-call .sd-label,.sd-call .sd-label{color:var(--green);}
+.sd-body .sd-put .sd-label,.sd-put .sd-label{color:var(--red);}
+.sd-body .sd-wait .sd-label,.sd-wait .sd-label{color:var(--muted);}
+.sd-body .sd-exit .sd-label,.sd-exit .sd-label{color:var(--amber);}
+.sd-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ── FACTOR CARDS ── */
+.factor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:.75rem;margin-bottom:1rem;}
+.factor-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem;}
+.factor-card .fc-name{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--teal);margin-bottom:.4rem;}
+.factor-card .fc-title{font-weight:600;color:var(--text);font-size:.9rem;margin-bottom:.4rem;}
+.factor-card .fc-desc{font-size:12px;color:var(--muted);line-height:1.7;}
+.factor-card .fc-score{margin-top:.6rem;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);background:var(--amber-bg);border:1px solid rgba(245,166,35,.2);border-radius:4px;padding:3px 8px;display:inline-block;}
+
+/* ── CODE BLOCKS ── */
+pre{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem;overflow-x:auto;margin:.75rem 0;}
+code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);}
+pre code{color:var(--text);}
+.kw{color:#c792ea;}
+.cm{color:var(--muted);font-style:italic;}
+.nm{color:#82aaff;}
+.st{color:#c3e88d;}
+.nb{color:var(--amber);}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;margin:.75rem 0;font-size:12px;}
+th{background:var(--bg4);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;padding:8px 10px;text-align:left;border-bottom:2px solid var(--border2);}
+td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+td strong{color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.018);}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:4px;letter-spacing:.5px;}
+.tag-g{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,212,122,.25);}
+.tag-r{background:var(--red-bg);color:var(--red);border:1px solid rgba(240,82,82,.25);}
+.tag-a{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,166,35,.25);}
+.tag-m{background:var(--bg4);color:var(--muted);border:1px solid var(--border);}
+
+/* ── FLOW DIAGRAM ── */
+.flow{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin:.75rem 0;padding:1rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);}
+.flow-box{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text);white-space:nowrap;}
+.flow-arr{color:var(--faint);font-size:16px;}
+.flow-box.active{background:var(--teal-bg);border-color:rgba(45,212,191,.3);color:var(--teal);}
+.flow-box.warn{background:var(--amber-bg);border-color:rgba(245,166,35,.3);color:var(--amber);}
+
+/* ── STATE MACHINE ── */
+.state-machine{display:flex;gap:1rem;flex-wrap:wrap;margin:.75rem 0;}
+.sm-state{flex:1;min-width:140px;border-radius:var(--r);padding:.9rem;border:1px solid;text-align:center;}
+.sm-wait{background:var(--bg3);border-color:var(--border);}
+.sm-call{background:var(--green-bg);border-color:rgba(34,212,122,.25);}
+.sm-put{background:var(--red-bg);border-color:rgba(240,82,82,.25);}
+.sm-lock{background:var(--amber-bg);border-color:rgba(245,166,35,.25);}
+.sm-name{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;margin-bottom:.3rem;}
+.sm-wait .sm-name{color:var(--muted);}
+.sm-call .sm-name{color:var(--green);}
+.sm-put .sm-name{color:var(--red);}
+.sm-lock .sm-name{color:var(--amber);}
+.sm-cond{font-size:11px;color:var(--muted);}
+
+/* ── CALLOUTS ── */
+.callout{border-radius:var(--r);padding:1rem 1.25rem;margin:.75rem 0;border-left:3px solid;}
+.co-info{background:var(--blue-bg);border-color:var(--blue);}
+.co-warn{background:var(--amber-bg);border-color:var(--amber);}
+.co-tip{background:var(--green-bg);border-color:var(--green);}
+.co-danger{background:var(--red-bg);border-color:var(--red);}
+.co-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;margin-bottom:.4rem;}
+.co-info .co-title{color:var(--blue);}
+.co-warn .co-title{color:var(--amber);}
+.co-tip .co-title{color:var(--green);}
+.co-danger .co-title{color:var(--red);}
+.callout p{margin:0;font-size:13px;}
+
+/* ── STEPS ── */
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:.75rem;}
+.step{display:flex;gap:1rem;align-items:flex-start;padding:1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);}
+.step::before{counter-increment:step;content:counter(step);flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--teal-bg);border:1px solid rgba(45,212,191,.3);color:var(--teal);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.step-body .step-title{font-weight:600;color:var(--text);margin-bottom:.25rem;}
+.step-body p{margin:0;font-size:13px;}
+
+/* ── ARCH DIAGRAM ── */
+.arch{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:.75rem 0;}
+.arch-box{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:.75rem;text-align:center;}
+.arch-icon{font-size:1.4rem;margin-bottom:.4rem;}
+.arch-name{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--teal);}
+.arch-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.arch-arr{display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:20px;}
+@media(max-width:600px){.arch{grid-template-columns:1fr 1fr;}}
+
+/* ── SCORE TABLE ── */
+.score-row{display:grid;grid-template-columns:1fr 80px 80px 80px;gap:.5rem;align-items:center;padding:6px 10px;border-radius:5px;font-size:12px;}
+.score-row:nth-child(odd){background:var(--bg3);}
+.score-row-hdr{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:.25rem;}
+.score-val{font-family:'JetBrains Mono',monospace;text-align:center;font-size:11px;}
+.sv-g{color:var(--green);}
+.sv-r{color:var(--red);}
+.sv-a{color:var(--amber);}
+.sv-m{color:var(--muted);}
+
+/* ── TOOLTIP DEMO ── */
+.dash-demo{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin:.75rem 0;}
+.dd-toolbar{background:rgba(11,25,41,.97);border-bottom:1px solid var(--border);padding:.5rem 1rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.dd-badge{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:3px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.dd-content{padding:1rem;display:grid;grid-template-columns:1fr 260px;gap:1rem;}
+.dd-signal{background:var(--bg3);border-radius:var(--r);border:1px solid var(--green-bg);padding:1rem;}
+.dd-chain{background:var(--bg3);border-radius:var(--r);padding:.75rem;}
+@media(max-width:680px){.dd-content{grid-template-columns:1fr;}}
+
+/* ── NUMBERED ANNOTATIONS ── */
+.ann{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--teal);color:#07101d;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;flex-shrink:0;vertical-align:middle;margin:0 2px;}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:2rem;color:var(--faint);font-size:12px;border-top:1px solid var(--border);margin-top:3rem;}
+footer a{color:var(--teal);text-decoration:none;}
+
+/* ── PRINT / NO-SCROLL ── */
+.no-scroll{overflow:hidden;}
+</style>
+</head>
+<body>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">TZ</div>
+    <div class="logo-text">Trade<span>Zen</span></div>
+  </a>
+  <a class="nav-back" href="fno_signal.html">← F&O Signal</a>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">DOCUMENTATION v4</div>
+    <h1>F&O Signal <span>முழு வழிகாட்டி</span></h1>
+    <p class="hero-sub">System Architecture • Signal Engine • Option Chain • Price Chart • Step-by-Step Tutorial</p>
+    <div class="hero-pills">
+      <span class="hero-pill hp-tech">TECHNICAL REFERENCE</span>
+      <span class="hero-pill hp-guide">BEGINNER TUTORIAL</span>
+      <span class="hero-pill hp-ta">OPTION BUYING</span>
+    </div>
+  </div>
+
+  <div class="doc-wrap">
+
+    <!-- TOC -->
+    <aside class="toc">
+      <div class="toc-title">உள்ளடக்கம்</div>
+
+      <div class="toc-group">
+        <div class="toc-group-lbl">OVERVIEW</div>
+        <a href="#overview">இந்த Tool என்ன?</a>
+        <a href="#architecture">System Architecture</a>
+      </div>
+
+      <div class="toc-group">
+        <div class="toc-group-lbl">TECHNICAL — ENGINE</div>
+        <a href="#data-flow" class="sub">Data Flow</a>
+        <a href="#market-state" class="sub">Market State</a>
+        <a href="#factors" class="sub">6 Signal Factors</a>
+        <a href="#scoring" class="sub">Score Aggregation</a>
+        <a href="#state-machine" class="sub">Signal State Machine</a>
+        <a href="#api" class="sub">API Endpoints</a>
+      </div>
+
+      <div class="toc-group">
+        <div class="toc-group-lbl">TECHNICAL — FRONTEND</div>
+        <a href="#toolbar" class="sub">Toolbar</a>
+        <a href="#option-chain" class="sub">Option Chain Panel</a>
+        <a href="#signal-panel" class="sub">Signal Panel</a>
+        <a href="#chart" class="sub">Price Chart</a>
+        <a href="#history" class="sub">Signal History</a>
+      </div>
+
+      <div class="toc-group">
+        <div class="toc-group-lbl">TUTORIAL</div>
+        <a href="#tut-start">தொடங்குவது எப்படி?</a>
+        <a href="#tut-chain">Chain படிப்பது எப்படி?</a>
+        <a href="#tut-signal">Signal புரிவது எப்படி?</a>
+        <a href="#tut-chart">Chart படிப்பது எப்படி?</a>
+        <a href="#tut-workflow">Step-by-Step Workflow</a>
+        <a href="#tut-mistakes">பொதுவான தவறுகள்</a>
+      </div>
+
+      <div class="toc-group">
+        <div class="toc-group-lbl">REFERENCE</div>
+        <a href="#glossary">Glossary</a>
+        <a href="#disclaimer">Disclaimer</a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- OVERVIEW                                   -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="overview">
+        <div class="section-title">OVERVIEW</div>
+        <h2>இந்த Tool என்ன செய்கிறது?</h2>
+        <p>TradeZen F&O Signal என்பது <strong>NIFTY Index Options-க்கான real-time AI signal dashboard</strong>. இது Angel One SmartAPI-ஐ பயன்படுத்தி live tick data-ஐ WebSocket வழியாக பெற்று, 6 technical factors-ஐ analysys செய்து BUY CALL, BUY PUT, அல்லது WAIT signal தருகிறது.</p>
+
+        <p>இந்த tool <strong>Option Buying</strong> strategy-க்காக வடிவமைக்கப்பட்டுள்ளது — அதாவது நீங்கள் Call அல்லது Put option வாங்கி, price move-இல் profit எடுக்கும் intraday directional trading. Option Selling strategy-க்கு (theta income, premium collection) இது பொருந்தாது.</p>
+
+        <div class="callout co-warn">
+          <div class="co-title">⚠ IMPORTANT</div>
+          <p>இந்த signal <strong>educational மற்றும் research purpose-க்கு மட்டுமே</strong>. Real money trade செய்வதற்கு முன் உங்கள் own analysis செய்யவும். Market always unpredictable.</p>
+        </div>
+
+        <div class="card-row">
+          <div class="signal-demo sd-call">
+            <div class="sd-icon">📈</div>
+            <div class="sd-body">
+              <div class="sd-label" style="color:var(--green)">BUY CALL</div>
+              <div class="sd-desc">CE option வாங்கவும் — Bullish momentum</div>
+            </div>
+          </div>
+          <div class="signal-demo sd-put">
+            <div class="sd-icon">📉</div>
+            <div class="sd-body">
+              <div class="sd-label" style="color:var(--red)">BUY PUT</div>
+              <div class="sd-desc">PE option வாங்கவும் — Bearish momentum</div>
+            </div>
+          </div>
+          <div class="signal-demo sd-wait">
+            <div class="sd-icon">⏸</div>
+            <div class="sd-body">
+              <div class="sd-label" style="color:var(--muted)">WAIT</div>
+              <div class="sd-desc">எந்த position-உம் வேண்டாம் — Unclear trend</div>
+            </div>
+          </div>
+          <div class="signal-demo sd-exit">
+            <div class="sd-icon">🚪</div>
+            <div class="sd-body">
+              <div class="sd-label" style="color:var(--amber)">EXIT</div>
+              <div class="sd-desc">தற்போதைய position close செய்யவும்</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- ARCHITECTURE                               -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="architecture">
+        <div class="section-title">ARCHITECTURE</div>
+        <h2>System Architecture</h2>
+
+        <div class="arch">
+          <div class="arch-box">
+            <div class="arch-icon">🔌</div>
+            <div class="arch-name">ANGEL ONE API</div>
+            <div class="arch-sub">SmartWebSocketV2<br>Mode 1 + Mode 3</div>
+          </div>
+          <div class="arch-arr">→</div>
+          <div class="arch-box">
+            <div class="arch-icon">🧠</div>
+            <div class="arch-name">PYTHON ENGINE</div>
+            <div class="arch-sub">FastAPI + Signal Engine<br>Port 8000</div>
+          </div>
+          <div class="arch-arr">→</div>
+          <div class="arch-box">
+            <div class="arch-icon">⚙️</div>
+            <div class="arch-name">NODE.JS SERVER</div>
+            <div class="arch-sub">Express Proxy<br>Port 3000</div>
+          </div>
+          <div class="arch-arr">→</div>
+          <div class="arch-box">
+            <div class="arch-icon">🖥️</div>
+            <div class="arch-name">BROWSER UI</div>
+            <div class="arch-sub">fno_signal.html<br>Poll every 2s/5s</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>COMPONENT BREAKDOWN</h4>
+          <table>
+            <tr><th>Component</th><th>File</th><th>Role</th></tr>
+            <tr><td><strong>InstrumentMaster</strong></td><td><code>data/instrument_master.py</code></td><td>Angel One-இல் இருந்து NIFTY option tokens download செய்து cache வைக்கும். ATM strike கண்டுபிடிக்கும்.</td></tr>
+            <tr><td><strong>WebSocketClient</strong></td><td><code>data/websocket_client.py</code></td><td>SmartWebSocketV2 connection. NFO options → Mode 3 (full quote), NSE NIFTY spot → Mode 1 (LTP only).</td></tr>
+            <tr><td><strong>MarketState</strong></td><td><code>core/market_state.py</code></td><td>In-memory tick store. Token → {price, OI, volume, depth_buy_qty, depth_sell_qty}.</td></tr>
+            <tr><td><strong>SignalEngine</strong></td><td><code>core/signal_engine.py</code></td><td>6 factor scoring + aggregation + hysteresis state machine. 1-second loop.</td></tr>
+            <tr><td><strong>FastAPI main.py</strong></td><td><code>main.py</code></td><td>/signal, /option-chain, /health, /debug endpoints expose engine output as JSON.</td></tr>
+            <tr><td><strong>Node.js stockRoute</strong></td><td><code>routes/stockRoute.js</code></td><td>Express proxy — browser-ல் CORS bypass. /api/ai-signal, /api/option-chain.</td></tr>
+            <tr><td><strong>aiService.js</strong></td><td><code>services/aiService.js</code></td><td>Python engine-ஐ axios மூலம் call செய்யும். Timeout handling.</td></tr>
+            <tr><td><strong>fno_signal.html</strong></td><td><code>public/fno_signal.html</code></td><td>Full dashboard UI. Poll: chain 5s, signal 2s. TradingView Lightweight Charts.</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- TECH DIVIDER -->
+      <div class="part-divider">
+        <span class="part-label part-tech">TECHNICAL REFERENCE — அனுபவமிக்க வர்த்தகர்களுக்கு</span>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- DATA FLOW                                  -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="data-flow">
+        <div class="section-title">DATA FLOW</div>
+        <h2>Tick Data எங்கிருந்து வருகிறது?</h2>
+
+        <p>Engine startup-ல் இரண்டு WebSocket subscriptions திறக்கப்படும்:</p>
+
+        <div class="flow">
+          <div class="flow-box active">Angel One Login</div>
+          <div class="flow-arr">→</div>
+          <div class="flow-box">NIFTY LTP fetch</div>
+          <div class="flow-arr">→</div>
+          <div class="flow-box">ATM ± 5 strikes</div>
+          <div class="flow-arr">→</div>
+          <div class="flow-box active">WebSocket Subscribe</div>
+          <div class="flow-arr">→</div>
+          <div class="flow-box">MarketState update</div>
+        </div>
+
+        <table>
+          <tr><th>Subscription</th><th>Mode</th><th>Exchange</th><th>Data</th></tr>
+          <tr>
+            <td><strong>NFO Options</strong></td>
+            <td><span class="tag tag-g">MODE 3</span></td>
+            <td>NFO (exchangeType: 2)</td>
+            <td>LTP, OI, Volume, Top-5 Bid/Ask depth</td>
+          </tr>
+          <tr>
+            <td><strong>NIFTY Spot</strong></td>
+            <td><span class="tag tag-m">MODE 1</span></td>
+            <td>NSE (exchangeType: 1) Token: 26000</td>
+            <td>LTP only — used for spot trend score</td>
+          </tr>
+        </table>
+
+        <div class="callout co-info">
+          <div class="co-title">ℹ MODE 3 vs MODE 1</div>
+          <p><strong>Mode 3 (Full Quote)</strong>: LTP + OI + Volume + Top-5 Bid/Ask depth levels. Options-க்கு இது தேவை. <strong>Mode 1 (LTP Only)</strong>: Price மட்டும். NIFTY spot-க்கு இது போதுமானது — bandwidth save செய்யும்.</p>
+        </div>
+
+        <h3>Raw Tick Normalization</h3>
+        <p><code>MarketState.update()</code> Angel One tick format-ஐ normalize செய்கிறது:</p>
+        <pre><code><span class="cm"># Angel One LTP = paise format (multiply 100)</span>
+<span class="nm">ltp</span> = tick[<span class="st">"last_traded_price"</span>] / <span class="nb">100</span>
+
+<span class="cm"># Top-5 depth aggregation — spoof-resistant</span>
+<span class="nm">depth_buy_qty</span>  = sum(lvl[<span class="st">"quantity"</span>] <span class="kw">for</span> lvl <span class="kw">in</span> tick[<span class="st">"best_5_buy_data"</span>])
+<span class="nm">depth_sell_qty</span> = sum(lvl[<span class="st">"quantity"</span>] <span class="kw">for</span> lvl <span class="kw">in</span> tick[<span class="st">"best_5_sell_data"</span>])
+
+<span class="cm"># Delta tracking (tick-over-tick change)</span>
+<span class="nm">price_change</span> = ltp - prev_price
+<span class="nm">oi_change</span>    = oi  - prev_oi</code></pre>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- SIGNAL FACTORS                             -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="factors">
+        <div class="section-title">SIGNAL FACTORS</div>
+        <h2>6 Signal Factors</h2>
+        <p>ஒவ்வொரு tick-லும் 6 factors calculate செய்யப்படும். ஒவ்வொரு factor-உம் Bull, Bear, அல்லது Sideways score-ஐ contribute செய்யும்.</p>
+
+        <div class="factor-grid">
+          <div class="factor-card">
+            <div class="fc-name">FACTOR 1</div>
+            <div class="fc-title">OI Trend (Open Interest)</div>
+            <div class="fc-desc">
+              60-second rolling window-ல் CE/PE OI எவ்வளவு மாறியது என்று பார்க்கும். OI BUILD + Price EMA UP = genuine bullish buying. OI UNWIND = short covering (also bullish signal).
+              <br><br>
+              <strong>Formula:</strong> <code>chg = (OI[-1] - OI[0]) / (OI[0] + 1)</code><br>
+              BUILD: chg > 0.3% | UNWIND: chg &lt; -0.3%
+            </div>
+            <div class="fc-score">Bull max: 40pts | Bear max: 40pts</div>
+          </div>
+
+          <div class="factor-card">
+            <div class="fc-name">FACTOR 2</div>
+            <div class="fc-title">Price EMA Cross</div>
+            <div class="fc-desc">
+              CE/PE option price-இல் Fast EMA (5-period) vs Slow EMA (20-period) cross. Raw LTP comparison-ஐ விட இது bid-ask bounce-ஐ filter செய்கிறது.
+              <br><br>
+              <strong>Formula:</strong> <code>mom = (EMA₅ - EMA₂₀) / EMA₂₀ × 100</code><br>
+              mom > 0.15% = UP | mom &lt; -0.15% = DOWN
+            </div>
+            <div class="fc-score">OI factor-உடன் combined scoring</div>
+          </div>
+
+          <div class="factor-card">
+            <div class="fc-name">FACTOR 3</div>
+            <div class="fc-title">Volume Spike</div>
+            <div class="fc-desc">
+              Dynamic threshold — session volume-இன் mean + 1.5×std. Friday expiry morning vs Thursday afternoon volume வித்தியாசமாக இருக்கும் — fixed threshold fail ஆகும், இது adapt ஆகும்.
+              <br><br>
+              <strong>Formula:</strong> <code>spike = volume > mean + 1.5 × std</code><br>
+              std ≈ 0 ஆனால்: <code>volume > mean × 1.4</code>
+            </div>
+            <div class="fc-score">Bull max: 20pts | Bear max: 20pts</div>
+          </div>
+
+          <div class="factor-card">
+            <div class="fc-name">FACTOR 4</div>
+            <div class="fc-title">Bid/Ask Depth Imbalance</div>
+            <div class="fc-desc">
+              Top-5 bid/ask levels aggregate. CE_ratio vs PE_ratio relative comparison. Indian retail always buys calls → absolute CE threshold bias இருக்கும், relative comparison அதை remove செய்கிறது.
+              <br><br>
+              <strong>Formula:</strong> <code>ce_bull = ce_ratio ≥ pe_ratio × 1.3</code>
+            </div>
+            <div class="fc-score">Bull: 15pts | Bear: 15pts</div>
+          </div>
+
+          <div class="factor-card">
+            <div class="fc-name">FACTOR 5</div>
+            <div class="fc-title">Put-Call Ratio (PCR)</div>
+            <div class="fc-desc">
+              ATM strike CE vs PE open interest ratio. PCR > 1.3 = put writers active = bullish sentiment. PCR &lt; 0.7 = call writers active = bearish. Structural bias ஐ avoid செய்ய both OI must be > 0 தேவை.
+              <br><br>
+              <strong>Formula:</strong> <code>PCR = PE_OI / CE_OI</code><br>
+              BULL > 1.3 | BEAR &lt; 0.7 | NEUTRAL otherwise
+            </div>
+            <div class="fc-score">Bull: 15pts | Bear: 15pts | Side: 10pts</div>
+          </div>
+
+          <div class="factor-card">
+            <div class="fc-name">FACTOR 6</div>
+            <div class="fc-title">NIFTY Spot Trend</div>
+            <div class="fc-desc">
+              NSE token 26000 (NIFTY 50 index). Underlying direction confirming or contradicting the option signal. CE vol spike near resistance = false BUY CALL; spot DOWN confirms it's false.
+              <br><br>
+              <strong>Formula:</strong> <code>diff = (EMA₅ - EMA₂₀) / EMA₂₀ × 100</code><br>
+              UP > 0.05% | DOWN &lt; -0.05% | FLAT otherwise
+            </div>
+            <div class="fc-score">Bonus only: UP/DOWN max 15pts</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- SCORE AGGREGATION                          -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="scoring">
+        <div class="section-title">SCORE AGGREGATION</div>
+        <h2>Score எவ்வாறு Calculate ஆகிறது?</h2>
+
+        <div class="card">
+          <div class="score-row score-row-hdr">
+            <div>Condition</div>
+            <div class="score-val">BULL</div>
+            <div class="score-val">BEAR</div>
+            <div class="score-val">SIDE</div>
+          </div>
+          <div class="score-row">
+            <div>CE OI BUILD + CE EMA UP (strength × 2)</div>
+            <div class="score-val sv-g">+20×str</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>PE OI BUILD + PE EMA UP (strength × 2)</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-r">+20×str</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>Both BUILD, neither EMA up</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-a">+20</div>
+          </div>
+          <div class="score-row">
+            <div>CE OI UNWIND + CE EMA UP (short cover)</div>
+            <div class="score-val sv-g">+15</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>PE OI UNWIND + PE EMA UP (short cover)</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-r">+15</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>CE Volume Spike + CE EMA UP (mult/1.4, max ×2)</div>
+            <div class="score-val sv-g">+10×m</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>PE Volume Spike + PE EMA UP</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-r">+10×m</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>CE Bid/Ask pressure (ce_ratio ≥ pe_ratio × 1.3)</div>
+            <div class="score-val sv-g">+15</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>PE Bid/Ask pressure (pe_ratio ≥ ce_ratio × 1.3)</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-r">+15</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>PCR BULL (>1.3)</div>
+            <div class="score-val sv-g">+15</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>PCR BEAR (&lt;0.7)</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-r">+15</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>PCR NEUTRAL</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-a">+10</div>
+          </div>
+          <div class="score-row">
+            <div>NIFTY Spot UP (strength bonus, max 15)</div>
+            <div class="score-val sv-g">+10×str</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>NIFTY Spot DOWN</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-r">+10×str</div>
+            <div class="score-val sv-m">—</div>
+          </div>
+          <div class="score-row">
+            <div>NIFTY Spot FLAT</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-m">—</div>
+            <div class="score-val sv-a">+5</div>
+          </div>
+        </div>
+
+        <h3>Signal Emission Rule</h3>
+        <table>
+          <tr><th>Condition</th><th>Signal</th></tr>
+          <tr><td>max(bull, bear, side) &lt; 45</td><td><span class="tag tag-m">WAIT</span></td></tr>
+          <tr><td>bull > bear AND bull ≥ side AND bull ≥ 45</td><td><span class="tag tag-g">BUY CALL</span></td></tr>
+          <tr><td>bear > bull AND bear ≥ side AND bear ≥ 45</td><td><span class="tag tag-r">BUY PUT</span></td></tr>
+          <tr><td>side ≥ bull AND side ≥ bear AND side ≥ 45</td><td><span class="tag tag-m">SIDEWAYS</span></td></tr>
+          <tr><td>bull == bear (tie)</td><td><span class="tag tag-m">WAIT — insufficient conviction</span></td></tr>
+        </table>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- STATE MACHINE                              -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="state-machine">
+        <div class="section-title">STATE MACHINE</div>
+        <h2>Signal State Machine</h2>
+        <p>Signal ஒரு simple on/off அல்ல — 3 layers of filtering செய்கிறது. இது rapid oscillation-ஐ தடுக்கிறது.</p>
+
+        <h3>Layer 1 — Persistence Filter</h3>
+        <p>ஒரு raw signal <strong>2 consecutive ticks</strong> (≈ 2 seconds) confirm ஆனால் மட்டுமே emit செய்யும். Single-tick noise eliminate ஆகும்.</p>
+
+        <h3>Layer 2 — Minimum Hold Lock (45 seconds)</h3>
+        <p>Signal emit ஆனதும் <strong>45 seconds lock</strong>. இந்த window-ல் எந்த exit-உம் இல்லை, எந்த flip-உம் இல்லை. BUY CALL → BUY PUT 2 seconds-ல் oscillate ஆவதை இது prevent செய்கிறது.</p>
+
+        <div class="callout co-tip">
+          <div class="co-title">✓ WHY 45 SECONDS?</div>
+          <p>Market noise typically lasts &lt;30s. Minimum hold 45s means the signal must have been truly wrong for a full minute before it can exit — filters day-trading noise without being so slow that it misses real reversals.</p>
+        </div>
+
+        <h3>Layer 3 — Timed Exit (30 seconds)</h3>
+        <p>45s lock expire ஆனதும் exit timer தொடங்கும். Score <strong>continuously &lt;20 for 30 seconds</strong> → signal clear ஆகும். ஒரு tick recovery ஆனாலும் timer reset ஆகும்.</p>
+
+        <div class="state-machine">
+          <div class="sm-state sm-wait">
+            <div class="sm-name">WAIT</div>
+            <div class="sm-cond">score &lt; 45</div>
+          </div>
+          <div style="display:flex;align-items:center;color:var(--teal);font-size:20px;padding:0 .3rem;">→</div>
+          <div class="sm-state sm-call">
+            <div class="sm-name">BUY CALL</div>
+            <div class="sm-cond">bull ≥ 45, 2 ticks</div>
+          </div>
+          <div style="display:flex;align-items:center;color:var(--amber);font-size:20px;padding:0 .3rem;">→</div>
+          <div class="sm-state sm-lock">
+            <div class="sm-name">LOCKED 45s</div>
+            <div class="sm-cond">Frozen — no exit/flip</div>
+          </div>
+          <div style="display:flex;align-items:center;color:var(--amber);font-size:20px;padding:0 .3rem;">→</div>
+          <div class="sm-state sm-lock">
+            <div class="sm-name">EXIT TIMER</div>
+            <div class="sm-cond">score &lt; 20 for 30s</div>
+          </div>
+          <div style="display:flex;align-items:center;color:var(--muted);font-size:20px;padding:0 .3rem;">→</div>
+          <div class="sm-state sm-wait">
+            <div class="sm-name">WAIT</div>
+            <div class="sm-cond">Cleared</div>
+          </div>
+        </div>
+
+        <h3>HOLD Badge என்பது என்ன?</h3>
+        <table>
+          <tr><th>Badge Text</th><th>Meaning</th></tr>
+          <tr><td><span class="tag tag-a">LOCKED · 38s</span></td><td>Minimum hold period-ல் உள்ளது. Score எப்படி இருந்தாலும் signal மாறாது.</td></tr>
+          <tr><td><span class="tag tag-a">HOLD · exits in 22s</span></td><td>Score &lt;20-ல் உள்ளது. 22 seconds more தொடர்ந்து low இருந்தால் signal clear ஆகும்.</td></tr>
+          <tr><td><span class="tag tag-a">HOLDING</span></td><td>Score &lt;45 ஆனால் &gt;20. Hysteresis-ல் signal held.</td></tr>
+        </table>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- API                                        -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="api">
+        <div class="section-title">API REFERENCE</div>
+        <h2>API Endpoints</h2>
+        <table>
+          <tr><th>Endpoint</th><th>Port</th><th>Purpose</th><th>Poll Rate</th></tr>
+          <tr><td><code>GET /api/ai-signal</code></td><td>3000</td><td>Latest signal + confidence + reason + factors + PCR + NIFTY LTP</td><td>2s</td></tr>
+          <tr><td><code>GET /api/option-chain</code></td><td>3000</td><td>Full ATM±5 strike chain — CE+PE price/OI/volume/depth per strike</td><td>5s</td></tr>
+          <tr><td><code>GET /api/health</code></td><td>3000</td><td>Engine status, tick count, last signal</td><td>On demand</td></tr>
+          <tr><td><code>GET /api/debug</code></td><td>3000</td><td>Full last_signal including raw scores — for debugging</td><td>On demand</td></tr>
+          <tr><td><code>GET /signal</code></td><td>8000</td><td>Direct Python engine signal (Node bypasses this)</td><td>—</td></tr>
+          <tr><td><code>GET /option-chain</code></td><td>8000</td><td>Direct chain from Python engine</td><td>—</td></tr>
+        </table>
+
+        <h4>SIGNAL RESPONSE STRUCTURE</h4>
+        <pre><code>{
+  <span class="st">"signal"</span>:     <span class="st">"BUY CALL"</span>,
+  <span class="st">"confidence"</span>: <span class="nb">62</span>,
+  <span class="st">"reason"</span>:     <span class="st">"CE OI build (+2.4%) + CE ▲ EMA +0.65% | PCR 0.91 (BULL)"</span>,
+  <span class="st">"timestamp"</span>:  <span class="nb">1745234567890</span>,
+  <span class="st">"nifty_ltp"</span>:  <span class="nb">24526.75</span>,
+  <span class="st">"nifty_chg"</span>:  <span class="nb">0.04</span>,
+  <span class="st">"pcr"</span>:        <span class="nb">0.912</span>,
+  <span class="st">"diagnostic"</span>: {
+    <span class="st">"raw_signal"</span>:         <span class="st">"BUY CALL"</span>,
+    <span class="st">"bull"</span>: <span class="nb">62</span>, <span class="st">"bear"</span>: <span class="nb">15</span>, <span class="st">"side"</span>: <span class="nb">10</span>,
+    <span class="st">"held"</span>: <span class="kw">false</span>,
+    <span class="st">"in_min_hold"</span>: <span class="kw">true</span>,
+    <span class="st">"min_hold_remaining"</span>: <span class="nb">38</span>,
+    <span class="st">"entry_needed"</span>: <span class="nb">45</span>, <span class="st">"exit_at"</span>: <span class="nb">20</span>
+  },
+  <span class="st">"factors"</span>: { <span class="cm">/* oi_trend, price_trend, vol_spike, imbalance, pcr, spot_trend */</span> }
+}</code></pre>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- TOOLBAR                                    -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="toolbar">
+        <div class="section-title">UI — TOOLBAR</div>
+        <h2>Toolbar</h2>
+
+        <table>
+          <tr><th>Element</th><th>என்ன காட்டுகிறது</th><th>Source</th></tr>
+          <tr><td><strong>NIFTY 50 ₹24,526.75</strong></td><td>Live NIFTY spot price. /api/ai-signal response-ல் nifty_ltp field.</td><td>MarketState token 26000 → /signal</td></tr>
+          <tr><td><strong>+0.00%</strong></td><td>Tick-over-tick change %. Intraday cumulative அல்ல.</td><td>price_change / prev_price × 100</td></tr>
+          <tr><td><strong>EXPIRY dropdown</strong></td><td>Option chain-ல் கிடைக்கும் expiry dates. Nearest auto-select.</td><td>instrument_master.py</td></tr>
+          <tr><td><strong>BOTH / CE / PE tabs</strong></td><td>Chain view mode. CE mode = CE columns மட்டும் visible.</td><td>renderChain() viewMode</td></tr>
+          <tr><td><strong>● Live · 11:44:23</strong></td><td>Last successful chain fetch time.</td><td>fetchChain() success callback</td></tr>
+        </table>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- OPTION CHAIN PANEL                         -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="option-chain">
+        <div class="section-title">UI — OPTION CHAIN</div>
+        <h2>Option Chain Panel</h2>
+
+        <p>Chain panel right sidebar-ல் உள்ளது. ATM ± 5 strikes = 11 rows. Strike 50-point intervals.</p>
+
+        <table>
+          <tr><th>Column</th><th>Side</th><th>என்ன காட்டுகிறது</th></tr>
+          <tr><td><strong>OI (L)</strong></td><td><span class="tag tag-g">CE</span></td><td>Open Interest in Lakhs. Bar width = relative OI. <strong>Highest OI strike = Max Pain zone</strong>.</td></tr>
+          <tr><td><strong>OI CHG</strong></td><td><span class="tag tag-g">CE</span></td><td>OI change from previous tick. Green = build, Red = unwind.</td></tr>
+          <tr><td><strong>VOL</strong></td><td><span class="tag tag-g">CE</span></td><td>Volume in thousands (K). Spike = unusual activity.</td></tr>
+          <tr><td><strong>LTP</strong></td><td><span class="tag tag-g">CE</span></td><td>Last Traded Price + tick-over-tick change. Green/Red color.</td></tr>
+          <tr><td><strong>STRIKE</strong></td><td>—</td><td>Strike price. <span class="tag tag-a">ATM</span> label = closest to current NIFTY spot. CE/PE buttons.</td></tr>
+          <tr><td><strong>LTP</strong></td><td><span class="tag tag-r">PE</span></td><td>Put option LTP + change.</td></tr>
+          <tr><td><strong>VOL</strong></td><td><span class="tag tag-r">PE</span></td><td>Put volume.</td></tr>
+          <tr><td><strong>OI CHG</strong></td><td><span class="tag tag-r">PE</span></td><td>Put OI change.</td></tr>
+          <tr><td><strong>OI (L)</strong></td><td><span class="tag tag-r">PE</span></td><td>Put OI. Bar width relative. Highest OI PE = strong support level.</td></tr>
+        </table>
+
+        <div class="callout co-info">
+          <div class="co-title">ℹ CONTRACT SELECTION</div>
+          <p>Strike row-ல் <strong>CE button</strong> அல்லது <strong>PE button</strong> press செய்தால் அந்த contract-இன் signal panel right-ல் திறக்கும். Signal engine ATM tokens-ஐ watch செய்கிறது — selected contract LTP chart-ல் track ஆகும்.</p>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- SIGNAL PANEL                               -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="signal-panel">
+        <div class="section-title">UI — SIGNAL PANEL</div>
+        <h2>Signal Panel (Left/Center)</h2>
+
+        <table>
+          <tr><th>Section</th><th>என்ன காட்டுகிறது</th></tr>
+          <tr><td><strong>Contract Header</strong></td><td>Selected symbol (NIFTY21APR2624400CE), expiry, strike, type, live LTP.</td></tr>
+          <tr><td><strong>AI SIGNAL + Badge</strong></td><td>Current signal. HOLD badge shows lock/exit countdown.</td></tr>
+          <tr><td><strong>Confidence Ring</strong></td><td>WAIT state: ring fill = score / entry_threshold (how close to firing). Active state: fill = confidence/100.</td></tr>
+          <tr><td><strong>காரணம்</strong></td><td>Human-readable reason. சிறு Tamil + English mix. OI/EMA/PCR highlights.</td></tr>
+          <tr><td><strong>Price Chart</strong></td><td>Selected contract LTP. Green=CE, Red=PE line. Signal markers (arrows/squares).</td></tr>
+          <tr><td><strong>Signal Score Breakdown</strong></td><td>BULL/BEAR/SIDE score bars. Entry (45) and Exit (20) thresholds. Hold note when hysteresis active.</td></tr>
+          <tr><td><strong>WHY THIS SIGNAL?</strong></td><td>Educational panel. ஒவ்வொரு factor-உம் fired ஆனால் Tamil explanation.</td></tr>
+          <tr><td><strong>Mini Metrics</strong></td><td>LTP, OI(L), Volume, Bid/Ask ratio — selected contract-க்கான live values.</td></tr>
+          <tr><td><strong>Signal Factors</strong></td><td>OI Trend, Volume Spike, Bid/Ask Pressure, PCR Bias — pill indicators.</td></tr>
+          <tr><td><strong>PCR Gauge</strong></td><td>PUT-CALL ratio bar. &lt;0.7=Bearish, &gt;1.3=Bullish.</td></tr>
+          <tr><td><strong>Signal History</strong></td><td>Transition-only log. BUY CALL → EXIT CALL → BUY PUT sequence. ALERTS toggle.</td></tr>
+        </table>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- CHART                                      -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="chart">
+        <div class="section-title">UI — PRICE CHART</div>
+        <h2>Price Chart</h2>
+
+        <p>TradingView Lightweight Charts v4.2. Data source: option chain poll (every 5s). Max 300 data points (~25 minutes).</p>
+
+        <table>
+          <tr><th>Marker</th><th>Shape</th><th>Color</th><th>Meaning</th></tr>
+          <tr><td><strong>BUY CALL</strong></td><td>Arrow Up ↑</td><td style="color:var(--green)">Green</td><td>Below bar — bullish entry signal. CE option வாங்கவும்.</td></tr>
+          <tr><td><strong>BUY PUT</strong></td><td>Arrow Down ↓</td><td style="color:var(--red)">Red</td><td>Above bar — bearish entry signal. PE option வாங்கவும்.</td></tr>
+          <tr><td><strong>EXIT CALL</strong></td><td>Square ■</td><td style="color:var(--amber)">Amber</td><td>Above bar — CE position close செய்யவும்.</td></tr>
+          <tr><td><strong>EXIT PUT</strong></td><td>Square ■</td><td style="color:var(--amber)">Amber</td><td>Below bar — PE position close செய்யவும்.</td></tr>
+        </table>
+
+        <div class="callout co-info">
+          <div class="co-title">ℹ MARKER PLACEMENT LOGIC</div>
+          <p>Entry arrows opposite sides-ல் உள்ளன (BUY CALL below, BUY PUT above). EXIT squares entry-க்கு opposite side-ல். ஒரே நேரத்தில் EXIT + entry ஒரு strike-ல் இருந்தாலும் overlap ஆகாது.</p>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- SIGNAL HISTORY                             -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="history">
+        <div class="section-title">UI — SIGNAL HISTORY</div>
+        <h2>Signal History & Alerts</h2>
+
+        <p>Signal History <strong>transition-based</strong> — every 2s poll-ல் log add ஆவதில்லை. Signal state மாறும்போது மட்டுமே ஒரு row add ஆகும்.</p>
+
+        <table>
+          <tr><th>Row Type</th><th>Color</th><th>Trigger</th></tr>
+          <tr><td>BUY CALL / BUY PUT</td><td style="color:var(--green)">Green / Red</td><td>WAIT → active signal transition</td></tr>
+          <tr><td>EXIT CALL / EXIT PUT</td><td style="color:var(--amber)">Amber</td><td>Auto-inserted when active signal exits (before new signal row)</td></tr>
+          <tr><td>WAIT</td><td style="color:var(--muted)">Muted</td><td>Active → WAIT transition</td></tr>
+          <tr><td>NEW badge</td><td style="color:var(--teal)">Teal flash</td><td>Latest entry — fades after 3 seconds</td></tr>
+        </table>
+
+        <h3>Alert System</h3>
+        <p><strong>ALERTS button</strong> click செய்தால் இரண்டு things activate ஆகும்:</p>
+        <ul>
+          <li><strong>Audio (Web Audio API)</strong>: BUY CALL = ascending 3-tone (440→550→660Hz). BUY PUT = descending. EXIT = single neutral. Browser click-ல் AudioContext create ஆவதால் autoplay policy bypass ஆகும்.</li>
+          <li><strong>Browser Notification</strong>: Permission grant ஆனால் system notification. Chrome-ல் address bar-ல் permission icon check செய்யவும்.</li>
+        </ul>
+        <p>Enable செய்தவுடன் test tone play ஆகும் — audio working என்பதை confirm செய்யும்.</p>
+      </section>
+
+      <!-- TUTORIAL DIVIDER -->
+      <div class="part-divider">
+        <span class="part-label part-guide">TUTORIAL — கற்பவர்களுக்கு படிப்படியான வழிகாட்டி</span>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- TUT: GETTING STARTED                       -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="tut-start">
+        <div class="section-title">TUTORIAL — தொடக்கம்</div>
+        <h2>தொடங்குவது எப்படி?</h2>
+
+        <p>F&O Signal page திறந்தவுடன் நீங்கள் காண்பது என்ன என்று புரிந்துகொள்வோம்.</p>
+
+        <div class="callout co-info">
+          <div class="co-title">ℹ BEFORE YOU BEGIN</div>
+          <p>இந்த tool பயன்படுத்த Python AI Engine (port 8000) மற்றும் Node.js Server (port 3000) இரண்டும் running-ல் இருக்க வேண்டும். Market hours-ல் மட்டுமே live data கிடைக்கும் (9:15 AM – 3:30 PM IST).</p>
+        </div>
+
+        <h3>Page Layout புரிந்துகொள்ளுங்கள்</h3>
+        <p>Page இரண்டு பக்கமாக பிரிந்துள்ளது:</p>
+        <ul>
+          <li><strong>இடது/மையம்</strong>: Signal Panel — AI signal, chart, score details</li>
+          <li><strong>வலது</strong>: Option Chain — 11 strikes-ன் live data</li>
+        </ul>
+        <p>தொடக்கத்தில் Signal Panel "Contract தேர்வு செய்யவும்" என்று காட்டும். முதலில் Option Chain-ல் ஒரு contract தேர்வு செய்ய வேண்டும்.</p>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- TUT: READING THE CHAIN                     -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="tut-chain">
+        <div class="section-title">TUTORIAL — OPTION CHAIN</div>
+        <h2>Option Chain எப்படி படிப்பது?</h2>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">ATM Strike கண்டுபிடியுங்கள்</div>
+              <p>Chain-ல் <span class="tag tag-a">ATM</span> label உள்ள row தேடுங்கள். Toolbar-ல் NIFTY LTP ₹24,526-ஆக இருந்தால், ATM strike 24500 அல்லது 24550 ஆக இருக்கும் (50-point rounds). இந்த strike-ல்தான் மிகவும் liquidity இருக்கும், bid-ask spread குறைவாக இருக்கும்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">OI Bars பாருங்கள்</div>
+              <p>CE side (இடது) மற்றும் PE side (வலது) OI bars compare செய்யுங்கள். <strong>CE OI அதிகமாக இருந்தால்</strong> = Resistance zone (call writers protecting that level). <strong>PE OI அதிகமாக இருந்தால்</strong> = Support zone (put writers defending).</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">OI CHG பாருங்கள்</div>
+              <p><strong>Green OI CHG</strong> = OI increasing = Fresh buying/selling. <strong>Red OI CHG</strong> = OI decreasing = Positions unwinding. CE OI increasing + CE price rising = Genuine bullish buying (BUY CALL signal-க்கு support).</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Contract Select செய்யுங்கள்</div>
+              <p>ATM strike row-ல் <strong>CE button</strong> press செய்தால் அந்த Call option select ஆகும். Signal panel திறக்கும். Bullish signal expect செய்தால் CE, Bearish signal expect செய்தால் PE select செய்யுங்கள்.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- TUT: READING THE SIGNAL                    -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="tut-signal">
+        <div class="section-title">TUTORIAL — SIGNAL</div>
+        <h2>Signal எப்படி புரிந்துகொள்வது?</h2>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Signal Color பாருங்கள்</div>
+              <p><strong style="color:var(--green)">Green = BUY CALL</strong> (Bullish — price rise expect). <strong style="color:var(--red)">Red = BUY PUT</strong> (Bearish — price fall expect). <strong style="color:var(--muted)">Muted = WAIT</strong> (எந்த position-உம் வேண்டாம்). <strong style="color:var(--amber)">Amber = EXIT</strong> (position close செய்யவும்).</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Confidence % / Score பாருங்கள்</div>
+              <p>Ring-ல் உள்ள number-ஐ பாருங்கள். <strong>WAIT state</strong>-ல் இது "SCORE" — entry threshold (45)-க்கு எவ்வளவு நெருங்கி இருக்கிறோம். <strong>Active signal</strong>-ல் இது "CONF%" — 45-100% range. 70%+ = strong signal. 45-55% = weak, caution தேவை.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">HOLD Badge பாருங்கள்</div>
+              <p><span class="tag tag-a">LOCKED · 38s</span> = Signal புதிதாக fire ஆனது, 38 seconds frozen. இந்த time-ல் scores oscillate ஆனாலும் signal மாறாது. <span class="tag tag-a">HOLD · exits in 22s</span> = Score drop ஆகிவிட்டது, 22 seconds low இருந்தால் signal clear ஆகும்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">காரணம் படியுங்கள்</div>
+              <p>Signal card-ல் "காரணம்" text signal ஏன் fire ஆனது என்று காட்டும். உதாரணம்: "CE OI build (+2.4%) + CE ▲ EMA +0.65% | PCR 0.836 (BEAR)" — இதன் பொருள்: CE OI அதிகரிக்கிறது, CE price EMA upward, ஆனால் PCR bearish. Mixed signal என்பதால் confidence குறைவாக இருக்கும்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Score Bars Breakdown பாருங்கள்</div>
+              <p>BULL, BEAR, SIDE மூன்று bars-உம் comparatively பாருங்கள். BULL >> BEAR = Strong bullish. BULL ≈ BEAR = Conflicted market, caution. Entry threshold line (45) -ஐ எந்த bar தாண்டுகிறது என்று பாருங்கள்.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- TUT: READING THE CHART                     -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="tut-chart">
+        <div class="section-title">TUTORIAL — CHART</div>
+        <h2>Price Chart எப்படி படிப்பது?</h2>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Line Color</div>
+              <p>CE contract select ஆனால் <strong style="color:var(--green)">Green line</strong>, PE contract ஆனால் <strong style="color:var(--red)">Red line</strong>. Y-axis = Option premium price (₹). X-axis = Time (IST, UTC format காட்டலாம்).</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Entry Markers</div>
+              <p><strong style="color:var(--green)">Green ↑ arrow</strong> (below bar) = BUY CALL signal fire ஆன நேரம். <strong style="color:var(--red)">Red ↓ arrow</strong> (above bar) = BUY PUT signal. இந்த point-ல் option premium என்னவாக இருந்தது என்று price-ஐ பாருங்கள்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Exit Markers</div>
+              <p><strong style="color:var(--amber)">Amber ■ square</strong> = EXIT signal. BUY CALL-க்கு exit = above bar square. BUY PUT-க்கு exit = below bar square. Entry arrow-இல் இருந்து exit square-வரை price எவ்வளவு move ஆனது என்று measure செய்யலாம் — signal quality judge ஆகும்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Header ₹ and % Change</div>
+              <p>Chart header-ல் "₹143.75 +2.06%" = தற்போதைய LTP மற்றும் contract select ஆன நேரத்திலிருந்து % change. இது P&L indicator அல்ல — premium change மட்டும்.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- TUT: WORKFLOW                              -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="tut-workflow">
+        <div class="section-title">TUTORIAL — WORKFLOW</div>
+        <h2>Step-by-Step Trading Workflow</h2>
+
+        <div class="callout co-warn">
+          <div class="co-title">⚠ REMEMBER</div>
+          <p>இது signal மட்டுமே. Final decision உங்களுடையது. Stop loss always set செய்யுங்கள். Premium-இல் 30-40% loss ஆனால் exit கட்டாயம்.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Market Open பார்க்கவும் (9:15 AM)</div>
+              <p>முதல் 15 minutes (9:15–9:30) trade செய்ய வேண்டாம். Gap-up/gap-down settle ஆக நேரம் தேவை. Engine "Warming up" என்று காட்டும் — data collect ஆகும். NIFTY direction தெரிந்த பிறகே contract select செய்யுங்கள்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">ATM Strike Select செய்யுங்கள்</div>
+              <p>Option chain-ல் ATM strike கண்டுபிடித்து CE அல்லது PE button press செய்யுங்கள். Signal panel activate ஆகும். WAIT state-ல் score 30-35+ ஆனால் signal வர நெருங்குகிறது என்பதன் அர்த்தம்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">ALERTS Enable செய்யுங்கள்</div>
+              <p>Signal History panel-ல் <strong>ALERTS</strong> button click செய்யுங்கள். Test tone கேட்கிறீர்களா? கேட்டால் audio working. Browser notification permission allow செய்யுங்கள். இப்போது signal fire ஆனால் உடனே தெரியும்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Signal Fire ஆகும்போது</div>
+              <p><strong style="color:var(--green)">BUY CALL</strong> signal வந்தால்: Confidence 55%+ ஆக இருக்கட்டும். "LOCKED" badge தெரிந்தால் signal stable. அந்த moment-ல் ATM CE premium என்னவென்று பாருங்கள் — entry price note செய்யுங்கள். Your broker-ல் order place செய்யுங்கள்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Position-ல் இருக்கும்போது</div>
+              <p>Signal "HOLDING" என்று காட்டும். Score bars பாருங்கள் — BULL bar high-ஆக இருக்க வேண்டும். Score 20 கீழே போய் "exits in Xs" காட்டினால் exit prepare செய்யுங்கள். Chart-ல் price direction பாருங்கள்.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">EXIT Signal வந்தால்</div>
+              <p><strong style="color:var(--amber)">EXIT CALL</strong> amber square chart-ல் தெரிந்தால் மற்றும் signal history-ல் EXIT row வந்தால் — <strong>உடனடியாக position close செய்யுங்கள்</strong>. Exit alert tone வேறாக sound ஆகும் — neutral single beep.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-body">
+              <div class="step-title">Market Close (3:15 PM)</div>
+              <p>3:15 PM-க்கு முன்பே எல்லா positions close செய்யுங்கள். Options expire ஆகாத நிலையில் overnight hold வேண்டாம் — theta decay overnight premium-ஐ eat செய்யும்.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- TUT: COMMON MISTAKES                       -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="tut-mistakes">
+        <div class="section-title">TUTORIAL — பொதுவான தவறுகள்</div>
+        <h2>இந்த தவறுகளை செய்யாதீர்கள்</h2>
+
+        <div class="callout co-danger">
+          <div class="co-title">✗ தவறு 1: WAIT-ல் Trade செய்வது</div>
+          <p>Signal "WAIT" என்று காட்டும்போது trade enter ஆவது மிகவும் risky. Engine "unclear trend" என்று சொல்கிறது. Confidence ring 30-40%? — Signal வரும் வரை பொறுங்கள்.</p>
+        </div>
+
+        <div class="callout co-danger">
+          <div class="co-title">✗ தவறு 2: Low Confidence-ல் Heavy Position</div>
+          <p>Confidence 45-50%? — இது minimum threshold மட்டும். இந்த level-ல் maximum quantity trade செய்வது dangerous. 65%+ confidence-ல் normal quantity, 80%+ confidence-ல் full quantity என்று tiered approach follow செய்யுங்கள்.</p>
+        </div>
+
+        <div class="callout co-danger">
+          <div class="co-title">✗ தவறு 3: Exit Signal-ஐ Ignore செய்வது</div>
+          <p>"இன்னும் கொஞ்சம் profit ஆகும்" என்று EXIT signal வந்த பிறகும் hold செய்வது. EXIT ஆனால் engine "momentum gone" என்று சொல்கிறது. Greed-ஐ விடுங்கள்.</p>
+        </div>
+
+        <div class="callout co-danger">
+          <div class="co-title">✗ தவறு 4: Signal Change ஆகும்போது பழைய Position-ஐ Hold செய்வது</div>
+          <p>BUY CALL position-ல் இருக்கும்போது EXIT CALL வந்தால் உடனே close செய்யவும். "BUY PUT வரும் வரை பார்க்கலாம்" என்று CE hold செய்வது தவறு — time costing you premium.</p>
+        </div>
+
+        <div class="callout co-danger">
+          <div class="co-title">✗ தவறு 5: Deep OTM Options வாங்குவது</div>
+          <p>Signal ATM contract-ஐ watch செய்கிறது. Deep OTM options (ATM-ல் இருந்து 3-4 strikes away) வாங்கினால் delta குறைவாக இருக்கும் — signal accurate ஆனாலும் profit குறைவாகவோ அல்லது loss ஆகவோ கூட வரலாம்.</p>
+        </div>
+
+        <div class="callout co-tip">
+          <div class="co-title">✓ சரியான அணுகுமுறை</div>
+          <p>ATM ± 1 strike மட்டும் trade செய்யுங்கள். Signal fire ஆனவுடனே enter செய்யுங்கள், delay வேண்டாம். Clear stop loss: premium 35% drop = exit regardless of signal. Daily maximum 3 trades என்று limit போட்டுக்கொள்ளுங்கள்.</p>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- GLOSSARY                                   -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="glossary">
+        <div class="section-title">GLOSSARY</div>
+        <h2>முக்கிய வார்த்தைகள்</h2>
+
+        <table>
+          <tr><th>Term</th><th>Tamil விளக்கம்</th></tr>
+          <tr><td><strong>ATM (At The Money)</strong></td><td>Spot price-க்கு மிக நெருக்கமான strike price. அதிக liquidity, tight spread.</td></tr>
+          <tr><td><strong>OTM (Out of The Money)</strong></td><td>CE: spot-ஐ விட அதிகமான strike. PE: spot-ஐ விட குறைந்த strike. Cheaper premium, low probability.</td></tr>
+          <tr><td><strong>Open Interest (OI)</strong></td><td>Outstanding open contracts count. OI increase = fresh positions. OI decrease = positions closing.</td></tr>
+          <tr><td><strong>PCR (Put-Call Ratio)</strong></td><td>PE OI ÷ CE OI. >1 = puts active = bearish sentiment dominant. <1 = calls active = bullish.</td></tr>
+          <tr><td><strong>EMA (Exponential Moving Average)</strong></td><td>Recent prices-க்கு அதிக weight கொடுக்கும் average. Fast EMA > Slow EMA = uptrend.</td></tr>
+          <tr><td><strong>Volume Spike</strong></td><td>Normal volume-ஐ விட suddenly அதிகரிக்கும் trading. Institutional interest indicate ஆகலாம்.</td></tr>
+          <tr><td><strong>Hysteresis</strong></td><td>Signal-ஐ minor noise-ல் change ஆகாமல் தடுக்கும் mechanism. Entry threshold > Exit threshold.</td></tr>
+          <tr><td><strong>Min Hold Lock</strong></td><td>Signal fire ஆனதும் 45 seconds freeze. Oscillation prevent செய்யும்.</td></tr>
+          <tr><td><strong>Bid/Ask Imbalance</strong></td><td>Buy orders >> Sell orders = buying pressure. Top-5 levels aggregate = spoof resistant.</td></tr>
+          <tr><td><strong>Short Cover</strong></td><td>OI falling + price rising = Shorts (option sellers) position close செய்கிறார்கள் = bullish.</td></tr>
+          <tr><td><strong>WebSocket</strong></td><td>Persistent two-way connection. HTTP-ஐ விட faster — every tick real-time push கிடைக்கும்.</td></tr>
+          <tr><td><strong>Theta Decay</strong></td><td>Time value erosion. Options expire date நெருங்க நெருங்க premium கரைந்துவிடும். Option buyers-க்கு enemy.</td></tr>
+          <tr><td><strong>Tick</strong></td><td>Exchange-ல் இருந்து ஒவ்வொரு price update. Busy sessions-ல் second-க்கு பல ticks வரும்.</td></tr>
+          <tr><td><strong>Signal Engine</strong></td><td>Live market data → factors → scores → signal என்ற calculation pipeline.</td></tr>
+          <tr><td><strong>Confidence</strong></td><td>Top scoring direction score (0-100). 45 = entry minimum. Higher = stronger conviction.</td></tr>
+          <tr><td><strong>Fast API</strong></td><td>Python web framework. Signal engine HTTP endpoints expose செய்கிறது.</td></tr>
+        </table>
+      </section>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- DISCLAIMER                                 -->
+      <!-- ══════════════════════════════════════════ -->
+      <section class="section" id="disclaimer">
+        <div class="section-title">DISCLAIMER</div>
+        <div class="callout co-danger">
+          <div class="co-title">⚠ IMPORTANT DISCLAIMER</div>
+          <p>
+            இந்த tool மற்றும் documentation <strong>educational purpose மட்டுமே</strong>. F&O trading extremely risky — investment போன amount முழுவதும் lose ஆகலாம். TradeZen எந்த financial loss-க்கும் responsible இல்லை.<br><br>
+            <strong>SEBI registered advisor-ஐ consult செய்யுங்கள்</strong> real money deploy செய்வதற்கு முன். Algorithm signals past performance-ஐ பார்த்து future guarantee கொடுக்காது. Market conditions மாறும்போது signals incorrect ஆகலாம்.
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div><!-- .doc-wrap -->
+</div><!-- .page -->
+
+<footer>
+  <p>TradeZen F&O Signal Guide · Built for learning · <a href="fno_signal.html">F&O Dashboard-க்கு திரும்பவும்</a></p>
+  <p style="margin-top:.4rem;font-size:11px;">Not financial advice. Trade at your own risk.</p>
+</footer>
+
+<script>
+// Highlight active TOC link on scroll
+const sections = document.querySelectorAll(".section[id]");
+const links     = document.querySelectorAll(".toc a[href^='#']");
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove("active"));
+      const active = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+      if (active) active.classList.add("active");
+    }
+  });
+}, { rootMargin: "-20% 0px -70% 0px" });
+
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

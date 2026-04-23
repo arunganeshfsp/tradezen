@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"from core.signal_engine import SignalEngine; print\\('OK'\\)\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ta">
+
+<head>
+    <meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
+    <title>NIFTY AI Signal</title>
+</head>
+
+<body style="background:#07101d;color:white;font-family:sans-serif;text-align:center;padding:40px;">
+<div class="tz-bg-orb tz-orb1"></div>
+<div class="tz-bg-orb tz-orb2"></div>
+<div class="tz-grid"></div>
+<nav class="tz-nav">
+  <div class="tz-nav-inner">
+    <a href="index.html" class="tz-logo">
+      <div class="tz-logo-mark">TZ</div>
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+    </a>
+    <span class="tz-nav-slash">/</span>
+    <span class="tz-nav-chip">AI SIGNAL</span>
+    <div class="tz-nav-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+      <a href="options_entry_tool_tamil.html">🎯 Buying</a>
+      <a href="options_selling_tool_tamil.html">💰 Selling</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing</a>
+      <a href="theta_decay_tamil.html">⏳ Theta</a>
+      <a href="fno_signal.html">🤖 F&O</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+  </div>
+</nav>
+
+    <h2>🤖 NIFTY AI Signal</h2>
+
+    <button onclick="getSignal()">Signal பெற</button>
+
+    <pre id="output" style="margin-top:20px;"></pre>
+
+    <script>
+        async function getSignal() {
+            try {
+                const res = await fetch("/api/ai-signal");
+                const data = await res.json();
+                document.getElementById("output").innerText =
+                    JSON.stringify(data, null, 2);
+            } catch (e) {
+                document.getElementById("output").innerText = "Error fetching signal";
+            }
+        }
+    </script>
+
+<footer class="tz-footer">
+  <div class="tz-footer-inner">
+    <div class="tz-footer-brand">
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+      <p class="tz-footer-desc">Nifty50 Options buying மற்றும் selling strategies, tools-ஐ தமிழில் கற்றுத்தரும் இலவச தளம். SEBI 2026 விதிகளுக்கு ஏற்ப தொடர்ந்து update ஆகும்.</p>
+      <p class="tz-footer-copy">© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</p>
+    </div>
+    <div class="tz-footer-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly Straddle</a>
+      <a href="options_entry_tool_tamil.html">🎯 Options Buying Tool</a>
+      <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing Trading Tool</a>
+      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+      <a href="fno_signal.html">🤖 F&amp;O AI Signal</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+  </div>
+</footer>
+</body>
+
+</html>
