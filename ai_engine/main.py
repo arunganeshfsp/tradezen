@@ -8,6 +8,7 @@ Clean version with:
 """
 
 import asyncio
+import math
 import threading
 import logging
 from contextlib import asynccontextmanager
@@ -59,6 +60,18 @@ trade_flow_data = {
 async def lifespan(app: FastAPI):
     global signal_engine, chain_map, im
     log.info("🚀 Starting AI Engine...")
+
+    # Clear stale profile cache on every startup — ensures recomputed profiles
+    # always use the latest build_profile algorithm (prevents stale cached results)
+    try:
+        from storage.sqlite_store import get_conn as _gc
+        _c = _gc()
+        _c.execute("DELETE FROM market_profile_cache")
+        _c.commit()
+        _c.close()
+        log.info("🗑  Profile cache cleared (fresh start)")
+    except Exception as _ce:
+        log.warning(f"Could not clear profile cache: {_ce}")
 
     # 🔐 Connect SmartAPI
     smart = get_smart_api()
@@ -133,6 +146,55 @@ async def lifespan(app: FastAPI):
                 "CPR on trade-flow page will show N/A. "
                 "Use POST /set-prev-ohlc or the yellow banner on the page to supply values."
             )
+
+        # ── Retroactive: load today's opening price + ORB if engine started late ──
+        # These are normally captured tick-by-tick in the signal loop, but if the
+        # engine is started after 9:15/9:30 those ticks were missed.
+        today_str  = ist_now.strftime("%Y-%m-%d")
+        h_now, m_now = ist_now.hour, ist_now.minute
+        retro_attempts = [
+            ("NSE", SPOT_TOKEN),
+            ("NFO", fut_token or SPOT_TOKEN),
+        ]
+
+        if (h_now > 9 or (h_now == 9 and m_now >= 15)) and trade_flow_data["nifty_open"] is None:
+            for exch, token in retro_attempts:
+                try:
+                    resp = smart.getCandleData({
+                        "exchange":    exch,
+                        "symboltoken": token,
+                        "interval":    "ONE_MINUTE",
+                        "fromdate":    f"{today_str} 09:15",
+                        "todate":      f"{today_str} 09:16",
+                    })
+                    rows = (resp or {}).get("data") or []
+                    if rows:
+                        trade_flow_data["nifty_open"] = round(float(rows[0][1]), 2)
+                        log.info(f"📅 Opening price (retroactive, {exch}): {trade_flow_data['nifty_open']}")
+                        break
+                except Exception as retro_err:
+                    log.debug(f"Opening price retroactive ({exch}/{token}): {retro_err}")
+
+        if (h_now > 9 or (h_now == 9 and m_now >= 30)) and trade_flow_data["orb"] is None:
+            for exch, token in retro_attempts:
+                try:
+                    resp = smart.getCandleData({
+                        "exchange":    exch,
+                        "symboltoken": token,
+                        "interval":    "ONE_MINUTE",
+                        "fromdate":    f"{today_str} 09:15",
+                        "todate":      f"{today_str} 09:30",
+                    })
+                    rows = (resp or {}).get("data") or []
+                    if rows:
+                        orb_h = round(max(float(r[2]) for r in rows), 2)
+                        orb_l = round(min(float(r[3]) for r in rows), 2)
+                        trade_flow_data["orb"] = {"high": orb_h, "low": orb_l}
+                        log.info(f"📊 ORB (retroactive, {exch}): H={orb_h} L={orb_l}")
+                        break
+                except Exception as retro_err:
+                    log.debug(f"ORB retroactive ({exch}/{token}): {retro_err}")
+
     except Exception as e:
         log.warning(f"⚠️ Prev OHLC fetch error: {e}")
 
@@ -380,6 +442,31 @@ def set_prev_ohlc(high: float, low: float, close: float, date: str = None):
     return {"status": "ok", "prev_ohlc": trade_flow_data["prev_ohlc"]}
 
 
+@app.post("/set-nifty-open")
+def set_nifty_open(price: float):
+    """
+    Manually supply today's 9:15 AM opening price when engine started late.
+    Example: POST /set-nifty-open?price=24420
+    """
+    global trade_flow_data
+    trade_flow_data["nifty_open"] = None if price == 0 else round(price, 2)
+    log.info(f"📅 Nifty open set manually: {trade_flow_data['nifty_open']}")
+    return {"status": "ok", "nifty_open": trade_flow_data["nifty_open"]}
+
+
+@app.post("/set-orb")
+def set_orb(high: float, low: float):
+    """
+    Manually supply today's ORB (9:15–9:30 candle H/L) when engine started late.
+    Example: POST /set-orb?high=24520&low=24390
+    """
+    global trade_flow_data
+    trade_flow_data["orb"] = {"high": round(high, 2), "low": round(low, 2)}
+    trade_flow_data["_orb_acc"] = {"high": round(high, 2), "low": round(low, 2)}
+    log.info(f"📊 ORB set manually: H={high} L={low}")
+    return {"status": "ok", "orb": trade_flow_data["orb"]}
+
+
 @app.get("/trade-flow")
 def get_trade_flow():
     """
@@ -570,3 +657,250 @@ def get_option_chain(expiry: str = None):
         "live":    is_live,
         "data":    result,
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Market Profile endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+from data.candle_fetcher import fetch_candles
+from core.indicators.market_profile import build_profile, _calc_value_area
+from storage.sqlite_store import get_conn, get_cached_profile, upsert_profile
+from core.indicators.constants import TICK_SIZE_INDEX, VALUE_AREA_PCT
+
+
+def _resolve_token_and_exchange(symbol_token: str, exchange: str, smart):
+    """
+    If the caller requests NSE 26000 (NIFTY spot index) but getCandleData fails
+    for it, transparently fall back to the nearest NFO futures token.
+    Returns (token, exchange) to actually use.
+    """
+    return symbol_token, exchange   # candle_fetcher handles empty-result case internally
+
+
+def _get_smart():
+    """Re-authenticate for market profile calls (engine may have a fresh session)."""
+    from config.credentials import get_smart_api
+    try:
+        return get_smart_api()
+    except Exception as e:
+        log.warning(f"Market profile: SmartAPI re-auth failed: {e}")
+        return None
+
+
+def _build_daily_profile_with_smart(smart, symbol_token, exchange, date, tick_size, symbol, use_cache=True):
+    """
+    Core profile builder — accepts a pre-authenticated SmartAPI session.
+    Called by both the daily endpoint and multi-day (to avoid re-auth per day).
+    """
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+
+    conn = get_conn()
+    if use_cache:
+        cached = get_cached_profile(conn, symbol_token, exchange, date, tick_size)
+        if cached:
+            conn.close()
+            log.info(f"📂 Profile cache hit: {symbol_token}/{date}")
+            return cached
+    conn.close()
+
+    from_dt = f"{date} 09:15"
+    to_dt   = f"{date} 15:30"
+
+    df = fetch_candles(smart, symbol_token, exchange, "ONE_MINUTE", from_dt, to_dt)
+    if df.empty and exchange == "NSE":
+        try:
+            fut_token = im.get_nifty_futures_token()
+            df = fetch_candles(smart, fut_token, "NFO", "ONE_MINUTE", from_dt, to_dt)
+            if not df.empty:
+                symbol_token, exchange = fut_token, "NFO"
+        except Exception as fe:
+            log.debug(f"NFO fallback failed: {fe}")
+
+    if df.empty:
+        return {"error": f"No candle data available for {symbol_token}/{exchange} on {date}"}
+
+    profile = build_profile(df, tick_size=tick_size, symbol=symbol, date=date)
+
+    if date != now_ist.strftime("%Y-%m-%d"):
+        conn = get_conn()
+        upsert_profile(conn, symbol_token, exchange, date, tick_size, profile)
+        conn.close()
+
+    return profile
+
+
+@app.get("/market-profile/daily")
+def market_profile_daily(
+    symbol_token: str = "26000",
+    exchange: str = "NSE",
+    date: str = "",
+    tick_size: float = TICK_SIZE_INDEX,
+    symbol: str = "NIFTY",
+    use_cache: bool = True,
+):
+    """
+    Full TPO + volume profile for a given symbol and date.
+    date: YYYY-MM-DD (defaults to today IST)
+    """
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    if not date:
+        date = now_ist.strftime("%Y-%m-%d")
+
+    smart = _get_smart()
+    if not smart:
+        return {"error": "SmartAPI authentication failed"}
+
+    return _build_daily_profile_with_smart(smart, symbol_token, exchange, date, tick_size, symbol, use_cache)
+
+
+@app.get("/market-profile/live")
+def market_profile_live(
+    symbol_token: str = "26000",
+    exchange: str = "NSE",
+    tick_size: float = TICK_SIZE_INDEX,
+    symbol: str = "NIFTY",
+):
+    """
+    Intraday profile for today — built from candles fetched up to the current minute.
+    Never cached (always fresh).
+    """
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    date    = now_ist.strftime("%Y-%m-%d")
+    to_dt   = now_ist.strftime("%Y-%m-%d %H:%M")
+
+    smart = _get_smart()
+    if not smart:
+        return {"error": "SmartAPI authentication failed"}
+
+    df = fetch_candles(smart, symbol_token, exchange, "ONE_MINUTE",
+                       f"{date} 09:15", to_dt, use_cache=False)
+    if df.empty and exchange == "NSE":
+        try:
+            fut_token = im.get_nifty_futures_token()
+            df = fetch_candles(smart, fut_token, "NFO", "ONE_MINUTE",
+                               f"{date} 09:15", to_dt, use_cache=False)
+        except Exception:
+            pass
+
+    if df.empty:
+        return {"error": "No intraday data yet"}
+
+    return build_profile(df, tick_size=tick_size, symbol=symbol, date=date)
+
+
+@app.get("/market-profile/levels")
+def market_profile_levels(
+    symbol_token: str = "26000",
+    exchange: str = "NSE",
+    date: str = "",
+    tick_size: float = TICK_SIZE_INDEX,
+    symbol: str = "NIFTY",
+):
+    """
+    Key levels only — POC, VAH, VAL, IB High/Low, Naked POCs.
+    Lighter response than /daily (no full histogram).
+    """
+    profile = market_profile_daily(symbol_token, exchange, date, tick_size, symbol)
+    if "error" in profile:
+        return profile
+    return {
+        "symbol":       profile["symbol"],
+        "date":         profile["date"],
+        "poc":          profile["poc"],
+        "vah":          profile["vah"],
+        "val":          profile["val"],
+        "va_width":     profile["va_width"],
+        "ib_high":      profile["ib_high"],
+        "ib_low":       profile["ib_low"],
+        "session_high": profile["session_high"],
+        "session_low":  profile["session_low"],
+        "poor_high":    profile["poor_high"],
+        "poor_low":     profile["poor_low"],
+        "naked_pocs":   profile["naked_pocs"],
+        "tpo_count":    profile["tpo_count"],
+    }
+
+
+@app.get("/market-profile/multi-day")
+def market_profile_multi_day(
+    symbol_token: str = "26000",
+    exchange: str = "NSE",
+    days: int = 5,
+    tick_size: float = TICK_SIZE_INDEX,
+    symbol: str = "NIFTY",
+):
+    """
+    Composite profile across the last N trading days.
+    Merges TPO and volume histograms; computes combined POC and Value Area.
+    Also returns per-day key levels for comparison.
+    """
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    smart = _get_smart()
+    if not smart:
+        return {"error": "SmartAPI authentication failed"}
+
+    profiles = []
+    per_day  = []
+    d = now_ist.date()
+    max_lookback = days * 4 + 10   # guard against infinite loop on public holidays
+    steps = 0
+
+    while len(profiles) < days and steps < max_lookback:
+        d -= timedelta(days=1)
+        steps += 1
+        if d.weekday() >= 5:   # skip weekends
+            continue
+        date_str = d.strftime("%Y-%m-%d")
+        p = _build_daily_profile_with_smart(smart, symbol_token, exchange, date_str, tick_size, symbol)
+        if "error" not in p and p.get("tpo_count", 0) > 0:
+            profiles.append(p)
+            per_day.append({
+                "date":     date_str,
+                "poc":      p["poc"],  "vah":    p["vah"],    "val":    p["val"],
+                "ib_high":  p.get("ib_high"), "ib_low": p.get("ib_low"),
+                "va_width": p.get("va_width"),
+                "poor_high": p.get("poor_high"), "poor_low": p.get("poor_low"),
+                "session_high": p.get("session_high"), "session_low": p.get("session_low"),
+            })
+
+    if not profiles:
+        return {"error": "No profile data available for the requested range"}
+
+    # Merge histograms
+    merged_tpo: dict = {}
+    merged_vol: dict = {}
+    for p in profiles:
+        for price_str, letters in p["tpo_profile"].items():
+            price = float(price_str)
+            merged_tpo[price] = merged_tpo.get(price, []) + letters
+        for price_str, vol in p["volume_profile"].items():
+            price = float(price_str)
+            merged_vol[price] = merged_vol.get(price, 0) + vol
+
+    sorted_prices = sorted(merged_tpo.keys())
+    poc = max(merged_tpo, key=lambda p: len(merged_tpo[p]))
+    total_tpos = sum(len(v) for v in merged_tpo.values())
+    va_target = math.ceil(total_tpos * VALUE_AREA_PCT)
+    vah, val = _calc_value_area(merged_tpo, sorted_prices, poc, va_target)
+
+    return {
+        "symbol":         symbol,
+        "days":           len(profiles),
+        "tpo_profile":    {round(k, 2): v for k, v in merged_tpo.items()},
+        "volume_profile": {round(k, 2): v for k, v in merged_vol.items()},
+        "poc":            round(poc, 2),
+        "vah":            round(vah, 2),
+        "val":            round(val, 2),
+        "tpo_count":      total_tpos,
+        "per_day":        per_day,
+    }
+
+
+@app.get("/price")
+def get_live_price():
+    """Live NIFTY spot price from in-memory market state."""
+    spot = market_state.get(SPOT_TOKEN)
+    if spot and spot.get("price"):
+        return {"price": round(spot["price"], 2)}
+    return {"price": None}

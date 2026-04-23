@@ -126,13 +126,16 @@ class StockService {
   async getStockData(symbol) {
     const ticker = symbol + ".NS";
 
-    const quote = await this.yf.quote(ticker);
-
-    const chart = await this.yf.chart(ticker, {
-      period1: "2023-01-01",
-      period2: new Date(),
-      interval: "1d"
-    });
+    // Fetch quote, chart and options in parallel; options failure is non-fatal
+    const [quote, chart, oiData] = await Promise.all([
+      this.yf.quote(ticker),
+      this.yf.chart(ticker, {
+        period1: "2023-01-01",
+        period2: new Date(),
+        interval: "1d"
+      }),
+      this.fetchOI(ticker),
+    ]);
 
     const history = chart.quotes;
 
@@ -140,26 +143,24 @@ class StockService {
       throw new Error("Not enough data");
     }
 
-    const closes = history.map(d => d.close);
+    const closes  = history.map(d => d.close);
     const volumes = history.map(d => d.volume);
 
-    // ===== CORE =====
-    const rsi = this.calculateRSI(closes);
-    const trend = this.calculateTrend(closes);
-
-    // ===== NEW SIGNALS =====
+    const rsi            = this.calculateRSI(closes);
+    const trend          = this.calculateTrend(closes);
     const { support, resistance } = this.calculateSupportResistance(closes);
-    const volumeSignal = this.calculateVolumeSignal(volumes);
-    const candlePattern = this.detectCandlePattern(history);
-    const indexTrend = await this.getIndexTrend();
-    const eventRisk = this.getEventRisk();
+    const volumeSignal   = this.calculateVolumeSignal(volumes);
+    const candlePattern  = this.detectCandlePattern(history);
+    const indexTrend     = await this.getIndexTrend();
+    const eventRisk      = this.getEventRisk();
+    const { buyerVolume, sellerVolume, buySellRatio } = this.calcBuyerSellerVolume(history);
 
     return {
-      cmp: quote.regularMarketPrice,
+      cmp:      quote.regularMarketPrice,
       high_52w: quote.fiftyTwoWeekHigh,
-      low_52w: quote.fiftyTwoWeekLow,
-      volume: quote.regularMarketVolume,
-      change: Number((quote.regularMarketChangePercent ?? 0).toFixed(2)),
+      low_52w:  quote.fiftyTwoWeekLow,
+      volume:   quote.regularMarketVolume,
+      change:   Number((quote.regularMarketChangePercent ?? 0).toFixed(2)),
 
       rsi: Number(rsi.toFixed(2)),
       trend,
@@ -168,8 +169,67 @@ class StockService {
       volumeSignal,
       candlePattern,
       indexTrend,
-      eventRisk
+      eventRisk,
+
+      // Buyer / Seller volume (last 20 trading days)
+      buyerVolume,
+      sellerVolume,
+      buySellRatio,
+
+      // F&O Open Interest (from Yahoo Finance options chain)
+      callOI:   oiData?.callOI   ?? null,
+      putOI:    oiData?.putOI    ?? null,
+      totalOI:  oiData?.totalOI  ?? null,
+      pcr:      oiData?.pcr      ?? null,
     };
+  }
+
+  // =========================
+  // BUYER / SELLER VOLUME
+  // =========================
+  calcBuyerSellerVolume(history) {
+    const recent = history.slice(-20);
+    let buyerVolume = 0, sellerVolume = 0;
+
+    recent.forEach(d => {
+      if (d.close > d.open)       buyerVolume  += (d.volume || 0);
+      else if (d.close < d.open)  sellerVolume += (d.volume || 0);
+      // doji candles (open === close) excluded from both
+    });
+
+    const buySellRatio = sellerVolume > 0
+      ? Number((buyerVolume / sellerVolume).toFixed(2))
+      : null;
+
+    return {
+      buyerVolume:  Math.round(buyerVolume),
+      sellerVolume: Math.round(sellerVolume),
+      buySellRatio,
+    };
+  }
+
+  // =========================
+  // F&O OPEN INTEREST (PCR)
+  // =========================
+  async fetchOI(ticker) {
+    try {
+      const opts = await this.yf.options(ticker);
+      if (!opts?.options?.length) return null;
+
+      const chain  = opts.options[0];   // nearest expiry
+      const callOI = chain.calls.reduce((s, o) => s + (o.openInterest || 0), 0);
+      const putOI  = chain.puts .reduce((s, o) => s + (o.openInterest || 0), 0);
+      if (callOI + putOI === 0) return null;
+
+      return {
+        callOI,
+        putOI,
+        totalOI: callOI + putOI,
+        pcr: Number((putOI / callOI).toFixed(2)),
+      };
+    } catch (_) {
+      return null;
+    }
   }
 
   // =========================

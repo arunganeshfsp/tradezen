@@ -155,6 +155,34 @@ router.post("/set-gift-nifty", async (req, res) => {
   }
 });
 
+// ─── POST /api/set-nifty-open ────────────────────────────────────────────────
+// Manually supply today's 9:15 AM opening price when engine started late
+// Body: { price }
+router.post("/set-nifty-open", async (req, res) => {
+  try {
+    const { price } = req.body;
+    if (!price) return res.status(400).json({ error: "price is required" });
+    const data = await aiService.setNiftyOpen(price);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/set-orb ───────────────────────────────────────────────────────
+// Manually supply today's ORB H/L when engine started after 9:30 AM
+// Body: { high, low }
+router.post("/set-orb", async (req, res) => {
+  try {
+    const { high, low } = req.body;
+    if (!high || !low) return res.status(400).json({ error: "high and low are required" });
+    const data = await aiService.setOrb(high, low);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── POST /api/set-prev-ohlc ─────────────────────────────────────────────────
 // Manually supply prev day H/L/C when getCandleData API fails
 // Body: { high, low, close, date? }
@@ -169,6 +197,32 @@ router.post("/set-prev-ohlc", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ─── GET /api/price ──────────────────────────────────────────────────────────
+// Live NIFTY spot price from Python engine market state
+router.get("/price", async (req, res) => {
+  try {
+    const data = await aiService.getLivePrice();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/market-profile/:endpoint ──────────────────────────────────────
+// Proxy all market-profile sub-routes to FastAPI.
+// Supported: daily, live, levels, multi-day
+// Query params forwarded as-is: symbol_token, exchange, date, tick_size, symbol, days
+["daily", "live", "levels", "multi-day"].forEach((ep) => {
+  router.get(`/market-profile/${ep}`, async (req, res) => {
+    try {
+      const data = await aiService.getMarketProfile(ep, req.query);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 });
 
 module.exports = router;

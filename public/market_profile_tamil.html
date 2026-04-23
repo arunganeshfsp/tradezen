@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>மார்கெட் புரொஃபைல் - Market Profile கற்றுக்கொள்வோம்</title>
+<style>
+  :root {
+    --bg: #0D1B2A;
+    --bg2: #142233;
+    --bg3: #1C2F44;
+    --gold: #F5C04A;
+    --gold-pale: #FDF0D0;
+    --teal: #4DD6C5;
+    --red: #E84040;
+    --red-light: #FF6B6B;
+    --green: #2ECC71;
+    --green-light: #55E08A;
+    --text: #F0EEE8;
+    --muted: #9BA8B5;
+    --border: rgba(232,161,23,0.2);
+    --card: rgba(28,47,68,0.7);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans Tamil', sans-serif;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(77,214,197,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(232,161,23,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+  .hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(77,214,197,0.12);
+    color: var(--teal);
+    border: 1px solid rgba(77,214,197,0.3);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif Tamil', serif;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 span { color: var(--teal); }
+  .hero p { font-size: 15px; color: var(--muted); max-width: 560px; margin: 0 auto; }
+
+  .section { padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+  .section-title {
+    font-family: 'Noto Serif Tamil', serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+  .section-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 1.5rem; }
+
+  .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+  @media(max-width:560px){ .concept-grid { grid-template-columns: 1fr; } }
+  .concept-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+  }
+  .concept-card .cc-icon { font-size: 22px; margin-bottom: 6px; }
+  .concept-card .cc-title { font-size: 14px; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+  .concept-card .cc-body { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  .formula-box {
+    background: rgba(77,214,197,0.07);
+    border: 1px solid rgba(77,214,197,0.25);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--teal);
+    margin: 1rem 0;
+    line-height: 2;
+  }
+
+  /* LEVEL LEGEND */
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin: 1rem 0 1.5rem;
+  }
+  .level-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .level-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .level-card .lc-label { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .level-card .lc-body  { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+
+  /* CANVAS PROFILE */
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .chart-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
+
+  /* SCENARIO TABS */
+  .seg-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .seg-btn {
+    font-family: 'Noto Sans Tamil', sans-serif;
+    font-size: 12px; padding: 5px 14px;
+    border: 1px solid rgba(232,161,23,0.3);
+    background: transparent; color: var(--muted);
+    border-radius: 20px; cursor: pointer; transition: all 0.2s;
+  }
+  .seg-btn.active { background: var(--gold); color: #07101d; font-weight: 600; border-color: var(--gold); }
+  .seg-btn:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+
+  /* TRADE CARDS */
+  .eg-card {
+    border-radius: 14px;
+    padding: 1.4rem;
+    margin-bottom: 1.2rem;
+    border: 1px solid;
+  }
+  .eg-card.positive { background: rgba(46,204,113,0.06); border-color: rgba(46,204,113,0.25); }
+  .eg-card.negative { background: rgba(232,64,64,0.06); border-color: rgba(232,64,64,0.25); }
+  .eg-card.neutral  { background: rgba(77,214,197,0.06); border-color: rgba(77,214,197,0.25); }
+  .eg-card .eg-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+  .eg-badge { font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+  .positive .eg-badge { background: rgba(46,204,113,0.2); color: var(--green-light); }
+  .negative .eg-badge { background: rgba(232,64,64,0.2); color: var(--red-light); }
+  .neutral  .eg-badge { background: rgba(77,214,197,0.15); color: var(--teal); }
+  .eg-title { font-size: 15px; font-weight: 600; }
+  .positive .eg-title { color: var(--green-light); }
+  .negative .eg-title { color: var(--red-light); }
+  .neutral  .eg-title { color: var(--teal); }
+
+  .step-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0.8rem 0; }
+  .step-table th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); padding: 6px 10px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+  .step-table tr:last-child td { border-bottom: none; }
+  .tag-profit { color: var(--green-light); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .tag-loss   { color: var(--red-light);   font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .tag-warn   { color: var(--gold);        font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .tag-neutral{ color: var(--muted);       font-family: 'JetBrains Mono', monospace; }
+  .tag-teal   { color: var(--teal);        font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  /* RULES BOX */
+  .rules-box {
+    background: rgba(232,161,23,0.07);
+    border: 1px solid rgba(232,161,23,0.25);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+  }
+  .rule-item { display: flex; gap: 10px; padding: 6px 0; font-size: 13.5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-num { color: var(--gold); font-weight: 700; min-width: 22px; font-family: 'JetBrains Mono', monospace; }
+  .rule-text { color: var(--text); }
+  .rule-text span { color: var(--teal); font-weight: 600; }
+  .rule-text .gold { color: var(--gold); font-weight: 600; }
+  .rule-text .red  { color: var(--red-light); font-weight: 600; }
+
+  /* SUMMARY */
+  .summary-card {
+    background: linear-gradient(135deg, rgba(77,214,197,0.1) 0%, rgba(232,161,23,0.08) 100%);
+    border: 1px solid rgba(77,214,197,0.3);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+    margin: 1.5rem 0;
+  }
+  .summary-card h3 {
+    font-family: 'Noto Serif Tamil', serif;
+    font-size: 1.2rem; color: var(--teal); margin-bottom: 0.6rem;
+  }
+  .summary-card p { font-size: 13.5px; color: var(--muted); max-width: 520px; margin: 0 auto 0.5rem; }
+
+  .footer {
+    text-align: center; padding: 2rem 1rem;
+    font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  .footer strong { color: var(--gold); }
+
+  /* TPO CANVAS WRAPPER */
+  .tpo-wrap {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .tpo-canvas-wrap {
+    flex: 1;
+    min-width: 280px;
+    background: #0a1520;
+    border-radius: 10px;
+    border: 1px solid rgba(77,214,197,0.2);
+    overflow: hidden;
+  }
+  .tpo-legend {
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 4px;
+  }
+  .tpo-leg { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .tpo-leg-sq { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+  /* PHASE INDICATOR */
+  .phase-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .phase-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .phase-chip {
+    font-size: 11px; padding: 4px 12px;
+    border-radius: 20px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pc-bull { background: rgba(46,204,113,0.2); color: var(--green-light); border: 1px solid rgba(46,204,113,0.3); }
+  .pc-bear { background: rgba(232,64,64,0.2); color: var(--red-light); border: 1px solid rgba(232,64,64,0.3); }
+  .pc-side { background: rgba(245,192,74,0.15); color: var(--gold); border: 1px solid rgba(245,192,74,0.3); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; margin: 0.8rem 0; }
+  .checklist li {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 13.5px; padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li .ck-icon { font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+
+  /* PRICE TAG */
+  .pt { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .pt.gold  { color: var(--gold); }
+  .pt.teal  { color: var(--teal); }
+  .pt.red   { color: var(--red-light); }
+  .pt.green { color: var(--green-light); }
+</style>
+</head>
+<body>
+<div class="tz-bg-orb tz-orb1"></div>
+<div class="tz-bg-orb tz-orb2"></div>
+<div class="tz-grid"></div>
+
+<nav class="tz-nav">
+  <div class="tz-nav-inner">
+    <a href="index.html" class="tz-logo">
+      <div class="tz-logo-mark">TZ</div>
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+    </a>
+    <span class="tz-nav-slash">/</span>
+    <span class="tz-nav-chip">MARKET PROFILE</span>
+    <div class="tz-nav-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+      <a href="options_entry_tool_tamil.html">🎯 Buying</a>
+      <a href="options_selling_tool_tamil.html">💰 Selling</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing</a>
+      <a href="theta_decay_tamil.html">⏳ Theta</a>
+      <a href="market_profile.html" class="tz-active">📊 Profile</a>
+      <a href="fno_signal.html">🤖 F&O</a>
+    </div>
+    <a href="market_profile.html" class="tz-nav-cta teal">📊 Tool →</a>
+  </div>
+</nav>
+<style>.tz-nav{position:sticky;top:0;z-index:9999;background:rgba(7,16,29,0.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:sans-serif;}.tz-nav-inner{max-width:1100px;margin:0 auto;height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:8px;}.tz-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}.tz-logo-mark{width:30px;height:30px;background:#2dd4bf;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#07101d;flex-shrink:0;font-family:monospace;}.tz-logo-text{font-family:monospace;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px;}.tz-logo-text span{color:#2dd4bf;}.tz-nav-slash{color:#3a5068;}.tz-nav-chip{background:rgba(77,214,197,0.15);color:#4dd6c5;border:1px solid rgba(77,214,197,0.3);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600;letter-spacing:0.06em;white-space:nowrap;}.tz-nav-links{display:flex;gap:2px;margin-left:auto;}.tz-nav-links a{text-decoration:none;color:#6e87a2;font-size:12px;padding:5px 10px;border-radius:8px;transition:all 0.18s;white-space:nowrap;}.tz-nav-links a:hover{color:#dce8f5;background:rgba(255,255,255,0.07);}.tz-active{color:#4dd6c5!important;background:rgba(77,214,197,0.1)!important;}.tz-nav-cta{margin-left:8px;padding:6px 14px;background:rgba(77,214,197,0.15);border:1px solid rgba(77,214,197,0.4);border-radius:8px;color:#4dd6c5;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;}.tz-nav-cta:hover{background:rgba(77,214,197,0.25);}@media(max-width:720px){.tz-nav-links{display:none;}}</style>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">📊 Market Profile · தொழில்நுட்ப பகுப்பாய்வு</div>
+    <h1>மார்கெட் புரொஃபைல் — <span>TPO Chart</span><br>Trade எப்படி போடுவது?</h1>
+    <p>விலை எங்கு அதிக நேரம் செலவிட்டது என்று தெரிந்தால், Support, Resistance மற்றும் Entry/Exit எளிதாகும். இதை J. Peter Steidlmayer கண்டுபிடித்தார்.</p>
+  </div>
+
+  <!-- SECTION 1: WHAT IS MARKET PROFILE -->
+  <div class="section">
+    <div class="section-title">Market Profile என்றால் என்ன?</div>
+    <div class="section-sub">விலையும் நேரமும் — Price vs Time. இந்த ஒரு Chart மட்டுமே போதும் trade-ஐ புரிந்துகொள்ள</div>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="cc-icon">📊</div>
+        <div class="cc-title">TPO என்றால் என்ன?</div>
+        <div class="cc-body">Time Price Opportunity. ஒவ்வொரு 30 நிமிட நேரத்திற்கும் A, B, C... என letter கொடுக்கப்படும். ஒரு விலை நிலையில் எத்தனை letters இருக்கிறதோ — அந்த விலையில் சந்தை அவ்வளவு நேரம் கழித்தது என்று அர்த்தம்.</div>
+      </div>
+      <div class="concept-card">
+        <div class="cc-icon">🧲</div>
+        <div class="cc-title">POC — Price of Control</div>
+        <div class="cc-body">மிக அதிக TPO letters இருக்கும் விலை நிலை. இதை சந்தையின் "காந்தம்" என்று சொல்லலாம். விலை எங்கு போனாலும் POC-ஐ நோக்கி திரும்பும். சிவப்பு கோட்டில் தெரியும்.</div>
+      </div>
+      <div class="concept-card">
+        <div class="cc-icon">📐</div>
+        <div class="cc-title">Value Area (VA)</div>
+        <div class="cc-body">மொத்த TPO-களில் 70% நேரம் சந்தை கழித்த விலை வரம்பு. VAH (மேல் எல்லை) மற்றும் VAL (கீழ் எல்லை). இந்த வரம்பிற்கு உள்ளே இருந்தால் — சந்தை "சரியான விலையில்" உள்ளது.</div>
+      </div>
+      <div class="concept-card">
+        <div class="cc-icon">⏰</div>
+        <div class="cc-title">Initial Balance (IB)</div>
+        <div class="cc-body">காலை 9:15 முதல் 10:15 வரை (முதல் 60 நிமிடம்) ஏற்பட்ட High மற்றும் Low. இந்த வரம்பே அன்றைக்கான அடிப்படை. IB-ஐ உடைத்தால் பெரிய நகர்வு வரலாம்.</div>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      NSE Nifty Sessions: A=9:15–9:45 · B=9:45–10:15 · C=10:15–10:45 · D=10:45–11:15<br>
+      E=11:15–11:45 · F=11:45–12:15 · G=12:15–12:45 · H=12:45–13:15<br>
+      I=13:15–13:45 · J=13:45–14:15 · K=14:15–14:45 · L=14:45–15:15 · M=15:15–15:30
+    </div>
+  </div>
+
+  <!-- SECTION 2: KEY LEVELS -->
+  <div class="section">
+    <div class="section-title">முக்கிய நிலைகள் — Key Levels</div>
+    <div class="section-sub">இந்த ஆறு நிலைகளை மட்டும் புரிந்துகொண்டால் போதும் — Trade எளிதாகும்</div>
+
+    <div class="level-grid">
+      <div class="level-card">
+        <div class="level-dot" style="background:#FF4444;"></div>
+        <div>
+          <div class="lc-label">POC — சந்தையின் காந்தம்</div>
+          <div class="lc-body">அதிக நேரம் trade ஆன விலை. விலை இதை நோக்கி திரும்பும். Partial profit எடுக்க சிறந்த இலக்கு.</div>
+        </div>
+      </div>
+      <div class="level-card">
+        <div class="level-dot" style="background:#3399FF;"></div>
+        <div>
+          <div class="lc-label">VAH — Value Area High</div>
+          <div class="lc-body">Value Area-ன் மேல் எல்லை. இதற்கு மேல் price போனால் Breakout. இதில் short trade போடலாம்.</div>
+        </div>
+      </div>
+      <div class="level-card">
+        <div class="level-dot" style="background:#3399FF;"></div>
+        <div>
+          <div class="lc-label">VAL — Value Area Low</div>
+          <div class="lc-body">Value Area-ன் கீழ் எல்லை. இதில் bounce வரலாம். Long entry எடுக்க சிறந்த ஆதார நிலை.</div>
+        </div>
+      </div>
+      <div class="level-card">
+        <div class="level-dot" style="background:#F5C04A;"></div>
+        <div>
+          <div class="lc-label">IB High / IB Low</div>
+          <div class="lc-body">முதல் 60 நிமிட வரம்பு. IB-ஐ உடைக்க முயலும்போது momentum trade.</div>
+        </div>
+      </div>
+      <div class="level-card">
+        <div class="level-dot" style="background:#FF8C00;"></div>
+        <div>
+          <div class="lc-label">Single Prints — மெல்லிய பகுதி</div>
+          <div class="lc-body">ஒரே ஒரு letter மட்டும் உள்ள விலை நிலை. விலை திரும்பி வந்தால் இங்கு fill ஆகும். Thin supply/demand zone.</div>
+        </div>
+      </div>
+      <div class="level-card">
+        <div class="level-dot" style="background:#CC44CC;"></div>
+        <div>
+          <div class="lc-label">Poor High / Poor Low</div>
+          <div class="lc-body">நாளின் உச்சம் அல்லது தளத்தில் சந்தை விரைவாக திரும்பியது. அடுத்த நாள் revisit செய்வது அதிகம்.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: LIVE EXAMPLE WITH CANVAS -->
+  <div class="section">
+    <div class="section-title">உண்மையான உதாரணம் — NIFTY 23-Apr-2026</div>
+    <div class="section-sub">நேற்று Nifty-ன் Market Profile Chart. இதை பார்த்து எப்படி trade போட வேண்டும் என்று புரிந்துகொள்வோம்</div>
+
+    <div class="chart-card">
+      <div class="chart-title">NIFTY 50 · NSE · 23-Apr-2026 · Tick Size: 5 pts · TPO Mode</div>
+      <div class="tpo-wrap">
+        <div class="tpo-canvas-wrap">
+          <canvas id="tpoCanvas" width="540" height="540" style="display:block; width:100%;"></canvas>
+        </div>
+        <div class="tpo-legend">
+          <div style="font-size:11px; color:var(--muted); margin-bottom:4px; letter-spacing:0.05em;">LEGEND</div>
+          <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#FF4444;"></div>POC = 24,180</div>
+          <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#3366CC;"></div>Value Area (VAL–VAH)</div>
+          <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#F5C04A; opacity:0.6;"></div>Initial Balance</div>
+          <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#FF8C00;"></div>Single Print</div>
+          <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#4a5e72;"></div>Outside VA</div>
+          <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px;">
+            <div style="font-size:11px; color:var(--muted); margin-bottom:6px; letter-spacing:0.05em;">KEY LEVELS</div>
+            <div style="font-size:12px; line-height:2; font-family:'JetBrains Mono',monospace;">
+              <div><span style="color:#F5C04A;">IB H</span> <span style="color:#F0EEE8;">24,288</span></div>
+              <div><span style="color:#3399FF;">VAH</span>  <span style="color:#F0EEE8;"> 24,215</span></div>
+              <div><span style="color:#FF4444;">POC</span>  <span style="color:#F0EEE8;"> 24,180</span></div>
+              <div><span style="color:#3399FF;">VAL</span>  <span style="color:#F0EEE8;"> 24,155</span></div>
+              <div><span style="color:#F5C04A;">IB L</span> <span style="color:#F0EEE8;"> 24,125</span></div>
+              <div style="margin-top:8px;font-size:11px;color:var(--muted);">VA Width: 60 pts</div>
+              <div style="font-size:11px;color:var(--muted);">IB Width: 163 pts</div>
+              <div style="font-size:11px;color:#CC44CC;">⚠️ Poor High: 24,285</div>
+              <div style="font-size:11px;color:#FF8C00;">Single Prints: 4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- READING THE CHART -->
+    <div class="phase-box">
+      <div style="font-size:13px; font-weight:600; color:var(--gold); margin-bottom:8px;">📖 இந்த Chart என்ன சொல்கிறது?</div>
+      <ul class="checklist">
+        <li><span class="ck-icon">🔴</span><span>POC 24,180-ல் உள்ளது — இதுவே நாளின் "நியாயமான விலை". விலை இதை நோக்கி திரும்பும்.</span></li>
+        <li><span class="ck-icon">🔵</span><span>Value Area: 24,155–24,215 — மொத்த நேரத்தில் 70% இந்த வரம்பிலேயே சந்தை இருந்தது.</span></li>
+        <li><span class="ck-icon">🟡</span><span>IB மிகவும் Wide (163 pts) — காலை session-ல் நல்ல movement இருந்தது, trend day கூட இல்லை.</span></li>
+        <li><span class="ck-icon">⚠️</span><span>Poor High 24,285 — மேலே சென்று திரும்பி வந்தது சரியாக இல்லை. Unfinished Auction. அடுத்த நாள் revisit வரலாம்.</span></li>
+        <li><span class="ck-icon">🟠</span><span>4 Single Prints 24,220–24,235 வரம்பில் — விலை மீண்டும் வந்தால் இங்கு fast fill ஆகும்.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 4: TRADE SCENARIOS -->
+  <div class="section">
+    <div class="section-title">Trade Scenarios — 4 வழிகள்</div>
+    <div class="section-sub">Market Profile-ல் 4 முக்கிய trade setup-கள். NIFTY 24-Apr-2026 (அடுத்த நாள்) என்று வைத்துக்கொண்டு பார்க்கலாம்</div>
+
+    <!-- SCENARIO TABS -->
+    <div class="seg-row">
+      <button class="seg-btn active" onclick="showScenario('val', this)">📍 VAL Bounce</button>
+      <button class="seg-btn" onclick="showScenario('vah', this)">⬆️ VAH Breakout</button>
+      <button class="seg-btn" onclick="showScenario('poor', this)">⚠️ Poor High Short</button>
+      <button class="seg-btn" onclick="showScenario('poc', this)">🧲 POC Magnet</button>
+    </div>
+
+    <!-- VAL BOUNCE -->
+    <div id="sc-val">
+      <div class="eg-card positive">
+        <div class="eg-header">
+          <span class="eg-badge">LONG SETUP</span>
+          <span class="eg-title">VAL Bounce — 24,155-ல் Buy</span>
+        </div>
+        <p style="font-size:13.5px; color:var(--muted); margin-bottom:1rem;">
+          அடுத்த நாள் (24-Apr) காலை சந்தை <strong style="color:var(--text);">24,155 (VAL) நோக்கி இறங்கி வந்தால்</strong> — இந்த நிலையில் bounce trade. Value Area-ல் 70% நேரம் சந்தை இருந்தது — VAL சரியான support.
+        </p>
+        <table class="step-table">
+          <thead><tr><th>விவரம்</th><th>Spot</th><th>Nifty Futures</th><th>CE/PE Option</th></tr></thead>
+          <tbody>
+            <tr><td>Entry</td><td class="tag-teal">24,155</td><td class="tag-teal">24,160</td><td class="tag-teal">24,150 CE Buy</td></tr>
+            <tr><td>Target 1 (POC)</td><td class="tag-profit">24,180 (+25)</td><td class="tag-profit">24,185</td><td class="tag-profit">POC reach = +15–20 pts CE</td></tr>
+            <tr><td>Target 2 (VAH)</td><td class="tag-profit">24,215 (+60)</td><td class="tag-profit">24,220</td><td class="tag-profit">Full VA fill</td></tr>
+            <tr><td>Stop Loss</td><td class="tag-loss">24,140 (-15)</td><td class="tag-loss">24,140</td><td class="tag-loss">VA-க்கு கீழே close</td></tr>
+            <tr><td>Risk:Reward</td><td colspan="3" class="tag-warn">1:2 (15 pts risk → 30–60 pts profit)</td></tr>
+          </tbody>
+        </table>
+        <div style="background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
+          <strong style="color:var(--green-light);">💡 Confirm Signal:</strong> VAL-ல் 5 நிமிட candle close ஆனால் மட்டுமே entry. Close கீழே போனால் skip!
+        </div>
+      </div>
+    </div>
+
+    <!-- VAH BREAKOUT -->
+    <div id="sc-vah" style="display:none;">
+      <div class="eg-card positive">
+        <div class="eg-header">
+          <span class="eg-badge">BREAKOUT LONG</span>
+          <span class="eg-title">VAH Breakout — 24,215-க்கு மேல் Buy</span>
+        </div>
+        <p style="font-size:13.5px; color:var(--muted); margin-bottom:1rem;">
+          விலை <strong style="color:var(--text);">24,215 (VAH)-ஐ தாண்டி close ஆனால்</strong> — Breakout trade. Value Area-க்கு மேல் போவது = புதிய buyers வருகின்றனர். Single Print zone 24,220–24,235 வேகமாக fill ஆகும்.
+        </p>
+        <table class="step-table">
+          <thead><tr><th>விவரம்</th><th>Level</th><th>விளக்கம்</th></tr></thead>
+          <tbody>
+            <tr><td>Entry</td><td class="tag-teal">24,220</td><td>VAH-ஐ தாண்டி 5-min close ஆனால்</td></tr>
+            <tr><td>Target 1</td><td class="tag-profit">24,240 (+20)</td><td>Single Print zone fill</td></tr>
+            <tr><td>Target 2</td><td class="tag-profit">24,285 (+65)</td><td>Poor High Revisit</td></tr>
+            <tr><td>Target 3</td><td class="tag-profit">24,300 (+80)</td><td>IB High area</td></tr>
+            <tr><td>Stop Loss</td><td class="tag-loss">24,205 (-15)</td><td>VAH-க்கு உள்ளே திரும்பினால்</td></tr>
+          </tbody>
+        </table>
+        <div style="background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
+          <strong style="color:var(--green-light);">💡 அடிப்படை விதி:</strong> Single Prints "gap" போல் act செய்யும் — விலை அங்கு வந்தால் வேகமாக நகரும். அதை ஒரு Target ஆக வையுங்கள்.
+        </div>
+      </div>
+    </div>
+
+    <!-- POOR HIGH SHORT -->
+    <div id="sc-poor" style="display:none;">
+      <div class="eg-card negative">
+        <div class="eg-header">
+          <span class="eg-badge">SHORT SETUP</span>
+          <span class="eg-title">Poor High Fade — 24,280–24,285-ல் Sell</span>
+        </div>
+        <p style="font-size:13.5px; color:var(--muted); margin-bottom:1rem;">
+          முந்தைய நாள் <strong style="color:var(--text);">Poor High 24,285</strong> — சந்தை அங்கு போய் விரைவாக திரும்பியது. Unfinished Auction. அடுத்த நாள் விலை மீண்டும் 24,280–24,285-க்கு வந்தால் <strong style="color:var(--red-light);">short opportunity.</strong>
+        </p>
+        <table class="step-table">
+          <thead><tr><th>விவரம்</th><th>Level</th><th>விளக்கம்</th></tr></thead>
+          <tbody>
+            <tr><td>Entry (Short)</td><td class="tag-loss">24,280–24,285</td><td>Poor High zone, rejection candle பார்க்கவும்</td></tr>
+            <tr><td>Target 1</td><td class="tag-profit">24,215 (VAH)</td><td>VA-க்கு திரும்ப வரும்</td></tr>
+            <tr><td>Target 2</td><td class="tag-profit">24,180 (POC)</td><td>POC Magnet effect</td></tr>
+            <tr><td>Stop Loss</td><td class="tag-loss">24,295 (+10)</td><td>Poor High-ஐ தாண்டினால் exit</td></tr>
+            <tr><td>Risk:Reward</td><td colspan="2" class="tag-warn">1:4 (10 pts risk → 65–100 pts potential)</td></tr>
+          </tbody>
+        </table>
+        <div style="background:rgba(232,64,64,0.1); border:1px solid rgba(232,64,64,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
+          <strong style="color:var(--red-light);">⚠️ எச்சரிக்கை:</strong> Poor High confirm ஆகவில்லை என்றால் — அதாவது விலை 24,295-க்கு மேல் close ஆனால் — உடனே exit. Unfinished Auction-ஐ market fill செய்துகொண்டு மேலே போகும்.
+        </div>
+      </div>
+    </div>
+
+    <!-- POC MAGNET -->
+    <div id="sc-poc" style="display:none;">
+      <div class="eg-card neutral">
+        <div class="eg-header">
+          <span class="eg-badge">MEAN REVERSION</span>
+          <span class="eg-title">POC Magnet — 24,180 Target வையுங்கள்</span>
+        </div>
+        <p style="font-size:13.5px; color:var(--muted); margin-bottom:1rem;">
+          விலை VA-ல் இருக்கும்போது — <strong style="color:var(--text);">எந்த trade போட்டாலும் POC 24,180 ஒரு Partial Profit Target</strong>. விலை VA-ல் இருக்கும்வரை POC-ஐ நோக்கி திரும்பும். இது mean reversion-ன் அடிப்படை.
+        </p>
+        <table class="step-table">
+          <thead><tr><th>நிலை</th><th>சந்தை எங்கு இருக்கிறது</th><th>POC என்ன செய்யும்</th></tr></thead>
+          <tbody>
+            <tr><td>VAL (24,155)-ல் இருந்தால்</td><td class="tag-teal">Value Area-ல்</td><td class="tag-profit">POC 24,180 நோக்கி above move → T1</td></tr>
+            <tr><td>VAH (24,215)-ல் இருந்தால்</td><td class="tag-teal">Value Area-ல்</td><td class="tag-profit">POC 24,180 நோக்கி below move → T1</td></tr>
+            <tr><td>VA-க்கு வெளியே போனால்</td><td class="tag-loss">Breakout</td><td class="tag-warn">POC magnet பலவீனமாகும், trend follow</td></tr>
+            <tr><td>POC-ஐ தாண்டினால்</td><td class="tag-teal">Continuation</td><td class="tag-profit">அடுத்த level (VAH/VAL) target</td></tr>
+          </tbody>
+        </table>
+        <div style="background:rgba(77,214,197,0.08); border:1px solid rgba(77,214,197,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
+          <strong style="color:var(--teal);">💡 Partial Profit உத்தி:</strong> எந்த long/short trade-ல் இருந்தாலும் — POC-க்கு வந்தவுடன் 50% position close செய்யுங்கள். Rest-ஐ trail stop-ல் விடுங்கள்.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: MARKET TYPES -->
+  <div class="section">
+    <div class="section-title">சந்தை வகைகள் — Market Types</div>
+    <div class="section-sub">Market Profile chart பார்த்தவுடன் இன்று சந்தை என்ன வகை என்று புரிந்துகொள்ளுங்கள்</div>
+
+    <div class="concept-grid">
+      <div class="concept-card" style="border-color:rgba(46,204,113,0.3);">
+        <div class="cc-icon">📈</div>
+        <div class="cc-title" style="color:var(--green-light);">Trend Day</div>
+        <div class="cc-body">IB Narrow. விலை ஒரே திசையில் போகும். ஒவ்வொரு period-லும் புதிய High அல்லது Low. Value Area expand ஆகும். <strong style="color:var(--text);">IB breakout = trend follow.</strong></div>
+      </div>
+      <div class="concept-card" style="border-color:rgba(77,214,197,0.3);">
+        <div class="cc-icon">↔️</div>
+        <div class="cc-title" style="color:var(--teal);">Balance / Range Day</div>
+        <div class="cc-body">IB Wide. Value Area compact. POC நடுவில். சந்தை VA-க்குள்ளேயே நகரும். <strong style="color:var(--text);">VAL buy, VAH sell, POC skip.</strong></div>
+      </div>
+      <div class="concept-card" style="border-color:rgba(245,192,74,0.3);">
+        <div class="cc-icon">🔄</div>
+        <div class="cc-title" style="color:var(--gold);">Double Distribution</div>
+        <div class="cc-body">இரு தனி POC. காலை ஒரு range, மதியம் இன்னொரு range. இடையில் Single Prints. <strong style="color:var(--text);">இரு distribution மத்தியில் உள்ள Single Prints = fast move zone.</strong></div>
+      </div>
+      <div class="concept-card" style="border-color:rgba(232,64,64,0.3);">
+        <div class="cc-icon">🌪️</div>
+        <div class="cc-title" style="color:var(--red-light);">Neutral Day</div>
+        <div class="cc-body">IB-ஐ இரு பக்கமும் உடைக்கும். Value Area IB-ல் மட்டும். கடைசி நேரத்தில் திரும்பும். <strong style="color:var(--text);">Direction unclear — அவசரமில்லை.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: STEP BY STEP PROCESS -->
+  <div class="section">
+    <div class="section-title">⚙️ காலை 9:15 — Trade Plan Process</div>
+    <div class="section-sub">Market Profile Tool திறந்தால் என்ன order-ல் பார்க்க வேண்டும்?</div>
+
+    <div class="rules-box">
+      <div class="rule-item">
+        <span class="rule-num">01</span>
+        <span class="rule-text"><span>முந்தைய நாள் Profile load செய்யுங்கள்</span> — Market Profile tool → symbol தேர்ந்தெடுங்கள் → நேற்றைய தேதி → Load Profile.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">02</span>
+        <span class="rule-text"><span>POC, VAH, VAL</span> level-களை நோட்டுப்புத்தகத்தில் எழுதுங்கள் — இவைதான் இன்றைக்கான "map".</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">03</span>
+        <span class="rule-text"><span>Poor High / Poor Low</span> பார்க்கவும் — அடுத்த நாள் சந்தை அங்கு போகும் வாய்ப்பு அதிகம். Alert வையுங்கள்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">04</span>
+        <span class="rule-text">GIFT Nifty gap பார்க்கவும் — <span>VA-க்கு மேல் Open ஆனால் Breakout scenario, VA-க்கு கீழ் Open ஆனால் VAL test.</span></span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">05</span>
+        <span class="rule-text"><span>9:15–10:15 IB form ஆகட்டும்</span> — அவசரப்பட வேண்டாம். IB narrow என்றால் trend day வரலாம், wide என்றால் range day.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">06</span>
+        <span class="rule-text">VA-க்கு உள்ளே price → <span>POC trade</span> / VA-க்கு வெளியே close → <span>Breakout trade.</span> இரண்டும் clear ஆக இல்லை என்றால் wait.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">07</span>
+        <span class="rule-text"><span class="red">Naked POC</span> உள்ளதா பாருங்கள் — முந்தைய நாள் POC-ஐ revisit செய்யவில்லை என்றால், இன்று price அங்கு போக வாய்ப்பு. Target ஆக வையுங்கள்.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: GOLDEN RULES -->
+  <div class="section">
+    <div class="section-title">📋 Market Profile — பொன்னான விதிகள்</div>
+    <div class="section-sub">இந்த விதிகளை கடைப்பிடித்தால் எந்த trade-லும் தெளிவாக இருப்பீர்கள்</div>
+    <div class="rules-box">
+      <div class="rule-item">
+        <span class="rule-num">01</span>
+        <span class="rule-text"><span>70% விதி:</span> Value Area-க்குள் Open ஆனால் — VA-க்குள்ளேயே remain ஆகும் வாய்ப்பு 70%. Mean reversion trade செய்யுங்கள்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">02</span>
+        <span class="rule-text"><span>IB Range விதி:</span> IB < 80 pts → Trend Day வரலாம். IB > 120 pts → Range Day. IB break = momentum follow.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">03</span>
+        <span class="rule-text"><span>Poor High = Unfinished Business.</span> அடுத்த 2–3 நாளில் revisit வரும். Long setup அல்ல — <span class="red">Short fade opportunity.</span></span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">04</span>
+        <span class="rule-text"><span>Single Prints = Fast Lane.</span> விலை அங்கு வந்தால் நிற்காது. Stop Loss வையுங்கள் — இல்லாவிட்டால் target miss ஆகும்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">05</span>
+        <span class="rule-text"><span class="gold">Naked POC</span> = Gravity. முந்தைய நாள் POC touch செய்யவில்லை என்றால் — அது ஒரு magnet. அடுத்த நாள் price அங்கு போகும்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">06</span>
+        <span class="rule-text">Multi-Day Profile பார்க்கவும் — <span>3–5 நாள் composite</span> profile, ஒரு நாள் profile-ஐ விட powerful support/resistance கொடுக்கும்.</span>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">07</span>
+        <span class="rule-text">Market Profile + <span>Trade Flow tool</span> சேர்த்து பயன்படுத்துங்கள் — ORB phase-ல் IB break ஆனால் momentum trade, Post-ORB-ல் POC/VAL trade.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-card">
+    <h3>🌟 Market Profile — சுருக்கம்</h3>
+    <p style="margin-bottom:8px;">POC = காந்தம் · VAH/VAL = எல்லைகள் · IB = ஆரம்ப வரம்பு · Single Prints = வேக zone · Poor High/Low = Unfinished Auction</p>
+    <p><strong style="color:var(--gold);">VA-க்கு உள்ளே</strong> இருந்தால் fade the extremes (mean reversion). <strong style="color:var(--teal);">VA-க்கு வெளியே</strong> close ஆனால் breakout follow செய்யுங்கள். <strong style="color:var(--red-light);">Poor High-ல்</strong> short fade செய்யுங்கள்.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>⚠️ எச்சரிக்கை:</strong> இது கல்வி நோக்கத்திற்காக மட்டுமே. Trading-ல் நஷ்ட ஆபத்து உண்டு.<br>
+    எப்போதும் Stop-Loss பயன்படுத்துங்கள். SEBI-பதிவு பெற்ற ஆலோசகரிடம் கலந்தாலோசியுங்கள்.<br><br>
+    <a href="market_profile.html" style="color:var(--teal); text-decoration:none;">📊 Market Profile Tool திறக்கவும் →</a>
+  </div>
+</div>
+
+<script>
+/* ── TPO Canvas Chart ── */
+(function drawTPO() {
+  const canvas = document.getElementById('tpoCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  /* Data: price → letters (simplified real NIFTY 23-Apr-2026 approximation) */
+  const profile = [
+    { p: 24285, letters: ['A'],                  poor: true },
+    { p: 24280, letters: ['A'],                  poor: false },
+    { p: 24275, letters: ['A'],                  poor: false },
+    { p: 24270, letters: ['A'],                  poor: false },
+    { p: 24265, letters: ['A'],                  poor: false },
+    { p: 24260, letters: ['A', 'B'],             poor: false },
+    { p: 24255, letters: ['A', 'B'],             poor: false },
+    { p: 24250, letters: ['A', 'B'],             poor: false },
+    { p: 24245, letters: ['A', 'B'],             poor: false },
+    { p: 24235, letters: ['K'],                  single: true },
+    { p: 24230, letters: ['K'],                  single: true },
+    { p: 24225, letters: ['J', 'K'],             single: true },
+    { p: 24220, letters: ['J', 'K'],             single: true },
+    { p: 24215, letters: ['I', 'J', 'K'],        vah: true },
+    { p: 24210, letters: ['H', 'I', 'J', 'K'],  va: true },
+    { p: 24205, letters: ['G', 'H', 'I', 'J'],  va: true },
+    { p: 24200, letters: ['F', 'G', 'H', 'I'],  va: true },
+    { p: 24195, letters: ['E', 'F', 'G', 'H'],  va: true },
+    { p: 24190, letters: ['E', 'F', 'G'],        va: true },
+    { p: 24185, letters: ['D', 'E', 'F', 'G'],  va: true },
+    { p: 24180, letters: ['C', 'D', 'E', 'F', 'G', 'H', 'I'], poc: true },
+    { p: 24175, letters: ['C', 'D', 'E', 'F'],  va: true },
+    { p: 24170, letters: ['C', 'D', 'E'],        va: true },
+    { p: 24165, letters: ['B', 'C', 'D', 'E'],  va: true },
+    { p: 24160, letters: ['B', 'C', 'D'],        va: true },
+    { p: 24155, letters: ['B', 'C'],             val: true },
+    { p: 24150, letters: ['A', 'B', 'C'],        poor: false },
+    { p: 24145, letters: ['A', 'B'],             poor: false },
+    { p: 24140, letters: ['A', 'B'],             poor: false },
+    { p: 24135, letters: ['A'],                  poor: false },
+    { p: 24130, letters: ['A'],                  poor: false },
+    { p: 24125, letters: ['A'],                  poor: false },
+  ];
+
+  const IB_H = 24285;
+  const IB_L = 24125;
+  const maxLen = Math.max(...profile.map(r => r.letters.length));
+
+  const PAD_L = 62;
+  const PAD_R = 16;
+  const PAD_T = 12;
+  const PAD_B = 12;
+  const chartH = H - PAD_T - PAD_B;
+  const chartW = W - PAD_L - PAD_R;
+  const ROW_H  = Math.floor(chartH / profile.length);
+  const barMaxW = chartW - 8;
+  const CELL_W  = Math.min(20, Math.floor(barMaxW / (maxLen + 1)));
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0a1520';
+  ctx.fillRect(0, 0, W, H);
+
+  /* IB background */
+  const ibTopIdx = profile.findIndex(r => r.p === IB_H);
+  const ibBotIdx = profile.findIndex(r => r.p === IB_L);
+  if (ibTopIdx >= 0 && ibBotIdx >= 0) {
+    const ibY  = PAD_T + ibTopIdx * ROW_H;
+    const ibH2 = (ibBotIdx - ibTopIdx + 1) * ROW_H;
+    ctx.fillStyle = 'rgba(245,192,74,0.06)';
+    ctx.fillRect(PAD_L, ibY, chartW, ibH2);
+  }
+
+  profile.forEach((row, i) => {
+    const y = PAD_T + i * ROW_H;
+    const cnt = row.letters.length;
+    const barW = Math.max(2, cnt * CELL_W);
+
+    /* Bar color */
+    let color;
+    if (row.poc)    color = '#FF4444';
+    else if (row.single) color = '#CC7700';
+    else if (row.vah || row.val) color = '#3366CC';
+    else if (row.va) color = '#2255AA';
+    else             color = '#3a5060';
+
+    if (row.poor) color = '#885588';
+
+    /* Draw bar */
+    ctx.fillStyle = color;
+    ctx.fillRect(PAD_L + 2, y + 1, barW, ROW_H - 2);
+
+    /* TPO letters */
+    ctx.fillStyle = '#dde8f0';
+    ctx.font = `${Math.max(7, Math.min(11, CELL_W - 2))}px JetBrains Mono, monospace`;
+    ctx.textBaseline = 'middle';
+    row.letters.forEach((letter, li) => {
+      ctx.fillText(letter, PAD_L + 4 + li * CELL_W, y + ROW_H / 2);
+    });
+
+    /* Price label */
+    ctx.fillStyle = row.poc ? '#FF6666' : row.vah || row.val ? '#5588FF' : '#6e87a2';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(row.p.toLocaleString('en-IN'), PAD_L - 4, y + ROW_H / 2);
+    ctx.textAlign = 'left';
+  });
+
+  /* POC dashed line */
+  const pocIdx = profile.findIndex(r => r.poc);
+  if (pocIdx >= 0) {
+    const pocY = PAD_T + pocIdx * ROW_H + ROW_H / 2;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = 'rgba(255,68,68,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, pocY);
+    ctx.lineTo(W - PAD_R, pocY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  /* VAH dashed line */
+  const vahIdx = profile.findIndex(r => r.vah);
+  if (vahIdx >= 0) {
+    const vahY = PAD_T + vahIdx * ROW_H;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = 'rgba(51,153,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, vahY);
+    ctx.lineTo(W - PAD_R, vahY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#3399FF';
+    ctx.font = '9px JetBrains Mono, monospace';
+    ctx.fillText('VAH', W - PAD_R - 26, vahY - 3);
+  }
+
+  /* VAL dashed line */
+  const valIdx = profile.findIndex(r => r.val);
+  if (valIdx >= 0) {
+    const valY = PAD_T + (valIdx + 1) * ROW_H;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = 'rgba(51,153,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, valY);
+    ctx.lineTo(W - PAD_R, valY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#3399FF';
+    ctx.font = '9px JetBrains Mono, monospace';
+    ctx.fillText('VAL', W - PAD_R - 26, valY + 9);
+  }
+})();
+
+/* ── Scenario Tab Switcher ── */
+function showScenario(id, btn) {
+  ['val','vah','poor','poc'].forEach(s => {
+    document.getElementById('sc-' + s).style.display = s === id ? '' : 'none';
+  });
+  document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+
+<footer class="tz-footer">
+  <div class="tz-footer-inner">
+    <div class="tz-footer-brand">
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+      <p class="tz-footer-desc">Market Profile, Theta Decay, Options strategies-ஐ தமிழில் கற்றுத்தரும் இலவச தளம். SEBI 2026 விதிகளுக்கு ஏற்ப தொடர்ந்து update ஆகும்.</p>
+      <p class="tz-footer-copy">© 2026 TradeZen · Educational Purpose Only · Not SEBI Registered</p>
+    </div>
+    <div class="tz-footer-links">
+      <a href="market_profile.html">📊 Market Profile Tool</a>
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly Straddle</a>
+      <a href="options_entry_tool_tamil.html">🎯 Options Buying Tool</a>
+      <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
+      <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+      <a href="fno_signal.html">🤖 F&O AI Signal</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

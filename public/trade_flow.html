@@ -541,8 +541,12 @@ let currentScenario = 'bull';
 let currentStep     = 1;
 let flowData        = null;   // latest /api/trade-flow response
 let autoScenario    = null;   // scenario from server
-let editingOhlc     = false;  // true while OHLC edit form is open — pauses Step 2 re-render
-let giftRefClose    = null;   // reference close for gap = GIFT Nifty − giftRefClose
+let editingOhlc          = false;  // true while OHLC edit form is open — pauses Step 2 re-render
+let editingGift          = false;  // true while GIFT Nifty form is open — pauses Step 1 re-render
+let editingOrb           = false;  // true while ORB entry form is open — pauses Step 5 re-render
+let editingNiftyOpen     = false;  // true while opening-price form is open
+let giftRefClose         = null;   // reference close for gap = GIFT Nifty − giftRefClose
+let lastAutoAdvancePhase = null;   // tracks last phase that triggered auto step-advance
                               // defaults to prev_day.close but user can set to futures close
 
 // ─────────────────────────────────────────────
@@ -636,6 +640,7 @@ function renderStep1(d) {
     const refClose = giftRefClose || prev.close;
 
     if (!gift) {
+      if (editingGift) return;   // user is typing — don't clobber the form
       el.innerHTML = `
         <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
                     padding:16px 20px">
@@ -658,6 +663,7 @@ function renderStep1(d) {
                            letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);
                            margin-bottom:5px">GIFT Nifty Current</div>
               <input id="inp-gift" type="number" placeholder="e.g. 24181" step="0.05"
+                onfocus="editingGift=true"
                 style="width:100%;background:var(--bg);border:1px solid var(--border2);
                        color:var(--text);border-radius:6px;padding:7px 10px;
                        font-family:'JetBrains Mono',monospace;font-size:13px">
@@ -667,7 +673,7 @@ function renderStep1(d) {
                            letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);
                            margin-bottom:5px">Reference Close ⓘ</div>
               <input id="inp-gift-ref" type="number" placeholder="Prev futures close" step="0.05"
-                value="${refClose}"
+                value="${refClose}" onfocus="editingGift=true"
                 style="width:100%;background:var(--bg);border:1px solid var(--border2);
                        color:var(--text);border-radius:6px;padding:7px 10px;
                        font-family:'JetBrains Mono',monospace;font-size:13px">
@@ -692,6 +698,7 @@ function renderStep1(d) {
 
     // We have a GIFT Nifty price — compute gap vs reference close
     const gap      = gift - refClose;
+    const label    = gapLabel(gap);
     const isBull   = gap > 50;
     const isBear   = gap < -50;
     const boxClass = isBull ? 'sb-bull' : isBear ? 'sb-bear' : 'sb-neutral';
@@ -736,20 +743,64 @@ function renderStep1(d) {
     return;
   }
 
-  // ── After 9:15 AM: gap = actual opening price – prev close ───────────────
-  const openPrice = d.nifty_open ? d.nifty_open.price : d.nifty_ltp;
-  const gap       = (openPrice && prev.close) ? openPrice - prev.close : null;
-  const label     = gapLabel(gap);
-  const isBull    = gap != null && gap > 50;
-  const isBear    = gap != null && gap < -50;
-  const boxClass  = isBull ? 'sb-bull' : isBear ? 'sb-bear' : 'sb-neutral';
+  // ── After 9:15 AM: show actual opening gap ───────────────────────────────
+  // If the engine started late and missed the 9:15 tick, nifty_open will be null.
+  // In that case show a manual entry form instead of guessing with current LTP.
+  const openPrice = d.nifty_open ? d.nifty_open.price : null;
+
+  if (!openPrice) {
+    if (editingNiftyOpen) return;
+    const giftRef = d.gift_nifty
+      ? `<div style="margin-top:10px;font-size:11px;color:var(--muted);
+                     border-top:1px solid var(--border);padding-top:10px">
+           Pre-market GIFT Nifty (reference): <strong style="color:var(--cyan)">${fmt(d.gift_nifty)}</strong>
+         </div>`
+      : '';
+    el.innerHTML = `
+      <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:16px 20px">
+        <div style="font-size:13px;color:var(--yellow);margin-bottom:6px;font-weight:600">
+          ⚠️ Opening Price Missing — Engine Started Late
+        </div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:12px">
+          Engine was started after 9:15 AM — opening tick not captured.
+          Enter the 9:15 AM candle open from your broker chart.
+        </div>
+        <div style="font-family:'Tiro Tamil',serif;font-size:12px;color:var(--dim);margin-bottom:14px">
+          9:15 AM-ல் NIFTY திறந்த விலையை உங்கள் chart-ல் பார்த்து உள்ளிடுங்கள்.
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+                         text-transform:uppercase;color:var(--cyan);margin-bottom:4px">NIFTY Open (9:15 AM)</div>
+            <input id="nifty-open-inp" type="number" placeholder="e.g. 24420" step="0.05"
+              onfocus="editingNiftyOpen=true"
+              style="width:140px;background:var(--bg);border:1px solid var(--border2);
+                     color:var(--text);border-radius:6px;padding:7px 10px;
+                     font-family:'JetBrains Mono',monospace;font-size:13px">
+          </div>
+          <button onclick="submitNiftyOpen()"
+            style="background:var(--cyan);color:#000;border:none;border-radius:6px;
+                   padding:7px 18px;font-weight:700;font-size:13px;cursor:pointer">
+            Set Opening Price
+          </button>
+        </div>
+        ${giftRef}
+      </div>`;
+    return;
+  }
+
+  const gap      = prev.close ? openPrice - prev.close : null;
+  const label    = gapLabel(gap);
+  const isBull   = gap != null && gap > 50;
+  const isBear   = gap != null && gap < -50;
+  const boxClass = isBull ? 'sb-bull' : isBear ? 'sb-bear' : 'sb-neutral';
 
   el.innerHTML = `
     <div class="scenario-box ${boxClass}">
       <div class="sb-title">${label}</div>
       <div class="data-row"><span class="dr-label">Previous Nifty Close</span>
         <span class="dr-val">${fmt(prev.close)} (${prev.date})</span></div>
-      <div class="data-row"><span class="dr-label">NIFTY Open (actual)</span>
+      <div class="data-row"><span class="dr-label">NIFTY Open (9:15 AM)</span>
         <span class="dr-val ${gap != null ? (gap >= 0 ? 'dv-green' : 'dv-red') : ''}">${fmt(openPrice)}</span></div>
       <div class="data-row"><span class="dr-label">Gap (Open − Prev Close)</span>
         <span class="dr-val ${gap != null ? (gap >= 0 ? 'dv-green' : 'dv-red') : 'dv-dim'}">${gap != null ? fmtDiff(gap) : '—'}</span></div>
@@ -758,7 +809,12 @@ function renderStep1(d) {
     </div>
     <div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">
       Gap locked at market open. See Step 4 for opening price vs CPR position.
-    </div>`;
+    </div>
+    <button onclick="resetNiftyOpen()"
+      style="margin-top:6px;background:transparent;border:1px solid var(--border);
+             color:var(--muted);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer">
+      ✏️ Correct Opening Price
+    </button>`;
 }
 
 function renderStep2(d) {
@@ -990,11 +1046,55 @@ function renderStep5(d) {
   const el  = document.getElementById('s5-content');
 
   if (!orb) {
-    el.innerHTML = `<div class="no-data">
-      <div class="nd-icon">📊</div>
-      <div>9:30 AM-ல் முதல் candle close ஆனதும் ORB data கிடைக்கும்.</div>
-      <div class="nd-ta">9:30 AM வரை காத்திருங்கள்.</div>
-    </div>`;
+    if (editingOrb) return;   // user is typing — don't clobber the form
+    // Check if it's already past 9:30 AM — if so, show manual entry form
+    const isPast930 = d && (d.phase === 'orb' || d.phase === 'closed');
+    if (isPast930) {
+      el.innerHTML = `
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:16px 20px">
+          <div style="font-size:13px;color:var(--yellow);margin-bottom:6px;font-weight:600">
+            ⚠️ ORB Data Missing — Engine Started Late
+          </div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:12px">
+            Engine was started after 9:30 AM so the 9:15–9:30 ticks were missed.
+            Enter the ORB High and Low from your broker chart (9:15 candle).
+          </div>
+          <div style="font-family:'Tiro Tamil',serif;font-size:12px;color:var(--dim);margin-bottom:14px">
+            9:15–9:30 candle High/Low-ஐ உங்கள் chart-ல் பார்த்து உள்ளிடுங்கள்.
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+                           text-transform:uppercase;color:var(--green);margin-bottom:4px">ORB High</div>
+              <input id="orb-inp-high" type="number" placeholder="e.g. 24520" step="0.05"
+                onfocus="editingOrb=true"
+                style="width:110px;background:var(--bg);border:1px solid var(--border2);
+                       color:var(--text);border-radius:6px;padding:6px 8px;
+                       font-family:'JetBrains Mono',monospace;font-size:13px">
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+                           text-transform:uppercase;color:var(--red);margin-bottom:4px">ORB Low</div>
+              <input id="orb-inp-low" type="number" placeholder="e.g. 24390" step="0.05"
+                onfocus="editingOrb=true"
+                style="width:110px;background:var(--bg);border:1px solid var(--border2);
+                       color:var(--text);border-radius:6px;padding:6px 8px;
+                       font-family:'JetBrains Mono',monospace;font-size:13px">
+            </div>
+            <button onclick="submitOrb()"
+              style="background:var(--yellow);color:#000;border:none;border-radius:6px;
+                     padding:7px 18px;font-weight:700;font-size:13px;cursor:pointer;margin-top:18px">
+              Set ORB
+            </button>
+          </div>
+        </div>`;
+    } else {
+      el.innerHTML = `<div class="no-data">
+        <div class="nd-icon">📊</div>
+        <div>9:30 AM-ல் முதல் candle close ஆனதும் ORB data கிடைக்கும்.</div>
+        <div class="nd-ta">9:30 AM வரை காத்திருங்கள்.</div>
+      </div>`;
+    }
     return;
   }
 
@@ -1195,6 +1295,7 @@ function tickClock() {
 // Data fetch
 // ─────────────────────────────────────────────
 async function submitGiftNifty() {
+  editingGift = false;   // allow re-render after submit
   const price = parseFloat(document.getElementById('inp-gift').value);
   const ref   = parseFloat(document.getElementById('inp-gift-ref').value);
   if (!price || isNaN(price)) { alert('Valid GIFT Nifty price-ஐ உள்ளிடுங்கள்.'); return; }
@@ -1213,7 +1314,59 @@ async function submitGiftNifty() {
   }
 }
 
+async function submitOrb() {
+  editingOrb = false;
+  const high = parseFloat(document.getElementById('orb-inp-high').value);
+  const low  = parseFloat(document.getElementById('orb-inp-low').value);
+  if (isNaN(high) || isNaN(low) || !high || !low) {
+    alert('ORB High மற்றும் Low-ஐ உள்ளிடுங்கள்.');
+    return;
+  }
+  if (high <= low) { alert('ORB High must be greater than Low.'); return; }
+  try {
+    const res = await fetch('/api/set-orb', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ high, low }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await fetchFlowData();
+  } catch (err) {
+    alert('Error setting ORB: ' + err.message);
+  }
+}
+
+async function submitNiftyOpen() {
+  editingNiftyOpen = false;
+  const price = parseFloat(document.getElementById('nifty-open-inp').value);
+  if (isNaN(price) || !price) { alert('9:15 AM-ல் NIFTY திறந்த விலையை உள்ளிடுங்கள்.'); return; }
+  try {
+    const res = await fetch('/api/set-nifty-open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ price }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await fetchFlowData();
+  } catch (err) {
+    alert('Error setting opening price: ' + err.message);
+  }
+}
+
+async function resetNiftyOpen() {
+  // Clears the manually-set opening price so the form re-appears for correction
+  try {
+    await fetch('/api/set-nifty-open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ price: 0 }),
+    });
+  } catch (_) {}
+  if (flowData) { flowData.nifty_open = null; renderStep1(flowData); }
+}
+
 async function clearGiftNifty() {
+  editingGift = false;
   try {
     await fetch('/api/set-gift-nifty', {
       method: 'POST',
@@ -1280,10 +1433,13 @@ async function fetchFlowData() {
     document.getElementById('refresh-note').textContent =
       `Last update: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
 
-    // Advance step progress based on phase
-    if (d.phase === 'market_open' && currentStep < 4) showStep(4);
-    else if (d.phase === 'orb'    && currentStep < 5) showStep(5);
-    else if (d.orb                && currentStep < 6) showStep(6);
+    // Auto-advance steps only once when phase first changes — never override user navigation
+    if (d.phase !== lastAutoAdvancePhase) {
+      lastAutoAdvancePhase = d.phase;
+      if      (d.phase === 'market_open') showStep(4);
+      else if (d.phase === 'orb')         showStep(5);
+      else if (d.phase === 'closed' && d.orb) showStep(6);
+    }
 
   } catch (err) {
     console.warn('Trade flow fetch error:', err.message);

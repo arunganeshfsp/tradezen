@@ -9,60 +9,20 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  :root {
-    --bg: #0D1B2A;
-    --bg2: #142233;
-    --bg3: #1C2F44;
-    --gold: #E8A117;
-    --gold: #F5C04A;
-    --gold-pale: #FDF0D0;
-    --teal: #1DB8A4;
-    --teal: #4DD6C5;
-    --red: #E84040;
-    --red-light: #FF6B6B;
-    --green: #2ECC71;
-    --green-light: #55E08A;
-    --text: #F0EEE8;
-    --muted: #9BA8B5;
-    --border: rgba(232,161,23,0.2);
-    --bg2: rgba(28,47,68,0.7);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--navy);
-    color: var(--text);
-    font-family: 'Noto Sans Tamil', sans-serif;
-    line-height: 1.8;
-    overflow-x: hidden;
-  }
-
-  /* Background pattern */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(232,161,23,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(29,184,164,0.05) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
+  /* Page layout */
   .container { max-width: 860px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
 
   /* HERO */
   .hero {
     text-align: center;
     padding: 3rem 1rem 2rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(245,200,66,0.14);
   }
   .hero-badge {
     display: inline-block;
-    background: rgba(232,161,23,0.15);
+    background: var(--gold-bg);
     color: var(--gold);
-    border: 1px solid rgba(232,161,23,0.3);
+    border: 1px solid rgba(245,200,66,0.25);
     border-radius: 20px;
     padding: 4px 16px;
     font-size: 12px;
@@ -78,15 +38,10 @@
     margin-bottom: 0.5rem;
   }
   .hero h1 span { color: var(--teal); }
-  .hero p {
-    font-size: 15px;
-    color: var(--muted);
-    max-width: 540px;
-    margin: 0 auto;
-  }
+  .hero p { font-size: 15px; color: var(--muted); max-width: 540px; margin: 0 auto; }
 
   /* SECTION */
-  .section { padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+  .section { padding: 2.5rem 0; border-bottom: 1px solid rgba(245,200,66,0.1); }
   .section-title {
     font-family: 'Noto Serif Tamil', serif;
     font-size: 1.3rem;
@@ -110,7 +65,7 @@
   .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
   @media(max-width:540px){ .concept-grid { grid-template-columns: 1fr; } }
   .concept-card {
-    background: var(--card);
+    background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.1rem 1.2rem;
@@ -121,11 +76,11 @@
 
   /* FORMULA BOX */
   .formula-box {
-    background: rgba(29,184,164,0.08);
-    border: 1px solid rgba(29,184,164,0.25);
+    background: var(--teal-bg);
+    border: 1px solid rgba(45,212,191,0.22);
     border-radius: 10px;
     padding: 1rem 1.25rem;
-    font-family: 'DM Mono', monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 13.5px;
     color: var(--teal);
     margin: 1rem 0;
@@ -135,7 +90,7 @@
 
   /* CHART AREA */
   .chart-card {
-    background: var(--card);
+    background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 1.4rem;
@@ -153,7 +108,7 @@
     flex: 1; min-width: 100px;
     -webkit-appearance: none;
     height: 4px;
-    background: rgba(232,161,23,0.3);
+    background: var(--gold-bg);
     border-radius: 2px;
     outline: none;
   }
@@ -164,79 +119,71 @@
     background: var(--gold);
     cursor: pointer;
   }
+
+  /* SEGMENT BUTTONS */
   .seg-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
   .seg-btn {
     font-family: 'Noto Sans Tamil', sans-serif;
     font-size: 12px; padding: 5px 14px;
-    border: 1px solid rgba(232,161,23,0.3);
+    border: 1px solid rgba(245,200,66,0.25);
     background: transparent; color: var(--muted);
     border-radius: 20px; cursor: pointer; transition: all 0.2s;
   }
-  .seg-btn.active { background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+  .seg-btn.active { background: var(--gold); color: var(--bg); font-weight: 600; border-color: var(--gold); }
   .seg-btn:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
 
   /* STAT PILLS */
   .stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 1rem 0; }
   .stat-pill {
-    background: rgba(13,27,42,0.8);
+    background: var(--bg3);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 10px;
     text-align: center;
   }
-  .stat-pill .sp-val { font-size: 1.3rem; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .stat-pill .sp-val { font-size: 1.3rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
   .stat-pill .sp-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-  /* EXAMPLE CARDS - POSITIVE / NEGATIVE */
+  /* EXAMPLE CARDS */
   .eg-card {
     border-radius: 14px;
     padding: 1.4rem;
     margin-bottom: 1.2rem;
     border: 1px solid;
   }
-  .eg-card.positive {
-    background: rgba(46,204,113,0.06);
-    border-color: rgba(46,204,113,0.25);
-  }
-  .eg-card.negative {
-    background: rgba(232,64,64,0.06);
-    border-color: rgba(232,64,64,0.25);
-  }
-  .eg-card .eg-header {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;
-  }
-  .eg-badge {
-    font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600;
-  }
-  .positive .eg-badge { background: rgba(46,204,113,0.2); color: var(--green-light); }
-  .negative .eg-badge { background: rgba(232,64,64,0.2); color: var(--red-light); }
+  .eg-card.positive { background: var(--green-bg); border-color: rgba(34,212,122,0.25); }
+  .eg-card.negative { background: var(--red-bg);   border-color: rgba(240,82,82,0.25); }
+  .eg-card .eg-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+  .eg-badge { font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+  .positive .eg-badge { background: rgba(34,212,122,0.18); color: var(--green); }
+  .negative .eg-badge { background: rgba(240,82,82,0.18);  color: var(--red); }
   .eg-title { font-size: 15px; font-weight: 600; }
-  .positive .eg-title { color: var(--green-light); }
-  .negative .eg-title { color: var(--red-light); }
+  .positive .eg-title { color: var(--green); }
+  .negative .eg-title { color: var(--red); }
 
   /* STEP TABLE */
   .step-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0.8rem 0; }
   .step-table th {
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--muted); padding: 6px 10px; text-align: left;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border2);
   }
-  .step-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+  .step-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .step-table tr:last-child td { border-bottom: none; }
-  .tag-profit { color: var(--green-light); font-family: 'DM Mono', monospace; font-weight: 600; }
-  .tag-loss   { color: var(--red-light);   font-family: 'DM Mono', monospace; font-weight: 600; }
-  .tag-warn   { color: var(--gold);        font-family: 'DM Mono', monospace; font-weight: 600; }
-  .tag-neutral{ color: var(--muted);  font-family: 'DM Mono', monospace; }
+  .tag-profit  { color: var(--green); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .tag-loss    { color: var(--red);   font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .tag-warn    { color: var(--gold);  font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .tag-neutral { color: var(--muted); font-family: 'JetBrains Mono', monospace; }
 
   /* DAY LABELS */
   .day-bar { display: flex; gap: 4px; margin-top: 6px; }
   .day-chip {
     flex: 1; text-align: center; padding: 4px 2px;
     border-radius: 6px; font-size: 10px;
-    background: rgba(232,161,23,0.1); color: var(--gold);
-    border: 1px solid rgba(232,161,23,0.2);
+    background: var(--gold-bg); color: var(--gold);
+    border: 1px solid rgba(245,200,66,0.18);
   }
-  .day-chip.expiry { background: rgba(232,64,64,0.15); color: var(--red-light); border-color: rgba(232,64,64,0.3); }
+  .day-chip.expiry { background: var(--red-bg); color: var(--red); border-color: rgba(240,82,82,0.25); }
 
   /* LEGEND */
   .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -245,21 +192,21 @@
 
   /* RULES BOX */
   .rules-box {
-    background: rgba(232,161,23,0.07);
-    border: 1px solid rgba(232,161,23,0.25);
+    background: var(--gold-bg);
+    border: 1px solid rgba(245,200,66,0.2);
     border-radius: 12px;
     padding: 1.2rem 1.4rem;
   }
-  .rule-item { display: flex; gap: 10px; padding: 6px 0; font-size: 13.5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .rule-item { display: flex; gap: 10px; padding: 6px 0; font-size: 13.5px; border-bottom: 1px solid var(--border); }
   .rule-item:last-child { border-bottom: none; }
-  .rule-num { color: var(--gold); font-weight: 700; min-width: 22px; font-family: 'DM Mono', monospace; }
+  .rule-num { color: var(--gold); font-weight: 700; min-width: 22px; font-family: 'JetBrains Mono', monospace; }
   .rule-text { color: var(--text); }
   .rule-text span { color: var(--teal); font-weight: 600; }
 
   /* SUMMARY */
   .summary-card {
-    background: linear-gradient(135deg, rgba(232,161,23,0.12) 0%, rgba(29,184,164,0.08) 100%);
-    border: 1px solid rgba(232,161,23,0.3);
+    background: linear-gradient(135deg, var(--gold-bg) 0%, var(--teal-bg) 100%);
+    border: 1px solid rgba(245,200,66,0.25);
     border-radius: 14px;
     padding: 1.5rem;
     text-align: center;
@@ -271,20 +218,20 @@
   }
   .summary-card p { font-size: 13.5px; color: var(--muted); max-width: 500px; margin: 0 auto; }
 
-  /* FOOTER */
-  .footer {
+  /* INLINE FOOTER (inside container, above site footer) */
+  .page-footer {
     text-align: center; padding: 2rem 1rem;
     font-size: 12px; color: var(--muted);
     border-top: 1px solid var(--border);
   }
-  .footer strong { color: var(--gold); }
+  .page-footer strong { color: var(--gold); }
 
-  /* PROGRESS BAR for premium decay */
+  /* PROGRESS BAR */
   .pbar-wrap { margin: 8px 0; }
   .pbar-label { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 4px; }
   .pbar-label .pb-day { color: var(--muted); }
-  .pbar-label .pb-val { color: var(--gold); font-family: 'DM Mono', monospace; }
-  .pbar-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+  .pbar-label .pb-val { color: var(--gold); font-family: 'JetBrains Mono', monospace; }
+  .pbar-track { height: 8px; background: var(--bg4); border-radius: 4px; overflow: hidden; }
   .pbar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
 </style>
 </head>
@@ -292,6 +239,7 @@
 <div class="tz-bg-orb tz-orb1"></div>
 <div class="tz-bg-orb tz-orb2"></div>
 <div class="tz-grid"></div>
+
 <nav class="tz-nav">
   <div class="tz-nav-inner">
     <a href="index.html" class="tz-logo">
@@ -306,13 +254,13 @@
       <a href="options_selling_tool_tamil.html">💰 Selling</a>
       <a href="swing_trading_tool_tamil.html">📈 Swing</a>
       <a href="theta_decay_tamil.html" class="tz-active">⏳ Theta</a>
+      <a href="market_profile_tamil.html">📊 Profile</a>
       <a href="fno_signal.html">🤖 F&O</a>
       <a href="contact.html">✉ Contact</a>
     </div>
     <a href="butterfly_straddle_tamil.html" class="tz-nav-cta teal">🦋 Butterfly →</a>
   </div>
 </nav>
-<style>.tz-nav{position:sticky;top:0;z-index:9999;background:rgba(7,16,29,0.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:sans-serif;}.tz-nav-inner{max-width:1100px;margin:0 auto;height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:8px;}.tz-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}.tz-logo-mark{width:30px;height:30px;background:#2dd4bf;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#07101d;flex-shrink:0;font-family:monospace;}.tz-logo-txt{font-family:monospace;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px;}.tz-logo-txt span{color:#2dd4bf;}.tz-links{display:flex;gap:2px;margin-left:auto;}.tz-links a{text-decoration:none;color:#6e87a2;font-size:12px;padding:5px 11px;border-radius:8px;transition:all 0.18s;white-space:nowrap;}.tz-links a:hover{color:#dce8f5;background:rgba(255,255,255,0.07);}@media(max-width:600px){.tz-links .tz-hide{display:none;}}</style>
 
 <!-- HERO -->
 <div class="container">
@@ -379,19 +327,19 @@
         <div class="sp-label">Thu — நுழைவு நாள்</div>
       </div>
       <div class="stat-pill">
-        <div class="sp-val" id="s2" style="color:var(--teal-light);">—</div>
+        <div class="sp-val" id="s2" style="color:var(--teal);">—</div>
         <div class="sp-label">Mon — மதி நாள்</div>
       </div>
       <div class="stat-pill">
-        <div class="sp-val" id="s3" style="color:var(--red-light);">—</div>
+        <div class="sp-val" id="s3" style="color:var(--red);">—</div>
         <div class="sp-label">Tue — Expiry</div>
       </div>
     </div>
 
     <div class="chart-card">
       <div class="legend">
-        <div class="leg"><span class="leg-sq" style="background:#E8A117;"></span>Premium மீதமிருப்பு</div>
-        <div class="leg"><span class="leg-sq" style="background:#E84040; border-radius:50%;"></span>தினசரி கரைவு</div>
+        <div class="leg"><span class="leg-sq" style="background:var(--gold);"></span>Premium மீதமிருப்பு</div>
+        <div class="leg"><span class="leg-sq" style="background:var(--red); border-radius:50%;"></span>தினசரி கரைவு</div>
       </div>
       <div class="chart-wrap">
         <canvas id="mainChart" role="img" aria-label="Theta decay chart showing premium erosion from Thursday entry to Tuesday expiry"></canvas>
@@ -406,7 +354,7 @@
       </div>
     </div>
 
-    <div id="modeInsight" style="font-size:13px; color:var(--text-muted); padding:10px 14px; border-left:3px solid var(--gold); background:rgba(232,161,23,0.07); border-radius:0 8px 8px 0;"></div>
+    <div id="modeInsight" style="font-size:13px; color:var(--muted); padding:10px 14px; border-left:3px solid var(--gold); background:var(--gold-bg); border-radius:0 8px 8px 0;"></div>
   </div>
 
   <!-- SECTION 3: POSITIVE SIDE (SELLER) -->
@@ -419,9 +367,9 @@
         <span class="eg-badge">SELLER</span>
         <span class="eg-title">உதாரணம் 1 — ATM Straddle விற்கிறோம்</span>
       </div>
-      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:1rem;">
+      <p style="font-size:13.5px; color:var(--muted); margin-bottom:1rem;">
         Nifty 23,500 இல் இருக்கிறது. <strong style="color:var(--text);">Thursday அன்று</strong> 23500 CE + 23500 PE இரண்டையும் விற்கிறோம்.<br>
-        மொத்த Premium சேகரிக்கப்பட்டது: <strong style="color:var(--green-light);">100 புள்ளிகள் = ₹7,500</strong> (1 lot × 75 units)
+        மொத்த Premium சேகரிக்கப்பட்டது: <strong style="color:var(--green);">100 புள்ளிகள் = ₹7,500</strong> (1 lot × 75 units)
       </p>
 
       <div id="sellerBars"></div>
@@ -475,9 +423,9 @@
         </tbody>
       </table>
 
-      <div style="background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px;">
-        <strong style="color:var(--green-light);">💡 Seller-ன் உத்தி:</strong>
-        <span style="color:var(--text-muted);"> செவ்வாய் காலை 10AM-க்கு முன்பே <strong style="color:var(--text);">+84 புள்ளிகள் = ₹6,300 லாபம்</strong> எடுத்து வெளியேறுவது சிறந்தது. Expiry நாள் Gamma risk மிகவும் அதிகம்!</span>
+      <div style="background:rgba(34,212,122,0.08); border:1px solid rgba(34,212,122,0.22); border-radius:10px; padding:12px; margin-top:10px; font-size:13px;">
+        <strong style="color:var(--green);">💡 Seller-ன் உத்தி:</strong>
+        <span style="color:var(--muted);"> செவ்வாய் காலை 10AM-க்கு முன்பே <strong style="color:var(--text);">+84 புள்ளிகள் = ₹6,300 லாபம்</strong> எடுத்து வெளியேறுவது சிறந்தது. Expiry நாள் Gamma risk மிகவும் அதிகம்!</span>
       </div>
     </div>
 
@@ -486,9 +434,9 @@
         <span class="eg-badge">SELLER SAFE</span>
         <span class="eg-title">உதாரணம் 2 — Iron Condor (பாதுகாப்பான முறை)</span>
       </div>
-      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:1rem;">
+      <p style="font-size:13.5px; color:var(--muted); margin-bottom:1rem;">
         Nifty 23,500. <strong style="color:var(--text);">4 legs</strong> போடுகிறோம் — அதிகபட்ச நஷ்டம் கட்டுப்படுத்தப்பட்டது.<br>
-        <strong style="color:var(--gold);">Sell:</strong> 23800 CE + 23200 PE &nbsp;|&nbsp; <strong style="color:var(--teal-light);">Buy:</strong> 23900 CE + 23100 PE
+        <strong style="color:var(--gold);">Sell:</strong> 23800 CE + 23200 PE &nbsp;|&nbsp; <strong style="color:var(--teal);">Buy:</strong> 23900 CE + 23100 PE
       </p>
       <table class="step-table">
         <thead>
@@ -499,11 +447,11 @@
           <tr><td>செலுத்திய Premium (Buy hedge)</td><td class="tag-loss">-15 pts</td><td class="tag-loss">-₹1,125</td></tr>
           <tr><td>நிகர Premium (Net)</td><td class="tag-warn">35 pts</td><td class="tag-warn">₹2,625</td></tr>
           <tr><td>அதிகபட்ச நஷ்டம் (Max Loss)</td><td class="tag-loss">-65 pts</td><td class="tag-loss">-₹4,875</td></tr>
-          <tr><td>Breakeven Range</td><td colspan="2" style="color:var(--teal-light); font-family:'DM Mono',monospace;">23,165 முதல் 23,835 வரை</td></tr>
+          <tr><td>Breakeven Range</td><td colspan="2" style="color:var(--teal); font-family:'JetBrains Mono',monospace;">23,165 முதல் 23,835 வரை</td></tr>
         </tbody>
       </table>
-      <div style="background:rgba(29,184,164,0.08); border:1px solid rgba(29,184,164,0.2); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--text-muted);">
-        <strong style="color:var(--teal-light);">💡 ஏன் இது சிறந்தது?</strong> நஷ்டம் கட்டுப்படுத்தப்பட்டது. சந்தை 335 புள்ளிக்கு நகராமல் இருந்தால் ஒவ்வொரு வாரமும் <strong style="color:var(--text);">₹2,625</strong> லாபம்!
+      <div style="background:var(--teal-bg); border:1px solid rgba(45,212,191,0.2); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
+        <strong style="color:var(--teal);">💡 ஏன் இது சிறந்தது?</strong> நஷ்டம் கட்டுப்படுத்தப்பட்டது. சந்தை 335 புள்ளிக்கு நகராமல் இருந்தால் ஒவ்வொரு வாரமும் <strong style="color:var(--text);">₹2,625</strong> லாபம்!
       </div>
     </div>
   </div>
@@ -518,9 +466,9 @@
         <span class="eg-badge">BUYER RISK</span>
         <span class="eg-title">உதாரணம் 3 — Call Option வாங்குகிறோம்</span>
       </div>
-      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:1rem;">
+      <p style="font-size:13.5px; color:var(--muted); margin-bottom:1rem;">
         Nifty 23,500. Thursday அன்று <strong style="color:var(--text);">23500 CE வாங்குகிறோம்</strong>.<br>
-        Premium செலுத்தியது: <strong style="color:var(--red-light);">50 புள்ளிகள் = ₹3,750</strong> — சந்தை நகரவில்லை என்றால்...
+        Premium செலுத்தியது: <strong style="color:var(--red);">50 புள்ளிகள் = ₹3,750</strong> — சந்தை நகரவில்லை என்றால்...
       </p>
       <table class="step-table">
         <thead>
@@ -570,8 +518,8 @@
           </tr>
         </tbody>
       </table>
-      <div style="background:rgba(232,64,64,0.1); border:1px solid rgba(232,64,64,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--text-muted);">
-        <strong style="color:var(--red-light);">⚠️ முக்கியமான பாடம்:</strong> சந்தை <em>நகராவிட்டாலே</em> Option Buyer ₹3,750 இழக்கிறார்! சந்தை உங்களுக்கு சாதகமாக <strong style="color:var(--text);">குறைந்தது 50 புள்ளியாவது நகர வேண்டும்</strong> — இல்லாவிட்டால் நஷ்டமே.
+      <div style="background:var(--red-bg); border:1px solid rgba(240,82,82,0.22); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
+        <strong style="color:var(--red);">⚠️ முக்கியமான பாடம்:</strong> சந்தை <em>நகராவிட்டாலே</em> Option Buyer ₹3,750 இழக்கிறார்! சந்தை உங்களுக்கு சாதகமாக <strong style="color:var(--text);">குறைந்தது 50 புள்ளியாவது நகர வேண்டும்</strong> — இல்லாவிட்டால் நஷ்டமே.
       </div>
     </div>
 
@@ -589,13 +537,11 @@
     <div class="section-title">💸 Premium எப்படி கரைகிறது — காட்சி விவரம்</div>
     <div class="section-sub">100 புள்ளி Premium-ஐ Thursday முதல் Tuesday Expiry வரை பார்க்கலாம்</div>
 
-    <div style="padding:1rem 0;" id="progressBars">
-      <!-- Generated by JS -->
-    </div>
+    <div style="padding:1rem 0;" id="progressBars"></div>
 
-    <div style="background:rgba(29,184,164,0.07); border:1px solid rgba(29,184,164,0.2); border-radius:10px; padding:14px; margin-top:0.5rem; font-size:13.5px;">
-      <strong style="color:var(--teal-light);">🔑 பொன்னான விதி — 50% விதி:</strong>
-      <span style="color:var(--text-muted);"> Premium <strong style="color:var(--text);">50% கரைந்தவுடன்</strong> Trade-ஐ மூடுங்கள். 100 pts விற்றால் → 50 pts-க்கு வந்தவுடன் வெளியேறுங்கள். அது <strong style="color:var(--green-light);">₹3,750 லாபம்</strong> — பாதுகாப்பாக!</span>
+    <div style="background:var(--teal-bg); border:1px solid rgba(45,212,191,0.2); border-radius:10px; padding:14px; margin-top:0.5rem; font-size:13.5px;">
+      <strong style="color:var(--teal);">🔑 பொன்னான விதி — 50% விதி:</strong>
+      <span style="color:var(--muted);"> Premium <strong style="color:var(--text);">50% கரைந்தவுடன்</strong> Trade-ஐ மூடுங்கள். 100 pts விற்றால் → 50 pts-க்கு வந்தவுடன் வெளியேறுங்கள். அது <strong style="color:var(--green);">₹3,750 லாபம்</strong> — பாதுகாப்பாக!</span>
     </div>
   </div>
 
@@ -634,21 +580,36 @@
   <!-- SUMMARY -->
   <div class="summary-card">
     <h3>🌟 நினைவில் வைத்துக்கொள்ள வேண்டியது</h3>
-    <p style="margin-bottom:8px;">தீட்டா என்பது <strong style="color:var(--gold-light);">Option Seller-ன் நண்பன்</strong>, Buyer-ன் எதிரி. சந்தை அசையாமல் இருந்தாலே Seller-க்கு லாபம்!</p>
-    <p>Iron Condor போட்டு, Thursday-ல் நுழைந்து, Monday-ல் வெளியேறுவது — இதுவே <strong style="color:var(--teal-light);">மிகவும் பாதுகாப்பான</strong> தொடக்க உத்தி.</p>
+    <p style="margin-bottom:8px;">தீட்டா என்பது <strong style="color:var(--gold);">Option Seller-ன் நண்பன்</strong>, Buyer-ன் எதிரி. சந்தை அசையாமல் இருந்தாலே Seller-க்கு லாபம்!</p>
+    <p>Iron Condor போட்டு, Thursday-ல் நுழைந்து, Monday-ல் வெளியேறுவது — இதுவே <strong style="color:var(--teal);">மிகவும் பாதுகாப்பான</strong> தொடக்க உத்தி.</p>
   </div>
 
-  <!-- FOOTER -->
-  <div class="footer">
+  <!-- PAGE FOOTER NOTE -->
+  <div class="page-footer">
     <strong>⚠️ எச்சரிக்கை:</strong> இது கல்வி நோக்கத்திற்காக மட்டுமே. Options trading-ல் நஷ்ட ஆபத்து உண்டு.<br>
     எப்போதும் Stop-Loss பயன்படுத்துங்கள். SEBI-பதிவு பெற்ற ஆலோசகரிடம் கலந்தாலோசியுங்கள்.<br><br>
-    <strong style="color:var(--teal-light);">உங்கள் முதலீடு பாதுகாப்பாக இருக்கட்டும்! 💪</strong>
+    <strong style="color:var(--teal);">உங்கள் முதலீடு பாதுகாப்பாக இருக்கட்டும்! 💪</strong>
   </div>
 </div>
 
 <script>
 let mode = 'atm';
 let basePrem = 100;
+
+const C = {
+  gold:       '#f5c842',
+  goldFill:   'rgba(245,200,66,0.12)',
+  teal:       '#2dd4bf',
+  red:        '#f05252',
+  redFill:    'rgba(240,82,82,0.5)',
+  green:      '#22d47a',
+  greenFill:  'rgba(34,212,122,0.08)',
+  muted:      '#6e87a2',
+  bg:         '#07101d',
+  grid:       'rgba(255,255,255,0.06)',
+  tooltipBg:  'rgba(7,16,29,0.97)',
+  tooltipBdr: 'rgba(245,200,66,0.25)',
+};
 
 const factors = {
   atm: [1.00, 0.74, 0.56, 0.36, 0.16, 0.02],
@@ -663,19 +624,13 @@ const insights = {
 };
 
 const xLabels = ['வியாழன்\n(நுழைவு)', 'வெள்ளி', 'வார இறுதி', 'திங்கள்', 'செவ்வாய்\nகாலை', 'Expiry\nசெவ்வாய்'];
-
 let mainChart = null;
 
-function buildVals() {
-  return factors[mode].map(f => Math.round(basePrem * f));
-}
-
-function buildDeltas(vals) {
-  return vals.map((v, i) => i === 0 ? 0 : Math.round(vals[i-1] - v));
-}
+function buildVals()   { return factors[mode].map(f => Math.round(basePrem * f)); }
+function buildDeltas(v){ return v.map((x,i) => i===0 ? 0 : Math.round(v[i-1]-x)); }
 
 function renderMain() {
-  const vals = buildVals();
+  const vals   = buildVals();
   const deltas = buildDeltas(vals);
 
   document.getElementById('s1').textContent = vals[0] + ' pts';
@@ -694,13 +649,13 @@ function renderMain() {
           type: 'line',
           label: 'Premium மீதி',
           data: vals,
-          borderColor: '#E8A117',
-          backgroundColor: 'rgba(232,161,23,0.1)',
+          borderColor: C.gold,
+          backgroundColor: C.goldFill,
           fill: true,
           tension: 0.45,
           pointRadius: 6,
-          pointBackgroundColor: '#E8A117',
-          pointBorderColor: '#0D1B2A',
+          pointBackgroundColor: C.gold,
+          pointBorderColor: C.bg,
           pointBorderWidth: 2,
           borderWidth: 2.5,
           yAxisID: 'y'
@@ -709,8 +664,8 @@ function renderMain() {
           type: 'bar',
           label: 'தினசரி கரைவு',
           data: deltas,
-          backgroundColor: deltas.map((d,i) => i===0 ? 'transparent' : 'rgba(232,64,64,0.5)'),
-          borderColor: deltas.map((d,i) => i===0 ? 'transparent' : '#E84040'),
+          backgroundColor: deltas.map((_,i) => i===0 ? 'transparent' : C.redFill),
+          borderColor:      deltas.map((_,i) => i===0 ? 'transparent' : C.red),
           borderWidth: 1,
           borderRadius: 4,
           yAxisID: 'y2'
@@ -724,39 +679,39 @@ function renderMain() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(13,27,42,0.95)',
-          borderColor: 'rgba(232,161,23,0.3)',
+          backgroundColor: C.tooltipBg,
+          borderColor: C.tooltipBdr,
           borderWidth: 1,
-          titleColor: '#E8A117',
-          bodyColor: '#9BA8B5',
+          titleColor: C.gold,
+          bodyColor: C.muted,
           padding: 10,
           callbacks: {
-            title: ctx => 'நாள்: ' + xLabels[ctx[0].dataIndex].replace('\n',' '),
-            label: ctx => {
-              if (ctx.datasetIndex === 0) return ' Premium மீதி: ' + ctx.parsed.y + ' pts (₹' + (ctx.parsed.y * 75).toLocaleString('en-IN') + ')';
-              if (ctx.parsed.y === 0) return null;
-              return ' கரைவு: −' + ctx.parsed.y + ' pts (₹' + (ctx.parsed.y * 75).toLocaleString('en-IN') + ')';
+            title: c => 'நாள்: ' + xLabels[c[0].dataIndex].replace('\n',' '),
+            label: c => {
+              if (c.datasetIndex === 0) return ' Premium மீதி: ' + c.parsed.y + ' pts (₹' + (c.parsed.y * 75).toLocaleString('en-IN') + ')';
+              if (c.parsed.y === 0) return null;
+              return ' கரைவு: −' + c.parsed.y + ' pts (₹' + (c.parsed.y * 75).toLocaleString('en-IN') + ')';
             }
           }
         }
       },
       scales: {
         x: {
-          grid: { color: 'rgba(155,168,181,0.1)' },
-          ticks: { font: { size: 10, family: 'Noto Sans Tamil' }, color: '#9BA8B5' }
+          grid: { color: C.grid },
+          ticks: { font: { size: 10, family: 'Noto Sans Tamil' }, color: C.muted }
         },
         y: {
           position: 'left',
-          title: { display: true, text: 'Premium (pts)', font: { size: 11 }, color: '#9BA8B5' },
-          grid: { color: 'rgba(155,168,181,0.1)' },
-          ticks: { font: { size: 11 }, color: '#E8A117' },
+          title: { display: true, text: 'Premium (pts)', font: { size: 11 }, color: C.muted },
+          grid: { color: C.grid },
+          ticks: { font: { size: 11 }, color: C.gold },
           min: 0, max: Math.round(basePrem * 1.15)
         },
         y2: {
           position: 'right',
-          title: { display: true, text: 'கரைவு/நாள்', font: { size: 11 }, color: '#E84040' },
+          title: { display: true, text: 'கரைவு/நாள்', font: { size: 11 }, color: C.red },
           grid: { drawOnChartArea: false },
-          ticks: { font: { size: 11 }, color: '#E84040' },
+          ticks: { font: { size: 11 }, color: C.red },
           min: 0
         }
       }
@@ -767,11 +722,11 @@ function renderMain() {
 }
 
 function renderProgressBars(vals) {
-  const days = ['வியாழன் (நுழைவு)', 'வெள்ளி', 'வார இறுதி', 'திங்கள்', 'செவ்வாய் காலை', 'Expiry (செவ்வாய்)'];
-  const colors = ['#E8A117', '#E8A117', '#F5C04A', '#E84040', '#E84040', '#E84040'];
+  const days   = ['வியாழன் (நுழைவு)', 'வெள்ளி', 'வார இறுதி', 'திங்கள்', 'செவ்வாய் காலை', 'Expiry (செவ்வாய்)'];
+  const colors = [C.gold, C.gold, C.gold, C.red, C.red, C.red];
   let html = '';
   vals.forEach((v, i) => {
-    const pct = Math.round((v / basePrem) * 100);
+    const pct   = Math.round((v / basePrem) * 100);
     const rupee = (v * 75).toLocaleString('en-IN');
     html += `<div class="pbar-wrap">
       <div class="pbar-label">
@@ -789,38 +744,36 @@ function renderProgressBars(vals) {
 function renderCompare() {
   const sellerVals = [0, 26, 44, 64, 84, 98];
   const buyerVals  = [0, -13, -22, -32, -42, -49];
-  const labels = ['Thu', 'Fri', 'Weekend', 'Mon', 'Tue AM', 'Tue Exp'];
+  const labels     = ['Thu', 'Fri', 'Weekend', 'Mon', 'Tue AM', 'Tue Exp'];
 
-  const ctx2 = document.getElementById('compareChart').getContext('2d');
-  new Chart(ctx2, {
+  new Chart(document.getElementById('compareChart').getContext('2d'), {
     type: 'line',
     data: {
-      labels: labels,
+      labels,
       datasets: [
         {
           label: 'Seller லாபம்',
           data: sellerVals,
-          borderColor: '#2ECC71',
-          backgroundColor: 'rgba(46,204,113,0.08)',
+          borderColor: C.green,
+          backgroundColor: C.greenFill,
           fill: true,
           tension: 0.4,
           pointRadius: 5,
-          pointBackgroundColor: '#2ECC71',
-          pointBorderColor: '#0D1B2A',
+          pointBackgroundColor: C.green,
+          pointBorderColor: C.bg,
           pointBorderWidth: 2,
-          borderWidth: 2,
-          borderDash: []
+          borderWidth: 2
         },
         {
           label: 'Buyer நஷ்டம்',
           data: buyerVals,
-          borderColor: '#E84040',
-          backgroundColor: 'rgba(232,64,64,0.08)',
+          borderColor: C.red,
+          backgroundColor: 'rgba(240,82,82,0.08)',
           fill: true,
           tension: 0.4,
           pointRadius: 5,
-          pointBackgroundColor: '#E84040',
-          pointBorderColor: '#0D1B2A',
+          pointBackgroundColor: C.red,
+          pointBorderColor: C.bg,
           pointBorderWidth: 2,
           borderWidth: 2,
           borderDash: [5, 3]
@@ -833,17 +786,17 @@ function renderCompare() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(13,27,42,0.95)',
-          borderColor: 'rgba(232,161,23,0.3)',
+          backgroundColor: C.tooltipBg,
+          borderColor: C.tooltipBdr,
           borderWidth: 1,
-          titleColor: '#E8A117',
-          bodyColor: '#9BA8B5',
+          titleColor: C.gold,
+          bodyColor: C.muted,
           padding: 10,
           callbacks: {
-            label: ctx => {
-              const v = ctx.parsed.y;
+            label: c => {
+              const v  = c.parsed.y;
               const rs = Math.abs(v * 75).toLocaleString('en-IN');
-              if (ctx.datasetIndex === 0) return ` Seller லாபம்: +${v} pts = +₹${rs}`;
+              if (c.datasetIndex === 0) return ` Seller லாபம்: +${v} pts = +₹${rs}`;
               return ` Buyer நஷ்டம்: ${v} pts = -₹${rs}`;
             }
           }
@@ -851,13 +804,13 @@ function renderCompare() {
       },
       scales: {
         x: {
-          grid: { color: 'rgba(155,168,181,0.1)' },
-          ticks: { font: { size: 11 }, color: '#9BA8B5' }
+          grid: { color: C.grid },
+          ticks: { font: { size: 11 }, color: C.muted }
         },
         y: {
-          grid: { color: 'rgba(155,168,181,0.1)' },
+          grid: { color: C.grid },
           ticks: {
-            font: { size: 11 }, color: '#9BA8B5',
+            font: { size: 11 }, color: C.muted,
             callback: v => (v >= 0 ? '+' : '') + v + ' pts'
           }
         }
@@ -882,6 +835,7 @@ function updatePrem(v) {
 renderMain();
 renderCompare();
 </script>
+
 <footer class="tz-footer">
   <div class="tz-footer-inner">
     <div class="tz-footer-brand">
@@ -895,6 +849,7 @@ renderCompare();
       <a href="options_selling_tool_tamil.html">💰 Options Selling Tool</a>
       <a href="swing_trading_tool_tamil.html">📈 Swing Trading Tool</a>
       <a href="theta_decay_tamil.html">⏳ Theta Decay</a>
+      <a href="market_profile_tamil.html">📊 Market Profile</a>
       <a href="fno_signal.html">🤖 F&amp;O AI Signal</a>
       <a href="contact.html">✉ Contact</a>
     </div>

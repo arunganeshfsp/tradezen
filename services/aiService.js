@@ -94,6 +94,29 @@ class AIService {
         }
     }
 
+    // Manually set today's 9:15 opening price when engine started late
+    async setNiftyOpen(price) {
+        try {
+            const res = await axios.post(`${AI_ENGINE_URL}/set-nifty-open?price=${price}`, {}, { timeout: 3000 });
+            return res.data;
+        } catch (err) {
+            console.error("Set nifty open error:", err.message);
+            return { error: "Python engine unreachable" };
+        }
+    }
+
+    // Manually set today's ORB when engine started late (missed 9:15-9:30 window)
+    async setOrb(high, low) {
+        try {
+            const params = new URLSearchParams({ high, low });
+            const res = await axios.post(`${AI_ENGINE_URL}/set-orb?${params}`, {}, { timeout: 3000 });
+            return res.data;
+        } catch (err) {
+            console.error("Set ORB error:", err.message);
+            return { error: "Python engine unreachable" };
+        }
+    }
+
     // Manually set prev day OHLC when getCandleData API is unavailable
     async setPrevOhlc(high, low, close, date) {
         try {
@@ -104,6 +127,27 @@ class AIService {
         } catch (err) {
             console.error("Set prev OHLC error:", err.message);
             return { error: "Python engine unreachable" };
+        }
+    }
+    // Market Profile — forward query params as-is
+    async getMarketProfile(endpoint, params) {
+        try {
+            const qs = params ? `?${new URLSearchParams(params)}` : "";
+            const res = await axios.get(`${AI_ENGINE_URL}/market-profile/${endpoint}${qs}`, { timeout: 15000 });
+            return res.data;
+        } catch (err) {
+            console.error(`Market profile /${endpoint} error:`, err.message);
+            return { error: "Python engine unreachable" };
+        }
+    }
+
+    // Live NIFTY spot price from Python engine market state
+    async getLivePrice() {
+        try {
+            const res = await axios.get(`${AI_ENGINE_URL}/price`, { timeout: 2000 });
+            return res.data;
+        } catch (err) {
+            return { price: null };
         }
     }
 }

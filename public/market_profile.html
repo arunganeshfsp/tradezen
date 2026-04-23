@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Profile | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
+  --border:#252a44; --border2:#323868;
+  --accent:#7c6af7; --blue:#5b8af5;
+  --green:#2ecc71; --red:#e74c3c; --yellow:#f5a623; --cyan:#00d4ff;
+  --text:#e8ecf4; --dim:#9ba3bf; --muted:#4a5070;
+  --r:10px; --r2:6px;
+  /* Profile colors */
+  --poc-clr:#e74c3c;
+  --va-clr:rgba(91,138,245,0.55);
+  --ib-clr:rgba(245,166,35,0.18);
+  --single-clr:#ff9f43;
+  --bar-clr:rgba(124,106,247,0.35);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
+.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover{color:var(--text);background:var(--bg3)}
+.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:12px}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);padding:3px 10px;border-radius:20px}
+
+/* ── CONTROLS BAR ── */
+.ctrl-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.ctrl-group{display:flex;flex-direction:column;gap:5px}
+.ctrl-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.ctrl-input, .ctrl-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--r2);padding:7px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border .15s}
+.ctrl-input:focus,.ctrl-select:focus{border-color:var(--accent)}
+.ctrl-select option{background:var(--bg3)}
+.ctrl-btn{padding:8px 20px;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6a59e0}
+.btn-secondary{background:var(--bg3);color:var(--dim);border:1px solid var(--border2)}
+.btn-secondary:hover{color:var(--text);border-color:var(--accent)}
+.btn-live{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.btn-live.active{background:rgba(46,204,113,0.25);box-shadow:0 0 10px rgba(46,204,113,0.2)}
+.mode-tabs{display:flex;border-radius:var(--r2);overflow:hidden;border:1px solid var(--border2)}
+.mode-tab{padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--dim);border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
+.mode-tab.active{background:var(--accent);color:#fff}
+
+/* ── STATUS BAR ── */
+.status-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 28px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;font-size:12px}
+.sb-item{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace}
+.sb-dot{width:6px;height:6px;border-radius:50%}
+.dot-green{background:var(--green)}
+.dot-red{background:var(--red)}
+.dot-yellow{background:var(--yellow)}
+.dot-dim{background:var(--muted)}
+
+/* ── MAIN LAYOUT ── */
+.main{max-width:1400px;margin:0 auto;padding:24px 28px 80px;display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+@media(max-width:1100px){.main{grid-template-columns:1fr}}
+
+/* ── CHART PANEL ── */
+.chart-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.chart-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.chart-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
+.leg-swatch{width:12px;height:12px;border-radius:2px}
+
+/* Profile chart container */
+.profile-wrap{overflow-y:auto;overflow-x:hidden;max-height:680px;position:relative}
+#profile-chart{display:block;width:100%}
+
+/* Empty / loading states */
+.chart-placeholder{padding:60px 20px;text-align:center;color:var(--muted)}
+.cp-icon{font-size:48px;margin-bottom:12px}
+.cp-text{font-size:14px;line-height:1.6}
+
+/* ── LEVELS PANEL ── */
+.levels-panel{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{padding:12px 16px;border-bottom:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:14px 16px}
+
+/* Level rows */
+.level-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.level-row:last-child{border-bottom:none}
+.lr-label{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:6px}
+.lr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.lr-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.lv-poc{color:var(--red)}
+.lv-vah{color:var(--blue)}
+.lv-val{color:var(--cyan)}
+.lv-ib{color:var(--yellow)}
+.lv-single{color:var(--single-clr)}
+.lv-naked{color:var(--accent)}
+
+/* Period breakdown */
+.period-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.period-cell{background:var(--bg3);border-radius:4px;padding:5px;text-align:center}
+.pc-letter{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--accent)}
+.pc-count{font-size:10px;color:var(--dim);margin-top:1px}
+
+/* Poor high/low badge */
+.poor-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:10px}
+.poor-yes{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.poor-no{background:rgba(46,204,113,0.1);color:var(--green);border:1px solid rgba(46,204,113,0.2)}
+
+/* Naked POC list */
+.naked-poc-list{display:flex;flex-wrap:wrap;gap:6px}
+.naked-poc-chip{font-family:'JetBrains Mono',monospace;font-size:12px;padding:3px 10px;border-radius:10px;background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.3);color:var(--accent)}
+
+/* Refresh note */
+#refresh-note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.pulse-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulseAnim 1.4s infinite;margin-right:4px;vertical-align:middle}
+@keyframes pulseAnim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(0.7)}}
+
+footer{border-top:1px solid var(--border);padding:20px 28px;text-align:center;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="index.html" class="brand"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links">
+    <a href="butterfly_straddle_tamil.html" class="nl">🦋 Butterfly</a>
+    <a href="index.html#buying"   class="nl">📈 Buying</a>
+    <a href="index.html#selling"  class="nl">📉 Selling</a>
+    <a href="swing_trading.html"  class="nl">🌊 Swing</a>
+    <a href="fno_signal.html"     class="nl">📡 F&amp;O</a>
+    <a href="trade_flow.html"     class="nl">🧭 Flow</a>
+    <a href="market_profile.html"       class="nl on">📊 Profile</a>
+    <a href="market_profile_tamil.html" class="nl">📖 Tutorial</a>
+    <a href="index.html"                class="nl">🏠 Home</a>
+  </div>
+  <div class="nav-r">
+    <span class="nav-badge">LIVE · SEBI 2026</span>
+  </div>
+</nav>
+
+<!-- ── CONTROLS ── -->
+<div class="ctrl-bar">
+  <div class="ctrl-group">
+    <span class="ctrl-label">Symbol</span>
+    <select id="sym-select" class="ctrl-select" onchange="onSymbolChange()">
+      <option value="26000|NSE|NIFTY|5">NIFTY 50 (NSE)</option>
+      <option value="26009|NSE|BANKNIFTY|5">BANK NIFTY (NSE)</option>
+      <option value="custom">Custom Token…</option>
+    </select>
+  </div>
+  <div class="ctrl-group" id="custom-group" style="display:none">
+    <span class="ctrl-label">Token | Exchange</span>
+    <div style="display:flex;gap:6px">
+      <input id="custom-token" class="ctrl-input" placeholder="e.g. 3045" style="width:100px">
+      <select id="custom-exch" class="ctrl-select">
+        <option value="NSE">NSE</option><option value="NFO">NFO</option>
+        <option value="BSE">BSE</option><option value="MCX">MCX</option>
+      </select>
+    </div>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Date</span>
+    <input id="date-input" type="date" class="ctrl-input">
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Tick Size</span>
+    <input id="tick-input" type="number" class="ctrl-input" value="5" min="0.05" step="0.05" style="width:80px">
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">View Mode</span>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('tpo',this)">TPO</button>
+      <button class="mode-tab" onclick="setMode('volume',this)">Volume</button>
+      <button class="mode-tab" onclick="setMode('overlay',this)">Overlay</button>
+    </div>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Days (multi)</span>
+    <input id="days-input" type="number" class="ctrl-input" value="1" min="1" max="20" style="width:65px">
+  </div>
+  <button class="ctrl-btn btn-primary" onclick="loadProfile()">Load Profile</button>
+  <button id="live-btn" class="ctrl-btn btn-live" onclick="toggleLive()">⏱ Live</button>
+  <span id="refresh-note">—</span>
+</div>
+
+<!-- ── STATUS BAR ── -->
+<div class="status-bar" id="status-bar" style="display:none">
+  <div class="sb-item">
+    <span class="sb-dot" id="sb-poc-dot" style="background:var(--red)"></span>
+    POC: <strong id="sb-poc">—</strong>
+  </div>
+  <div class="sb-item">
+    <span class="sb-dot" style="background:var(--blue)"></span>
+    VAH: <strong id="sb-vah">—</strong>
+  </div>
+  <div class="sb-item">
+    <span class="sb-dot" style="background:var(--cyan)"></span>
+    VAL: <strong id="sb-val">—</strong>
+  </div>
+  <div class="sb-item">
+    <span class="sb-dot" style="background:var(--yellow)"></span>
+    IB: <strong id="sb-ib">—</strong>
+  </div>
+  <div class="sb-item">
+    TPOs: <strong id="sb-tpos">—</strong>
+  </div>
+  <div class="sb-item" style="margin-left:auto;color:var(--dim)">
+    <span id="sb-label">—</span>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- Chart panel -->
+  <div class="chart-panel">
+    <div class="chart-head">
+      <div>
+        <div class="chart-title" id="chart-title">Market Profile</div>
+        <div class="chart-meta" id="chart-meta">Select symbol and date, then click Load Profile</div>
+      </div>
+      <div class="chart-legend">
+        <span class="leg-item"><span class="leg-swatch" style="background:var(--poc-clr)"></span>POC</span>
+        <span class="leg-item"><span class="leg-swatch" style="background:rgba(91,138,245,0.6)"></span>Value Area</span>
+        <span class="leg-item"><span class="leg-swatch" style="background:rgba(245,166,35,0.5)"></span>Init. Balance</span>
+        <span class="leg-item"><span class="leg-swatch" style="background:var(--single-clr)"></span>Single Print</span>
+      </div>
+    </div>
+    <div class="profile-wrap">
+      <div id="profile-placeholder" class="chart-placeholder">
+        <div class="cp-icon">📊</div>
+        <div class="cp-text">Select a symbol and date above,<br>then click <strong>Load Profile</strong>.</div>
+      </div>
+      <canvas id="profile-chart" style="display:none"></canvas>
+    </div>
+  </div>
+
+  <!-- Levels panel -->
+  <div class="levels-panel">
+
+    <!-- Key Levels -->
+    <div class="card">
+      <div class="card-head">
+        Key Levels
+        <span id="levels-date" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">—</span>
+      </div>
+      <div class="card-body">
+        <div class="level-row">
+          <span class="lr-label"><span class="lr-dot" style="background:var(--red)"></span>POC</span>
+          <span class="lr-val lv-poc" id="lv-poc">—</span>
+        </div>
+        <div class="level-row">
+          <span class="lr-label"><span class="lr-dot" style="background:var(--blue)"></span>VAH (Value Area High)</span>
+          <span class="lr-val lv-vah" id="lv-vah">—</span>
+        </div>
+        <div class="level-row">
+          <span class="lr-label"><span class="lr-dot" style="background:var(--cyan)"></span>VAL (Value Area Low)</span>
+          <span class="lr-val lv-val" id="lv-val">—</span>
+        </div>
+        <div class="level-row">
+          <span class="lr-label"><span class="lr-dot" style="background:var(--yellow)"></span>IB High</span>
+          <span class="lr-val lv-ib" id="lv-ib-h">—</span>
+        </div>
+        <div class="level-row">
+          <span class="lr-label"><span class="lr-dot" style="background:var(--yellow)"></span>IB Low</span>
+          <span class="lr-val lv-ib" id="lv-ib-l">—</span>
+        </div>
+        <div class="level-row">
+          <span class="lr-label">Session High</span>
+          <span class="lr-val" id="lv-sh" style="color:var(--green)">—</span>
+        </div>
+        <div class="level-row">
+          <span class="lr-label">Session Low</span>
+          <span class="lr-val" id="lv-sl" style="color:var(--red)">—</span>
+        </div>
+        <div class="level-row">
+          <span class="lr-label">VA Width</span>
+          <span class="lr-val" id="lv-vaw" style="color:var(--dim)">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auction Health -->
+    <div class="card">
+      <div class="card-head">Auction Health</div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--dim)">Poor High</span>
+          <span id="lv-ph" class="poor-badge poor-no">✓ Clean</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--dim)">Poor Low</span>
+          <span id="lv-pl" class="poor-badge poor-no">✓ Clean</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--dim)">Single Prints</span>
+          <span class="lr-val lv-single" id="lv-sp">—</span>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:6px">Naked POCs</div>
+          <div id="lv-naked" class="naked-poc-list">
+            <span style="font-size:11px;color:var(--muted)">None detected</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Period Breakdown (TPO letters per 30-min slot) -->
+    <div class="card">
+      <div class="card-head">TPO Period Coverage</div>
+      <div class="card-body">
+        <div class="period-grid" id="period-grid">
+          <span style="font-size:11px;color:var(--muted)">Load profile to see periods</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interpretation -->
+    <div class="card">
+      <div class="card-head">Reading the Profile</div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px;font-size:12px;line-height:1.7;color:var(--dim)">
+        <div><strong style="color:var(--red)">POC</strong> — Price with most time/TPOs. Magnetic level — market returns here.</div>
+        <div><strong style="color:var(--blue)">Value Area</strong> — 70% of trading activity. Price inside VA = accepted range.</div>
+        <div><strong style="color:var(--yellow)">IB (A+B)</strong> — First 60-min range. Wide IB = trending day. Narrow = range day.</div>
+        <div><strong style="color:var(--single-clr)">Single Prints</strong> — Only one period touched. Shows fast directional move, often fills later.</div>
+        <div><strong style="color:var(--text)">Poor High/Low</strong> — Multiple TPOs at extreme. Unfinished auction — likely revisit.</div>
+        <div><strong style="color:var(--accent)">Naked POC</strong> — Prior day's POC not yet revisited. Acts as magnet until filled.</div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /main -->
+
+<footer>
+  <div style="margin-bottom:4px;font-weight:600;color:var(--dim)">Market Profile · TPO Framework · J. Peter Steidlmayer</div>
+  <div>© 2026 TradeZen · Educational use only · Not SEBI investment advice</div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+let currentProfile = null;
+let viewMode       = 'tpo';
+let liveActive     = false;
+let liveTimer      = null;
+let currentPrice   = null;   // live NIFTY spot price
+let prevDayLevels  = null;   // {poc, vah, val, ib_high, ib_low} from prior trading day
+
+const PERIOD_COLORS = {
+  A:'#ff6b6b', B:'#ff922b', C:'#fcc419', D:'#94d82d',
+  E:'#20c997', F:'#4dabf7', G:'#748ffc', H:'#e599f7',
+  I:'#f783ac', J:'#63e6be', K:'#a9e34b', L:'#74c0fc', M:'#ff8787',
+};
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Default date = today
+  const today = new Date();
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth() + 1).padStart(2, '0');
+  const dd    = String(today.getDate()).padStart(2, '0');
+  document.getElementById('date-input').value = `${yyyy}-${mm}-${dd}`;
+});
+
+function onSymbolChange() {
+  const val = document.getElementById('sym-select').value;
+  document.getElementById('custom-group').style.display = val === 'custom' ? '' : 'none';
+  if (val !== 'custom') {
+    const parts = val.split('|');
+    document.getElementById('tick-input').value = parts[3] || '5';
+  }
+}
+
+function setMode(mode, el) {
+  viewMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (currentProfile) drawChart(currentProfile);
+}
+
+// ─────────────────────────────────────────────
+// API calls
+// ─────────────────────────────────────────────
+function getParams() {
+  const symVal = document.getElementById('sym-select').value;
+  let token, exchange, symbol;
+
+  if (symVal === 'custom') {
+    token    = document.getElementById('custom-token').value.trim();
+    exchange = document.getElementById('custom-exch').value;
+    symbol   = token;
+  } else {
+    const parts = symVal.split('|');
+    token    = parts[0];
+    exchange = parts[1];
+    symbol   = parts[2];
+  }
+
+  return {
+    symbol_token: token,
+    exchange,
+    symbol,
+    date:      document.getElementById('date-input').value,
+    tick_size: parseFloat(document.getElementById('tick-input').value) || 5,
+    days:      parseInt(document.getElementById('days-input').value)   || 1,
+  };
+}
+
+async function loadProfile() {
+  const p    = getParams();
+  const days = p.days;
+
+  document.getElementById('profile-placeholder').innerHTML =
+    `<div class="cp-icon">⏳</div><div class="cp-text">Loading profile…<br><small style="color:var(--muted)">Fetching 1-min candles from AngelOne</small></div>`;
+  document.getElementById('profile-placeholder').style.display = '';
+  document.getElementById('profile-chart').style.display = 'none';
+  document.getElementById('refresh-note').textContent = 'Fetching…';
+
+  try {
+    let endpoint, qs;
+    if (days > 1) {
+      endpoint = 'multi-day';
+      qs = new URLSearchParams({ symbol_token: p.symbol_token, exchange: p.exchange,
+                                  symbol: p.symbol, tick_size: p.tick_size, days });
+    } else {
+      endpoint = 'daily';
+      qs = new URLSearchParams({ symbol_token: p.symbol_token, exchange: p.exchange,
+                                  symbol: p.symbol, date: p.date, tick_size: p.tick_size });
+    }
+
+    const res = await fetch(`/api/market-profile/${endpoint}?${qs}`);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    currentProfile = data;
+    renderProfile(data);
+    document.getElementById('refresh-note').textContent =
+      `Last update: ${new Date().toLocaleTimeString('en-IN')}`;
+
+    // Fetch overlays in parallel (non-blocking — redraw if they arrive)
+    fetchCurrentPrice();
+    loadPrevDayLevels(p.date);
+
+  } catch (err) {
+    document.getElementById('profile-placeholder').innerHTML =
+      `<div class="cp-icon">❌</div><div class="cp-text"><strong>Error:</strong> ${err.message}</div>`;
+    document.getElementById('refresh-note').textContent = 'Error';
+  }
+}
+
+async function fetchCurrentPrice() {
+  try {
+    const res = await fetch('/api/price');
+    const d   = await res.json();
+    if (d.price) {
+      currentPrice = d.price;
+      if (currentProfile) drawChart(currentProfile);
+    }
+  } catch (_) {}
+}
+
+async function loadPrevDayLevels(dateStr) {
+  try {
+    const p = getParams();
+    // Compute previous trading day (skip weekend)
+    let d = dateStr ? new Date(dateStr) : new Date();
+    do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
+    const prevDate = d.toISOString().slice(0, 10);
+
+    const qs = new URLSearchParams({
+      symbol_token: p.symbol_token,
+      exchange:     p.exchange,
+      symbol:       p.symbol,
+      tick_size:    p.tick_size,
+      date:         prevDate,
+    });
+    const res  = await fetch(`/api/market-profile/levels?${qs}`);
+    const data = await res.json();
+    if (!data.error && data.poc) {
+      prevDayLevels = data;
+      if (currentProfile) drawChart(currentProfile);
+    }
+  } catch (_) {}
+}
+
+async function loadLive() {
+  const p = getParams();
+  try {
+    const qs = new URLSearchParams({ symbol_token: p.symbol_token, exchange: p.exchange,
+                                     symbol: p.symbol, tick_size: p.tick_size });
+    const res  = await fetch(`/api/market-profile/live?${qs}`);
+    const data = await res.json();
+    if (!data.error) {
+      currentProfile = data;
+      renderProfile(data);
+      document.getElementById('refresh-note').innerHTML =
+        `<span class="pulse-dot"></span>Live · ${new Date().toLocaleTimeString('en-IN')}`;
+    }
+  } catch (_) {}
+  fetchCurrentPrice();
+}
+
+function toggleLive() {
+  liveActive = !liveActive;
+  const btn = document.getElementById('live-btn');
+  if (liveActive) {
+    btn.classList.add('active');
+    btn.textContent = '⏹ Stop Live';
+    loadLive();
+    liveTimer = setInterval(loadLive, 60000);
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '⏱ Live';
+    clearInterval(liveTimer);
+    liveTimer = null;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────
+function renderProfile(d) {
+  if (!d || !d.tpo_profile) return;
+  updateLevels(d);
+  // Show canvas BEFORE drawing so clientWidth is available
+  document.getElementById('profile-placeholder').style.display = 'none';
+  document.getElementById('profile-chart').style.display       = 'block';
+  drawChart(d);
+  document.getElementById('status-bar').style.display          = '';
+  document.getElementById('chart-title').textContent =
+    `${d.symbol || 'Market'} Profile${d.days ? ` (${d.days}-Day Composite)` : ''}`;
+  document.getElementById('chart-meta').textContent =
+    `Date: ${d.date || '—'} · Tick: ${d.tick_size} · TPOs: ${d.tpo_count}`;
+}
+
+function updateLevels(d) {
+  const fmt = v => v != null ? v.toLocaleString('en-IN') : '—';
+
+  document.getElementById('sb-poc').textContent = fmt(d.poc);
+  document.getElementById('sb-vah').textContent = fmt(d.vah);
+  document.getElementById('sb-val').textContent = fmt(d.val);
+  document.getElementById('sb-ib').textContent  =
+    d.ib_low != null ? `${fmt(d.ib_low)} – ${fmt(d.ib_high)}` : '—';
+  document.getElementById('sb-tpos').textContent = d.tpo_count || '—';
+  document.getElementById('sb-label').textContent = `${d.symbol || ''} · ${d.date || ''}`;
+
+  document.getElementById('levels-date').textContent = d.date || '';
+  document.getElementById('lv-poc').textContent   = fmt(d.poc);
+  document.getElementById('lv-vah').textContent   = fmt(d.vah);
+  document.getElementById('lv-val').textContent   = fmt(d.val);
+  document.getElementById('lv-ib-h').textContent  = fmt(d.ib_high);
+  document.getElementById('lv-ib-l').textContent  = fmt(d.ib_low);
+  document.getElementById('lv-sh').textContent    = fmt(d.session_high);
+  document.getElementById('lv-sl').textContent    = fmt(d.session_low);
+  document.getElementById('lv-vaw').textContent   = d.va_width != null ? `${fmt(d.va_width)} pts` : '—';
+
+  // Poor high / low
+  const phEl = document.getElementById('lv-ph');
+  const plEl = document.getElementById('lv-pl');
+  phEl.className = 'poor-badge ' + (d.poor_high ? 'poor-yes' : 'poor-no');
+  phEl.textContent = d.poor_high ? '⚠️ Poor (Unfinished)' : '✓ Clean';
+  plEl.className = 'poor-badge ' + (d.poor_low ? 'poor-yes' : 'poor-no');
+  plEl.textContent = d.poor_low ? '⚠️ Poor (Unfinished)' : '✓ Clean';
+
+  // Single prints
+  const sp = (d.single_prints || []).length;
+  document.getElementById('lv-sp').textContent = sp > 0 ? `${sp} levels` : 'None';
+
+  // Naked POCs
+  const nakedEl = document.getElementById('lv-naked');
+  if (d.naked_pocs && d.naked_pocs.length > 0) {
+    nakedEl.innerHTML = d.naked_pocs.map(p =>
+      `<span class="naked-poc-chip">${p.toLocaleString('en-IN')}</span>`
+    ).join('');
+  } else {
+    nakedEl.innerHTML = `<span style="font-size:11px;color:var(--muted)">None detected</span>`;
+  }
+
+  // Period grid
+  const periods = d.tpo_periods || {};
+  const periodGrid = document.getElementById('period-grid');
+  const letters = Object.keys(periods).sort();
+  if (letters.length > 0) {
+    periodGrid.innerHTML = letters.map(l =>
+      `<div class="period-cell"><div class="pc-letter">${l}</div><div class="pc-count">${periods[l]}</div></div>`
+    ).join('');
+  } else {
+    periodGrid.innerHTML = `<span style="font-size:11px;color:var(--muted)">No data</span>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Chart drawing (Canvas)
+// ─────────────────────────────────────────────
+const COLORS = {
+  poc:     '#e74c3c',
+  va:      'rgba(91,138,245,0.55)',
+  ib_bg:   'rgba(245,166,35,0.12)',
+  single:  '#ff9f43',
+  bar_tpo: 'rgba(124,106,247,0.5)',
+  bar_vol: 'rgba(0,212,255,0.45)',
+  text:    '#9ba3bf',
+  price:   '#e8ecf4',
+  grid:    'rgba(37,42,68,0.8)',
+};
+
+const ROW_H       = 18;   // px per price level
+const LABEL_W     = 68;   // price label column width
+const LETTER_W    = 10;   // px per TPO letter character
+const MIN_BAR_W   = 2;    // minimum bar width so empty rows aren't invisible
+const PADDING_R   = 20;   // right padding
+
+function drawChart(d) {
+  const canvas = document.getElementById('profile-chart');
+
+  const tpoMap = new Map();
+  for (const [k, v] of Object.entries(d.tpo_profile || {}))
+    tpoMap.set(parseFloat(k), v);
+
+  const volMap = new Map();
+  for (const [k, v] of Object.entries(d.volume_profile || {}))
+    volMap.set(parseFloat(k), v);
+
+  const prices = Array.from(tpoMap.keys()).sort((a, b) => b - a);
+  if (prices.length === 0) return;
+
+  const nRows   = prices.length;
+  const COUNT_W = 34;   // right-side TPO count column
+  const canvasH = nRows * ROW_H;
+
+  const maxTpo = Math.max(...prices.map(p => (tpoMap.get(p) || []).length));
+  const maxVol = Math.max(...prices.map(p => volMap.get(p) || 0));
+
+  const wrap    = canvas.parentElement;
+  const wrapW   = wrap.clientWidth || 800;
+  const barArea = wrapW - LABEL_W - COUNT_W - PADDING_R;
+
+  canvas.width  = wrapW;
+  canvas.height = canvasH;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, wrapW, canvasH);
+
+  const poc     = d.poc;
+  const vah     = d.vah;
+  const val     = d.val;
+  const ib_h    = d.ib_high;
+  const ib_l    = d.ib_low;
+  const singles = new Set((d.single_prints || []).map(Number));
+
+  // Helper: find the y-coordinate for a price (nearest tick)
+  const priceToY = (pr) => {
+    const tick = d.tick_size || 5;
+    const snapped = Math.round(pr / tick) * tick;
+    const idx = prices.indexOf(snapped);
+    return idx === -1 ? null : idx * ROW_H;
+  };
+
+  prices.forEach((price, i) => {
+    const y        = i * ROW_H;
+    const isPoc    = price === poc;
+    const inVA     = vah != null && val != null && price <= vah && price >= val;
+    const inIB     = ib_h != null && ib_l != null && price <= ib_h && price >= ib_l;
+    const isSingle = singles.has(price);
+
+    if (inIB) {
+      ctx.fillStyle = COLORS.ib_bg;
+      ctx.fillRect(0, y, wrapW, ROW_H);
+    }
+
+    ctx.fillStyle = COLORS.grid;
+    ctx.fillRect(LABEL_W, y + ROW_H - 1, barArea + COUNT_W + PADDING_R, 1);
+
+    ctx.font         = '11px "JetBrains Mono"';
+    ctx.fillStyle    = isPoc ? COLORS.poc : inVA ? '#7ab3f5' : COLORS.price;
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(price.toLocaleString('en-IN'), LABEL_W - 6, y + ROW_H / 2);
+
+    const letters    = tpoMap.get(price) || [];
+    const tpoCount   = letters.length;
+    const volumeHere = volMap.get(price) || 0;
+
+    let barW = 0;
+
+    if (viewMode === 'tpo' || viewMode === 'overlay') {
+      barW = maxTpo > 0 ? Math.max(MIN_BAR_W, (tpoCount / maxTpo) * barArea) : MIN_BAR_W;
+      ctx.fillStyle = isPoc ? COLORS.poc : isSingle ? COLORS.single : inVA ? COLORS.va : COLORS.bar_tpo;
+      ctx.fillRect(LABEL_W, y + 2, barW, ROW_H - 4);
+    }
+
+    if (viewMode === 'volume' || viewMode === 'overlay') {
+      const volBarW = maxVol > 0 ? Math.max(MIN_BAR_W, (volumeHere / maxVol) * barArea) : 0;
+      if (viewMode === 'volume') {
+        barW = volBarW;
+        ctx.fillStyle = isPoc ? COLORS.poc : inVA ? COLORS.va : COLORS.bar_vol;
+        ctx.fillRect(LABEL_W, y + 2, volBarW, ROW_H - 4);
+      } else {
+        ctx.fillStyle = 'rgba(0,212,255,0.25)';
+        ctx.fillRect(LABEL_W, y + 2, volBarW, ROW_H - 4);
+      }
+    }
+
+    // ── Per-period colored TPO letters ───────────────────────────────────────
+    if ((viewMode === 'tpo' || viewMode === 'overlay') && tpoCount > 0 && barW > 12) {
+      const unique  = [...new Set(letters)];
+      ctx.font      = '9px "JetBrains Mono"';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      let xOff = LABEL_W + 4;
+      for (const letter of unique) {
+        if (xOff + 8 > LABEL_W + barW) break;
+        ctx.fillStyle = PERIOD_COLORS[letter] || 'rgba(255,255,255,0.85)';
+        ctx.fillText(letter, xOff, y + ROW_H / 2);
+        xOff += 8;
+      }
+    }
+
+    // ── TPO count (right column) ─────────────────────────────────────────────
+    if ((viewMode === 'tpo' || viewMode === 'overlay') && tpoCount > 0) {
+      ctx.fillStyle    = inVA ? '#7ab3f5' : COLORS.text;
+      ctx.font         = '9px "JetBrains Mono"';
+      ctx.textAlign    = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tpoCount, wrapW - PADDING_R - 2, y + ROW_H / 2);
+    }
+
+    if (isPoc) {
+      ctx.strokeStyle = COLORS.poc;
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(LABEL_W, y);
+      ctx.lineTo(wrapW - COUNT_W - PADDING_R, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1;
+    }
+  });
+
+  // ── Helper: draw a horizontal line at a price level ─────────────────────
+  const drawHLine = (price, color, label, dash = [6, 4], lineW = 1, alpha = 1) => {
+    if (price == null) return;
+    const idx = prices.indexOf(price);
+    if (idx === -1) return;
+    const y = idx * ROW_H;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = lineW;
+    ctx.setLineDash(dash);
+    ctx.beginPath();
+    ctx.moveTo(LABEL_W, y);
+    ctx.lineTo(wrapW - COUNT_W - PADDING_R, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle    = color;
+    ctx.font         = '10px "JetBrains Mono"';
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(label, wrapW - COUNT_W - PADDING_R - 2, y - 1);
+    ctx.restore();
+  };
+
+  // ── Today's VAH / VAL ────────────────────────────────────────────────────
+  drawHLine(vah, '#5b8af5', 'VAH');
+  drawHLine(val, '#00d4ff', 'VAL');
+
+  // ── Prev day POC / VAH / VAL (dim dotted lines) ──────────────────────────
+  if (prevDayLevels) {
+    drawHLine(prevDayLevels.poc, '#e74c3c', 'prev POC', [3, 5], 1, 0.45);
+    drawHLine(prevDayLevels.vah, '#5b8af5', 'prev VAH', [3, 5], 1, 0.35);
+    drawHLine(prevDayLevels.val, '#00d4ff', 'prev VAL', [3, 5], 1, 0.35);
+  }
+
+  // ── Live price line ───────────────────────────────────────────────────────
+  if (currentPrice != null) {
+    const yLive = priceToY(currentPrice);
+    if (yLive !== null) {
+      ctx.save();
+      ctx.strokeStyle = '#22d47a';
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([5, 3]);
+      ctx.beginPath();
+      ctx.moveTo(LABEL_W, yLive);
+      ctx.lineTo(wrapW - COUNT_W - PADDING_R, yLive);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Price tag pill
+      const tag  = currentPrice.toLocaleString('en-IN');
+      ctx.font   = 'bold 10px "JetBrains Mono"';
+      const tw   = ctx.measureText(tag).width + 10;
+      const pillX = LABEL_W + 6;
+      const pillY = yLive - 10;
+      ctx.fillStyle = '#22d47a';
+      ctx.beginPath();
+      ctx.roundRect(pillX, pillY, tw, 14, 3);
+      ctx.fill();
+      ctx.fillStyle    = '#07101d';
+      ctx.textAlign    = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(tag, pillX + 5, pillY + 2);
+      ctx.restore();
+    }
+  }
+}
+</script>
+</body>
+</html>

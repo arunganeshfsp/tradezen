@@ -11,6 +11,7 @@
 body{background:#0f0a00;color:#f5e8c8;font-family:'Noto Sans Tamil',sans-serif;margin:0;padding:20px}
 .wrap{max-width:1100px;margin:auto}
 .card{background:#1a1100;border:1px solid #2e1f00;border-radius:10px;padding:15px;margin-bottom:15px}
+.card h3{margin:0 0 12px;font-size:14px;color:#fb923c;letter-spacing:.5px}
 select,input{width:100%;padding:8px;background:#231700;color:#fff;border:1px solid #3a2800;border-radius:6px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 .signal{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2e1f00}
@@ -19,6 +20,37 @@ select,input{width:100%;padding:8px;background:#231700;color:#fff;border:1px sol
 .yellow{color:#fb923c}
 .verdict{padding:20px;border-radius:10px;background:#231700}
 button{margin:2px;padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
+
+/* ── Volume breakdown ── */
+.vol-tug{margin:14px 0 8px}
+.vol-tug-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.vol-tug-label .b{color:#4ade80;font-weight:600}
+.vol-tug-label .s{color:#f87171;font-weight:600}
+.vol-bar-track{height:16px;border-radius:8px;background:#231700;overflow:hidden;display:flex}
+.vol-bar-buy {background:linear-gradient(90deg,#166534,#4ade80);transition:width .5s}
+.vol-bar-sell{background:linear-gradient(90deg,#f87171,#7f1d1d);transition:width .5s}
+.vol-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.vs-box{background:#231700;border-radius:8px;padding:10px;text-align:center}
+.vs-box .vs-num{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;margin-bottom:2px}
+.vs-box .vs-lbl{font-size:10px;color:#a07850;letter-spacing:.5px;text-transform:uppercase}
+.vs-buy .vs-num{color:#4ade80}
+.vs-sell .vs-num{color:#f87171}
+.vs-ratio .vs-num{color:#fb923c}
+
+/* ── OI / F&O section ── */
+.oi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+.oi-box{background:#231700;border-radius:8px;padding:10px;text-align:center}
+.oi-box .oi-num{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;margin-bottom:2px}
+.oi-box .oi-lbl{font-size:10px;color:#a07850;letter-spacing:.5px;text-transform:uppercase}
+.oi-call .oi-num{color:#4ade80}
+.oi-put  .oi-num{color:#f87171}
+.oi-total .oi-num{color:#fb923c}
+.oi-pcr  .oi-num{color:#60a5fa}
+.pcr-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px}
+.pcr-bull{background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+.pcr-bear{background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3)}
+.pcr-neut{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.25)}
+.oi-na{color:#4a3020;font-style:italic;font-size:12px;padding:10px 0}
 </style>
 </head>
 <body>
@@ -80,6 +112,47 @@ button{margin:2px;padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
 <div class="signal"><span>Event</span><span id="s-event"></span></div>
 </div>
 
+<!-- ── Buyer / Seller Volume ── -->
+<div class="card" id="vol-card" style="display:none">
+  <h3>📊 Volume Breakdown (Last 20 Days)</h3>
+
+  <div class="vol-tug">
+    <div class="vol-tug-label">
+      <span class="b" id="buy-pct">— Buyers</span>
+      <span class="s" id="sell-pct">Sellers —</span>
+    </div>
+    <div class="vol-bar-track">
+      <div class="vol-bar-buy"  id="vol-bar-buy"  style="width:50%"></div>
+      <div class="vol-bar-sell" id="vol-bar-sell" style="width:50%"></div>
+    </div>
+  </div>
+
+  <div class="vol-stats">
+    <div class="vs-box vs-buy">
+      <div class="vs-num" id="buyer-vol">—</div>
+      <div class="vs-lbl">Buyer Volume</div>
+    </div>
+    <div class="vs-box vs-sell">
+      <div class="vs-num" id="seller-vol">—</div>
+      <div class="vs-lbl">Seller Volume</div>
+    </div>
+    <div class="vs-box vs-ratio">
+      <div class="vs-num" id="bsr">—</div>
+      <div class="vs-lbl">Buy/Sell Ratio</div>
+    </div>
+  </div>
+
+  <div id="vol-interpretation" style="margin-top:10px;font-size:12px;line-height:1.6;color:#a07850"></div>
+</div>
+
+<!-- ── F&O Open Interest ── -->
+<div class="card" id="oi-card" style="display:none">
+  <h3>📈 F&amp;O Open Interest (Nearest Expiry)</h3>
+  <div id="oi-content">
+    <div class="oi-na">Loading...</div>
+  </div>
+</div>
+
 <div class="verdict">
 <h2 id="v-title">Waiting...</h2>
 <p id="v-score">Score: -</p>
@@ -111,13 +184,90 @@ async function fetchStock(){
   }
 }
 
+const fmtVol = v => {
+  if (v == null) return '—';
+  if (v >= 1e7) return (v / 1e7).toFixed(2) + ' Cr';
+  if (v >= 1e5) return (v / 1e5).toFixed(2) + ' L';
+  return v.toLocaleString('en-IN');
+};
+
 function fillData(d){
-  el("cmpVal").value = d.cmp;
-  el("highVal").value = d.high_52w;
-  el("lowVal").value = d.low_52w;
-  el("rsiVal").value = d.rsi;
-  el("trendVal").value = d.trend;
-  el("volumeVal").value = d.volume;
+  el("cmpVal").value    = d.cmp;
+  el("highVal").value   = d.high_52w;
+  el("lowVal").value    = d.low_52w;
+  el("rsiVal").value    = d.rsi;
+  el("trendVal").value  = d.trend;
+  el("volumeVal").value = fmtVol(d.volume);
+
+  fillVolumeCard(d);
+  fillOICard(d);
+}
+
+function fillVolumeCard(d) {
+  const bv = d.buyerVolume  || 0;
+  const sv = d.sellerVolume || 0;
+  const total = bv + sv;
+  if (total === 0) return;
+
+  const bPct = Math.round(bv / total * 100);
+  const sPct = 100 - bPct;
+
+  el("vol-card").style.display = '';
+  el("buy-pct").textContent    = `${bPct}% Buyers`;
+  el("sell-pct").textContent   = `Sellers ${sPct}%`;
+  el("vol-bar-buy").style.width  = bPct + '%';
+  el("vol-bar-sell").style.width = sPct + '%';
+  el("buyer-vol").textContent  = fmtVol(bv);
+  el("seller-vol").textContent = fmtVol(sv);
+  el("bsr").textContent        = d.buySellRatio != null ? d.buySellRatio + 'x' : '—';
+
+  let note = '';
+  if (bPct >= 65)       note = '🟢 கடந்த 20 நாட்களில் buyers dominant — bullish pressure அதிகம்.';
+  else if (bPct <= 35)  note = '🔴 கடந்த 20 நாட்களில் sellers dominant — bearish pressure அதிகம்.';
+  else                  note = '🟡 Buyers மற்றும் sellers சமநிலையில் உள்ளனர் — consolidation phase.';
+  el("vol-interpretation").textContent = note;
+}
+
+function fillOICard(d) {
+  el("oi-card").style.display = '';
+  const oc = el("oi-content");
+
+  if (!d.totalOI) {
+    oc.innerHTML = `<div class="oi-na">இந்த stock-க்கு F&amp;O data கிடைக்கவில்லை (Not listed in derivatives or data unavailable).</div>`;
+    return;
+  }
+
+  const pcr = d.pcr;
+  let pcrClass = 'pcr-neut', pcrText = '🟡 Neutral';
+  if (pcr > 1.2)      { pcrClass = 'pcr-bull'; pcrText = '🟢 Bullish (Put heavy)'; }
+  else if (pcr < 0.8) { pcrClass = 'pcr-bear'; pcrText = '🔴 Bearish (Call heavy)'; }
+
+  oc.innerHTML = `
+    <div class="oi-grid">
+      <div class="oi-box oi-call">
+        <div class="oi-num">${fmtVol(d.callOI)}</div>
+        <div class="oi-lbl">Call OI</div>
+      </div>
+      <div class="oi-box oi-put">
+        <div class="oi-num">${fmtVol(d.putOI)}</div>
+        <div class="oi-lbl">Put OI</div>
+      </div>
+      <div class="oi-box oi-total">
+        <div class="oi-num">${fmtVol(d.totalOI)}</div>
+        <div class="oi-lbl">Total OI</div>
+      </div>
+      <div class="oi-box oi-pcr">
+        <div class="oi-num">${pcr ?? '—'}</div>
+        <div class="oi-lbl">PCR</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;text-align:center">
+      <span class="pcr-badge ${pcrClass}">${pcrText}</span>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#a07850;line-height:1.6">
+      PCR > 1.2 → Put writers active → stock supported. &nbsp;|&nbsp; PCR < 0.8 → Call writers active → resistance likely.
+    </div>
+  `;
 }
 
 function generateSignals(d){

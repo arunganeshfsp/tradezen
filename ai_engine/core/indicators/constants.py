@@ -50,3 +50,26 @@ SIGNAL_EXIT_SECS     = 45   # seconds score must stay low before clearing
 MIN_SIGNAL_HOLD_SECS = 90   # minimum hold after entry — no exit/flip allowed
 FLIP_CONF            = 75   # score required to flip direction (was 65)
 PERSISTENCE_TICKS    = 3    # direction must hold this many ticks before emitting
+
+# ── Market Profile ─────────────────────────────────────────────────────────────
+# NSE session: 09:15–15:30 IST, 30-min brackets (M is the closing half-period)
+TPO_PERIODS = {
+    "A": ("09:15", "09:45"),
+    "B": ("09:45", "10:15"),
+    "C": ("10:15", "10:45"),
+    "D": ("10:45", "11:15"),
+    "E": ("11:15", "11:45"),
+    "F": ("11:45", "12:15"),
+    "G": ("12:15", "12:45"),
+    "H": ("12:45", "13:15"),
+    "I": ("13:15", "13:45"),
+    "J": ("13:45", "14:15"),
+    "K": ("14:15", "14:45"),
+    "L": ("14:45", "15:15"),
+    "M": ("15:15", "15:30"),
+}
+
+TICK_SIZE_INDEX   = 5.0    # NIFTY, BANKNIFTY
+TICK_SIZE_STOCK   = 1.0    # most NSE equities
+TICK_SIZE_MCX     = 1.0    # commodity default
+VALUE_AREA_PCT    = 0.70   # Value Area encloses 70% of total TPOs
