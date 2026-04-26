@@ -66,6 +66,13 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .sc-btn.bull-active{background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.4);color:var(--green)}
 .sc-btn.bear-active{background:rgba(231,76,60,0.12);border-color:rgba(231,76,60,0.4);color:var(--red)}
 .sc-btn.skip-active{background:rgba(245,166,35,0.12);border-color:rgba(245,166,35,0.4);color:var(--yellow)}
+.sc-btn.cond-bear-active{background:rgba(231,76,60,0.08);border-color:rgba(231,76,60,0.35);color:var(--red);border-style:dashed}
+.sc-btn.cond-bull-active{background:rgba(46,204,113,0.08);border-color:rgba(46,204,113,0.35);color:var(--green);border-style:dashed}
+.trigger-banner{border-radius:var(--r2);padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;animation:pulseGlow 1.5s infinite}
+.tb-bear{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.5);color:var(--red)}
+.tb-bull{background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.5);color:var(--green)}
+.tb-wait{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.3);color:var(--yellow)}
+@keyframes pulseGlow{0%,100%{opacity:1}50%{opacity:.7}}
 .auto-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:2px 8px;border-radius:10px}
 
 /* ── MAIN LAYOUT ── */
@@ -246,6 +253,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     <div class="live-chip lc-time" id="chip-time">⏰ --:--:--</div>
     <div class="live-chip lc-phase" id="chip-phase">◉ Loading...</div>
     <div class="live-chip lc-ltp"><span class="pulse"></span> NIFTY <span id="chip-ltp">--</span></div>
+    <div class="live-chip" id="chip-vix" style="background:rgba(124,106,247,0.08);color:var(--accent);border-color:rgba(124,106,247,0.25);display:none">
+      🌡 VIX <span id="chip-vix-val">--</span>
+    </div>
   </div>
 
   <div class="time-badges">
@@ -272,10 +282,12 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 <!-- SCENARIO SWITCHER -->
 <div class="scenario-bar">
   <span class="sc-label">Scenario:</span>
-  <button class="sc-btn bull-active" id="btn-bull" onclick="setScenario('bull')">🟢 Bull Scenario — ஏற்றம்</button>
-  <button class="sc-btn" id="btn-bear" onclick="setScenario('bear')">🔴 Bear Scenario — இறக்கம்</button>
-  <button class="sc-btn" id="btn-skip" onclick="setScenario('skip')">🟡 Conflict — Skip Trade</button>
-  <span class="auto-tag" id="auto-tag" style="display:none">⚡ AUTO</span>
+  <button class="sc-btn bull-active" id="btn-bull" onclick="setScenario('bull')">🟢 Bull — ஏற்றம்</button>
+  <button class="sc-btn" id="btn-bear" onclick="setScenario('bear')">🔴 Bear — இறக்கம்</button>
+  <button class="sc-btn" id="btn-cond-bear" onclick="setScenario('conditional_bear')" style="display:none">⚡ Conditional Bear</button>
+  <button class="sc-btn" id="btn-cond-bull" onclick="setScenario('conditional_bull')" style="display:none">⚡ Conditional Bull</button>
+  <button class="sc-btn" id="btn-skip" onclick="setScenario('skip')">🟡 Skip Trade</button>
+  <span class="auto-tag" id="auto-tag" style="display:none">AUTO</span>
 </div>
 
 <!-- MAIN -->
@@ -403,7 +415,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
         </div>
       </div>
 
-      <div class="tip-strip">
+      <div class="sub-head" style="margin-top:16px">India VIX — Volatility Context</div>
+      <div id="s1-vix">
+        <div class="no-data" style="margin-bottom:0">
+          <div class="nd-icon">🌡</div>
+          <div>VIX data loading…</div>
+        </div>
+      </div>
+
+      <div class="tip-strip" style="margin-top:12px">
         <div class="tip-lbl">💡 Tip</div>
         Gap Up/Down &gt;50 pts = Directional day. &lt;20 pts = Wait and watch. GIFT Nifty alone is not enough — always confirm with CPR and ORB.
         <br><span style="font-family:'Tiro Tamil',serif;font-size:12px">50+ Gap = திசை உறுதி. 20-க்கும் குறைவு = காத்திருங்கள்.</span>
@@ -577,12 +597,17 @@ function showStep(n) {
 
 function setScenario(sc, fromAuto) {
   currentScenario = sc;
-  document.getElementById('btn-bull').className = 'sc-btn' + (sc === 'bull' ? ' bull-active' : '');
-  document.getElementById('btn-bear').className = 'sc-btn' + (sc === 'bear' ? ' bear-active' : '');
-  document.getElementById('btn-skip').className = 'sc-btn' + (sc === 'skip' ? ' skip-active' : '');
-  const atag = document.getElementById('auto-tag');
-  if (fromAuto) { atag.style.display = ''; }
-  // Re-render current step to refresh scenario content
+  document.getElementById('btn-bull').className      = 'sc-btn' + (sc === 'bull'             ? ' bull-active'      : '');
+  document.getElementById('btn-bear').className      = 'sc-btn' + (sc === 'bear'             ? ' bear-active'      : '');
+  document.getElementById('btn-skip').className      = 'sc-btn' + (sc === 'skip'             ? ' skip-active'      : '');
+  document.getElementById('btn-cond-bear').className = 'sc-btn' + (sc === 'conditional_bear' ? ' cond-bear-active' : '');
+  document.getElementById('btn-cond-bull').className = 'sc-btn' + (sc === 'conditional_bull' ? ' cond-bull-active' : '');
+  // Show conditional buttons only when auto-detected or manually selected
+  const showCondBear = (sc === 'conditional_bear') || (autoScenario === 'conditional_bear');
+  const showCondBull = (sc === 'conditional_bull') || (autoScenario === 'conditional_bull');
+  document.getElementById('btn-cond-bear').style.display = showCondBear ? '' : 'none';
+  document.getElementById('btn-cond-bull').style.display = showCondBull ? '' : 'none';
+  if (fromAuto) document.getElementById('auto-tag').style.display = '';
   renderFlowData(flowData);
   showStep(currentStep);
 }
@@ -687,11 +712,18 @@ function renderStep1(d) {
             Futures close is usually 10–20 pts below spot close near expiry.
             Change "Reference Close" to match your broker's gap figure.
           </div>
-          <button onclick="submitGiftNifty()"
-            style="background:var(--cyan);color:#000;border:none;border-radius:6px;
-                   padding:7px 18px;font-weight:700;font-size:13px;cursor:pointer">
-            Calculate Gap
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+            <button onclick="submitGiftNifty()"
+              style="background:var(--cyan);color:#000;border:none;border-radius:6px;
+                     padding:7px 18px;font-weight:700;font-size:13px;cursor:pointer">
+              Calculate Gap
+            </button>
+            <button onclick="autoFetchGiftNifty()"
+              style="background:var(--bg3);color:var(--dim);border:1px solid var(--border2);
+                     border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer">
+              ⚡ Auto-fetch (Yahoo Finance proxy)
+            </button>
+          </div>
         </div>`;
       return;
     }
@@ -964,13 +996,15 @@ function renderStep3(d) {
     return;
   }
   const levels = [
-    { lbl:'R2', price:cpr.r2, bar:'linear-gradient(90deg,var(--green),#27ae60)', bg:'rgba(46,204,113,0.08)', bc:'rgba(46,204,113,0.2)',  col:'var(--green)', desc:'Extreme bull target' },
-    { lbl:'R1', price:cpr.r1, bar:'var(--green)',                                bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'First bull target' },
-    { lbl:'TC', price:cpr.tc, bar:'rgba(46,204,113,0.5)',                        bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'CPR upper' },
-    { lbl:'PP', price:cpr.pp, bar:'var(--yellow)',                               bg:'rgba(245,166,35,0.08)', bc:'rgba(245,166,35,0.2)',  col:'var(--yellow)',desc:'Pivot magnet' },
-    { lbl:'BC', price:cpr.bc, bar:'rgba(231,76,60,0.5)',                         bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'CPR lower' },
-    { lbl:'S1', price:cpr.s1, bar:'var(--red)',                                  bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'First bear target' },
-    { lbl:'S2', price:cpr.s2, bar:'linear-gradient(90deg,var(--red),#c0392b)',   bg:'rgba(231,76,60,0.08)', bc:'rgba(231,76,60,0.2)',    col:'var(--red)',   desc:'Extreme bear target' },
+    { lbl:'R3', price:cpr.r3, bar:'linear-gradient(90deg,var(--cyan),var(--green))', bg:'rgba(0,212,255,0.08)', bc:'rgba(0,212,255,0.25)',   col:'var(--cyan)',   desc:'Extended bull target 3' },
+    { lbl:'R2', price:cpr.r2, bar:'linear-gradient(90deg,var(--green),#27ae60)',     bg:'rgba(46,204,113,0.08)', bc:'rgba(46,204,113,0.2)',   col:'var(--green)', desc:'Bull target 2' },
+    { lbl:'R1', price:cpr.r1, bar:'var(--green)',                                    bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'Bull target 1' },
+    { lbl:'TC', price:cpr.tc, bar:'rgba(46,204,113,0.5)',                            bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'CPR upper' },
+    { lbl:'PP', price:cpr.pp, bar:'var(--yellow)',                                   bg:'rgba(245,166,35,0.08)', bc:'rgba(245,166,35,0.2)',  col:'var(--yellow)',desc:'Pivot magnet' },
+    { lbl:'BC', price:cpr.bc, bar:'rgba(231,76,60,0.5)',                             bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'CPR lower' },
+    { lbl:'S1', price:cpr.s1, bar:'var(--red)',                                      bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'Bear target 1' },
+    { lbl:'S2', price:cpr.s2, bar:'linear-gradient(90deg,var(--red),#c0392b)',       bg:'rgba(231,76,60,0.08)', bc:'rgba(231,76,60,0.2)',    col:'var(--red)',   desc:'Bear target 2' },
+    { lbl:'S3', price:cpr.s3, bar:'linear-gradient(90deg,#c0392b,#922b21)',          bg:'rgba(231,76,60,0.10)', bc:'rgba(231,76,60,0.3)',    col:'var(--red)',   desc:'Extended bear target 3' },
   ];
   el.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
     <div style="display:flex;flex-direction:column;gap:6px">
@@ -1122,12 +1156,14 @@ function renderStep5(d) {
       <div class="data-row"><span class="dr-label">ORB Range</span><span class="dr-val dv-yellow">${fmt(orb.range)} pts</span></div>
       <div class="data-row"><span class="dr-label">ORB vs CPR</span><span class="dr-val">${orbNote}</span></div>
       ${isBull ? `
-      <div class="data-row"><span class="dr-label">Bull T1 target</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range)} = ${fmt(orb.t1_bull)}</span></div>
-      <div class="data-row"><span class="dr-label">Bull T2 target</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range * 2)} = ${fmt(orb.t2_bull)}</span></div>
+      <div class="data-row"><span class="dr-label">Bull T1 (1R)</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range)} = ${fmt(orb.t1_bull)}</span></div>
+      <div class="data-row"><span class="dr-label">Bull T2 (2R)</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range * 2)} = ${fmt(orb.t2_bull)}</span></div>
+      <div class="data-row"><span class="dr-label">Bull T3 (3R)</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.high)} + ${fmt(orb.range * 3)} = ${fmt(orb.t3_bull)}</span></div>
       <div class="data-row"><span class="dr-label">Stop Loss</span><span class="dr-val dv-red">${fmt(orb.high)} − 20 = ${fmt(orb.sl_bull)}</span></div>
       ` : isBear ? `
-      <div class="data-row"><span class="dr-label">Bear T1 target</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range)} = ${fmt(orb.t1_bear)}</span></div>
-      <div class="data-row"><span class="dr-label">Bear T2 target</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range * 2)} = ${fmt(orb.t2_bear)}</span></div>
+      <div class="data-row"><span class="dr-label">Bear T1 (1R)</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range)} = ${fmt(orb.t1_bear)}</span></div>
+      <div class="data-row"><span class="dr-label">Bear T2 (2R)</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range * 2)} = ${fmt(orb.t2_bear)}</span></div>
+      <div class="data-row"><span class="dr-label">Bear T3 (3R)</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.low)} − ${fmt(orb.range * 3)} = ${fmt(orb.t3_bear)}</span></div>
       <div class="data-row"><span class="dr-label">Stop Loss</span><span class="dr-val dv-green">${fmt(orb.low)} + 20 = ${fmt(orb.sl_bear)}</span></div>
       ` : `
       <div class="data-row"><span class="dr-label">Conflict</span><span class="dr-val dv-yellow">ORB direction unclear</span></div>
@@ -1135,10 +1171,48 @@ function renderStep5(d) {
     </div>`;
 }
 
+function leanFactors(orb, cpr, open, prev) {
+  if (!orb || !orb.lean_scores) return [];
+  const gap        = (open && prev) ? open.price - prev.close : 0;
+  const nearEdge   = cpr ? cpr.width * 0.3 : 10;
+  const belowBc    = cpr ? Math.round((cpr.bc - orb.low)  * 100) / 100 : 0;
+  const aboveTc    = cpr ? Math.round((orb.high - cpr.tc) * 100) / 100 : 0;
+  const cprW       = cpr ? cpr.width : 30;
+  const isNearBC   = open && open.position === 'inside_cpr' && open.vs_bc < nearEdge;
+  const isNearTC   = open && open.position === 'inside_cpr' && open.vs_tc > -nearEdge && !isNearBC;
+
+  return [
+    // Factor 1: Gap
+    { ok: gap < -50,            icon:'🔴', text:`Gap Down ${fmtDiff(gap)} > 50 pts → Bear +2` },
+    { ok: gap >= -50&&gap< -20, icon:'🟡', text:`Mild Gap Down ${fmtDiff(gap)} → Bear +1` },
+    { ok: gap > 50,             icon:'🟢', text:`Gap Up ${fmtDiff(gap)} > 50 pts → Bull +2` },
+    { ok: gap > 20&&gap<=50,    icon:'🟡', text:`Mild Gap Up ${fmtDiff(gap)} → Bull +1` },
+    // Factor 2: Opening position
+    { ok: open&&open.position==='below_bc', icon:'🔴',
+      text:`Open ${fmt(open?.price)} — ${Math.abs(open?.vs_bc||0).toFixed(0)} pts below BC (${fmt(cpr?.bc)}) → Bear +2` },
+    { ok: open&&open.position==='above_tc', icon:'🟢',
+      text:`Open ${fmt(open?.price)} — ${Math.abs(open?.vs_tc||0).toFixed(0)} pts above TC (${fmt(cpr?.tc)}) → Bull +2` },
+    { ok: isNearBC, icon:'🔴',
+      text:`Open ${fmt(open?.price)} inside CPR but only +${fmt(open?.vs_bc)} pts from BC (near-edge) → Bear +1` },
+    { ok: isNearTC, icon:'🟢',
+      text:`Open ${fmt(open?.price)} inside CPR but only ${fmt(open?.vs_tc)} pts from TC (near-edge) → Bull +1` },
+    // Factor 3: ORB extension (distance-scaled)
+    { ok: belowBc > cprW, icon:'🔴',
+      text:`ORB Low (${fmt(orb.low)}) extends ${fmt(belowBc)} pts below BC — ${(belowBc/cprW).toFixed(1)}× CPR width → Bear +2` },
+    { ok: belowBc > 0 && belowBc <= cprW, icon:'🟡',
+      text:`ORB Low (${fmt(orb.low)}) below BC (${fmt(cpr?.bc)}) by ${fmt(belowBc)} pts → Bear +1` },
+    { ok: aboveTc > cprW, icon:'🟢',
+      text:`ORB High (${fmt(orb.high)}) extends ${fmt(aboveTc)} pts above TC — ${(aboveTc/cprW).toFixed(1)}× CPR width → Bull +2` },
+    { ok: aboveTc > 0 && aboveTc <= cprW, icon:'🟡',
+      text:`ORB High (${fmt(orb.high)}) above TC (${fmt(cpr?.tc)}) by ${fmt(aboveTc)} pts → Bull +1` },
+  ].filter(f => f.ok);
+}
+
 function renderStep6(d) {
   const cpr  = d && d.cpr;
   const orb  = d && d.orb;
   const open = d && d.nifty_open;
+  const prev = d && d.prev_day;
   const el   = document.getElementById('s6-content');
 
   if (!orb) {
@@ -1150,94 +1224,189 @@ function renderStep6(d) {
     return;
   }
 
-  const sc     = currentScenario;
-  const isBull = (sc === 'bull');
-  const isBear = (sc === 'bear');
+  const sc = currentScenario;
 
-  // Confluence flags
-  const giftOk  = (sc === 'bull' || sc === 'bear') ? '✅' : '⚠️';
-  const cprOk   = (open && (open.position === 'above_tc' || open.position === 'below_bc')) ? '✅' : (open ? '❌' : '⚠️');
-  const orbOk   = (isBull && orb.vs_cpr === 'above_tc') || (isBear && orb.vs_cpr === 'below_bc') ? '✅' : '⚠️';
-
-  const giftColor = giftOk === '✅' ? 'var(--green)' : 'var(--yellow)';
-  const cprColor  = cprOk  === '✅' ? 'var(--green)' : (cprOk === '❌' ? 'var(--red)' : 'var(--yellow)');
-  const orbColor  = orbOk  === '✅' ? 'var(--green)' : 'var(--yellow)';
-
-  if (isBull && orb.vs_cpr === 'above_tc') {
+  // ── BULL ──────────────────────────────────────────────────────────────────
+  if (sc === 'bull' && orb.vs_cpr === 'above_tc') {
+    const cprOk = (open && open.position === 'above_tc') ? '✅' : (open ? '⚠️' : '⚠️');
     el.innerHTML = `
       <div class="score-card">
-        <div class="sc-item"><div class="sci-label">GIFT Nifty</div><div class="sci-val" style="color:${giftColor}">${giftOk}</div></div>
-        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprColor}">${cprOk}</div></div>
-        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:${orbColor}">${orbOk}</div></div>
+        <div class="sc-item"><div class="sci-label">GIFT / Gap</div><div class="sci-val" style="color:var(--green)">✅</div></div>
+        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprOk==='✅'?'var(--green)':'var(--yellow)'}">${cprOk}</div></div>
+        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:var(--green)">✅</div></div>
       </div>
       <div class="checklist">
-        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>GIFT Nifty</strong> — Gap Up → Bullish pre-market signal</div></div>
-        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>CPR Bias</strong> — Open ${open ? fmt(open.price) : '—'} above TC (${fmt(cpr.tc)}) → Bullish confirmed</div></div>
-        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>ORB Breakout</strong> — Price closes above ORB High (${fmt(orb.high)}) with 2× average volume → Entry signal</div></div>
-        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text ta">மூன்றும் சேர்ந்தால் = <strong style="color:var(--green)">High Probability Long Trade</strong>. Entry: ${fmt(orb.high)} · Target: ${fmt(orb.t1_bull)} → ${fmt(orb.t2_bull)} · Stop: ${fmt(orb.sl_bull)}</div></div>
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>Gap Up</strong> → Bullish pre-market signal</div></div>
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} above TC (${fmt(cpr.tc)}) → Bullish</div></div>
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>ORB</strong> — Both H&L above TC. Close above ORB High with volume → Entry</div></div>
       </div>
       <div class="final-result fr-bull">
         <div class="fr-icon">🚀</div>
-        <div class="fr-title" style="color:var(--green)">✅ HIGH PROBABILITY LONG TRADE</div>
+        <div class="fr-title" style="color:var(--green)">HIGH PROBABILITY LONG</div>
         <div class="fr-sub">All 3 signals aligned — Enter Long confidently</div>
-        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → நம்பிக்கையுடன் Long எடுங்கள்</div>
+        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Long எடுங்கள்</div>
         <div class="fr-chips">
           <span class="fr-chip fc-bull">Entry: ${fmt(orb.high)}</span>
           <span class="fr-chip fc-bull">T1: ${fmt(orb.t1_bull)}</span>
           <span class="fr-chip fc-bull">T2: ${fmt(orb.t2_bull)}</span>
+          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3: ${fmt(orb.t3_bull)}</span>
           <span class="fr-chip" style="background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)">SL: ${fmt(orb.sl_bull)}</span>
         </div>
       </div>`;
-  } else if (isBear && orb.vs_cpr === 'below_bc') {
+    return;
+  }
+
+  // ── BEAR ──────────────────────────────────────────────────────────────────
+  if (sc === 'bear' && orb.vs_cpr === 'below_bc') {
+    const cprOk = (open && open.position === 'below_bc') ? '✅' : (open ? '⚠️' : '⚠️');
     el.innerHTML = `
       <div class="score-card">
-        <div class="sc-item"><div class="sci-label">GIFT Nifty</div><div class="sci-val" style="color:${giftColor}">${giftOk}</div></div>
-        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprColor}">${cprOk}</div></div>
-        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:${orbColor}">${orbOk}</div></div>
+        <div class="sc-item"><div class="sci-label">GIFT / Gap</div><div class="sci-val" style="color:var(--red)">✅</div></div>
+        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprOk==='✅'?'var(--red)':'var(--yellow)'}">${cprOk}</div></div>
+        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:var(--red)">✅</div></div>
       </div>
       <div class="checklist">
-        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>GIFT Nifty</strong> — Gap Down → Strong bearish pre-market signal</div></div>
-        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>CPR Bias</strong> — Open ${open ? fmt(open.price) : '—'} below BC (${fmt(cpr.bc)}) → Bearish confirmed</div></div>
-        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>ORB Breakdown</strong> — Price closes below ORB Low (${fmt(orb.low)}) with 2× average volume → Short entry</div></div>
-        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text ta">மூன்றும் சேர்ந்தால் = <strong style="color:var(--red)">High Probability Short Trade</strong>. Entry: ${fmt(orb.low)} · Target: ${fmt(orb.t1_bear)} → ${fmt(orb.t2_bear)} · Stop: ${fmt(orb.sl_bear)}</div></div>
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>Gap Down</strong> → Bearish pre-market signal</div></div>
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} below BC (${fmt(cpr.bc)}) → Bearish</div></div>
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>ORB</strong> — Both H&L below BC. Close below ORB Low with volume → Short entry</div></div>
       </div>
       <div class="final-result fr-bear">
         <div class="fr-icon">📉</div>
-        <div class="fr-title" style="color:var(--red)">✅ HIGH PROBABILITY SHORT TRADE</div>
+        <div class="fr-title" style="color:var(--red)">HIGH PROBABILITY SHORT</div>
         <div class="fr-sub">All 3 signals aligned — Enter Short confidently</div>
-        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → நம்பிக்கையுடன் Short எடுங்கள்</div>
+        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Short எடுங்கள்</div>
         <div class="fr-chips">
           <span class="fr-chip fc-bear">Entry: ${fmt(orb.low)}</span>
           <span class="fr-chip fc-bear">T1: ${fmt(orb.t1_bear)}</span>
           <span class="fr-chip fc-bear">T2: ${fmt(orb.t2_bear)}</span>
+          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3: ${fmt(orb.t3_bear)}</span>
           <span class="fr-chip" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)">SL: ${fmt(orb.sl_bear)}</span>
         </div>
       </div>`;
-  } else {
+    return;
+  }
+
+  // ── CONDITIONAL BEAR / BULL ───────────────────────────────────────────────
+  if (sc === 'conditional_bear' || sc === 'conditional_bull') {
+    const isCBear = (sc === 'conditional_bear');
+    const triggered = isCBear ? orb.bear_triggered : orb.bull_triggered;
+    const ls = orb.lean_scores || {bear:0, bull:0};
+    const factors = leanFactors(orb, cpr, open, prev);
+
+    const triggerPrice = isCBear ? orb.low  : orb.high;
+    const t1    = isCBear ? orb.t1_bear  : orb.t1_bull;
+    const t2    = isCBear ? orb.t2_bear  : orb.t2_bull;
+    const t3    = isCBear ? orb.t3_bear  : orb.t3_bull;
+    const sl    = isCBear ? orb.sl_bear  : orb.sl_bull;
+    const clr   = isCBear ? 'var(--red)'   : 'var(--green)';
+    const dir   = isCBear ? 'SHORT'         : 'LONG';
+    const arrow = isCBear ? '📉'            : '🚀';
+    const frCls = isCBear ? 'fr-bear'       : 'fr-bull';
+    const chipCls = isCBear ? 'fc-bear'     : 'fc-bull';
+
+    const triggerBanner = triggered
+      ? `<div class="trigger-banner ${isCBear?'tb-bear':'tb-bull'}">
+           <span style="font-size:20px">${arrow}</span>
+           <div>
+             <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px">
+               TRIGGER ACTIVE — ${dir} ENTRY NOW
+             </div>
+             <div style="font-size:12px;opacity:.8">
+               Price ${isCBear?'broke below ORB Low':'broke above ORB High'} (${fmt(triggerPrice)})
+             </div>
+           </div>
+         </div>`
+      : `<div class="trigger-banner tb-wait">
+           <span style="font-size:18px">⏳</span>
+           <div>
+             <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">
+               WAITING FOR TRIGGER
+             </div>
+             <div style="font-size:12px">
+               ${isCBear
+                 ? `Watch for price to close <strong>below ORB Low ${fmt(triggerPrice)}</strong>`
+                 : `Watch for price to close <strong>above ORB High ${fmt(triggerPrice)}</strong>`}
+             </div>
+           </div>
+         </div>`;
+
     el.innerHTML = `
-      <div class="score-card">
-        <div class="sc-item"><div class="sci-label">GIFT Nifty</div><div class="sci-val" style="color:var(--yellow)">⚠️</div></div>
-        <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:var(--red)">❌</div></div>
-        <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:var(--yellow)">⚠️</div></div>
+      ${triggerBanner}
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);
+                  padding:12px 16px;margin-bottom:12px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+                    text-transform:uppercase;color:var(--muted);margin-bottom:8px">
+          Lean Analysis — Why ${isCBear?'Bear':'Bull'} (Score ${isCBear?ls.bear:ls.bull} vs ${isCBear?ls.bull:ls.bear})
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:10px">
+          <div style="flex:1;text-align:center;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.2);
+                      border-radius:6px;padding:8px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--red)">${ls.bear}</div>
+            <div style="font-size:11px;color:var(--muted)">Bear Score</div>
+          </div>
+          <div style="flex:1;text-align:center;background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.2);
+                      border-radius:6px;padding:8px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--green)">${ls.bull}</div>
+            <div style="font-size:11px;color:var(--muted)">Bull Score</div>
+          </div>
+        </div>
+        <div class="checklist" style="margin-bottom:0">
+          ${factors.map(f=>`<div class="chk ${f.icon==='🔴'?'fail':f.icon==='🟢'?'pass':'warn'}">
+            <span class="chk-icon">${f.icon}</span>
+            <div class="chk-text">${f.text}</div>
+          </div>`).join('')}
+        </div>
       </div>
-      <div class="checklist">
-        <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text"><strong>GIFT Nifty</strong> — Mild gap, not conclusive</div></div>
-        <div class="chk warn"><span class="chk-icon">❌</span><div class="chk-text"><strong>CPR Conflict</strong> — Open inside CPR or direction mismatch. No clear bias.</div></div>
-        <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text"><strong>ORB</strong> — Straddles CPR band. Risk of false breakout is HIGH.</div></div>
-        <div class="chk warn"><span class="chk-icon">❌</span><div class="chk-text ta">ORB breakout-ஐ CPR confirm செய்யவில்லை. <strong style="color:var(--red)">false breakout</strong> ஆகும் வாய்ப்பு அதிகம். Trade எடுக்க வேண்டாம்.</div></div>
-      </div>
-      <div class="final-result fr-skip">
-        <div class="fr-icon">🚫</div>
-        <div class="fr-title" style="color:var(--yellow)">❌ SKIP TRADE / REDUCE SIZE</div>
-        <div class="fr-sub">ORB break but CPR disagrees — high risk of false breakout</div>
-        <div class="fr-ta">ORB மற்றும் CPR திசை முரண்படுகின்றன → Trade தவிர்க்கவும்</div>
+      <div class="final-result ${frCls}" style="${triggered?'':'opacity:0.85'}">
+        <div class="fr-icon">${arrow}</div>
+        <div class="fr-title" style="color:${clr}">
+          ${triggered ? `✅ CONDITIONAL ${dir} — TRIGGERED` : `⚡ CONDITIONAL ${dir} SETUP`}
+        </div>
+        <div class="fr-sub">
+          ${triggered
+            ? `Trigger confirmed — Enter ${dir} with reduced size (½ position)`
+            : `Enter only after price ${isCBear?'closes below':'closes above'} ${fmt(triggerPrice)}`}
+        </div>
+        <div class="fr-ta">
+          ${isCBear
+            ? 'ORB Low உடைந்தால் Short எடுங்கள் — reduced size'
+            : 'ORB High உடைந்தால் Long எடுங்கள் — reduced size'}
+        </div>
         <div class="fr-chips">
-          <span class="fr-chip fc-yellow">No Trade Today</span>
-          <span class="fr-chip fc-yellow">Wait for Next Day</span>
-          <span class="fr-chip fc-yellow">Capital Preserved ✅</span>
+          <span class="fr-chip ${chipCls}">Trigger: ${fmt(triggerPrice)}</span>
+          <span class="fr-chip ${chipCls}">T1: ${fmt(t1)}</span>
+          <span class="fr-chip ${chipCls}">T2: ${fmt(t2)}</span>
+          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3: ${fmt(t3)}</span>
+          <span class="fr-chip" style="background:${isCBear?'rgba(46,204,113,0.15)':'rgba(231,76,60,0.15)'};
+                color:${isCBear?'var(--green)':'var(--red)'};
+                border:1px solid ${isCBear?'rgba(46,204,113,0.3)':'rgba(231,76,60,0.3)'}">SL: ${fmt(sl)}</span>
         </div>
       </div>`;
+    return;
   }
+
+  // ── SKIP (true neutral — no lean) ─────────────────────────────────────────
+  el.innerHTML = `
+    <div class="score-card">
+      <div class="sc-item"><div class="sci-label">GIFT / Gap</div><div class="sci-val" style="color:var(--yellow)">⚠️</div></div>
+      <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:var(--red)">❌</div></div>
+      <div class="sc-item"><div class="sci-label">ORB Break</div><div class="sci-val" style="color:var(--yellow)">⚠️</div></div>
+    </div>
+    <div class="checklist">
+      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text"><strong>Gap</strong> — Mild / not conclusive</div></div>
+      <div class="chk warn"><span class="chk-icon">❌</span><div class="chk-text"><strong>CPR Conflict</strong> — No directional bias. Equal bull/bear scoring.</div></div>
+      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text"><strong>ORB straddles CPR</strong> — Risk of false breakout. No lean detected.</div></div>
+    </div>
+    <div class="final-result fr-skip">
+      <div class="fr-icon">🚫</div>
+      <div class="fr-title" style="color:var(--yellow)">SKIP TRADE / REDUCE SIZE</div>
+      <div class="fr-sub">No dominant lean — true conflict day</div>
+      <div class="fr-ta">திசை தெரியவில்லை → Trade தவிர்க்கவும்</div>
+      <div class="fr-chips">
+        <span class="fr-chip fc-yellow">No Trade</span>
+        <span class="fr-chip fc-yellow">Capital Preserved ✅</span>
+      </div>
+    </div>`;
 }
 
 // ─────────────────────────────────────────────
@@ -1246,6 +1415,7 @@ function renderStep6(d) {
 function renderFlowData(d) {
   if (!d) return;
   renderStep1(d);
+  renderVix(d);
   renderStep2(d);
   renderStep3(d);
   renderStep4(d);
@@ -1263,6 +1433,81 @@ const PHASE_LABELS = {
   closed:      '🔒 Market Closed',
   unknown:     '◉ Loading...',
 };
+function vixLabel(v) {
+  if (v == null) return { text: '--', color: 'var(--muted)', zone: 'unknown' };
+  if (v < 13)   return { text: `${v} · Very Low`,  color: 'var(--blue)',   zone: 'very_low'  };
+  if (v < 16)   return { text: `${v} · Low`,        color: 'var(--green)',  zone: 'low'       };
+  if (v < 20)   return { text: `${v} · Normal`,     color: 'var(--yellow)', zone: 'normal'    };
+  if (v < 25)   return { text: `${v} · Elevated`,   color: 'var(--yellow)', zone: 'elevated'  };
+  return              { text: `${v} · High Fear`,   color: 'var(--red)',    zone: 'high'      };
+}
+
+function renderVix(d) {
+  const el  = document.getElementById('s1-vix');
+  const vix = d && d.india_vix;
+  const lbl = vixLabel(vix);
+
+  // Update live bar chip
+  const chip = document.getElementById('chip-vix');
+  const chipVal = document.getElementById('chip-vix-val');
+  if (vix != null) {
+    chip.style.display = '';
+    chip.style.color = lbl.color;
+    chip.style.borderColor = lbl.color + '66';
+    chipVal.textContent = vix;
+  } else {
+    chip.style.display = 'none';
+  }
+
+  if (!vix) {
+    el.innerHTML = `<div class="no-data" style="margin-bottom:0">
+      <div class="nd-icon">🌡</div><div>VIX data unavailable</div></div>`;
+    return;
+  }
+
+  const zoneMap = {
+    very_low: { bg:'rgba(91,138,245,0.08)', bc:'rgba(91,138,245,0.25)',
+      msg: 'Range-bound day likely. Premiums are cheap — good for buying strategies. ORB range may be small.',
+      ta:  'ஏற்ற இறக்கம் குறைவு. Market sideways போகலாம்.' },
+    low:      { bg:'var(--green-bg)', bc:'rgba(46,204,113,0.25)',
+      msg: 'Low volatility — moderate trending day possible. Standard ORB targets valid.',
+      ta:  'நடுத்தர போக்கு நாள் எதிர்பார்க்கலாம்.' },
+    normal:   { bg:'rgba(245,166,35,0.06)', bc:'rgba(245,166,35,0.2)',
+      msg: 'Normal volatility — standard CPR + ORB strategy applies. Use T1, T2 as targets.',
+      ta:  'வழக்கமான நிலை. CPR + ORB strategy சரியாக செயல்படும்.' },
+    elevated: { bg:'rgba(245,166,35,0.1)', bc:'rgba(245,166,35,0.3)',
+      msg: 'Elevated fear — expect larger candles and wider swings. Consider T2 / T3. Tighten stop if entering late.',
+      ta:  'Volatility அதிகம். Targets விரிவாக இருக்கும். ஜாக்கிரதையாக trade எடுங்கள்.' },
+    high:     { bg:'var(--red-bg)', bc:'rgba(231,76,60,0.3)',
+      msg: 'High fear — market is panicking. Whipsaws are frequent. Reduce size or avoid. Only take high-conviction setups.',
+      ta:  'சந்தை அச்சத்தில் உள்ளது. Size குறைக்கவும் அல்லது trade தவிர்க்கவும்.' },
+  };
+  const z = zoneMap[lbl.zone] || zoneMap.normal;
+
+  el.innerHTML = `
+    <div style="background:${z.bg};border:1px solid ${z.bc};border-left:3px solid ${lbl.color};
+                border-radius:var(--r2);padding:12px 16px;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;color:${lbl.color}">${vix}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;
+                     padding:3px 10px;border-radius:10px;background:${z.bg};border:1px solid ${z.bc};
+                     color:${lbl.color}">${lbl.text.split('·')[1].trim().toUpperCase()}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text);margin-bottom:5px">${z.msg}</div>
+      <div style="font-family:'Tiro Tamil',serif;font-size:12px;color:var(--dim)">${z.ta}</div>
+    </div>
+    <table class="compare-table" style="margin-top:8px;margin-bottom:0">
+      <thead><tr><th>VIX Range</th><th>Zone</th><th>Expected Volatility</th></tr></thead>
+      <tbody>
+        <tr style="${vix < 13 ? 'background:rgba(91,138,245,0.06)' : ''}"><td style="color:var(--blue)">&lt;13</td><td>Very Low</td><td>Sideways / range-bound</td></tr>
+        <tr style="${vix >= 13 && vix < 16 ? 'background:rgba(46,204,113,0.06)' : ''}"><td style="color:var(--green)">13–16</td><td>Low</td><td>Moderate trend day</td></tr>
+        <tr style="${vix >= 16 && vix < 20 ? 'background:rgba(245,166,35,0.06)' : ''}"><td style="color:var(--yellow)">16–20</td><td>Normal</td><td>Standard ORB strategy</td></tr>
+        <tr style="${vix >= 20 && vix < 25 ? 'background:rgba(245,166,35,0.08)' : ''}"><td style="color:var(--yellow)">20–25</td><td>Elevated</td><td>Larger swings, extend targets</td></tr>
+        <tr style="${vix >= 25 ? 'background:rgba(231,76,60,0.06)' : ''}"><td style="color:var(--red)">&gt;25</td><td>High Fear</td><td>Reduce size or avoid</td></tr>
+      </tbody>
+    </table>`;
+}
+
 function updateHero(d) {
   if (!d) return;
   document.getElementById('chip-phase').textContent = PHASE_LABELS[d.phase] || d.phase;
@@ -1294,6 +1539,22 @@ function tickClock() {
 // ─────────────────────────────────────────────
 // Data fetch
 // ─────────────────────────────────────────────
+async function autoFetchGiftNifty() {
+  editingGift = false;
+  try {
+    const res = await fetch('/api/fetch-gift-nifty');
+    if (!res.ok) throw new Error(`Engine returned HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.status === 'error') throw new Error(data.message);
+    // Success — re-render with the auto-fetched price
+    await fetchFlowData();
+  } catch (err) {
+    // Don't block the user — just show the message and let them type manually
+    console.warn('GIFT Nifty auto-fetch:', err.message);
+    alert(err.message);
+  }
+}
+
 async function submitGiftNifty() {
   editingGift = false;   // allow re-render after submit
   const price = parseFloat(document.getElementById('inp-gift').value);
@@ -1421,7 +1682,8 @@ async function fetchFlowData() {
     document.getElementById('ohlc-banner').style.display = d.prev_day ? 'none' : '';
 
     // Auto-set scenario when we have enough data
-    if (d.scenario && d.scenario !== 'unknown' && autoScenario !== d.scenario) {
+    const validScenarios = ['bull','bear','skip','conditional_bear','conditional_bull'];
+    if (d.scenario && validScenarios.includes(d.scenario) && autoScenario !== d.scenario) {
       autoScenario = d.scenario;
       setScenario(d.scenario, true);
     }

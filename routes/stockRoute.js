@@ -199,6 +199,32 @@ router.post("/set-prev-ohlc", async (req, res) => {
   }
 });
 
+// ─── GET /api/ema-scenario/backtest ─────────────────────────────────────────
+// Back-tests EMA+MACD+VWAP signal over last N trading days via yfinance
+// ?days=10|20|30  (default 20, max 55)
+router.get("/ema-scenario/backtest", async (req, res) => {
+  try {
+    const days = Math.min(Math.max(parseInt(req.query.days) || 20, 5), 55);
+    const data = await aiService.getEmaBacktest(days);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/ema-scenario ───────────────────────────────────────────────────
+// EMA 9/21 + MACD + VWAP scenario analysis
+// ?mode=sim (synthetic textbook data) | ?mode=live (yfinance ^NSEI real candles)
+router.get("/ema-scenario", async (req, res) => {
+  try {
+    const mode = req.query.mode === "live" ? "live" : "sim";
+    const data = await aiService.getEmaScenario(mode);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/price ──────────────────────────────────────────────────────────
 // Live NIFTY spot price from Python engine market state
 router.get("/price", async (req, res) => {
@@ -223,6 +249,104 @@ router.get("/price", async (req, res) => {
       res.status(500).json({ error: err.message });
     }
   });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Options Analysis Tool routes
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── GET /api/options/context?symbol=NIFTY ───────────────────────────────────
+router.get("/options/context", async (req, res) => {
+  try {
+    const symbol = (req.query.symbol || "NIFTY").toUpperCase();
+    const data = await aiService.proxy("GET", `/options/context?symbol=${symbol}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/expiries?symbol=NIFTY ──────────────────────────────────
+router.get("/options/expiries", async (req, res) => {
+  try {
+    const symbol = (req.query.symbol || "NIFTY").toUpperCase();
+    const data = await aiService.proxy("GET", `/options/expiries?symbol=${symbol}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/search?query=NIFTY&expiry_type=weekly ─────────────────
+router.get("/options/search", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.query)       params.set("query",       req.query.query);
+    if (req.query.expiry_type) params.set("expiry_type", req.query.expiry_type);
+    if (req.query.spot_price)  params.set("spot_price",  req.query.spot_price);
+    const data = await aiService.proxy("GET", `/options/search?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/chain?symbol=NIFTY&expiry=25APR2024 ────────────────────
+router.get("/options/chain", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.symbol)      params.set("symbol",      req.query.symbol);
+    if (req.query.expiry)      params.set("expiry",      req.query.expiry);
+    if (req.query.spot_price)  params.set("spot_price",  req.query.spot_price);
+    const data = await aiService.proxy("GET", `/options/chain?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/score ───────────────────────────────────────────────────
+router.get("/options/score", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/options/score?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/select-strike ─────────────────────────────────────────
+router.get("/options/select-strike", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/options/select-strike?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/risk ────────────────────────────────────────────────────
+router.get("/options/risk", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/options/risk?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/monitor ────────────────────────────────────────────────
+router.get("/options/monitor", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/options/monitor?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

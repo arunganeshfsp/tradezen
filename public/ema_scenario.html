@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMA + MACD + VWAP Scenario | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green2:#27ae60;--green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c;--red2:#c0392b;--red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;--orange:#ff7043;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
+.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover{color:var(--text);background:var(--bg3)}
+.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);padding:3px 10px;border-radius:20px}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:52px 28px 36px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.15),transparent 65%),var(--bg)}
+.hero-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:300px;background:radial-gradient(ellipse,rgba(91,138,245,0.1),transparent 70%);pointer-events:none}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:18px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(26px,4.5vw,46px);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1.5px;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:14px;color:var(--dim);max-width:520px;margin:0 auto 28px;line-height:1.6}
+
+/* MODE TOGGLE */
+.mode-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.mode-btn{display:flex;align-items:center;gap:9px;padding:11px 26px;border-radius:var(--r2);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-btn:hover{border-color:var(--border2);color:var(--text)}
+.mode-btn.active-sim{background:rgba(91,138,245,0.12);border-color:rgba(91,138,245,0.45);color:var(--blue)}
+.mode-btn.active-live{background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.45);color:var(--green)}
+.mode-dot{width:8px;height:8px;border-radius:50%}
+.md-sim{background:var(--blue)}
+.md-live{background:var(--green);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+.run-btn{display:inline-flex;align-items:center;gap:9px;padding:12px 32px;border-radius:var(--r2);font-size:14px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;transition:all .2s;font-family:'DM Sans',sans-serif;box-shadow:0 4px 20px rgba(124,106,247,0.3)}
+.run-btn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(124,106,247,0.45)}
+.run-btn:active{transform:translateY(0)}
+.run-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.mode-note{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:10px}
+
+/* MAIN CONTENT */
+.page{max-width:1050px;margin:0 auto;padding:32px 28px 80px}
+
+/* STATUS BAR */
+.status-bar{display:flex;align-items:center;gap:14px;padding:10px 16px;border-radius:var(--r2);margin-bottom:24px;font-size:13px;display:none}
+.sb-idle{background:var(--bg2);border:1px solid var(--border);color:var(--dim)}
+.sb-loading{background:rgba(91,138,245,0.08);border:1px solid rgba(91,138,245,0.3);color:var(--blue)}
+.sb-ok{background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);color:var(--green)}
+.sb-err{background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.3);color:var(--red)}
+.spin{width:14px;height:14px;border:2px solid rgba(91,138,245,0.3);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* STEPS GRID */
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+@media(max-width:700px){.steps-grid{grid-template-columns:1fr}}
+
+/* STEP CARD */
+.step-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:none;animation:fadeUp .35s ease both}
+.step-card.show{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.sc-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg3)}
+.sc-num{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sc-num.ok{background:var(--green2)}
+.sc-num.fail{background:var(--red2)}
+.sc-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;flex:1}
+.sc-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:3px 9px;border-radius:10px}
+.badge-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.badge-fail{background:var(--red-bg);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.badge-skip{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+
+.sc-body{padding:16px 18px}
+
+/* CONDITION ROWS */
+.cond-list{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.cond{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:var(--r2);background:var(--bg3);border:1px solid var(--border)}
+.cond.pass{background:rgba(46,204,113,0.05);border-color:rgba(46,204,113,0.2)}
+.cond.fail{background:rgba(231,76,60,0.05);border-color:rgba(231,76,60,0.2)}
+.cond-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.cond-text{font-size:12.5px;color:var(--dim);line-height:1.5;flex:1}
+.cond-text strong{color:var(--text)}
+.cond-val{font-family:'JetBrains Mono',monospace;font-size:11px;margin-left:auto;white-space:nowrap;padding-left:8px}
+
+/* KV rows */
+.kv-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(37,42,69,0.5)}
+.kv-row:last-child{border-bottom:none}
+.kv-label{font-size:12.5px;color:var(--dim)}
+.kv-val{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600}
+.kv-green{color:var(--green)}.kv-red{color:var(--red)}.kv-yellow{color:var(--yellow)}.kv-blue{color:var(--blue)}.kv-cyan{color:var(--cyan)}.kv-dim{color:var(--dim)}
+
+/* sub head */
+.sub-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.sub-h::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* TRADE PLAN CARD */
+.plan-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px;display:none;animation:fadeUp .35s ease both}
+.plan-card.show{display:block}
+.plan-head{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:12px}
+.plan-body{padding:20px 18px}
+.plan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+@media(max-width:600px){.plan-grid{grid-template-columns:repeat(2,1fr)}}
+.plan-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;text-align:center}
+.pb-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.pb-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800}
+.pb-entry{color:var(--blue)}
+.pb-stop{color:var(--red)}
+.pb-t1{color:var(--green)}
+.pb-t2{color:var(--cyan)}
+.pb-sub{font-size:11px;color:var(--muted);margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+.rr-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.rr-chip{padding:6px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
+.rr-risk{background:rgba(231,76,60,0.1);color:var(--red);border:1px solid rgba(231,76,60,0.25)}
+.rr-t1{background:rgba(46,204,113,0.1);color:var(--green);border:1px solid rgba(46,204,113,0.25)}
+.rr-t2{background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.25)}
+.rr-qty{background:rgba(245,166,35,0.1);color:var(--yellow);border:1px solid rgba(245,166,35,0.25)}
+
+.exec-note{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:var(--r2);padding:12px 14px;font-size:12px;color:var(--dim);line-height:1.8}
+.exec-note strong{color:var(--yellow)}
+
+/* SUMMARY CARD */
+.summary-card{border-radius:var(--r);overflow:hidden;margin-bottom:24px;display:none;animation:fadeUp .35s ease both}
+.summary-card.show{display:block}
+.sum-ok{background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(39,174,96,0.06));border:1px solid rgba(46,204,113,0.3)}
+.sum-fail{background:linear-gradient(135deg,rgba(231,76,60,0.12),rgba(192,57,43,0.06));border:1px solid rgba(231,76,60,0.3)}
+.sum-inner{padding:28px 24px;text-align:center}
+.sum-icon{font-size:44px;margin-bottom:10px}
+.sum-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:6px}
+.sum-ok .sum-title{color:var(--green)}
+.sum-fail .sum-title{color:var(--red)}
+.sum-sub{font-size:13px;color:var(--dim);max-width:480px;margin:0 auto 16px;line-height:1.6}
+.sum-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.sc-chip{padding:6px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.chip-ok{background:rgba(46,204,113,0.12);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.chip-fail{background:rgba(231,76,60,0.12);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.chip-miss{background:rgba(245,166,35,0.12);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+.trade-line{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--r2);padding:10px 16px;display:inline-block}
+
+/* EMPTY STATE */
+.empty-state{background:var(--bg2);border:2px dashed var(--border);border-radius:var(--r);padding:52px 28px;text-align:center;margin-bottom:24px}
+.es-icon{font-size:36px;margin-bottom:12px;opacity:.6}
+.es-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--dim);margin-bottom:6px}
+.es-sub{font-size:13px;color:var(--muted);max-width:380px;margin:0 auto}
+
+/* DISCLAIMER */
+.disclaimer{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:var(--r2);padding:12px 16px;font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:24px}
+.disclaimer strong{color:var(--orange)}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.fbrand{display:flex;align-items:center;gap:8px}
+.flogo{width:26px;height:26px;border-radius:5px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.fbrand span{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
+.fnote{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+
+/* BACKTEST SECTION */
+.bt-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.bt-header{padding:16px 18px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.bt-title-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.bt-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.days-selector{display:flex;gap:6px}
+.day-btn{padding:6px 16px;border-radius:var(--r2);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:all .15s;font-family:'JetBrains Mono',monospace}
+.day-btn:hover{border-color:var(--border2);color:var(--text)}
+.day-btn.active{background:rgba(255,112,67,0.12);border-color:rgba(255,112,67,0.45);color:var(--orange)}
+.bt-run-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 20px;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--orange),#e64a19);color:#fff;transition:all .2s;font-family:'DM Sans',sans-serif}
+.bt-run-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,112,67,0.3)}
+.bt-run-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* STATS STRIP */
+.bt-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border)}
+@media(max-width:700px){.bt-stats{grid-template-columns:repeat(3,1fr)}}
+.stat-box{background:var(--bg2);padding:14px 12px;text-align:center}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text)}
+.stat-blue{color:var(--blue)}.stat-green{color:var(--green)}.stat-red{color:var(--red)}.stat-yellow{color:var(--yellow)}
+
+/* RESULTS TABLE */
+.bt-table-wrap{overflow-x:auto;padding:0 18px 18px}
+.bt-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:16px}
+.bt-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.bt-table td{padding:8px 10px;border-bottom:1px solid rgba(37,42,69,0.5);font-family:'JetBrains Mono',monospace;vertical-align:middle}
+.bt-table tr:last-child td{border-bottom:none}
+.bt-table tr:hover td{background:rgba(255,255,255,0.02)}
+.oc-win{color:var(--green);font-weight:700}.oc-loss{color:var(--red);font-weight:700}
+.oc-nosetup{color:var(--muted)}.oc-noentry{color:var(--yellow)}.oc-skip{color:var(--muted)}
+.bt-note{padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border)}
+.bt-loading{padding:36px;text-align:center;font-size:13px;color:var(--blue)}
+.bt-error{padding:16px 18px;font-size:12px;color:var(--red);background:var(--red-bg);border-top:1px solid rgba(231,76,60,0.2)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="brand" href="index.html"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links">
+    <a class="nl" href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+    <a class="nl" href="options_entry_tool_tamil.html">🎯 Buying</a>
+    <a class="nl" href="options_selling_tool_tamil.html">💰 Selling</a>
+    <a class="nl" href="fno_signal.html">🤖 F&amp;O</a>
+    <a class="nl" href="trade_flow.html">🧭 Flow</a>
+    <a class="nl on" href="ema_scenario.html">📊 EMA</a>
+    <a class="nl" href="index.html">⌂ Home</a>
+  </div>
+  <div class="nav-r"><span class="nav-badge">EMA · MACD · VWAP</span></div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="htag">📊 3-Indicator Intraday Framework</div>
+  <h1>EMA + MACD + <em>VWAP</em></h1>
+  <p class="hero-sub">Multi-timeframe intraday signal: 1H bias → 15m setup → 5m entry trigger</p>
+
+  <!-- Mode toggle -->
+  <div class="mode-row">
+    <button class="mode-btn active-sim" id="btn-sim" onclick="setMode('sim')">
+      <span class="mode-dot md-sim"></span>
+      Simulation
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:2px">synthetic</span>
+    </button>
+    <button class="mode-btn" id="btn-live" onclick="setMode('live')">
+      <span class="mode-dot md-live"></span>
+      Live
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:2px">yfinance ^NSEI</span>
+    </button>
+  </div>
+
+  <button class="run-btn" id="run-btn" onclick="runAnalysis()">
+    ▶ Run Analysis
+  </button>
+  <div class="mode-note" id="mode-note">Simulation uses synthetic textbook NIFTY data · no market hours needed</div>
+</div>
+
+<!-- PAGE BODY -->
+<div class="page">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar sb-idle" id="status-bar" style="display:flex">
+    <span id="status-icon">💤</span>
+    <span id="status-text">Select a mode and click Run Analysis</span>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <strong>Educational tool only.</strong>
+    Simulation mode uses synthetic NIFTY data designed to illustrate the EMA+MACD+VWAP setup.
+    Live mode fetches real data via yfinance (15-min delayed outside market hours).
+    This is not financial advice — always verify signals with your broker before trading.
+  </div>
+
+  <!-- EMPTY STATE (shown before first run) -->
+  <div class="empty-state" id="empty-state">
+    <div class="es-icon">📈</div>
+    <div class="es-title">No analysis yet</div>
+    <div class="es-sub">Choose Simulation for a textbook walkthrough, or Live to check today's NIFTY setup. Then click Run Analysis.</div>
+  </div>
+
+  <!-- STEPS GRID -->
+  <div class="steps-grid" id="steps-grid">
+    <div class="step-card" id="card-1"></div>
+    <div class="step-card" id="card-2"></div>
+    <div class="step-card" id="card-3"></div>
+    <div class="step-card" id="card-4"></div>
+  </div>
+
+  <!-- TRADE PLAN CARD -->
+  <div class="plan-card" id="plan-card"></div>
+
+  <!-- SUMMARY -->
+  <div class="summary-card" id="summary-card"></div>
+
+  <!-- BACKTEST -->
+  <div class="bt-section">
+    <div class="bt-header">
+      <div class="bt-title-row">
+        <div class="sc-num" style="background:var(--orange);width:32px;height:32px;font-size:14px">📅</div>
+        <div class="sc-title" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;flex:1">Historical Backtest</div>
+        <span class="sc-badge badge-skip">yfinance · 5m data · NSE</span>
+      </div>
+      <div class="bt-controls">
+        <div class="days-selector">
+          <button class="day-btn active" id="day-10" onclick="setDays(10)">10 days</button>
+          <button class="day-btn" id="day-20" onclick="setDays(20)">20 days</button>
+          <button class="day-btn" id="day-30" onclick="setDays(30)">30 days</button>
+        </div>
+        <button class="bt-run-btn" id="bt-run-btn" onclick="runBacktest()">
+          🔍 Run Backtest
+        </button>
+      </div>
+    </div>
+
+    <!-- stats strip — hidden until first run -->
+    <div class="bt-stats" id="bt-stats" style="display:none">
+      <div class="stat-box">
+        <div class="stat-label">Days Tested</div>
+        <div class="stat-val stat-blue" id="bt-days">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-val" id="bt-trades">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-val" id="bt-winrate">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total P&amp;L (pts)</div>
+        <div class="stat-val" id="bt-pnl">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg Win</div>
+        <div class="stat-val stat-green" id="bt-avgwin">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg Loss</div>
+        <div class="stat-val stat-red" id="bt-avgloss">—</div>
+      </div>
+    </div>
+
+    <!-- dynamic content area -->
+    <div id="bt-body">
+      <div style="padding:28px;text-align:center;font-size:13px;color:var(--muted)">
+        Select a day range and click <strong style="color:var(--orange)">Run Backtest</strong> to verify the EMA+MACD+VWAP signal against real NSE data.
+        <br><span style="font-family:'JetBrains Mono',monospace;font-size:10px;margin-top:6px;display:block;color:var(--muted)">First run fetches ~59 days of 5m + 15m + 1H data from yfinance · takes 15–40 sec</span>
+      </div>
+    </div>
+
+    <div class="bt-note">
+      Strategy: 1H bias + 15m EMA crossover setup → first 5m pullback-to-EMA9 entry →
+      T1 = entry + 2×risk · Stop = EMA9 – 20 pts · Outcome: first T1 or stop hit on remaining candles.
+      <strong style="color:var(--yellow)">Educational only — not financial advice.</strong>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fbrand">
+    <div class="flogo">TZ</div>
+    <span>TradeZen</span>
+  </div>
+  <div class="fnote">EMA 9/21 · MACD 12/26/9 · VWAP · <em>Learning tool</em></div>
+</footer>
+
+<script>
+const API = '/api';
+let currentMode = 'sim';
+
+// ── Mode toggle ──────────────────────────────────────────────────────────────
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('btn-sim').className =
+    'mode-btn' + (m === 'sim' ? ' active-sim' : '');
+  document.getElementById('btn-live').className =
+    'mode-btn' + (m === 'live' ? ' active-live' : '');
+  document.getElementById('mode-note').textContent = m === 'sim'
+    ? 'Simulation uses synthetic textbook NIFTY data · no market hours needed'
+    : 'Live mode fetches real NIFTY candles from yfinance — best during market hours';
+}
+
+// ── Status bar ───────────────────────────────────────────────────────────────
+function setStatus(state, text) {
+  const bar  = document.getElementById('status-bar');
+  const icon = document.getElementById('status-icon');
+  const msg  = document.getElementById('status-text');
+  bar.className = `status-bar sb-${state}`;
+  bar.style.display = 'flex';
+  icon.innerHTML = state === 'loading'
+    ? '<div class="spin"></div>'
+    : state === 'ok' ? '✅' : state === 'err' ? '❌' : '💤';
+  msg.textContent = text;
+}
+
+// ── Main runner ──────────────────────────────────────────────────────────────
+async function runAnalysis() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = 'Analysing…';
+  document.getElementById('empty-state').style.display = 'none';
+  setStatus('loading', `Running ${currentMode === 'sim' ? 'simulation' : 'live'} analysis via AI engine…`);
+
+  // hide previous results
+  ['card-1','card-2','card-3','card-4'].forEach(id => {
+    document.getElementById(id).classList.remove('show');
+  });
+  document.getElementById('plan-card').classList.remove('show');
+  document.getElementById('summary-card').classList.remove('show');
+
+  try {
+    const res  = await fetch(`${API}/ema-scenario?mode=${currentMode}`);
+    const data = await res.json();
+
+    if (data.error) {
+      setStatus('err', data.error);
+      document.getElementById('empty-state').style.display = 'block';
+      document.getElementById('empty-state').querySelector('.es-title').textContent = 'Error';
+      document.getElementById('empty-state').querySelector('.es-sub').textContent = data.error;
+    } else {
+      setStatus('ok', `Analysis complete · Mode: ${data.mode.toUpperCase()} · ${new Date().toLocaleTimeString('en-IN')}`);
+      render(data);
+    }
+  } catch(e) {
+    setStatus('err', 'Cannot reach Node server. Make sure it is running (npm start / node server.js).');
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('empty-state').querySelector('.es-title').textContent = 'Server unreachable';
+    document.getElementById('empty-state').querySelector('.es-sub').textContent = e.message || 'Check that the Node server and AI engine are both running.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '▶ Run Analysis';
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = v => (v == null || isNaN(v)) ? '—' : (+v).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+const yn  = v => v ? '✅' : '❌';
+const clr = v => v ? 'pass' : 'fail';
+
+function cond(ok, label, val = '') {
+  return `<div class="cond ${clr(ok)}">
+    <span class="cond-icon">${yn(ok)}</span>
+    <span class="cond-text">${label}</span>
+    ${val ? `<span class="cond-val kv-dim">${val}</span>` : ''}
+  </div>`;
+}
+
+function kv(label, val, colorClass = '') {
+  return `<div class="kv-row">
+    <span class="kv-label">${label}</span>
+    <span class="kv-val ${colorClass}">${val}</span>
+  </div>`;
+}
+
+function subh(label) {
+  return `<div class="sub-h">${label}</div>`;
+}
+
+// ── Step cards ───────────────────────────────────────────────────────────────
+function renderStep1(bias) {
+  const ok = bias.all_conditions_met;
+  const el = document.getElementById('card-1');
+  el.innerHTML = `
+    <div class="sc-head">
+      <div class="sc-num ${ok ? 'ok' : 'fail'}">1</div>
+      <div class="sc-title">1H Bias Check</div>
+      <span class="sc-badge ${ok ? 'badge-ok' : 'badge-fail'}">${ok ? 'CONFIRMED' : 'NOT MET'}</span>
+    </div>
+    <div class="sc-body">
+      ${subh('4 Conditions')}
+      <div class="cond-list">
+        ${cond(bias.ema_stacked,   'EMA 9 > EMA 21 (bullish stack)',   `${fmt(bias.ema9)} / ${fmt(bias.ema21)}`)}
+        ${cond(bias.ema_sloping,   'Both EMAs sloping up (last 3 bars)','')}
+        ${cond(bias.macd_positive, 'MACD histogram positive',           `hist ${bias.macd_hist}`)}
+        ${cond(bias.above_vwap,    'Close > VWAP (above fair value)',   `${fmt(bias.close)} / ${fmt(bias.vwap)}`)}
+      </div>
+      ${subh('Values')}
+      ${kv('Bias', `<span style="color:${bias.bias==='BULLISH'?'var(--green)':bias.bias==='BEARISH'?'var(--red)':'var(--yellow)'};font-weight:700">${bias.bias}</span>`)}
+      ${kv('EMA 9', fmt(bias.ema9), 'kv-blue')}
+      ${kv('EMA 21', fmt(bias.ema21), 'kv-dim')}
+      ${kv('VWAP', fmt(bias.vwap), 'kv-cyan')}
+      ${kv('Close', fmt(bias.close), bias.above_vwap ? 'kv-green' : 'kv-red')}
+    </div>`;
+  el.classList.add('show');
+}
+
+function renderStep2(setup) {
+  const ok = setup.setup_valid;
+  const xo = setup.crossover_candle_idx != null ? `candle #${setup.crossover_candle_idx}` : '—';
+  const el = document.getElementById('card-2');
+  el.innerHTML = `
+    <div class="sc-head">
+      <div class="sc-num ${ok ? 'ok' : 'fail'}">2</div>
+      <div class="sc-title">15m Setup</div>
+      <span class="sc-badge ${ok ? 'badge-ok' : 'badge-fail'}">${ok ? 'CONFIRMED' : 'NO SETUP'}</span>
+    </div>
+    <div class="sc-body">
+      ${subh('3 Conditions')}
+      <div class="cond-list">
+        ${cond(setup.ema_crossover_found,  'EMA 9 crossed above EMA 21 (last 3 bars)', xo)}
+        ${cond(setup.crossover_above_vwap, 'Crossover candle closed above VWAP',       '')}
+        ${cond(setup.macd_zero_cross,      'MACD histogram crossed zero (neg → pos)',  '')}
+      </div>
+      ${subh('Notes')}
+      <div style="font-size:12px;color:var(--dim);line-height:1.7;padding:4px 0">
+        ${ok
+          ? `<span style="color:var(--green)">✓ Valid 15m setup detected.</span> EMA crossover confirmed above VWAP with MACD momentum. Proceed to 5m for entry.`
+          : setup.ema_crossover_found
+            ? `EMA crossover found but ${!setup.crossover_above_vwap ? 'crossover was below VWAP' : 'MACD has not crossed zero'}. Wait for all 3 conditions.`
+            : `No EMA crossover in the last 3 candles. Wait for EMA 9 to cross above EMA 21.`}
+      </div>
+    </div>`;
+  el.classList.add('show');
+}
+
+function renderStep3(entry) {
+  const ok  = entry.entry_triggered;
+  const e9  = entry.ema9_at_entry != null ? fmt(entry.ema9_at_entry) : '—';
+  const vwp = entry.vwap_at_entry != null ? fmt(entry.vwap_at_entry) : '—';
+  const el  = document.getElementById('card-3');
+  el.innerHTML = `
+    <div class="sc-head">
+      <div class="sc-num ${ok ? 'ok' : 'fail'}">3</div>
+      <div class="sc-title">5m Entry Trigger</div>
+      <span class="sc-badge ${ok ? 'badge-ok' : 'badge-fail'}">${ok ? 'TRIGGERED' : 'NOT YET'}</span>
+    </div>
+    <div class="sc-body">
+      ${subh('4 Conditions')}
+      <div class="cond-list">
+        ${cond(entry.pullback_to_ema9,      'Pulled back to within 0.15% of EMA 9',  `EMA9 ${e9}`)}
+        ${cond(entry.held_above_vwap,       'Close above VWAP (pullback held)',        `VWAP ${vwp}`)}
+        ${cond(entry.bullish_candle,        'Bullish candle (close > open)',           '')}
+        ${cond(entry.macd_histogram_rising, 'MACD histogram turned positive',          '(confirmation)')}
+      </div>
+      ${ok ? `
+      ${subh('Entry Price')}
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--green)">
+          ₹${fmt(entry.entry_price)}
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px">
+          5m entry trigger price
+        </div>
+      </div>` : `
+      ${subh('Status')}
+      <div style="font-size:12px;color:var(--dim);line-height:1.7;padding:4px 0">
+        Entry not triggered yet. Wait for price to pull back to EMA 9 while staying above VWAP,
+        then look for a bullish close to enter.
+      </div>`}
+    </div>`;
+  el.classList.add('show');
+}
+
+function renderStep4(entry, mode) {
+  // Step 4 card: indicator context / what to watch
+  const el = document.getElementById('card-4');
+  const modeLabel = mode === 'sim'
+    ? 'Simulation (textbook scenario)'
+    : 'Live · yfinance ^NSEI';
+  el.innerHTML = `
+    <div class="sc-head">
+      <div class="sc-num" style="background:var(--yellow);color:#000">4</div>
+      <div class="sc-title">Execution Rules</div>
+      <span class="sc-badge badge-skip">${modeLabel}</span>
+    </div>
+    <div class="sc-body">
+      ${subh('Entry protocol')}
+      <div class="cond-list">
+        <div class="cond pass"><span class="cond-icon">📌</span>
+          <span class="cond-text"><strong>Enter</strong> on the candle open <em>after</em> the entry trigger candle closes</span></div>
+        <div class="cond pass"><span class="cond-icon">🎯</span>
+          <span class="cond-text"><strong>Book 50%</strong> at Target 1 → move stop to breakeven</span></div>
+        <div class="cond pass"><span class="cond-icon">📈</span>
+          <span class="cond-text"><strong>Trail</strong> remaining position with EMA 9 on 5m toward Target 2</span></div>
+        <div class="cond warn"><span class="cond-icon">⛔</span>
+          <span class="cond-text"><strong>Exit immediately</strong> if price breaks below VWAP before reaching T1</span></div>
+      </div>
+      ${subh('Signal hierarchy')}
+      ${kv('Step 1 (1H)',  '1H bias must be bullish first')}
+      ${kv('Step 2 (15m)', 'EMA crossover confirms momentum')}
+      ${kv('Step 3 (5m)',  'Pullback = low-risk entry point')}
+      ${kv('All 3 steps',  'Must confirm before trading', 'kv-yellow')}
+    </div>`;
+  el.classList.add('show');
+}
+
+// ── Trade plan ───────────────────────────────────────────────────────────────
+function renderPlan(plan) {
+  if (!plan || plan.entry === 0) return;
+  const el = document.getElementById('plan-card');
+  el.innerHTML = `
+    <div class="plan-head">
+      <div class="sc-num ok">₹</div>
+      <div class="sc-title">Trade Plan</div>
+      <span class="sc-badge badge-ok">LONG</span>
+    </div>
+    <div class="plan-body">
+      <div class="plan-grid">
+        <div class="plan-box">
+          <div class="pb-label">Entry</div>
+          <div class="pb-val pb-entry">₹${fmt(plan.entry)}</div>
+        </div>
+        <div class="plan-box">
+          <div class="pb-label">Stop Loss</div>
+          <div class="pb-val pb-stop">₹${fmt(plan.stop)}</div>
+          <div class="pb-sub">Risk ${plan.risk_pts.toFixed(0)} pts</div>
+        </div>
+        <div class="plan-box">
+          <div class="pb-label">Target 1</div>
+          <div class="pb-val pb-t1">₹${fmt(plan.target1)}</div>
+          <div class="pb-sub">RR 1 : ${plan.rr_t1}</div>
+        </div>
+        <div class="plan-box">
+          <div class="pb-label">Target 2</div>
+          <div class="pb-val pb-t2">₹${fmt(plan.target2)}</div>
+          <div class="pb-sub">RR 1 : ${plan.rr_t2}</div>
+        </div>
+      </div>
+
+      <div class="rr-row">
+        <span class="rr-chip rr-risk">Risk ${plan.risk_pts.toFixed(0)} pts</span>
+        <span class="rr-chip rr-t1">T1 reward ${plan.reward_t1.toFixed(0)} pts</span>
+        <span class="rr-chip rr-t2">T2 reward ${plan.reward_t2.toFixed(0)} pts</span>
+        <span class="rr-chip rr-qty">${plan.suggested_qty} units (1% risk on ₹5L)</span>
+      </div>
+
+      <div class="exec-note">
+        <strong>Capital:</strong> ₹${(+plan.capital).toLocaleString('en-IN')} &nbsp;·&nbsp;
+        <strong>Max risk 1%:</strong> ₹${(+plan.max_loss).toLocaleString('en-IN')} &nbsp;·&nbsp;
+        <strong>Qty:</strong> ${plan.suggested_qty} units &nbsp;·&nbsp;
+        Book 50% at T1 → breakeven stop → trail with EMA 9 to T2
+      </div>
+    </div>`;
+  el.classList.add('show');
+}
+
+// ── Summary ──────────────────────────────────────────────────────────────────
+function renderSummary(summary, plan, mode) {
+  const ok  = summary.all_ok;
+  const el  = document.getElementById('summary-card');
+
+  const chips = [
+    `<span class="sc-chip ${ok ? 'chip-ok' : 'chip-fail'}">1H Bias ${ok || !summary.missing.includes('1H Bias') ? '✓' : '✗'}</span>`,
+    `<span class="sc-chip ${ok ? 'chip-ok' : 'chip-fail'}">15m Setup ${ok || !summary.missing.includes('15m Setup') ? '✓' : '✗'}</span>`,
+    `<span class="sc-chip ${ok ? 'chip-ok' : 'chip-fail'}">5m Entry ${ok || !summary.missing.includes('5m Entry') ? '✓' : '✗'}</span>`,
+  ].join('');
+
+  const tradeLine = ok && plan && plan.entry > 0
+    ? `<div class="trade-line">
+        LONG ₹${fmt(plan.entry)} &nbsp;·&nbsp; SL ₹${fmt(plan.stop)} &nbsp;·&nbsp; T1 ₹${fmt(plan.target1)} &nbsp;·&nbsp; T2 ₹${fmt(plan.target2)}
+       </div>`
+    : '';
+
+  const missingNote = !ok && summary.missing.length
+    ? `<div style="margin-top:12px;font-size:12px;color:var(--dim)">
+         Waiting on: ${summary.missing.map(m=>`<span class="sc-chip chip-miss" style="font-size:10px;padding:3px 10px">${m}</span>`).join(' ')}
+       </div>`
+    : '';
+
+  el.className = `summary-card show sum-${ok ? 'ok' : 'fail'}`;
+  el.innerHTML = `
+    <div class="sum-inner">
+      <div class="sum-icon">${ok ? '🟢' : '🔴'}</div>
+      <div class="sum-title">${ok ? 'ALL SIGNALS CONFIRMED' : 'SETUP INCOMPLETE'}</div>
+      <div class="sum-sub">
+        ${ok
+          ? `All 3 timeframe conditions are met. ${mode === 'sim' ? 'This is the textbook EMA+MACD+VWAP long setup.' : 'Current NIFTY data shows a valid long entry setup.'}`
+          : `Not all conditions are confirmed yet. ${mode === 'sim' ? 'Review which simulation conditions failed.' : 'Wait for all 3 timeframes to align before entering.'}`}
+      </div>
+      <div class="sum-chips">${chips}</div>
+      ${tradeLine}
+      ${missingNote}
+    </div>`;
+}
+
+// ── Render all ───────────────────────────────────────────────────────────────
+function render(d) {
+  renderStep1(d.bias);
+  renderStep2(d.setup);
+  renderStep3(d.entry);
+  renderStep4(d.entry, d.mode);
+  renderPlan(d.plan);
+  renderSummary(d.summary, d.plan, d.mode);
+}
+
+// ── Backtest ─────────────────────────────────────────────────────────────────
+let btDays = 10;
+
+function setDays(n) {
+  btDays = n;
+  [10, 20, 30].forEach(d => {
+    const el = document.getElementById(`day-${d}`);
+    if (el) el.className = 'day-btn' + (d === n ? ' active' : '');
+  });
+}
+
+async function runBacktest() {
+  const btn  = document.getElementById('bt-run-btn');
+  const body = document.getElementById('bt-body');
+  const stats = document.getElementById('bt-stats');
+
+  btn.disabled   = true;
+  btn.textContent = '⏳ Fetching…';
+  stats.style.display = 'none';
+  body.innerHTML = `<div class="bt-loading"><div class="spin" style="margin:0 auto 10px"></div>Fetching ${btDays} days of NIFTY 5m data from yfinance — this takes 15–40 sec…</div>`;
+
+  try {
+    const res  = await fetch(`${API}/ema-scenario/backtest?days=${btDays}`);
+    const data = await res.json();
+
+    if (data.error) {
+      body.innerHTML = `<div class="bt-error">❌ ${data.error}</div>`;
+    } else {
+      renderBacktest(data);
+    }
+  } catch (e) {
+    body.innerHTML = `<div class="bt-error">❌ Cannot reach server: ${e.message}</div>`;
+  }
+
+  btn.disabled    = false;
+  btn.textContent = '🔍 Run Backtest';
+}
+
+function renderBacktest(d) {
+  const stats = document.getElementById('bt-stats');
+  const body  = document.getElementById('bt-body');
+
+  // ── Stats strip ──────────────────────────────────────────────────────────
+  const pnlColor = d.total_pnl_pts >= 0 ? 'stat-green' : 'stat-red';
+  document.getElementById('bt-days').textContent    = d.days_tested;
+  document.getElementById('bt-trades').textContent  = d.total_trades;
+
+  const wrEl = document.getElementById('bt-winrate');
+  wrEl.textContent = d.total_trades > 0 ? `${d.win_rate}%` : '—';
+  wrEl.className   = `stat-val ${d.win_rate >= 50 ? 'stat-green' : 'stat-red'}`;
+
+  const pnlEl = document.getElementById('bt-pnl');
+  pnlEl.textContent = d.total_trades > 0 ? (d.total_pnl_pts >= 0 ? '+' : '') + d.total_pnl_pts : '—';
+  pnlEl.className   = `stat-val ${pnlColor}`;
+
+  document.getElementById('bt-avgwin').textContent  = d.avg_win  > 0 ? `+${d.avg_win}` : '—';
+  document.getElementById('bt-avgloss').textContent = d.avg_loss < 0 ? `${d.avg_loss}` : '—';
+
+  stats.style.display = 'grid';
+
+  // ── Results table ─────────────────────────────────────────────────────────
+  if (!d.results || d.results.length === 0) {
+    body.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">No results for the selected period.</div>`;
+    return;
+  }
+
+  const rows = d.results.map(r => {
+    const oc = r.outcome;
+    const ocClass = oc === 'WIN' ? 'oc-win' : oc === 'LOSS' ? 'oc-loss'
+                  : oc === 'NO_SETUP' ? 'oc-nosetup' : oc === 'NO_ENTRY' ? 'oc-noentry' : 'oc-skip';
+    const ocIcon  = oc === 'WIN' ? '✅' : oc === 'LOSS' ? '❌' : oc === 'NO_SETUP' ? '⏸' : oc === 'NO_ENTRY' ? '⚠️' : '—';
+    const pnl     = r.pnl_pts != null ? ((r.pnl_pts >= 0 ? '+' : '') + r.pnl_pts) : '—';
+    const pnlCls  = r.pnl_pts > 0 ? 'oc-win' : r.pnl_pts < 0 ? 'oc-loss' : '';
+    const biasCol = r.bias === 'BULLISH' ? 'style="color:var(--green)"' : r.bias === 'BEARISH' ? 'style="color:var(--red)"' : 'style="color:var(--yellow)"';
+
+    return `<tr>
+      <td style="color:var(--dim)">${r.date}</td>
+      <td ${biasCol}>${r.bias || '—'}</td>
+      <td class="${ocClass}">${ocIcon} ${oc}</td>
+      <td>${r.entry != null ? r.entry.toLocaleString('en-IN') : '—'}</td>
+      <td style="color:var(--red)">${r.stop != null ? r.stop.toLocaleString('en-IN') : '—'}</td>
+      <td style="color:var(--green)">${r.t1 != null ? r.t1.toLocaleString('en-IN') : '—'}</td>
+      <td>${r.exit != null ? r.exit.toLocaleString('en-IN') : '—'}</td>
+      <td class="${pnlCls}">${pnl}</td>
+    </tr>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="bt-table-wrap">
+      <table class="bt-table">
+        <thead>
+          <tr>
+            <th>Date</th><th>1H Bias</th><th>Outcome</th>
+            <th>Entry</th><th>Stop</th><th>T1</th><th>Exit</th><th>P&amp;L pts</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">
+        NO_SETUP = 1H bias or 15m setup not confirmed · NO_ENTRY = conditions met but no pullback trigger found
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>

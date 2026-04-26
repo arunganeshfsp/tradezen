@@ -150,6 +150,48 @@ class AIService {
             return { price: null };
         }
     }
+
+    // EMA backtest — bulk yfinance fetch over last N trading days
+    async getEmaBacktest(days = 20) {
+        try {
+            const res = await axios.get(
+                `${AI_ENGINE_URL}/ema-scenario/backtest?days=${encodeURIComponent(days)}`,
+                { timeout: 60000 }
+            );
+            return res.data;
+        } catch (err) {
+            console.error("EMA backtest error:", err.message);
+            return { error: "Python engine unreachable" };
+        }
+    }
+
+    // EMA + MACD + VWAP scenario analysis
+    // mode = "sim" (synthetic) | "live" (yfinance ^NSEI)
+    // live mode fetches from yfinance — allow up to 20s for the network call
+    async getEmaScenario(mode) {
+        try {
+            const res = await axios.get(
+                `${AI_ENGINE_URL}/ema-scenario?mode=${encodeURIComponent(mode)}`,
+                { timeout: 20000 }
+            );
+            return res.data;
+        } catch (err) {
+            console.error("EMA scenario error:", err.message);
+            return { error: "Python engine unreachable" };
+        }
+    }
+
+    // Generic proxy — used by options routes to forward arbitrary GET calls
+    // path: "/options/context?symbol=NIFTY"
+    async proxy(method, path, timeoutMs = 30000) {
+        try {
+            const res = await axios({ method, url: `${AI_ENGINE_URL}${path}`, timeout: timeoutMs });
+            return res.data;
+        } catch (err) {
+            console.error(`AI proxy ${method} ${path} error:`, err.message);
+            return { error: "Python engine unreachable" };
+        }
+    }
 }
 
 module.exports = new AIService();

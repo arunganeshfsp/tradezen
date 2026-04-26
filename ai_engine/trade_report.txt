@@ -1,0 +1,52 @@
+====================================================
+  INTRADAY TRADE REPORT — NIFTY 50
+  Mode : SIMULATION    Generated : 2026-04-25 10:21
+====================================================
+
+  INSTRUMENT : Nifty 50
+  DATE       : Tuesday (simulated)
+  DIRECTION  : LONG
+
+--- STEP 1: 1H BIAS CHECK ---
+  Bias         : BULLISH
+  EMA stacked  : YES   (EMA9=19813.56  EMA21=19736.38)
+  EMA sloping  : YES
+  MACD > zero  : YES   (hist=27.8863)
+  Above VWAP   : YES   (close=19912.0  VWAP=19773.97)
+  Result       : ALL CONDITIONS MET ✓
+
+--- STEP 2: 15m SETUP ---
+  Setup valid         : NO
+  EMA crossover found : NO
+  Crossover above VWAP: NO
+  MACD zero cross     : NO
+  Result              : NO SETUP ✗
+
+--- STEP 3: 5m ENTRY TRIGGER ---
+  Entry triggered     : YES
+  Pullback to EMA9    : YES   (EMA9=19888.19)
+  Held above VWAP     : YES   (VWAP=19876.07)
+  MACD histogram +ve  : NO
+  Bullish candle      : YES
+  Entry price         : 19,890.00
+
+--- STEP 4: TRADE PLAN ---
+  Entry           :  19,850.00
+  Stop loss       :  19,780.00  (risk: 70 pts)
+  Target 1        :  19,990.00  (reward: 140 pts | RR 1:2.0)
+  Target 2        :  20,110.00  (reward: 260 pts | RR 1:3.71)
+  Capital         : ₹  500,000
+  Max risk (1%)   : ₹    5,000
+  Suggested qty   :         71 units
+
+--- EXECUTION NOTES ---
+  - Enter on next candle open after entry trigger candle closes
+  - Book 50% at Target 1, move stop to breakeven
+  - Trail remaining with EMA 9 on 5m toward Target 2
+  - If price breaks below VWAP before T1, exit immediately
+
+====================================================
+  Charts saved: charts/1h_chart.png
+                charts/15m_chart.png
+                charts/5m_chart.png
+====================================================

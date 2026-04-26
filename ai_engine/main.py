@@ -37,6 +37,7 @@ market_state = MarketState()
 signal_engine = None
 im = InstrumentMaster()          # kept globally so endpoints can query it
 chain_map = []
+smart = None                     # SmartAPI session — set in lifespan, used by options endpoints
 last_signal = {
     "signal": "INITIALIZING",
     "confidence": 0,
@@ -50,7 +51,82 @@ trade_flow_data = {
     "nifty_open": None,   # first spot price at/after 9:15 AM IST
     "orb":        None,   # {"high":..., "low":...} — locked after 9:30 AM
     "_orb_acc":   {"high": None, "low": None},   # accumulator 9:15–9:30
+    "india_vix":  None,   # fetched from yfinance ^INDIAVIX, refreshed every 5 min
+    "last_ltp":   None,   # last known NIFTY price — persists across WebSocket drops
 }
+_vix_last_refresh: datetime = None   # tracks last VIX fetch time
+
+
+# ──────────────────────────────────────────────
+# Yahoo Finance helpers (yfinance fallback)
+# ──────────────────────────────────────────────
+def _yf_prev_ohlc():
+    """Fetch previous trading day NIFTY OHLC via yfinance (^NSEI). Primary source."""
+    import yfinance as yf
+    import datetime as _dt
+    ticker = yf.Ticker("^NSEI")
+    hist = ticker.history(period="5d", interval="1d")
+    if hist.empty:
+        raise ValueError("yfinance: no data for ^NSEI")
+    hist.index = hist.index.normalize()
+    IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    today = _dt.datetime.now(IST).date()
+    past = hist[hist.index.date < today]
+    if past.empty:
+        raise ValueError("yfinance: no previous day data")
+    row = past.iloc[-1]
+    return {
+        "high":  round(float(row["High"]),  2),
+        "low":   round(float(row["Low"]),   2),
+        "close": round(float(row["Close"]), 2),
+        "date":  past.index[-1].strftime("%Y-%m-%d"),
+    }
+
+
+def _yf_live_price():
+    """Fetch latest NIFTY spot price via yfinance (15-min delayed outside market hours)."""
+    import yfinance as yf
+    import datetime as _dt
+    ticker = yf.Ticker("^NSEI")
+    hist = ticker.history(period="1d", interval="1m")
+    if hist.empty:
+        raise ValueError("yfinance: no intraday data")
+    hist.index = hist.index.tz_convert("Asia/Kolkata")
+    return round(float(hist.iloc[-1]["Close"]), 2)
+
+
+def _yf_orb():
+    """Fetch 9:15–9:30 ORB H/L via yfinance (run after 9:30 AM IST)."""
+    import yfinance as yf
+    import datetime as _dt
+    ticker = yf.Ticker("^NSEI")
+    hist = ticker.history(period="1d", interval="1m")
+    if hist.empty:
+        raise ValueError("yfinance: no intraday data for ORB")
+    hist.index = hist.index.tz_convert("Asia/Kolkata")
+    IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    now_ist = _dt.datetime.now(IST)
+    t_open = now_ist.replace(hour=9, minute=15, second=0, microsecond=0)
+    t_orb  = now_ist.replace(hour=9, minute=30, second=0, microsecond=0)
+    orb_data = hist[(hist.index >= t_open) & (hist.index <= t_orb)]
+    if orb_data.empty:
+        raise ValueError("yfinance: 9:15–9:30 candle not yet available")
+    return {
+        "high": round(float(orb_data["High"].max()), 2),
+        "low":  round(float(orb_data["Low"].min()),  2),
+    }
+
+
+def _yf_vix():
+    """Fetch India VIX current value via yfinance (^INDIAVIX)."""
+    import yfinance as yf
+    import datetime as _dt
+    ticker = yf.Ticker("^INDIAVIX")
+    hist = ticker.history(period="5d", interval="1d")
+    if hist.empty:
+        raise ValueError("yfinance: no data for ^INDIAVIX")
+    hist.index = hist.index.normalize()
+    return round(float(hist.iloc[-1]["Close"]), 2)
 
 
 # ──────────────────────────────────────────────
@@ -58,7 +134,7 @@ trade_flow_data = {
 # ──────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global signal_engine, chain_map, im
+    global signal_engine, chain_map, im, smart
     log.info("🚀 Starting AI Engine...")
 
     # Clear stale profile cache on every startup — ensures recomputed profiles
@@ -80,72 +156,84 @@ async def lifespan(app: FastAPI):
     im.load()
 
     # 📅 Fetch previous trading day NIFTY OHLC for CPR calculation
-    # Angel One getCandleData works for equities; for NIFTY index (26000) it may
-    # return an empty data list on some API versions.  We try ONE_DAY first; if
-    # that is empty we fall back to ONE_HOUR and derive H/L/C from the day's bars.
+    # Primary: yfinance (^NSEI) — reliable, no auth needed.
+    # Fallback: Angel One getCandleData (may fail for NSE index token on some API versions).
     try:
         ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
-        prev = ist_now - timedelta(days=1)
-        while prev.weekday() >= 5:       # skip weekends
-            prev -= timedelta(days=1)
-        from_dt = prev.strftime("%Y-%m-%d 09:15")
-        to_dt   = prev.strftime("%Y-%m-%d 15:30")
 
-        # Attempt order:
-        #  1. NSE index token (26000) ONE_DAY  — works on some API versions
-        #  2. NSE index token (26000) ONE_HOUR — derives daily H/L from hourly bars
-        #  3. NFO nearest futures token ONE_DAY — always tradeable, ≈ spot ± basis
-        #  4. NFO nearest futures token ONE_HOUR
-        fut_token = im.get_nifty_futures_token()
-        log.info(f"📅 Nearest NIFTY futures token for OHLC fallback: {fut_token}")
-
-        attempts = [
-            ("NSE", SPOT_TOKEN,             "ONE_DAY"),
-            ("NSE", SPOT_TOKEN,             "ONE_HOUR"),
-            ("NFO", fut_token or SPOT_TOKEN, "ONE_DAY"),
-            ("NFO", fut_token or SPOT_TOKEN, "ONE_HOUR"),
-        ]
-
+        # ── Primary: yfinance ──────────────────────────────────────────────────
         ohlc_loaded = False
-        for exch, token, interval in attempts:
-            try:
-                resp = smart.getCandleData({
-                    "exchange":    exch,
-                    "symboltoken": token,
-                    "interval":    interval,
-                    "fromdate":    from_dt,
-                    "todate":      to_dt,
-                })
-                log.debug(f"getCandleData({exch}/{token}/{interval}) raw: {resp}")
-                rows = (resp or {}).get("data") or []
-                if not rows:
+        try:
+            ohlc = _yf_prev_ohlc()
+            trade_flow_data["prev_ohlc"] = ohlc
+            log.info(f"📅 Prev OHLC (yfinance): H={ohlc['high']} L={ohlc['low']} C={ohlc['close']} [{ohlc['date']}]")
+            ohlc_loaded = True
+        except Exception as yf_err:
+            log.warning(f"⚠️ yfinance OHLC fetch failed: {yf_err} — trying Angel One API")
+
+        # ── Fallback: Angel One getCandleData ──────────────────────────────────
+        if not ohlc_loaded:
+            prev = ist_now - timedelta(days=1)
+            while prev.weekday() >= 5:
+                prev -= timedelta(days=1)
+            from_dt = prev.strftime("%Y-%m-%d 09:15")
+            to_dt   = prev.strftime("%Y-%m-%d 15:30")
+
+            fut_token = im.get_nifty_futures_token()
+            log.info(f"📅 Nearest NIFTY futures token for OHLC fallback: {fut_token}")
+
+            attempts = [
+                ("NSE", SPOT_TOKEN,             "ONE_DAY"),
+                ("NSE", SPOT_TOKEN,             "ONE_HOUR"),
+                ("NFO", fut_token or SPOT_TOKEN, "ONE_DAY"),
+                ("NFO", fut_token or SPOT_TOKEN, "ONE_HOUR"),
+            ]
+
+            for exch, token, interval in attempts:
+                try:
+                    resp = smart.getCandleData({
+                        "exchange":    exch,
+                        "symboltoken": token,
+                        "interval":    interval,
+                        "fromdate":    from_dt,
+                        "todate":      to_dt,
+                    })
+                    log.debug(f"getCandleData({exch}/{token}/{interval}) raw: {resp}")
+                    rows = (resp or {}).get("data") or []
+                    if not rows:
+                        continue
+                    if interval == "ONE_DAY":
+                        d = rows[-1]
+                        H, L, C = float(d[2]), float(d[3]), float(d[4])
+                    else:
+                        H = max(float(r[2]) for r in rows)
+                        L = min(float(r[3]) for r in rows)
+                        C = float(rows[-1][4])
+                    trade_flow_data["prev_ohlc"] = {
+                        "high":  round(H, 2),
+                        "low":   round(L, 2),
+                        "close": round(C, 2),
+                        "date":  prev.strftime("%Y-%m-%d"),
+                    }
+                    log.info(f"📅 Prev OHLC ({exch}/{interval}): H={H} L={L} C={C} [{prev.date()}]")
+                    ohlc_loaded = True
+                    break
+                except Exception as attempt_err:
+                    log.debug(f"getCandleData({exch}/{token}/{interval}) failed: {attempt_err}")
                     continue
-                if interval == "ONE_DAY":
-                    d = rows[-1]             # [ts, open, high, low, close, vol]
-                    H, L, C = float(d[2]), float(d[3]), float(d[4])
-                else:
-                    H = max(float(r[2]) for r in rows)   # day high from hourly bars
-                    L = min(float(r[3]) for r in rows)   # day low
-                    C = float(rows[-1][4])               # last bar's close
-                trade_flow_data["prev_ohlc"] = {
-                    "high":  round(H, 2),
-                    "low":   round(L, 2),
-                    "close": round(C, 2),
-                    "date":  prev.strftime("%Y-%m-%d"),
-                }
-                log.info(f"📅 Prev OHLC ({exch}/{interval}): H={H} L={L} C={C} [{prev.date()}]")
-                ohlc_loaded = True
-                break
-            except Exception as attempt_err:
-                log.debug(f"getCandleData({exch}/{token}/{interval}) failed: {attempt_err}")
-                continue
 
         if not ohlc_loaded:
             log.warning(
-                "⚠️ All getCandleData attempts returned no rows. "
+                "⚠️ All OHLC fetch attempts failed (yfinance + Angel One). "
                 "CPR on trade-flow page will show N/A. "
                 "Use POST /set-prev-ohlc or the yellow banner on the page to supply values."
             )
+
+        # Re-derive fut_token for retroactive ORB/open fetches below
+        try:
+            fut_token
+        except NameError:
+            fut_token = im.get_nifty_futures_token()
 
         # ── Retroactive: load today's opening price + ORB if engine started late ──
         # These are normally captured tick-by-tick in the signal loop, but if the
@@ -176,27 +264,43 @@ async def lifespan(app: FastAPI):
                     log.debug(f"Opening price retroactive ({exch}/{token}): {retro_err}")
 
         if (h_now > 9 or (h_now == 9 and m_now >= 30)) and trade_flow_data["orb"] is None:
-            for exch, token in retro_attempts:
-                try:
-                    resp = smart.getCandleData({
-                        "exchange":    exch,
-                        "symboltoken": token,
-                        "interval":    "ONE_MINUTE",
-                        "fromdate":    f"{today_str} 09:15",
-                        "todate":      f"{today_str} 09:30",
-                    })
-                    rows = (resp or {}).get("data") or []
-                    if rows:
-                        orb_h = round(max(float(r[2]) for r in rows), 2)
-                        orb_l = round(min(float(r[3]) for r in rows), 2)
-                        trade_flow_data["orb"] = {"high": orb_h, "low": orb_l}
-                        log.info(f"📊 ORB (retroactive, {exch}): H={orb_h} L={orb_l}")
-                        break
-                except Exception as retro_err:
-                    log.debug(f"ORB retroactive ({exch}/{token}): {retro_err}")
+            # Try yfinance first for ORB
+            try:
+                orb_yf = _yf_orb()
+                trade_flow_data["orb"] = orb_yf
+                trade_flow_data["_orb_acc"] = orb_yf.copy()
+                log.info(f"📊 ORB (retroactive, yfinance): H={orb_yf['high']} L={orb_yf['low']}")
+            except Exception as yf_orb_err:
+                log.debug(f"yfinance ORB fetch failed: {yf_orb_err} — trying Angel One")
+                for exch, token in retro_attempts:
+                    try:
+                        resp = smart.getCandleData({
+                            "exchange":    exch,
+                            "symboltoken": token,
+                            "interval":    "ONE_MINUTE",
+                            "fromdate":    f"{today_str} 09:15",
+                            "todate":      f"{today_str} 09:30",
+                        })
+                        rows = (resp or {}).get("data") or []
+                        if rows:
+                            orb_h = round(max(float(r[2]) for r in rows), 2)
+                            orb_l = round(min(float(r[3]) for r in rows), 2)
+                            trade_flow_data["orb"] = {"high": orb_h, "low": orb_l}
+                            log.info(f"📊 ORB (retroactive, {exch}): H={orb_h} L={orb_l}")
+                            break
+                    except Exception as retro_err:
+                        log.debug(f"ORB retroactive ({exch}/{token}): {retro_err}")
 
     except Exception as e:
         log.warning(f"⚠️ Prev OHLC fetch error: {e}")
+
+    # 📊 Fetch India VIX at startup
+    try:
+        vix = _yf_vix()
+        trade_flow_data["india_vix"] = vix
+        log.info(f"📊 India VIX: {vix}")
+    except Exception as vix_err:
+        log.warning(f"⚠️ India VIX fetch failed: {vix_err}")
 
     # 📈 Get NIFTY LTP
     ltp_data = smart.ltpData("NSE", "NIFTY", SPOT_TOKEN)
@@ -236,7 +340,7 @@ async def lifespan(app: FastAPI):
     # 🔁 Background signal loop
     # ──────────────────────────────────────────
     async def signal_loop():
-        global last_signal
+        global last_signal, _vix_last_refresh
 
         while True:
             try:
@@ -245,10 +349,21 @@ async def lifespan(app: FastAPI):
                     if result:
                         last_signal = result
 
+                # ── Refresh India VIX every 5 minutes ───────────────────
+                now_i = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                if (_vix_last_refresh is None or
+                        (now_i - _vix_last_refresh).total_seconds() >= 300):
+                    try:
+                        trade_flow_data["india_vix"] = _yf_vix()
+                        _vix_last_refresh = now_i
+                    except Exception:
+                        pass   # keep stale value, don't spam logs
+
                 # ── Track opening price and ORB ─────────────────────────
                 spot = market_state.get(SPOT_TOKEN)
                 if spot and spot.get("price"):
                     price  = spot["price"]
+                    trade_flow_data["last_ltp"] = round(price, 2)   # persist across WS drops
                     now_i  = datetime.utcnow() + timedelta(hours=5, minutes=30)
                     h, m   = now_i.hour, now_i.minute
 
@@ -411,6 +526,44 @@ def get_expiries():
     }
 
 
+@app.get("/fetch-gift-nifty")
+def fetch_gift_nifty_auto():
+    """
+    Auto-fetch NIFTY live price as a GIFT Nifty proxy.
+    Source priority:
+      1. Live WebSocket market_state (real-time, during market hours)
+      2. yfinance ^NSEI (15-min delayed, works when Yahoo Finance is up)
+    During pre-market (before 9:15 AM) neither source is available — user must enter manually.
+    """
+    global trade_flow_data, market_state
+
+    # 1. Live WebSocket price (best — real-time during market hours)
+    spot = market_state.get(SPOT_TOKEN)
+    if spot and spot.get("price"):
+        price = round(spot["price"], 2)
+        trade_flow_data["gift_nifty"] = price
+        log.info(f"📅 GIFT Nifty set from live WebSocket: {price}")
+        return {"status": "ok", "gift_nifty": price, "source": "live (WebSocket)"}
+
+    # 2. yfinance fallback (delayed, depends on Yahoo Finance availability)
+    try:
+        price = _yf_live_price()
+        trade_flow_data["gift_nifty"] = price
+        log.info(f"📅 GIFT Nifty set from yfinance: {price}")
+        return {"status": "ok", "gift_nifty": price, "source": "yfinance (delayed)"}
+    except Exception as yf_err:
+        log.debug(f"yfinance GIFT Nifty fetch failed: {yf_err}")
+
+    # Both failed — pre-market or Yahoo Finance is down
+    return {
+        "status": "error",
+        "message": (
+            "Auto-fetch unavailable: market not yet open or Yahoo Finance is down. "
+            "Enter GIFT Nifty manually from your broker terminal (Kite / AngelOne)."
+        ),
+    }
+
+
 @app.post("/set-gift-nifty")
 def set_gift_nifty(price: float):
     """
@@ -488,9 +641,10 @@ def get_trade_flow():
     else:
         phase = "closed"
 
-    # Live NIFTY price
+    # Live NIFTY price — fall back to last known LTP if WebSocket has dropped
     spot = market_state.get(SPOT_TOKEN)
     nifty_ltp = round(spot["price"], 2) if spot and spot.get("price") else None
+    effective_ltp = nifty_ltp or trade_flow_data.get("last_ltp")
 
     # ── CPR calculation from previous day OHLC ───────────────────────────────
     cpr = None
@@ -505,12 +659,15 @@ def get_trade_flow():
         BC   = min(_tc, _bc)
         R1   = round(2 * PP - L, 2)
         R2   = round(PP + (H - L), 2)
+        R3   = round(H + 2 * (PP - L), 2)
         S1   = round(2 * PP - H, 2)
         S2   = round(PP - (H - L), 2)
+        S3   = round(L - 2 * (H - PP), 2)
         width = round(TC - BC, 2)             # always positive
         cpr = {
             "pp": PP, "tc": TC, "bc": BC,
-            "r1": R1, "r2": R2, "s1": S1, "s2": S2,
+            "r1": R1, "r2": R2, "r3": R3,
+            "s1": S1, "s2": S2, "s3": S3,
             "width": width,
             "type": "narrow" if width < 40 else ("moderate" if width <= 80 else "wide"),
         }
@@ -543,28 +700,88 @@ def get_trade_flow():
             vs_cpr = "below_bc"
         else:
             vs_cpr = "straddles"
+
+        # ── Straddle lean: score-based directional bias ───────────────────
+        # 3 factors scored. Threshold ≥ 3 to call a conditional scenario.
+        #
+        # Validated on 2026-04-24:
+        #   gap +19 (0) + open near-BC/+2.46 (bear+1) + ORB 153 pts below BC/4.6×width (bear+2)
+        #   = bear 3 → conditional_bear, bear_triggered=True, close 23897 < T1 23869 ✓
+        #
+        # Validated on 2026-04-23:
+        #   gap −72.5 (bear+2) + open below_bc (bear+2) + ORB 133 pts below BC (bear+2)
+        #   + ORB 58 pts above TC (bull+2) = bear 6 vs bull 2 → conditional_bear ✓
+        straddle_lean = "neutral"
+        lean_scores   = {"bear": 0, "bull": 0}
+        if vs_cpr == "straddles" and open_data and prev:
+            gap = open_data["price"] - prev["close"]
+
+            # Factor 1: Gap direction (0/1/2 pts)
+            if gap < -50:   lean_scores["bear"] += 2
+            elif gap < -20: lean_scores["bear"] += 1
+            elif gap > 50:  lean_scores["bull"] += 2
+            elif gap > 20:  lean_scores["bull"] += 1
+
+            # Factor 2: Opening position (with near-edge refinement)
+            if open_data["position"] == "below_bc":
+                lean_scores["bear"] += 2
+            elif open_data["position"] == "above_tc":
+                lean_scores["bull"] += 2
+            elif open_data["position"] == "inside_cpr":
+                # Opening within 30% of CPR width from BC or TC edge gets +1
+                near_edge = cpr["width"] * 0.3
+                if open_data["vs_bc"] < near_edge:     # barely above BC
+                    lean_scores["bear"] += 1
+                elif open_data["vs_tc"] > -near_edge:  # barely below TC
+                    lean_scores["bull"] += 1
+
+            # Factor 3: ORB extension beyond CPR — scaled by CPR width
+            # Extension > 1× CPR width = strong momentum = +2, else +1
+            orb_below_bc = cpr["bc"] - orb["low"]
+            orb_above_tc = orb["high"] - cpr["tc"]
+            if orb_below_bc > cpr["width"]:   lean_scores["bear"] += 2
+            elif orb_below_bc > 0:            lean_scores["bear"] += 1
+            if orb_above_tc > cpr["width"]:   lean_scores["bull"] += 2
+            elif orb_above_tc > 0:            lean_scores["bull"] += 1
+
+            if lean_scores["bear"] >= 3 and lean_scores["bear"] > lean_scores["bull"]:
+                straddle_lean = "bear_lean"
+            elif lean_scores["bull"] >= 3 and lean_scores["bull"] > lean_scores["bear"]:
+                straddle_lean = "bull_lean"
+
         orb_data = {
             "high":    orb["high"],
             "low":     orb["low"],
             "range":   orb_range,
             "vs_cpr":  vs_cpr,
+            "straddle_lean":  straddle_lean if vs_cpr == "straddles" else None,
+            "lean_scores":    lean_scores   if vs_cpr == "straddles" else None,
+            "bear_triggered": (effective_ltp < orb["low"])  if effective_ltp else None,
+            "bull_triggered": (effective_ltp > orb["high"]) if effective_ltp else None,
             "t1_bull": round(orb["high"] + orb_range, 2),
             "t2_bull": round(orb["high"] + 2 * orb_range, 2),
+            "t3_bull": round(orb["high"] + 3 * orb_range, 2),
             "sl_bull": round(orb["high"] - 20, 2),
             "t1_bear": round(orb["low"] - orb_range, 2),
             "t2_bear": round(orb["low"] - 2 * orb_range, 2),
+            "t3_bear": round(orb["low"] - 3 * orb_range, 2),
             "sl_bear": round(orb["low"] + 20, 2),
         }
 
     # ── Auto scenario determination ───────────────────────────────────────────
     scenario = "unknown"
     if open_data and orb_data:
-        op = open_data["position"]
-        ov = orb_data["vs_cpr"]
+        op   = open_data["position"]
+        ov   = orb_data["vs_cpr"]
+        lean = orb_data.get("straddle_lean", "neutral")
         if op == "above_tc" and ov == "above_tc":
             scenario = "bull"
         elif op == "below_bc" and ov == "below_bc":
             scenario = "bear"
+        elif ov == "straddles" and lean == "bear_lean":
+            scenario = "conditional_bear"
+        elif ov == "straddles" and lean == "bull_lean":
+            scenario = "conditional_bull"
         else:
             scenario = "skip"
     elif open_data:
@@ -580,11 +797,12 @@ def get_trade_flow():
         "time_ist":    now_ist.strftime("%H:%M:%S"),
         "date":        now_ist.strftime("%Y-%m-%d"),
         "prev_day":    prev,
-        "gift_nifty":  trade_flow_data.get("gift_nifty"),   # None until set manually
+        "gift_nifty":  trade_flow_data.get("gift_nifty"),
+        "india_vix":   trade_flow_data.get("india_vix"),
         "cpr":         cpr,
         "nifty_open":  open_data,
         "orb":         orb_data,
-        "nifty_ltp":   nifty_ltp,
+        "nifty_ltp":   effective_ltp,
         "scenario":    scenario,
     }
 
@@ -904,3 +1122,481 @@ def get_live_price():
     if spot and spot.get("price"):
         return {"price": round(spot["price"], 2)}
     return {"price": None}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# EMA + MACD + VWAP Scenario Endpoint
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _ema_scenario_sync(mode: str) -> dict:
+    """
+    Synchronous worker — runs in thread pool so it doesn't block the event loop.
+    mode = "sim" → synthetic textbook data
+    mode = "live" → yfinance ^NSEI real candles
+    """
+    from core.analysis.bias       import check_1h_bias
+    from core.analysis.setup      import check_15m_setup
+    from core.analysis.entry      import check_5m_entry
+    from core.analysis.trade_plan import calculate_trade_plan
+
+    if mode == "sim":
+        from data.generate import generate_all, SCENARIO
+        data = generate_all()
+        df_1h, df_15m, df_5m = data["1h"], data["15m"], data["5m"]
+        sim_scenario = SCENARIO
+    else:
+        import yfinance as yf
+
+        def _fetch(period: str, interval: str):
+            df = yf.Ticker("^NSEI").history(period=period, interval=interval)
+            if df.empty:
+                return df
+            df.index = df.index.tz_convert("Asia/Kolkata")
+            df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
+            return df.between_time("09:15", "15:30")
+
+        df_1h  = _fetch("5d", "60m").tail(30)
+        df_15m = _fetch("5d", "15m").tail(52)
+        df_5m  = _fetch("1d",  "5m")
+        sim_scenario = None
+
+        if df_1h.empty or df_15m.empty or df_5m.empty:
+            return {"error": "No market data available (pre-market or market closed)", "mode": mode}
+
+    bias  = check_1h_bias(df_1h)
+    setup = check_15m_setup(df_15m)
+    entry = check_5m_entry(df_5m)
+
+    if mode == "sim" and sim_scenario:
+        plan = calculate_trade_plan(
+            sim_scenario["entry"], sim_scenario["stop"],
+            sim_scenario["target1"], sim_scenario["target2"],
+        )
+    elif entry["entry_triggered"] and entry["entry_price"]:
+        ep   = entry["entry_price"]
+        e9   = entry.get("ema9_at_entry") or (ep - 70)
+        stop = round(e9 - 20, 2)
+        risk = round(ep - stop, 2)
+        plan = calculate_trade_plan(ep, stop, round(ep + 2.0 * risk, 2), round(ep + 3.7 * risk, 2))
+    else:
+        plan = calculate_trade_plan(0.0, 0.0, 0.0, 0.0)
+
+    missing = []
+    if not bias["all_conditions_met"]:  missing.append("1H Bias")
+    if not setup["setup_valid"]:        missing.append("15m Setup")
+    if not entry["entry_triggered"]:    missing.append("5m Entry")
+
+    return {
+        "mode":    mode,
+        "bias":    bias,
+        "setup":   setup,
+        "entry":   entry,
+        "plan":    plan,
+        "summary": {"all_ok": len(missing) == 0, "missing": missing},
+    }
+
+
+@app.get("/ema-scenario")
+async def ema_scenario(mode: str = "sim"):
+    """
+    Run EMA 9/21 + MACD + VWAP intraday scenario analysis.
+    mode=sim  → synthetic textbook data (always works, no market hours needed)
+    mode=live → yfinance ^NSEI real candles (requires market to be open or recent data)
+    """
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _ema_scenario_sync, mode)
+        return result
+    except Exception as e:
+        log.error(f"EMA scenario error ({mode}): {e}")
+        return {"error": str(e), "mode": mode}
+
+
+# ─── EMA/MACD/VWAP backtest ────────────────────────────────────────────────────
+def _ema_backtest_sync(days: int = 20) -> dict:
+    import yfinance as yf
+    import pandas as pd
+    from core.analysis.bias import check_1h_bias
+    from core.analysis.setup import check_15m_setup
+    from core.analysis.entry import check_5m_entry
+
+    days = min(max(days, 5), 55)
+
+    def _fetch(period: str, interval: str) -> pd.DataFrame:
+        df = yf.Ticker("^NSEI").history(period=period, interval=interval)
+        if df.empty:
+            return df
+        df.index = df.index.tz_convert("Asia/Kolkata")
+        df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
+        return df.between_time("09:15", "15:30")
+
+    period = f"{min(days + 10, 59)}d"
+    df_1h_all  = _fetch(period, "60m")
+    df_15m_all = _fetch(period, "15m")
+    df_5m_all  = _fetch(period, "5m")
+
+    if df_1h_all.empty or df_15m_all.empty or df_5m_all.empty:
+        return {"error": "No market data available", "days_tested": 0}
+
+    all_dates  = sorted(df_5m_all.index.normalize().unique())
+    test_dates = all_dates[-days:]
+
+    results                  = []
+    wins = losses = no_setup = no_entry = 0
+
+    for date in test_dates:
+        date_str = str(date.date())
+
+        # ── 1H bias: use PREVIOUS days only (pre-session assessment) ──────────
+        # Bug fix: using today's data pushed the 3-candle EMA slope check into
+        # today's volatile session and pulled the multi-day VWAP off-centre.
+        ctx_1h   = df_1h_all[df_1h_all.index.normalize() < date].tail(30)
+
+        # Previous-day 15m context for EMA/MACD warmup on intra-day scans
+        prev_15m = df_15m_all[df_15m_all.index.normalize() < date].tail(40)
+
+        # Today's candles only
+        day_15m  = df_15m_all[df_15m_all.index.normalize() == date]
+        day_5m   = df_5m_all[df_5m_all.index.normalize() == date]
+
+        if len(ctx_1h) < 5 or len(prev_15m) < 10 or len(day_15m) < 6 or len(day_5m) < 10:
+            results.append({"date": date_str, "outcome": "SKIP", "reason": "insufficient_data"})
+            continue
+
+        bias = check_1h_bias(ctx_1h)
+
+        # Backtest uses EMA stack only as the bias gate.
+        # all_conditions_met is too strict for choppy recovery markets — a single
+        # sideways 1H candle breaks the monotonic-slope check and MACD can lag
+        # the actual price recovery by several days.
+        if not bias["ema_stacked"]:
+            no_setup += 1
+            results.append({
+                "date":    date_str,
+                "outcome": "NO_SETUP",
+                "bias":    bias["bias"],
+                "reason":  "no_1h_bias",
+            })
+            continue
+
+        # ── 15m setup: EMA state check at session open ────────────────────────
+        # check_15m_setup looks for a crossover EVENT in the last 3 candles.
+        # In a multi-day recovery trend EMA9 already crossed above EMA21 days
+        # ago — no new crossover fires, so every continuation day shows NO_SETUP.
+        # Fix: just confirm EMA9 > EMA21 state at today's open (trend intact).
+        morning_ctx = pd.concat([prev_15m, day_15m.iloc[:3]])
+        ema9_15m    = morning_ctx["Close"].ewm(span=9,  adjust=False).mean()
+        ema21_15m   = morning_ctx["Close"].ewm(span=21, adjust=False).mean()
+
+        if float(ema9_15m.iloc[-1]) <= float(ema21_15m.iloc[-1]):
+            no_setup += 1
+            results.append({
+                "date":    date_str,
+                "outcome": "NO_SETUP",
+                "bias":    bias["bias"],
+                "reason":  "no_15m_setup",
+            })
+            continue
+
+        scan_start_5m = 8
+
+        entry_idx     = None
+        entry_price   = None
+        ema9_at_entry = None
+
+        for i in range(scan_start_5m, len(day_5m)):
+            window = day_5m.iloc[:i + 1]
+            e = check_5m_entry(window)
+            if e["entry_triggered"] and e["entry_candle_idx"] == len(window) - 1:
+                entry_idx     = i
+                entry_price   = e["entry_price"]
+                ema9_at_entry = e.get("ema9_at_entry") or (entry_price - 70)
+                break
+
+        if entry_idx is None:
+            no_entry += 1
+            results.append({"date": date_str, "outcome": "NO_ENTRY", "bias": bias["bias"]})
+            continue
+
+        stop = round(ema9_at_entry - 20, 2)
+        risk = round(entry_price - stop, 2)
+        if risk <= 0:
+            no_entry += 1
+            results.append({"date": date_str, "outcome": "NO_ENTRY", "reason": "invalid_risk"})
+            continue
+
+        t1 = round(entry_price + 2.0 * risk, 2)
+
+        # Check remaining candles for T1 or stop hit — first hit wins
+        remaining  = day_5m.iloc[entry_idx + 1:]
+        outcome    = "OPEN"
+        exit_price = None
+
+        for _, candle in remaining.iterrows():
+            if float(candle["High"]) >= t1:
+                outcome    = "WIN"
+                exit_price = t1
+                break
+            if float(candle["Low"]) <= stop:
+                outcome    = "LOSS"
+                exit_price = stop
+                break
+
+        if outcome == "OPEN":
+            exit_price = float(day_5m["Close"].iloc[-1])
+            outcome    = "WIN" if exit_price > entry_price else "LOSS"
+
+        pnl = round(exit_price - entry_price, 2)
+        if outcome == "WIN":
+            wins += 1
+        else:
+            losses += 1
+
+        results.append({
+            "date":        date_str,
+            "outcome":     outcome,
+            "entry":       entry_price,
+            "stop":        stop,
+            "t1":          t1,
+            "exit":        exit_price,
+            "pnl_pts":     pnl,
+            "bias":        bias["bias"],
+            "setup_valid": True,
+        })
+
+    total_trades = wins + losses
+    win_pnls     = [r["pnl_pts"] for r in results if r.get("outcome") == "WIN"]
+    loss_pnls    = [r["pnl_pts"] for r in results if r.get("outcome") == "LOSS"]
+
+    return {
+        "days_tested":   len(test_dates),
+        "total_trades":  total_trades,
+        "wins":          wins,
+        "losses":        losses,
+        "no_setup":      no_setup,
+        "no_entry":      no_entry,
+        "win_rate":      round(wins / total_trades * 100, 1) if total_trades > 0 else 0.0,
+        "total_pnl_pts": round(sum(win_pnls) + sum(loss_pnls), 2),
+        "avg_win":       round(sum(win_pnls)  / wins,   2) if wins   > 0 else 0.0,
+        "avg_loss":      round(sum(loss_pnls) / losses, 2) if losses > 0 else 0.0,
+        "results":       results,
+    }
+
+
+@app.get("/ema-scenario/backtest")
+async def ema_scenario_backtest(days: int = 20):
+    """
+    Back-test EMA+MACD+VWAP over last N trading days (max 55).
+    Bulk yfinance fetch — allow up to 60s for large day counts.
+    """
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _ema_backtest_sync, days)
+        return result
+    except Exception as e:
+        log.error(f"EMA backtest error: {e}")
+        return {"error": str(e), "days_tested": 0}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Options Analysis Tool endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+from core.options.iv_analyzer       import get_context       as _oc_context
+from core.options.option_chain_fetcher import (
+    get_expiries as _oc_expiries,
+    search_contracts as _oc_search,
+    fetch_chain as _oc_fetch_chain,
+    get_oi_change_signals as _oc_oi_signals,
+)
+from core.options.max_pain          import analyze_chain      as _oc_max_pain
+from core.options.signal_scorer     import score_signals      as _oc_score
+from core.options.strike_selector   import select_strike      as _oc_strike
+from core.options.risk_calculator   import calculate          as _oc_risk
+from core.options.trade_monitor     import evaluate           as _oc_monitor, update_position as _oc_update
+
+
+@app.get("/options/context")
+async def options_context(symbol: str = "NIFTY"):
+    """Pre-market context: India VIX, previous OHLC, weekly range, spot, bias."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _oc_context, symbol)
+    except Exception as e:
+        log.error(f"options/context error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/expiries")
+def options_expiries(symbol: str = "NIFTY"):
+    """Return upcoming option expiries for a symbol (sorted chronologically)."""
+    try:
+        return {"symbol": symbol.upper(), "expiries": _oc_expiries(symbol)}
+    except Exception as e:
+        log.error(f"options/expiries error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/search")
+def options_search(query: str, expiry_type: str = "weekly", spot_price: float = None):
+    """Contract autocomplete — returns up to 40 NFO option contracts."""
+    try:
+        return {"contracts": _oc_search(query, expiry_type, spot_price)}
+    except Exception as e:
+        log.error(f"options/search error: {e}")
+        return {"error": str(e)}
+
+
+def _options_chain_sync(symbol: str, expiry: str, spot_price: float | None) -> dict:
+    global smart
+    _s = smart or _get_smart()
+    chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
+    if "error" in chain_data:
+        return chain_data
+    chain       = chain_data.get("chain", [])
+    analytics   = _oc_max_pain(chain, spot_price)
+    oi_signals  = _oc_oi_signals(symbol, expiry, chain)
+    return {**chain_data, "analytics": analytics, "oi_signals": oi_signals}
+
+
+@app.get("/options/chain")
+async def options_chain(symbol: str = "NIFTY", expiry: str = "", spot_price: float = None):
+    """
+    Full option chain with OI, LTP, IV, depth + max pain analytics + OI change signals.
+    expiry: DDMMMYYYY e.g. 25APR2024. If omitted, uses nearest expiry.
+    """
+    if not expiry:
+        exp_list = _oc_expiries(symbol)
+        if not exp_list:
+            return {"error": f"No expiries found for {symbol}"}
+        expiry = exp_list[0]
+
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _options_chain_sync, symbol, expiry, spot_price)
+    except Exception as e:
+        log.error(f"options/chain error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/score")
+def options_score(
+    symbol: str = "NIFTY",
+    direction: str = "CE",
+    expiry: str = "",
+    strike: float = None,
+    spot_price: float = None,
+):
+    """
+    Composite signal score (0–17) for a CE/PE trade.
+    Requires chain analytics + context — fetched on-demand from cached/live data.
+    """
+    try:
+        context      = _oc_context(symbol)
+        effective_spot = spot_price or context.get("spot")
+
+        if not expiry:
+            exp_list = _oc_expiries(symbol)
+            expiry   = exp_list[0] if exp_list else ""
+
+        # Build minimal analytics from previously fetched chain or empty fallback
+        analytics  = {"pcr": 1.0, "pcr_label": "NEUTRAL",
+                      "resistance_wall": None, "support_wall": None, "max_pain": None}
+        oi_signals = {}
+
+        result = _oc_score(
+            direction       = direction,
+            context         = context,
+            chain_analytics = analytics,
+            oi_signals      = oi_signals,
+            target_strike   = strike,
+        )
+        return result
+    except Exception as e:
+        log.error(f"options/score error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/select-strike")
+def options_select_strike(
+    symbol: str = "NIFTY",
+    expiry: str = "",
+    direction: str = "CE",
+    spot_price: float = None,
+):
+    """
+    Pick the best CE or PE strike from the full chain using delta + liquidity filters.
+    """
+    global smart
+    try:
+        if not expiry:
+            exp_list = _oc_expiries(symbol)
+            expiry   = exp_list[0] if exp_list else ""
+        if not expiry:
+            return {"error": "No expiry found"}
+        _s = smart or _get_smart()
+        chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
+        if "error" in chain_data:
+            return chain_data
+        analytics = _oc_max_pain(chain_data["chain"], spot_price)
+        return _oc_strike(
+            chain       = chain_data["chain"],
+            direction   = direction,
+            spot_price  = spot_price or chain_data.get("spot") or 0,
+            max_pain    = analytics.get("max_pain"),
+        )
+    except Exception as e:
+        log.error(f"options/select-strike error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/risk")
+def options_risk(
+    entry_ltp: float,
+    lot_size: int,
+    direction: str = "CE",
+    capital: float = 500000,
+    risk_pct: float = 0.01,
+):
+    """Position sizing and P&L plan for an option trade."""
+    try:
+        return _oc_risk(
+            entry_ltp  = entry_ltp,
+            lot_size   = lot_size,
+            direction  = direction,
+            capital    = capital,
+            risk_pct   = risk_pct,
+        )
+    except Exception as e:
+        log.error(f"options/risk error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/monitor")
+def options_monitor(
+    entry_ltp: float,
+    stop_price: float,
+    target1_price: float,
+    target2_price: float,
+    current_ltp: float,
+    lots: int = 1,
+    lot_size: int = 50,
+    direction: str = "CE",
+    t1_hit: bool = False,
+):
+    """Evaluate live option P&L and recommend HOLD / EXIT_STOP / EXIT_T1 / EXIT_T2."""
+    try:
+        position = {
+            "direction":     direction,
+            "entry_ltp":     entry_ltp,
+            "stop_price":    stop_price,
+            "target1_price": target1_price,
+            "target2_price": target2_price,
+            "lots":          lots,
+            "lot_size":      lot_size,
+            "t1_hit":        t1_hit,
+        }
+        return _oc_monitor(position, current_ltp)
+    except Exception as e:
+        log.error(f"options/monitor error: {e}")
+        return {"error": str(e)}

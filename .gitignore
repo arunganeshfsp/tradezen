@@ -3,3 +3,5 @@ node_modules/
 .DS_Store
 npm-debug.log
 *.pyc
+app.log
+ai_engine/data/instrument_master.json

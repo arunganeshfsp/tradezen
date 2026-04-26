@@ -22,6 +22,10 @@ pyarrow
 
 # Utils
 python-dotenv
+yfinance
+
+# Charts / scenario runner
+matplotlib
 
 # Optional (future - for indicators / AI)
 scipy
