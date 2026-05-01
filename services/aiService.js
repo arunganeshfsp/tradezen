@@ -75,11 +75,22 @@ class AIService {
     // Trade flow — CPR levels, ORB, opening price, scenario for Trade Flow page
     async getTradeFlow() {
         try {
-            const res = await axios.get(`${AI_ENGINE_URL}/trade-flow`, { timeout: 3000 });
+            const res = await axios.get(`${AI_ENGINE_URL}/trade-flow`, { timeout: 10000 });
             return res.data;
         } catch (err) {
             console.error("Trade flow error:", err.message);
             return { phase: "unknown", scenario: "unknown", cpr: null, orb: null };
+        }
+    }
+
+    // Auto-fetch GIFT Nifty proxy from engine (WebSocket LTP or yfinance fallback)
+    async fetchGiftNifty() {
+        try {
+            const res = await axios.get(`${AI_ENGINE_URL}/fetch-gift-nifty`, { timeout: 5000 });
+            return res.data;
+        } catch (err) {
+            console.error("Fetch GIFT Nifty error:", err.message);
+            return { status: "error", message: "Python engine unreachable" };
         }
     }
 

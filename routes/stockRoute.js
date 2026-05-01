@@ -141,6 +141,17 @@ router.get("/trade-flow", async (req, res) => {
   }
 });
 
+// ─── GET /api/fetch-gift-nifty ───────────────────────────────────────────────
+// Auto-fetch GIFT Nifty proxy — tries live WebSocket price, then yfinance
+router.get("/fetch-gift-nifty", async (req, res) => {
+  try {
+    const data = await aiService.fetchGiftNifty();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── POST /api/set-gift-nifty ────────────────────────────────────────────────
 // Manually supply current GIFT Nifty price (pre-market, from broker terminal)
 // Body: { price }
@@ -343,6 +354,17 @@ router.get("/options/monitor", async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
     const data = await aiService.proxy("GET", `/options/monitor?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/indicators/snapshot ────────────────────────────────────────────
+// VWAP · EMA 9/21 · MACD · RSI from today's 5-min yfinance candles
+router.get("/indicators/snapshot", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/indicators/snapshot", 15000);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

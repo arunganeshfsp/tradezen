@@ -3,5 +3,8 @@ node_modules/
 .DS_Store
 npm-debug.log
 *.pyc
+__pycache__/
 app.log
-ai_engine/data/instrument_master.json
+ai_engine/logs/
+ai_engine/storage/tradezen.db
+venv/

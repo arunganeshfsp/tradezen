@@ -1,0 +1,81 @@
+"""
+Black-Scholes greeks for Indian index/equity options (European-style).
+Computes Theta (daily rupee decay) and Vega (per 1% IV move).
+"""
+import math
+
+
+_RFR = 0.065   # India 10Y Gsec ≈ 6.5% risk-free rate
+
+
+def _d1d2(S, K, T, r, sigma):
+    if T <= 0 or sigma <= 0 or S <= 0 or K <= 0:
+        return 0.0, 0.0
+    d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
+    return d1, d1 - sigma * math.sqrt(T)
+
+
+def _npdf(x):
+    return math.exp(-0.5 * x * x) / math.sqrt(2 * math.pi)
+
+
+def _ncdf(x):
+    return (1.0 + math.erf(x / math.sqrt(2))) / 2.0
+
+
+def compute_greeks(
+    option_type: str,
+    S: float,
+    K: float,
+    T_years: float,
+    sigma: float,
+    r: float = _RFR,
+) -> dict:
+    """
+    option_type : "CE" or "PE"
+    S           : spot price
+    K           : strike
+    T_years     : time to expiry in years  (e.g. 7/365 for weekly)
+    sigma       : IV as decimal            (e.g. 0.18 for 18%)
+    r           : risk-free rate
+
+    Returns delta, gamma, theta (per day), vega (per 1% IV move).
+    """
+    T = T_years
+    if T <= 0 or sigma <= 0:
+        return {"delta": None, "gamma": None, "theta": None, "vega": None}
+
+    d1, d2 = _d1d2(S, K, T, r, sigma)
+    pdf_d1 = _npdf(d1)
+    sqrt_T = math.sqrt(T)
+
+    gamma          = pdf_d1 / (S * sigma * sqrt_T)
+    vega_per_pct   = S * pdf_d1 * sqrt_T / 100   # rupee change per 1% IV move
+    theta_common   = -(S * pdf_d1 * sigma) / (2 * sqrt_T)
+    e_neg_rT       = math.exp(-r * T)
+
+    if option_type.upper() == "CE":
+        delta = _ncdf(d1)
+        theta = (theta_common - r * K * e_neg_rT * _ncdf(d2)) / 365
+    else:
+        delta = _ncdf(d1) - 1
+        theta = (theta_common + r * K * e_neg_rT * _ncdf(-d2)) / 365
+
+    return {
+        "delta": round(delta, 4),
+        "gamma": round(gamma, 6),
+        "theta": round(theta, 2),
+        "vega":  round(vega_per_pct, 2),
+    }
+
+
+def days_to_expiry(expiry_str: str) -> int:
+    """Parse '28APR2026' → calendar days from today."""
+    from datetime import date, datetime
+    today = date.today()
+    for fmt in ("%d%b%Y", "%Y-%m-%d", "%d-%m-%Y"):
+        try:
+            return max(0, (datetime.strptime(expiry_str.upper(), fmt.upper()).date() - today).days)
+        except ValueError:
+            continue
+    return 0

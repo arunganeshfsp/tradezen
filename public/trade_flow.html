@@ -238,7 +238,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     <a class="nl on" href="trade_flow.html">🧭 Flow</a>
     <a class="nl" href="index.html">⌂ Home</a>
   </div>
-  <div class="nav-r"><span class="nav-badge">LIVE · SEBI 2026</span></div>
+  <div class="nav-r" style="display:flex;align-items:center;gap:10px">
+    <a href="/trade_flow_tutorial.html" target="_blank" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;text-decoration:none">? How to Use</a>
+    <span class="nav-badge">LIVE · SEBI 2026</span>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -483,6 +486,27 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     </div>
   </div>
 
+  <!-- ── INDICATOR CONFIRMATION (optional, toggleable) ── -->
+  <div class="detail-card visible" id="ind-card" style="border-color:rgba(124,106,247,0.3);cursor:pointer" onclick="toggleIndCard()">
+    <div class="dc-head" style="user-select:none">
+      <div class="dc-num" style="background:linear-gradient(135deg,var(--accent),var(--blue));font-size:14px">≋</div>
+      <div class="dc-title">Indicator Confirmation <span style="font-weight:400;color:var(--muted);font-size:13px">— VWAP · EMA · MACD · RSI</span></div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span id="ind-summary" style="font-size:12px;color:var(--muted)">Optional</span>
+        <span id="ind-chevron" style="color:var(--dim);font-size:13px;transition:transform .2s">▼</span>
+      </div>
+    </div>
+    <div id="ind-body" style="display:none;padding:16px;border-top:1px solid var(--border)" onclick="event.stopPropagation()">
+      <div id="ind-content" style="display:flex;flex-direction:column;gap:8px">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0">Click the header to load indicators</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <span id="ind-asof" style="font-size:11px;color:var(--muted)"></span>
+        <button class="btn-refresh" onclick="loadIndicators()" style="font-size:12px;padding:5px 14px">↻ Refresh</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── STEP 4: Opening Price vs CPR ── -->
   <div class="detail-card" id="detail4">
     <div class="dc-head">
@@ -547,6 +571,44 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 </div><!-- /detail-panel -->
 </div><!-- /page -->
 
+<div style="max-width:1400px;margin:0 auto;padding:0 20px 32px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+    <!-- Hard No's -->
+    <div style="background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.25);
+                border-radius:12px;padding:20px 22px">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;
+                  letter-spacing:1px;color:var(--red);margin-bottom:14px">⛔ HARD NO'S — Never Break These</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never go <strong style="color:var(--green)">Long</strong> if open was <strong>below BC</strong> — CPR bias is bearish</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never go <strong style="color:var(--red)">Short</strong> if open was <strong>above TC</strong> — CPR bias is bullish</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never enter if lean score &lt; 3 — conflict day, no edge</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never trade if VIX &gt; 25 — moves are random, not directional</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never trade if ORB range &gt; 200 pts — too wide, whipsaw risk</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">No re-entry after SL hit — one trade per side per day</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">No positions held overnight — exit all by 3:15 PM</span></div>
+      </div>
+    </div>
+
+    <!-- Quick Rules -->
+    <div style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.25);
+                border-radius:12px;padding:20px 22px">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;
+                  letter-spacing:1px;color:var(--green);margin-bottom:14px">✅ QUICK RULES — Always Follow</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Wait for <strong>full 5-min candle close</strong> beyond ORB level before entering</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">SL = <strong>opposite side of ORB</strong> (bull entry → SL at ORB Low)</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Book <strong>50% at T1 (R1/S1)</strong> — lock profit, reduce risk</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Move SL to <strong>entry (breakeven)</strong> after T1 hit — rest rides free</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Full position only on <strong>full bull/bear</strong> day + VIX &lt; 16 + narrow CPR</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Conditional setup → <strong>half position</strong> (50%) by default</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">VIX 20–25 → cut size to <strong>25%</strong> regardless of scenario</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <footer>
   <div class="fbrand"><div class="flogo">TZ</div><span>TradeZen</span></div>
   <div class="fnote">Nifty50 · CPR + ORB Framework · <em>SEBI 2026</em> · தமிழில் விளக்கம்</div>
@@ -560,6 +622,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 let currentScenario = 'bull';
 let currentStep     = 1;
 let flowData        = null;   // latest /api/trade-flow response
+let mpData          = null;   // latest /api/market-profile/levels response (prev day)
 let autoScenario    = null;   // scenario from server
 let editingOhlc          = false;  // true while OHLC edit form is open — pauses Step 2 re-render
 let editingGift          = false;  // true while GIFT Nifty form is open — pauses Step 1 re-render
@@ -586,7 +649,7 @@ function showStep(n) {
     else if (i === n) { s.className = 'step-status ss-active'; s.textContent = '● ACTIVE'; }
     else            { s.className = 'step-status ss-pending'; s.textContent = '○ PENDING'; }
   }
-  document.querySelectorAll('.detail-card').forEach(c => c.classList.remove('visible'));
+  document.querySelectorAll('.detail-card').forEach(c => { if (c.id !== 'ind-card') c.classList.remove('visible'); });
   const dc = document.getElementById('detail' + n);
   if (dc) dc.classList.add('visible');
 
@@ -718,12 +781,13 @@ function renderStep1(d) {
                      padding:7px 18px;font-weight:700;font-size:13px;cursor:pointer">
               Calculate Gap
             </button>
-            <button onclick="autoFetchGiftNifty()"
+            <button onclick="autoFetchGiftNifty()" id="btn-autofetch-gift"
               style="background:var(--bg3);color:var(--dim);border:1px solid var(--border2);
                      border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer">
-              ⚡ Auto-fetch (Yahoo Finance proxy)
+              ⚡ Auto-fetch
             </button>
           </div>
+          <div id="gift-fetch-status" style="margin-top:6px;font-size:11px;display:none"></div>
         </div>`;
       return;
     }
@@ -1006,7 +1070,8 @@ function renderStep3(d) {
     { lbl:'S2', price:cpr.s2, bar:'linear-gradient(90deg,var(--red),#c0392b)',       bg:'rgba(231,76,60,0.08)', bc:'rgba(231,76,60,0.2)',    col:'var(--red)',   desc:'Bear target 2' },
     { lbl:'S3', price:cpr.s3, bar:'linear-gradient(90deg,#c0392b,#922b21)',          bg:'rgba(231,76,60,0.10)', bc:'rgba(231,76,60,0.3)',    col:'var(--red)',   desc:'Extended bear target 3' },
   ];
-  el.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
+  // ── CPR panel ──
+  let html = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
     <div style="display:flex;flex-direction:column;gap:6px">
     ${levels.map(lv => `
       <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:${lv.bg};border:1px solid ${lv.bc};border-radius:6px">
@@ -1017,6 +1082,53 @@ function renderStep3(d) {
       </div>`).join('')}
     </div>
   </div>`;
+
+  // ── Market Profile panel ──
+  if (mpData && mpData.poc) {
+    const mp  = mpData;
+    const vahDiff = cpr.tc && mp.vah ? Math.abs(cpr.tc - mp.vah).toFixed(1) : null;
+    const vahMatch = vahDiff !== null && parseFloat(vahDiff) < 15;
+    const mpLevels = [
+      { lbl:'VAH', price:mp.vah, col:'var(--cyan)',   bg:'rgba(0,212,255,0.07)', bc:'rgba(0,212,255,0.22)', bar:'var(--cyan)',   desc:'Value Area High — upper acceptance zone' },
+      { lbl:'POC', price:mp.poc, col:'var(--orange)', bg:'rgba(243,156,18,0.08)',bc:'rgba(243,156,18,0.28)',bar:'var(--orange)', desc:`Point of Control — max time [${mp.tpo_count||'?'} TPOs]` },
+      { lbl:'VAL', price:mp.val, col:'var(--accent)', bg:'rgba(124,106,247,0.07)',bc:'rgba(124,106,247,0.22)',bar:'var(--accent)', desc:'Value Area Low — lower acceptance zone' },
+    ];
+    if (mp.ib_high && mp.ib_low) {
+      mpLevels.unshift({ lbl:'IB H', price:mp.ib_high, col:'rgba(0,212,255,0.6)', bg:'rgba(0,212,255,0.04)', bc:'rgba(0,212,255,0.12)', bar:'rgba(0,212,255,0.4)', desc:'Initial Balance High (9:15–10:15)' });
+      mpLevels.push(   { lbl:'IB L', price:mp.ib_low,  col:'rgba(124,106,247,0.6)',bg:'rgba(124,106,247,0.04)',bc:'rgba(124,106,247,0.12)',bar:'rgba(124,106,247,0.4)',desc:'Initial Balance Low (9:15–10:15)' });
+    }
+    html += `
+    <div style="background:var(--bg);border:1px solid rgba(243,156,18,0.25);border-radius:var(--r);padding:16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--orange);text-transform:uppercase">Market Profile · Prev Day</span>
+        <span style="font-size:11px;color:var(--muted)">${mp.date||''} · VA=${mp.va_width?Math.round(mp.va_width)+' pts':''}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+      ${mpLevels.map(lv => `
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:${lv.bg};border:1px solid ${lv.bc};border-radius:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:${lv.col};width:36px">${lv.lbl}</span>
+          <div style="flex:1;height:4px;background:${lv.bar};border-radius:2px;opacity:0.7"></div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:${lv.col}">${fmt(lv.price)}</span>
+          <span style="font-size:11px;color:var(--muted)">${lv.desc}</span>
+        </div>`).join('')}
+      </div>
+      ${vahMatch ? `<div style="margin-top:10px;font-size:11px;color:var(--green);background:rgba(46,204,113,0.07);border:1px solid rgba(46,204,113,0.2);border-radius:6px;padding:6px 10px">
+        ✅ CPR TC (${fmt(cpr.tc)}) ≈ VAH (${fmt(mp.vah)}) — ${vahDiff} pts apart · Strong confluence zone
+      </div>` : (vahDiff ? `<div style="margin-top:10px;font-size:11px;color:var(--yellow);background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.2);border-radius:6px;padding:6px 10px">
+        ⚠ CPR TC (${fmt(cpr.tc)}) vs VAH (${fmt(mp.vah)}) — ${vahDiff} pts apart · Use VAH as the stronger resistance
+      </div>` : '')}
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">
+        <strong style="color:var(--orange)">POC</strong> = price where market spent most time yesterday — acts as a magnet today, especially in range-bound sessions.
+        <strong style="color:var(--cyan)">VAH/VAL</strong> = 70% of yesterday's activity happened between these prices.
+      </div>
+    </div>`;
+  } else {
+    html += `<div style="background:var(--bg2);border:1px dashed rgba(243,156,18,0.2);border-radius:var(--r);padding:14px;margin-bottom:16px;text-align:center">
+      <div style="font-size:12px;color:var(--muted)">Market Profile levels loading… (requires Angel One session)</div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
 }
 
 function renderStep4(d) {
@@ -1156,19 +1268,79 @@ function renderStep5(d) {
       <div class="data-row"><span class="dr-label">ORB Range</span><span class="dr-val dv-yellow">${fmt(orb.range)} pts</span></div>
       <div class="data-row"><span class="dr-label">ORB vs CPR</span><span class="dr-val">${orbNote}</span></div>
       ${isBull ? `
-      <div class="data-row"><span class="dr-label">Bull T1 (1R)</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range)} = ${fmt(orb.t1_bull)}</span></div>
-      <div class="data-row"><span class="dr-label">Bull T2 (2R)</span><span class="dr-val dv-green">${fmt(orb.high)} + ${fmt(orb.range * 2)} = ${fmt(orb.t2_bull)}</span></div>
-      <div class="data-row"><span class="dr-label">Bull T3 (3R)</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.high)} + ${fmt(orb.range * 3)} = ${fmt(orb.t3_bull)}</span></div>
-      <div class="data-row"><span class="dr-label">Stop Loss</span><span class="dr-val dv-red">${fmt(orb.high)} − 20 = ${fmt(orb.sl_bull)}</span></div>
+      <div class="data-row"><span class="dr-label">T1 — CPR R1</span><span class="dr-val dv-green">${fmt(cpr.r1)} · book 50%</span></div>
+      <div class="data-row"><span class="dr-label">T2 — CPR R2</span><span class="dr-val dv-green">${fmt(cpr.r2)} · trail stop → entry</span></div>
+      <div class="data-row"><span class="dr-label">T3 — ORB ext</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.t3_bull)}</span></div>
+      <div class="data-row"><span class="dr-label">SL (ORB Low)</span><span class="dr-val dv-red">${fmt(orb.sl_bull)} — opposite ORB side</span></div>
       ` : isBear ? `
-      <div class="data-row"><span class="dr-label">Bear T1 (1R)</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range)} = ${fmt(orb.t1_bear)}</span></div>
-      <div class="data-row"><span class="dr-label">Bear T2 (2R)</span><span class="dr-val dv-red">${fmt(orb.low)} − ${fmt(orb.range * 2)} = ${fmt(orb.t2_bear)}</span></div>
-      <div class="data-row"><span class="dr-label">Bear T3 (3R)</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.low)} − ${fmt(orb.range * 3)} = ${fmt(orb.t3_bear)}</span></div>
-      <div class="data-row"><span class="dr-label">Stop Loss</span><span class="dr-val dv-green">${fmt(orb.low)} + 20 = ${fmt(orb.sl_bear)}</span></div>
+      <div class="data-row"><span class="dr-label">T1 — CPR S1</span><span class="dr-val dv-red">${fmt(cpr.s1)} · book 50%</span></div>
+      <div class="data-row"><span class="dr-label">T2 — CPR S2</span><span class="dr-val dv-red">${fmt(cpr.s2)} · trail stop → entry</span></div>
+      <div class="data-row"><span class="dr-label">T3 — ORB ext</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.t3_bear)}</span></div>
+      <div class="data-row"><span class="dr-label">SL (ORB High)</span><span class="dr-val dv-green">${fmt(orb.sl_bear)} — opposite ORB side</span></div>
       ` : `
       <div class="data-row"><span class="dr-label">Conflict</span><span class="dr-val dv-yellow">ORB direction unclear</span></div>
       `}
     </div>`;
+}
+
+function calcPositionSize(d) {
+  const vix = d && d.india_vix;
+  const sc  = d && d.scenario;
+  const cpr = d && d.cpr;
+  const orb = d && d.orb;
+
+  if (!orb || sc === 'skip' || sc === 'unknown')
+    return { pct: 0, label: 'NO TRADE', color: 'var(--yellow)', rows: [] };
+  if (vix > 25)
+    return { pct: 0, label: 'NO TRADE', color: 'var(--red)', rows: [{ icon:'🛑', text:`VIX ${vix} > 25 — too volatile, skip all setups` }] };
+
+  const isFull = (sc === 'bull' || sc === 'bear');
+  let pct = isFull ? 75 : 50;
+  const rows = [];
+
+  // CPR width factor
+  const cprType = cpr && cpr.type;
+  if (cprType === 'narrow') {
+    rows.push({ icon: '✅', text: `CPR Narrow (${cpr.width} pts) — good structure` });
+  } else if (cprType === 'wide') {
+    pct -= 25;
+    rows.push({ icon: '⚠️', text: `CPR Wide (${cpr.width} pts) — choppy, −25%` });
+  } else {
+    rows.push({ icon: '🟡', text: `CPR Medium (${cpr ? cpr.width : '—'} pts) — normal` });
+  }
+
+  // VIX factor
+  if (vix == null) {
+    rows.push({ icon: '🟡', text: 'VIX unavailable — treat as normal' });
+  } else if (vix < 13) {
+    pct += 25; rows.push({ icon: '✅', text: `VIX ${vix} — Very Low, +25%` });
+  } else if (vix < 16) {
+    rows.push({ icon: '✅', text: `VIX ${vix} — Low, no adjustment` });
+  } else if (vix < 20) {
+    rows.push({ icon: '🟡', text: `VIX ${vix} — Normal, no adjustment` });
+  } else if (vix < 25) {
+    pct -= 25; rows.push({ icon: '⚠️', text: `VIX ${vix} — Elevated, −25%` });
+  }
+
+  // Lean score factor
+  const lean = orb.lean_scores;
+  const leanVal = lean ? Math.max(lean.bull, lean.bear) : 0;
+  if (leanVal >= 5) {
+    rows.push({ icon: '✅', text: `Lean score ${leanVal} — strong directional bias` });
+  } else if (leanVal >= 3) {
+    rows.push({ icon: '🟡', text: `Lean score ${leanVal} — meets threshold (min 3)` });
+  } else if (isFull) {
+    rows.push({ icon: '✅', text: 'Full scenario — all 3 signals aligned' });
+  }
+
+  pct = Math.min(100, Math.max(25, pct));
+
+  let label, color;
+  if (pct >= 75)      { label = `${pct}% — FULL POSITION`;  color = 'var(--green)'; }
+  else if (pct >= 50) { label = `${pct}% — HALF POSITION`;  color = 'var(--yellow)'; }
+  else                { label = `${pct}% — REDUCED SIZE`;   color = 'var(--red)'; }
+
+  return { pct, label, color, rows };
 }
 
 function leanFactors(orb, cpr, open, prev) {
@@ -1208,6 +1380,26 @@ function leanFactors(orb, cpr, open, prev) {
   ].filter(f => f.ok);
 }
 
+function renderPosSize(d) {
+  const ps = calcPositionSize(d);
+  return `<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--border);
+                      border-radius:var(--r2);padding:14px 16px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+                text-transform:uppercase;color:var(--muted);margin-bottom:10px">📊 Position Sizing</div>
+    ${ps.rows.map(r=>`<div style="display:flex;gap:8px;font-size:12px;margin-bottom:5px">
+      <span>${r.icon}</span><span style="color:var(--dim)">${r.text}</span>
+    </div>`).join('')}
+    <div style="margin-top:10px;padding:8px 14px;border-radius:6px;
+                background:${ps.pct===0?'rgba(231,76,60,0.1)':ps.pct>=75?'rgba(46,204,113,0.1)':'rgba(255,193,7,0.1)'};
+                border:1px solid ${ps.pct===0?'rgba(231,76,60,0.3)':ps.pct>=75?'rgba(46,204,113,0.3)':'rgba(255,193,7,0.3)'}">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:${ps.color}">${ps.label}</div>
+      ${ps.pct>0?`<div style="font-size:11px;color:var(--muted);margin-top:2px">
+        Book 50% at T1 (${d&&d.scenario&&d.scenario.includes('bear')?'S1':'R1'}) → move SL to entry → hold for T2
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
 function renderStep6(d) {
   const cpr  = d && d.cpr;
   const orb  = d && d.orb;
@@ -1229,7 +1421,22 @@ function renderStep6(d) {
   // ── BULL ──────────────────────────────────────────────────────────────────
   if (sc === 'bull' && orb.vs_cpr === 'above_tc') {
     const cprOk = (open && open.position === 'above_tc') ? '✅' : (open ? '⚠️' : '⚠️');
+    const exitSig = orb.exit_signal;
+    const bullExit = exitSig && exitSig.endsWith('_bull');
+    const EXIT_BULL = {
+      stop_hit_bull:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',    sub: 'Price hit stop level — mandatory exit' },
+      bias_broken_bull:    { icon: '⚠️', title: 'BULLISH BIAS BROKEN — EXIT',  sub: 'Price fell below CPR TC — bullish premise invalidated' },
+      false_breakout_bull: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',       sub: 'Price back below ORB High — breakout failed' },
+    };
+    const ex = bullExit ? (EXIT_BULL[exitSig] || { icon: '⚠️', title: 'EXIT SIGNAL', sub: 'Review position' }) : null;
     el.innerHTML = `
+      ${bullExit ? `<div class="trigger-banner" style="background:rgba(231,76,60,0.18);border-color:rgba(231,76,60,0.5)">
+        <span style="font-size:22px">${ex.icon}</span>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--red)">${ex.title}</div>
+          <div style="font-size:12px;opacity:.85">${ex.sub}</div>
+        </div>
+      </div>` : ''}
       <div class="score-card">
         <div class="sc-item"><div class="sci-label">GIFT / Gap</div><div class="sci-val" style="color:var(--green)">✅</div></div>
         <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprOk==='✅'?'var(--green)':'var(--yellow)'}">${cprOk}</div></div>
@@ -1240,26 +1447,44 @@ function renderStep6(d) {
         <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} above TC (${fmt(cpr.tc)}) → Bullish</div></div>
         <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>ORB</strong> — Both H&L above TC. Close above ORB High with volume → Entry</div></div>
       </div>
-      <div class="final-result fr-bull">
-        <div class="fr-icon">🚀</div>
-        <div class="fr-title" style="color:var(--green)">HIGH PROBABILITY LONG</div>
-        <div class="fr-sub">All 3 signals aligned — Enter Long confidently</div>
-        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Long எடுங்கள்</div>
-        <div class="fr-chips">
-          <span class="fr-chip fc-bull">Entry: ${fmt(orb.high)}</span>
-          <span class="fr-chip fc-bull">T1: ${fmt(orb.t1_bull)}</span>
-          <span class="fr-chip fc-bull">T2: ${fmt(orb.t2_bull)}</span>
-          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3: ${fmt(orb.t3_bull)}</span>
-          <span class="fr-chip" style="background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)">SL: ${fmt(orb.sl_bull)}</span>
+      <div class="final-result fr-bull" style="${bullExit?'opacity:0.6':''}">
+        <div class="fr-icon">${bullExit?'🚫':'🚀'}</div>
+        <div class="fr-title" style="color:${bullExit?'var(--red)':'var(--green)'}">
+          ${bullExit ? 'HIGH PROBABILITY LONG — EXITED' : 'HIGH PROBABILITY LONG'}
         </div>
-      </div>`;
+        <div class="fr-sub">${bullExit?'Trade invalidated — position should be closed':'All 3 signals aligned — Enter Long confidently'}</div>
+        <div class="fr-ta">${bullExit?'தவறான breakout → Long வெளியேறுங்கள்':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Long எடுங்கள்'}</div>
+        <div class="fr-chips">
+          <span class="fr-chip fc-bull">Entry above: ${fmt(orb.high)}</span>
+          <span class="fr-chip fc-bull">T1 R1: ${cpr?fmt(cpr.r1):'—'} · book 50%</span>
+          <span class="fr-chip fc-bull">T2 R2: ${cpr?fmt(cpr.r2):'—'} · trail SL</span>
+          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3 ext: ${fmt(orb.t3_bull)}</span>
+          <span class="fr-chip" style="background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)">SL ORB Low: ${fmt(orb.sl_bull)}</span>
+        </div>
+      </div>
+      ${renderPosSize(d)}`;
     return;
   }
 
   // ── BEAR ──────────────────────────────────────────────────────────────────
   if (sc === 'bear' && orb.vs_cpr === 'below_bc') {
     const cprOk = (open && open.position === 'below_bc') ? '✅' : (open ? '⚠️' : '⚠️');
+    const exitSig = orb.exit_signal;
+    const bearExit = exitSig && exitSig.endsWith('_bear');
+    const EXIT_BEAR = {
+      stop_hit_bear:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',   sub: 'Price hit stop level — mandatory exit' },
+      bias_broken_bear:    { icon: '⚠️', title: 'BEARISH BIAS BROKEN — EXIT', sub: 'Price rose above CPR BC — bearish premise invalidated' },
+      false_breakout_bear: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',      sub: 'Price back above ORB Low — breakdown failed' },
+    };
+    const ex = bearExit ? (EXIT_BEAR[exitSig] || { icon: '⚠️', title: 'EXIT SIGNAL', sub: 'Review position' }) : null;
     el.innerHTML = `
+      ${bearExit ? `<div class="trigger-banner" style="background:rgba(231,76,60,0.18);border-color:rgba(231,76,60,0.5)">
+        <span style="font-size:22px">${ex.icon}</span>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--red)">${ex.title}</div>
+          <div style="font-size:12px;opacity:.85">${ex.sub}</div>
+        </div>
+      </div>` : ''}
       <div class="score-card">
         <div class="sc-item"><div class="sci-label">GIFT / Gap</div><div class="sci-val" style="color:var(--red)">✅</div></div>
         <div class="sc-item"><div class="sci-label">CPR Bias</div><div class="sci-val" style="color:${cprOk==='✅'?'var(--red)':'var(--yellow)'}">${cprOk}</div></div>
@@ -1270,26 +1495,32 @@ function renderStep6(d) {
         <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} below BC (${fmt(cpr.bc)}) → Bearish</div></div>
         <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>ORB</strong> — Both H&L below BC. Close below ORB Low with volume → Short entry</div></div>
       </div>
-      <div class="final-result fr-bear">
-        <div class="fr-icon">📉</div>
-        <div class="fr-title" style="color:var(--red)">HIGH PROBABILITY SHORT</div>
-        <div class="fr-sub">All 3 signals aligned — Enter Short confidently</div>
-        <div class="fr-ta">மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Short எடுங்கள்</div>
-        <div class="fr-chips">
-          <span class="fr-chip fc-bear">Entry: ${fmt(orb.low)}</span>
-          <span class="fr-chip fc-bear">T1: ${fmt(orb.t1_bear)}</span>
-          <span class="fr-chip fc-bear">T2: ${fmt(orb.t2_bear)}</span>
-          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3: ${fmt(orb.t3_bear)}</span>
-          <span class="fr-chip" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)">SL: ${fmt(orb.sl_bear)}</span>
+      <div class="final-result fr-bear" style="${bearExit?'opacity:0.6':''}">
+        <div class="fr-icon">${bearExit?'🚫':'📉'}</div>
+        <div class="fr-title" style="color:${bearExit?'var(--red)':'var(--red)'}">
+          ${bearExit ? 'HIGH PROBABILITY SHORT — EXITED' : 'HIGH PROBABILITY SHORT'}
         </div>
-      </div>`;
+        <div class="fr-sub">${bearExit?'Trade invalidated — position should be closed':'All 3 signals aligned — Enter Short confidently'}</div>
+        <div class="fr-ta">${bearExit?'தவறான breakdown → Short வெளியேறுங்கள்':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Short எடுங்கள்'}</div>
+        <div class="fr-chips">
+          <span class="fr-chip fc-bear">Entry below: ${fmt(orb.low)}</span>
+          <span class="fr-chip fc-bear">T1 S1: ${cpr?fmt(cpr.s1):'—'} · book 50%</span>
+          <span class="fr-chip fc-bear">T2 S2: ${cpr?fmt(cpr.s2):'—'} · trail SL</span>
+          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3 ext: ${fmt(orb.t3_bear)}</span>
+          <span class="fr-chip" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)">SL ORB High: ${fmt(orb.sl_bear)}</span>
+        </div>
+      </div>
+      ${renderPosSize(d)}`;
     return;
   }
 
   // ── CONDITIONAL BEAR / BULL ───────────────────────────────────────────────
   if (sc === 'conditional_bear' || sc === 'conditional_bull') {
     const isCBear = (sc === 'conditional_bear');
-    const triggered = isCBear ? orb.bear_triggered : orb.bull_triggered;
+    const triggered     = isCBear ? orb.bear_triggered      : orb.bull_triggered;
+    const everFired     = isCBear ? orb.bear_trigger_fired  : orb.bull_trigger_fired;
+    const exitSignal    = orb.exit_signal || null;
+    const relevantExit  = exitSignal && (isCBear ? exitSignal.endsWith('_bear') : exitSignal.endsWith('_bull'));
     const ls = orb.lean_scores || {bear:0, bull:0};
     const factors = leanFactors(orb, cpr, open, prev);
 
@@ -1304,8 +1535,30 @@ function renderStep6(d) {
     const frCls = isCBear ? 'fr-bear'       : 'fr-bull';
     const chipCls = isCBear ? 'fc-bear'     : 'fc-bull';
 
-    const triggerBanner = triggered
-      ? `<div class="trigger-banner ${isCBear?'tb-bear':'tb-bull'}">
+    const EXIT_LABELS = {
+      stop_hit_bull:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',       sub: 'Price below SL level — mandatory exit, cut the position',                    ta: 'SL தாண்டியது → உடனே வெளியேறுங்கள்' },
+      bias_broken_bull:    { icon: '⚠️', title: 'BULLISH BIAS BROKEN — EXIT',     sub: 'Price fell below CPR TC — bullish premise invalidated',                      ta: 'CPR TC-ஐ உடைத்தது → Long premise தவறு, Exit செய்யுங்கள்' },
+      false_breakout_bull: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',          sub: 'Price back below ORB High — breakout failed, exit to avoid reversal loss',   ta: 'ORB High-ஐ திரும்பக் கடந்தது → False breakout, வெளியேறுங்கள்' },
+      stop_hit_bear:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',       sub: 'Price above SL level — mandatory exit, cut the position',                    ta: 'SL தாண்டியது → உடனே வெளியேறுங்கள்' },
+      bias_broken_bear:    { icon: '⚠️', title: 'BEARISH BIAS BROKEN — EXIT',    sub: 'Price rose above CPR BC — bearish premise invalidated',                      ta: 'CPR BC-ஐ உடைத்தது → Short premise தவறு, Exit செய்யுங்கள்' },
+      false_breakout_bear: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',          sub: 'Price back above ORB Low — breakdown failed, exit to avoid reversal loss',   ta: 'ORB Low-ஐ திரும்பக் கடந்தது → False breakout, வெளியேறுங்கள்' },
+    };
+
+    let triggerBanner;
+    if (relevantExit) {
+      const ex = EXIT_LABELS[exitSignal] || { icon: '⚠️', title: 'EXIT SIGNAL', sub: 'Review position', ta: '' };
+      triggerBanner = `<div class="trigger-banner" style="background:rgba(231,76,60,0.18);border-color:rgba(231,76,60,0.5)">
+           <span style="font-size:22px">${ex.icon}</span>
+           <div>
+             <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--red)">
+               ${ex.title}
+             </div>
+             <div style="font-size:12px;opacity:.85">${ex.sub}</div>
+             <div style="font-size:11px;color:var(--muted);margin-top:2px">${ex.ta}</div>
+           </div>
+         </div>`;
+    } else if (triggered) {
+      triggerBanner = `<div class="trigger-banner ${isCBear?'tb-bear':'tb-bull'}">
            <span style="font-size:20px">${arrow}</span>
            <div>
              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px">
@@ -1315,8 +1568,9 @@ function renderStep6(d) {
                Price ${isCBear?'broke below ORB Low':'broke above ORB High'} (${fmt(triggerPrice)})
              </div>
            </div>
-         </div>`
-      : `<div class="trigger-banner tb-wait">
+         </div>`;
+    } else {
+      triggerBanner = `<div class="trigger-banner tb-wait">
            <span style="font-size:18px">⏳</span>
            <div>
              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">
@@ -1329,6 +1583,7 @@ function renderStep6(d) {
              </div>
            </div>
          </div>`;
+    }
 
     el.innerHTML = `
       ${triggerBanner}
@@ -1357,31 +1612,40 @@ function renderStep6(d) {
           </div>`).join('')}
         </div>
       </div>
-      <div class="final-result ${frCls}" style="${triggered?'':'opacity:0.85'}">
-        <div class="fr-icon">${arrow}</div>
-        <div class="fr-title" style="color:${clr}">
-          ${triggered ? `✅ CONDITIONAL ${dir} — TRIGGERED` : `⚡ CONDITIONAL ${dir} SETUP`}
+      <div class="final-result ${frCls}" style="${(triggered && !relevantExit)?'':(relevantExit?'opacity:0.6':'opacity:0.85')}">
+        <div class="fr-icon">${relevantExit ? '🚫' : arrow}</div>
+        <div class="fr-title" style="color:${relevantExit?'var(--red)':clr}">
+          ${relevantExit
+            ? `CONDITIONAL ${dir} — EXITED`
+            : triggered
+              ? `✅ CONDITIONAL ${dir} — TRIGGERED`
+              : `⚡ CONDITIONAL ${dir} SETUP`}
         </div>
         <div class="fr-sub">
-          ${triggered
-            ? `Trigger confirmed — Enter ${dir} with reduced size (½ position)`
-            : `Enter only after price ${isCBear?'closes below':'closes above'} ${fmt(triggerPrice)}`}
+          ${relevantExit
+            ? 'Trade invalidated — position should be closed'
+            : triggered
+              ? `Trigger confirmed — Enter ${dir} with reduced size (½ position)`
+              : `Enter only after price ${isCBear?'closes below':'closes above'} ${fmt(triggerPrice)}`}
         </div>
         <div class="fr-ta">
-          ${isCBear
-            ? 'ORB Low உடைந்தால் Short எடுங்கள் — reduced size'
-            : 'ORB High உடைந்தால் Long எடுங்கள் — reduced size'}
+          ${relevantExit
+            ? (isCBear ? 'தவறான breakdown → Short வெளியேறுங்கள்' : 'தவறான breakout → Long வெளியேறுங்கள்')
+            : isCBear
+              ? 'ORB Low உடைந்தால் Short எடுங்கள் — reduced size'
+              : 'ORB High உடைந்தால் Long எடுங்கள் — reduced size'}
         </div>
         <div class="fr-chips">
           <span class="fr-chip ${chipCls}">Trigger: ${fmt(triggerPrice)}</span>
-          <span class="fr-chip ${chipCls}">T1: ${fmt(t1)}</span>
-          <span class="fr-chip ${chipCls}">T2: ${fmt(t2)}</span>
-          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3: ${fmt(t3)}</span>
+          <span class="fr-chip ${chipCls}">T1 ${isCBear?'S1':'R1'}: ${cpr?(isCBear?fmt(cpr.s1):fmt(cpr.r1)):'—'} · book 50%</span>
+          <span class="fr-chip ${chipCls}">T2 ${isCBear?'S2':'R2'}: ${cpr?(isCBear?fmt(cpr.s2):fmt(cpr.r2)):'—'} · trail SL</span>
+          <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3 ext: ${fmt(t3)}</span>
           <span class="fr-chip" style="background:${isCBear?'rgba(46,204,113,0.15)':'rgba(231,76,60,0.15)'};
                 color:${isCBear?'var(--green)':'var(--red)'};
-                border:1px solid ${isCBear?'rgba(46,204,113,0.3)':'rgba(231,76,60,0.3)'}">SL: ${fmt(sl)}</span>
+                border:1px solid ${isCBear?'rgba(46,204,113,0.3)':'rgba(231,76,60,0.3)'}">SL ${isCBear?'ORB High':'ORB Low'}: ${fmt(sl)}</span>
         </div>
-      </div>`;
+      </div>
+      ${renderPosSize(d)}`;
     return;
   }
 
@@ -1541,17 +1805,38 @@ function tickClock() {
 // ─────────────────────────────────────────────
 async function autoFetchGiftNifty() {
   editingGift = false;
+  const btn = document.getElementById('btn-autofetch-gift');
+  const statusEl = document.getElementById('gift-fetch-status');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Fetching…'; }
   try {
     const res = await fetch('/api/fetch-gift-nifty');
     if (!res.ok) throw new Error(`Engine returned HTTP ${res.status}`);
     const data = await res.json();
+    if (data.status === 'unavailable') {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--yellow)';
+        statusEl.textContent = '⚠️ ' + data.message;
+      }
+      return;
+    }
     if (data.status === 'error') throw new Error(data.message);
-    // Success — re-render with the auto-fetched price
+    // Success — show source tag and re-render
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = `✅ Fetched from: ${data.source}`;
+    }
     await fetchFlowData();
   } catch (err) {
-    // Don't block the user — just show the message and let them type manually
     console.warn('GIFT Nifty auto-fetch:', err.message);
-    alert(err.message);
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '❌ ' + err.message;
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '⚡ Auto-fetch'; }
   }
 }
 
@@ -1678,6 +1963,17 @@ async function fetchFlowData() {
     const d = await res.json();
     flowData = d;
 
+    // Fetch previous day Market Profile levels (POC / VAH / VAL) for Step 3
+    if (d.prev_day && d.prev_day.date) {
+      try {
+        const mpRes = await fetch(`/api/market-profile/levels?date=${d.prev_day.date}&symbol=NIFTY`);
+        if (mpRes.ok) {
+          const mp = await mpRes.json();
+          mpData = mp.error ? null : mp;
+        }
+      } catch (_) { mpData = null; }
+    }
+
     // Top banner only appears when no OHLC at all (CPR fully absent)
     document.getElementById('ohlc-banner').style.display = d.prev_day ? 'none' : '';
 
@@ -1707,6 +2003,105 @@ async function fetchFlowData() {
     console.warn('Trade flow fetch error:', err.message);
     document.getElementById('chip-phase').textContent = '⚠️ Engine offline';
   }
+}
+
+// ─────────────────────────────────────────────
+// Indicator Confirmation
+// ─────────────────────────────────────────────
+let indData     = null;
+let indExpanded = false;
+
+function toggleIndCard() {
+  indExpanded = !indExpanded;
+  document.getElementById('ind-body').style.display    = indExpanded ? '' : 'none';
+  document.getElementById('ind-chevron').style.transform = indExpanded ? 'rotate(180deg)' : '';
+  if (indExpanded && !indData) loadIndicators();
+}
+
+async function loadIndicators() {
+  document.getElementById('ind-content').innerHTML =
+    `<div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">Loading…</div>`;
+  try {
+    const r = await fetch('/api/indicators/snapshot');
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    indData = d;
+    renderIndicators(d);
+  } catch(e) {
+    document.getElementById('ind-content').innerHTML =
+      `<div style="color:var(--red);font-size:12px;padding:8px">${e.message}</div>`;
+  }
+}
+
+function renderIndicators(d) {
+  const SIG = {
+    bullish:    { cls:'dv-green',  dot:'#2ecc71', label:'BULLISH'    },
+    bearish:    { cls:'dv-red',    dot:'#e74c3c', label:'BEARISH'    },
+    neutral:    { cls:'',          dot:'#9ba3bf', label:'NEUTRAL'    },
+    overbought: { cls:'dv-yellow', dot:'#f5a623', label:'OVERBOUGHT' },
+    oversold:   { cls:'dv-cyan',   dot:'#00d4ff', label:'OVERSOLD'   },
+    weakening:  { cls:'dv-yellow', dot:'#f5a623', label:'WEAKENING'  },
+    recovering: { cls:'dv-cyan',   dot:'#00d4ff', label:'RECOVERING' },
+  };
+
+  function row(name, valueHtml, sig, detail) {
+    const s = SIG[sig] || SIG.neutral;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;
+                        background:var(--bg2);border:1px solid var(--border);border-radius:8px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+                   color:var(--dim);width:70px;flex-shrink:0">${name}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#fff;flex:1">${valueHtml}</span>
+      <span style="font-size:11px;color:var(--muted);flex:1;text-align:right">${detail}</span>
+      <span style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+        <span style="width:7px;height:7px;border-radius:50%;background:${s.dot};display:inline-block"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+                     color:${s.dot};letter-spacing:.5px">${s.label}</span>
+      </span>
+    </div>`;
+  }
+
+  const vwapSign = d.vwap.diff >= 0 ? '+' : '';
+  const rows = [
+    row('VWAP',
+        fmt(d.vwap.value),
+        d.vwap.signal,
+        `Spot ${vwapSign}${fmt(d.vwap.diff)} pts (${vwapSign}${d.vwap.diff_pct}%)`),
+    row('EMA 9/21',
+        `${fmt(d.ema.ema9)} / ${fmt(d.ema.ema21)}`,
+        d.ema.signal,
+        `Spread ${d.ema.diff >= 0 ? '+' : ''}${fmt(d.ema.diff)} pts`),
+    row('MACD',
+        `hist ${d.macd.histogram >= 0 ? '+' : ''}${d.macd.histogram}`,
+        d.macd.signal,
+        `MACD ${d.macd.macd} · Sig ${d.macd.signal_line}`),
+    row('RSI 14',
+        `${d.rsi.value}`,
+        d.rsi.signal,
+        d.rsi.value >= 70 ? 'Overbought — momentum stretched' :
+        d.rsi.value <= 30 ? 'Oversold — watch for reversal' :
+        d.rsi.value > 55  ? 'Momentum building' :
+        d.rsi.value < 45  ? 'Momentum fading' : 'Range — no clear edge'),
+  ];
+
+  // Summary: count bull vs bear signals
+  const signals = [d.vwap.signal, d.ema.signal, d.macd.signal, d.rsi.signal];
+  const bulls = signals.filter(s => s === 'bullish' || s === 'oversold' || s === 'recovering').length;
+  const bears = signals.filter(s => s === 'bearish' || s === 'overbought' || s === 'weakening').length;
+  const summaryColor = bulls >= 3 ? 'var(--green)' : bears >= 3 ? 'var(--red)' : 'var(--yellow)';
+  const summaryText  = bulls >= 3 ? `${bulls}/4 bullish — indicators confirm long` :
+                       bears >= 3 ? `${bears}/4 bearish — indicators confirm short` :
+                       `Mixed (${bulls} bull / ${bears} bear) — no strong confirmation`;
+
+  document.getElementById('ind-content').innerHTML = rows.join('') +
+    `<div style="margin-top:4px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;
+                 color:${summaryColor};background:rgba(255,255,255,0.03);border:1px solid ${summaryColor}33;
+                 text-align:center">${summaryText}</div>`;
+
+  document.getElementById('ind-asof').textContent = `${d.candles} candles · as of ${d.as_of} IST`;
+  document.getElementById('ind-summary').textContent =
+    bulls >= 3 ? `${bulls}/4 Bullish` : bears >= 3 ? `${bears}/4 Bearish` : `${bulls}B / ${bears}Bear`;
+  document.getElementById('ind-summary').style.color =
+    bulls >= 3 ? 'var(--green)' : bears >= 3 ? 'var(--red)' : 'var(--yellow)';
 }
 
 // ─────────────────────────────────────────────

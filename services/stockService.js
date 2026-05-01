@@ -1,4 +1,4 @@
-const YahooFinance = require('yahoo-finance2').default;
+const yahooFinance = require('yahoo-finance2').default;
 const { RSI, EMA } = require('technicalindicators');
 
 // Nifty 50 constituents — symbol + sector
@@ -65,9 +65,7 @@ const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 class StockService {
   constructor() {
-    this.yf = new YahooFinance({
-      suppressNotices: ['yahooSurvey', 'ripHistorical']
-    });
+    this.yf = yahooFinance;
   }
 
   // =========================

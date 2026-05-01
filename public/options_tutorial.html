@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options Intelligence — How to Use | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+
+/* LAYOUT */
+.page{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+
+/* HERO */
+.hero{text-align:center;padding:48px 0 40px}
+.hero-tag{display:inline-block;background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.3);color:var(--accent);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:16px}
+.hero h1{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:12px}
+.hero p{color:var(--dim);font-size:15px;max-width:580px;margin:0 auto;line-height:1.7}
+.cta-btn{display:inline-block;margin-top:24px;padding:10px 28px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;color:#fff;font-weight:600;font-size:14px;text-decoration:none;transition:opacity .15s}
+.cta-btn:hover{opacity:.85}
+
+/* TABLE OF CONTENTS */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px 28px;margin-bottom:40px}
+.toc h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.toc ol{padding-left:18px;display:grid;grid-template-columns:1fr 1fr;gap:6px 32px}
+.toc li{font-size:13px}
+.toc a{color:var(--accent);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+/* SECTIONS */
+.section{margin-bottom:56px}
+.section-anchor{display:block;height:72px;margin-top:-72px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.section-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.75;margin-bottom:12px}
+.section p strong{color:var(--text)}
+
+/* DIAGRAM BOXES */
+.diagram{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin:16px 0;font-size:13px}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+
+/* STEP CARDS */
+.steps{display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.step{display:flex;gap:14px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.step-n{width:26px;height:26px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.step-body .step-title{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--dim);line-height:1.6;margin:0}
+
+/* SIGNAL TABLE */
+.sig-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.sig-table th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.sig-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.55}
+.sig-table tr:last-child td{border-bottom:none}
+.sig-table tr:hover td{background:var(--bg3)}
+.pts{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
+.pass{color:var(--green);font-weight:600}
+.fail{color:var(--red);font-weight:600}
+
+/* LABEL BADGES */
+.lbl{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.lbl-strong{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.lbl-moderate{background:rgba(91,138,245,0.15);color:var(--blue);border:1px solid rgba(91,138,245,0.3)}
+.lbl-weak{background:rgba(245,166,35,0.15);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+.lbl-skip{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+
+/* SCORE METER VISUAL */
+.score-explain{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.score-band{border-radius:var(--r2);padding:14px;text-align:center;border:1px solid var(--border)}
+.score-band .range{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;margin-bottom:6px}
+.score-band .meaning{font-size:11px;color:var(--dim);line-height:1.4}
+
+/* INFO BOXES */
+.info-box{display:flex;gap:12px;background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2);border-radius:var(--r2);padding:14px 16px;margin:14px 0}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.6}
+.info-box p strong{color:var(--text)}
+.warn-box{background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2)}
+.tip-box{background:rgba(46,204,113,0.06);border-color:rgba(46,204,113,0.2)}
+
+/* CHAIN VISUAL */
+.chain-demo{display:grid;grid-template-columns:1fr auto 1fr;gap:0;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.chain-header{background:var(--bg3);padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);text-align:center}
+.chain-side-header{color:var(--blue)}
+.chain-pe-header{color:var(--red)}
+.chain-row{display:contents}
+.chain-row>div{padding:7px 12px;border-top:1px solid var(--border);color:var(--dim)}
+.chain-row .ce{text-align:right;color:var(--blue)}
+.chain-row .pe{text-align:left;color:var(--red)}
+.chain-row .strike{text-align:center;color:#fff;background:var(--bg3);font-weight:700}
+.chain-row.atm>div{background:rgba(124,106,247,0.08)}
+.chain-row.atm .strike{color:var(--accent)}
+.chain-row .hi-oi{color:var(--yellow);font-weight:700}
+
+/* OI SIGNAL TABLE */
+.ois-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.lb{background:rgba(46,204,113,0.15);color:var(--green)}
+.sb{background:rgba(231,76,60,0.15);color:var(--red)}
+.sc{background:rgba(0,212,255,0.15);color:var(--cyan)}
+.lu{background:rgba(243,156,18,0.15);color:var(--orange)}
+.uc{background:rgba(155,163,191,0.1);color:var(--dim)}
+
+/* WORKFLOW */
+.workflow{display:flex;align-items:flex-start;gap:0;margin:20px 0;flex-wrap:wrap}
+.wf-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:100px}
+.wf-circle{width:44px;height:44px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--accent)}
+.wf-label{font-size:11px;color:var(--dim);text-align:center;margin-top:8px;line-height:1.4;max-width:80px}
+.wf-arrow{color:var(--border2);font-size:20px;margin-top:12px;align-self:center}
+
+/* DIVIDER */
+hr{border:none;border-top:1px solid var(--border);margin:40px 0}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links">
+    <a class="nl" href="/index.html">Dashboard</a>
+    <a class="nl" href="/fno_signal.html">F&O Signal</a>
+    <a class="nl" href="/trade_flow.html">Trade Flow</a>
+    <a class="nl on" href="/options_analysis.html">Options</a>
+    <a class="nl" href="/ema_scenario.html">EMA</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">How to Use</div>
+    <h1>Options Intelligence Tool</h1>
+    <p>A complete guide to reading signals, interpreting the option chain, selecting strikes, and managing trade risk — all in one screen.</p>
+    <a class="cta-btn" href="/options_analysis.html">Open the Tool →</a>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#s1">Setting Up — Symbol & Expiry</a></li>
+      <li><a href="#s2">Market Context Panel</a></li>
+      <li><a href="#s3">Signal Score (0–17)</a></li>
+      <li><a href="#s4">All 11 Signals Explained</a></li>
+      <li><a href="#s5">Reading the Option Chain</a></li>
+      <li><a href="#s6">OI Signals — 4-Quadrant Model</a></li>
+      <li><a href="#s7">Strike Selector</a></li>
+      <li><a href="#s8">Risk Calculator</a></li>
+      <li><a href="#s9">Trade Monitor</a></li>
+      <li><a href="#s10">Full Workflow</a></li>
+    </ol>
+  </div>
+
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <span class="section-anchor" id="s1"></span>
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Setting Up — Symbol & Expiry</h2>
+    </div>
+    <p>The three inputs at the top control everything on the page.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <div class="step-title">Enter a symbol</div>
+          <p>Type any NSE stock or index: <strong>NIFTY, BANKNIFTY, JSWSTEEL, RELIANCE, ITC</strong>, etc. The expiry list updates automatically within 600 ms as you type.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <div class="step-title">Select an expiry</div>
+          <p>The dropdown shows upcoming expiries sorted nearest-first (weekly for indices, monthly for stocks). Choose the contract you want to trade.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <div class="step-title">Pick a direction — CE or PE</div>
+          <p><strong>CE</strong> = you expect price to rise (buy a Call). <strong>PE</strong> = you expect price to fall (buy a Put). This controls which signals are evaluated and which strike is suggested.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">4</div>
+        <div class="step-body">
+          <div class="step-title">Click Analyze</div>
+          <p>Fetches live chain data, computes all 11 signals, selects the optimal strike, and builds the risk plan — all in one shot.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-icon">💡</div>
+      <p><strong>Refresh Expiries</strong> button forces a reload of the expiry list. Use it after a monthly expiry has passed and the dropdown hasn't updated.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <span class="section-anchor" id="s2"></span>
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Market Context Panel</h2>
+    </div>
+    <p>Appears on the right side after Analyze. Shows the pre-market and live environment for the symbol.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Context Panel Fields</div>
+      <table class="sig-table">
+        <thead><tr><th>Field</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Spot</strong></td><td>Current market price of the underlying (from yfinance, refreshed on each Analyze).</td></tr>
+          <tr><td><strong>India VIX</strong></td><td>Market fear gauge. Below 14 = calm (green), 14–20 = normal (yellow), 20–30 = elevated (orange), above 30 = extreme (red).</td></tr>
+          <tr><td><strong>Prev Close</strong></td><td>Yesterday's closing price. Used to determine gap direction.</td></tr>
+          <tr><td><strong>PDH / PDL</strong></td><td>Previous Day High / Low — key intraday reference levels.</td></tr>
+          <tr><td><strong>Weekly High / Low</strong></td><td>Range of the last 5 trading sessions — shows the broader swing context.</td></tr>
+          <tr><td><strong>Gap Est.</strong></td><td>Today's open vs yesterday's close. Positive = gap up, negative = gap down.</td></tr>
+          <tr><td><strong>Bias</strong></td><td><span style="color:var(--green)">BULLISH</span> if spot > prev close by 0.5%, <span style="color:var(--red)">BEARISH</span> if spot &lt; prev close by 0.5%, otherwise <span style="color:var(--yellow)">NEUTRAL</span>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <span class="section-anchor" id="s3"></span>
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Signal Score (0–17)</h2>
+    </div>
+    <p>The circular gauge on the left is the core output. It sums 11 weighted signals into a single number. The higher the score, the stronger the conviction for entering a trade in the chosen direction.</p>
+
+    <div class="score-explain">
+      <div class="score-band" style="border-color:rgba(231,76,60,0.3);background:var(--red-bg)">
+        <div class="range" style="color:var(--red)">0–5</div>
+        <div><span class="lbl lbl-skip">SKIP</span></div>
+        <div class="meaning">Too many signals against you. Do not trade.</div>
+      </div>
+      <div class="score-band" style="border-color:rgba(245,166,35,0.3);background:var(--yellow-bg)">
+        <div class="range" style="color:var(--yellow)">6–9</div>
+        <div><span class="lbl lbl-weak">WEAK</span></div>
+        <div class="meaning">Some alignment. Trade only with strict risk management.</div>
+      </div>
+      <div class="score-band" style="border-color:rgba(91,138,245,0.3);background:rgba(91,138,245,0.06)">
+        <div class="range" style="color:var(--blue)">10–13</div>
+        <div><span class="lbl lbl-moderate">MODERATE</span></div>
+        <div class="meaning">Good alignment. Standard position size is appropriate.</div>
+      </div>
+      <div class="score-band" style="border-color:rgba(46,204,113,0.3);background:var(--green-bg)">
+        <div class="range" style="color:var(--green)">14–17</div>
+        <div><span class="lbl lbl-strong">STRONG</span></div>
+        <div class="meaning">High conviction. Full setup — all major signals aligned.</div>
+      </div>
+    </div>
+
+    <div class="info-box warn-box">
+      <div class="info-icon">⚠️</div>
+      <p><strong>OI Change signals show "unchanged" for the first 30–55 minutes</strong> after the engine starts. This is normal — the engine compares current OI against a snapshot taken 30–55 min ago. Allow the engine to run for at least one hour before relying on OI change signals.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <span class="section-anchor" id="s4"></span>
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>All 11 Signals Explained</h2>
+    </div>
+    <p>Each signal is evaluated independently. The score next to each shows <strong>earned / max</strong> points.</p>
+
+    <table class="sig-table">
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th style="text-align:center">Max</th>
+          <th>Pass condition</th>
+          <th>Why it matters</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>VIX Normal</strong></td>
+          <td class="pts" style="text-align:center">1</td>
+          <td><span class="pass">VIX &lt; 20</span></td>
+          <td>High VIX means options are expensive and moves are erratic — bad for buying.</td>
+        </tr>
+        <tr>
+          <td><strong>IV Not Spiked</strong></td>
+          <td class="pts" style="text-align:center">2</td>
+          <td><span class="pass">VIX &lt; 25</span></td>
+          <td>Implied volatility spike inflates premiums, reducing the reward-to-risk ratio.</td>
+        </tr>
+        <tr>
+          <td><strong>PCR Aligned</strong></td>
+          <td class="pts" style="text-align:center">2</td>
+          <td>CE trade: PCR &gt; 1.3 (BULLISH) = 2pts.<br>NEUTRAL = 1pt. Opposite = 0pts.</td>
+          <td>Put-Call Ratio reflects aggregate market positioning. High PCR = more puts written = bullish.</td>
+        </tr>
+        <tr>
+          <td><strong>OI Wall Clear</strong></td>
+          <td class="pts" style="text-align:center">2</td>
+          <td>CE: Resistance &gt; Spot × 1.01.<br>PE: Support &lt; Spot × 0.99.</td>
+          <td>If the resistance wall (highest CE OI strike) is right at spot, call writers will defend it — price unlikely to break through.</td>
+        </tr>
+        <tr>
+          <td><strong>OI Change Confirms</strong></td>
+          <td class="pts" style="text-align:center">2</td>
+          <td>CE: Target strike OI signal is long_buildup or short_covering.<br>PE: Same for put side.</td>
+          <td>Fresh long buildup at the target strike means real money is betting in your direction.</td>
+        </tr>
+        <tr>
+          <td><strong>EMA Trend</strong></td>
+          <td class="pts" style="text-align:center">2</td>
+          <td>CE: EMA9 &gt; EMA21 AND price &gt; EMA9.<br>PE: EMA9 &lt; EMA21 AND price &lt; EMA9.</td>
+          <td>EMA crossover on intraday (5-min) candles confirms the trend direction you're trading.</td>
+        </tr>
+        <tr>
+          <td><strong>VWAP Position</strong></td>
+          <td class="pts" style="text-align:center">1</td>
+          <td>CE: Price &gt; VWAP.<br>PE: Price &lt; VWAP.</td>
+          <td>VWAP is the institutional average price for the day. Being on the right side shows institutional flow support.</td>
+        </tr>
+        <tr>
+          <td><strong>Volume Confirmed</strong></td>
+          <td class="pts" style="text-align:center">2</td>
+          <td>Today's volume ≥ 80% of average volume.</td>
+          <td>Low volume moves are unreliable. Volume confirmation ensures the move has conviction.</td>
+        </tr>
+        <tr>
+          <td><strong>RSI Aligned</strong></td>
+          <td class="pts" style="text-align:center">1</td>
+          <td>CE: RSI between 45–70.<br>PE: RSI between 30–55.</td>
+          <td>RSI in overbought/oversold extremes reduces reward potential. Ideal RSI is in the momentum zone, not the exhaustion zone.</td>
+        </tr>
+        <tr>
+          <td><strong>Time Window</strong></td>
+          <td class="pts" style="text-align:center">1</td>
+          <td>Current time is between 9:15 AM and 2:00 PM IST.</td>
+          <td>The first 15 minutes and last 90 minutes of the session are erratic. Best entries are 9:15 AM–2:00 PM.</td>
+        </tr>
+        <tr>
+          <td><strong>No News Risk</strong></td>
+          <td class="pts" style="text-align:center">1</td>
+          <td>Current time is before 2:30 PM IST.</td>
+          <td>Results, announcements, and event risks increase after 2:30 PM. Avoids late-session surprises.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <span class="section-anchor" id="s5"></span>
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Reading the Option Chain</h2>
+    </div>
+    <p>The chain table at the bottom shows live data for all strikes. The layout is symmetric — Calls on the left, Puts on the right, Strike in the center.</p>
+
+    <div class="chain-demo">
+      <div class="chain-header chain-side-header">CALLS (CE)</div>
+      <div class="chain-header">STRIKE</div>
+      <div class="chain-header chain-pe-header">PUTS (PE)</div>
+
+      <div style="display:contents;font-size:11px;color:var(--dim);background:var(--bg3)">
+        <div style="padding:6px 12px;text-align:right;border-top:1px solid var(--border)">OI Signal | OI | LTP | IV%</div>
+        <div style="padding:6px 12px;text-align:center;border-top:1px solid var(--border)">▲</div>
+        <div style="padding:6px 12px;text-align:left;border-top:1px solid var(--border)">IV% | LTP | OI | OI Signal</div>
+      </div>
+
+      <div class="chain-row">
+        <div class="ce" style="text-align:right">unchanged &nbsp; 45.2L &nbsp; 12.5 &nbsp; 18.2%</div>
+        <div class="strike">1,240</div>
+        <div class="pe">22.1% &nbsp; 8.4 &nbsp; 12.1L &nbsp; unchanged</div>
+      </div>
+      <div class="chain-row atm">
+        <div class="ce" style="text-align:right;color:var(--accent)">long_buildup &nbsp; <span class="hi-oi">98.6L</span> &nbsp; 6.1 &nbsp; 21.4%</div>
+        <div class="strike" style="color:var(--accent)">▶ 1,280</div>
+        <div class="pe" style="color:var(--accent)">19.8% &nbsp; 5.2 &nbsp; <span class="hi-oi">87.3L</span> &nbsp; short_buildup</div>
+      </div>
+      <div class="chain-row">
+        <div class="ce" style="text-align:right">unchanged &nbsp; 31.0L &nbsp; 2.8 &nbsp; 24.1%</div>
+        <div class="strike">1,320</div>
+        <div class="pe">26.5% &nbsp; 18.6 &nbsp; 55.4L &nbsp; unchanged</div>
+      </div>
+    </div>
+
+    <table class="sig-table" style="margin-top:16px">
+      <thead><tr><th>Column</th><th>What it shows</th></tr></thead>
+      <tbody>
+        <tr><td><strong>OI Signal</strong></td><td>4-quadrant OI change classification for this strike (see Section 6). Updates after 30–55 min of engine runtime.</td></tr>
+        <tr><td><strong>OI</strong></td><td>Open Interest — total outstanding contracts. <span style="color:var(--yellow)">Yellow</span> highlight = top 20% OI strike = wall/resistance/support level. Bar width shows OI relative to the max on that side.</td></tr>
+        <tr><td><strong>LTP</strong></td><td>Last Traded Price of the option contract.</td></tr>
+        <tr><td><strong>IV%</strong></td><td>Implied Volatility in percent. High IV = expensive option premium.</td></tr>
+        <tr><td><strong>STRIKE</strong></td><td>The option strike price. <span style="color:var(--accent)">▶</span> marks the ATM (At-The-Money) strike closest to spot. <span style="color:var(--yellow);font-size:11px">MP</span> badge marks the Max Pain strike.</td></tr>
+        <tr><td><strong>— (dash)</strong></td><td>No data available — deep OTM strikes with no trading activity. This is normal.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box tip-box">
+      <div class="info-icon">✅</div>
+      <p>The strike with the <strong>highest CE OI</strong> is the <strong>resistance wall</strong> — call writers are defending that level. The strike with the <strong>highest PE OI</strong> is the <strong>support wall</strong>. These are visible in the Max Pain &amp; PCR tab.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <span class="section-anchor" id="s6"></span>
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>OI Signals — 4-Quadrant Model</h2>
+    </div>
+    <p>The engine saves an OI snapshot every time you Analyze. After 30–55 minutes it compares current OI and LTP against the old snapshot to classify each strike into one of four patterns.</p>
+
+    <table class="sig-table">
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Price</th>
+          <th>OI</th>
+          <th>What's happening</th>
+          <th>Implication</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="ois-chip lb">long buildup</span></td>
+          <td class="pass">↑ Rising</td>
+          <td class="pass">↑ Rising</td>
+          <td>Fresh long positions being added</td>
+          <td><span class="pass">Bullish</span> — confirm CE trade</td>
+        </tr>
+        <tr>
+          <td><span class="ois-chip sb">short buildup</span></td>
+          <td class="fail">↓ Falling</td>
+          <td class="pass">↑ Rising</td>
+          <td>Fresh short positions being added</td>
+          <td><span class="fail">Bearish</span> — confirm PE trade</td>
+        </tr>
+        <tr>
+          <td><span class="ois-chip sc">short covering</span></td>
+          <td class="pass">↑ Rising</td>
+          <td class="fail">↓ Falling</td>
+          <td>Shorts are exiting (buying back)</td>
+          <td><span class="pass">Bullish</span> — supports CE trade</td>
+        </tr>
+        <tr>
+          <td><span class="ois-chip lu">long unwinding</span></td>
+          <td class="fail">↓ Falling</td>
+          <td class="fail">↓ Falling</td>
+          <td>Longs are exiting (selling)</td>
+          <td><span class="fail">Bearish</span> — supports PE trade</td>
+        </tr>
+        <tr>
+          <td><span class="ois-chip uc">unchanged</span></td>
+          <td colspan="2" style="color:var(--dim)">No prior snapshot yet</td>
+          <td colspan="2" style="color:var(--dim)">Wait 30–55 min after engine start</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- SECTION 7 -->
+  <div class="section">
+    <span class="section-anchor" id="s7"></span>
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Strike Selector</h2>
+    </div>
+    <p>After Analyze, the tool automatically selects the <strong>best CE or PE strike</strong> based on delta, spread, OI, and distance from spot. The selected strike box shows:</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Strike Box Fields</div>
+      <table class="sig-table">
+        <thead><tr><th>Field</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td><strong>LTP</strong></td><td>Current premium you pay to buy this option.</td></tr>
+          <tr><td><strong>Delta</strong></td><td>How much the option price moves for every ₹1 move in the underlying. Closer to 0.5 = ATM. Above 0.7 = deep ITM.</td></tr>
+          <tr><td><strong>IV</strong></td><td>Implied Volatility of this specific strike.</td></tr>
+          <tr><td><strong>Bid / Ask</strong></td><td>Best buy and sell price in the order book.</td></tr>
+          <tr><td><strong>Spread</strong></td><td>Bid-Ask spread as % of LTP. Below 3% is good liquidity. Above 8% means wide spread — hard to enter and exit cleanly.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box warn-box">
+      <div class="info-icon">⚠️</div>
+      <p><strong>Spread above 5–8%</strong> is a warning sign. You lose that percentage immediately on entry. Prefer liquid strikes (usually within 2–3% of spot) where spread is tight.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <span class="section-anchor" id="s8"></span>
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Risk Calculator</h2>
+    </div>
+    <p>Automatically computed from the selected strike's LTP. Shows the full trade plan with defined risk and reward.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Risk Plan Fields</div>
+      <table class="sig-table">
+        <thead><tr><th>Field</th><th>How it's calculated</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Entry LTP</strong></td><td>The selected strike's current premium.</td></tr>
+          <tr><td><strong>Lots × Size</strong></td><td>Number of lots × lot size = total quantity traded.</td></tr>
+          <tr><td><strong>Total Premium</strong></td><td>Entry LTP × total quantity = capital deployed.</td></tr>
+          <tr><td><strong>Stop Price</strong></td><td>Entry LTP × 0.5 (50% of premium — standard options stop).</td></tr>
+          <tr><td><strong>Target 1</strong></td><td>Entry LTP × 1.5 (1.5× risk-reward on first target).</td></tr>
+          <tr><td><strong>Target 2</strong></td><td>Entry LTP × 2.0 (2× risk-reward on second target).</td></tr>
+          <tr><td><strong>Max Loss</strong></td><td>(Entry − Stop) × qty = worst-case premium loss.</td></tr>
+          <tr><td><strong>Profit @ T1 / T2</strong></td><td>Potential P&amp;L at each target level.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box tip-box">
+      <div class="info-icon">✅</div>
+      <p><strong>Rule of thumb:</strong> Never risk more than 1–2% of your total capital on a single option trade. Use the Total Premium figure to check this before placing the order.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 9 -->
+  <div class="section">
+    <span class="section-anchor" id="s9"></span>
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Trade Monitor</h2>
+    </div>
+    <p>Found in the <strong>Trade Monitor</strong> tab at the top of the chain section. After you enter a trade, input your levels to get a live action recommendation.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <div class="step-title">Fill in Entry LTP and Current LTP</div>
+          <p>Enter the price at which you bought the option, and the current market price of that option.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <div class="step-title">Set Stop Price, Target 1, Target 2</div>
+          <p>Pre-filled from the risk calculator — you can override them. Stop Price is where you exit to cut losses. Targets are your profit-booking levels.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <div class="step-title">Enter Lots, Lot Size, mark T1 Hit</div>
+          <p>Set the correct lot size for your symbol. Mark T1 Hit = Yes once you've booked partial profits at Target 1 — the monitor will adjust trailing logic accordingly.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">4</div>
+        <div class="step-body">
+          <div class="step-title">Click Evaluate</div>
+          <p>Returns an action: <strong>HOLD</strong>, <strong>EXIT_STOP</strong>, <strong>BOOK_T1</strong>, <strong>BOOK_T2</strong>, or <strong>TRAIL_STOP</strong> — along with current P&amp;L and the reason.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECTION 10 -->
+  <div class="section">
+    <span class="section-anchor" id="s10"></span>
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>Full Workflow — Step by Step</h2>
+    </div>
+    <p>Here is the complete process from market open to trade execution using this tool.</p>
+
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="wf-circle">1</div>
+        <div class="wf-label">Enter symbol &amp; expiry</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-circle">2</div>
+        <div class="wf-label">Check Market Context (VIX, Bias)</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-circle">3</div>
+        <div class="wf-label">Pick CE or PE direction</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-circle">4</div>
+        <div class="wf-label">Click Analyze</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-circle">5</div>
+        <div class="wf-label">Read Signal Score</div>
+      </div>
+    </div>
+    <div class="workflow" style="margin-top:8px">
+      <div class="wf-step">
+        <div class="wf-circle" style="background:var(--bg3);border-color:var(--green)">6</div>
+        <div class="wf-label">Score ≥ 10? Check chain for OI walls</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-circle" style="background:var(--bg3);border-color:var(--green)">7</div>
+        <div class="wf-label">Review strike: delta, IV, spread</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-circle" style="background:var(--bg3);border-color:var(--green)">8</div>
+        <div class="wf-label">Check risk plan: max loss vs capital</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="wf-circle" style="background:var(--bg3);border-color:var(--green)">9</div>
+        <div class="wf-label">Enter trade. Monitor with Trade Monitor tab</div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="diagram">
+      <div class="diagram-title">Quick Decision Checklist</div>
+      <table class="sig-table">
+        <thead><tr><th>Check</th><th>Green light</th><th>Red light</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Signal Score</td>
+            <td><span class="pass">≥ 10 (MODERATE or STRONG)</span></td>
+            <td><span class="fail">≤ 5 (SKIP)</span></td>
+          </tr>
+          <tr>
+            <td>VIX</td>
+            <td><span class="pass">Below 20</span></td>
+            <td><span class="fail">Above 25 — avoid buying options</span></td>
+          </tr>
+          <tr>
+            <td>OI Wall</td>
+            <td><span class="pass">Resistance/Support at least 1% away from spot</span></td>
+            <td><span class="fail">Wall right at spot — price likely to get pinned</span></td>
+          </tr>
+          <tr>
+            <td>Bid-Ask Spread</td>
+            <td><span class="pass">Below 3% of LTP</span></td>
+            <td><span class="fail">Above 8% — illiquid strike, avoid</span></td>
+          </tr>
+          <tr>
+            <td>Time</td>
+            <td><span class="pass">9:30 AM – 1:30 PM IST</span></td>
+            <td><span class="fail">After 2:30 PM — event &amp; expiry risk</span></td>
+          </tr>
+          <tr>
+            <td>EMA</td>
+            <td><span class="pass">Trend aligned with direction on 5-min chart</span></td>
+            <td><span class="fail">EMA9 and EMA21 flat or crossing against you</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box tip-box" style="margin-top:20px">
+      <div class="info-icon">✅</div>
+      <p><strong>Best results</strong> come when Score ≥ 12, VIX &lt; 18, EMA trend aligns, and the OI wall is at least 2% away. These conditions align roughly 2–4 times per week for liquid symbols like NIFTY, BANKNIFTY, and large-cap stocks.</p>
+    </div>
+
+    <div style="text-align:center;margin-top:40px">
+      <a class="cta-btn" href="/options_analysis.html">Open Options Intelligence →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

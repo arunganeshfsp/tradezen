@@ -237,7 +237,7 @@ def _batch_market_data(smart, tokens: list[str], exchange: str = "NFO") -> dict:
     for i in range(0, len(tokens), _BATCH_SIZE):
         batch = tokens[i:i + _BATCH_SIZE]
         try:
-            resp    = smart.getMarketData({"mode": "FULL", "exchangeTokens": {exchange: batch}})
+            resp    = smart.getMarketData("FULL", {exchange: batch})
             fetched = (resp or {}).get("data", {}).get("fetched") or []
             for row in fetched:
                 result[str(row.get("symbolToken", ""))] = row
@@ -287,6 +287,18 @@ def _save_oi_snapshot(symbol: str, expiry: str, chain: list):
         log.debug(f"OI snapshot saved: {symbol} {expiry} ({len(rows)} strikes)")
     except Exception as e:
         log.warning(f"OI snapshot save error: {e}")
+
+
+def get_nse_equity_token(symbol: str) -> str | None:
+    """Return the NSE EQ token for a stock symbol (e.g. 'JSWSTEEL'). Returns None for indices."""
+    raw = _load_raw()
+    sym_up = symbol.strip().upper()
+    for item in raw:
+        if (item.get("exch_seg") == "NSE"
+                and item.get("name", "").upper() == sym_up
+                and item.get("instrumenttype") == "EQ"):
+            return item["token"]
+    return None
 
 
 def get_oi_change_signals(symbol: str, expiry: str, chain: list) -> dict[float, dict]:

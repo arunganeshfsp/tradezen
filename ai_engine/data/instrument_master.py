@@ -31,7 +31,7 @@ class InstrumentMaster:
 
     # 🔹 Download fresh file
     def _download(self):
-        print("⬇️ Downloading instrument master...")
+        print("[DOWN] Downloading instrument master...")
 
         response = requests.get(URL)
         data = response.json()
@@ -44,11 +44,11 @@ class InstrumentMaster:
         self.data = data
         self.last_updated = datetime.now()
 
-        print("✅ Download complete")
+        print("[OK] Download complete")
 
     # 🔹 Load from file
     def _load_from_file(self):
-        print("📂 Loading cached instrument master...")
+        print("[LOAD] Loading cached instrument master...")
 
         with open(DATA_FILE, "r") as f:
             self.data = json.load(f)
@@ -63,7 +63,7 @@ class InstrumentMaster:
             and i["exch_seg"] == "NFO"
         ]
 
-        print(f"✅ NIFTY options loaded: {len(self.data)}")
+        print(f"[OK] NIFTY options loaded: {len(self.data)}")
 
     # 🔹 Normalize structure
     def _normalize(self, inst):
@@ -117,7 +117,7 @@ class InstrumentMaster:
             raise Exception("Failed to fetch LTP")
 
         ltp = ltp_data["data"]["ltp"]
-        print(f"📊 NIFTY LTP: {ltp}")
+        print(f"[DATA] NIFTY LTP: {ltp}")
 
         # 🔹 Get ATM options
         atm = self.get_atm_options(ltp)
@@ -125,7 +125,7 @@ class InstrumentMaster:
         ce_token = str(atm["ce"]["token"])
         pe_token = str(atm["pe"]["token"])
 
-        print("🎯 ATM Selected:")
+        print("[ATM] ATM Selected:")
         print("CE:", atm["ce"]["symbol"], ce_token)
         print("PE:", atm["pe"]["symbol"], pe_token)
 
@@ -166,7 +166,7 @@ class InstrumentMaster:
                     "pe": pe
                 })
 
-        print(f"📊 Option chain built: {len(chain)} strikes (expiry {nearest_expiry})")
+        print(f"[DATA] Option chain built: {len(chain)} strikes (expiry {nearest_expiry})")
 
         return chain
     def get_nifty_futures_token(self):
