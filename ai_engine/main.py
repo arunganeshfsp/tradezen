@@ -8,6 +8,7 @@ Clean version with:
 """
 
 import asyncio
+import json
 import math
 import threading
 import logging
@@ -1396,6 +1397,216 @@ async def ema_scenario_backtest(days: int = 20):
     except Exception as e:
         log.error(f"EMA backtest error: {e}")
         return {"error": str(e), "days_tested": 0}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# F&O Scanner — buy/sell dominance for equities in a price range
+# ══════════════════════════════════════════════════════════════════════════════
+
+import time as _time
+
+_fno_stock_cache: list = []
+_fno_stock_cache_ts: float = 0.0
+
+
+def _load_fno_stocks() -> list:
+    global _fno_stock_cache, _fno_stock_cache_ts
+    now = _time.time()
+    if _fno_stock_cache and (now - _fno_stock_cache_ts) < 86400:
+        return _fno_stock_cache
+
+    try:
+        with open("data/instrument_master.json", "r") as f:
+            raw = json.load(f)
+
+        # Names of stocks that have options/futures in NFO
+        fno_names: set = set()
+        for inst in raw:
+            if inst.get("exch_seg") == "NFO" and inst.get("instrumenttype") in ("OPTSTK", "FUTSTK"):
+                name = inst.get("name", "").strip()
+                if name:
+                    fno_names.add(name)
+
+        # Map to NSE EQ tokens — NSE equities have instrumenttype="" and symbol ending in "-EQ"
+        seen: set = set()
+        stocks = []
+        for inst in raw:
+            name = inst.get("name", "").strip()
+            sym  = inst.get("symbol", "")
+            if (inst.get("exch_seg") == "NSE"
+                    and inst.get("instrumenttype") == ""
+                    and sym.endswith("-EQ")
+                    and name in fno_names
+                    and name not in seen):
+                seen.add(name)
+                stocks.append({"symbol": name, "token": str(inst["token"])})
+
+        _fno_stock_cache = stocks
+        _fno_stock_cache_ts = now
+        log.info(f"[FNO-SCANNER] {len(stocks)} F&O EQ stocks loaded")
+        return stocks
+    except Exception as e:
+        log.error(f"[FNO-SCANNER] load_fno_stocks failed: {e}")
+        return []
+
+
+def _fno_scanner_sync(min_price: float, max_price: float, limit: int) -> dict:
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    smart = _get_smart()
+    if not smart:
+        return {"error": "SmartAPI auth failed", "stocks": []}
+
+    stocks = _load_fno_stocks()
+    if not stocks:
+        return {"error": "Instrument master unavailable", "stocks": []}
+
+    # Batch getMarketData FULL — 50 tokens per call
+    depth_map: dict = {}
+    batch_size = 50
+    for i in range(0, len(stocks), batch_size):
+        batch_tokens = [s["token"] for s in stocks[i: i + batch_size]]
+        try:
+            resp = smart.getMarketData("FULL", {"NSE": batch_tokens})
+            if resp and resp.get("data") and resp["data"].get("fetched"):
+                for item in resp["data"]["fetched"]:
+                    depth_map[str(item.get("symbolToken"))] = item
+        except Exception as e:
+            log.warning(f"[FNO-SCANNER] depth batch {i} failed: {e}")
+
+    # Filter by price range and calculate dominance
+    result = []
+    for s in stocks:
+        d = depth_map.get(s["token"])
+        if not d:
+            continue
+        ltp = float(d.get("ltp") or 0)
+        if not (min_price <= ltp <= max_price):
+            continue
+
+        buy_qty  = int(d.get("totBuyQuan") or 0)
+        sell_qty = int(d.get("totSellQuan") or 0)
+        total    = buy_qty + sell_qty
+        if total == 0:
+            continue
+
+        buy_pct  = round(buy_qty  / total * 100, 1)
+        sell_pct = round(sell_qty / total * 100, 1)
+
+        result.append({
+            "symbol":      s["symbol"],
+            "ltp":         round(ltp, 2),
+            "change_pct":  round(float(d.get("percentChange") or 0), 2),
+            "buy_qty":     buy_qty,
+            "sell_qty":    sell_qty,
+            "buy_pct":     buy_pct,
+            "sell_pct":    sell_pct,
+            "dominance":   "BUYER" if buy_pct >= sell_pct else "SELLER",
+            "strength":    round(abs(buy_pct - sell_pct), 1),
+            "volume":      int(d.get("tradeVolume") or 0),
+        })
+
+    # Buyers first, then sellers — each group sorted by strength desc
+    result.sort(key=lambda x: (0 if x["dominance"] == "BUYER" else 1, -x["strength"]))
+
+    return {
+        "stocks":        result[:limit],
+        "total_matched": len(result),
+        "timestamp":     now_ist.strftime("%H:%M:%S"),
+        "min_price":     min_price,
+        "max_price":     max_price,
+    }
+
+
+@app.get("/fno-scanner")
+async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10):
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit)
+        return result
+    except Exception as e:
+        log.error(f"[FNO-SCANNER] error: {e}")
+        return {"error": str(e), "stocks": []}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Stock Indicators — RSI, EMA trend, volume, candle pattern for any NSE stock
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _stock_indicators_sync(symbol: str) -> dict:
+    import yfinance as yf
+    import pandas as pd
+
+    ticker = symbol.upper() + ".NS"
+    try:
+        df = yf.download(ticker, period="6mo", interval="1d", progress=False, auto_adjust=True)
+        if df.empty or len(df) < 50:
+            return {"error": f"Not enough data for {symbol}"}
+
+        closes  = df["Close"].squeeze().dropna().tolist()
+        volumes = df["Volume"].squeeze().dropna().tolist()
+        opens   = df["Open"].squeeze().dropna().tolist()
+
+        # RSI(14)
+        delta = pd.Series(closes).diff()
+        gain  = delta.clip(lower=0).rolling(14).mean()
+        loss  = (-delta.clip(upper=0)).rolling(14).mean()
+        rs    = gain / loss.replace(0, float('nan'))
+        rsi_val = round(float(100 - 100 / (1 + rs.iloc[-1])), 2)
+
+        # EMA trend
+        s = pd.Series(closes)
+        ema20 = float(s.ewm(span=20, adjust=False).mean().iloc[-1])
+        ema50 = float(s.ewm(span=50, adjust=False).mean().iloc[-1])
+        trend = "UP" if ema20 > ema50 else "DOWN"
+
+        # Volume signal (vs 20-day avg)
+        avg_vol = sum(volumes[-21:-1]) / 20 if len(volumes) >= 21 else sum(volumes) / len(volumes)
+        cur_vol = volumes[-1]
+        if cur_vol > avg_vol * 1.5:    vol_signal = "HIGH"
+        elif cur_vol < avg_vol * 0.7:  vol_signal = "LOW"
+        else:                          vol_signal = "NORMAL"
+
+        # Candle pattern (last 2 candles)
+        candle = "NONE"
+        if len(closes) >= 2 and len(opens) >= 2:
+            pc, cc = closes[-2], closes[-1]
+            po, co = opens[-2],  opens[-1]
+            if pc < po and cc > co and cc > po and co < pc:
+                candle = "BULLISH_ENGULFING"
+            elif pc > po and cc < co and co > pc and cc < po:
+                candle = "BEARISH_ENGULFING"
+
+        # Support / Resistance (20-day)
+        recent = closes[-20:]
+        support    = round(min(recent), 2)
+        resistance = round(max(recent), 2)
+
+        return {
+            "symbol":       symbol.upper(),
+            "rsi":          rsi_val,
+            "trend":        trend,
+            "ema20":        round(ema20, 2),
+            "ema50":        round(ema50, 2),
+            "volumeSignal": vol_signal,
+            "volume":       int(cur_vol),
+            "candlePattern":candle,
+            "support":      support,
+            "resistance":   resistance,
+        }
+    except Exception as e:
+        log.error(f"[INDICATORS] {symbol}: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/stock-indicators/{symbol}")
+async def stock_indicators(symbol: str):
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _stock_indicators_sync, symbol)
+        return result
+    except Exception as e:
+        log.error(f"[INDICATORS] error: {e}")
+        return {"error": str(e)}
 
 
 # ══════════════════════════════════════════════════════════════════════════════

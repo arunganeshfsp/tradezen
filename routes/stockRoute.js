@@ -371,4 +371,32 @@ router.get("/indicators/snapshot", async (req, res) => {
   }
 });
 
+// ─── GET /api/stock-indicators/:symbol ──────────────────────────────────────
+// RSI, EMA trend, volume, candle pattern via Python/yfinance
+router.get("/stock-indicators/:symbol", async (req, res) => {
+  try {
+    const symbol = req.params.symbol.toUpperCase();
+    const data = await aiService.proxy("GET", `/stock-indicators/${symbol}`, 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/fno-scanner ────────────────────────────────────────────────────
+// Buy/sell dominance scanner for F&O equities in a price range
+// ?min_price=1000&max_price=2000&limit=10
+router.get("/fno-scanner", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.min_price) params.set("min_price", req.query.min_price);
+    if (req.query.max_price) params.set("max_price", req.query.max_price);
+    if (req.query.limit)     params.set("limit",     req.query.limit);
+    const data = await aiService.proxy("GET", `/fno-scanner?${params}`, 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
