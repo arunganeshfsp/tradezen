@@ -1505,6 +1505,39 @@ async def indicators_snapshot():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Nifty Candles — today's 5-min OHLCV for the chart widget
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _nifty_candles_sync() -> dict:
+    import yfinance as yf
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    df = yf.Ticker("^NSEI").history(period="1d", interval="5m")
+    df = df.dropna()
+    if df.empty:
+        return {"error": "No candle data — market may be closed"}
+    candles = []
+    for ts, row in df.iterrows():
+        candles.append({
+            "time":  int(ts.timestamp()),
+            "open":  round(float(row["Open"]),  2),
+            "high":  round(float(row["High"]),  2),
+            "low":   round(float(row["Low"]),   2),
+            "close": round(float(row["Close"]), 2),
+        })
+    return {"candles": candles, "count": len(candles), "as_of": now_ist.strftime("%H:%M")}
+
+
+@app.get("/candles")
+async def nifty_candles():
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _nifty_candles_sync)
+    except Exception as e:
+        log.error(f"[CANDLES] error: {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # F&O Scanner — buy/sell dominance for equities in a price range
 # ══════════════════════════════════════════════════════════════════════════════
 

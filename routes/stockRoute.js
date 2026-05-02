@@ -360,6 +360,17 @@ router.get("/options/monitor", async (req, res) => {
   }
 });
 
+// ─── GET /api/candles ────────────────────────────────────────────────────────
+// Today's 5-min OHLCV for NIFTY — used by the chart widget in trade_flow
+router.get("/candles", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/candles", 10000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/indicators/snapshot ────────────────────────────────────────────
 // VWAP · EMA 9/21 · MACD · RSI from today's 5-min yfinance candles
 router.get("/indicators/snapshot", async (req, res) => {

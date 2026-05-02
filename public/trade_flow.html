@@ -223,6 +223,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 .fnote{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
 .fnote em{color:var(--yellow);font-style:normal}
 </style>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 
@@ -483,6 +484,24 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
         <div class="tip-lbl">💡 TradingView-ல் எப்படி குறிப்பிடுவது</div>
         Chart திறந்து → Alt+Click (Horizontal line) → Price level type செய்யுங்கள். TC, BC-ஐ dashed line-ஆகவும், R1/S1-ஐ solid line-ஆகவும் வைக்கவும். PP-ஐ bold yellow line-ஆக குறிக்கவும்.
       </div>
+    </div>
+  </div>
+
+  <!-- ── NIFTY CHART SECTION ── -->
+  <div id="nifty-chart-section" style="display:none;margin-bottom:16px">
+    <div style="background:var(--bg2);border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);background:var(--bg1)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff">NIFTY 50 &middot; 5 Min</span>
+          <span id="chart-asof" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="refreshNiftyChart()" style="padding:5px 14px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace">&#8635; Refresh</button>
+          <button onclick="closeNiftyChart()" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:12px;cursor:pointer">&#10005;</button>
+        </div>
+      </div>
+      <div id="chart-legend" style="display:flex;flex-wrap:wrap;gap:8px 16px;padding:9px 18px;background:var(--bg1);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;min-height:34px"></div>
+      <div id="nifty-chart" style="height:420px"></div>
     </div>
   </div>
 
@@ -1127,6 +1146,12 @@ function renderStep3(d) {
       <div style="font-size:12px;color:var(--muted)">Market Profile levels loading… (requires Angel One session)</div>
     </div>`;
   }
+
+  html += `<div style="text-align:center;padding:4px 0 8px">
+    <button onclick="openNiftyChart()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 26px;border-radius:8px;cursor:pointer;background:linear-gradient(135deg,rgba(91,138,245,0.1),rgba(124,106,247,0.1));border:1px solid rgba(124,106,247,0.35);color:var(--accent);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.3px;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(124,106,247,0.65)'" onmouseout="this.style.borderColor='rgba(124,106,247,0.35)'">
+      &#128200; View Nifty Chart with Levels
+    </button>
+  </div>`;
 
   el.innerHTML = html;
 }
@@ -2009,6 +2034,121 @@ async function fetchFlowData() {
 // Indicator Confirmation
 // ─────────────────────────────────────────────
 let indData     = null;
+// ── NIFTY CHART ──────────────────────────────────────────────────────────────
+let _niftyChart       = null;
+let _niftyCandleSeries = null;
+
+function openNiftyChart() {
+  const section = document.getElementById('nifty-chart-section');
+  section.style.display = 'block';
+  section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  loadNiftyChart();
+}
+
+function closeNiftyChart() {
+  document.getElementById('nifty-chart-section').style.display = 'none';
+  if (_niftyChart) { _niftyChart.remove(); _niftyChart = null; _niftyCandleSeries = null; }
+}
+
+function refreshNiftyChart() {
+  if (_niftyChart) { _niftyChart.remove(); _niftyChart = null; _niftyCandleSeries = null; }
+  loadNiftyChart();
+}
+
+async function loadNiftyChart() {
+  const container = document.getElementById('nifty-chart');
+  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-family:\'JetBrains Mono\',monospace;font-size:13px">Loading candles…</div>';
+  document.getElementById('chart-legend').innerHTML = '';
+  document.getElementById('chart-asof').textContent = '';
+
+  let data;
+  try {
+    const res = await fetch('/api/candles');
+    data = await res.json();
+  } catch (e) {
+    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--red);font-family:'JetBrains Mono',monospace;font-size:13px">⚠ Engine unreachable</div>`;
+    return;
+  }
+
+  if (data.error || !data.candles || data.candles.length === 0) {
+    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--red);font-family:'JetBrains Mono',monospace;font-size:13px">⚠ ${data.error || 'No candle data — market may be closed'}</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  document.getElementById('chart-asof').textContent = `${data.count} candles · ${data.as_of} IST`;
+
+  _niftyChart = LightweightCharts.createChart(container, {
+    layout:          { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid:            { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#252a44' },
+    timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    width:  container.clientWidth,
+    height: 420,
+  });
+
+  _niftyCandleSeries = _niftyChart.addCandlestickSeries({
+    upColor: '#2ecc71', downColor: '#e74c3c',
+    borderUpColor: '#2ecc71', borderDownColor: '#e74c3c',
+    wickUpColor:   '#2ecc71', wickDownColor:   '#e74c3c',
+  });
+  _niftyCandleSeries.setData(data.candles);
+  _niftyChart.timeScale().fitContent();
+
+  window.addEventListener('resize', _resizeChart);
+  _drawChartLines();
+}
+
+function _resizeChart() {
+  if (_niftyChart) {
+    const c = document.getElementById('nifty-chart');
+    _niftyChart.applyOptions({ width: c.clientWidth });
+  }
+}
+
+function _drawChartLines() {
+  if (!_niftyCandleSeries) return;
+  const cpr = flowData && flowData.cpr;
+  const mp  = mpData;
+  const LS  = LightweightCharts.LineStyle;
+  const legendItems = [];
+
+  function pl(price, color, title, style, width) {
+    if (price == null) return;
+    _niftyCandleSeries.createPriceLine({ price, color, lineWidth: width || 1, lineStyle: style, axisLabelVisible: true, title });
+    legendItems.push({ color, title, price });
+  }
+
+  if (cpr) {
+    pl(cpr.r3, '#00bcd4', 'R3', LS.Dotted,      1);
+    pl(cpr.r2, '#27ae60', 'R2', LS.Dashed,      1);
+    pl(cpr.r1, '#2ecc71', 'R1', LS.Dashed,      1);
+    pl(cpr.tc, '#2ecc71', 'TC', LS.Solid,        2);
+    pl(cpr.pp, '#f5a623', 'PP', LS.Solid,        2);
+    pl(cpr.bc, '#e74c3c', 'BC', LS.Solid,        2);
+    pl(cpr.s1, '#e74c3c', 'S1', LS.Dashed,      1);
+    pl(cpr.s2, '#c0392b', 'S2', LS.Dashed,      1);
+    pl(cpr.s3, '#922b21', 'S3', LS.Dotted,      1);
+  }
+
+  if (mp && mp.poc) {
+    pl(mp.vah,    '#00d4ff', 'VAH',  LS.LargeDashed, 2);
+    pl(mp.poc,    '#f39c12', 'POC',  LS.Solid,        2);
+    pl(mp.val,    '#7c6af7', 'VAL',  LS.LargeDashed, 2);
+    if (mp.ib_high) pl(mp.ib_high, 'rgba(0,212,255,0.45)',  'IB H', LS.Dotted, 1);
+    if (mp.ib_low)  pl(mp.ib_low,  'rgba(124,106,247,0.45)', 'IB L', LS.Dotted, 1);
+  }
+
+  document.getElementById('chart-legend').innerHTML = legendItems.map(l =>
+    `<span style="display:inline-flex;align-items:center;gap:4px">
+      <span style="width:18px;height:2px;background:${l.color};display:inline-block;border-radius:1px;flex-shrink:0"></span>
+      <span style="color:${l.color};font-weight:700">${l.title}</span>
+      <span style="color:var(--muted)">${l.price.toFixed(0)}</span>
+    </span>`
+  ).join('');
+}
+
 let indExpanded = false;
 
 function toggleIndCard() {
