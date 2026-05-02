@@ -230,6 +230,15 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   </div>
 
   <div class="ctrl-group">
+    <div class="ctrl-label">Dominance Filter</div>
+    <div class="toggle-group" id="dominanceGroup">
+      <button class="tog-btn active" data-val="all"    onclick="setDominance('all')">All</button>
+      <button class="tog-btn"        data-val="buyer"  onclick="setDominance('buyer')">Buyers ▲</button>
+      <button class="tog-btn"        data-val="seller" onclick="setDominance('seller')">Sellers ▼</button>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
     <div class="ctrl-label">Auto Refresh</div>
     <label class="auto-toggle">
       <input type="checkbox" id="autoRefresh" checked onchange="toggleAuto()">
@@ -292,9 +301,10 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 </div>
 
 <script>
-let intervalSec = 5;
-let limitCount  = 10;
-let autoOn      = true;
+let intervalSec     = 5;
+let limitCount      = 10;
+let dominanceFilter = 'all';
+let autoOn          = true;
 let timer       = null;
 let countdown   = 0;
 let cdTimer     = null;
@@ -308,6 +318,12 @@ function setInterval_(val) {
 function setLimit(val) {
   limitCount = val;
   document.querySelectorAll('#limitGroup .tog-btn').forEach(b => b.classList.toggle('active', +b.dataset.val === val));
+  fetchScanner();
+}
+
+function setDominance(val) {
+  dominanceFilter = val;
+  document.querySelectorAll('#dominanceGroup .tog-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
   fetchScanner();
 }
 
@@ -353,7 +369,7 @@ function fmtPrice(v) {
 async function fetchScanner() {
   const min = document.getElementById('minPrice').value || 1000;
   const max = document.getElementById('maxPrice').value || 2000;
-  const url = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}`;
+  const url = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}`;
 
   try {
     const res  = await fetch(url);

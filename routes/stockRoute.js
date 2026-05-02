@@ -389,9 +389,10 @@ router.get("/stock-indicators/:symbol", async (req, res) => {
 router.get("/fno-scanner", async (req, res) => {
   try {
     const params = new URLSearchParams();
-    if (req.query.min_price) params.set("min_price", req.query.min_price);
-    if (req.query.max_price) params.set("max_price", req.query.max_price);
-    if (req.query.limit)     params.set("limit",     req.query.limit);
+    if (req.query.min_price)  params.set("min_price",  req.query.min_price);
+    if (req.query.max_price)  params.set("max_price",  req.query.max_price);
+    if (req.query.limit)      params.set("limit",      req.query.limit);
+    if (req.query.dominance)  params.set("dominance",  req.query.dominance);
     const data = await aiService.proxy("GET", `/fno-scanner?${params}`, 15000);
     res.json(data);
   } catch (err) {

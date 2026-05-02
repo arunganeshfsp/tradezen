@@ -1450,7 +1450,7 @@ def _load_fno_stocks() -> list:
         return []
 
 
-def _fno_scanner_sync(min_price: float, max_price: float, limit: int) -> dict:
+def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance: str = "all") -> dict:
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     smart = _get_smart()
     if not smart:
@@ -1505,8 +1505,24 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int) -> dict:
             "volume":      int(d.get("tradeVolume") or 0),
         })
 
-    # Buyers first, then sellers — each group sorted by strength desc
-    result.sort(key=lambda x: (0 if x["dominance"] == "BUYER" else 1, -x["strength"]))
+    # Apply dominance filter
+    if dominance == "buyer":
+        result = [r for r in result if r["dominance"] == "BUYER"]
+    elif dominance == "seller":
+        result = [r for r in result if r["dominance"] == "SELLER"]
+    else:
+        # All: buyers first, then sellers
+        result.sort(key=lambda x: (0 if x["dominance"] == "BUYER" else 1, -x["strength"]))
+        return {
+            "stocks":        result[:limit],
+            "total_matched": len(result),
+            "timestamp":     now_ist.strftime("%H:%M:%S"),
+            "min_price":     min_price,
+            "max_price":     max_price,
+        }
+
+    # For buyer/seller filter: sort by strength desc
+    result.sort(key=lambda x: -x["strength"])
 
     return {
         "stocks":        result[:limit],
@@ -1518,10 +1534,10 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int) -> dict:
 
 
 @app.get("/fno-scanner")
-async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10):
+async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10, dominance: str = "all"):
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit)
+        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit, dominance)
         return result
     except Exception as e:
         log.error(f"[FNO-SCANNER] error: {e}")
