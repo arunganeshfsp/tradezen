@@ -1400,6 +1400,111 @@ async def ema_scenario_backtest(days: int = 20):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Indicators Snapshot — VWAP · EMA 9/21 · MACD · RSI from today's 5-min candles
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _indicators_snapshot_sync() -> dict:
+    import yfinance as yf
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+
+    df = yf.Ticker("^NSEI").history(period="1d", interval="5m")
+    df = df.dropna()
+    if len(df) < 15:
+        return {"error": "Not enough candle data — market may be closed"}
+
+    close = df["Close"]
+    high  = df["High"]
+    low   = df["Low"]
+    vol   = df["Volume"]
+
+    # VWAP
+    typical  = (high + low + close) / 3
+    vwap_val = float((typical * vol).cumsum().iloc[-1] / vol.cumsum().iloc[-1])
+    spot     = float(close.iloc[-1])
+    vwap_diff     = round(spot - vwap_val, 2)
+    vwap_diff_pct = round(abs(vwap_diff) / vwap_val * 100, 2)
+    vwap_signal   = "bullish" if spot > vwap_val else "bearish"
+
+    # EMA 9 / 21
+    ema9  = close.ewm(span=9,  adjust=False).mean()
+    ema21 = close.ewm(span=21, adjust=False).mean()
+    e9, e21      = float(ema9.iloc[-1]), float(ema21.iloc[-1])
+    pe9, pe21    = float(ema9.iloc[-2]), float(ema21.iloc[-2])
+    ema_diff     = round(e9 - e21, 2)
+    if e9 > e21:
+        ema_signal = "bullish" if pe9 >= pe21 else "recovering"
+    else:
+        ema_signal = "bearish" if pe9 <= pe21 else "weakening"
+
+    # MACD (12, 26, 9)
+    ema12      = close.ewm(span=12, adjust=False).mean()
+    ema26      = close.ewm(span=26, adjust=False).mean()
+    macd_line  = ema12 - ema26
+    sig_line   = macd_line.ewm(span=9, adjust=False).mean()
+    hist_line  = macd_line - sig_line
+    hist_val   = round(float(hist_line.iloc[-1]), 2)
+    prev_hist  = float(hist_line.iloc[-2])
+    if hist_val >= 0:
+        macd_signal = "bullish" if hist_val >= prev_hist else "weakening"
+    else:
+        macd_signal = "bearish" if hist_val <= prev_hist else "recovering"
+
+    # RSI (14)
+    delta = close.diff()
+    gain  = delta.clip(lower=0).rolling(14).mean()
+    loss  = (-delta.clip(upper=0)).rolling(14).mean()
+    rsi_val = round(float(100 - 100 / (1 + gain.iloc[-1] / loss.iloc[-1])), 1)
+    if rsi_val >= 70:
+        rsi_signal = "overbought"
+    elif rsi_val <= 30:
+        rsi_signal = "oversold"
+    elif rsi_val > 55:
+        rsi_signal = "bullish"
+    elif rsi_val < 45:
+        rsi_signal = "bearish"
+    else:
+        rsi_signal = "neutral"
+
+    return {
+        "vwap": {
+            "value":    round(vwap_val, 2),
+            "diff":     vwap_diff,
+            "diff_pct": str(vwap_diff_pct),
+            "signal":   vwap_signal,
+        },
+        "ema": {
+            "ema9":   round(e9, 2),
+            "ema21":  round(e21, 2),
+            "diff":   ema_diff,
+            "signal": ema_signal,
+        },
+        "macd": {
+            "macd":        str(round(float(macd_line.iloc[-1]), 2)),
+            "signal_line": str(round(float(sig_line.iloc[-1]), 2)),
+            "histogram":   str(hist_val),
+            "signal":      macd_signal,
+        },
+        "rsi": {
+            "value":  rsi_val,
+            "signal": rsi_signal,
+        },
+        "candles": len(df),
+        "as_of":   now_ist.strftime("%H:%M"),
+    }
+
+
+@app.get("/indicators/snapshot")
+async def indicators_snapshot():
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _indicators_snapshot_sync)
+        return result
+    except Exception as e:
+        log.error(f"[INDICATORS] snapshot error: {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # F&O Scanner — buy/sell dominance for equities in a price range
 # ══════════════════════════════════════════════════════════════════════════════
 
