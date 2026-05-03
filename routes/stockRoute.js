@@ -360,6 +360,17 @@ router.get("/options/monitor", async (req, res) => {
   }
 });
 
+// ─── GET /api/iv ─────────────────────────────────────────────────────────────
+// ATM implied volatility for nearest NIFTY expiry via Angel One
+router.get("/iv", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/iv", 10000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/candles ────────────────────────────────────────────────────────
 // Today's 5-min OHLCV for NIFTY — used by the chart widget in trade_flow
 router.get("/candles", async (req, res) => {

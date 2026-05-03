@@ -260,6 +260,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     <div class="live-chip" id="chip-vix" style="background:rgba(124,106,247,0.08);color:var(--accent);border-color:rgba(124,106,247,0.25);display:none">
       🌡 VIX <span id="chip-vix-val">--</span>
     </div>
+    <div class="live-chip" id="chip-iv" style="background:rgba(0,212,255,0.07);color:var(--cyan);border-color:rgba(0,212,255,0.25);display:none;cursor:pointer" onclick="openIvCard()" title="Click for ATM IV breakdown">
+      ◎ IV <span id="chip-iv-val">--</span>
+    </div>
   </div>
 
   <div class="time-badges">
@@ -522,6 +525,27 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <span id="ind-asof" style="font-size:11px;color:var(--muted)"></span>
         <button class="btn-refresh" onclick="loadIndicators()" style="font-size:12px;padding:5px 14px">↻ Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── IV CARD (optional, toggleable) ── -->
+  <div class="detail-card visible" id="iv-card" style="border-color:rgba(0,212,255,0.25);cursor:pointer" onclick="toggleIvCard()">
+    <div class="dc-head" style="user-select:none">
+      <div class="dc-num" style="background:linear-gradient(135deg,var(--cyan),var(--blue));font-size:14px">◎</div>
+      <div class="dc-title">ATM Implied Volatility <span style="font-weight:400;color:var(--muted);font-size:13px">— CE IV · PE IV · Skew · Premium Status</span></div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span id="iv-summary" style="font-size:12px;color:var(--muted)">Optional</span>
+        <span id="iv-chevron" style="color:var(--dim);font-size:13px;transition:transform .2s">▼</span>
+      </div>
+    </div>
+    <div id="iv-body" style="display:none;padding:16px;border-top:1px solid var(--border)" onclick="event.stopPropagation()">
+      <div id="iv-content" style="display:flex;flex-direction:column;gap:8px">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0">Click the header to load IV data</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <span id="iv-asof" style="font-size:11px;color:var(--muted)"></span>
+        <button class="btn-refresh" onclick="loadIv()" style="font-size:12px;padding:5px 14px">↻ Refresh</button>
       </div>
     </div>
   </div>
@@ -1425,6 +1449,95 @@ function renderPosSize(d) {
   </div>`;
 }
 
+// ── False-breakout guard panel ────────────────────────────────────────────────
+function _istRisk() {
+  const ist  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const mins = ist.getHours() * 60 + ist.getMinutes();
+  if (mins >= 555 && mins < 575) return { level:'danger', window:'9:15–9:35 AM', reason:'ORB still forming — most stop-hunts happen here. Wait until 9:35 AM before entering.' };
+  if (mins >= 720 && mins < 780) return { level:'warn',   window:'12:00–1:00 PM', reason:'Lunch hour — thin liquidity, frequent whipsaws. Widen buffer or skip.' };
+  if (mins >= 900 && mins < 930) return { level:'warn',   window:'3:00–3:30 PM',  reason:'Last 30 min — expiry pinning. Avoid new entries, only manage open trades.' };
+  return null;
+}
+
+function renderFalseBreakoutGuard(orb, cpr, sc) {
+  if (!orb) return '';
+  const isBull   = sc === 'bull' || sc === 'conditional_bull';
+  const isBear   = sc === 'bear' || sc === 'conditional_bear';
+  const orbRef   = isBull ? orb.high : isBear ? orb.low : null;
+  const buf      = 20;
+  const bufLevel = orbRef != null ? (isBull ? orbRef + buf : orbRef - buf) : null;
+  const risk     = _istRisk();
+
+  const timeBanner = risk ? `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:7px;margin-bottom:10px;
+      background:${risk.level==='danger'?'rgba(231,76,60,0.12)':'rgba(245,166,35,0.08)'};
+      border:1px solid ${risk.level==='danger'?'rgba(231,76,60,0.4)':'rgba(245,166,35,0.3)'}">
+      <span style="font-size:16px;flex-shrink:0">${risk.level==='danger'?'🚨':'⚠️'}</span>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+          color:${risk.level==='danger'?'var(--red)':'var(--yellow)'};letter-spacing:.5px;margin-bottom:3px">
+          HIGH WHIPSAW WINDOW — ${risk.window}
+        </div>
+        <div style="font-size:12px;color:var(--dim)">${risk.reason}</div>
+      </div>
+    </div>` : '';
+
+  const rules = [
+    {
+      icon: '1',
+      color: 'var(--cyan)',
+      title: 'Wait for 5-min candle CLOSE — not a wick',
+      body: `A wick above ORB High${orbRef!=null?' ('+fmt(orbRef)+')':''} means nothing. Price must <strong>close</strong> a full 5-min candle above it. Wicks are bait.`,
+      ta: 'Candle close இல்லாமல் entry வேண்டாம் — wick தட்டினால் false breakout.'
+    },
+    {
+      icon: '2',
+      color: 'var(--yellow)',
+      title: orbRef!=null
+        ? `Entry buffer — ${isBull?'above':'below'} ${fmt(bufLevel)} (ORB ${isBull?'High':'Low'} ${isBull?'+':'-'} ${buf} pts)`
+        : 'Entry buffer — add 15–20 pts beyond ORB level',
+      body: `Market makers sweep stops at the exact ORB level. Enter only after NIFTY sustains <strong>${buf} pts beyond ORB</strong> for one full candle close. Reduces entries but filters most fakeouts.`,
+      ta: `ORB level-ல் உடனே enter வேண்டாம் — ${buf} pts தாண்டி close ஆனால் மட்டுமே.`
+    },
+    {
+      icon: '3',
+      color: 'var(--accent)',
+      title: 'Retest entry — best risk:reward',
+      body: `After the breakout candle closes above ORB, <strong>wait for a pullback to ORB level</strong>. If it holds (doesn't close back below), enter there. Better price, natural SL, much tighter risk.`,
+      ta: 'Breakout-க்கு பிறகு ORB level-க்கு pullback வந்தால் hold ஆனால் enter — இது best entry.'
+    },
+    {
+      icon: '4',
+      color: orbRef!=null ? (isBull?'var(--red)':'var(--green)') : 'var(--red)',
+      title: 'SL: use NIFTY price level — NOT option premium %',
+      body: orbRef!=null
+        ? `Your 10% option SL = ~25–30 pts move in NIFTY. That's within normal noise. Instead: <strong>exit if NIFTY closes a 5-min candle back ${isBull?'below':'above'} ORB ${isBull?'High':'Low'} (${fmt(orbRef)})</strong>. The ORB level is your real SL.`
+        : `A 10% option premium SL = ~25–30 pts NIFTY move — sits exactly in stop-hunt range. Use the ORB level as your SL on the underlying, not a % of option premium.`,
+      ta: `10% premium SL தவறு — NIFTY ${isBull?fmt(orbRef)+' க்கு கீழே':''}${isBear?fmt(orbRef)+' க்கு மேலே':''} close ஆனால் exit செய்யுங்கள்.`
+    },
+  ];
+
+  return `
+    <div style="margin-top:14px;background:var(--bg);border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:16px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+                  color:var(--accent);margin-bottom:12px">False Breakout Defence</div>
+      ${timeBanner}
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${rules.map(r=>`
+          <div style="display:flex;gap:12px;padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;align-items:flex-start">
+            <div style="width:22px;height:22px;border-radius:50%;background:${r.color}22;border:1px solid ${r.color}66;
+                        color:${r.color};font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${r.icon}</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:4px">${r.title}</div>
+              <div style="font-size:12px;color:var(--dim);line-height:1.55">${r.body}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;font-family:'Tiro Tamil',serif">${r.ta}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
 function renderStep6(d) {
   const cpr  = d && d.cpr;
   const orb  = d && d.orb;
@@ -1487,6 +1600,7 @@ function renderStep6(d) {
           <span class="fr-chip" style="background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)">SL ORB Low: ${fmt(orb.sl_bull)}</span>
         </div>
       </div>
+      ${renderFalseBreakoutGuard(orb, cpr, 'bull')}
       ${renderPosSize(d)}`;
     return;
   }
@@ -1535,6 +1649,7 @@ function renderStep6(d) {
           <span class="fr-chip" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)">SL ORB High: ${fmt(orb.sl_bear)}</span>
         </div>
       </div>
+      ${renderFalseBreakoutGuard(orb, cpr, 'bear')}
       ${renderPosSize(d)}`;
     return;
   }
@@ -1670,6 +1785,7 @@ function renderStep6(d) {
                 border:1px solid ${isCBear?'rgba(46,204,113,0.3)':'rgba(231,76,60,0.3)'}">SL ${isCBear?'ORB High':'ORB Low'}: ${fmt(sl)}</span>
         </div>
       </div>
+      ${renderFalseBreakoutGuard(orb, cpr, sc)}
       ${renderPosSize(d)}`;
     return;
   }
@@ -2035,17 +2151,20 @@ async function fetchFlowData() {
 // ─────────────────────────────────────────────
 let indData     = null;
 // ── NIFTY CHART ──────────────────────────────────────────────────────────────
-let _niftyChart       = null;
+let _niftyChart        = null;
 let _niftyCandleSeries = null;
+let _chartAutoTimer    = null;
 
 function openNiftyChart() {
   const section = document.getElementById('nifty-chart-section');
   section.style.display = 'block';
   section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   loadNiftyChart();
+  _chartAutoTimer = setInterval(_silentRefreshChart, 60000);
 }
 
 function closeNiftyChart() {
+  clearInterval(_chartAutoTimer); _chartAutoTimer = null;
   document.getElementById('nifty-chart-section').style.display = 'none';
   if (_niftyChart) { _niftyChart.remove(); _niftyChart = null; _niftyCandleSeries = null; }
 }
@@ -2053,6 +2172,17 @@ function closeNiftyChart() {
 function refreshNiftyChart() {
   if (_niftyChart) { _niftyChart.remove(); _niftyChart = null; _niftyCandleSeries = null; }
   loadNiftyChart();
+}
+
+async function _silentRefreshChart() {
+  if (!_niftyCandleSeries) return;
+  try {
+    const res  = await fetch('/api/candles');
+    const data = await res.json();
+    if (data.error || !data.candles || data.candles.length === 0) return;
+    _niftyCandleSeries.setData(data.candles);
+    document.getElementById('chart-asof').textContent = `${data.count} candles · ${data.as_of} IST`;
+  } catch (_) {}
 }
 
 async function loadNiftyChart() {
@@ -2244,6 +2374,152 @@ function renderIndicators(d) {
     bulls >= 3 ? 'var(--green)' : bears >= 3 ? 'var(--red)' : 'var(--yellow)';
 }
 
+// ── IV Card ───────────────────────────────────────────────────────────────────
+let ivExpanded = false;
+let ivData     = null;
+
+function openIvCard() {
+  if (!ivExpanded) toggleIvCard();
+}
+
+function toggleIvCard() {
+  ivExpanded = !ivExpanded;
+  document.getElementById('iv-body').style.display     = ivExpanded ? '' : 'none';
+  document.getElementById('iv-chevron').style.transform = ivExpanded ? 'rotate(180deg)' : '';
+  if (ivExpanded && !ivData) loadIv();
+}
+
+async function loadIv() {
+  document.getElementById('iv-content').innerHTML =
+    `<div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">Fetching IV from Angel One…</div>`;
+  try {
+    const r = await fetch('/api/iv');
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    ivData = d;
+    renderIv(d);
+  } catch(e) {
+    document.getElementById('iv-content').innerHTML =
+      `<div style="color:var(--red);font-size:12px;padding:8px">⚠ ${e.message}</div>`;
+  }
+}
+
+function renderIv(d) {
+  const statusColor = {
+    CHEAP:     'var(--cyan)',
+    FAIR:      'var(--green)',
+    ELEVATED:  'var(--yellow)',
+    EXPENSIVE: 'var(--red)',
+    UNKNOWN:   'var(--muted)',
+  }[d.status] || 'var(--muted)';
+
+  const skewColor = d.skew_label === 'BEARISH' ? 'var(--red)'
+                  : d.skew_label === 'BULLISH'  ? 'var(--green)'
+                  : 'var(--muted)';
+
+  const advice = d.status === 'CHEAP'
+    ? 'Options are cheap — buying calls/puts has edge. Good time to enter directional trades.'
+    : d.status === 'FAIR'
+    ? 'Premium is fair. Normal buying — enter with standard size, watch for post-entry IV crush.'
+    : d.status === 'ELEVATED'
+    ? 'Premium is elevated. Buying options is risky — IV crush after the move will hurt P&L. Consider spreads or reduced size.'
+    : d.status === 'EXPENSIVE'
+    ? 'Premium is very expensive. Option buyers are at a disadvantage. Prefer selling strategies or wait for IV to cool down.'
+    : '';
+
+  const skewAdvice = d.skew_label === 'BEARISH'
+    ? `PE IV ${d.pe_iv}% > CE IV ${d.ce_iv}% — market is paying more for downside protection. Institutions are hedging / bearish lean.`
+    : d.skew_label === 'BULLISH'
+    ? `CE IV ${d.ce_iv}% > PE IV ${d.pe_iv}% — call buying pressure, bullish lean in the options market.`
+    : `CE IV ${d.ce_iv}% ≈ PE IV ${d.pe_iv}% — balanced, no strong directional lean from options market.`;
+
+  const vixRow = d.india_vix != null ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted)">INDIA VIX</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">${d.india_vix}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${d.vix_gap>3?'var(--red)':d.vix_gap<-3?'var(--green)':'var(--muted)'}">
+        ATM IV ${d.vix_gap>0?'+':''}${d.vix_gap} vs VIX
+      </span>
+    </div>` : '';
+
+  document.getElementById('iv-content').innerHTML = `
+    <div style="padding:12px 14px;border-radius:10px;text-align:center;margin-bottom:8px;
+      background:${statusColor}18;border:1px solid ${statusColor}55">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${statusColor};letter-spacing:1px">
+        ${d.status} — ATM IV ${d.avg_iv}%
+      </div>
+      <div style="font-size:12px;color:var(--dim);margin-top:5px;line-height:1.5">${advice}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted)">ATM STRIKE</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#fff">${d.atm_strike}</span>
+        <span style="font-size:11px;color:var(--muted)">Expiry ${d.expiry}</span>
+      </div>
+      <div style="display:flex;gap:7px">
+        <div style="flex:1;padding:9px 13px;background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.2);border-radius:8px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px">CE IV · LTP</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--green)">${d.ce_iv ?? '—'}%</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">₹${d.ce_ltp ?? '—'}</div>
+        </div>
+        <div style="flex:1;padding:9px 13px;background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.2);border-radius:8px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px">PE IV · LTP</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--red)">${d.pe_iv ?? '—'}%</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">₹${d.pe_ltp ?? '—'}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted)">IV SKEW (PE−CE)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${skewColor}">${d.skew_label ?? '—'} ${d.skew != null ? (d.skew>0?'+':'')+d.skew+'%' : ''}</span>
+      </div>
+      ${vixRow}
+      <div style="padding:9px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--dim);line-height:1.5">
+        <strong style="color:${skewColor}">${d.skew_label ?? 'NEUTRAL'} Skew —</strong> ${skewAdvice}
+      </div>
+    </div>`;
+
+  document.getElementById('iv-asof').textContent = `as of ${d.as_of} IST`;
+  document.getElementById('iv-summary').textContent = `${d.avg_iv ?? '—'}% · ${d.status}`;
+  document.getElementById('iv-summary').style.color = statusColor;
+
+  // Update top chip
+  const chip = document.getElementById('chip-iv');
+  const chipVal = document.getElementById('chip-iv-val');
+  if (chip && chipVal && d.avg_iv != null) {
+    chipVal.textContent = `${d.avg_iv}% · ${d.status}`;
+    chip.style.display = '';
+    chip.style.color = statusColor;
+    chip.style.borderColor = statusColor + '55';
+    chip.style.background  = statusColor + '12';
+  }
+}
+
+// Silent IV chip fetch — updates chip + card content if open, no spinner in closed card
+async function _fetchIvSilent() {
+  try {
+    const r = await fetch('/api/iv');
+    const d = await r.json();
+    if (d.error || !d.avg_iv) return;
+    ivData = d;
+    // Always update chip
+    const statusColor = {
+      CHEAP:'var(--cyan)', FAIR:'var(--green)',
+      ELEVATED:'var(--yellow)', EXPENSIVE:'var(--red)'
+    }[d.status] || 'var(--muted)';
+    const chip    = document.getElementById('chip-iv');
+    const chipVal = document.getElementById('chip-iv-val');
+    if (chip && chipVal) {
+      chipVal.textContent    = `${d.avg_iv}% · ${d.status}`;
+      chip.style.display     = '';
+      chip.style.color       = statusColor;
+      chip.style.borderColor = statusColor + '55';
+      chip.style.background  = statusColor + '12';
+    }
+    // Re-render card body only if already open
+    if (ivExpanded) renderIv(d);
+  } catch (_) {}
+}
+
 // ─────────────────────────────────────────────
 // Boot
 // ─────────────────────────────────────────────
@@ -2253,7 +2529,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(tickClock, 1000);
   tickClock();
   await fetchFlowData();
-  setInterval(fetchFlowData, 30000);  // refresh every 30 s
+  setInterval(fetchFlowData, 30000);        // trade-flow: every 30s
+  setTimeout(_fetchIvSilent, 3000);         // IV chip: after 3s delay (let page settle)
+  setInterval(_fetchIvSilent, 5 * 60000);   // IV chip: refresh every 5 min
 });
 </script>
 </body>

@@ -1527,6 +1527,144 @@ def _nifty_candles_sync() -> dict:
     return {"candles": candles, "count": len(candles), "as_of": now_ist.strftime("%H:%M")}
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# IV — ATM implied volatility for nearest NIFTY expiry via Angel One
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _fetch_iv_sync() -> dict:
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    smart   = _get_smart()
+    if not smart:
+        return {"error": "SmartAPI auth failed"}
+
+    # ── Spot price ───────────────────────────────────────────────────────────
+    spot = trade_flow_data.get("spot_price") or trade_flow_data.get("nifty_price")
+    if not spot:
+        try:
+            import yfinance as yf
+            hist = yf.Ticker("^NSEI").history(period="1d", interval="1m")
+            spot = float(hist["Close"].iloc[-1]) if not hist.empty else None
+        except Exception:
+            pass
+    if not spot:
+        return {"error": "Could not determine NIFTY spot price"}
+
+    atm_strike = round(spot / 50) * 50
+
+    # ── Load instrument master ───────────────────────────────────────────────
+    master_path = os.path.join(os.path.dirname(__file__), "data", "instrument_master.json")
+    with open(master_path) as f:
+        instruments = json.load(f)
+
+    nifty_opts = [
+        i for i in instruments
+        if i.get("name", "").upper() == "NIFTY"
+        and i.get("exch_seg") == "NFO"
+        and i.get("instrumenttype") == "OPTIDX"
+    ]
+    if not nifty_opts:
+        return {"error": "No NIFTY options in instrument master"}
+
+    # ── Nearest expiry ───────────────────────────────────────────────────────
+    today = now_ist.date()
+    def _parse_exp(s):
+        try:    return datetime.strptime(s, "%d%b%Y").date()
+        except: return None
+
+    future_expiries = sorted({
+        _parse_exp(i["expiry"]) for i in nifty_opts
+        if _parse_exp(i["expiry"]) and _parse_exp(i["expiry"]) >= today
+    })
+    if not future_expiries:
+        return {"error": "No upcoming NIFTY expiries found"}
+
+    nearest_exp      = future_expiries[0]
+    nearest_exp_str  = nearest_exp.strftime("%d%b%Y").upper()
+
+    # ── Find ATM CE + PE tokens ──────────────────────────────────────────────
+    ce_token = pe_token = None
+    for i in nifty_opts:
+        if _parse_exp(i["expiry"]) != nearest_exp:
+            continue
+        strike = float(i.get("strike", 0)) / 100
+        if abs(strike - atm_strike) < 1:
+            sym = i.get("symbol", "")
+            if sym.endswith("CE"):
+                ce_token = i["token"]
+            elif sym.endswith("PE"):
+                pe_token = i["token"]
+        if ce_token and pe_token:
+            break
+
+    if not ce_token or not pe_token:
+        return {"error": f"ATM {atm_strike} tokens not found for expiry {nearest_exp_str}"}
+
+    # ── Fetch IV from Angel One ──────────────────────────────────────────────
+    resp = smart.getMarketData("FULL", {"NFO": [ce_token, pe_token]})
+
+    ce_iv = pe_iv = ce_ltp = pe_ltp = None
+    if resp and resp.get("data") and resp["data"].get("fetched"):
+        for item in resp["data"]["fetched"]:
+            tok = str(item.get("symbolToken", ""))
+            iv  = item.get("impliedVolatility")
+            ltp = item.get("ltp")
+            if tok == str(ce_token):
+                ce_iv  = round(float(iv),  2) if iv  else None
+                ce_ltp = round(float(ltp), 2) if ltp else None
+            elif tok == str(pe_token):
+                pe_iv  = round(float(iv),  2) if iv  else None
+                pe_ltp = round(float(ltp), 2) if ltp else None
+
+    if ce_iv is None and pe_iv is None:
+        return {"error": "IV not returned — market may be closed or contracts illiquid"}
+
+    avg_iv = round((ce_iv + pe_iv) / 2, 2) if ce_iv and pe_iv else (ce_iv or pe_iv)
+    skew   = round(pe_iv - ce_iv, 2)        if ce_iv and pe_iv else None
+
+    # Status based on avg IV level
+    if avg_iv is None:      status = "UNKNOWN"
+    elif avg_iv < 12:       status = "CHEAP"
+    elif avg_iv < 18:       status = "FAIR"
+    elif avg_iv < 25:       status = "ELEVATED"
+    else:                   status = "EXPENSIVE"
+
+    # Skew interpretation
+    if skew is None:        skew_label = None
+    elif skew > 2:          skew_label = "BEARISH"   # PE IV >> CE IV
+    elif skew < -2:         skew_label = "BULLISH"   # CE IV >> PE IV
+    else:                   skew_label = "NEUTRAL"
+
+    vix     = trade_flow_data.get("india_vix")
+    vix_gap = round(avg_iv - vix, 2) if avg_iv and vix else None
+
+    return {
+        "spot":        round(spot, 2),
+        "atm_strike":  atm_strike,
+        "expiry":      nearest_exp_str,
+        "ce_iv":       ce_iv,
+        "pe_iv":       pe_iv,
+        "avg_iv":      avg_iv,
+        "skew":        skew,
+        "skew_label":  skew_label,
+        "ce_ltp":      ce_ltp,
+        "pe_ltp":      pe_ltp,
+        "status":      status,
+        "india_vix":   vix,
+        "vix_gap":     vix_gap,
+        "as_of":       now_ist.strftime("%H:%M"),
+    }
+
+
+@app.get("/iv")
+async def fetch_iv():
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _fetch_iv_sync)
+    except Exception as e:
+        log.error(f"[IV] error: {e}")
+        return {"error": str(e)}
+
+
 @app.get("/candles")
 async def nifty_candles():
     loop = asyncio.get_event_loop()
