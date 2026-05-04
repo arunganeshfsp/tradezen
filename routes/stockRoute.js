@@ -423,4 +423,37 @@ router.get("/fno-scanner", async (req, res) => {
   }
 });
 
+// ─── GET /api/reports ────────────────────────────────────────────────────────
+router.get("/reports", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/reports", 8000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── GET /api/reports/:date ───────────────────────────────────────────────────
+router.get("/reports/:date", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", `/reports/${req.params.date}`, 8000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── POST /api/reports/generate ──────────────────────────────────────────────
+router.post("/reports/generate", async (req, res) => {
+  try {
+    const qs   = req.query.date ? `?date=${req.query.date}` : "";
+    const data = await aiService.proxy("POST", `/reports/generate${qs}`, 20000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── DELETE /api/reports/:date ────────────────────────────────────────────────
+router.delete("/reports/:date", async (req, res) => {
+  try {
+    const data = await aiService.proxy("DELETE", `/reports/${req.params.date}`, 8000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

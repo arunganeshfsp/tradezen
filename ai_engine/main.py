@@ -391,6 +391,9 @@ async def lifespan(app: FastAPI):
                             log.info(f"📊 ORB locked: H={trade_flow_data['orb']['high']} "
                                      f"L={trade_flow_data['orb']['low']}")
 
+                # ── Auto-generate daily report after 3:30 PM ────────────
+                _maybe_auto_generate_report()
+
             except Exception as e:
                 log.error(f"❌ Signal error: {e}")
 
@@ -2231,3 +2234,176 @@ def options_monitor(
     except Exception as e:
         log.error(f"options/monitor error: {e}")
         return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Daily Reports
+# ══════════════════════════════════════════════════════════════════════════════
+from storage.sqlite_store import list_reports, get_report, upsert_report, delete_report as _db_delete_report
+
+_report_generated_date: str = None   # tracks which date we've already auto-generated
+
+
+def _generate_report_sync(date_str: str = None) -> dict:
+    import yfinance as yf
+    now_ist  = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    date_str = date_str or now_ist.strftime("%Y-%m-%d")
+
+    # ── EOD price data from yfinance ─────────────────────────────────────────
+    ticker = yf.Ticker("^NSEI")
+    hist   = ticker.history(period="5d", interval="1d")
+    hist.index = hist.index.normalize()
+    import datetime as _dt
+    target = _dt.datetime.strptime(date_str, "%Y-%m-%d").date()
+    today_row = hist[hist.index.date == target]
+
+    day_ohlc = None
+    if not today_row.empty:
+        r = today_row.iloc[0]
+        day_ohlc = {
+            "open":  round(float(r["Open"]),  2),
+            "high":  round(float(r["High"]),  2),
+            "low":   round(float(r["Low"]),   2),
+            "close": round(float(r["Close"]), 2),
+        }
+
+    # ── Prev close for gap calc ───────────────────────────────────────────────
+    prev_rows = hist[hist.index.date < target]
+    prev_close = round(float(prev_rows.iloc[-1]["Close"]), 2) if not prev_rows.empty else None
+    gap      = round(day_ohlc["open"] - prev_close, 2) if day_ohlc and prev_close else None
+    gap_pct  = round(gap / prev_close * 100, 2)         if gap and prev_close      else None
+    net_chg  = round(day_ohlc["close"] - prev_close, 2) if day_ohlc and prev_close else None
+    net_pct  = round(net_chg / prev_close * 100, 2)     if net_chg and prev_close  else None
+
+    # ── CPR — computed from prev_ohlc (same logic as get_trade_flow) ─────────
+    cpr      = None
+    prev_ohlc = trade_flow_data.get("prev_ohlc")
+    if prev_ohlc:
+        H, L, C  = prev_ohlc["high"], prev_ohlc["low"], prev_ohlc["close"]
+        PP       = round((H + L + C) / 3, 2)
+        _bc      = round((H + L) / 2, 2)
+        _tc      = round(2 * PP - _bc, 2)
+        TC, BC   = max(_tc, _bc), min(_tc, _bc)
+        cpr = {
+            "pp":    PP,
+            "tc":    TC,
+            "bc":    BC,
+            "r1":    round(2 * PP - L, 2),
+            "r2":    round(PP + (H - L), 2),
+            "r3":    round(H + 2 * (PP - L), 2),
+            "s1":    round(2 * PP - H, 2),
+            "s2":    round(PP - (H - L), 2),
+            "s3":    round(L - 2 * (H - PP), 2),
+            "width": round(TC - BC, 2),
+        }
+
+    # ── Scenario — derived from stored open/orb/cpr ───────────────────────────
+    orb  = trade_flow_data.get("orb")
+    vix  = trade_flow_data.get("india_vix")
+    scen = None
+    nifty_open = trade_flow_data.get("nifty_open")
+    if nifty_open and cpr:
+        op = ("above_tc" if nifty_open > cpr["tc"]
+              else ("below_bc" if nifty_open < cpr["bc"] else "inside_cpr"))
+        if orb:
+            if   orb["low"]  > cpr["tc"]:  ov = "above_tc"
+            elif orb["high"] < cpr["bc"]:  ov = "below_bc"
+            else:                          ov = "straddles"
+            if   op == "above_tc" and ov == "above_tc":  scen = "bull"
+            elif op == "below_bc" and ov == "below_bc":  scen = "bear"
+            elif ov == "straddles":                      scen = "conditional"
+            else:                                        scen = "skip"
+        else:
+            scen = ("bull" if op == "above_tc" else
+                    ("bear" if op == "below_bc" else "skip"))
+
+    # ── Levels tested (within 10 pts of day H/L) ─────────────────────────────
+    levels_tested = []
+    if day_ohlc and cpr:
+        check = {
+            "R1": cpr.get("r1"), "R2": cpr.get("r2"), "R3": cpr.get("r3"),
+            "TC": cpr.get("tc"), "BC": cpr.get("bc"), "PP": cpr.get("pp"),
+            "S1": cpr.get("s1"), "S2": cpr.get("s2"), "S3": cpr.get("s3"),
+        }
+        for name, price in check.items():
+            if price and (abs(day_ohlc["high"] - price) <= 10 or abs(day_ohlc["low"] - price) <= 10):
+                levels_tested.append(name)
+
+    report = {
+        "prev_close":     prev_close,
+        "gap":            gap,
+        "gap_pct":        gap_pct,
+        "gap_direction":  "up" if gap and gap > 0 else ("down" if gap and gap < 0 else "flat"),
+        "day_ohlc":       day_ohlc,
+        "net_change":     net_chg,
+        "net_change_pct": net_pct,
+        "india_vix":      vix,
+        "scenario":       scen,
+        "orb":            {"high": orb["high"], "low": orb["low"]} if orb else None,
+        "cpr":            cpr,
+        "levels_tested":  levels_tested,
+    }
+
+    conn = get_conn()
+    ts   = upsert_report(conn, date_str, report)
+    conn.close()
+    log.info(f"[REPORT] Generated for {date_str}")
+    return {"date": date_str, "generated_at": ts, **report}
+
+
+def _maybe_auto_generate_report():
+    global _report_generated_date
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    if now_ist.hour < 15 or (now_ist.hour == 15 and now_ist.minute < 30):
+        return
+    today = now_ist.strftime("%Y-%m-%d")
+    if _report_generated_date == today:
+        return
+    conn = get_conn()
+    existing = get_report(conn, today)
+    conn.close()
+    if existing:
+        _report_generated_date = today
+        return
+    try:
+        _generate_report_sync(today)
+        _report_generated_date = today
+    except Exception as e:
+        log.warning(f"[REPORT] Auto-generate failed: {e}")
+
+
+@app.get("/reports")
+def reports_list():
+    conn = get_conn()
+    data = list_reports(conn)
+    conn.close()
+    return {"reports": data}
+
+
+@app.get("/reports/{date}")
+def report_get(date: str):
+    conn = get_conn()
+    r    = get_report(conn, date)
+    conn.close()
+    if not r:
+        return {"error": f"No report for {date}"}
+    return r
+
+
+@app.post("/reports/generate")
+async def report_generate(date: str = None):
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _generate_report_sync, date)
+        return result
+    except Exception as e:
+        log.error(f"[REPORT] generate error: {e}")
+        return {"error": str(e)}
+
+
+@app.delete("/reports/{date}")
+def report_delete(date: str):
+    conn = get_conn()
+    ok   = _db_delete_report(conn, date)
+    conn.close()
+    return {"deleted": ok, "date": date}

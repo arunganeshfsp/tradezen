@@ -38,6 +38,12 @@ def _ensure_tables(conn: sqlite3.Connection):
             UNIQUE(symbol_token, exchange, interval, datetime)
         );
 
+        CREATE TABLE IF NOT EXISTS daily_reports (
+            date         TEXT PRIMARY KEY,
+            data         TEXT NOT NULL,
+            generated_at TEXT NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS market_profile_cache (
             id           INTEGER PRIMARY KEY AUTOINCREMENT,
             symbol_token TEXT NOT NULL,
@@ -92,6 +98,34 @@ def get_cached_profile(conn, symbol_token, exchange, date, tick_size):
     )
     row = cur.fetchone()
     return json.loads(row["profile_json"]) if row else None
+
+
+def list_reports(conn):
+    cur = conn.execute("SELECT date, generated_at, data FROM daily_reports ORDER BY date DESC")
+    return [{"date": r["date"], "generated_at": r["generated_at"], **json.loads(r["data"])} for r in cur.fetchall()]
+
+
+def get_report(conn, date):
+    cur = conn.execute("SELECT data, generated_at FROM daily_reports WHERE date=?", (date,))
+    row = cur.fetchone()
+    if not row: return None
+    return {"date": date, "generated_at": row["generated_at"], **json.loads(row["data"])}
+
+
+def upsert_report(conn, date, data: dict):
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+    conn.execute(
+        "INSERT OR REPLACE INTO daily_reports (date, data, generated_at) VALUES (?, ?, ?)",
+        (date, json.dumps(data), now),
+    )
+    conn.commit()
+    return now
+
+
+def delete_report(conn, date) -> bool:
+    cur = conn.execute("DELETE FROM daily_reports WHERE date=?", (date,))
+    conn.commit()
+    return cur.rowcount > 0
 
 
 def upsert_profile(conn, symbol_token, exchange, date, tick_size, profile):

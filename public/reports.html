@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Reports — TradeZen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg0:#0a0a0f; --bg1:#111118; --bg2:#16161f; --bg3:#1c1c28;
+    --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+    --green:#4ade80; --red:#f87171; --yellow:#fbbf24; --cyan:#00d4ff;
+    --accent:#7c6af7; --blue:#4f8ef7; --muted:rgba(255,255,255,0.4);
+    --dim:rgba(255,255,255,0.22); --r:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg0);color:#e8e8f0;font-family:'Inter',sans-serif;font-size:14px;min-height:100vh}
+
+  /* NAV */
+  nav{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:0;height:52px;position:sticky;top:0;z-index:100}
+  .nav-brand{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;margin-right:32px;text-decoration:none}
+  .nav-brand em{color:var(--accent);font-style:normal}
+  .nav-link{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);text-decoration:none;padding:6px 14px;border-radius:6px;transition:.15s}
+  .nav-link:hover{color:#fff;background:rgba(255,255,255,.05)}
+  .nav-link.active{color:var(--accent);background:rgba(124,106,247,.1)}
+
+  /* HERO */
+  .hero{background:linear-gradient(135deg,#0f0f1a,#1a1030);border-bottom:1px solid rgba(124,106,247,.25);padding:36px 32px 28px}
+  .hero-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:8px}
+  .hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff}
+  .hero h1 em{color:var(--accent);font-style:normal}
+  .hero-sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+  /* ACTIONS BAR */
+  .actions-bar{max-width:960px;margin:24px auto 0;padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .btn{font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;transition:.15s}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+  .btn-primary:hover{opacity:.85}
+  .btn-primary:disabled{opacity:.45;cursor:not-allowed}
+  .report-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+
+  /* REPORT LIST */
+  .list{max-width:960px;margin:16px auto 60px;padding:0 24px;display:flex;flex-direction:column;gap:12px}
+
+  /* REPORT CARD */
+  .rcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+  .rcard:hover{border-color:var(--border2)}
+  .rcard-head{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;user-select:none}
+  .rcard-date{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff}
+  .rcard-dir{font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:700;padding:3px 10px;border-radius:20px}
+  .dir-bull{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.3)}
+  .dir-bear{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+  .dir-flat{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
+  .rcard-chg{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+  .chg-up{color:var(--green)} .chg-dn{color:var(--red)} .chg-flat{color:var(--muted)}
+  .rcard-meta{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;align-items:center}
+  .rmeta-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.05);color:var(--dim);border:1px solid var(--border)}
+  .rcard-chevron{color:var(--dim);font-size:12px;transition:transform .2s;flex-shrink:0}
+  .rcard-chevron.open{transform:rotate(180deg)}
+  .btn-delete{margin-left:8px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:var(--red);font-size:11px;font-family:'JetBrains Mono',monospace;padding:4px 12px;border-radius:6px;cursor:pointer;transition:.15s}
+  .btn-delete:hover{background:rgba(248,113,113,.2)}
+
+  /* CARD BODY */
+  .rcard-body{display:none;border-top:1px solid var(--border);padding:20px}
+  .rcard-body.open{display:block}
+
+  /* SECTIONS inside body */
+  .rb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:16px}
+  .rb-item{background:var(--bg3);border-radius:8px;padding:10px 12px}
+  .rb-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;margin-bottom:3px}
+  .rb-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:#fff}
+  .rb-section{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+
+  /* Levels tested chips */
+  .levels-wrap{display:flex;flex-wrap:wrap;gap:6px}
+  .lvl-chip{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:16px}
+  .lvl-r{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+  .lvl-s{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+  .lvl-c{background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+  .lvl-m{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}
+
+  /* EMPTY STATE */
+  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty-icon{font-size:40px;margin-bottom:12px}
+  .empty-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
+
+  /* SPINNER */
+  .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading{text-align:center;padding:40px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/"><trade><em>Zen</em></trade></a>
+  <a class="nav-link" href="/">Home</a>
+  <a class="nav-link" href="/trade_flow.html">Trade Flow</a>
+  <a class="nav-link" href="/fno_scanner.html">F&O Scanner</a>
+  <a class="nav-link active" href="/reports.html">Reports</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag">&#9679; Post-Session Analysis</div>
+  <h1>Daily <em>Reports</em></h1>
+  <div class="hero-sub">Auto-generated at 3:30 PM IST · NIFTY 50 · CPR + Market Profile + ORB</div>
+</div>
+
+<div class="actions-bar">
+  <span class="report-count" id="report-count"></span>
+  <button class="btn btn-primary" id="btn-generate" onclick="generateReport()">&#9654; Generate Today's Report</button>
+</div>
+
+<div class="list" id="report-list">
+  <div class="loading"><span class="spinner"></span>Loading reports…</div>
+</div>
+
+<script>
+let _reports = [];
+
+async function loadReports() {
+  try {
+    const r = await fetch('/api/reports');
+    const d = await r.json();
+    _reports = d.reports || [];
+    renderList();
+  } catch(e) {
+    document.getElementById('report-list').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load reports</div><p>${e.message}</p></div>`;
+  }
+}
+
+function renderList() {
+  const el = document.getElementById('report-list');
+  document.getElementById('report-count').textContent = `${_reports.length} report${_reports.length !== 1 ? 's' : ''}`;
+  if (_reports.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No reports yet</div><p>Reports are auto-generated after 3:30 PM IST, or click Generate above.</p></div>`;
+    return;
+  }
+  el.innerHTML = _reports.map((r, i) => reportCard(r, i)).join('');
+}
+
+function reportCard(r, i) {
+  const chg    = r.net_change;
+  const chgPct = r.net_change_pct;
+  const isUp   = chg > 0, isDn = chg < 0;
+  const dirLbl = isUp ? 'Bullish' : isDn ? 'Bearish' : 'Flat';
+  const dirCls = isUp ? 'dir-bull' : isDn ? 'dir-bear' : 'dir-flat';
+  const chgCls = isUp ? 'chg-up' : isDn ? 'chg-dn' : 'chg-flat';
+  const chgStr = chg != null ? `${chg > 0 ? '+' : ''}${chg} (${chgPct > 0 ? '+' : ''}${chgPct}%)` : '—';
+  const scen   = (r.scenario || '').replace('_', ' ').toUpperCase();
+
+  return `
+  <div class="rcard" id="rcard-${i}">
+    <div class="rcard-head" onclick="toggleCard(${i})">
+      <div class="rcard-date">${formatDate(r.date)}</div>
+      <span class="rcard-dir ${dirCls}">${dirLbl}</span>
+      <span class="rcard-chg ${chgCls}">${chgStr}</span>
+      <div class="rcard-meta">
+        ${scen ? `<span class="rmeta-pill">${scen}</span>` : ''}
+        ${r.gap_direction ? `<span class="rmeta-pill">Gap ${r.gap_direction === 'up' ? '▲' : r.gap_direction === 'down' ? '▼' : '—'} ${r.gap != null ? Math.abs(r.gap)+' pts' : ''}</span>` : ''}
+        ${r.india_vix ? `<span class="rmeta-pill">VIX ${r.india_vix}</span>` : ''}
+        <span class="rmeta-pill">${r.generated_at}</span>
+      </div>
+      <button class="btn-delete" onclick="event.stopPropagation();deleteReport('${r.date}', ${i})">🗑 Delete</button>
+      <span class="rcard-chevron" id="chev-${i}">▼</span>
+    </div>
+    <div class="rcard-body" id="rbody-${i}">
+      ${renderBody(r)}
+    </div>
+  </div>`;
+}
+
+function renderBody(r) {
+  const ohlc = r.day_ohlc || {};
+  const cpr  = r.cpr || {};
+  const orb  = r.orb || {};
+
+  const fmt  = v => v != null ? v.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+  const fmtN = v => v != null ? v : '—';
+
+  const lvlChip = (name) => {
+    const cls = name.startsWith('R') ? 'lvl-r' : name.startsWith('S') ? 'lvl-s' :
+                ['TC','BC','PP'].includes(name) ? 'lvl-c' : 'lvl-m';
+    return `<span class="lvl-chip ${cls}">${name}</span>`;
+  };
+
+  return `
+    <div class="rb-section">Day OHLC</div>
+    <div class="rb-grid">
+      <div class="rb-item"><div class="rb-label">OPEN</div><div class="rb-val">${fmt(ohlc.open)}</div></div>
+      <div class="rb-item"><div class="rb-label">HIGH</div><div class="rb-val" style="color:var(--green)">${fmt(ohlc.high)}</div></div>
+      <div class="rb-item"><div class="rb-label">LOW</div><div class="rb-val" style="color:var(--red)">${fmt(ohlc.low)}</div></div>
+      <div class="rb-item"><div class="rb-label">CLOSE</div><div class="rb-val">${fmt(ohlc.close)}</div></div>
+      <div class="rb-item"><div class="rb-label">PREV CLOSE</div><div class="rb-val">${fmt(r.prev_close)}</div></div>
+      <div class="rb-item"><div class="rb-label">NET CHANGE</div><div class="rb-val" style="color:${r.net_change > 0 ? 'var(--green)' : r.net_change < 0 ? 'var(--red)' : 'var(--muted)'}">${r.net_change != null ? (r.net_change > 0 ? '+' : '') + r.net_change : '—'}</div></div>
+      <div class="rb-item"><div class="rb-label">GAP</div><div class="rb-val" style="color:${r.gap > 0 ? 'var(--green)' : r.gap < 0 ? 'var(--red)' : 'var(--muted)'}">${r.gap != null ? (r.gap > 0 ? '+' : '') + r.gap : '—'}</div></div>
+      <div class="rb-item"><div class="rb-label">INDIA VIX</div><div class="rb-val">${fmtN(r.india_vix)}</div></div>
+    </div>
+
+    ${orb.high ? `
+    <div class="rb-section">ORB</div>
+    <div class="rb-grid">
+      <div class="rb-item"><div class="rb-label">ORB HIGH</div><div class="rb-val" style="color:var(--accent)">${fmt(orb.high)}</div></div>
+      <div class="rb-item"><div class="rb-label">ORB LOW</div><div class="rb-val" style="color:var(--accent)">${fmt(orb.low)}</div></div>
+      <div class="rb-item"><div class="rb-label">ORB RANGE</div><div class="rb-val">${orb.high && orb.low ? fmt(orb.high - orb.low) : '—'} pts</div></div>
+    </div>` : ''}
+
+    ${cpr.r1 ? `
+    <div class="rb-section">CPR Levels</div>
+    <div class="rb-grid">
+      <div class="rb-item"><div class="rb-label">R3</div><div class="rb-val" style="color:var(--green)">${fmt(cpr.r3)}</div></div>
+      <div class="rb-item"><div class="rb-label">R2</div><div class="rb-val" style="color:var(--green)">${fmt(cpr.r2)}</div></div>
+      <div class="rb-item"><div class="rb-label">R1</div><div class="rb-val" style="color:var(--green)">${fmt(cpr.r1)}</div></div>
+      <div class="rb-item"><div class="rb-label">TC</div><div class="rb-val" style="color:var(--yellow)">${fmt(cpr.tc)}</div></div>
+      <div class="rb-item"><div class="rb-label">PP</div><div class="rb-val" style="color:var(--yellow)">${fmt(cpr.pp)}</div></div>
+      <div class="rb-item"><div class="rb-label">BC</div><div class="rb-val" style="color:var(--yellow)">${fmt(cpr.bc)}</div></div>
+      <div class="rb-item"><div class="rb-label">S1</div><div class="rb-val" style="color:var(--red)">${fmt(cpr.s1)}</div></div>
+      <div class="rb-item"><div class="rb-label">S2</div><div class="rb-val" style="color:var(--red)">${fmt(cpr.s2)}</div></div>
+      <div class="rb-item"><div class="rb-label">S3</div><div class="rb-val" style="color:var(--red)">${fmt(cpr.s3)}</div></div>
+    </div>` : ''}
+
+    ${r.levels_tested && r.levels_tested.length > 0 ? `
+    <div class="rb-section">Levels Tested Today</div>
+    <div class="levels-wrap">${r.levels_tested.map(lvlChip).join('')}</div>` : ''}
+  `;
+}
+
+function toggleCard(i) {
+  const body = document.getElementById(`rbody-${i}`);
+  const chev = document.getElementById(`chev-${i}`);
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+async function generateReport() {
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generating…';
+  try {
+    const r = await fetch('/api/reports/generate', { method: 'POST' });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    await loadReports();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#9654; Generate Today\'s Report';
+  }
+}
+
+async function deleteReport(date, i) {
+  if (!confirm(`Delete report for ${formatDate(date)}?`)) return;
+  try {
+    await fetch(`/api/reports/${date}`, { method: 'DELETE' });
+    _reports.splice(i, 1);
+    renderList();
+  } catch(e) {
+    alert('Delete failed: ' + e.message);
+  }
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+}
+
+loadReports();
+</script>
+</body>
+</html>
