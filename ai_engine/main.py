@@ -1403,6 +1403,26 @@ async def ema_scenario_backtest(days: int = 20):
 # Indicators Snapshot — VWAP · EMA 9/21 · MACD · RSI from today's 5-min candles
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _safe_float(v, fallback=None):
+    """Return float v unless it is NaN/inf — returns fallback instead."""
+    try:
+        f = float(v)
+        return fallback if (math.isnan(f) or math.isinf(f)) else f
+    except Exception:
+        return fallback
+
+
+def _sanitize_floats(obj):
+    """Recursively replace NaN/inf in any dict/list so FastAPI can JSON-encode it."""
+    if isinstance(obj, float):
+        return None if (math.isnan(obj) or math.isinf(obj)) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_floats(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_floats(v) for v in obj]
+    return obj
+
+
 def _indicators_snapshot_sync() -> dict:
     import yfinance as yf
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
@@ -1417,12 +1437,13 @@ def _indicators_snapshot_sync() -> dict:
     low   = df["Low"]
     vol   = df["Volume"]
 
-    # VWAP
-    typical  = (high + low + close) / 3
-    vwap_val = float((typical * vol).cumsum().iloc[-1] / vol.cumsum().iloc[-1])
-    spot     = float(close.iloc[-1])
+    # VWAP — guard against zero-volume periods (pre/post market)
+    typical   = (high + low + close) / 3
+    total_vol = float(vol.cumsum().iloc[-1])
+    vwap_val  = float((typical * vol).cumsum().iloc[-1] / total_vol) if total_vol > 0 else float(close.mean())
+    spot      = float(close.iloc[-1])
     vwap_diff     = round(spot - vwap_val, 2)
-    vwap_diff_pct = round(abs(vwap_diff) / vwap_val * 100, 2)
+    vwap_diff_pct = round(abs(vwap_diff) / vwap_val * 100, 2) if vwap_val else 0.0
     vwap_signal   = "bullish" if spot > vwap_val else "bearish"
 
     # EMA 9 / 21
@@ -1472,7 +1493,7 @@ def _indicators_snapshot_sync() -> dict:
     else:
         rsi_signal = "neutral"
 
-    return {
+    return _sanitize_floats({
         "vwap": {
             "value":    round(vwap_val, 2),
             "diff":     vwap_diff,
@@ -1486,8 +1507,8 @@ def _indicators_snapshot_sync() -> dict:
             "signal": ema_signal,
         },
         "macd": {
-            "macd":        str(round(float(macd_line.iloc[-1]), 2)),
-            "signal_line": str(round(float(sig_line.iloc[-1]), 2)),
+            "macd":        str(_safe_float(macd_line.iloc[-1], 0.0)),
+            "signal_line": str(_safe_float(sig_line.iloc[-1],  0.0)),
             "histogram":   str(hist_val),
             "signal":      macd_signal,
         },
@@ -1497,7 +1518,7 @@ def _indicators_snapshot_sync() -> dict:
         },
         "candles": len(df),
         "as_of":   now_ist.strftime("%H:%M"),
-    }
+    })
 
 
 @app.get("/indicators/snapshot")
