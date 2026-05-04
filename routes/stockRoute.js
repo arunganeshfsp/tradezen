@@ -386,7 +386,7 @@ router.get("/candles", async (req, res) => {
 // VWAP · EMA 9/21 · MACD · RSI from today's 5-min yfinance candles
 router.get("/indicators/snapshot", async (req, res) => {
   try {
-    const data = await aiService.proxy("GET", "/indicators/snapshot", 15000);
+    const data = await aiService.proxy("GET", "/indicators/snapshot", 25000);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

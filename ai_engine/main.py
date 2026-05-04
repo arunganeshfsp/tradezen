@@ -1449,11 +1449,18 @@ def _indicators_snapshot_sync() -> dict:
     else:
         macd_signal = "bearish" if hist_val <= prev_hist else "recovering"
 
-    # RSI (14)
+    # RSI (14) — guard against zero/NaN loss (all-gain candles produce division by zero)
     delta = close.diff()
     gain  = delta.clip(lower=0).rolling(14).mean()
     loss  = (-delta.clip(upper=0)).rolling(14).mean()
-    rsi_val = round(float(100 - 100 / (1 + gain.iloc[-1] / loss.iloc[-1])), 1)
+    g_val = float(gain.iloc[-1])
+    l_val = float(loss.iloc[-1])
+    if l_val > 0 and not math.isnan(l_val):
+        rsi_val = round(100 - 100 / (1 + g_val / l_val), 1)
+    elif g_val > 0:
+        rsi_val = 100.0   # pure bull run — no down candles in window
+    else:
+        rsi_val = 50.0    # flat/no data — neutral fallback
     if rsi_val >= 70:
         rsi_signal = "overbought"
     elif rsi_val <= 30:
@@ -1603,18 +1610,21 @@ def _fetch_iv_sync() -> dict:
     # ── Fetch IV from Angel One ──────────────────────────────────────────────
     resp = smart.getMarketData("FULL", {"NFO": [ce_token, pe_token]})
 
-    ce_iv = pe_iv = ce_ltp = pe_ltp = None
+    ce_iv = pe_iv = ce_ltp = pe_ltp = ce_oi = pe_oi = None
     if resp and resp.get("data") and resp["data"].get("fetched"):
         for item in resp["data"]["fetched"]:
             tok = str(item.get("symbolToken", ""))
             iv  = item.get("impliedVolatility")
             ltp = item.get("ltp")
+            oi  = item.get("openInterest")
             if tok == str(ce_token):
                 ce_iv  = round(float(iv),  2) if iv  else None
                 ce_ltp = round(float(ltp), 2) if ltp else None
+                ce_oi  = int(float(oi))        if oi  else None
             elif tok == str(pe_token):
                 pe_iv  = round(float(iv),  2) if iv  else None
                 pe_ltp = round(float(ltp), 2) if ltp else None
+                pe_oi  = int(float(oi))        if oi  else None
 
     if ce_iv is None and pe_iv is None:
         return {"error": "IV not returned — market may be closed or contracts illiquid"}
@@ -1637,6 +1647,7 @@ def _fetch_iv_sync() -> dict:
 
     vix     = trade_flow_data.get("india_vix")
     vix_gap = round(avg_iv - vix, 2) if avg_iv and vix else None
+    pcr     = round(pe_oi / ce_oi, 2) if ce_oi and pe_oi and ce_oi > 0 else None
 
     return {
         "spot":        round(spot, 2),
@@ -1649,6 +1660,9 @@ def _fetch_iv_sync() -> dict:
         "skew_label":  skew_label,
         "ce_ltp":      ce_ltp,
         "pe_ltp":      pe_ltp,
+        "ce_oi":       ce_oi,
+        "pe_oi":       pe_oi,
+        "pcr":         pcr,
         "status":      status,
         "india_vix":   vix,
         "vix_gap":     vix_gap,

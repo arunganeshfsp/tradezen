@@ -505,6 +505,25 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
       </div>
       <div id="chart-legend" style="display:flex;flex-wrap:wrap;gap:8px 16px;padding:9px 18px;background:var(--bg1);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;min-height:34px"></div>
       <div id="nifty-chart" style="height:420px"></div>
+      <!-- OI panel -->
+      <div id="chart-oi-panel" style="display:none;padding:10px 18px 12px;border-top:1px solid var(--border);background:var(--bg1)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;margin-bottom:7px">ATM OPEN INTEREST</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:10px;color:#f87171;font-family:'JetBrains Mono',monospace;letter-spacing:.4px">PE OI</span>
+            <span id="oi-pe" style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff">—</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:10px;color:#4ade80;font-family:'JetBrains Mono',monospace;letter-spacing:.4px">CE OI</span>
+            <span id="oi-ce" style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff">—</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.4px">PCR</span>
+            <span id="oi-pcr" style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff">—</span>
+          </div>
+          <div id="oi-bias" style="font-size:12px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;font-weight:700;display:none"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2430,6 +2449,7 @@ async function loadIv() {
     if (d.error) throw new Error(d.error);
     ivData = d;
     renderIv(d);
+    _renderOiPanel(d);
   } catch(e) {
     document.getElementById('iv-content').innerHTML =
       `<div style="color:var(--red);font-size:12px;padding:8px">⚠ ${e.message}</div>`;
@@ -2549,7 +2569,41 @@ async function _fetchIvSilent() {
     }
     // Re-render card body only if already open
     if (ivExpanded) renderIv(d);
+    // Update OI panel if chart is open
+    _renderOiPanel(d);
   } catch (_) {}
+}
+
+function _renderOiPanel(d) {
+  const panel = document.getElementById('chart-oi-panel');
+  if (!panel) return;
+  if (!d || (!d.ce_oi && !d.pe_oi)) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+
+  const fmt = v => v >= 1e7 ? (v/1e7).toFixed(2)+'Cr' : v >= 1e5 ? (v/1e5).toFixed(2)+'L' : v.toLocaleString('en-IN');
+  document.getElementById('oi-pe').textContent  = d.pe_oi ? fmt(d.pe_oi) : '—';
+  document.getElementById('oi-ce').textContent  = d.ce_oi ? fmt(d.ce_oi) : '—';
+  document.getElementById('oi-pcr').textContent = d.pcr   ? d.pcr.toFixed(2) : '—';
+
+  const bias = document.getElementById('oi-bias');
+  if (d.pcr != null) {
+    bias.style.display = '';
+    if (d.pcr > 1.2) {
+      bias.textContent         = 'BULLISH BIAS';
+      bias.style.background    = 'rgba(74,222,128,.15)';
+      bias.style.color         = '#4ade80';
+    } else if (d.pcr < 0.8) {
+      bias.textContent         = 'BEARISH BIAS';
+      bias.style.background    = 'rgba(248,113,113,.15)';
+      bias.style.color         = '#f87171';
+    } else {
+      bias.textContent         = 'NEUTRAL';
+      bias.style.background    = 'rgba(255,255,255,.06)';
+      bias.style.color         = 'var(--muted)';
+    }
+  } else {
+    bias.style.display = 'none';
+  }
 }
 
 // ─────────────────────────────────────────────
