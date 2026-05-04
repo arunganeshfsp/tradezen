@@ -1826,9 +1826,11 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
     if not stocks:
         return {"error": "Instrument master unavailable", "stocks": []}
 
+    n50 = _fetch_nifty50_symbols()
     if nifty50:
-        n50 = _fetch_nifty50_symbols()
         stocks = [s for s in stocks if s["symbol"].upper() in n50]
+    else:
+        stocks = [s for s in stocks if s["symbol"].upper() not in n50]
 
     # Batch getMarketData FULL — 50 tokens per call
     depth_map: dict = {}
