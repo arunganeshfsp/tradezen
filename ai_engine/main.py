@@ -1837,6 +1837,8 @@ def _stock_indicators_sync(symbol: str) -> dict:
         closes  = df["Close"].squeeze().dropna().tolist()
         volumes = df["Volume"].squeeze().dropna().tolist()
         opens   = df["Open"].squeeze().dropna().tolist()
+        highs   = df["High"].squeeze().dropna().tolist()
+        lows    = df["Low"].squeeze().dropna().tolist()
 
         # RSI(14)
         delta = pd.Series(closes).diff()
@@ -1858,15 +1860,32 @@ def _stock_indicators_sync(symbol: str) -> dict:
         elif cur_vol < avg_vol * 0.7:  vol_signal = "LOW"
         else:                          vol_signal = "NORMAL"
 
-        # Candle pattern (last 2 candles)
+        # Candle pattern (last candle, with previous for context)
         candle = "NONE"
-        if len(closes) >= 2 and len(opens) >= 2:
+        if len(closes) >= 2 and len(opens) >= 2 and len(highs) >= 2 and len(lows) >= 2:
             pc, cc = closes[-2], closes[-1]
             po, co = opens[-2],  opens[-1]
+            ph, ch = highs[-2],  highs[-1]
+            pl, cl = lows[-2],   lows[-1]
+            body    = abs(cc - co)
+            c_range = ch - cl if ch > cl else 0.01
+
             if pc < po and cc > co and cc > po and co < pc:
                 candle = "BULLISH_ENGULFING"
             elif pc > po and cc < co and co > pc and cc < po:
                 candle = "BEARISH_ENGULFING"
+            elif body / c_range > 0.65 and (ch - cc) < 0.15 * c_range and cc > co:
+                candle = "STRONG_BULL"         # big green, close near high
+            elif body / c_range > 0.65 and (cc - cl) < 0.15 * c_range and cc < co:
+                candle = "STRONG_BEAR"         # big red, close near low
+            elif body / c_range < 0.35 and (co - cl) >= 2 * body and cc >= co:
+                candle = "HAMMER"              # small body, long lower wick
+            elif body / c_range < 0.35 and (ch - co) >= 2 * body and cc <= co:
+                candle = "SHOOTING_STAR"       # small body, long upper wick
+            elif body / c_range < 0.1:
+                candle = "DOJI"                # open ≈ close, indecision
+            elif ch < ph and cl > pl:
+                candle = "INSIDE_BAR"          # range within prev candle, consolidation
 
         # Support / Resistance (20-day)
         recent = closes[-20:]

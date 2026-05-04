@@ -507,9 +507,11 @@ function renderConfirm(stock, ind) {
   }
 
   // ── Candle note ─────────────────────────────────────────────────
+  const bullCandles = ['BULLISH_ENGULFING','STRONG_BULL','HAMMER'];
+  const bearCandles = ['BEARISH_ENGULFING','STRONG_BEAR','SHOOTING_STAR'];
   let candleNote = '';
-  if (candle === 'BULLISH_ENGULFING') candleNote = ' · Bullish engulfing confirms';
-  if (candle === 'BEARISH_ENGULFING') candleNote = ' · Bearish engulfing confirms';
+  if (bullCandles.includes(candle)) candleNote = ` · ${candle.replace(/_/g,' ')} pattern confirms`;
+  if (bearCandles.includes(candle)) candleNote = ` · ${candle.replace(/_/g,' ')} pattern confirms`;
   if (candleNote) reason += candleNote;
 
   // ── Stock F&O checks ────────────────────────────────────────────
@@ -554,8 +556,15 @@ function renderConfirm(stock, ind) {
   const volBadge = vol === 'HIGH' ? ['HIGH','ib-green'] : vol === 'LOW' ? ['LOW','ib-red'] : ['NORMAL','ib-grey'];
 
   // ── Candle badge ────────────────────────────────────────────────
-  const cdlBadge = candle === 'BULLISH_ENGULFING' ? ['BULL ENGULF','ib-green'] :
-                   candle === 'BEARISH_ENGULFING' ? ['BEAR ENGULF','ib-red']   : ['NONE','ib-grey'];
+  const cdlBadge = candle === 'BULLISH_ENGULFING' ? ['BULL ENGULF',  'ib-green']  :
+                   candle === 'BEARISH_ENGULFING' ? ['BEAR ENGULF',  'ib-red']    :
+                   candle === 'STRONG_BULL'       ? ['STRONG BULL',  'ib-green']  :
+                   candle === 'STRONG_BEAR'       ? ['STRONG BEAR',  'ib-red']    :
+                   candle === 'HAMMER'            ? ['HAMMER',       'ib-green']  :
+                   candle === 'SHOOTING_STAR'     ? ['SHOOT STAR',   'ib-red']    :
+                   candle === 'DOJI'              ? ['DOJI',         'ib-yellow'] :
+                   candle === 'INSIDE_BAR'        ? ['INSIDE BAR',   'ib-yellow'] :
+                                                   ['NONE',          'ib-grey'];
 
   document.getElementById('mBody').innerHTML = `
     <div class="sig-banner ${sigClass}">
