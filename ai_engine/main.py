@@ -898,14 +898,24 @@ def _resolve_token_and_exchange(symbol_token: str, exchange: str, smart):
     return symbol_token, exchange   # candle_fetcher handles empty-result case internally
 
 
+_smart_lock = threading.Lock()
+
+
 def _get_smart():
-    """Re-authenticate for market profile calls (engine may have a fresh session)."""
-    from config.credentials import get_smart_api
-    try:
-        return get_smart_api()
-    except Exception as e:
-        log.warning(f"Market profile: SmartAPI re-auth failed: {e}")
-        return None
+    """Return the shared SmartAPI session; re-auth only if the global is None."""
+    global smart
+    if smart:
+        return smart
+    with _smart_lock:
+        if smart:          # another thread may have re-authed while we waited
+            return smart
+        try:
+            smart = get_smart_api()
+            log.info("[SmartAPI] re-authenticated")
+            return smart
+        except Exception as e:
+            log.warning(f"SmartAPI re-auth failed: {e}")
+            return None
 
 
 def _build_daily_profile_with_smart(smart, symbol_token, exchange, date, tick_size, symbol, use_cache=True):
@@ -1832,10 +1842,13 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
     else:
         stocks = [s for s in stocks if s["symbol"].upper() not in n50]
 
-    # Batch getMarketData FULL — 50 tokens per call
+    # Batch getMarketData FULL — 50 tokens per call, 150ms gap to stay within rate limit
+    import time as _time
     depth_map: dict = {}
     batch_size = 50
     for i in range(0, len(stocks), batch_size):
+        if i > 0:
+            _time.sleep(0.15)
         batch_tokens = [s["token"] for s in stocks[i: i + batch_size]]
         try:
             resp = smart.getMarketData("FULL", {"NSE": batch_tokens})
