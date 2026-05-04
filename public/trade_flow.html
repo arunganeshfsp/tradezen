@@ -230,6 +230,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 <!-- TOAST CONTAINER -->
 <div id="alert-toasts" style="position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px"></div>
 
+<!-- NOTIFICATION PROMPT BANNER -->
+<div id="notif-banner" style="display:none;background:rgba(124,106,247,0.1);border-bottom:1px solid rgba(124,106,247,0.25);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#c4bfff">🔔 Enable browser notifications to get price alerts when NIFTY hits key levels</span>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button onclick="_requestNotifPermission()" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 14px;border-radius:6px;background:rgba(124,106,247,0.3);border:1px solid rgba(124,106,247,0.5);color:#c4bfff;cursor:pointer">Enable</button>
+    <button onclick="_dismissNotifBanner()" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer">✕</button>
+  </div>
+</div>
+
 <!-- NAV -->
 <nav>
   <a class="brand" href="index.html"><div class="logo">TZ</div>TradeZen</a>
@@ -2660,10 +2669,31 @@ const _ALERT_COOL   = 5 * 60000;  // 5-min cooldown per level
 function toggleAlerts() {
   if (!_alertsOn && Notification.permission === 'default') {
     Notification.requestPermission().then(p => {
-      if (p === 'granted') _setAlerts(true);
+      if (p === 'granted') { _setAlerts(true); _dismissNotifBanner(); }
     });
   } else {
     _setAlerts(!_alertsOn);
+  }
+}
+
+function _requestNotifPermission() {
+  Notification.requestPermission().then(p => {
+    _dismissNotifBanner();
+    if (p === 'granted') _setAlerts(true);
+    else _showToast('Notifications blocked. Enable from browser site settings (🔒 icon in address bar).', 'info', 7000, '#fbbf24');
+  });
+}
+
+function _dismissNotifBanner() {
+  document.getElementById('notif-banner').style.display = 'none';
+  localStorage.setItem('tz_notif_dismissed', '1');
+}
+
+function _initNotifBanner() {
+  if (Notification.permission === 'granted') {
+    _setAlerts(true);   // auto-enable silently if already allowed
+  } else if (Notification.permission === 'default' && !localStorage.getItem('tz_notif_dismissed')) {
+    document.getElementById('notif-banner').style.display = 'flex';
   }
 }
 
@@ -2716,15 +2746,33 @@ function _checkPriceAlerts(ltp) {
   }
 }
 
+function _playAlertSound(type) {
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const freq = { resistance: 520, support: 660, cpr: 440, mp: 580, orb: 500 }[type] || 520;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.frequency.setValueAtTime(freq * 1.2, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.6);
+  } catch (_) {}
+}
+
 function _fireAlert(lvl, ltp, dist) {
-  const dir    = ltp >= lvl.price ? 'at/above' : 'at/below';
   const color  = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' }[lvl.type] || '#fff';
   const emoji  = { resistance:'🔴', support:'🟢', cpr:'🟡', mp:'🔵', orb:'🟣' }[lvl.type] || '⚪';
   const msg    = `NIFTY ${ltp} — ${emoji} ${lvl.name} (${lvl.price}) · ${dist.toFixed(0)} pts away`;
 
+  _playAlertSound(lvl.type);
   _showToast(msg, lvl.type, 8000, color);
 
-  if (Notification.permission === 'granted' && document.hidden) {
+  if (Notification.permission === 'granted') {
     new Notification('TradeZen Alert', { body: msg, icon: '/favicon.ico', tag: lvl.name });
   }
 }
@@ -2757,6 +2805,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   showStep(1);
   setInterval(tickClock, 1000);
   tickClock();
+  _initNotifBanner();
   await fetchFlowData();
   setInterval(fetchFlowData, 30000);        // trade-flow: every 30s
   setTimeout(_fetchIvSilent, 3000);         // IV chip: after 3s delay (let page settle)
