@@ -1783,9 +1783,9 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
 
     # Apply dominance filter
     if dominance == "buyer":
-        result = [r for r in result if r["dominance"] == "BUYER"]
+        result = [r for r in result if r["dominance"] == "BUYER" and r["change_pct"] >= 0]
     elif dominance == "seller":
-        result = [r for r in result if r["dominance"] == "SELLER"]
+        result = [r for r in result if r["dominance"] == "SELLER" and r["change_pct"] <= 0]
     else:
         # All: buyers first, then sellers
         result.sort(key=lambda x: (0 if x["dominance"] == "BUYER" else 1, -x["strength"]))
