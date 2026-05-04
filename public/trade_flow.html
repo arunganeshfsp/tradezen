@@ -227,6 +227,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 </head>
 <body>
 
+<!-- TOAST CONTAINER -->
+<div id="alert-toasts" style="position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px"></div>
+
 <!-- NAV -->
 <nav>
   <a class="brand" href="index.html"><div class="logo">TZ</div>TradeZen</a>
@@ -262,6 +265,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     </div>
     <div class="live-chip" id="chip-iv" style="background:rgba(0,212,255,0.07);color:var(--cyan);border-color:rgba(0,212,255,0.25);display:none;cursor:pointer" onclick="openIvCard()" title="Click for ATM IV breakdown">
       ◎ IV <span id="chip-iv-val">--</span>
+    </div>
+    <div class="live-chip" id="chip-alerts" onclick="toggleAlerts()" title="Price alerts for key levels" style="cursor:pointer;background:rgba(255,255,255,0.04);color:var(--dim);border-color:var(--border)">
+      🔔 <span id="chip-alerts-label">Alerts Off</span>
     </div>
   </div>
 
@@ -2213,6 +2219,7 @@ async function fetchFlowData() {
 
     updateHero(d);
     renderFlowData(d);
+    _checkPriceAlerts(d.nifty_ltp);
 
     const now = new Date();
     document.getElementById('refresh-note').textContent =
@@ -2640,6 +2647,106 @@ function _renderOiPanel(d) {
   } else {
     bias.style.display = 'none';
   }
+}
+
+// ─────────────────────────────────────────────
+// Price Alerts
+// ─────────────────────────────────────────────
+let _alertsOn       = false;
+const _alertSnoozed = new Map();   // levelName → timestamp of last alert
+const _ALERT_PROX   = 10;          // pts within this distance → alert
+const _ALERT_COOL   = 5 * 60000;  // 5-min cooldown per level
+
+function toggleAlerts() {
+  if (!_alertsOn && Notification.permission === 'default') {
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') _setAlerts(true);
+    });
+  } else {
+    _setAlerts(!_alertsOn);
+  }
+}
+
+function _setAlerts(on) {
+  _alertsOn = on;
+  const chip  = document.getElementById('chip-alerts');
+  const label = document.getElementById('chip-alerts-label');
+  label.textContent = on ? 'Alerts On' : 'Alerts Off';
+  chip.style.background    = on ? 'rgba(74,222,128,.1)'  : 'rgba(255,255,255,0.04)';
+  chip.style.color         = on ? 'var(--green)'         : 'var(--dim)';
+  chip.style.borderColor   = on ? 'rgba(74,222,128,.35)' : 'var(--border)';
+  if (on) _showToast('🔔 Alerts enabled — will notify within ' + _ALERT_PROX + ' pts of key levels', 'info', 3000);
+}
+
+function _getLevelsToWatch() {
+  const levels = [];
+  const cpr = flowData?.cpr;
+  const mp  = mpData;
+  const orb = flowData?.orb;
+
+  const add = (name, price, type) => price && levels.push({ name, price, type });
+
+  if (cpr) {
+    add('R1', cpr.r1, 'resistance'); add('R2', cpr.r2, 'resistance'); add('R3', cpr.r3, 'resistance');
+    add('S1', cpr.s1, 'support');    add('S2', cpr.s2, 'support');    add('S3', cpr.s3, 'support');
+    add('TC', cpr.tc, 'cpr');        add('BC', cpr.bc, 'cpr');        add('PP', cpr.pp, 'cpr');
+  }
+  if (mp) {
+    add('VAH',   mp.vah,  'mp');  add('VAL',  mp.val,  'mp');
+    add('POC',   mp.poc,  'mp');  add('IB H', mp.ib_h, 'mp');  add('IB L', mp.ib_l, 'mp');
+  }
+  if (orb) {
+    add('ORB High', orb.high, 'orb');
+    add('ORB Low',  orb.low,  'orb');
+  }
+  return levels;
+}
+
+function _checkPriceAlerts(ltp) {
+  if (!_alertsOn || !ltp) return;
+  const now    = Date.now();
+  const levels = _getLevelsToWatch();
+  for (const lvl of levels) {
+    const dist = Math.abs(ltp - lvl.price);
+    if (dist > _ALERT_PROX) continue;
+    const last = _alertSnoozed.get(lvl.name) || 0;
+    if (now - last < _ALERT_COOL) continue;
+    _alertSnoozed.set(lvl.name, now);
+    _fireAlert(lvl, ltp, dist);
+  }
+}
+
+function _fireAlert(lvl, ltp, dist) {
+  const dir    = ltp >= lvl.price ? 'at/above' : 'at/below';
+  const color  = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' }[lvl.type] || '#fff';
+  const emoji  = { resistance:'🔴', support:'🟢', cpr:'🟡', mp:'🔵', orb:'🟣' }[lvl.type] || '⚪';
+  const msg    = `NIFTY ${ltp} — ${emoji} ${lvl.name} (${lvl.price}) · ${dist.toFixed(0)} pts away`;
+
+  _showToast(msg, lvl.type, 8000, color);
+
+  if (Notification.permission === 'granted' && document.hidden) {
+    new Notification('TradeZen Alert', { body: msg, icon: '/favicon.ico', tag: lvl.name });
+  }
+}
+
+function _showToast(msg, type, duration = 5000, color = '#fff') {
+  const wrap = document.getElementById('alert-toasts');
+  const el   = document.createElement('div');
+  el.style.cssText = `
+    background:#1c1c28;border:1px solid ${color}44;border-left:3px solid ${color};
+    color:#e8e8f0;border-radius:8px;padding:10px 14px;font-size:12px;
+    font-family:'JetBrains Mono',monospace;line-height:1.5;pointer-events:auto;
+    box-shadow:0 4px 20px rgba(0,0,0,.5);opacity:0;transition:opacity .2s;max-width:320px;
+    cursor:pointer;
+  `;
+  el.textContent = msg;
+  el.onclick = () => el.remove();
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.style.opacity = '1');
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 200);
+  }, duration);
 }
 
 // ─────────────────────────────────────────────
