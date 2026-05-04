@@ -204,15 +204,6 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 <!-- CONTROLS -->
 <div class="controls">
   <div class="ctrl-group">
-    <div class="ctrl-label">Price Range (₹)</div>
-    <div class="ctrl-row">
-      <input class="price-input" type="number" id="minPrice" value="1000" min="1" max="99999">
-      <span class="price-sep">—</span>
-      <input class="price-input" type="number" id="maxPrice" value="2000" min="1" max="99999">
-    </div>
-  </div>
-
-  <div class="ctrl-group">
     <div class="ctrl-label">Refresh Interval</div>
     <div class="toggle-group" id="intervalGroup">
       <button class="tog-btn" data-val="2" onclick="setInterval_(2)">2s</button>
@@ -226,6 +217,23 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
     <div class="toggle-group" id="limitGroup">
       <button class="tog-btn active" data-val="10" onclick="setLimit(10)">Top 10</button>
       <button class="tog-btn" data-val="20" onclick="setLimit(20)">Top 20</button>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <div class="ctrl-label">Universe</div>
+    <div class="toggle-group" id="universeGroup">
+      <button class="tog-btn active" data-val="all"     onclick="setUniverse('all')">All F&amp;O</button>
+      <button class="tog-btn"        data-val="nifty50" onclick="setUniverse('nifty50')">Nifty 50</button>
+    </div>
+  </div>
+
+  <div class="ctrl-group" id="priceRangeGroup">
+    <div class="ctrl-label">Price Range (₹)</div>
+    <div class="ctrl-row">
+      <input class="price-input" type="number" id="minPrice" value="1000" min="1" max="99999">
+      <span class="price-sep">—</span>
+      <input class="price-input" type="number" id="maxPrice" value="2000" min="1" max="99999">
     </div>
   </div>
 
@@ -304,6 +312,7 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 let intervalSec     = 5;
 let limitCount      = 10;
 let dominanceFilter = 'all';
+let universeFilter  = 'all';
 let autoOn          = true;
 let timer       = null;
 let countdown   = 0;
@@ -318,6 +327,13 @@ function setInterval_(val) {
 function setLimit(val) {
   limitCount = val;
   document.querySelectorAll('#limitGroup .tog-btn').forEach(b => b.classList.toggle('active', +b.dataset.val === val));
+  fetchScanner();
+}
+
+function setUniverse(val) {
+  universeFilter = val;
+  document.querySelectorAll('#universeGroup .tog-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
+  document.getElementById('priceRangeGroup').style.display = val === 'nifty50' ? 'none' : '';
   fetchScanner();
 }
 
@@ -367,9 +383,10 @@ function fmtPrice(v) {
 }
 
 async function fetchScanner() {
-  const min = document.getElementById('minPrice').value || 1000;
-  const max = document.getElementById('maxPrice').value || 2000;
-  const url = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}`;
+  const min    = document.getElementById('minPrice').value || 1000;
+  const max    = document.getElementById('maxPrice').value || 2000;
+  const n50    = universeFilter === 'nifty50' ? '&nifty50=true' : '';
+  const url = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}${n50}`;
 
   try {
     const res  = await fetch(url);
