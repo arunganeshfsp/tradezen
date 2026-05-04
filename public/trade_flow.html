@@ -1478,6 +1478,39 @@ function _istRisk() {
   return null;
 }
 
+function _pcrWarning(dir) {
+  const pcr = ivData && ivData.pcr;
+  if (!pcr) return { banner: '', title: null };
+
+  const against  = (dir === 'bull' && pcr < 0.8)  || (dir === 'bear' && pcr > 1.2);
+  const mild     = (dir === 'bull' && pcr >= 0.8 && pcr < 1.0) || (dir === 'bear' && pcr > 1.0 && pcr <= 1.2);
+  const confirms = (dir === 'bull' && pcr >= 1.2)  || (dir === 'bear' && pcr <= 0.8);
+
+  if (confirms) return {
+    title: null,
+    banner: `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;margin-bottom:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace">
+      <span style="font-size:16px;line-height:1.4">✅</span>
+      <div><strong style="color:#4ade80">OI Confirms</strong> — PCR ${pcr} (${dir==='bull'?'Bullish':'Bearish'} bias). Institutional positioning aligned with signal.</div>
+    </div>`,
+  };
+  if (against) return {
+    title: 'MODERATE ' + (dir === 'bull' ? 'LONG' : 'SHORT'),
+    banner: `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;margin-bottom:10px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace">
+      <span style="font-size:16px;line-height:1.4">⚠️</span>
+      <div><strong style="color:#f87171">OI Bias Against</strong> — PCR ${pcr} (${dir==='bull'?'Bearish':'Bullish'} bias). Wait for candle close ${dir==='bull'?'above entry':'below entry'} before entering. Reduce size.</div>
+    </div>`,
+  };
+  if (mild) return {
+    title: null,
+    banner: `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;margin-bottom:10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace">
+      <span style="font-size:16px;line-height:1.4">⚠️</span>
+      <div><strong style="color:#fbbf24">OI Mildly Against</strong> — PCR ${pcr}. Consider smaller position size or wait for confirmation candle.</div>
+    </div>`,
+  };
+  return { banner: '', title: null };
+}
+
+
 function renderFalseBreakoutGuard(orb, cpr, sc) {
   if (!orb) return '';
   const isBull   = sc === 'bull' || sc === 'conditional_bull';
@@ -1628,10 +1661,11 @@ function renderStep6(d) {
         <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} above TC (${fmt(cpr.tc)}) → Bullish</div></div>
         <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>ORB</strong> — Both H&L above TC. Close above ORB High with volume → Entry</div></div>
       </div>
+      ${(() => { const w = _pcrWarning('bull'); return bullExit ? '' : w.banner; })()}
       <div class="final-result fr-bull" style="${bullExit?'opacity:0.6':''}">
         <div class="fr-icon">${bullExit?'🚫':'🚀'}</div>
         <div class="fr-title" style="color:${bullExit?'var(--red)':'var(--green)'}">
-          ${bullExit ? 'HIGH PROBABILITY LONG — EXITED' : 'HIGH PROBABILITY LONG'}
+          ${bullExit ? 'HIGH PROBABILITY LONG — EXITED' : (_pcrWarning('bull').title || 'HIGH PROBABILITY LONG')}
         </div>
         <div class="fr-sub">${bullExit?'Trade invalidated — position should be closed':'All 3 signals aligned — Enter Long confidently'}</div>
         <div class="fr-ta">${bullExit?'தவறான breakout → Long வெளியேறுங்கள்':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Long எடுங்கள்'}</div>
@@ -1681,10 +1715,11 @@ function renderStep6(d) {
         <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} below BC (${fmt(cpr.bc)}) → Bearish</div></div>
         <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>ORB</strong> — Both H&L below BC. Close below ORB Low with volume → Short entry</div></div>
       </div>
+      ${(() => { const w = _pcrWarning('bear'); return bearExit ? '' : w.banner; })()}
       <div class="final-result fr-bear" style="${bearExit?'opacity:0.6':''}">
         <div class="fr-icon">${bearExit?'🚫':'📉'}</div>
         <div class="fr-title" style="color:${bearExit?'var(--red)':'var(--red)'}">
-          ${bearExit ? 'HIGH PROBABILITY SHORT — EXITED' : 'HIGH PROBABILITY SHORT'}
+          ${bearExit ? 'HIGH PROBABILITY SHORT — EXITED' : (_pcrWarning('bear').title || 'HIGH PROBABILITY SHORT')}
         </div>
         <div class="fr-sub">${bearExit?'Trade invalidated — position should be closed':'All 3 signals aligned — Enter Short confidently'}</div>
         <div class="fr-ta">${bearExit?'தவறான breakdown → Short வெளியேறுங்கள்':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Short எடுங்கள்'}</div>

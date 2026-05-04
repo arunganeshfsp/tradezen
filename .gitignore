@@ -8,3 +8,5 @@ app.log
 ai_engine/logs/
 ai_engine/storage/tradezen.db
 venv/
+.claude/settings.local.json
+ai_engine/data/instrument_master.json
