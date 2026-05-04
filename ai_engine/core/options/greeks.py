@@ -69,6 +69,45 @@ def compute_greeks(
     }
 
 
+def implied_volatility(
+    option_type: str,
+    option_price: float,
+    S: float,
+    K: float,
+    T_years: float,
+    r: float = _RFR,
+    tol: float = 0.01,
+    max_iter: int = 100,
+):
+    """
+    Solve for IV via bisection given observed option price.
+    Returns IV as percentage (e.g. 18.5 for 18.5%) or None if unsolvable.
+    """
+    if T_years <= 0 or option_price <= 0 or S <= 0 or K <= 0:
+        return None
+
+    def _bs_price(sigma):
+        d1, d2 = _d1d2(S, K, T_years, r, sigma)
+        e_neg = math.exp(-r * T_years)
+        if option_type.upper() == "CE":
+            return S * _ncdf(d1) - K * e_neg * _ncdf(d2)
+        return K * e_neg * _ncdf(-d2) - S * _ncdf(-d1)
+
+    lo, hi = 0.001, 5.0
+    if _bs_price(lo) > option_price or _bs_price(hi) < option_price:
+        return None
+    for _ in range(max_iter):
+        mid = (lo + hi) / 2
+        diff = _bs_price(mid) - option_price
+        if abs(diff) < tol:
+            return round(mid * 100, 2)
+        if diff < 0:
+            lo = mid
+        else:
+            hi = mid
+    return None
+
+
 def days_to_expiry(expiry_str: str) -> int:
     """Parse '28APR2026' → calendar days from today."""
     from datetime import date, datetime

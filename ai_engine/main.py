@@ -1629,28 +1629,36 @@ def _fetch_iv_sync() -> dict:
     if not ce_token or not pe_token:
         return {"error": f"ATM {atm_strike} tokens not found for expiry {nearest_exp_str}"}
 
-    # ── Fetch IV from Angel One ──────────────────────────────────────────────
+    # ── Time to expiry in years ──────────────────────────────────────────────
+    from core.options.greeks import implied_volatility as _bs_iv
+    T_years = max((nearest_exp - today).days, 1) / 365.0
+
+    # ── Fetch market data from Angel One ────────────────────────────────────
     resp = smart.getMarketData("FULL", {"NFO": [ce_token, pe_token]})
 
-    ce_iv = pe_iv = ce_ltp = pe_ltp = ce_oi = pe_oi = None
+    ce_ltp = pe_ltp = ce_oi = pe_oi = None
     if resp and resp.get("data") and resp["data"].get("fetched"):
         for item in resp["data"]["fetched"]:
             tok = str(item.get("symbolToken", ""))
-            iv  = item.get("impliedVolatility")
             ltp = item.get("ltp")
-            oi  = item.get("openInterest")
-            log.info(f"[IV] token={tok} iv={iv} ltp={ltp} oi={oi} keys={list(item.keys())}")
+            # Angel One returns OI as 'opnInterest', not 'openInterest'
+            oi  = item.get("opnInterest")
             if tok == str(ce_token):
-                ce_iv  = round(float(iv),  2) if iv  is not None else None
                 ce_ltp = round(float(ltp), 2) if ltp is not None else None
                 ce_oi  = int(float(oi))        if oi  is not None else None
             elif tok == str(pe_token):
-                pe_iv  = round(float(iv),  2) if iv  is not None else None
                 pe_ltp = round(float(ltp), 2) if ltp is not None else None
                 pe_oi  = int(float(oi))        if oi  is not None else None
 
+    if ce_ltp is None and pe_ltp is None:
+        return {"error": "No LTP returned — market may be closed or contracts illiquid"}
+
+    # ── Compute IV via Black-Scholes bisection ───────────────────────────────
+    ce_iv = _bs_iv("CE", ce_ltp, spot, atm_strike, T_years) if ce_ltp else None
+    pe_iv = _bs_iv("PE", pe_ltp, spot, atm_strike, T_years) if pe_ltp else None
+
     if ce_iv is None and pe_iv is None:
-        return {"error": "IV not returned — market may be closed or contracts illiquid"}
+        return {"error": "IV could not be computed — LTP may be zero or expiry too close"}
 
     avg_iv = round((ce_iv + pe_iv) / 2, 2) if ce_iv and pe_iv else (ce_iv or pe_iv)
     skew   = round(pe_iv - ce_iv, 2)        if ce_iv and pe_iv else None
