@@ -31,6 +31,15 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .nl.on{color:#fff;background:var(--bg3)}
 .nav-r{margin-left:auto}
 .nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);padding:3px 10px;border-radius:20px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+  .nav-r{display:none}
+}
 
 /* ── HERO ── */
 .hero{position:relative;overflow:hidden;padding:60px 28px 44px;text-align:center;border-bottom:1px solid var(--border);
@@ -242,19 +251,23 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 <!-- NAV -->
 <nav>
   <a class="brand" href="index.html"><div class="logo">TZ</div>TradeZen</a>
-  <div class="nav-links">
+  <div class="nav-links" id="navLinks">
     <a class="nl" href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
     <a class="nl" href="options_entry_tool_tamil.html">🎯 Buying</a>
     <a class="nl" href="options_selling_tool_tamil.html">💰 Selling</a>
     <a class="nl" href="swing_trading_tool_tamil.html">📈 Swing</a>
     <a class="nl" href="fno_signal.html">🤖 F&amp;O</a>
     <a class="nl on" href="trade_flow.html">🧭 Flow</a>
+    <a class="nl" href="reports.html">📋 Reports</a>
     <a class="nl" href="index.html">⌂ Home</a>
   </div>
   <div class="nav-r" style="display:flex;align-items:center;gap:10px">
     <a href="/trade_flow_tutorial.html" target="_blank" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;text-decoration:none">? How to Use</a>
     <span class="nav-badge">LIVE · SEBI 2026</span>
   </div>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <!-- HERO -->
@@ -708,6 +721,20 @@ let editingNiftyOpen     = false;  // true while opening-price form is open
 let giftRefClose         = null;   // reference close for gap = GIFT Nifty − giftRefClose
 let lastAutoAdvancePhase = null;   // tracks last phase that triggered auto step-advance
                               // defaults to prev_day.close but user can set to futures close
+
+// ─────────────────────────────────────────────
+// Mobile nav toggle
+// ─────────────────────────────────────────────
+function toggleNav() {
+  const nl = document.getElementById('navLinks');
+  nl.classList.toggle('open');
+}
+// Close nav when a link is clicked on mobile
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#navLinks .nl').forEach(a => {
+    a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
+  });
+});
 
 // ─────────────────────────────────────────────
 // Navigation helpers

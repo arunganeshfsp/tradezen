@@ -30,6 +30,9 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .nav-r{margin-left:auto}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}.nav-r{display:none}}
 
 .hero{padding:36px 24px 28px;text-align:center;border-bottom:1px solid var(--border);
   background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.12) 0%,transparent 65%),var(--bg)}
@@ -185,7 +188,7 @@ td.ce-col{color:var(--blue)}.td.pe-col{color:var(--red)}
 
 <nav>
   <a class="brand" href="index.html"><span class="logo">TZ</span>TradeZen</a>
-  <div class="nav-links">
+  <div class="nav-links" id="navLinks">
     <a class="nl" href="index.html">Dashboard</a>
     <a class="nl" href="fno_signal.html">F&O Signal</a>
     <a class="nl" href="trade_flow.html">Trade Flow</a>
@@ -195,6 +198,7 @@ td.ce-col{color:var(--blue)}.td.pe-col{color:var(--red)}
   <div class="nav-r">
     <span id="engineStatus" class="live-dot" style="opacity:.3" title="Engine status"></span>
   </div>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 
 <div class="hero">
@@ -363,6 +367,9 @@ td.ce-col{color:var(--blue)}.td.pe-col{color:var(--red)}
 </div>
 
 <script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')))});
+
 const API = "/api";
 let direction = "CE";
 let chainData = null;

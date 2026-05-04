@@ -28,6 +28,9 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .nav-links{display:flex;gap:2px}
 .nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
 .nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
 
 /* LAYOUT */
 .page{max-width:900px;margin:0 auto;padding:40px 24px 80px}
@@ -136,13 +139,14 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
 
 <nav>
   <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
-  <div class="nav-links">
+  <div class="nav-links" id="navLinks">
     <a class="nl" href="/index.html">Dashboard</a>
     <a class="nl" href="/fno_signal.html">F&O Signal</a>
     <a class="nl" href="/trade_flow.html">Trade Flow</a>
     <a class="nl on" href="/options_analysis.html">Options</a>
     <a class="nl" href="/ema_scenario.html">EMA</a>
   </div>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 
 <div class="page">
@@ -704,5 +708,9 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
   </div>
 
 </div>
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')))});
+</script>
 </body>
 </html>

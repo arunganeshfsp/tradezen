@@ -31,6 +31,9 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .live-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-border);padding:3px 10px;border-radius:20px}
 .pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulseAnim 1.4s infinite}
 @keyframes pulseAnim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}.nav-r{display:none}}
 
 /* HERO */
 .hero{padding:36px 28px 28px;text-align:center;border-bottom:1px solid var(--border);
@@ -185,7 +188,7 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 
 <nav>
   <a class="brand" href="/"><div class="logo">TZ</div>&nbsp;TradeZen</a>
-  <div class="nav-links">
+  <div class="nav-links" id="navLinks">
     <a class="nl" href="/trade_flow.html">Trade Flow</a>
     <a class="nl" href="/options_analysis.html">Options</a>
     <a class="nl on" href="/fno_scanner.html">F&amp;O Scanner</a>
@@ -193,6 +196,7 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   <div class="nav-r">
     <div class="live-pill"><div class="pulse"></div>LIVE</div>
   </div>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 
 <div class="hero">
@@ -309,6 +313,9 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 </div>
 
 <script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')))});
+
 let intervalSec     = 5;
 let limitCount      = 10;
 let dominanceFilter = 'all';
