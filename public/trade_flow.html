@@ -2223,6 +2223,7 @@ function closeNiftyChart() {
 function refreshNiftyChart() {
   if (_niftyChart) { _niftyChart.remove(); _niftyChart = null; _niftyCandleSeries = null; }
   loadNiftyChart();
+  _fetchIvSilent();
 }
 
 async function _silentRefreshChart() {

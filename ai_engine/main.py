@@ -1638,14 +1638,15 @@ def _fetch_iv_sync() -> dict:
             iv  = item.get("impliedVolatility")
             ltp = item.get("ltp")
             oi  = item.get("openInterest")
+            log.info(f"[IV] token={tok} iv={iv} ltp={ltp} oi={oi} keys={list(item.keys())}")
             if tok == str(ce_token):
-                ce_iv  = round(float(iv),  2) if iv  else None
-                ce_ltp = round(float(ltp), 2) if ltp else None
-                ce_oi  = int(float(oi))        if oi  else None
+                ce_iv  = round(float(iv),  2) if iv  is not None else None
+                ce_ltp = round(float(ltp), 2) if ltp is not None else None
+                ce_oi  = int(float(oi))        if oi  is not None else None
             elif tok == str(pe_token):
-                pe_iv  = round(float(iv),  2) if iv  else None
-                pe_ltp = round(float(ltp), 2) if ltp else None
-                pe_oi  = int(float(oi))        if oi  else None
+                pe_iv  = round(float(iv),  2) if iv  is not None else None
+                pe_ltp = round(float(ltp), 2) if ltp is not None else None
+                pe_oi  = int(float(oi))        if oi  is not None else None
 
     if ce_iv is None and pe_iv is None:
         return {"error": "IV not returned — market may be closed or contracts illiquid"}
