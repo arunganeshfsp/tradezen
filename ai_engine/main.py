@@ -1515,10 +1515,11 @@ def _nifty_candles_sync() -> dict:
     df = df.dropna()
     if df.empty:
         return {"error": "No candle data — market may be closed"}
+    IST_OFFSET = 19800  # +5h30m in seconds — shifts UTC timestamps to IST for chart display
     candles = []
     for ts, row in df.iterrows():
         candles.append({
-            "time":  int(ts.timestamp()),
+            "time":  int(ts.timestamp()) + IST_OFFSET,
             "open":  round(float(row["Open"]),  2),
             "high":  round(float(row["High"]),  2),
             "low":   round(float(row["Low"]),   2),

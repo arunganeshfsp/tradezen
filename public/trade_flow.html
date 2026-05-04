@@ -1538,24 +1538,26 @@ function renderFalseBreakoutGuard(orb, cpr, sc) {
     </div>`;
 }
 
-// Returns the first 2 CPR resistance levels that are actually ABOVE entry, + t3
+// Returns CPR resistance targets above entry with minimum 1:1 R:R enforced
 function _bullTargets(entry, cpr, orb) {
+  const slDist = orb ? Math.abs(entry - orb.sl_bull) : 20;  // SL distance = min target gap
   const valid = [
     { lbl:'R1', val: cpr && cpr.r1 },
     { lbl:'R2', val: cpr && cpr.r2 },
     { lbl:'R3', val: cpr && cpr.r3 },
-  ].filter(x => x.val != null && x.val > entry)
+  ].filter(x => x.val != null && (x.val - entry) >= slDist)  // must be at least 1:1 R:R
    .sort((a, b) => a.val - b.val);
   return { t1: valid[0] || null, t2: valid[1] || null, t3: orb && orb.t3_bull };
 }
 
-// Returns the first 2 CPR support levels that are actually BELOW entry, + t3
+// Returns CPR support targets below entry with minimum 1:1 R:R enforced
 function _bearTargets(entry, cpr, orb) {
+  const slDist = orb ? Math.abs(orb.sl_bear - entry) : 20;
   const valid = [
     { lbl:'S1', val: cpr && cpr.s1 },
     { lbl:'S2', val: cpr && cpr.s2 },
     { lbl:'S3', val: cpr && cpr.s3 },
-  ].filter(x => x.val != null && x.val < entry)
+  ].filter(x => x.val != null && (entry - x.val) >= slDist)  // must be at least 1:1 R:R
    .sort((a, b) => b.val - a.val);
   return { t1: valid[0] || null, t2: valid[1] || null, t3: orb && orb.t3_bear };
 }
