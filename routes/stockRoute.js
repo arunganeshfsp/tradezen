@@ -158,7 +158,9 @@ router.get("/fetch-gift-nifty", async (req, res) => {
 router.post("/set-gift-nifty", async (req, res) => {
   try {
     const { price } = req.body;
-    if (!price) return res.status(400).json({ error: "price is required" });
+    if (price === undefined || price === null || isNaN(parseFloat(price))) {
+      return res.status(400).json({ error: "price is required" });
+    }
     const data = await aiService.setGiftNifty(price);
     res.json(data);
   } catch (err) {

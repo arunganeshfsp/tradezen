@@ -97,7 +97,7 @@ class AIService {
     // Manually set GIFT Nifty price (pre-market, from broker terminal)
     async setGiftNifty(price) {
         try {
-            const res = await axios.post(`${AI_ENGINE_URL}/set-gift-nifty?price=${price}`, {}, { timeout: 3000 });
+            const res = await axios.post(`${AI_ENGINE_URL}/set-gift-nifty`, { price: parseFloat(price) }, { timeout: 3000 });
             return res.data;
         } catch (err) {
             console.error("Set GIFT Nifty error:", err.message);

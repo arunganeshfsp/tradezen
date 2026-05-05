@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from config.credentials import get_smart_api
 from data.instrument_master import InstrumentMaster
@@ -569,15 +570,17 @@ def fetch_gift_nifty_auto():
     }
 
 
+class _PriceBody(BaseModel):
+    price: float
+
 @app.post("/set-gift-nifty")
-def set_gift_nifty(price: float):
+def set_gift_nifty(body: _PriceBody):
     """
     Supply the current GIFT Nifty price manually (pre-market, from broker terminal).
-    GIFT Nifty trades on NSE IFSC — not available via Angel One WebSocket.
-    Example: POST /set-gift-nifty?price=24204
+    Body: { "price": 24204 }
     """
     global trade_flow_data
-    trade_flow_data["gift_nifty"] = None if price == 0 else round(price, 2)
+    trade_flow_data["gift_nifty"] = None if body.price == 0 else round(body.price, 2)
     log.info(f"📅 GIFT Nifty set: {trade_flow_data['gift_nifty']}")
     return {"status": "ok", "gift_nifty": trade_flow_data["gift_nifty"]}
 
