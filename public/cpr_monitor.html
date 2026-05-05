@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPR Monitor | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--purple:#7c6af7;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
+.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover{color:var(--text);background:var(--bg3)}
+.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:3px 10px;border-radius:20px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}.nav-r{display:none}}
+
+/* HERO */
+.hero{padding:28px 28px 20px;border-bottom:1px solid var(--border);background:radial-gradient(ellipse 70% 60% at 60% -10%,rgba(0,212,255,0.07) 0%,transparent 65%)}
+.hero-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hero-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#fff}
+.hero-sub{font-size:13px;color:var(--dim);margin-top:4px}
+.cpr-type-badge{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;padding:4px 12px;border-radius:20px;font-weight:600}
+.badge-narrow{background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);color:var(--green)}
+.badge-wide{background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:var(--red)}
+.badge-moderate{background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3);color:var(--yellow)}
+.badge-virgin{background:rgba(124,106,247,0.15);border:1px solid rgba(124,106,247,0.4);color:var(--accent);animation:virgGlow 2s ease-in-out infinite}
+@keyframes virgGlow{0%,100%{box-shadow:0 0 0 0 rgba(124,106,247,0)}50%{box-shadow:0 0 12px 2px rgba(124,106,247,0.3)}}
+
+/* LIVE BAR */
+.live-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 28px;background:var(--bg1);border-bottom:1px solid var(--border)}
+.ltp-display{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#fff}
+.zone-pill{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;padding:4px 12px;border-radius:20px;font-weight:600}
+.zone-above{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+.zone-inside{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
+.zone-below{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.4s infinite;margin-right:4px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.bias-chip{font-size:12px;padding:4px 10px;border-radius:var(--r2);font-weight:600}
+.bias-bull{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.bias-bear{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.bias-neutral{background:var(--bg3);color:var(--dim);border:1px solid var(--border)}
+.scan-btn{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 14px;border-radius:var(--r2);border:1px solid var(--border2);background:var(--bg3);color:var(--dim);cursor:pointer;transition:all .15s}
+.scan-btn:hover{background:var(--bg4);color:var(--text)}
+.scan-btn.active{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.35);color:var(--cyan)}
+
+/* MAIN GRID */
+.main{max-width:1400px;margin:0 auto;padding:20px 20px 60px;display:grid;grid-template-columns:340px 1fr;gap:16px}
+@media(max-width:900px){.main{grid-template-columns:1fr}}
+
+/* LEVEL PANELS */
+.panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.panel-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.5px;color:var(--text)}
+.panel-sub{font-size:11px;color:var(--muted)}
+
+/* PRICE LADDER */
+.ladder{padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.ladder-row{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:var(--r2);transition:background .15s;cursor:default}
+.ladder-row:hover{background:var(--bg3)}
+.ladder-row.active-zone{background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.15)}
+.ladder-row.price-here{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2)}
+.lr-name{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;width:40px;color:var(--muted)}
+.lr-name.bull{color:var(--green)}
+.lr-name.bear{color:var(--red)}
+.lr-name.cpr{color:var(--yellow)}
+.lr-name.cam{color:var(--accent)}
+.lr-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text);min-width:70px}
+.lr-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;position:relative;overflow:visible}
+.lr-bar-fill{height:100%;border-radius:2px;min-width:3px}
+.lr-dist{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:56px;text-align:right}
+.lr-dist.close-bull{color:var(--green)}
+.lr-dist.close-bear{color:var(--red)}
+.divider{height:1px;background:var(--border);margin:4px 0}
+
+/* CPR ZONE VISUAL */
+.cpr-zone-bar{margin:0 16px 12px;border-radius:var(--r2);overflow:hidden;height:28px;background:var(--bg3);position:relative;display:flex;align-items:center;justify-content:center}
+.czb-fill{position:absolute;height:100%;background:rgba(245,166,35,0.18);border-left:2px solid rgba(245,166,35,0.5);border-right:2px solid rgba(245,166,35,0.5)}
+.czb-price{position:absolute;width:3px;height:100%;background:var(--cyan);border-radius:1px;transition:left .3s}
+.czb-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);z-index:1;letter-spacing:.5px}
+
+/* ALERT FEED */
+.feed-wrap{display:flex;flex-direction:column;gap:0}
+.feed-toolbar{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.filter-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
+.filter-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.1)}
+.feed-count{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.feed{max-height:420px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bg3) transparent}
+.feed::-webkit-scrollbar{width:4px}
+.feed::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+
+.alert-item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .15s;animation:slideIn .25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.alert-item:hover{background:var(--bg2)}
+.ai-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;padding-top:2px;min-width:48px}
+.ai-body{flex:1}
+.ai-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}
+.ai-type{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.5px}
+.ai-dir{font-size:11px;font-weight:700;padding:1px 8px;border-radius:4px}
+.dir-buy{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.dir-sell{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.ai-conf{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;padding:1px 7px;border-radius:4px}
+.conf-high{background:rgba(46,204,113,0.1);color:var(--green)}
+.conf-med{background:rgba(245,166,35,0.1);color:var(--yellow)}
+.conf-low{background:rgba(91,138,245,0.1);color:var(--blue)}
+.ai-reason{font-size:12px;color:var(--dim);line-height:1.4}
+.ai-price{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);white-space:nowrap;padding-top:2px}
+
+.type-VIRGIN_CPR .ai-type{color:var(--accent)}
+.type-CPR_BREAKOUT .ai-type{color:var(--cyan)}
+.type-REVERSAL_CPR .ai-type{color:var(--yellow)}
+.type-BREAKOUT_FAILURE .ai-type{color:var(--red)}
+.type-CPR_RETEST .ai-type{color:var(--green)}
+.type-CAMARILLA_L3,.type-CAMARILLA_H3,.type-CAMARILLA_H4_BREAK,.type-CAMARILLA_L4_BREAK{}.type-CAMARILLA_L3 .ai-type,.type-CAMARILLA_H4_BREAK .ai-type{color:var(--green)}
+.type-CAMARILLA_H3 .ai-type,.type-CAMARILLA_L4_BREAK .ai-type{color:var(--red)}
+
+.empty-feed{padding:40px 16px;text-align:center;color:var(--muted);font-size:13px}
+.empty-feed svg{display:block;margin:0 auto 10px;opacity:.25}
+
+/* SIGNAL CARDS */
+.signals{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.sig-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px}
+.sig-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sig-name{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--text)}
+.sig-status{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;letter-spacing:.5px}
+.sig-body{font-size:12px;color:var(--dim);line-height:1.5}
+.sig-levels{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.sig-lv{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text)}
+
+/* STAT ROW */
+.stat-row{display:flex;gap:12px;padding:12px 28px;background:var(--bg1);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat-item{display:flex;flex-direction:column;gap:2px}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text)}
+
+/* VIRGIN BANNER */
+.virgin-banner{margin:16px 28px 0;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:12px}
+.vb-icon{font-size:20px}
+.vb-text{font-size:13px;color:var(--text);line-height:1.4}
+.vb-text strong{color:var(--accent)}
+.virgin-banner.hidden{display:none}
+
+/* NO DATA */
+.no-data{text-align:center;padding:60px 20px;color:var(--muted)}
+.no-data h3{font-family:'Syne',sans-serif;font-size:18px;color:var(--dim);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="brand" href="index.html"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+    <a class="nl" href="options_entry_tool_tamil.html">🎯 Buying</a>
+    <a class="nl" href="options_selling_tool_tamil.html">💰 Selling</a>
+    <a class="nl" href="fno_signal.html">🤖 F&amp;O</a>
+    <a class="nl" href="trade_flow.html">🧭 Flow</a>
+    <a class="nl on" href="cpr_monitor.html">📐 CPR</a>
+    <a class="nl" href="reports.html">📋 Reports</a>
+    <a class="nl" href="index.html">⌂ Home</a>
+  </div>
+  <div class="nav-r">
+    <span class="nav-badge" id="lastUpdateBadge">CPR MONITOR</span>
+  </div>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-top">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="hero-title">CPR Monitor</span>
+        <span id="cprTypeBadge" class="cpr-type-badge badge-moderate">LOADING…</span>
+        <span id="virginBadge" class="cpr-type-badge badge-virgin" style="display:none">🔮 VIRGIN CPR</span>
+      </div>
+      <div class="hero-sub" id="heroSub">Fetching CPR levels from previous day OHLC…</div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE BAR -->
+<div class="live-bar">
+  <span class="live-dot"></span>
+  <span class="ltp-display" id="ltpDisplay">—</span>
+  <span id="zonePill" class="zone-pill zone-inside">LOADING</span>
+  <span id="biasPill" class="bias-chip bias-neutral">NEUTRAL</span>
+  <span id="alertCount" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">0 alerts</span>
+  <button class="scan-btn active" id="toggleBtn" onclick="toggleMonitor()">⏸ PAUSE</button>
+</div>
+
+<!-- STAT ROW -->
+<div class="stat-row">
+  <div class="stat-item"><div class="stat-label">PP</div><div class="stat-val" id="statPP">—</div></div>
+  <div class="stat-item"><div class="stat-label">TC</div><div class="stat-val" id="statTC" style="color:var(--green)">—</div></div>
+  <div class="stat-item"><div class="stat-label">BC</div><div class="stat-val" id="statBC" style="color:var(--red)">—</div></div>
+  <div class="stat-item"><div class="stat-label">Width</div><div class="stat-val" id="statWidth">—</div></div>
+  <div class="stat-item"><div class="stat-label">Candles</div><div class="stat-val" id="statCandles">—</div></div>
+  <div class="stat-item"><div class="stat-label">Last Candle</div><div class="stat-val" id="statLastCandle">—</div></div>
+  <div class="stat-item"><div class="stat-label">Date</div><div class="stat-val" id="statDate">—</div></div>
+</div>
+
+<!-- VIRGIN BANNER -->
+<div class="virgin-banner" id="virginBanner">
+  <span class="vb-icon">🔮</span>
+  <div class="vb-text">
+    <strong>Virgin CPR Detected</strong> — Previous day price never touched this CPR zone.
+    First touch is a <strong>high probability reaction zone</strong>. Watch for strong reversal or breakout on contact.
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: LEVELS + SIGNALS -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- PRICE LADDER -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">📐 Price Levels</span>
+        <span class="panel-sub" id="prevDayLabel">Prev Day OHLC</span>
+      </div>
+      <!-- CPR Zone Visual Bar -->
+      <div style="padding:12px 16px 4px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">PRICE POSITION</div>
+        <div class="cpr-zone-bar" id="zoneBar">
+          <div class="czb-fill" id="czFill"></div>
+          <div class="czb-price" id="czPrice"></div>
+          <span class="czb-label" id="czLabel">—</span>
+        </div>
+      </div>
+      <div class="ladder" id="ladder">
+        <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Fetching levels…</div>
+      </div>
+    </div>
+
+    <!-- CAMARILLA -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">📏 Camarilla Levels</span>
+        <span class="panel-sub">H3·H4 / L3·L4</span>
+      </div>
+      <div class="ladder" id="camLadder">
+        <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Calculating…</div>
+      </div>
+    </div>
+
+    <!-- ACTIVE SIGNALS -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">🎯 Active Signals</span>
+        <span class="panel-sub" id="signalTime">—</span>
+      </div>
+      <div class="signals" id="signalsPanel">
+        <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Waiting for data…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: ALERT FEED -->
+  <div class="panel" style="display:flex;flex-direction:column">
+    <div class="panel-head">
+      <span class="panel-title">🔔 Alert Feed</span>
+      <span class="panel-sub">Real-time CPR events</span>
+    </div>
+    <div class="feed-toolbar">
+      <button class="filter-btn on" data-f="all" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" data-f="CPR_BREAKOUT" onclick="setFilter('CPR_BREAKOUT',this)">Breakout</button>
+      <button class="filter-btn" data-f="REVERSAL_CPR" onclick="setFilter('REVERSAL_CPR',this)">Reversal</button>
+      <button class="filter-btn" data-f="VIRGIN_CPR" onclick="setFilter('VIRGIN_CPR',this)">Virgin</button>
+      <button class="filter-btn" data-f="CAMARILLA" onclick="setFilter('CAMARILLA',this)">Camarilla</button>
+      <span class="feed-count" id="feedCount">0 events</span>
+    </div>
+    <div class="feed" id="alertFeed">
+      <div class="empty-feed">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        No alerts yet — monitoring started.<br>
+        <span style="font-size:11px;margin-top:4px;display:block">Events fire when price interacts with CPR or Camarilla levels.</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')))});
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+const API = '/api';
+let _levels     = null;   // { tc, bc, pp, r1..r3, s1..s3, width, cam: {h3,h4,l3,l4} }
+let _prevDay    = null;   // { high, low, close, date }
+let _candles    = [];     // latest 5m candles
+let _processed  = new Set();
+let _allAlerts  = [];
+let _filterType = 'all';
+let _virginCPR  = true;
+let _breakoutDir    = null;   // 'bull' | 'bear'
+let _breakoutIdx    = null;
+let _running    = true;
+let _pollTimer  = null;
+let _scenario   = null;
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+const fmt  = v => v != null ? v.toLocaleString('en-IN', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+const fmtP = v => v != null ? (v >= 0 ? '+' : '') + v.toFixed(2) : '';
+
+function formatTime(epochSec) {
+  const d = new Date(epochSec * 1000);
+  // The candle times from yfinance have an IST offset added already
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  return `${h}:${m}`;
+}
+
+function fmtIST() {
+  return new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ─────────────────────────────────────────────
+// Camarilla computation (prev day OHLC)
+// ─────────────────────────────────────────────
+function calcCamarilla(H, L, C) {
+  const range = H - L;
+  return {
+    h4: round2(C + range * 1.1 / 2),
+    h3: round2(C + range * 1.1 / 4),
+    h2: round2(C + range * 1.1 / 6),
+    h1: round2(C + range * 1.1 / 12),
+    l1: round2(C - range * 1.1 / 12),
+    l2: round2(C - range * 1.1 / 6),
+    l3: round2(C - range * 1.1 / 4),
+    l4: round2(C - range * 1.1 / 2),
+  };
+}
+function round2(v) { return Math.round(v * 100) / 100; }
+
+// ─────────────────────────────────────────────
+// Data fetch
+// ─────────────────────────────────────────────
+async function fetchLevels() {
+  try {
+    const r = await fetch(`${API}/trade-flow`);
+    const d = await r.json();
+    if (!d.cpr || !d.prev_day) return;
+
+    _prevDay  = d.prev_day;
+    _scenario = d.scenario;
+
+    const c = d.cpr;
+    const cam = calcCamarilla(_prevDay.high, _prevDay.low, _prevDay.close);
+
+    _levels = {
+      pp:    c.pp,  tc: c.tc,  bc: c.bc,
+      r1:    c.r1,  r2: c.r2,  r3: c.r3,
+      s1:    c.s1,  s2: c.s2,  s3: c.s3,
+      width: c.width,
+      cam,
+    };
+
+    // CPR type
+    const w = c.width;
+    let typeLabel, typeCls;
+    if (w < 40)       { typeLabel = 'NARROW CPR';   typeCls = 'badge-narrow'; }
+    else if (w <= 80) { typeLabel = 'MODERATE CPR';  typeCls = 'badge-moderate'; }
+    else              { typeLabel = 'WIDE CPR';      typeCls = 'badge-wide'; }
+
+    const ppVsClose = c.pp - _prevDay.close;
+    const biasLabel = ppVsClose > 20 ? 'HIGHER VALUE' : ppVsClose < -20 ? 'LOWER VALUE' : typeLabel;
+
+    const badge = document.getElementById('cprTypeBadge');
+    badge.textContent = biasLabel;
+    badge.className   = `cpr-type-badge ${typeCls}`;
+
+    document.getElementById('heroSub').textContent =
+      `Prev Day: H ${fmt(_prevDay.high)} · L ${fmt(_prevDay.low)} · C ${fmt(_prevDay.close)} · CPR Width ${fmt(w)} pts`;
+
+    document.getElementById('statPP').textContent    = fmt(c.pp);
+    document.getElementById('statTC').textContent    = fmt(c.tc);
+    document.getElementById('statBC').textContent    = fmt(c.bc);
+    document.getElementById('statWidth').textContent = fmt(c.width) + ' pts';
+    document.getElementById('statDate').textContent  = _prevDay.date || '—';
+
+    // Bias pill from scenario
+    updateBiasPill();
+    renderLadder(d.nifty_ltp);
+    renderCamLadder(d.nifty_ltp);
+    renderSignals(d.nifty_ltp);
+
+    // Virgin CPR detection — check if prev day range overlapped CPR
+    // Simple heuristic: if prev day close was well outside CPR, mark virgin
+    const prevClose = _prevDay.close;
+    const outsideCPR = prevClose > c.tc + 10 || prevClose < c.bc - 10;
+    if (outsideCPR && _virginCPR) {
+      document.getElementById('virginBadge').style.display = '';
+      document.getElementById('virginBanner').style.display = 'flex';
+    }
+
+  } catch(e) { console.error('fetchLevels', e); }
+}
+
+async function fetchCandles() {
+  try {
+    const r = await fetch(`${API}/candles`);
+    const d = await r.json();
+    if (!d.candles || !d.candles.length) return;
+    _candles = d.candles;
+
+    const last = _candles[_candles.length - 1];
+    document.getElementById('statCandles').textContent  = d.count;
+    document.getElementById('statLastCandle').textContent = formatTime(last.time);
+    document.getElementById('lastUpdateBadge').textContent = 'UPDATED ' + fmtIST();
+
+    // Update live LTP and zone
+    updateLiveDisplay(last.close);
+
+    if (_levels) {
+      const newAlerts = detectEvents(_candles, _levels);
+      if (newAlerts.length) {
+        _allAlerts = [...newAlerts.reverse(), ..._allAlerts];
+        renderFeed();
+        updateAlertCount();
+      }
+      renderLadder(last.close);
+      renderCamLadder(last.close);
+      renderSignals(last.close);
+    }
+
+    document.getElementById('signalTime').textContent = fmtIST();
+
+  } catch(e) { console.error('fetchCandles', e); }
+}
+
+// ─────────────────────────────────────────────
+// Event Detection Engine
+// ─────────────────────────────────────────────
+function detectEvents(candles, lv) {
+  const events = [];
+  const { tc, bc, pp } = lv;
+  const { h3, h4, l3, l4 } = lv.cam;
+  const CONFIRM_BODY = 0.45;  // candle body must be ≥ 45% of range for breakout
+  const NEAR_LEVEL   = 15;    // pts proximity for retest / camarilla detection
+
+  for (let i = 1; i < candles.length; i++) {
+    const key  = candles[i].time;
+    if (_processed.has(key)) continue;
+
+    const prev = candles[i - 1];
+    const curr = candles[i];
+    const range   = curr.high - curr.low || 1;
+    const body    = Math.abs(curr.close - curr.open);
+    const bodyPct = body / range;
+
+    const prevInsideCPR = prev.close >= bc && prev.close <= tc;
+    const currInsideCPR = curr.close >= bc && curr.close <= tc;
+    const prevAboveTC   = prev.close > tc;
+    const prevBelowBC   = prev.close < bc;
+    const currAboveTC   = curr.close > tc;
+    const currBelowBC   = curr.close < bc;
+
+    // ── Virgin CPR ──────────────────────────────────────────────────────────
+    if (_virginCPR) {
+      const touchesCPR = curr.low <= tc && curr.high >= bc;
+      if (touchesCPR) {
+        _virginCPR = false;
+        document.getElementById('virginBadge').style.display = 'none';
+        document.getElementById('virginBanner').classList.add('hidden');
+        events.push({
+          time: formatTime(curr.time),
+          rawTime: curr.time,
+          type: 'VIRGIN_CPR',
+          price: curr.close,
+          direction: 'Watch',
+          confidence: 'High',
+          reason: `First touch of virgin CPR zone (BC ${fmt(bc)} – TC ${fmt(tc)}) — high probability reaction`
+        });
+      }
+    }
+
+    // ── CPR Breakout ────────────────────────────────────────────────────────
+    if ((prevInsideCPR || prevAboveTC) && currAboveTC && bodyPct >= CONFIRM_BODY && !prevAboveTC) {
+      _breakoutDir = 'bull'; _breakoutIdx = i;
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'CPR_BREAKOUT', price: curr.close, direction: 'Buy',
+        confidence: bodyPct > 0.65 ? 'High' : 'Medium',
+        reason: `Strong close above TC (${fmt(tc)}) — bullish breakout confirmed (body ${Math.round(bodyPct*100)}%)`
+      });
+    } else if ((prevInsideCPR || prevBelowBC) && currBelowBC && bodyPct >= CONFIRM_BODY && !prevBelowBC) {
+      _breakoutDir = 'bear'; _breakoutIdx = i;
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'CPR_BREAKOUT', price: curr.close, direction: 'Sell',
+        confidence: bodyPct > 0.65 ? 'High' : 'Medium',
+        reason: `Strong close below BC (${fmt(bc)}) — bearish breakout confirmed (body ${Math.round(bodyPct*100)}%)`
+      });
+    }
+
+    // ── Breakout Failure ────────────────────────────────────────────────────
+    if (prevAboveTC && (currInsideCPR || currBelowBC)) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Sell',
+        confidence: 'High',
+        reason: `Rejected above TC (${fmt(tc)}) — bull trap, price back inside CPR`
+      });
+      _breakoutDir = null;
+    } else if (prevBelowBC && (currInsideCPR || currAboveTC)) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Buy',
+        confidence: 'High',
+        reason: `Rejected below BC (${fmt(bc)}) — bear trap, price back inside CPR`
+      });
+      _breakoutDir = null;
+    }
+
+    // ── Reversal CPR ────────────────────────────────────────────────────────
+    const cprW = tc - bc;
+    if (prev.close > tc + cprW && currInsideCPR) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'REVERSAL_CPR', price: curr.close, direction: 'Sell',
+        confidence: 'Medium',
+        reason: `Price crossed into CPR from above — possible bullish trend reversal`
+      });
+    } else if (prev.close < bc - cprW && currInsideCPR) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'REVERSAL_CPR', price: curr.close, direction: 'Buy',
+        confidence: 'Medium',
+        reason: `Price crossed into CPR from below — possible bearish trend reversal`
+      });
+    }
+
+    // ── CPR Retest ──────────────────────────────────────────────────────────
+    if (_breakoutDir === 'bull' && _breakoutIdx !== null && i > _breakoutIdx + 1) {
+      const retestTC = curr.low <= tc + NEAR_LEVEL && curr.low >= tc - NEAR_LEVEL && curr.close > tc;
+      if (retestTC) {
+        events.push({
+          time: formatTime(curr.time), rawTime: curr.time,
+          type: 'CPR_RETEST', price: curr.close, direction: 'Buy',
+          confidence: 'High',
+          reason: `Bullish retest of TC (${fmt(tc)}) holding — continuation long setup confirmed`
+        });
+        _breakoutDir = null; _breakoutIdx = null;
+      }
+    } else if (_breakoutDir === 'bear' && _breakoutIdx !== null && i > _breakoutIdx + 1) {
+      const retestBC = curr.high >= bc - NEAR_LEVEL && curr.high <= bc + NEAR_LEVEL && curr.close < bc;
+      if (retestBC) {
+        events.push({
+          time: formatTime(curr.time), rawTime: curr.time,
+          type: 'CPR_RETEST', price: curr.close, direction: 'Sell',
+          confidence: 'High',
+          reason: `Bearish retest of BC (${fmt(bc)}) holding — continuation short setup confirmed`
+        });
+        _breakoutDir = null; _breakoutIdx = null;
+      }
+    }
+
+    // ── Camarilla Levels ────────────────────────────────────────────────────
+    if (curr.low <= l3 + 5 && curr.low >= l3 - NEAR_LEVEL && curr.close > l3) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'CAMARILLA_L3', price: curr.close, direction: 'Buy',
+        confidence: 'Medium',
+        reason: `Bounce off Camarilla L3 (${fmt(l3)}) support — mean reversion long`
+      });
+    } else if (curr.high >= h3 - 5 && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'CAMARILLA_H3', price: curr.close, direction: 'Sell',
+        confidence: 'Medium',
+        reason: `Rejection at Camarilla H3 (${fmt(h3)}) resistance — mean reversion short`
+      });
+    } else if (curr.close > h4) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'CAMARILLA_H4_BREAK', price: curr.close, direction: 'Buy',
+        confidence: 'High',
+        reason: `Breakout above Camarilla H4 (${fmt(h4)}) — strong trend continuation long`
+      });
+    } else if (curr.close < l4) {
+      events.push({
+        time: formatTime(curr.time), rawTime: curr.time,
+        type: 'CAMARILLA_L4_BREAK', price: curr.close, direction: 'Sell',
+        confidence: 'High',
+        reason: `Breakdown below Camarilla L4 (${fmt(l4)}) — strong trend continuation short`
+      });
+    }
+
+    _processed.add(key);
+  }
+
+  return events;
+}
+
+// ─────────────────────────────────────────────
+// Render: Live Display
+// ─────────────────────────────────────────────
+function updateLiveDisplay(price) {
+  if (!price) return;
+  document.getElementById('ltpDisplay').textContent = fmt(price);
+
+  if (!_levels) return;
+  const { tc, bc } = _levels;
+  const pill = document.getElementById('zonePill');
+
+  if (price > tc) {
+    pill.textContent = '▲ ABOVE TC'; pill.className = 'zone-pill zone-above';
+  } else if (price < bc) {
+    pill.textContent = '▼ BELOW BC'; pill.className = 'zone-pill zone-below';
+  } else {
+    pill.textContent = '◆ INSIDE CPR'; pill.className = 'zone-pill zone-inside';
+  }
+
+  updateBiasPill();
+  updateZoneBar(price);
+}
+
+function updateBiasPill() {
+  const pill = document.getElementById('biasPill');
+  if (_scenario === 'bull' || _scenario === 'conditional_bull') {
+    pill.textContent = '▲ BULL BIAS'; pill.className = 'bias-chip bias-bull';
+  } else if (_scenario === 'bear' || _scenario === 'conditional_bear') {
+    pill.textContent = '▼ BEAR BIAS'; pill.className = 'bias-chip bias-bear';
+  } else {
+    pill.textContent = 'NEUTRAL'; pill.className = 'bias-chip bias-neutral';
+  }
+  // Override with CPR value bias
+  if (_levels && _prevDay) {
+    const ppVsClose = _levels.pp - _prevDay.close;
+    if (ppVsClose > 20)       { pill.textContent = '▲ HIGHER VALUE'; pill.className = 'bias-chip bias-bull'; }
+    else if (ppVsClose < -20) { pill.textContent = '▼ LOWER VALUE';  pill.className = 'bias-chip bias-bear'; }
+  }
+}
+
+function updateZoneBar(price) {
+  if (!_levels) return;
+  const { tc, bc, r2, s2 } = _levels;
+  const rangeHigh = r2 || (tc + 200);
+  const rangeLow  = s2 || (bc - 200);
+  const total = rangeHigh - rangeLow;
+  if (total <= 0) return;
+
+  const pct = Math.max(0, Math.min(1, (price - rangeLow) / total));
+  const bcPct = Math.max(0, Math.min(1, (bc - rangeLow) / total));
+  const tcPct = Math.max(0, Math.min(1, (tc - rangeLow) / total));
+
+  const fill  = document.getElementById('czFill');
+  const priceEl = document.getElementById('czPrice');
+  const label = document.getElementById('czLabel');
+
+  fill.style.left  = (bcPct * 100) + '%';
+  fill.style.width = ((tcPct - bcPct) * 100) + '%';
+  priceEl.style.left = (pct * 100) + '%';
+
+  const dist = price > tc ? `+${(price - tc).toFixed(0)} from TC`
+             : price < bc ? `-${(bc - price).toFixed(0)} from BC`
+             : `Inside CPR`;
+  label.textContent = dist;
+}
+
+// ─────────────────────────────────────────────
+// Render: Price Ladder
+// ─────────────────────────────────────────────
+function renderLadder(ltp) {
+  if (!_levels) return;
+  const { tc, bc, pp, r1, r2, r3, s1, s2, s3 } = _levels;
+
+  const rows = [
+    { name:'R3', val:r3, cls:'bull' },
+    { name:'R2', val:r2, cls:'bull' },
+    { name:'R1', val:r1, cls:'bull' },
+    { name:'TC',  val:tc,  cls:'cpr',  zone:true },
+    { name:'PP',  val:pp,  cls:'cpr',  zone:true },
+    { name:'BC',  val:bc,  cls:'cpr',  zone:true },
+    { name:'S1',  val:s1,  cls:'bear' },
+    { name:'S2',  val:s2,  cls:'bear' },
+    { name:'S3',  val:s3,  cls:'bear' },
+  ];
+
+  const allVals = rows.map(r=>r.val).filter(Boolean);
+  const high = Math.max(...allVals);
+  const low  = Math.min(...allVals);
+  const range = high - low || 1;
+
+  let html = '';
+  rows.forEach(r => {
+    if (!r.val) return;
+    const barW = Math.round((r.val - low) / range * 100);
+    const dist = ltp ? (r.val - ltp) : null;
+    const distCls = dist ? (dist > 0 ? (dist < 30 ? 'close-bull' : '') : (dist > -30 ? 'close-bear' : '')) : '';
+    const isHere = ltp && Math.abs(ltp - r.val) < 8;
+    const inZone = r.zone;
+    let barColor = r.cls === 'bull' ? 'var(--green)' : r.cls === 'bear' ? 'var(--red)' : 'var(--yellow)';
+
+    html += `<div class="ladder-row ${isHere ? 'price-here' : ''} ${inZone ? 'active-zone' : ''}">
+      <span class="lr-name ${r.cls}">${r.name}</span>
+      <span class="lr-val">${fmt(r.val)}</span>
+      <div class="lr-bar"><div class="lr-bar-fill" style="width:${barW}%;background:${barColor};opacity:.6"></div></div>
+      <span class="lr-dist ${distCls}">${dist != null ? fmtP(dist) : ''}</span>
+    </div>`;
+
+    if (r.name === 'R1') html += '<div class="divider"></div>';
+    if (r.name === 'BC') html += '<div class="divider"></div>';
+  });
+
+  document.getElementById('ladder').innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+// Render: Camarilla Ladder
+// ─────────────────────────────────────────────
+function renderCamLadder(ltp) {
+  if (!_levels) return;
+  const { h4, h3, h2, h1, l1, l2, l3, l4 } = _levels.cam;
+
+  const rows = [
+    { name:'H4', val:h4, cls:'bull', note:'breakout' },
+    { name:'H3', val:h3, cls:'bull', note:'sell' },
+    { name:'H2', val:h2, cls:'bull', note:'' },
+    { name:'H1', val:h1, cls:'bull', note:'' },
+    { name:'L1', val:l1, cls:'bear', note:'' },
+    { name:'L2', val:l2, cls:'bear', note:'' },
+    { name:'L3', val:l3, cls:'bear', note:'buy' },
+    { name:'L4', val:l4, cls:'bear', note:'breakout' },
+  ];
+
+  const allVals = rows.map(r=>r.val);
+  const high = Math.max(...allVals), low = Math.min(...allVals);
+  const range = high - low || 1;
+
+  let html = '';
+  rows.forEach(r => {
+    const barW = Math.round((r.val - low) / range * 100);
+    const dist = ltp ? (r.val - ltp) : null;
+    const distCls = dist ? (dist > 0 ? (dist < 30 ? 'close-bull':'') : (dist > -30 ? 'close-bear':'')) : '';
+    const isHere = ltp && Math.abs(ltp - r.val) < 8;
+    const barColor = r.cls === 'bull' ? 'var(--blue)' : 'var(--accent)';
+
+    html += `<div class="ladder-row ${isHere ? 'price-here' : ''}">
+      <span class="lr-name cam">${r.name}</span>
+      <span class="lr-val">${fmt(r.val)}</span>
+      <div class="lr-bar"><div class="lr-bar-fill" style="width:${barW}%;background:${barColor};opacity:.55"></div></div>
+      <span class="lr-dist ${distCls}">${dist != null ? fmtP(dist) : ''}</span>
+    </div>`;
+    if (r.name === 'H1') html += '<div class="divider"></div>';
+  });
+
+  document.getElementById('camLadder').innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+// Render: Signals Panel
+// ─────────────────────────────────────────────
+function renderSignals(ltp) {
+  if (!_levels || !ltp) return;
+  const { tc, bc, pp, cam } = _levels;
+  const { h3, h4, l3, l4 } = cam;
+
+  const nearBC  = Math.abs(ltp - bc) < 20;
+  const nearTC  = Math.abs(ltp - tc) < 20;
+  const nearL3  = Math.abs(ltp - l3) < 15;
+  const nearH3  = Math.abs(ltp - h3) < 15;
+  const above   = ltp > tc;
+  const below   = ltp < bc;
+  const inside  = ltp >= bc && ltp <= tc;
+
+  let html = '';
+
+  // Mean Reversion
+  const mrStatus = inside
+    ? (nearBC ? 'BUY ZONE' : nearTC ? 'SELL ZONE' : 'WAIT')
+    : 'INACTIVE';
+  const mrCls = mrStatus === 'BUY ZONE' ? 'conf-high' : mrStatus === 'SELL ZONE' ? 'conf-low' : 'conf-med';
+  const mrColor = mrStatus === 'BUY ZONE' ? 'var(--green)' : mrStatus === 'SELL ZONE' ? 'var(--red)' : 'var(--muted)';
+  html += `<div class="sig-card">
+    <div class="sig-head">
+      <span class="sig-name">↕ Mean Reversion (CPR)</span>
+      <span class="sig-status ${mrCls}">${mrStatus}</span>
+    </div>
+    <div class="sig-body" style="color:${mrColor}">
+      ${inside
+        ? (nearBC ? `Price near BC (${fmt(bc)}) — Buy opportunity with tight SL below BC`
+          : nearTC ? `Price near TC (${fmt(tc)}) — Sell opportunity with tight SL above TC`
+          : `Price inside CPR — wait for edge (BC ${fmt(bc)} · TC ${fmt(tc)})`)
+        : `Price outside CPR — mean reversion not active`}
+    </div>
+    <div class="sig-levels">
+      <span class="sig-lv">Buy: ${fmt(bc)}</span>
+      <span class="sig-lv">PP: ${fmt(pp)}</span>
+      <span class="sig-lv">Sell: ${fmt(tc)}</span>
+    </div>
+  </div>`;
+
+  // Camarilla
+  const camStatus = nearL3 ? 'L3 SUPPORT' : nearH3 ? 'H3 RESIST' : ltp > h4 ? 'H4 BREAK' : ltp < l4 ? 'L4 BREAK' : 'WATCHING';
+  const camCls = (camStatus === 'L3 SUPPORT' || camStatus === 'H4 BREAK') ? 'conf-high'
+               : (camStatus === 'H3 RESIST' || camStatus === 'L4 BREAK')  ? 'conf-low' : 'conf-med';
+  const camMsg = camStatus === 'L3 SUPPORT' ? `Near L3 (${fmt(l3)}) — buy with SL below L4`
+               : camStatus === 'H3 RESIST'  ? `Near H3 (${fmt(h3)}) — sell with SL above H4`
+               : camStatus === 'H4 BREAK'   ? `Above H4 (${fmt(h4)}) — breakout long signal`
+               : camStatus === 'L4 BREAK'   ? `Below L4 (${fmt(l4)}) — breakdown short signal`
+               : 'No Camarilla signal active';
+  html += `<div class="sig-card">
+    <div class="sig-head">
+      <span class="sig-name">📏 Camarilla Strategy</span>
+      <span class="sig-status ${camCls}">${camStatus}</span>
+    </div>
+    <div class="sig-body">${camMsg}</div>
+    <div class="sig-levels">
+      <span class="sig-lv" style="color:var(--red)">H3: ${fmt(h3)}</span>
+      <span class="sig-lv" style="color:var(--red)">H4: ${fmt(h4)}</span>
+      <span class="sig-lv" style="color:var(--green)">L3: ${fmt(l3)}</span>
+      <span class="sig-lv" style="color:var(--green)">L4: ${fmt(l4)}</span>
+    </div>
+  </div>`;
+
+  // Trend Bias
+  const ppVsClose = _prevDay ? (_levels.pp - _prevDay.close) : 0;
+  const biasDir  = ppVsClose > 20 ? 'Higher Value — Bullish Bias'
+                 : ppVsClose < -20 ? 'Lower Value — Bearish Bias' : 'Neutral Value';
+  const biasTip  = above ? `Price above TC — momentum is bullish. Watch for pullback to TC as support.`
+                 : below ? `Price below BC — momentum is bearish. Watch for rally to BC as resistance.`
+                 : `Price inside CPR — range-bound. Breakout direction will set the day's trend.`;
+  const biasCls  = above ? 'conf-high' : below ? 'conf-low' : 'conf-med';
+  html += `<div class="sig-card">
+    <div class="sig-head">
+      <span class="sig-name">📈 Trend Bias</span>
+      <span class="sig-status ${biasCls}">${biasDir}</span>
+    </div>
+    <div class="sig-body">${biasTip}</div>
+  </div>`;
+
+  document.getElementById('signalsPanel').innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+// Render: Alert Feed
+// ─────────────────────────────────────────────
+const TYPE_LABELS = {
+  VIRGIN_CPR:         '🔮 VIRGIN CPR',
+  CPR_BREAKOUT:       '🚀 CPR BREAKOUT',
+  REVERSAL_CPR:       '🔄 REVERSAL CPR',
+  BREAKOUT_FAILURE:   '⚠ BREAKOUT FAILURE',
+  CPR_RETEST:         '✅ CPR RETEST',
+  CAMARILLA_L3:       '📏 CAMARILLA L3',
+  CAMARILLA_H3:       '📏 CAMARILLA H3',
+  CAMARILLA_H4_BREAK: '💥 CAMARILLA H4',
+  CAMARILLA_L4_BREAK: '💥 CAMARILLA L4',
+};
+
+function renderFeed() {
+  const feed = document.getElementById('alertFeed');
+  const filtered = _filterType === 'all'
+    ? _allAlerts
+    : _filterType === 'CAMARILLA'
+    ? _allAlerts.filter(a => a.type.startsWith('CAMARILLA'))
+    : _allAlerts.filter(a => a.type === _filterType);
+
+  document.getElementById('feedCount').textContent = `${filtered.length} event${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) {
+    feed.innerHTML = `<div class="empty-feed">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      No ${_filterType !== 'all' ? _filterType.replace(/_/g,' ') : ''} alerts yet.</div>`;
+    return;
+  }
+
+  feed.innerHTML = filtered.map(a => {
+    const dirCls  = a.direction === 'Buy' ? 'dir-buy' : a.direction === 'Sell' ? 'dir-sell' : 'dir-buy';
+    const confCls = a.confidence === 'High' ? 'conf-high' : a.confidence === 'Medium' ? 'conf-med' : 'conf-low';
+    return `<div class="alert-item type-${a.type}">
+      <div class="ai-time">${a.time}</div>
+      <div class="ai-body">
+        <div class="ai-top">
+          <span class="ai-type">${TYPE_LABELS[a.type] || a.type}</span>
+          <span class="ai-dir ${dirCls}">${a.direction}</span>
+          <span class="ai-conf ${confCls}">${a.confidence.toUpperCase()}</span>
+        </div>
+        <div class="ai-reason">${a.reason}</div>
+      </div>
+      <div class="ai-price">${fmt(a.price)}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateAlertCount() {
+  document.getElementById('alertCount').textContent = `${_allAlerts.length} alert${_allAlerts.length !== 1 ? 's' : ''}`;
+}
+
+// ─────────────────────────────────────────────
+// Filter
+// ─────────────────────────────────────────────
+function setFilter(type, btn) {
+  _filterType = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderFeed();
+}
+
+// ─────────────────────────────────────────────
+// Monitor control
+// ─────────────────────────────────────────────
+function toggleMonitor() {
+  _running = !_running;
+  const btn = document.getElementById('toggleBtn');
+  if (_running) {
+    btn.textContent = '⏸ PAUSE'; btn.className = 'scan-btn active';
+    startPoll();
+  } else {
+    btn.textContent = '▶ RESUME'; btn.className = 'scan-btn';
+    clearTimeout(_pollTimer);
+  }
+}
+
+function startPoll() {
+  if (!_running) return;
+  fetchCandles();
+  _pollTimer = setTimeout(startPoll, 30000);  // every 30s
+}
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
+async function init() {
+  await fetchLevels();
+  await fetchCandles();
+  startPoll();
+  // Refresh levels every 5 min (CPR doesn't change but gets scenario/LTP update)
+  setInterval(fetchLevels, 300000);
+}
+
+init();
+</script>
+</body>
+</html>
