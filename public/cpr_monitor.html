@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CPR Monitor | TradeZen</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{
   --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
@@ -160,6 +161,14 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .vb-text strong{color:var(--accent)}
 .virgin-banner.hidden{display:none}
 
+/* CHART */
+.chart-section{max-width:1400px;margin:16px auto 0;padding:0 20px}
+.chart-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.chart-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:10px;align-items:center}
+#cprChart{width:100%;height:340px}
+
 /* NO DATA */
 .no-data{text-align:center;padding:60px 20px;color:var(--muted)}
 .no-data h3{font-family:'Syne',sans-serif;font-size:18px;color:var(--dim);margin-bottom:8px}
@@ -180,7 +189,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
     <a class="nl" href="reports.html">📋 Reports</a>
     <a class="nl" href="index.html">⌂ Home</a>
   </div>
-  <div class="nav-r">
+  <div class="nav-r" style="display:flex;align-items:center;gap:10px">
+    <a href="cpr_tutorial.html" target="_blank" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;text-decoration:none">? How to Use</a>
     <span class="nav-badge" id="lastUpdateBadge">CPR MONITOR</span>
   </div>
   <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -227,6 +237,20 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
   <div class="vb-text">
     <strong>Virgin CPR Detected</strong> — Previous day price never touched this CPR zone.
     First touch is a <strong>high probability reaction zone</strong>. Watch for strong reversal or breakout on contact.
+  </div>
+</div>
+
+<!-- CHART -->
+<div class="chart-section">
+  <div class="chart-card">
+    <div class="chart-head">
+      <span class="chart-title">📈 5-Min Chart with CPR Levels & Alert Markers</span>
+      <div class="chart-legend" id="chartLegend">
+        <span style="color:var(--muted)">Loading…</span>
+      </div>
+      <span id="chartAsOf" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)"></span>
+    </div>
+    <div id="cprChart"></div>
   </div>
 </div>
 
@@ -308,6 +332,12 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 <script>
 function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
 document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')))});
+
+// ─────────────────────────────────────────────
+// Chart state
+// ─────────────────────────────────────────────
+let _chart       = null;
+let _candleSerie = null;
 
 // ─────────────────────────────────────────────
 // State
@@ -413,6 +443,7 @@ async function fetchLevels() {
     renderLadder(d.nifty_ltp);
     renderCamLadder(d.nifty_ltp);
     renderSignals(d.nifty_ltp);
+    if (_chart) drawChartLines();
 
     // Virgin CPR detection — check if prev day range overlapped CPR
     // Simple heuristic: if prev day close was well outside CPR, mark virgin
@@ -447,10 +478,18 @@ async function fetchCandles() {
         _allAlerts = [...newAlerts.reverse(), ..._allAlerts];
         renderFeed();
         updateAlertCount();
+        updateChartMarkers();
       }
       renderLadder(last.close);
       renderCamLadder(last.close);
       renderSignals(last.close);
+
+      // Init chart on first load; update candle data on refresh
+      if (!_chart) {
+        initChart(_candles);
+      } else {
+        _candleSerie.setData(_candles);
+      }
     }
 
     document.getElementById('signalTime').textContent = fmtIST();
@@ -946,6 +985,130 @@ function startPoll() {
   if (!_running) return;
   fetchCandles();
   _pollTimer = setTimeout(startPoll, 30000);  // every 30s
+}
+
+// ─────────────────────────────────────────────
+// Chart
+// ─────────────────────────────────────────────
+function initChart(candles) {
+  const container = document.getElementById('cprChart');
+  if (!container || typeof LightweightCharts === 'undefined') return;
+
+  if (_chart) { _chart.remove(); _chart = null; _candleSerie = null; }
+
+  _chart = LightweightCharts.createChart(container, {
+    layout:          { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid:            { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#252a44' },
+    timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    width:  container.clientWidth,
+    height: 340,
+  });
+
+  _candleSerie = _chart.addCandlestickSeries({
+    upColor:        '#2ecc71', downColor:        '#e74c3c',
+    borderUpColor:  '#2ecc71', borderDownColor:  '#e74c3c',
+    wickUpColor:    '#2ecc71', wickDownColor:    '#e74c3c',
+  });
+  _candleSerie.setData(candles);
+
+  drawChartLines();
+  updateChartMarkers();
+
+  _chart.timeScale().fitContent();
+  document.getElementById('chartAsOf').textContent = `${candles.length} candles`;
+
+  window.addEventListener('resize', () => {
+    if (_chart) _chart.applyOptions({ width: container.clientWidth });
+  });
+}
+
+function drawChartLines() {
+  if (!_candleSerie || !_levels) return;
+  const { tc, bc, pp, r1, r2, r3, s1, s2, s3, cam } = _levels;
+  const LS = LightweightCharts.LineStyle;
+  const legend = [];
+
+  function pl(price, color, title, style, width) {
+    if (price == null) return;
+    _candleSerie.createPriceLine({ price, color, lineWidth: width || 1, lineStyle: style, axisLabelVisible: true, title });
+    legend.push({ color, title, price });
+  }
+
+  // CPR levels
+  pl(r3, '#00bcd4', 'R3', LS.Dotted,  1);
+  pl(r2, '#27ae60', 'R2', LS.Dashed,  1);
+  pl(r1, '#2ecc71', 'R1', LS.Dashed,  1);
+  pl(tc,  '#2ecc71', 'TC', LS.Solid,   2);
+  pl(pp,  '#f5a623', 'PP', LS.Solid,   2);
+  pl(bc,  '#e74c3c', 'BC', LS.Solid,   2);
+  pl(s1,  '#e74c3c', 'S1', LS.Dashed,  1);
+  pl(s2,  '#c0392b', 'S2', LS.Dashed,  1);
+  pl(s3,  '#922b21', 'S3', LS.Dotted,  1);
+
+  // Camarilla
+  if (cam) {
+    pl(cam.h4, 'rgba(91,138,245,0.7)',  'H4', LS.LargeDashed, 1);
+    pl(cam.h3, 'rgba(91,138,245,0.5)',  'H3', LS.Dashed,      1);
+    pl(cam.l3, 'rgba(124,106,247,0.5)', 'L3', LS.Dashed,      1);
+    pl(cam.l4, 'rgba(124,106,247,0.7)', 'L4', LS.LargeDashed, 1);
+  }
+
+  document.getElementById('chartLegend').innerHTML = [
+    { color:'#2ecc71', title:'TC', price:tc },
+    { color:'#f5a623', title:'PP', price:pp },
+    { color:'#e74c3c', title:'BC', price:bc },
+    ...(cam ? [
+      { color:'rgba(91,138,245,0.9)',  title:'H3', price:cam.h3 },
+      { color:'rgba(124,106,247,0.9)', title:'L3', price:cam.l3 },
+    ] : []),
+  ].map(l => `<span style="display:inline-flex;align-items:center;gap:4px">
+    <span style="width:14px;height:2px;background:${l.color};display:inline-block;border-radius:1px"></span>
+    <span style="color:${l.color};font-weight:700">${l.title}</span>
+    <span style="color:var(--muted)">${l.price ? l.price.toFixed(0) : ''}</span>
+  </span>`).join('');
+}
+
+function updateChartMarkers() {
+  if (!_candleSerie || !_allAlerts.length) return;
+
+  const MARKER_COLORS = {
+    VIRGIN_CPR:         '#7c6af7',
+    CPR_BREAKOUT:       '#00d4ff',
+    REVERSAL_CPR:       '#f5a623',
+    BREAKOUT_FAILURE:   '#e74c3c',
+    CPR_RETEST:         '#2ecc71',
+    CAMARILLA_L3:       '#2ecc71',
+    CAMARILLA_H3:       '#e74c3c',
+    CAMARILLA_H4_BREAK: '#5b8af5',
+    CAMARILLA_L4_BREAK: '#7c6af7',
+  };
+  const MARKER_LABELS = {
+    VIRGIN_CPR:         '🔮',
+    CPR_BREAKOUT:       '🚀',
+    REVERSAL_CPR:       '🔄',
+    BREAKOUT_FAILURE:   '⚠',
+    CPR_RETEST:         '✅',
+    CAMARILLA_L3:       'L3',
+    CAMARILLA_H3:       'H3',
+    CAMARILLA_H4_BREAK: 'H4',
+    CAMARILLA_L4_BREAK: 'L4',
+  };
+
+  const markers = [..._allAlerts]
+    .filter(a => a.rawTime)
+    .sort((a, b) => a.rawTime - b.rawTime)
+    .map(a => ({
+      time:     a.rawTime,
+      position: a.direction === 'Buy' || a.direction === 'Watch' ? 'belowBar' : 'aboveBar',
+      color:    MARKER_COLORS[a.type] || '#9ba3bf',
+      shape:    a.direction === 'Buy' || a.direction === 'Watch' ? 'arrowUp' : 'arrowDown',
+      text:     MARKER_LABELS[a.type] || a.type,
+      size:     1,
+    }));
+
+  _candleSerie.setMarkers(markers);
 }
 
 // ─────────────────────────────────────────────

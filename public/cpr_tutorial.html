@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPR Monitor — How to Use | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+
+.page{max-width:920px;margin:0 auto;padding:40px 24px 80px}
+
+/* HERO */
+.hero{text-align:center;padding:48px 0 40px;border-bottom:1px solid var(--border);margin-bottom:44px}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--cyan);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--yellow),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--dim);font-size:15px;max-width:600px;margin:0 auto 24px;line-height:1.7}
+.cta-btn{display:inline-block;padding:10px 28px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;color:#fff;font-weight:600;font-size:14px;text-decoration:none}
+.cta-btn:hover{opacity:.85}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px 28px;margin-bottom:44px}
+.toc h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.toc ol{padding-left:18px;display:grid;grid-template-columns:1fr 1fr;gap:6px 32px}
+@media(max-width:600px){.toc ol{grid-template-columns:1fr}}
+.toc li{font-size:13px}
+.toc a{color:var(--accent);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+/* SECTION */
+.section{margin-bottom:52px}
+.sec-anchor{display:block;height:72px;margin-top:-72px;visibility:hidden}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.75;margin-bottom:12px}
+.section p strong{color:var(--text)}
+
+/* STEP CARDS */
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.step-row{display:flex;gap:16px;align-items:flex-start;padding:18px 20px;border-bottom:1px solid var(--border)}
+.step-row:last-child{border-bottom:none}
+.sn{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}
+.sb p{font-size:13px;color:var(--dim);line-height:1.65;margin:0}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.55}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.02)}
+
+/* CPR VISUAL DIAGRAM */
+.cpr-diagram{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;position:relative}
+.cpr-price-bar{position:relative;height:200px;display:flex;align-items:center;justify-content:flex-start;gap:0}
+.cpb-axis{width:60px;display:flex;flex-direction:column;justify-content:space-between;height:100%;text-align:right;padding-right:10px;font-size:10px;color:var(--muted)}
+.cpb-chart{flex:1;position:relative;height:100%;border-left:1px solid var(--border2)}
+.cpb-line{position:absolute;left:0;right:0;height:2px;display:flex;align-items:center}
+.cpb-label{position:absolute;right:8px;font-size:10px;font-weight:700;white-space:nowrap}
+.cpb-price-dot{position:absolute;width:10px;height:10px;border-radius:50%;left:20px;transform:translateY(-50%)}
+.cpr-zone{position:absolute;left:0;right:0;opacity:.15;border:1px dashed rgba(245,166,35,0.5)}
+
+/* ALERT EXAMPLES */
+.alert-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:640px){.alert-grid{grid-template-columns:1fr}}
+.ae-card{border-radius:var(--r);border:1px solid var(--border);padding:16px 18px;background:var(--bg2)}
+.ae-icon{font-size:24px;margin-bottom:8px}
+.ae-title{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
+.ae-body{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:8px}
+.ae-signal{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;display:inline-block;font-weight:600}
+.sig-buy{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.sig-sell{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.sig-watch{background:rgba(124,106,247,0.1);color:var(--accent);border:1px solid rgba(124,106,247,0.3)}
+
+/* CPR TYPE CARDS */
+.type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:680px){.type-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:400px){.type-grid{grid-template-columns:1fr}}
+.tc-card{border-radius:var(--r);padding:16px;border:1px solid var(--border);background:var(--bg2)}
+.tc-icon{font-size:20px;margin-bottom:6px}
+.tc-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;margin-bottom:4px}
+.tc-body{font-size:12px;color:var(--dim);line-height:1.55}
+.tc-badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:4px;margin-top:8px;display:inline-block;letter-spacing:.5px}
+
+/* CANDLE DIAGRAM */
+.candle-diag{display:flex;gap:20px;align-items:flex-end;padding:20px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);margin:14px 0;justify-content:center}
+.cnd{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)}
+.cnd-wick{width:2px;background:currentColor;border-radius:1px}
+.cnd-body{width:12px;border-radius:2px}
+.cnd-label{margin-top:4px;font-size:9px}
+
+/* INFO BOXES */
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:14px 0}
+.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}
+.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}
+.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}
+.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}
+.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.65}
+.info-box p strong{color:var(--text)}
+
+/* STRATEGY CARDS */
+.strat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:680px){.strat-grid{grid-template-columns:1fr}}
+.strat-card{border-radius:var(--r);padding:18px;border:1px solid var(--border);background:var(--bg2)}
+.strat-icon{font-size:24px;margin-bottom:8px}
+.strat-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:6px}
+.strat-body{font-size:12px;color:var(--dim);line-height:1.6}
+.strat-entry{margin-top:10px;padding:8px 10px;background:var(--bg3);border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:10px}
+.strat-entry div{color:var(--muted);margin-bottom:2px}
+.strat-entry span{color:var(--text);font-weight:600}
+
+/* NOISE RULES */
+.rules{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.rule{display:flex;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2)}
+.rule-icon{font-size:14px;flex-shrink:0}
+.rule p{font-size:13px;color:var(--dim);margin:0;line-height:1.55}
+.rule p strong{color:var(--text)}
+
+/* PAGE NAV */
+.page-nav{display:flex;justify-content:space-between;margin-top:52px;padding-top:24px;border-top:1px solid var(--border)}
+.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.pn-btn:hover{background:var(--bg3);color:var(--text)}
+
+hr{border:none;border-top:1px solid var(--border);margin:40px 0}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+    <a class="nl on" href="/cpr_monitor.html">📐 CPR</a>
+    <a class="nl" href="/market_profile.html">📊 Profile</a>
+  </div>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="page">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">📐 CPR Monitor — How to Use</div>
+  <h1>Master <em>CPR-Based</em><br>Intraday Trading</h1>
+  <p>Central Pivot Range (CPR) is one of the most reliable intraday tools for Nifty 50.
+  This guide explains every concept behind the CPR Monitor — from level calculation to live alerts.</p>
+  <a href="/cpr_monitor.html" class="cta-btn">Open CPR Monitor →</a>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#s1">What is CPR?</a></li>
+    <li><a href="#s2">How Levels Are Calculated</a></li>
+    <li><a href="#s3">CPR Types Explained</a></li>
+    <li><a href="#s4">Virgin CPR</a></li>
+    <li><a href="#s5">Alert Types &amp; Triggers</a></li>
+    <li><a href="#s6">Camarilla Levels</a></li>
+    <li><a href="#s7">Three Strategies</a></li>
+    <li><a href="#s8">Noise Filtering Rules</a></li>
+    <li><a href="#s9">Reading the Chart</a></li>
+    <li><a href="#s10">Quick Reference</a></li>
+  </ol>
+</div>
+
+<!-- S1: WHAT IS CPR -->
+<div class="section">
+  <a class="sec-anchor" id="s1"></a>
+  <div class="sec-head">
+    <div class="sec-num">1</div>
+    <h2>What is CPR?</h2>
+  </div>
+  <p>
+    <strong>Central Pivot Range (CPR)</strong> is a set of three price levels calculated from the previous day's High, Low, and Close.
+    Unlike a single pivot point, CPR gives you a <em>zone</em> — a range of price where the market tends to react.
+  </p>
+  <p>
+    The three levels are <strong>TC (Top Central)</strong>, <strong>PP (Pivot Point)</strong>, and <strong>BC (Bottom Central)</strong>.
+    When price opens above TC, the market bias is bullish. When it opens below BC, bias is bearish.
+  </p>
+  <div class="cpr-diagram">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:12px;font-family:'JetBrains Mono',monospace;letter-spacing:1px">PRICE LADDER — TYPICAL CPR DAY</div>
+    <div style="display:flex;flex-direction:column;gap:0;position:relative">
+      <!-- R levels -->
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px dashed rgba(0,188,212,0.25)">
+        <span style="font-weight:700;color:#00bcd4;width:36px">R3</span>
+        <div style="flex:1;height:1px;background:rgba(0,188,212,0.35);border-style:dotted"></div>
+        <span style="font-size:10px;color:var(--muted)">Strong resistance</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px dashed rgba(46,204,113,0.25)">
+        <span style="font-weight:700;color:#27ae60;width:36px">R2</span>
+        <div style="flex:1;height:1px;background:rgba(46,204,113,0.35)"></div>
+        <span style="font-size:10px;color:var(--muted)">Resistance</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px dashed rgba(46,204,113,0.4)">
+        <span style="font-weight:700;color:#2ecc71;width:36px">R1</span>
+        <div style="flex:1;height:1px;background:rgba(46,204,113,0.5)"></div>
+        <span style="font-size:10px;color:var(--muted)">First resistance</span>
+      </div>
+      <!-- CPR ZONE -->
+      <div style="background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.3);border-radius:6px;margin:4px 0;padding:4px 0">
+        <div style="display:flex;align-items:center;gap:12px;padding:5px 8px">
+          <span style="font-weight:700;color:#2ecc71;width:36px">TC</span>
+          <div style="flex:1;height:2px;background:var(--green);border-radius:1px"></div>
+          <span style="font-size:10px;color:var(--yellow)">Top of CPR zone</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:5px 8px">
+          <span style="font-weight:700;color:#f5a623;width:36px">PP</span>
+          <div style="flex:1;height:2px;background:var(--yellow);border-radius:1px"></div>
+          <span style="font-size:10px;color:var(--yellow)">Pivot — neutral zone</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:5px 8px">
+          <span style="font-weight:700;color:#e74c3c;width:36px">BC</span>
+          <div style="flex:1;height:2px;background:var(--red);border-radius:1px"></div>
+          <span style="font-size:10px;color:var(--yellow)">Bottom of CPR zone</span>
+        </div>
+      </div>
+      <!-- S levels -->
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px dashed rgba(231,76,60,0.4)">
+        <span style="font-weight:700;color:#e74c3c;width:36px">S1</span>
+        <div style="flex:1;height:1px;background:rgba(231,76,60,0.5)"></div>
+        <span style="font-size:10px;color:var(--muted)">First support</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px dashed rgba(192,57,43,0.35)">
+        <span style="font-weight:700;color:#c0392b;width:36px">S2</span>
+        <div style="flex:1;height:1px;background:rgba(192,57,43,0.4)"></div>
+        <span style="font-size:10px;color:var(--muted)">Support</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0">
+        <span style="font-weight:700;color:#922b21;width:36px">S3</span>
+        <div style="flex:1;height:1px;background:rgba(146,43,33,0.4);border-style:dotted"></div>
+        <span style="font-size:10px;color:var(--muted)">Strong support</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S2: CALCULATION -->
+<div class="section">
+  <a class="sec-anchor" id="s2"></a>
+  <div class="sec-head"><div class="sec-num">2</div><h2>How Levels Are Calculated</h2></div>
+  <p>All levels come from the <strong>previous trading day's High (H), Low (L), and Close (C)</strong>. They are fixed for the entire trading day and never change intraday.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Pivot Point (PP)</div>
+        <p><code style="color:var(--cyan)">PP = (H + L + C) / 3</code><br>The central anchor. Price above PP = bullish, below PP = bearish.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Bottom Central (BC) and Top Central (TC)</div>
+        <p><code style="color:var(--yellow)">BC = (H + L) / 2 &nbsp;&nbsp; TC = (2 × PP) − BC</code><br>BC and TC form the CPR zone. <strong>TC is always the higher level</strong>, BC the lower.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Support & Resistance (R1–R3, S1–S3)</div>
+        <p><code style="color:var(--green)">R1 = 2×PP − L &nbsp; R2 = PP + (H−L) &nbsp; R3 = H + 2×(PP−L)</code><br>
+        <code style="color:var(--red)">S1 = 2×PP − H &nbsp; S2 = PP − (H−L) &nbsp; S3 = L − 2×(H−PP)</code></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">💡</span>
+    <p>The TradeZen engine fetches previous day OHLC from yfinance at startup and computes all levels automatically. You never need to enter them manually.</p>
+  </div>
+</div>
+
+<!-- S3: CPR TYPES -->
+<div class="section">
+  <a class="sec-anchor" id="s3"></a>
+  <div class="sec-head"><div class="sec-num">3</div><h2>CPR Types Explained</h2></div>
+  <p>The <strong>width of the CPR zone</strong> (TC − BC) tells you what kind of day to expect before 9:15 AM.</p>
+
+  <div class="type-grid">
+    <div class="tc-card" style="border-color:rgba(46,204,113,0.3)">
+      <div class="tc-icon">📏</div>
+      <div class="tc-name" style="color:var(--green)">Narrow CPR</div>
+      <div class="tc-body">Width &lt; 40 pts. Market is likely to trend strongly — pick a direction and ride it. These are the best trending days.</div>
+      <span class="tc-badge" style="background:var(--green-bg);color:var(--green)">TRENDING DAY</span>
+    </div>
+    <div class="tc-card" style="border-color:rgba(245,166,35,0.3)">
+      <div class="tc-icon">⚖️</div>
+      <div class="tc-name" style="color:var(--yellow)">Moderate CPR</div>
+      <div class="tc-body">Width 40–80 pts. Mixed day — could trend or range. Wait for a confirmed breakout before entering.</div>
+      <span class="tc-badge" style="background:var(--yellow-bg);color:var(--yellow)">WAIT & WATCH</span>
+    </div>
+    <div class="tc-card" style="border-color:rgba(231,76,60,0.3)">
+      <div class="tc-icon">🌀</div>
+      <div class="tc-name" style="color:var(--red)">Wide CPR</div>
+      <div class="tc-body">Width &gt; 80 pts. Expect a sideways, choppy, range-bound day. Mean reversion is the primary strategy.</div>
+      <span class="tc-badge" style="background:var(--red-bg);color:var(--red)">RANGE DAY</span>
+    </div>
+    <div class="tc-card" style="border-color:rgba(46,204,113,0.3)">
+      <div class="tc-icon">📈</div>
+      <div class="tc-name" style="color:var(--green)">Higher Value</div>
+      <div class="tc-body">PP is above previous day's close. Today's CPR sits higher — indicates a bullish bias.</div>
+      <span class="tc-badge" style="background:var(--green-bg);color:var(--green)">BULLISH BIAS</span>
+    </div>
+    <div class="tc-card" style="border-color:rgba(231,76,60,0.3)">
+      <div class="tc-icon">📉</div>
+      <div class="tc-name" style="color:var(--red)">Lower Value</div>
+      <div class="tc-body">PP is below previous day's close. Today's CPR sits lower — indicates a bearish bias.</div>
+      <span class="tc-badge" style="background:var(--red-bg);color:var(--red)">BEARISH BIAS</span>
+    </div>
+    <div class="tc-card" style="border-color:rgba(91,138,245,0.3)">
+      <div class="tc-icon">🔗</div>
+      <div class="tc-name" style="color:var(--blue)">Neutral Value</div>
+      <div class="tc-body">PP is close to previous day's close. No clear directional bias — wait for price to show its hand at open.</div>
+      <span class="tc-badge" style="background:rgba(91,138,245,0.1);color:var(--blue)">NEUTRAL</span>
+    </div>
+  </div>
+</div>
+
+<!-- S4: VIRGIN CPR -->
+<div class="section">
+  <a class="sec-anchor" id="s4"></a>
+  <div class="sec-head"><div class="sec-num">4</div><h2>Virgin CPR</h2></div>
+  <p>A <strong>Virgin CPR</strong> occurs when the previous session's price action never touched or traded through the CPR zone (between BC and TC). It is one of the highest-probability setups in CPR trading.</p>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">🔮</span>
+    <p><strong>Why it matters:</strong> When price has never tested a CPR zone, it acts like a magnet. The first touch almost always triggers a strong reaction — either a powerful reversal or an explosive breakout.</p>
+  </div>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">→</div>
+      <div class="sb">
+        <div class="st">Reversal on first touch</div>
+        <p>Price reaches TC from below, reversal candle forms — sell signal. Or price reaches BC from above, bounce candle forms — buy signal.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">→</div>
+      <div class="sb">
+        <div class="st">Breakout through virgin zone</div>
+        <p>Price blasts through the untouched CPR with a strong body candle — this is an explosive momentum trade. Ride in the breakout direction.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>The purple glowing badge and banner</strong> on the CPR Monitor page means today's CPR is virgin. Once price enters the zone, the badge disappears and a <code>🔮 VIRGIN CPR</code> alert fires on the chart.</p>
+  </div>
+</div>
+
+<!-- S5: ALERT TYPES -->
+<div class="section">
+  <a class="sec-anchor" id="s5"></a>
+  <div class="sec-head"><div class="sec-num">5</div><h2>Alert Types & Triggers</h2></div>
+  <p>The monitor fires alerts automatically as each 5-minute candle closes. Each alert includes a marker on the chart.</p>
+
+  <div class="alert-grid">
+
+    <div class="ae-card" style="border-color:rgba(124,106,247,0.35)">
+      <div class="ae-icon">🔮</div>
+      <div class="ae-title" style="color:var(--accent)">VIRGIN CPR TRIGGER</div>
+      <div class="ae-body">First candle to enter the untouched CPR zone. Price was never here before — maximum reaction probability.</div>
+      <span class="ae-signal sig-watch">WATCH</span>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Confidence: <strong style="color:var(--text)">High</strong> · Marker: ▲ purple arrow</div>
+    </div>
+
+    <div class="ae-card" style="border-color:rgba(0,212,255,0.35)">
+      <div class="ae-icon">🚀</div>
+      <div class="ae-title" style="color:var(--cyan)">CPR BREAKOUT</div>
+      <div class="ae-body">Candle closes strongly above TC (bull) or below BC (bear) with body &gt; 45% of the candle range — momentum confirmed.</div>
+      <span class="ae-signal sig-buy">BUY</span>&nbsp;
+      <span class="ae-signal sig-sell">SELL</span>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Confidence: <strong style="color:var(--text)">High/Medium</strong> · Marker: cyan arrow</div>
+    </div>
+
+    <div class="ae-card" style="border-color:rgba(245,166,35,0.35)">
+      <div class="ae-icon">🔄</div>
+      <div class="ae-title" style="color:var(--yellow)">REVERSAL CPR</div>
+      <div class="ae-body">Price was extended by at least one CPR width above/below, then closes back inside the CPR zone — trend may be reversing.</div>
+      <span class="ae-signal sig-buy">BUY</span>&nbsp;
+      <span class="ae-signal sig-sell">SELL</span>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Confidence: <strong style="color:var(--text)">Medium</strong> · Marker: yellow arrow</div>
+    </div>
+
+    <div class="ae-card" style="border-color:rgba(231,76,60,0.35)">
+      <div class="ae-icon">⚠️</div>
+      <div class="ae-title" style="color:var(--red)">BREAKOUT FAILURE</div>
+      <div class="ae-body">Previous candle closed outside CPR, current candle closes back inside. A trap — the breakout had no follow-through.</div>
+      <span class="ae-signal sig-buy">BUY</span>&nbsp;
+      <span class="ae-signal sig-sell">SELL</span>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Confidence: <strong style="color:var(--text)">High</strong> · Counter-trade vs prior move</div>
+    </div>
+
+    <div class="ae-card" style="border-color:rgba(46,204,113,0.35)">
+      <div class="ae-icon">✅</div>
+      <div class="ae-title" style="color:var(--green)">CPR RETEST</div>
+      <div class="ae-body">After a breakout, price pulls back to TC (bull) or BC (bear) and holds. The level converted from resistance to support — continuation trade.</div>
+      <span class="ae-signal sig-buy">BUY</span>&nbsp;
+      <span class="ae-signal sig-sell">SELL</span>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Confidence: <strong style="color:var(--text)">High</strong> · Best R:R setup of the day</div>
+    </div>
+
+    <div class="ae-card" style="border-color:rgba(91,138,245,0.3)">
+      <div class="ae-icon">📏</div>
+      <div class="ae-title" style="color:var(--blue)">CAMARILLA L3 / H3</div>
+      <div class="ae-body">Price bounces off Camarilla L3 support (buy) or rejects H3 resistance (sell) during the session.</div>
+      <span class="ae-signal sig-buy">BUY at L3</span>&nbsp;
+      <span class="ae-signal sig-sell">SELL at H3</span>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Mean reversion trade within the day's range</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- S6: CAMARILLA -->
+<div class="section">
+  <a class="sec-anchor" id="s6"></a>
+  <div class="sec-head"><div class="sec-num">6</div><h2>Camarilla Levels</h2></div>
+  <p>Camarilla levels are eight intraday support/resistance levels derived from the previous day's range. They complement CPR by giving tighter, more precise entry points.</p>
+
+  <table class="tbl">
+    <thead>
+      <tr><th>Level</th><th>Formula</th><th>Trading Use</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:var(--red);font-weight:700;font-family:'JetBrains Mono',monospace">H4</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">C + (H−L) × 1.1 / 2</td>
+        <td><strong style="color:var(--green)">Breakout long</strong> — once price breaks H4 with volume, strong bull momentum. Ride aggressively.</td>
+      </tr>
+      <tr>
+        <td style="color:var(--red);font-weight:700;font-family:'JetBrains Mono',monospace">H3</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">C + (H−L) × 1.1 / 4</td>
+        <td><strong style="color:var(--red)">Mean reversion sell</strong> — price often reverses sharply at H3. Short here, SL above H4.</td>
+      </tr>
+      <tr>
+        <td style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace">L3</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">C − (H−L) × 1.1 / 4</td>
+        <td><strong style="color:var(--green)">Mean reversion buy</strong> — price often bounces at L3. Long here, SL below L4.</td>
+      </tr>
+      <tr>
+        <td style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace">L4</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">C − (H−L) × 1.1 / 2</td>
+        <td><strong style="color:var(--red)">Breakout short</strong> — once price breaks L4 with volume, strong bear momentum. Ride aggressively.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p>H1, H2, L1, L2 are intermediate levels shown on the price ladder. They act as minor support/resistance but the monitor only fires alerts at <strong>H3, H4, L3, L4</strong> where the significant reactions occur.</p>
+  </div>
+</div>
+
+<!-- S7: STRATEGIES -->
+<div class="section">
+  <a class="sec-anchor" id="s7"></a>
+  <div class="sec-head"><div class="sec-num">7</div><h2>Three Strategies</h2></div>
+
+  <div class="strat-grid">
+    <div class="strat-card">
+      <div class="strat-icon">↕️</div>
+      <div class="strat-name">Mean Reversion</div>
+      <div class="strat-body">Works on wide CPR days when price is oscillating inside the zone. Buy near BC, sell near TC. Exit at PP.</div>
+      <div class="strat-entry">
+        <div>Setup: Price inside CPR</div>
+        <div>Buy: <span>Near BC (+5 pts)</span></div>
+        <div>Sell: <span>Near TC (−5 pts)</span></div>
+        <div>SL: <span>10–15 pts beyond level</span></div>
+        <div>Target: <span>PP or opposite level</span></div>
+      </div>
+    </div>
+
+    <div class="strat-card">
+      <div class="strat-icon">🚀</div>
+      <div class="strat-name">CPR Breakout</div>
+      <div class="strat-body">Works on narrow CPR days. Enter on confirmed breakout above TC or below BC. Best combined with ORB breakout direction.</div>
+      <div class="strat-entry">
+        <div>Setup: Candle closes outside CPR</div>
+        <div>Entry: <span>On close of breakout candle</span></div>
+        <div>SL: <span>TC − 15 (bull) / BC + 15 (bear)</span></div>
+        <div>T1: <span>R1 (bull) / S1 (bear)</span></div>
+        <div>T2: <span>R2 (bull) / S2 (bear)</span></div>
+      </div>
+    </div>
+
+    <div class="strat-card">
+      <div class="strat-icon">📏</div>
+      <div class="strat-name">Camarilla</div>
+      <div class="strat-body">Works throughout the day regardless of CPR width. L3 = buy zone, H3 = sell zone. H4/L4 = trend breakout entry.</div>
+      <div class="strat-entry">
+        <div>Buy: <span>Near L3, SL below L4</span></div>
+        <div>Sell: <span>Near H3, SL above H4</span></div>
+        <div>Breakout Long: <span>Above H4 with volume</span></div>
+        <div>Breakout Short: <span>Below L4 with volume</span></div>
+        <div>Target: <span>H3/L3 for breakout trades</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S8: NOISE FILTERING -->
+<div class="section">
+  <a class="sec-anchor" id="s8"></a>
+  <div class="sec-head"><div class="sec-num">8</div><h2>Noise Filtering Rules</h2></div>
+  <p>Not every alert is a trade. The monitor applies these rules to filter out low-quality signals:</p>
+
+  <div class="rules">
+    <div class="rule">
+      <span class="rule-icon">✅</span>
+      <p><strong>Candle body ≥ 45% of range for breakouts.</strong> Doji candles and candles with long wicks are ignored for breakout classification — they show indecision, not momentum.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-icon">✅</span>
+      <p><strong>Retest must happen ≥ 2 candles after breakout.</strong> An immediate pullback is not a retest — it's just noise. The monitor waits for at least 2 more candles before firing a retest alert.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-icon">✅</span>
+      <p><strong>Reversal requires price to have moved ≥ 1 CPR width away.</strong> If price was only barely above TC, crossing back inside is not a reversal — it's just the CPR zone being tested. A true reversal needs price to have been extended.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-icon">✅</span>
+      <p><strong>Each candle is processed exactly once.</strong> No duplicate alerts for the same time candle, even if the page refreshes.</p>
+    </div>
+    <div class="rule">
+      <span class="rule-icon">⚠️</span>
+      <p><strong>Camarilla alerts fire only when price wicks to the level and closes back.</strong> A candle that just grazes the level with its low and then closes away — that's the signal. Not a candle that closes through the level (that's a different setup).</p>
+    </div>
+  </div>
+</div>
+
+<!-- S9: READING THE CHART -->
+<div class="section">
+  <a class="sec-anchor" id="s9"></a>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Reading the Chart</h2></div>
+  <p>The CPR Monitor chart shows 5-minute Nifty candles with all levels and alert markers overlaid.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div style="width:20px;height:20px;border-radius:4px;background:var(--green);flex-shrink:0;margin-top:2px"></div>
+      <div class="sb"><div class="st">TC line (green solid)</div><p>Top of CPR zone. Price closing above = bullish confirmation.</p></div>
+    </div>
+    <div class="step-row">
+      <div style="width:20px;height:20px;border-radius:4px;background:var(--yellow);flex-shrink:0;margin-top:2px"></div>
+      <div class="sb"><div class="st">PP line (orange solid)</div><p>Pivot point. Mid-zone reference. Acts as short-term S/R inside CPR.</p></div>
+    </div>
+    <div class="step-row">
+      <div style="width:20px;height:20px;border-radius:4px;background:var(--red);flex-shrink:0;margin-top:2px"></div>
+      <div class="sb"><div class="st">BC line (red solid)</div><p>Bottom of CPR zone. Price closing below = bearish confirmation.</p></div>
+    </div>
+    <div class="step-row">
+      <div style="width:20px;height:20px;border-radius:4px;background:var(--blue);opacity:.7;flex-shrink:0;margin-top:2px"></div>
+      <div class="sb"><div class="st">H3 / H4 lines (blue dashed)</div><p>Camarilla resistance levels. H3 = mean reversion sell zone. H4 = breakout level.</p></div>
+    </div>
+    <div class="step-row">
+      <div style="width:20px;height:20px;border-radius:4px;background:var(--accent);opacity:.7;flex-shrink:0;margin-top:2px"></div>
+      <div class="sb"><div class="st">L3 / L4 lines (purple dashed)</div><p>Camarilla support levels. L3 = mean reversion buy zone. L4 = breakdown level.</p></div>
+    </div>
+    <div class="step-row">
+      <span style="font-size:16px;margin-top:2px">▲</span>
+      <div class="sb"><div class="st">Upward arrow markers (below candle)</div><p>Buy signal alerts — Virgin CPR touch, bullish breakout, breakout failure buy, L3 bounce, etc.</p></div>
+    </div>
+    <div class="step-row">
+      <span style="font-size:16px;margin-top:2px">▼</span>
+      <div class="sb"><div class="st">Downward arrow markers (above candle)</div><p>Sell signal alerts — bearish breakout, H3 rejection, breakout failure sell, CPR reversal, etc.</p></div>
+    </div>
+  </div>
+
+  <div class="info-box ib-green">
+    <span class="info-icon">🎯</span>
+    <p><strong>Tip:</strong> The most reliable setup is: <em>Narrow CPR + price opens above TC + ORB forms above TC + CPR Retest alert fires.</em> This is a textbook continuation long with all three systems aligned.</p>
+  </div>
+</div>
+
+<!-- S10: QUICK REFERENCE -->
+<div class="section">
+  <a class="sec-anchor" id="s10"></a>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Quick Reference</h2></div>
+
+  <table class="tbl">
+    <thead>
+      <tr><th>Situation</th><th>CPR Reading</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Narrow CPR + Opens above TC</td><td>Strong bullish day expected</td><td style="color:var(--green)">Wait for ORB breakout long</td></tr>
+      <tr><td>Narrow CPR + Opens below BC</td><td>Strong bearish day expected</td><td style="color:var(--red)">Wait for ORB breakdown short</td></tr>
+      <tr><td>Wide CPR + Opens inside CPR</td><td>Range day, chop expected</td><td style="color:var(--yellow)">Mean reversion only — buy BC, sell TC</td></tr>
+      <tr><td>Virgin CPR alert fires</td><td>First touch of untouched zone</td><td style="color:var(--accent)">Watch for reversal or breakout — max probability</td></tr>
+      <tr><td>Breakout Failure alert fires</td><td>Trap detected</td><td>Counter-trade in opposite direction</td></tr>
+      <tr><td>CPR Retest alert fires</td><td>Level confirmed as S/R</td><td style="color:var(--green)">Best R:R continuation trade of the day</td></tr>
+      <tr><td>Price at L3 (Camarilla)</td><td>Intraday support zone</td><td style="color:var(--green)">Buy with SL below L4, target H3</td></tr>
+      <tr><td>Price at H3 (Camarilla)</td><td>Intraday resistance zone</td><td style="color:var(--red)">Sell with SL above H4, target L3</td></tr>
+      <tr><td>Higher Value CPR</td><td>Bullish structural bias</td><td>Prefer long setups, be cautious on shorts</td></tr>
+      <tr><td>Lower Value CPR</td><td>Bearish structural bias</td><td>Prefer short setups, be cautious on longs</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- PAGE NAV -->
+<div class="page-nav">
+  <a href="/trade_flow.html" class="pn-btn">← Trade Flow</a>
+  <a href="/cpr_monitor.html" class="pn-btn">Open CPR Monitor →</a>
+</div>
+
+</div><!-- /page -->
+
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')))});
+</script>
+</body>
+</html>
