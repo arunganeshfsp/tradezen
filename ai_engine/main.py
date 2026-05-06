@@ -402,6 +402,29 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(signal_loop())
 
+    # ──────────────────────────────────────────
+    # 📅 Daily instrument master refresh at 08:30 IST
+    # ──────────────────────────────────────────
+    async def _daily_instrument_refresh():
+        while True:
+            now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+            target  = now_ist.replace(hour=8, minute=30, second=0, microsecond=0)
+            if now_ist >= target:
+                target += timedelta(days=1)
+            while target.weekday() >= 5:   # skip Saturday (5) and Sunday (6)
+                target += timedelta(days=1)
+            wait_sec = (target - now_ist).total_seconds()
+            log.info(f"📅 Instrument refresh scheduled: {target.strftime('%a %d-%b %H:%M IST')} ({wait_sec/3600:.1f}h away)")
+            await asyncio.sleep(wait_sec)
+            try:
+                log.info("🔄 Refreshing instrument master (daily pre-market)...")
+                im.reload()
+                log.info(f"✅ Instrument master refreshed — {len(im.data)} NIFTY options loaded")
+            except Exception as _ire:
+                log.error(f"❌ Instrument master refresh failed: {_ire}")
+
+    asyncio.create_task(_daily_instrument_refresh())
+
     log.info("✅ AI Engine ready — WebSocket + signal loop running")
 
     yield
@@ -477,6 +500,17 @@ def health():
         "status": "ok",
         "signal": last_signal.get("signal"),
     }
+
+
+@app.post("/reload-instruments")
+def reload_instruments():
+    """Force-refresh the instrument master from Angel One — use when new contracts aren't showing up."""
+    from fastapi import HTTPException
+    try:
+        im.reload()
+        return {"status": "ok", "count": len(im.data), "loaded_at": datetime.now().isoformat()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/debug")

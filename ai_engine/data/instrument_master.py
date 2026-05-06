@@ -21,13 +21,12 @@ class InstrumentMaster:
 
         self._filter_nifty_options()
 
-    # 🔹 Check if cache is valid (1 day)
+    # 🔹 Check if cache is valid (same calendar day)
     def _is_cache_valid(self):
         if not os.path.exists(DATA_FILE):
             return False
-
         file_time = datetime.fromtimestamp(os.path.getmtime(DATA_FILE))
-        return datetime.now() - file_time < timedelta(days=1)
+        return file_time.date() == datetime.now().date()
 
     # 🔹 Download fresh file
     def _download(self):
@@ -45,6 +44,11 @@ class InstrumentMaster:
         self.last_updated = datetime.now()
 
         print("[OK] Download complete")
+
+    # 🔹 Force-refresh ignoring cache age
+    def reload(self):
+        self._download()
+        self._filter_nifty_options()
 
     # 🔹 Load from file
     def _load_from_file(self):
