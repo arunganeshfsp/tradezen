@@ -2792,17 +2792,101 @@ function _playAlertSound(type) {
   } catch (_) {}
 }
 
+function _getCprDirection(lvl, ltp, cpr) {
+  const above = ltp >= lvl.price;
+  switch (lvl.name) {
+    case 'TC':
+      return above
+        ? { dir:'WATCH', icon:'🟡', tip:'Holding above TC — bullish. Break back below TC → Long exit signal.' }
+        : { dir:'LONG',  icon:'🟢', tip:'Approaching TC from below. Close above TC → Bull breakout entry. Rejection → Short.' };
+    case 'BC':
+      return above
+        ? { dir:'WATCH', icon:'🟡', tip:'BC support test. If holds → Long valid. Break below BC → Short trigger.' }
+        : { dir:'SHORT', icon:'🔴', tip:'Approaching BC from below. Break above BC → Short exit. Rejection at BC → Short continues.' };
+    case 'PP':
+      return above
+        ? { dir:'WATCH', icon:'🟡', tip:'Pivot from above — bullish bias. Break below PP → momentum shift to bears.' }
+        : { dir:'WATCH', icon:'🟡', tip:'Pivot from below — bearish bias. Break above PP → momentum shift to bulls.' };
+    case 'R1': case 'R2': case 'R3':
+      return above
+        ? { dir:'SHORT', icon:'🔴', tip:`Above ${lvl.name} — pullback to this level may offer SHORT reversal.` }
+        : { dir:'WATCH', icon:'🟡', tip:`Resistance at ${lvl.name}. Clean breakout above → LONG momentum. Rejection → SHORT.` };
+    case 'S1': case 'S2': case 'S3':
+      return above
+        ? { dir:'LONG',  icon:'🟢', tip:`Support at ${lvl.name}. Hold → LONG bounce. Break below → SHORT momentum.` }
+        : { dir:'WATCH', icon:'🟡', tip:`Below ${lvl.name} — retrace to this level may face resistance.` };
+    case 'ORB High':
+      return above
+        ? { dir:'LONG',  icon:'🟢', tip:'Above ORB High — bullish trend day. ORB High now acts as support.' }
+        : { dir:'LONG',  icon:'🟢', tip:'Approaching ORB High. Breakout above → LONG entry. Rejection → stay flat.' };
+    case 'ORB Low':
+      return above
+        ? { dir:'SHORT', icon:'🔴', tip:'Approaching ORB Low. Break below → SHORT entry. Hold → potential LONG reversal.' }
+        : { dir:'SHORT', icon:'🔴', tip:'Below ORB Low — bearish trend day. ORB Low now acts as resistance.' };
+    case 'VAH':
+      return above
+        ? { dir:'LONG',  icon:'🟢', tip:'Above Value Area High — bullish range expansion. VAH now support.' }
+        : { dir:'WATCH', icon:'🟡', tip:'VAH resistance. Break above with volume → LONG. Rejection at VAH → SHORT.' };
+    case 'VAL':
+      return above
+        ? { dir:'WATCH', icon:'🟡', tip:'VAL support test. Hold → LONG bounce. Break below → SHORT.' }
+        : { dir:'SHORT', icon:'🔴', tip:'Below Value Area Low — bearish range expansion. VAL now resistance.' };
+    case 'POC':
+      return { dir:'WATCH', icon:'🟡', tip:'Point of Control — highest volume zone. Strong magnet. Watch for acceptance or rejection.' };
+    case 'IB H':
+      return above
+        ? { dir:'LONG',  icon:'🟢', tip:'Above IB High — bullish trend day confirmed. IB H as support.' }
+        : { dir:'LONG',  icon:'🟢', tip:'Approaching IB High. Breakout → LONG trend day. Rejection → range-bound day.' };
+    case 'IB L':
+      return above
+        ? { dir:'SHORT', icon:'🔴', tip:'Approaching IB Low. Break below → SHORT trend day. Hold → range-bound day.' }
+        : { dir:'SHORT', icon:'🔴', tip:'Below IB Low — bearish trend day confirmed. IB L as resistance.' };
+    default:
+      return { dir:'WATCH', icon:'🟡', tip:'Key level — watch for price reaction.' };
+  }
+}
+
 function _fireAlert(lvl, ltp, dist) {
-  const color  = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' }[lvl.type] || '#fff';
-  const emoji  = { resistance:'🔴', support:'🟢', cpr:'🟡', mp:'🔵', orb:'🟣' }[lvl.type] || '⚪';
-  const msg    = `NIFTY ${ltp} — ${emoji} ${lvl.name} (${lvl.price}) · ${dist.toFixed(0)} pts away`;
+  const levelColor = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' }[lvl.type] || '#fff';
+  const emoji      = { resistance:'🔴', support:'🟢', cpr:'🟡', mp:'🔵', orb:'🟣' }[lvl.type] || '⚪';
+  const cpr        = flowData?.cpr;
+  const dir        = _getCprDirection(lvl, ltp, cpr);
+  const dirColor   = dir.dir === 'LONG' ? '#4ade80' : dir.dir === 'SHORT' ? '#f87171' : '#fbbf24';
+  const headline   = `NIFTY ${ltp} — ${emoji} ${lvl.name} (${lvl.price}) · ${dist.toFixed(0)} pts away`;
+  const notifBody  = `${headline}\n${dir.icon} ${dir.dir}: ${dir.tip}`;
 
   _playAlertSound(lvl.type);
-  _showToast(msg, lvl.type, 8000, color);
+  _showAlertToast(headline, dir, levelColor, dirColor, 9000);
 
   if (Notification.permission === 'granted') {
-    new Notification('TradeZen Alert', { body: msg, icon: '/favicon.ico', tag: lvl.name });
+    new Notification('TradeZen Alert', { body: notifBody, icon: '/favicon.ico', tag: lvl.name });
   }
+}
+
+function _showAlertToast(headline, dir, levelColor, dirColor, duration = 9000) {
+  const wrap = document.getElementById('alert-toasts');
+  const el   = document.createElement('div');
+  el.style.cssText = `
+    background:#1c1c28;border:1px solid ${levelColor}44;border-left:3px solid ${levelColor};
+    color:#e8e8f0;border-radius:8px;padding:10px 14px;font-size:12px;
+    font-family:'JetBrains Mono',monospace;line-height:1.5;pointer-events:auto;
+    box-shadow:0 4px 20px rgba(0,0,0,.5);opacity:0;transition:opacity .2s;max-width:340px;
+    cursor:pointer;
+  `;
+  el.innerHTML = `
+    <div style="margin-bottom:7px">${headline}</div>
+    <div style="display:flex;align-items:flex-start;gap:7px;padding:6px 9px;background:${dirColor}14;border:1px solid ${dirColor}30;border-radius:6px">
+      <span style="font-size:15px;line-height:1.3;flex-shrink:0">${dir.icon}</span>
+      <div>
+        <span style="color:${dirColor};font-weight:700;font-size:11px;letter-spacing:1.2px">${dir.dir}</span>
+        <div style="color:#9ba3bf;font-size:11px;margin-top:2px;font-family:'DM Sans',sans-serif;line-height:1.45">${dir.tip}</div>
+      </div>
+    </div>
+  `;
+  el.onclick = () => el.remove();
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.style.opacity = '1');
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 200); }, duration);
 }
 
 function _showToast(msg, type, duration = 5000, color = '#fff') {
