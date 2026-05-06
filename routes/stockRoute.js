@@ -418,6 +418,7 @@ router.get("/fno-scanner", async (req, res) => {
     if (req.query.limit)      params.set("limit",      req.query.limit);
     if (req.query.dominance)  params.set("dominance",  req.query.dominance);
     if (req.query.nifty50)    params.set("nifty50",    req.query.nifty50);
+    if (req.query.nifty500)   params.set("nifty500",   req.query.nifty500);
     const data = await aiService.proxy("GET", `/fno-scanner?${params}`, 15000);
     res.json(data);
   } catch (err) {

@@ -227,8 +227,9 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   <div class="ctrl-group">
     <div class="ctrl-label">Universe</div>
     <div class="toggle-group" id="universeGroup">
-      <button class="tog-btn active" data-val="all"     onclick="setUniverse('all')">All F&amp;O</button>
-      <button class="tog-btn"        data-val="nifty50" onclick="setUniverse('nifty50')">Nifty 50</button>
+      <button class="tog-btn active" data-val="all"      onclick="setUniverse('all')">All F&amp;O</button>
+      <button class="tog-btn"        data-val="nifty50"  onclick="setUniverse('nifty50')">Nifty 50</button>
+      <button class="tog-btn"        data-val="nifty500" onclick="setUniverse('nifty500')">Nifty 500</button>
     </div>
   </div>
 
@@ -340,7 +341,7 @@ function setLimit(val) {
 function setUniverse(val) {
   universeFilter = val;
   document.querySelectorAll('#universeGroup .tog-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
-  document.getElementById('priceRangeGroup').style.display = val === 'nifty50' ? 'none' : '';
+  document.getElementById('priceRangeGroup').style.display = (val === 'nifty50' || val === 'nifty500') ? 'none' : '';
   fetchScanner();
 }
 
@@ -392,8 +393,9 @@ function fmtPrice(v) {
 async function fetchScanner() {
   const min    = document.getElementById('minPrice').value || 1000;
   const max    = document.getElementById('maxPrice').value || 2000;
-  const n50    = universeFilter === 'nifty50' ? '&nifty50=true' : '';
-  const url = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}${n50}`;
+  const n50    = universeFilter === 'nifty50'  ? '&nifty50=true'  : '';
+  const n500   = universeFilter === 'nifty500' ? '&nifty500=true' : '';
+  const url = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}${n50}${n500}`;
 
   try {
     const res  = await fetch(url);

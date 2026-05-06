@@ -1834,8 +1834,76 @@ _NIFTY50_FALLBACK = {
     "TATACONSUM","TATAMOTORS","TATASTEEL","TCS","TECHM",
     "TITAN","TRENT","ULTRACEMCO","WIPRO","ZOMATO",
 }
+
+_NIFTY500_FALLBACK = {
+    # Nifty 50
+    "ADANIENT","ADANIPORTS","APOLLOHOSP","ASIANPAINT","AXISBANK",
+    "BAJAJ-AUTO","BAJAJFINSV","BAJFINANCE","BHARTIARTL","BPCL",
+    "BRITANNIA","CIPLA","COALINDIA","DRREDDY","EICHERMOT",
+    "GRASIM","HCLTECH","HDFCBANK","HDFCLIFE","HEROMOTOCO",
+    "HINDALCO","HINDUNILVR","ICICIBANK","INDUSINDBK","INFY",
+    "ITC","JSWSTEEL","KOTAKBANK","LT","M&M",
+    "MARUTI","NESTLEIND","NTPC","ONGC","POWERGRID",
+    "RELIANCE","SBILIFE","SBIN","SHRIRAMFIN","SUNPHARMA",
+    "TATACONSUM","TATAMOTORS","TATASTEEL","TCS","TECHM",
+    "TITAN","TRENT","ULTRACEMCO","WIPRO","ZOMATO",
+    # Nifty Next 50
+    "ABB","ADANIGREEN","ADANIPOWER","AMBUJACEM","AUBANK",
+    "BANDHANBNK","BEL","BERGEPAINT","BHEL","BOSCHLTD",
+    "CANBK","CHOLAFIN","COLPAL","CONCOR","DLF",
+    "GAIL","GODREJCP","GODREJPROP","HAL","HAVELLS",
+    "ICICIGI","ICICIlombard","INDHOTEL","IOC","IGL",
+    "IRCTC","JINDALSTEL","LICI","LTIM","LUPIN",
+    "MARICO","MUTHOOTFIN","NAUKRI","PFC","PIDILITIND",
+    "PNB","RECLTD","SAIL","SIEMENS","SRF",
+    "TORNTPHARM","TVSMOTOR","UPL","VEDL","VOLTAS",
+    "ZYDUSLIFE","UNIONBANK","UCOBANK","INDIANB",
+    # Nifty Midcap 150 & other Nifty 500 F&O stocks
+    "ABCAPITAL","ABFRL","AIAENG","ALKEM","APOLLOTYRE",
+    "ASHOKLEY","ASTRAL","ATUL","AUROPHARMA","BALKRISIND",
+    "BATAINDIA","BIOCON","BSOFT","CANFINHOME","CESC",
+    "CGPOWER","CHOLAFIN","COFORGE","CROMPTON","CUMMINSIND",
+    "DABUR","DEEPAKNTR","DELHIVERY","DIVISLAB","DIXON",
+    "DMART","ESCORTS","ETERNAL","FEDERALBNK","GLENMARK",
+    "GMRAIRPORT","GNFC","GRANULES","GSPL","HAPPSTMNDS",
+    "HFCL","HINDPETRO","IDFCFIRSTB","IEX","IIFL",
+    "INDIAMART","INDUSTOWER","INOXWIND","IPCALAB","JKCEMENT",
+    "JSL","JUBLFOOD","KALYANKJIL","KANSAINER","KAYNES",
+    "KPITTECH","LAURUSLABS","LICHSGFIN","LINDEINDIA","LTTS",
+    "MANAPPURAM","MCX","METROPOLIS","MGL","MPHASIS",
+    "MRF","NATCOPHARM","NAVINFLUOR","NMDC","OBEROIRLTY",
+    "OFSS","PAGEIND","PERSISTENT","PETRONET","PHOENIXLTD",
+    "PIIND","POLYCAB","PVRINOX","RAMCOCEM","RBLBANK",
+    "REDINGTON","ROUTE","SCHAEFFLER","SHREECEM","SJVN",
+    "SONACOMS","STAR","SUNDARMFIN","SUPREMEIND","SYNGENE",
+    "TATACHEM","TATACOMM","TATAELXSI","TATAPOWER","THERMAX",
+    "TIINDIA","TIMKEN","TORNTPOWER","TRIDENT","UJJIVANSFB",
+    "UNOMINDA","UTIAMC","VBL","WHIRLPOOL","ZEEL",
+    "SAPPHIRE","TRITURBINE","NATIONALUM","MOIL","NBCC",
+}
+
 _nifty50_cache: set = set()
 _nifty50_cache_ts: datetime = None
+_nifty500_cache: set = set()
+_nifty500_cache_ts: datetime = None
+
+
+def _fetch_nse_index(index_slug: str, min_count: int) -> set:
+    import requests as _req
+    hdrs = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "*/*",
+        "Referer": "https://www.nseindia.com/",
+    }
+    s = _req.Session()
+    s.get("https://www.nseindia.com", headers=hdrs, timeout=8)
+    r = s.get(f"https://www.nseindia.com/api/equity-stockIndices?index={index_slug}",
+              headers=hdrs, timeout=10)
+    data = r.json().get("data", [])
+    symbols = {item["symbol"] for item in data[1:] if item.get("symbol")}
+    if len(symbols) < min_count:
+        raise ValueError(f"only {len(symbols)} symbols returned, expected >= {min_count}")
+    return symbols
 
 
 def _fetch_nifty50_symbols() -> set:
@@ -1844,29 +1912,33 @@ def _fetch_nifty50_symbols() -> set:
     if _nifty50_cache and _nifty50_cache_ts and (now - _nifty50_cache_ts).total_seconds() < 86400:
         return _nifty50_cache
     try:
-        import requests as _req
-        hdrs = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "*/*",
-            "Referer": "https://www.nseindia.com/",
-        }
-        s = _req.Session()
-        s.get("https://www.nseindia.com", headers=hdrs, timeout=8)
-        r = s.get("https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050",
-                  headers=hdrs, timeout=8)
-        data = r.json().get("data", [])
-        symbols = {item["symbol"] for item in data[1:] if item.get("symbol")}
-        if len(symbols) >= 45:
-            _nifty50_cache    = symbols
-            _nifty50_cache_ts = now
-            log.info(f"[NIFTY50] fetched {len(symbols)} constituents from NSE")
-            return symbols
+        symbols = _fetch_nse_index("NIFTY%2050", 45)
+        _nifty50_cache    = symbols
+        _nifty50_cache_ts = now
+        log.info(f"[NIFTY50] fetched {len(symbols)} constituents from NSE")
+        return symbols
     except Exception as e:
         log.warning(f"[NIFTY50] NSE fetch failed ({e}), using fallback list")
     return _NIFTY50_FALLBACK
 
 
-def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance: str = "all", nifty50: bool = False) -> dict:
+def _fetch_nifty500_symbols() -> set:
+    global _nifty500_cache, _nifty500_cache_ts
+    now = datetime.utcnow()
+    if _nifty500_cache and _nifty500_cache_ts and (now - _nifty500_cache_ts).total_seconds() < 86400:
+        return _nifty500_cache
+    try:
+        symbols = _fetch_nse_index("NIFTY%20500", 450)
+        _nifty500_cache    = symbols
+        _nifty500_cache_ts = now
+        log.info(f"[NIFTY500] fetched {len(symbols)} constituents from NSE")
+        return symbols
+    except Exception as e:
+        log.warning(f"[NIFTY500] NSE fetch failed ({e}), using fallback list")
+    return _NIFTY500_FALLBACK
+
+
+def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance: str = "all", nifty50: bool = False, nifty500: bool = False) -> dict:
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     smart = _get_smart()
     if not smart:
@@ -1877,7 +1949,10 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
         return {"error": "Instrument master unavailable", "stocks": []}
 
     n50 = _fetch_nifty50_symbols()
-    if nifty50:
+    if nifty500:
+        n500 = _fetch_nifty500_symbols()
+        stocks = [s for s in stocks if s["symbol"].upper() in n500]
+    elif nifty50:
         stocks = [s for s in stocks if s["symbol"].upper() in n50]
     else:
         stocks = [s for s in stocks if s["symbol"].upper() not in n50]
@@ -1905,7 +1980,7 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
         if not d:
             continue
         ltp = float(d.get("ltp") or 0)
-        if not nifty50 and not (min_price <= ltp <= max_price):
+        if not nifty50 and not nifty500 and not (min_price <= ltp <= max_price):
             continue
 
         buy_qty  = int(d.get("totBuyQuan") or 0)
@@ -1959,10 +2034,10 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
 
 
 @app.get("/fno-scanner")
-async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10, dominance: str = "all", nifty50: bool = False):
+async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10, dominance: str = "all", nifty50: bool = False, nifty500: bool = False):
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit, dominance, nifty50)
+        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit, dominance, nifty50, nifty500)
         return result
     except Exception as e:
         log.error(f"[FNO-SCANNER] error: {e}")

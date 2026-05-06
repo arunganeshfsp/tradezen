@@ -2845,8 +2845,8 @@ function _getCprDirection(lvl, ltp, cpr) {
         return             { dir:'WATCH', icon:'🟡', tip:`${n} support/resistance pivot. Hold above → Long. Break below → Short.` };
       } else {
         // Price below Rn → approaching Rn as resistance
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`Approaching ${n} on bull day — likely to break. Breakout above ${n} → Long extension target.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} resistance — bear day. Rejection expected. Short on failure at ${n} or wait for rejection candle.` };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`Approaching ${n} on bull day — likely to break. First touch may see brief rejection — wait for candle close above ${n} before entering Long.` };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} resistance — bear day. Rejection expected. May bounce briefly before failing — wait for rejection candle before shorting.` };
         return             { dir:'WATCH', icon:'🟡', tip:`Approaching ${n} resistance. Breakout above → Long. Rejection at ${n} → Short reversal.` };
       }
 
@@ -2855,7 +2855,7 @@ function _getCprDirection(lvl, ltp, cpr) {
       if (above) {
         // Price above Sn → approaching Sn as support
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:`${n} support test — bull day. Bounce likely. Hold at ${n} → Long continuation.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`Approaching ${n} support on bear day — likely to break. Break below ${n} → Short extension.` };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`Approaching ${n} support on bear day — likely to break. First touch may see a brief bounce — wait for candle close below ${n} before entering Short.` };
         return             { dir:'WATCH', icon:'🟡', tip:`${n} support test. Hold → Long bounce. Break below → Short momentum.` };
       } else {
         // Price below Sn → Sn now acting as resistance (retest from below)
