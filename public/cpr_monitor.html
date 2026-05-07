@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -173,6 +173,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .no-data{text-align:center;padding:60px 20px;color:var(--muted)}
 .no-data h3{font-family:'Syne',sans-serif;font-size:18px;color:var(--dim);margin-bottom:8px}
 </style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
 <body>
 
@@ -193,6 +194,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
     <a href="cpr_tutorial.html" target="_blank" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;text-decoration:none">? How to Use</a>
     <span class="nav-badge" id="lastUpdateBadge">CPR MONITOR</span>
   </div>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
   <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 

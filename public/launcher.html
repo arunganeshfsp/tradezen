@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -173,12 +173,16 @@
     }
     #last-checked { color: var(--text); }
   </style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
 <body>
 
-<header>
-  <h1>Trade<span>Zen</span> Launcher</h1>
-  <p>Server control panel — running on port 9999</p>
+<header style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div>
+    <h1>Trade<span>Zen</span> Launcher</h1>
+    <p>Server control panel — running on port 9999</p>
+  </div>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border,#333);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:15px;padding:0;flex-shrink:0"></button>
 </header>
 
 <div class="global-bar">

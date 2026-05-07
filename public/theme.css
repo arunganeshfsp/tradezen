@@ -1,0 +1,73 @@
+/* ── Light theme overrides ── */
+:root[data-theme="light"] {
+  --bg:      #F5F7FA;
+  --bg1:     #FFFFFF;
+  --bg2:     #EEF1F8;
+  --bg3:     #E4E8F5;
+  --bg4:     #D8DDEE;
+  --border:  #D1D9EE;
+  --border2: #B8C4E0;
+  --accent:  #6C5CE7;
+  --blue:    #4A7FE3;
+  --green:   #16A34A;
+  --green2:  #15803D;
+  --green-bg:rgba(22,163,74,0.1);
+  --red:     #DC2626;
+  --red2:    #B91C1C;
+  --red-bg:  rgba(220,38,38,0.1);
+  --yellow:  #D97706;
+  --yellow-bg:rgba(217,119,6,0.1);
+  --cyan:    #0284C7;
+  --text:    #1A1E35;
+  --dim:     #4A527A;
+  --muted:   #8892B0;
+}
+
+/* Nav background (hardcoded in each page) */
+:root[data-theme="light"] nav {
+  background: rgba(245,247,250,0.95);
+}
+
+@media (max-width: 768px) {
+  :root[data-theme="light"] .nav-links {
+    background: rgba(245,247,250,0.98);
+  }
+  :root[data-theme="light"] .tz-nav-links {
+    background: rgba(245,247,250,0.98);
+  }
+}
+
+/* tz-nav style pages */
+:root[data-theme="light"] .tz-nav {
+  background: rgba(245,247,250,0.95);
+  border-bottom-color: var(--border);
+}
+:root[data-theme="light"] .tz-nav a {
+  color: var(--dim);
+}
+:root[data-theme="light"] .tz-nav a:hover {
+  color: var(--text);
+}
+:root[data-theme="light"] .tz-nav-chip {
+  color: var(--accent);
+  border-color: var(--border);
+  background: var(--bg3);
+}
+
+/* Theme toggle button icon via CSS */
+#themeToggle::after {
+  content: "☀️";
+}
+:root[data-theme="light"] #themeToggle::after {
+  content: "🌙";
+}
+
+/* Scrollbar */
+:root[data-theme="light"] * {
+  scrollbar-color: var(--bg3) var(--bg2);
+}
+
+/* Chart canvas and misc */
+:root[data-theme="light"] canvas {
+  filter: none;
+}

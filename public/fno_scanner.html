@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -183,6 +183,7 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   .dom-bar-wrap{width:100px}
 }
 </style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
 <body>
 
@@ -196,6 +197,7 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   <div class="nav-r">
     <div class="live-pill"><div class="pulse"></div>LIVE</div>
   </div>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
   <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 

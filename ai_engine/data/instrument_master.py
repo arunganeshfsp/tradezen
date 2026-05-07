@@ -32,7 +32,8 @@ class InstrumentMaster:
     def _download(self):
         print("[DOWN] Downloading instrument master...")
 
-        response = requests.get(URL)
+        response = requests.get(URL, timeout=60)
+        response.raise_for_status()
         data = response.json()
 
         os.makedirs("data", exist_ok=True)

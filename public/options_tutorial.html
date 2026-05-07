@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -134,6 +134,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 /* DIVIDER */
 hr{border:none;border-top:1px solid var(--border);margin:40px 0}
 </style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
 <body>
 
@@ -146,6 +147,7 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
     <a class="nl on" href="/options_analysis.html">Options</a>
     <a class="nl" href="/ema_scenario.html">EMA</a>
   </div>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
   <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 

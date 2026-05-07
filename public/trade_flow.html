@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ta-IN">
 <head>
 <meta charset="UTF-8">
@@ -278,6 +278,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 @media(max-width:768px){.alog-tip{display:none}.alog-table th:nth-child(4),.alog-table td:nth-child(4){display:none}}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
 <body>
 
@@ -311,6 +312,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     <a href="/trade_flow_tutorial.html" target="_blank" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;text-decoration:none">? How to Use</a>
     <span class="nav-badge">LIVE · SEBI 2026</span>
   </div>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
   <button class="hamburger" onclick="toggleNav()" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
