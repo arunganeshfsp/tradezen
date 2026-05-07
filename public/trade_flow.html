@@ -250,6 +250,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 .alog-stat.watch{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
 .alog-stat.total{background:var(--bg3);border:1px solid var(--border);color:var(--dim)}
 .alog-stat.hot{background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.3);color:var(--accent)}
+.alog-stat.acc{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);color:var(--cyan)}
 .alog-clear{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 10px;border-radius:var(--r2);border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer}
 .alog-clear:hover{border-color:var(--red);color:var(--red)}
 .alog-table-wrap{max-height:340px;overflow-y:auto}
@@ -266,7 +267,13 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 .alog-dir.LONG{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
 .alog-dir.SHORT{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
 .alog-dir.WATCH{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
-.alog-tip{color:var(--muted);font-size:11px;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alog-tip{color:var(--muted);font-size:11px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alog-outcome{display:inline-flex;align-items:center;gap:3px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.alog-outcome.hit{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+.alog-outcome.miss{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+.alog-outcome.flat{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
+.alog-outcome.na{background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
+.alog-outcome.pending{background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
 .alog-empty{padding:28px;text-align:center;color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace}
 @media(max-width:768px){.alog-tip{display:none}.alog-table th:nth-child(4),.alog-table td:nth-child(4){display:none}}
 </style>
@@ -759,6 +766,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
               <th>Level Price</th>
               <th>Pts Away</th>
               <th>Signal</th>
+              <th>Outcome</th>
               <th>Message</th>
             </tr>
           </thead>
@@ -2328,6 +2336,7 @@ async function fetchFlowData() {
     updateHero(d);
     renderFlowData(d);
     _checkPriceAlerts(d.nifty_ltp);
+    _evaluatePendingAlerts(d.nifty_ltp);
 
     const now = new Date();
     document.getElementById('refresh-note').textContent =
@@ -3078,7 +3087,10 @@ function _showToast(msg, type, duration = 5000, color = '#fff') {
 // ─────────────────────────────────────────────
 // Alert Log — persisted in localStorage per day
 // ─────────────────────────────────────────────
-const _LOG_KEY = () => `tz_alert_log_${new Date().toISOString().slice(0,10)}`;
+const _LOG_KEY       = () => `tz_alert_log_${new Date().toISOString().slice(0,10)}`;
+const _EVAL_AFTER_MS = 15 * 60 * 1000;   // evaluate outcome 15 min after alert
+const _HIT_PTS       = 10;               // ≥10 pts in predicted direction = HIT
+const _MISS_PTS      = 10;               // ≥10 pts against direction = MISS
 
 function _logAlert(lvl, ltp, dist, dir) {
   const now  = new Date();
@@ -3093,11 +3105,12 @@ function _logAlert(lvl, ltp, dist, dir) {
     dir:        dir.dir,
     type:       lvl.type,
     tip:        dir.tip,
+    outcome:    dir.dir === 'WATCH' ? 'na' : null,   // WATCH can't be evaluated
   };
-  const key  = _LOG_KEY();
+  const key      = _LOG_KEY();
   const existing = JSON.parse(localStorage.getItem(key) || '[]');
   existing.unshift(entry);
-  localStorage.setItem(key, JSON.stringify(existing.slice(0, 200)));  // cap at 200
+  localStorage.setItem(key, JSON.stringify(existing.slice(0, 200)));
   _renderLog();
 }
 
@@ -3117,37 +3130,84 @@ function _toggleLog() {
   chevron.classList.toggle('open', open);
 }
 
+// Called on every fetchFlowData tick — evaluates alerts that are ≥15 min old
+function _evaluatePendingAlerts(currentLtp) {
+  if (!currentLtp) return;
+  const key     = _LOG_KEY();
+  const entries = _loadLog();
+  const now     = Date.now();
+  let   changed = false;
+
+  entries.forEach(e => {
+    if (e.outcome !== null && e.outcome !== undefined) return;  // already done
+    if (now - e.ts < _EVAL_AFTER_MS) return;                   // too soon
+
+    const diff = currentLtp - e.ltp;
+    if (e.dir === 'LONG') {
+      e.outcome = diff >= _HIT_PTS ? 'hit' : diff <= -_MISS_PTS ? 'miss' : 'flat';
+    } else if (e.dir === 'SHORT') {
+      e.outcome = diff <= -_HIT_PTS ? 'hit' : diff >= _MISS_PTS ? 'miss' : 'flat';
+    }
+    changed = true;
+  });
+
+  if (changed) {
+    localStorage.setItem(key, JSON.stringify(entries));
+    _renderLog();
+  }
+}
+
 function _renderLog() {
   const entries = _loadLog();
   const count   = entries.length;
 
-  // Update count badge
   document.getElementById('alogCount').textContent = count > 0 ? `${count} alert${count>1?'s':''}` : 'No alerts';
 
-  // Stats
+  // Direction counts
   const longs  = entries.filter(e => e.dir === 'LONG').length;
   const shorts = entries.filter(e => e.dir === 'SHORT').length;
   const watch  = entries.filter(e => e.dir === 'WATCH').length;
+
+  // Accuracy: only count evaluated directional alerts
+  const hits   = entries.filter(e => e.outcome === 'hit').length;
+  const misses = entries.filter(e => e.outcome === 'miss').length;
+  const flats  = entries.filter(e => e.outcome === 'flat').length;
+  const evaled = hits + misses + flats;
+  const accPct = evaled > 0 ? Math.round(hits / (hits + misses || 1) * 100) : null;
+
+  // Hottest level
   const levelFreq = {};
   entries.forEach(e => { levelFreq[e.level] = (levelFreq[e.level] || 0) + 1; });
-  const hotLevel = Object.keys(levelFreq).sort((a,b) => levelFreq[b] - levelFreq[a])[0] || '—';
+  const hotLevel = Object.keys(levelFreq).sort((a,b) => levelFreq[b] - levelFreq[a])[0] || null;
 
   document.getElementById('alogStats').innerHTML = `
     <span class="alog-stat total">📊 ${count} total</span>
     <span class="alog-stat long">🟢 ${longs} LONG</span>
     <span class="alog-stat short">🔴 ${shorts} SHORT</span>
     <span class="alog-stat watch">🟡 ${watch} WATCH</span>
-    ${hotLevel !== '—' ? `<span class="alog-stat hot">🔥 ${hotLevel} ×${levelFreq[hotLevel]}</span>` : ''}
+    ${hotLevel ? `<span class="alog-stat hot">🔥 ${hotLevel} ×${levelFreq[hotLevel]}</span>` : ''}
+    ${accPct !== null ? `<span class="alog-stat acc">🎯 ${accPct}% accuracy <span style="font-size:10px;opacity:.7">(${hits}/${hits+misses} eval)</span></span>` : ''}
     <button class="alog-clear" onclick="_clearLog()">Clear</button>
   `;
 
-  // Table
   const tbody = document.getElementById('alogTableBody');
   if (count === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="alog-empty">No alerts fired today yet</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="alog-empty">No alerts fired today yet</td></tr>`;
     return;
   }
+
   const typeColor = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' };
+
+  const outcomeHtml = (e) => {
+    const age = Date.now() - e.ts;
+    if (e.outcome === 'hit')  return `<span class="alog-outcome hit">✅ HIT</span>`;
+    if (e.outcome === 'miss') return `<span class="alog-outcome miss">❌ MISS</span>`;
+    if (e.outcome === 'flat') return `<span class="alog-outcome flat">↔ FLAT</span>`;
+    if (e.outcome === 'na')   return `<span class="alog-outcome na">⚪ N/A</span>`;
+    const remaining = Math.ceil((_EVAL_AFTER_MS - age) / 60000);
+    return `<span class="alog-outcome pending">⏳ ${remaining}m</span>`;
+  };
+
   tbody.innerHTML = entries.map(e => {
     const lvlColor = typeColor[e.type] || '#fff';
     const ptsColor = e.dist <= 5 ? 'var(--green)' : e.dist <= 10 ? 'var(--yellow)' : 'var(--muted)';
@@ -3159,6 +3219,7 @@ function _renderLog() {
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${e.levelPrice.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
         <td class="alog-pts" style="color:${ptsColor}">${e.dist} pts</td>
         <td><span class="alog-dir ${e.dir}">${e.dir}</span></td>
+        <td>${outcomeHtml(e)}</td>
         <td class="alog-tip" title="${e.tip}">${e.tip}</td>
       </tr>`;
   }).join('');
