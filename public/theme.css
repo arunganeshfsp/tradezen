@@ -1,45 +1,64 @@
 /* ── Light theme overrides ── */
 :root[data-theme="light"] {
-  --bg:      #F5F7FA;
-  --bg1:     #FFFFFF;
-  --bg2:     #EEF1F8;
-  --bg3:     #E4E8F5;
-  --bg4:     #D8DDEE;
-  --border:  #D1D9EE;
-  --border2: #B8C4E0;
-  --accent:  #6C5CE7;
-  --blue:    #4A7FE3;
-  --green:   #16A34A;
-  --green2:  #15803D;
-  --green-bg:rgba(22,163,74,0.1);
-  --red:     #DC2626;
-  --red2:    #B91C1C;
-  --red-bg:  rgba(220,38,38,0.1);
-  --yellow:  #D97706;
-  --yellow-bg:rgba(217,119,6,0.1);
-  --cyan:    #0284C7;
-  --text:    #1A1E35;
-  --dim:     #4A527A;
-  --muted:   #8892B0;
+  --bg:       #EEF1F9;
+  --bg1:      #FFFFFF;
+  --bg2:      #E6EAF6;
+  --bg3:      #D8DEEF;
+  --bg4:      #C9D0E8;
+  --border:   #BCC6E0;
+  --border2:  #9AAAD4;
+  --accent:   #5B4FD4;
+  --blue:     #2E6FD8;
+  --green:    #14A044;
+  --green2:   #0F7A33;
+  --green-bg: rgba(20,160,68,0.12);
+  --red:      #CC1F1F;
+  --red2:     #A81818;
+  --red-bg:   rgba(204,31,31,0.12);
+  --yellow:   #C47A00;
+  --yellow-bg:rgba(196,122,0,0.12);
+  --cyan:     #0272B5;
+  --text:     #0B0E1E;
+  --dim:      #252D5C;
+  --muted:    #52607A;
 }
 
-/* Nav background (hardcoded in each page) */
+/* Nav background (hardcoded per page) */
 :root[data-theme="light"] nav {
-  background: rgba(245,247,250,0.95);
+  background: rgba(238,241,249,0.97);
+  border-bottom-color: var(--border);
+}
+
+/* Nav link colours */
+:root[data-theme="light"] .nl {
+  color: var(--dim);
+}
+:root[data-theme="light"] .nl:hover,
+:root[data-theme="light"] .nl.on {
+  color: var(--text);
+  background: var(--bg3);
+}
+
+/* Nav badges */
+:root[data-theme="light"] .nav-badge {
+  color: var(--dim);
+  border-color: var(--border);
+  background: var(--bg3);
 }
 
 @media (max-width: 768px) {
   :root[data-theme="light"] .nav-links {
-    background: rgba(245,247,250,0.98);
+    background: rgba(238,241,249,0.98);
+    border-bottom-color: var(--border);
   }
   :root[data-theme="light"] .tz-nav-links {
-    background: rgba(245,247,250,0.98);
+    background: rgba(238,241,249,0.98);
   }
 }
 
 /* tz-nav style pages */
 :root[data-theme="light"] .tz-nav {
-  background: rgba(245,247,250,0.95);
+  background: rgba(238,241,249,0.97);
   border-bottom-color: var(--border);
 }
 :root[data-theme="light"] .tz-nav a {
@@ -65,9 +84,4 @@
 /* Scrollbar */
 :root[data-theme="light"] * {
   scrollbar-color: var(--bg3) var(--bg2);
-}
-
-/* Chart canvas and misc */
-:root[data-theme="light"] canvas {
-  filter: none;
 }
