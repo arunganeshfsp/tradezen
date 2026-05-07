@@ -23,29 +23,11 @@
   --muted:    #52607A;
 }
 
-/* Nav background (hardcoded per page) */
+/* ── Nav background (hardcoded per page) ── */
 :root[data-theme="light"] nav {
   background: rgba(238,241,249,0.97);
   border-bottom-color: var(--border);
 }
-
-/* Nav link colours */
-:root[data-theme="light"] .nl {
-  color: var(--dim);
-}
-:root[data-theme="light"] .nl:hover,
-:root[data-theme="light"] .nl.on {
-  color: var(--text);
-  background: var(--bg3);
-}
-
-/* Nav badges */
-:root[data-theme="light"] .nav-badge {
-  color: var(--dim);
-  border-color: var(--border);
-  background: var(--bg3);
-}
-
 @media (max-width: 768px) {
   :root[data-theme="light"] .nav-links {
     background: rgba(238,241,249,0.98);
@@ -56,24 +38,72 @@
   }
 }
 
-/* tz-nav style pages */
+/* ── Brand / logo text (hardcoded #fff) ── */
+:root[data-theme="light"] .brand,
+:root[data-theme="light"] .nav-brand { color: var(--text); }
+
+/* ── Nav links ── */
+:root[data-theme="light"] .nl        { color: var(--dim); }
+:root[data-theme="light"] .nl:hover  { color: var(--text); background: var(--bg3); }
+:root[data-theme="light"] .nl.on     { color: var(--accent); background: rgba(91,79,212,0.1); }
+:root[data-theme="light"] .nav-link  { color: var(--dim); }
+:root[data-theme="light"] .nav-link:hover,
+:root[data-theme="light"] .nav-link.active { color: var(--accent); }
+
+/* ── Nav badge ── */
+:root[data-theme="light"] .nav-badge {
+  color: var(--dim);
+  background: var(--bg3);
+  border-color: var(--border);
+}
+
+/* ── Hero headings (hardcoded #fff) ── */
+:root[data-theme="light"] .hero h1,
+:root[data-theme="light"] .hero-title,
+:root[data-theme="light"] h1 { color: var(--text); }
+
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3 { color: var(--text); }
+
+/* Keep gradient text on hero em/span */
+:root[data-theme="light"] .hero h1 em { color: var(--accent); }
+
+/* ── Section / card headings (hardcoded #fff) ── */
+:root[data-theme="light"] .section-title h2,
+:root[data-theme="light"] .panel-title,
+:root[data-theme="light"] .tool-card h3,
+:root[data-theme="light"] .dc-title,
+:root[data-theme="light"] .sb-title,
+:root[data-theme="light"] .ph-time,
+:root[data-theme="light"] .ltp-display,
+:root[data-theme="light"] .sig-name,
+:root[data-theme="light"] .card-title { color: var(--text); }
+
+/* ── Footer brand ── */
+:root[data-theme="light"] .fbrand span,
+:root[data-theme="light"] .flogo + span { color: var(--dim); }
+
+/* ── tz-nav pages ── */
 :root[data-theme="light"] .tz-nav {
   background: rgba(238,241,249,0.97);
   border-bottom-color: var(--border);
 }
-:root[data-theme="light"] .tz-nav a {
-  color: var(--dim);
-}
-:root[data-theme="light"] .tz-nav a:hover {
-  color: var(--text);
-}
+:root[data-theme="light"] .tz-nav a      { color: var(--dim); }
+:root[data-theme="light"] .tz-nav a:hover { color: var(--text); }
+:root[data-theme="light"] .tz-logo-text  { color: var(--text); }
 :root[data-theme="light"] .tz-nav-chip {
   color: var(--accent);
   border-color: var(--border);
   background: var(--bg3);
 }
 
-/* Theme toggle button icon via CSS */
+/* ── Misc inline-style overrides via !important (chart panels, etc.) ── */
+:root[data-theme="light"] .hero h1[style*="color:#fff"],
+:root[data-theme="light"] span[style*="color:#fff"],
+:root[data-theme="light"] div[style*="color:#fff"],
+:root[data-theme="light"] td[style*="color:#fff"] { color: var(--text) !important; }
+
+/* ── Theme toggle button icon via CSS ── */
 #themeToggle::after {
   content: "☀️";
 }
@@ -81,7 +111,7 @@
   content: "🌙";
 }
 
-/* Scrollbar */
+/* ── Scrollbar ── */
 :root[data-theme="light"] * {
   scrollbar-color: var(--bg3) var(--bg2);
 }
