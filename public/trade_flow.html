@@ -231,6 +231,44 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 .fbrand span{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
 .fnote{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
 .fnote em{color:var(--yellow);font-style:normal}
+
+/* ── ALERT LOG ── */
+.alog-wrap{max-width:1100px;margin:0 auto 40px;padding:0 28px}
+.alog-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.alog-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.alog-head:hover{background:var(--bg2)}
+.alog-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);flex:1}
+.alog-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:2px 10px;border-radius:20px}
+.alog-toggle{font-size:11px;color:var(--muted);transition:transform .2s}
+.alog-toggle.open{transform:rotate(180deg)}
+.alog-body{display:none}
+.alog-body.open{display:block}
+.alog-stats{display:flex;gap:8px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.alog-stat{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:20px}
+.alog-stat.long{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+.alog-stat.short{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+.alog-stat.watch{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
+.alog-stat.total{background:var(--bg3);border:1px solid var(--border);color:var(--dim)}
+.alog-stat.hot{background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.3);color:var(--accent)}
+.alog-clear{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 10px;border-radius:var(--r2);border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer}
+.alog-clear:hover{border-color:var(--red);color:var(--red)}
+.alog-table-wrap{max-height:340px;overflow-y:auto}
+.alog-table{width:100%;border-collapse:collapse;font-size:12px}
+.alog-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg1);position:sticky;top:0;z-index:1}
+.alog-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--dim)}
+.alog-table tr:last-child td{border-bottom:none}
+.alog-table tr:hover td{background:var(--bg2)}
+.alog-time{font-family:'JetBrains Mono',monospace;color:var(--muted);white-space:nowrap}
+.alog-level{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+.alog-ltp{font-family:'JetBrains Mono',monospace;color:var(--text)}
+.alog-pts{font-family:'JetBrains Mono',monospace;font-size:11px}
+.alog-dir{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.8px;padding:2px 8px;border-radius:4px}
+.alog-dir.LONG{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+.alog-dir.SHORT{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+.alog-dir.WATCH{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
+.alog-tip{color:var(--muted);font-size:11px;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alog-empty{padding:28px;text-align:center;color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace}
+@media(max-width:768px){.alog-tip{display:none}.alog-table th:nth-child(4),.alog-table td:nth-child(4){display:none}}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
@@ -697,6 +735,39 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ALERT LOG -->
+<div class="alog-wrap">
+  <div class="alog-panel">
+    <div class="alog-head" onclick="_toggleLog()">
+      <span style="font-size:15px">🔔</span>
+      <span class="alog-title">Alert Log — Today</span>
+      <span class="alog-count" id="alogCount">No alerts</span>
+      <span class="alog-toggle" id="alogChevron">▼</span>
+    </div>
+    <div class="alog-body" id="alogBody">
+      <div class="alog-stats" id="alogStats"></div>
+      <div class="alog-table-wrap">
+        <table class="alog-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Level</th>
+              <th>NIFTY</th>
+              <th>Level Price</th>
+              <th>Pts Away</th>
+              <th>Signal</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody id="alogTableBody">
+            <tr><td colspan="7" class="alog-empty">No alerts fired today yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2951,6 +3022,7 @@ function _fireAlert(lvl, ltp, dist) {
 
   _playAlertSound(lvl.type);
   _showAlertToast(headline, dir, levelColor, dirColor, 9000);
+  _logAlert(lvl, ltp, dist, dir);
 
   if (Notification.permission === 'granted') {
     new Notification('TradeZen Alert', { body: notifBody, icon: '/favicon.ico', tag: lvl.name });
@@ -3004,6 +3076,95 @@ function _showToast(msg, type, duration = 5000, color = '#fff') {
 }
 
 // ─────────────────────────────────────────────
+// Alert Log — persisted in localStorage per day
+// ─────────────────────────────────────────────
+const _LOG_KEY = () => `tz_alert_log_${new Date().toISOString().slice(0,10)}`;
+
+function _logAlert(lvl, ltp, dist, dir) {
+  const now  = new Date();
+  const time = now.toTimeString().slice(0, 8);
+  const entry = {
+    ts:         now.getTime(),
+    time,
+    level:      lvl.name,
+    levelPrice: lvl.price,
+    ltp,
+    dist:       parseFloat(dist.toFixed(1)),
+    dir:        dir.dir,
+    type:       lvl.type,
+    tip:        dir.tip,
+  };
+  const key  = _LOG_KEY();
+  const existing = JSON.parse(localStorage.getItem(key) || '[]');
+  existing.unshift(entry);
+  localStorage.setItem(key, JSON.stringify(existing.slice(0, 200)));  // cap at 200
+  _renderLog();
+}
+
+function _loadLog() {
+  return JSON.parse(localStorage.getItem(_LOG_KEY()) || '[]');
+}
+
+function _clearLog() {
+  localStorage.removeItem(_LOG_KEY());
+  _renderLog();
+}
+
+function _toggleLog() {
+  const body    = document.getElementById('alogBody');
+  const chevron = document.getElementById('alogChevron');
+  const open    = body.classList.toggle('open');
+  chevron.classList.toggle('open', open);
+}
+
+function _renderLog() {
+  const entries = _loadLog();
+  const count   = entries.length;
+
+  // Update count badge
+  document.getElementById('alogCount').textContent = count > 0 ? `${count} alert${count>1?'s':''}` : 'No alerts';
+
+  // Stats
+  const longs  = entries.filter(e => e.dir === 'LONG').length;
+  const shorts = entries.filter(e => e.dir === 'SHORT').length;
+  const watch  = entries.filter(e => e.dir === 'WATCH').length;
+  const levelFreq = {};
+  entries.forEach(e => { levelFreq[e.level] = (levelFreq[e.level] || 0) + 1; });
+  const hotLevel = Object.keys(levelFreq).sort((a,b) => levelFreq[b] - levelFreq[a])[0] || '—';
+
+  document.getElementById('alogStats').innerHTML = `
+    <span class="alog-stat total">📊 ${count} total</span>
+    <span class="alog-stat long">🟢 ${longs} LONG</span>
+    <span class="alog-stat short">🔴 ${shorts} SHORT</span>
+    <span class="alog-stat watch">🟡 ${watch} WATCH</span>
+    ${hotLevel !== '—' ? `<span class="alog-stat hot">🔥 ${hotLevel} ×${levelFreq[hotLevel]}</span>` : ''}
+    <button class="alog-clear" onclick="_clearLog()">Clear</button>
+  `;
+
+  // Table
+  const tbody = document.getElementById('alogTableBody');
+  if (count === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="alog-empty">No alerts fired today yet</td></tr>`;
+    return;
+  }
+  const typeColor = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' };
+  tbody.innerHTML = entries.map(e => {
+    const lvlColor = typeColor[e.type] || '#fff';
+    const ptsColor = e.dist <= 5 ? 'var(--green)' : e.dist <= 10 ? 'var(--yellow)' : 'var(--muted)';
+    return `
+      <tr>
+        <td class="alog-time">${e.time}</td>
+        <td class="alog-level" style="color:${lvlColor}">${e.level}</td>
+        <td class="alog-ltp">${e.ltp.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${e.levelPrice.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+        <td class="alog-pts" style="color:${ptsColor}">${e.dist} pts</td>
+        <td><span class="alog-dir ${e.dir}">${e.dir}</span></td>
+        <td class="alog-tip" title="${e.tip}">${e.tip}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
 // Boot
 // ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -3012,6 +3173,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(tickClock, 1000);
   tickClock();
   _initNotifBanner();
+  _renderLog();
   await fetchFlowData();
   setInterval(fetchFlowData, 30000);        // trade-flow: every 30s
   setTimeout(_fetchIvSilent, 3000);         // IV chip: after 3s delay (let page settle)
