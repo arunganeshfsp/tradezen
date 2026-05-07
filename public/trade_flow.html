@@ -225,6 +225,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .refresh-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:right;margin-bottom:8px}
 
 /* ── FOOTER ── */
+.notif-banner{display:none;background:rgba(124,106,247,0.1);border-bottom:1px solid rgba(124,106,247,0.25);padding:10px 20px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.notif-text{font-family:'JetBrains Mono',monospace;font-size:12px;color:#c4bfff}
+.notif-btn-enable{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 14px;border-radius:6px;background:rgba(124,106,247,0.3);border:1px solid rgba(124,106,247,0.5);color:#c4bfff;cursor:pointer}
+.notif-btn-dismiss{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer}
 footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .fbrand{display:flex;align-items:center;gap:8px}
 .flogo{width:26px;height:26px;border-radius:5px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
@@ -286,11 +290,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 <div id="alert-toasts" style="position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px"></div>
 
 <!-- NOTIFICATION PROMPT BANNER -->
-<div id="notif-banner" style="display:none;background:rgba(124,106,247,0.1);border-bottom:1px solid rgba(124,106,247,0.25);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#c4bfff">🔔 Enable browser notifications to get price alerts when NIFTY hits key levels</span>
+<div id="notif-banner" class="notif-banner">
+  <span class="notif-text">🔔 Enable browser notifications to get price alerts when NIFTY hits key levels</span>
   <div style="display:flex;gap:8px;flex-shrink:0">
-    <button onclick="_requestNotifPermission()" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 14px;border-radius:6px;background:rgba(124,106,247,0.3);border:1px solid rgba(124,106,247,0.5);color:#c4bfff;cursor:pointer">Enable</button>
-    <button onclick="_dismissNotifBanner()" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer">✕</button>
+    <button onclick="_requestNotifPermission()" class="notif-btn-enable">Enable</button>
+    <button onclick="_dismissNotifBanner()" class="notif-btn-dismiss">✕</button>
   </div>
 </div>
 

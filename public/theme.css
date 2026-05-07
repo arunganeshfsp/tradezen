@@ -103,6 +103,23 @@
 :root[data-theme="light"] div[style*="color:#fff"],
 :root[data-theme="light"] td[style*="color:#fff"] { color: var(--text) !important; }
 
+/* ── Notification banner ── */
+:root[data-theme="light"] .notif-banner {
+  background: rgba(91,79,212,0.07);
+  border-bottom-color: rgba(91,79,212,0.25);
+}
+:root[data-theme="light"] .notif-text {
+  color: var(--dim);
+}
+:root[data-theme="light"] .notif-btn-enable {
+  background: rgba(91,79,212,0.12);
+  border-color: rgba(91,79,212,0.4);
+  color: var(--accent);
+}
+:root[data-theme="light"] .notif-btn-dismiss {
+  color: var(--muted);
+}
+
 /* ── Theme toggle button icon via CSS ── */
 #themeToggle::after {
   content: "☀️";
