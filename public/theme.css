@@ -103,6 +103,11 @@
 :root[data-theme="light"] div[style*="color:#fff"],
 :root[data-theme="light"] td[style*="color:#fff"] { color: var(--text) !important; }
 
+/* ── F&O Scanner table ── */
+:root[data-theme="light"] .sym,
+:root[data-theme="light"] .ltp,
+:root[data-theme="light"] .modal-sym { color: var(--text); }
+
 /* ── Notification banner ── */
 :root[data-theme="light"] .notif-banner {
   background: rgba(91,79,212,0.07);

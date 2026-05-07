@@ -2779,6 +2779,7 @@ let _alertsOn       = false;
 const _alertSnoozed = new Map();   // levelName → timestamp of last alert
 const _ALERT_PROX   = 10;          // pts within this distance → alert
 const _ALERT_COOL   = 5 * 60000;  // 5-min cooldown per level
+let   _prevAlertLtp = null;        // LTP from previous poll — used to detect rising vs falling
 
 function toggleAlerts() {
   if (!_alertsOn && Notification.permission === 'default') {
@@ -2850,13 +2851,16 @@ function _checkPriceAlerts(ltp) {
   if (!_alertsOn || !ltp) return;
   const now    = Date.now();
   const levels = _getLevelsToWatch();
+  // Determine approach direction: rising if LTP went up ≥2 pts since last poll
+  const rising = _prevAlertLtp !== null ? ltp >= _prevAlertLtp + 2 : true;
+  _prevAlertLtp = ltp;
   for (const lvl of levels) {
     const dist = Math.abs(ltp - lvl.price);
     if (dist > _ALERT_PROX) continue;
     const last = _alertSnoozed.get(lvl.name) || 0;
     if (now - last < _ALERT_COOL) continue;
     _alertSnoozed.set(lvl.name, now);
-    _fireAlert(lvl, ltp, dist);
+    _fireAlert(lvl, ltp, dist, rising);
   }
 }
 
@@ -2878,43 +2882,42 @@ function _playAlertSound(type) {
   } catch (_) {}
 }
 
-function _getCprDirection(lvl, ltp, cpr) {
-  // ── Day bias: double-confirm using scenario + ORB-vs-CPR (same as CPR Monitor) ──
+function _getCprDirection(lvl, ltp, cpr, rising = true) {
+  // ── Day bias ──────────────────────────────────────────────────────────────
   const sc     = flowData?.scenario || '';
   const vsCpr  = flowData?.orb?.vs_cpr || '';
   const isBull = sc === 'bull' || sc === 'conditional_bull' || vsCpr === 'above_tc';
   const isBear = sc === 'bear' || sc === 'conditional_bear' || vsCpr === 'below_bc';
 
   // Is LTP above or below the alerted level?
-  const above = ltp > lvl.price;   // approaching from above (level is below price)
-  const n     = lvl.name;
+  const above   = ltp > lvl.price;
+  const falling = !rising;
+  const n       = lvl.name;
 
   switch (n) {
     // ── CPR Band ─────────────────────────────────────────────────────────────
     case 'TC':
       if (above) {
-        // Price above TC → testing TC as support from above
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:'TC support test — bull day. Dip to TC is buy opportunity. Break below TC → exit signal.' };
         if (isBear) return { dir:'SHORT', icon:'🔴', tip:'TC failing as support on bear day. Break below TC → Short signal.' };
         return             { dir:'WATCH', icon:'🟡', tip:'TC support test. Hold above TC → Long. Break below TC → Bearish shift.' };
       } else {
-        // Price below TC → testing TC as resistance from below
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Approaching TC resistance on bull day — likely to break out. Close above TC → Long entry.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'TC resistance — bear day. Rejection likely. Only Long if strong close above TC with volume.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Key decision at TC. Close above TC → Long. Rejection at TC → Short.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Approaching TC on bull day — likely to break out. Close above TC → Long entry.' };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through TC — bull momentum at risk. Hold TC on close or bias shifts neutral.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'TC resistance — bear day. Rejection likely. Only Long on strong close above TC.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Key decision at TC. Close above TC → Long. Rejection → Short.' };
       }
 
     case 'BC':
       if (above) {
-        // Price above BC → testing BC as support from above
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:'BC support test — bull day. Hold above BC → Long valid. Break below BC is a bearish warning.' };
         if (isBear) return { dir:'SHORT', icon:'🔴', tip:'BC breakdown approaching — bear day. Break below BC → Strong Short signal.' };
         return             { dir:'WATCH', icon:'🟡', tip:'BC support test. Hold → Long. Break below BC → Short trigger.' };
       } else {
-        // Price below BC → testing BC as resistance from below
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Below BC but bull day — bear trap possible. Reclaim of BC → Long recovery signal.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'BC acting as resistance — bear day. Rejection at BC → Short continuation.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Testing BC from below. Break above BC → Bear trap → Long. Rejection → Short continues.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below BC but bull day — bear trap possible. Reclaim of BC → Long recovery signal.' };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through BC on bull day — bearish warning. Watch for reversal candle.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'BC acting as resistance — bear day. Rejection at BC → Short continuation.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Testing BC from below. Break above BC → Bear trap → Long. Rejection → Short continues.' };
       }
 
     case 'PP':
@@ -2925,29 +2928,29 @@ function _getCprDirection(lvl, ltp, cpr) {
     // ── Resistance pivots ─────────────────────────────────────────────────────
     case 'R1': case 'R2': case 'R3':
       if (above) {
-        // Price above Rn → Rn now acting as support (retest)
+        // Retesting Rn as support after breakout
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:`${n} retest as support — bull day. Dip to ${n} is buy opportunity. Break below → pullback deepens.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → Short. Break below ${n} → Short momentum.` };
-        return             { dir:'WATCH', icon:'🟡', tip:`${n} support/resistance pivot. Hold above → Long. Break below → Short.` };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → Short. Break below → Short momentum.` };
+        return             { dir:'WATCH', icon:'🟡', tip:`${n} pivot. Hold above → Long. Break below → Short.` };
       } else {
-        // Price below Rn → approaching Rn as resistance
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`Approaching ${n} on bull day — likely to break. First touch may see brief rejection — wait for candle close above ${n} before entering Long.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} resistance — bear day. Rejection expected. May bounce briefly before failing — wait for rejection candle before shorting.` };
-        return             { dir:'WATCH', icon:'🟡', tip:`Approaching ${n} resistance. Breakout above → Long. Rejection at ${n} → Short reversal.` };
+        // Below Rn — approaching from below OR declining back through
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:`Approaching ${n} on bull day — likely to break. First touch may see brief rejection — wait for candle close above ${n} before entering Long.` };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:`Declining back below ${n} on bull day — momentum fading. Wait for price to stabilise and reclaim ${n}.` };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:`${n} resistance — bear day. Rejection expected. Wait for rejection candle before shorting.` };
+        return                         { dir:'WATCH', icon:'🟡', tip:`Approaching ${n} resistance. Breakout above → Long. Rejection → Short reversal.` };
       }
 
     // ── Support pivots ────────────────────────────────────────────────────────
     case 'S1': case 'S2': case 'S3':
       if (above) {
-        // Price above Sn → approaching Sn as support
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:`${n} support test — bull day. Bounce likely. Hold at ${n} → Long continuation.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`Approaching ${n} support on bear day — likely to break. First touch may see a brief bounce — wait for candle close below ${n} before entering Short.` };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`Approaching ${n} on bear day — likely to break. First touch may see brief bounce — wait for candle close below ${n} before shorting.` };
         return             { dir:'WATCH', icon:'🟡', tip:`${n} support test. Hold → Long bounce. Break below → Short momentum.` };
       } else {
-        // Price below Sn → Sn now acting as resistance (retest from below)
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`Reclaiming ${n} on bull day. Break back above ${n} → Recovery Long signal.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → Short continuation.` };
-        return             { dir:'WATCH', icon:'🟡', tip:`Below ${n} — retesting as resistance. Break above → Recovery. Rejection → Short continues.` };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:`Reclaiming ${n} on bull day. Break back above ${n} → Recovery Long signal.` };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:`Declining below ${n} on bull day — unusual weakness. Wait for stabilisation before entry.` };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → Short continuation.` };
+        return                         { dir:'WATCH', icon:'🟡', tip:`Below ${n} — retesting as resistance. Break above → Recovery. Rejection → Short continues.` };
       }
 
     // ── ORB levels ────────────────────────────────────────────────────────────
@@ -2957,20 +2960,23 @@ function _getCprDirection(lvl, ltp, cpr) {
         if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Above ORB High but bear day — possible false breakout. Break back below ORB H → Short.' };
         return             { dir:'WATCH', icon:'🟡', tip:'Above ORB High — trend day up. Hold above ORB H → Long. Break back below → reversal.' };
       } else {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching ORB High — likely breakout. Close above ORB H → Long trend day.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB High is upside cap. Rejection at ORB H → Short. Only Long on strong volume break.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Approaching ORB High. Breakout above → LONG trend day. Rejection → stay flat or Short.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching ORB High — likely breakout. Close above ORB H → Long trend day.' };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'ORB High lost on pullback — bull momentum weakening. Watch for reclaim above ORB H or support at lower levels.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB High is upside cap. Rejection at ORB H → Short. Only Long on strong volume break.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching ORB High. Breakout above → LONG trend day. Rejection → stay flat or Short.' };
       }
 
     case 'ORB Low':
       if (above) {
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day — ORB Low is key support. Hold above ORB L → Long. Break below is a strong bearish warning.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB Low breakdown approaching. Break below ORB L → Short trend day signal.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Approaching ORB Low. Break below → SHORT trend day. Hold → potential reversal Long.' };
+        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB Low breakdown approaching. Break below ORB L → Short trend day signal.' };
+        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near ORB Low. Break below confirms Short trend day.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching ORB Low. Break below → SHORT trend day. Hold → potential reversal Long.' };
       } else {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Below ORB Low but bull day — potential bear trap. Reclaim of ORB L → Strong recovery Long.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Below ORB Low — bear trend day confirmed. ORB L now resistance. Short continuation.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Below ORB Low — bearish. Bounce back to ORB L may face resistance.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below ORB Low but bull day — potential bear trap. Reclaim of ORB L → Strong recovery Long.' };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining below ORB Low on bull day — bull scenario at risk. Watch for recovery or trend reversal.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Below ORB Low — bear trend day confirmed. ORB L now resistance. Short continuation.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Below ORB Low — bearish. Bounce back to ORB L may face resistance.' };
       }
 
     // ── Market Profile ────────────────────────────────────────────────────────
@@ -2980,20 +2986,23 @@ function _getCprDirection(lvl, ltp, cpr) {
         if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Above VAH but bear day — fade the move. Break back below VAH → Short.' };
         return             { dir:'WATCH', icon:'🟡', tip:'Above VAH — watch for acceptance. VAH now support. Break below VAH → fade signal.' };
       } else {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching VAH — likely breakout. Close above VAH → Long continuation.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'VAH resistance — bear day. Rejection expected at VAH. Short on failure.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'VAH resistance. Break above with volume → Long. Rejection at VAH → Short.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching VAH — likely breakout. Close above VAH → Long continuation.' };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through VAH on bull day — momentum weakening. Wait for stabilisation or hold above VAH.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'VAH resistance — bear day. Rejection expected at VAH. Short on failure.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'VAH resistance. Break above with volume → Long. Rejection at VAH → Short.' };
       }
 
     case 'VAL':
       if (above) {
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:'VAL support test — bull day. Bounce likely. Hold at VAL → Long continuation.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Approaching VAL breakdown — bear day. Break below VAL → Short extension.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'VAL support test. Hold → Long bounce. Break below → Short momentum.' };
+        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Approaching VAL breakdown — bear day. Break below VAL → Short extension.' };
+        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near VAL support. Break below → Short extension.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'VAL support test. Hold → Long bounce. Break below → Short momentum.' };
       } else {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Below VAL but bull day — bear range extension may be overdone. Reclaim of VAL → Long.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Below VAL — bear range expansion. VAL now resistance. Short continuation.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Below VAL — bearish. Bounce to VAL may face resistance.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below VAL but bull day — bear range may be overdone. Reclaim of VAL → Long.' };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining below VAL on bull day — unusual weakness. Watch for reversal candle.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Below VAL — bear range expansion. VAL now resistance. Short continuation.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Below VAL — bearish. Bounce to VAL may face resistance.' };
       }
 
     case 'POC':
@@ -3006,16 +3015,18 @@ function _getCprDirection(lvl, ltp, cpr) {
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Above IB High — bull trend day confirmed. IB H now support. Pullback to IB H → buy.' };
         return             { dir:'WATCH', icon:'🟡', tip:'Above IB High — trend day up. Hold above IB H → Long. Break back below → day turning range.' };
       } else {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day — approaching IB High. Breakout above IB H → Long trend day confirmed.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Bear day — IB High caps upside. Rejection at IB H → Short. Range-bound day likely.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Approaching IB High. Breakout → LONG trend day. Rejection → range-bound day.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day — approaching IB High. Breakout above IB H → Long trend day confirmed.' };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through IB High on bull day — range day likely. Watch for new directional move.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Bear day — IB High caps upside. Rejection at IB H → Short. Range-bound day likely.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching IB High. Breakout → LONG trend day. Rejection → range-bound day.' };
       }
 
     case 'IB L':
       if (above) {
         if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day — IB Low is key support. Hold → Long. Break below IB L is a strong bearish warning.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Bear day — IB Low breakdown approaching. Break below IB L → Short trend day.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Approaching IB Low. Break below → SHORT trend day. Hold → range-bound day.' };
+        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Bear day — IB Low breakdown approaching. Break below IB L → Short trend day.' };
+        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near IB Low. Break below confirms Short trend day.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching IB Low. Break below → SHORT trend day. Hold → range-bound day.' };
       } else {
         if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Below IB Low — bear trend day confirmed. IB L now resistance. Short continuation.' };
         return             { dir:'WATCH', icon:'🟡', tip:'Below IB Low — bearish. Bounce back to IB L may face resistance.' };
@@ -3026,11 +3037,11 @@ function _getCprDirection(lvl, ltp, cpr) {
   }
 }
 
-function _fireAlert(lvl, ltp, dist) {
+function _fireAlert(lvl, ltp, dist, rising = true) {
   const levelColor = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' }[lvl.type] || '#fff';
   const emoji      = { resistance:'🔴', support:'🟢', cpr:'🟡', mp:'🔵', orb:'🟣' }[lvl.type] || '⚪';
   const cpr        = flowData?.cpr;
-  const dir        = _getCprDirection(lvl, ltp, cpr);
+  const dir        = _getCprDirection(lvl, ltp, cpr, rising);
   const dirColor   = dir.dir === 'LONG' ? '#4ade80' : dir.dir === 'SHORT' ? '#f87171' : '#fbbf24';
   const headline   = `NIFTY ${ltp} — ${emoji} ${lvl.name} (${lvl.price}) · ${dist.toFixed(0)} pts away`;
   const notifBody  = `${headline}\n${dir.icon} ${dir.dir}: ${dir.tip}`;
