@@ -39,8 +39,8 @@
   if (!document.querySelector('link[rel~="icon"]')) {
     var lnk = document.createElement('link');
     lnk.rel  = 'icon';
-    lnk.type = 'image/svg+xml';
-    lnk.href = '/favicon.svg';
+    lnk.type = 'image/png';
+    lnk.href = '/favicon.png';
     document.head.appendChild(lnk);
   }
 

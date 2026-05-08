@@ -7,7 +7,7 @@ body {
 
 /* ── Logo: replace TZ text with actual brand icon ── */
 .logo {
-  background: url('/favicon.svg') center / 100% 100% no-repeat;
+  background: url('/favicon.png') center / cover no-repeat;
   font-size: 0;
   color: transparent;
   border-radius: 7px;
