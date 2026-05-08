@@ -11,13 +11,15 @@ import asyncio
 import json
 import math
 import os
+import subprocess
 import threading
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from config.credentials import get_smart_api
@@ -2519,3 +2521,54 @@ def report_delete(date: str):
     ok   = _db_delete_report(conn, date)
     conn.close()
     return {"deleted": ok, "date": date}
+
+
+# ── Node management (called by launcher when Node is offline) ──────────────────
+# These live on Python so they work even when the Node server is stopped.
+# Browser hits /api/mgmt/... → nginx strips /api/ → Python receives /mgmt/...
+
+PM2_ENV = {**os.environ, "PATH": f"/usr/local/bin:/usr/bin:/bin:{os.environ.get('PATH', '')}"}
+PM2_NAMES = {"node": "tradezen-node", "python": "tradezen-python"}
+
+def _check_token(request: Request) -> bool:
+    token = os.environ.get("ADMIN_TOKEN", "")
+    return bool(token) and request.headers.get("x-admin-token", "").strip() == token
+
+def _pm2(cmd: str) -> dict:
+    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15, env=PM2_ENV)
+    return {"ok": r.returncode == 0, "detail": r.stdout + r.stderr}
+
+@app.get("/mgmt/status")
+async def mgmt_status(request: Request):
+    if not _check_token(request):
+        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+    r = subprocess.run("pm2 jlist", shell=True, capture_output=True, text=True, timeout=10, env=PM2_ENV)
+    try:
+        procs = json.loads(r.stdout)
+        status = {}
+        for key, name in PM2_NAMES.items():
+            proc = next((p for p in procs if p["name"] == name), None)
+            status[key] = {"online": proc["pm2_env"]["status"] == "online",
+                           "status": proc["pm2_env"]["status"],
+                           "pid": proc["pid"]} if proc else {"online": False, "status": "not found", "pid": None}
+        return status
+    except Exception:
+        return JSONResponse(status_code=500, content={"error": "Could not parse pm2 output"})
+
+@app.post("/mgmt/start/{srv}")
+async def mgmt_start(srv: str, request: Request):
+    if not _check_token(request):
+        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+    name = PM2_NAMES.get(srv)
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "unknown server"})
+    return _pm2(f"pm2 start {name}")
+
+@app.post("/mgmt/restart/{srv}")
+async def mgmt_restart(srv: str, request: Request):
+    if not _check_token(request):
+        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+    name = PM2_NAMES.get(srv)
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "unknown server"})
+    return _pm2(f"pm2 restart {name}")

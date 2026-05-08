@@ -287,10 +287,11 @@
   }
 
   // ── Fetch wrapper ─────────────────────────────────────────────────────────────
-  async function api(path, method = 'GET') {
+  // base: '/mgmt' = Node server, '/api/mgmt' = Python server (always alive)
+  async function _fetch(base, path, method = 'GET') {
     let res;
     try {
-      res = await fetch(`/mgmt${path}`, {
+      res = await fetch(`${base}${path}`, {
         method,
         headers: { 'x-admin-token': getToken() },
       });
@@ -309,6 +310,10 @@
     if (!res.ok) throw new Error(data?.error || data?.detail || `HTTP ${res.status}`);
     return data;
   }
+  // Node server (may be offline)
+  const api       = (path, method = 'GET') => _fetch('/mgmt',     path, method);
+  // Python server (always alive — used as fallback and for Node start/restart)
+  const apiPython = (path, method = 'GET') => _fetch('/api/mgmt', path, method);
 
   // ── Status ────────────────────────────────────────────────────────────────────
   function setStatus(srv, info) {
@@ -330,7 +335,10 @@
 
   async function refreshStatus() {
     try {
-      const data = await api('/status');
+      // Try Node first; if it's offline fall back to Python
+      let data;
+      try { data = await api('/status'); }
+      catch (_) { data = await apiPython('/status'); }
       clearApiError();
       setStatus('python', data.python);
       setStatus('node',   data.node);
@@ -373,7 +381,9 @@
   async function action(type, srv) {
     setPending(srv);
     try {
-      await api(`/${type}/${srv}`, 'POST');
+      // Node start/restart must go via Python — Node may be offline and can't receive its own start command
+      const usePython = (srv === 'node' && (type === 'start' || type === 'restart'));
+      await (usePython ? apiPython : api)(`/${type}/${srv}`, 'POST');
       clearApiError();
     } catch (err) { showApiError(`${type} ${srv}: ${err.message}`); }
     setTimeout(refreshStatus, 2500);
