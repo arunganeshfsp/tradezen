@@ -290,7 +290,7 @@
   async function api(path, method = 'GET') {
     let res;
     try {
-      res = await fetch(`/api/admin${path}`, {
+      res = await fetch(`/mgmt${path}`, {
         method,
         headers: { 'x-admin-token': getToken() },
       });
