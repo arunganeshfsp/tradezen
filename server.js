@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 
 const stockRoutes = require("./routes/stockRoute");
+const adminRoutes = require("./routes/adminRoute");
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.get("/", (req, res) => {
 
 // 👉 Plug routes
 app.use("/api", stockRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Static files
 app.use(express.static(path.join(__dirname, "public")));

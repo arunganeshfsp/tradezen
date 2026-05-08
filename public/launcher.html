@@ -177,16 +177,31 @@
 </head>
 <body>
 
+<!-- Token gate -->
+<div id="token-gate" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;width:100%;max-width:380px">
+    <h2 style="font-size:1.2rem;margin-bottom:6px">Admin Token</h2>
+    <p style="color:var(--muted);font-size:0.8rem;margin-bottom:20px">Enter the ADMIN_TOKEN set on the server</p>
+    <input id="token-input" type="password" placeholder="Admin token…"
+      style="width:100%;padding:10px 14px;background:#0d1017;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;margin-bottom:12px;outline:none">
+    <button onclick="saveToken()" class="btn-all-start" style="width:100%;padding:10px">Unlock</button>
+    <p id="token-err" style="color:var(--red);font-size:0.78rem;margin-top:10px;display:none">Invalid token — try again</p>
+  </div>
+</div>
+
 <header style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
   <div>
     <h1>Trade<span>Zen</span> Launcher</h1>
-    <p>Server control panel — running on port 9999</p>
+    <p id="server-label" style="color:var(--muted);font-size:0.875rem;margin-top:4px">Remote server control via PM2</p>
   </div>
-  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border,#333);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:15px;padding:0;flex-shrink:0"></button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button onclick="clearToken()" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-size:0.75rem;padding:5px 10px;border-radius:6px">🔑 Token</button>
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border,#333);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:15px;padding:0;flex-shrink:0"></button>
+  </div>
 </header>
 
 <div class="global-bar">
-  <button class="btn-all-start" onclick="startAll()">&#9654; Start All</button>
+  <button class="btn-all-start" onclick="restartAll()">↺ Restart All</button>
   <button class="btn-all-stop"  onclick="stopAll()">&#9632; Stop All</button>
 </div>
 
@@ -198,7 +213,7 @@
       <div class="dot" id="dot-python"></div>
       <div class="card-title">
         <h2>Python (FastAPI)</h2>
-        <div class="addr">http://127.0.0.1:8000</div>
+        <div class="addr">port 8000 · uvicorn · PM2</div>
       </div>
       <span class="status-badge offline" id="badge-python">Offline</span>
     </div>
@@ -217,7 +232,7 @@
       <div class="dot" id="dot-node"></div>
       <div class="card-title">
         <h2>Node.js (Express)</h2>
-        <div class="addr">http://localhost:3000</div>
+        <div class="addr">port 3000 · server.js · PM2</div>
       </div>
       <span class="status-badge offline" id="badge-node">Offline</span>
     </div>
@@ -232,79 +247,92 @@
 
 </div>
 
-<p class="refresh-note">Auto-refreshing every 3 s &nbsp;|&nbsp; Last checked: <span id="last-checked">—</span></p>
+<p class="refresh-note">Auto-refreshing every 5 s &nbsp;|&nbsp; Last checked: <span id="last-checked">—</span></p>
 
 <script>
   const logVisible = { python: false, node: false };
+  const TOKEN_KEY  = 'tz_admin_token';
 
-  function setStatus(srv, online) {
-    const dot   = document.getElementById(`dot-${srv}`);
-    const badge = document.getElementById(`badge-${srv}`);
+  // ── Token management ─────────────────────────────────────────────────────────
+  function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+
+  function saveToken() {
+    const val = document.getElementById('token-input').value.trim();
+    if (!val) return;
+    localStorage.setItem(TOKEN_KEY, val);
+    document.getElementById('token-gate').style.display = 'none';
+    refreshStatus();
+  }
+
+  function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+    document.getElementById('token-input').value = '';
+    document.getElementById('token-err').style.display = 'none';
+    document.getElementById('token-gate').style.display = 'flex';
+  }
+
+  document.getElementById('token-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveToken();
+  });
+
+  // ── Fetch wrapper ─────────────────────────────────────────────────────────────
+  async function api(path, method = 'GET') {
+    const res = await fetch(`/api/admin${path}`, {
+      method,
+      headers: { 'x-admin-token': getToken() },
+    });
+    if (res.status === 401) {
+      document.getElementById('token-err').style.display = 'block';
+      document.getElementById('token-gate').style.display = 'flex';
+      throw new Error('Unauthorized');
+    }
+    return res.json();
+  }
+
+  // ── Status ────────────────────────────────────────────────────────────────────
+  function setStatus(srv, info) {
+    const online = info?.online ?? false;
+    const status = info?.status ?? 'unknown';
+    const dot    = document.getElementById(`dot-${srv}`);
+    const badge  = document.getElementById(`badge-${srv}`);
     dot.className   = 'dot ' + (online ? 'online' : 'offline');
     badge.className = 'status-badge ' + (online ? 'online' : 'offline');
-    badge.textContent = online ? 'Online' : 'Offline';
+    badge.textContent = online ? 'Online' : (status === 'stopped' ? 'Stopped' : 'Offline');
   }
 
   function setPending(srv) {
-    const dot   = document.getElementById(`dot-${srv}`);
+    document.getElementById(`dot-${srv}`).className   = 'dot pending';
     const badge = document.getElementById(`badge-${srv}`);
-    dot.className   = 'dot pending';
-    badge.className = 'status-badge pending';
+    badge.className   = 'status-badge pending';
     badge.textContent = 'Pending…';
   }
 
   async function refreshStatus() {
     try {
-      const res  = await fetch('/api/status');
-      const data = await res.json();
+      const data = await api('/status');
       setStatus('python', data.python);
       setStatus('node',   data.node);
       document.getElementById('last-checked').textContent = new Date().toLocaleTimeString();
     } catch (_) {}
   }
 
-  async function refreshLogs(srv) {
-    if (!logVisible[srv]) return;
-    try {
-      const res  = await fetch(`/api/logs/${srv}`);
-      const data = await res.json();
-      const box  = document.getElementById(`log-${srv}`);
-      box.innerHTML = data.logs.map((l) => {
-        const cls = l.includes('ERROR') || l.includes('error') ? 'err'
-                  : l.includes('INFO')  || l.includes('info')  ? 'info' : '';
-        return `<p class="${cls}">${escHtml(l)}</p>`;
-      }).join('');
-      box.scrollTop = box.scrollHeight;
-    } catch (_) {}
-  }
-
+  // ── Logs ──────────────────────────────────────────────────────────────────────
   function escHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  async function action(type, srv) {
-    setPending(srv);
+  async function refreshLogs(srv) {
+    if (!logVisible[srv]) return;
     try {
-      await fetch(`/api/${type}/${srv}`, { method: 'POST' });
+      const data = await api(`/logs/${srv}`);
+      const box  = document.getElementById(`log-${srv}`);
+      box.innerHTML = (data.logs || []).map((l) => {
+        const cls = /error|ERROR|traceback|Traceback/i.test(l) ? 'err'
+                  : /INFO|info|started|ready|OK/i.test(l) ? 'info' : '';
+        return `<p class="${cls}">${escHtml(l)}</p>`;
+      }).join('');
+      box.scrollTop = box.scrollHeight;
     } catch (_) {}
-    setTimeout(refreshStatus, 2000);
-    setTimeout(refreshStatus, 5000);
-  }
-
-  async function startAll() {
-    setPending('python');
-    setPending('node');
-    try { await fetch('/api/start/all', { method: 'POST' }); } catch (_) {}
-    setTimeout(refreshStatus, 3000);
-    setTimeout(refreshStatus, 8000);
-    setTimeout(refreshStatus, 14000);
-  }
-
-  async function stopAll() {
-    setPending('python');
-    setPending('node');
-    try { await fetch('/api/stop/all', { method: 'POST' }); } catch (_) {}
-    setTimeout(refreshStatus, 2000);
   }
 
   function toggleLog(srv) {
@@ -316,10 +344,40 @@
     if (logVisible[srv]) refreshLogs(srv);
   }
 
-  // Poll status + logs
-  refreshStatus();
-  setInterval(refreshStatus, 3000);
-  setInterval(() => { refreshLogs('python'); refreshLogs('node'); }, 3000);
+  // ── Actions ───────────────────────────────────────────────────────────────────
+  async function action(type, srv) {
+    setPending(srv);
+    try { await api(`/${type}/${srv}`, 'POST'); } catch (_) {}
+    setTimeout(refreshStatus, 2500);
+    setTimeout(refreshStatus, 6000);
+  }
+
+  async function restartAll() {
+    setPending('python'); setPending('node');
+    try { await api('/restart/all', 'POST'); } catch (_) {}
+    setTimeout(refreshStatus, 4000);
+    setTimeout(refreshStatus, 9000);
+  }
+
+  async function stopAll() {
+    setPending('python'); setPending('node');
+    try {
+      await api('/stop/python', 'POST');
+      await api('/stop/node',   'POST');
+    } catch (_) {}
+    setTimeout(refreshStatus, 2000);
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
+  if (!getToken()) {
+    document.getElementById('token-gate').style.display = 'flex';
+  } else {
+    document.getElementById('token-gate').style.display = 'none';
+    refreshStatus();
+  }
+
+  setInterval(refreshStatus, 5000);
+  setInterval(() => { refreshLogs('python'); refreshLogs('node'); }, 5000);
 </script>
 </body>
 </html>
