@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz | TradeZen Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* NAV */
+nav{background:rgba(10,12,24,0.97);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-mid{flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
+.quiz-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);letter-spacing:.5px}
+.quiz-chapter{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
+.nav-r{display:flex;align-items:center;gap:8px}
+.exit-btn{font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border-radius:var(--r2);border:1px solid var(--border);transition:all .15s}
+.exit-btn:hover{color:var(--text);border-color:var(--border2)}
+
+/* MAIN LAYOUT */
+.quiz-shell{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px 64px}
+.quiz-wrap{width:100%;max-width:640px}
+
+/* PROGRESS HEADER */
+.quiz-header{margin-bottom:28px}
+.qh-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.qh-step{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.qh-xp{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--yellow)}
+.qh-track{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.qh-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:3px;transition:width .4s ease}
+
+/* QUESTION CARD */
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:28px;margin-bottom:16px;transition:border-color .3s}
+.q-card.correct{border-color:var(--green)}
+.q-card.wrong{border-color:var(--red)}
+.q-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.q-text{font-size:16px;font-weight:600;color:#fff;line-height:1.5;margin-bottom:0}
+
+/* OPTIONS */
+.options{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:all .15s;user-select:none}
+.opt:hover:not(.disabled){border-color:var(--accent);background:rgba(124,106,247,0.06)}
+.opt.selected{border-color:var(--accent);background:rgba(124,106,247,0.08)}
+.opt.correct-ans{border-color:var(--green);background:var(--green-bg)}
+.opt.wrong-ans{border-color:var(--red);background:var(--red-bg)}
+.opt.disabled{cursor:default}
+.opt-letter{width:26px;height:26px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--dim);flex-shrink:0;transition:all .15s}
+.opt.selected .opt-letter{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt.correct-ans .opt-letter{background:var(--green);border-color:var(--green);color:#fff}
+.opt.wrong-ans .opt-letter{background:var(--red);border-color:var(--red);color:#fff}
+.opt-text{font-size:14px;color:var(--text);line-height:1.4}
+
+/* EXPLANATION */
+.explanation{border-radius:var(--r2);padding:14px 16px;margin-top:12px;display:none}
+.explanation.show{display:flex;gap:10px}
+.exp-green{background:var(--green-bg);border:1px solid var(--green-border)}
+.exp-red{background:var(--red-bg);border:1px solid var(--red-border)}
+.exp-icon{font-size:16px;flex-shrink:0}
+.exp-text{font-size:13px;color:var(--dim);line-height:1.65}
+.exp-text strong{color:var(--text)}
+
+/* ACTION BUTTONS */
+.quiz-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+.btn-next{padding:11px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--r2);font-weight:700;font-size:14px;cursor:pointer;transition:opacity .15s;display:none}
+.btn-next:hover{opacity:.85}
+.btn-next.show{display:block}
+.btn-submit{padding:11px 28px;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;border:none;border-radius:var(--r2);font-weight:700;font-size:14px;cursor:pointer;transition:opacity .15s;display:none}
+.btn-submit:hover{opacity:.85}
+.btn-submit.show{display:block}
+
+/* RESULTS SCREEN */
+.results{display:none;text-align:center;padding:20px 0}
+.results.show{display:block}
+.res-icon{font-size:64px;margin-bottom:16px;display:block;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+.res-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;margin-bottom:8px}
+.res-sub{font-size:14px;color:var(--dim);margin-bottom:28px}
+.res-score-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;max-width:340px;margin:0 auto 28px;text-align:center}
+.res-score-big{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:#fff;line-height:1;margin-bottom:4px}
+.res-score-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.res-xp-earned{font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--yellow);font-weight:700;margin-bottom:4px}
+.res-xp-label{font-size:12px;color:var(--muted)}
+
+/* XP METER */
+.xp-meter{height:10px;background:var(--bg4);border-radius:5px;overflow:hidden;margin:12px 0}
+.xp-meter-fill{height:100%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:5px;width:0;transition:width .8s ease .3s}
+
+/* ANSWERS REVIEW */
+.review-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:28px;text-align:left}
+.rv-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2)}
+.rv-q{font-size:12px;color:var(--dim);flex:1;line-height:1.4}
+.rv-icon{font-size:16px;flex-shrink:0}
+.rv-ans{font-family:'JetBrains Mono',monospace;font-size:10px;flex-shrink:0}
+.rv-correct{color:var(--green)}
+.rv-wrong{color:var(--red)}
+
+/* ACTION BUTTONS ROW */
+.res-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.res-btn{padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;cursor:pointer;border:none;transition:opacity .15s}
+.res-btn:hover{opacity:.85}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2)}
+
+/* LOADING / ERROR */
+.quiz-loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div></a>
+  <div class="nav-mid">
+    <span class="quiz-title" id="navModLabel">QUIZ ·</span>
+    <span class="quiz-chapter" id="navChLabel">Loading…</span>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);padding:0;flex-shrink:0"></button>
+    <a href="#" id="exitLink" class="exit-btn">✕ Exit</a>
+  </div>
+</nav>
+
+<div class="quiz-shell">
+  <div class="quiz-wrap">
+
+    <!-- LOADING -->
+    <div class="quiz-loading" id="loadingState">Loading quiz…</div>
+
+    <!-- QUIZ AREA -->
+    <div id="quizArea" style="display:none">
+      <!-- Progress header -->
+      <div class="quiz-header">
+        <div class="qh-top">
+          <span class="qh-step" id="stepLabel">Question 1 of 5</span>
+          <span class="qh-xp" id="xpLabel">⚡ 0 XP earned</span>
+        </div>
+        <div class="qh-track"><div class="qh-fill" id="progressFill" style="width:0"></div></div>
+      </div>
+
+      <!-- Question card -->
+      <div class="q-card" id="qCard">
+        <div class="q-num" id="qNum">QUESTION 1</div>
+        <div class="q-text" id="qText"></div>
+        <div class="options" id="optionsContainer"></div>
+        <div class="explanation" id="explanation">
+          <span class="exp-icon" id="expIcon"></span>
+          <div class="exp-text" id="expText"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="quiz-actions">
+        <button class="btn-next" id="btnNext" onclick="nextQuestion()">Next →</button>
+        <button class="btn-submit" id="btnSubmit" onclick="submitQuiz()">See Results →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results" id="resultsArea">
+      <span class="res-icon" id="resIcon">🏆</span>
+      <h2 class="res-title" id="resTitle">Quiz Complete!</h2>
+      <p class="res-sub" id="resSub">Here's how you did</p>
+
+      <div class="res-score-card">
+        <div class="res-score-big" id="resScore">0/5</div>
+        <div class="res-score-label">Correct Answers</div>
+        <div class="xp-meter"><div class="xp-meter-fill" id="xpMeterFill"></div></div>
+        <div class="res-xp-earned" id="resXp">+0 XP</div>
+        <div class="res-xp-label">earned this quiz</div>
+      </div>
+
+      <div class="review-grid" id="reviewGrid"></div>
+
+      <div class="res-actions">
+        <button class="res-btn btn-primary" id="btnFinish" onclick="finishQuiz()">Save & Continue →</button>
+        <button class="res-btn btn-secondary" onclick="retakeQuiz()">↺ Retake</button>
+        <a href="/learn_dashboard.html" class="res-btn btn-secondary">Dashboard</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   QUIZ DATA BANK — 5 questions per chapter
+   Add Tamil translations by extending Q.t_ta field later.
+══════════════════════════════════════════════════════════════ */
+const QUIZ_BANK = {
+  ta: {
+    meta: { name: 'Technical Analysis', color: 'var(--accent)' },
+    chapters: {
+      1: {
+        title: 'Price Action Fundamentals',
+        xp: 30,
+        questions: [
+          {
+            q: 'What does a candle with a very long lower wick and small body at the top indicate?',
+            opts: ['Strong bearish momentum', 'Buyers rejected the lows — bullish signal', 'Market is trending down', 'No significant movement'],
+            ans: 1,
+            explain: 'A long lower wick means price dipped sharply but buyers stepped in and pushed it back up. When this forms at a support level, it\'s called a Hammer — one of the most reliable bullish reversal signals.'
+          },
+          {
+            q: 'A Doji candle forms when:',
+            opts: ['Price rises strongly with no sellers', 'Open and close are approximately equal', 'Volume is extremely high', 'Price gaps up at open'],
+            ans: 1,
+            explain: 'A Doji forms when open ≈ close, meaning neither buyers nor sellers won the session. At a key level, this indecision often precedes a trend reversal.'
+          },
+          {
+            q: 'On a 5-minute Nifty chart, why should you avoid trading the first 2–3 candles?',
+            opts: ['They have no volume', 'Opening volatility creates false signals before real direction is established', 'Brokers don\'t allow it', 'Indicators don\'t work then'],
+            ans: 1,
+            explain: 'The first 15 minutes of Nifty (9:15–9:30 AM) are extremely volatile as institutional orders hit the market. Retail traders who wait for this period to settle avoid the majority of false breakouts and choppy price action.'
+          },
+          {
+            q: 'A large green candle with virtually no wicks is called:',
+            opts: ['Hammer', 'Doji', 'Bullish Marubozu', 'Spinning Top'],
+            ans: 2,
+            explain: 'A Bullish Marubozu has almost no wicks — the open was the low and the close was the high. This shows complete buyer dominance throughout the session. It\'s a strong bullish continuation signal.'
+          },
+          {
+            q: 'What do the WICKS on a candlestick represent?',
+            opts: ['The opening and closing price range', 'Price levels that were reached but then rejected', 'The entire trading session range', 'Pre-market and post-market prices'],
+            ans: 1,
+            explain: 'Wicks show the extremes that price reached but could not sustain. An upper wick = price tried to go higher but sellers pushed it back. A lower wick = price tried to fall further but buyers defended. Wicks are rejected price levels.'
+          }
+        ]
+      },
+      2: {
+        title: 'Candlestick Patterns',
+        xp: 40,
+        questions: [
+          {
+            q: 'For a Bullish Engulfing pattern to be valid, the second (green) candle must:',
+            opts: ['Be the same size as the first', 'Have its body completely engulf the first candle\'s body', 'Open below the first candle\'s low', 'Close at the previous day\'s high'],
+            ans: 1,
+            explain: 'Bullish Engulfing requires the second green candle\'s body to completely cover the previous red candle\'s body. This shows buyers overwhelmed and absorbed all the sellers from the prior session.'
+          },
+          {
+            q: 'The Morning Star is a:',
+            opts: ['Single candle reversal pattern', 'Two-candle pattern', 'Three-candle bullish reversal at the bottom of a downtrend', 'Bearish continuation pattern'],
+            ans: 2,
+            explain: 'Morning Star = Red candle (momentum selling) → Small body star (sellers losing power) → Green candle that closes above the midpoint of the first candle. It\'s a classic bottom reversal that takes 3 candles to form.'
+          },
+          {
+            q: 'A Shooting Star appears at resistance. What does it signal?',
+            opts: ['Bullish breakout', 'Bearish reversal — sellers rejecting the highs', 'Continuation of uptrend', 'Gap fill is likely'],
+            ans: 1,
+            explain: 'Shooting Star has a long upper wick and small body at the bottom. Price tried to go higher but sellers pushed it back sharply. At resistance, this is one of the most reliable short signals on any timeframe.'
+          },
+          {
+            q: 'The Harami pattern indicates:',
+            opts: ['A violent trend reversal', 'Indecision — the previous momentum has paused', 'A confirmed bullish breakout', 'High volume accumulation'],
+            ans: 1,
+            explain: 'Harami means "pregnant" in Japanese. The second candle\'s body fits inside the first, showing that the previous big move has lost momentum. It\'s not a reversal signal by itself — it signals a pause. Always wait for the next candle to confirm direction.'
+          },
+          {
+            q: 'Which statement about candlestick patterns is TRUE?',
+            opts: ['All patterns work equally in any market condition', 'A Hammer at a resistance level is more reliable than at support', 'Context matters — patterns at key levels are far more significant', 'Single candle patterns are always self-confirming'],
+            ans: 2,
+            explain: 'Context is everything in candlestick reading. A Hammer at a major support level (where buyers have defended before) is a high-probability setup. The same Hammer in the middle of a range is just noise. Always identify the level first, then look for the candle pattern.'
+          }
+        ]
+      },
+      3: {
+        title: 'Support & Resistance',
+        xp: 35,
+        questions: [
+          {
+            q: 'When a resistance level breaks convincingly, it becomes:',
+            opts: ['The new target', 'A new support level (role reversal)', 'Irrelevant', 'A weaker resistance'],
+            ans: 1,
+            explain: 'This is role reversal — one of the most powerful concepts in TA. When resistance breaks, the traders who were short there now need to cover (adding buying pressure from below), and former buyers now have profit and will defend the level. Old resistance becomes new support.'
+          },
+          {
+            q: 'A support level is considered STRONGER when:',
+            opts: ['It was formed recently in the last few days', 'It has been tested and held 3 or more times', 'It\'s near a round number only', 'Volume was low at the level'],
+            ans: 1,
+            explain: 'Each time a support level is tested and holds, it proves that buyers are actively defending it. 3+ touches means multiple types of buyers (algorithms, institutions, retail) are all placing orders there, making it a much stronger level than a single-touch support.'
+          },
+          {
+            q: 'Nifty at 20,000 often sees strong reactions because:',
+            opts: ['It\'s a government-mandated level', 'Round numbers act as psychological support/resistance due to clustering of orders', 'The exchange sets limits there', 'Options expire at round numbers only'],
+            ans: 1,
+            explain: 'Psychological levels like 18,000 / 19,000 / 20,000 / 21,000 on Nifty attract massive order clusters. Traders, algorithms, and institutions alike place stop losses and take profit orders at these clean round numbers, creating self-fulfilling areas of price reaction.'
+          },
+          {
+            q: 'How do you CONFIRM a real breakout above resistance (vs a false breakout)?',
+            opts: ['Price touches the level once', 'Candle CLOSES above the level with above-average volume', 'Price wicks above the level', 'RSI goes above 70'],
+            ans: 1,
+            explain: 'The most important word is CLOSE. A wick through resistance that closes back below is a false breakout (bull trap). A full candle body closing above resistance with strong volume (1.5–3× average) is a confirmed breakout. Volume is the deciding factor — it shows real demand, not just a stop-hunt.'
+          },
+          {
+            q: 'What is a "Bull Trap"?',
+            opts: ['A strong bullish trend', 'A breakout above resistance that quickly reverses, trapping buyers', 'Price accumulation before a big rally', 'A gap up at market open'],
+            ans: 1,
+            explain: 'A bull trap is designed (often by large players) to trigger retail breakout buyers above resistance, then immediately reverse. Buyers who chased the "breakout" are now trapped with losing positions and forced to sell, adding more selling pressure. Always wait for a candle CLOSE above resistance, not just a wick.'
+          }
+        ]
+      },
+      4: {
+        title: 'Volume Analysis',
+        xp: 30,
+        questions: [
+          {
+            q: 'A breakout above a key resistance level with volume 3× the daily average is:',
+            opts: ['A weak signal that should be ignored', 'A strong, institutionally-backed breakout with high follow-through probability', 'An overreaction that should be faded', 'Only valid on daily charts'],
+            ans: 1,
+            explain: 'Volume 3× average means institutions participated in the breakout. Large funds cannot hide their buying — when they buy in size, volume spikes. This confirms the move is real, not a retail-driven false breakout.'
+          },
+          {
+            q: 'Price is making new highs but volume is consistently declining. This is called:',
+            opts: ['A healthy uptrend', 'Bullish divergence', 'Volume divergence — bearish warning signal', 'Accumulation'],
+            ans: 2,
+            explain: 'When price rises but volume falls, the uptrend is losing fuel. Fewer participants are chasing the highs. This is bearish divergence between price and volume — often seen before a significant reversal. The trend is tiring even though price is still rising.'
+          },
+          {
+            q: 'On Nifty weekly expiry (Thursday), unusually high volume means:',
+            opts: ['A major trend change is happening', 'Normal trading conditions', 'Options unwinding is distorting price — extra caution needed', 'The best day to take large positions'],
+            ans: 2,
+            explain: 'On expiry days, volume spikes due to options expiry (unwinding of CE/PE positions) and futures rollover. This volume-driven movement often doesn\'t follow standard S/R rules and can create false signals. Reduce position size and be more selective on Thursday.'
+          },
+          {
+            q: 'A volume climax (extremely high spike) at the end of a prolonged downtrend often signals:',
+            opts: ['The downtrend will continue faster', 'Exhaustion — sellers have been fully absorbed, reversal likely', 'A new resistance level forming', 'Low liquidity'],
+            ans: 1,
+            explain: 'Climax volume at a low means the "panic sellers" have all been absorbed by buyers willing to buy at any price. After everyone who wanted to sell has sold, there are no sellers left — price can only go up. This is "selling climax" and often marks a major bottom.'
+          },
+          {
+            q: 'Which scenario has the HIGHEST probability of being a true breakout?',
+            opts: ['Breakout with 0.5× average volume on a Monday morning', 'Breakout with 2.5× average volume after a tight consolidation', 'Breakout with average volume on an expiry day', 'Breakout with high volume during the first 5 minutes'],
+            ans: 1,
+            explain: 'High volume (2.5×) after consolidation means the market coiled energy and then released it with institutional conviction. This combination — tight range + volume expansion on breakout — is the classic setup used by professional breakout traders globally.'
+          }
+        ]
+      },
+      5: {
+        title: 'CPR — Central Pivot Range',
+        xp: 45,
+        questions: [
+          {
+            q: 'CPR is calculated using which previous day data?',
+            opts: ['Only the close price', 'Open, High, Low, Close', 'High, Low, and Close (H+L+C)', 'Only the High and Low'],
+            ans: 2,
+            explain: 'CPR uses the previous day\'s High (H), Low (L), and Close (C). PP = (H+L+C)/3, BC = (H+L)/2, TC = (2×PP) − BC. All three levels are fixed before market open and never change during the trading day.'
+          },
+          {
+            q: 'A Narrow CPR (width < 40 points) suggests:',
+            opts: ['A choppy, range-bound day ahead', 'A sideways consolidation day', 'A trending day — pick a direction and ride it', 'Low volatility with no opportunities'],
+            ans: 2,
+            explain: 'Narrow CPR means the previous day\'s range was tight — the market is "coiled." These are the best trending days on Nifty. When CPR is narrow, pick the direction (above TC = bull, below BC = bear) and ride the trend. Don\'t mean revert on narrow CPR days.'
+          },
+          {
+            q: 'Nifty opens above TC. What is the intraday bias?',
+            opts: ['Bearish — expect a decline', 'Bullish — buyers in control above the CPR zone', 'Neutral — wait and watch', 'Extremely bearish'],
+            ans: 1,
+            explain: 'Opening above TC (Top Central) means price gapped or opened in bullish territory. The CPR zone below acts as support. This is a bullish structural bias — prefer long trades, buy dips to TC, target R1 and R2.'
+          },
+          {
+            q: 'What is a "Virgin CPR"?',
+            opts: ['A newly calculated CPR for the day', 'A CPR zone that price has never entered since being calculated', 'A very wide CPR', 'A CPR with no resistance above it'],
+            ans: 1,
+            explain: 'Virgin CPR means price never entered the TC-to-BC zone since it was calculated. Untouched levels act like magnets — when price finally approaches a virgin CPR, it triggers the strongest reactions. Either a powerful reversal or an explosive breakout through the zone.'
+          },
+          {
+            q: 'Wide CPR (> 80 points) is best traded using:',
+            opts: ['Aggressive breakout strategy', 'Mean reversion — buy near BC, sell near TC', 'EMA crossover only', 'Ignore CPR and use only RSI'],
+            ans: 1,
+            explain: 'Wide CPR means the previous day had a large range — today\'s market will likely be choppy and range-bound. Mean reversion is the primary strategy: buy when price approaches BC (bottom support), sell when it reaches TC (top resistance). Avoid trend trades on wide CPR days.'
+          }
+        ]
+      },
+      6: {
+        title: 'VWAP in Practice',
+        xp: 35,
+        questions: [
+          {
+            q: 'VWAP stands for:',
+            opts: ['Volume Weighted Average Price', 'Volatile Wicks and Price', 'Variable Window Average Pattern', 'Volume With All Positions'],
+            ans: 0,
+            explain: 'VWAP = Volume Weighted Average Price. It\'s calculated as the sum of (Price × Volume) for each trade, divided by total volume. This gives the true average price paid throughout the day, weighted by how much was traded at each level.'
+          },
+          {
+            q: 'Institutions prefer to BUY when Nifty price is:',
+            opts: ['Above VWAP (expensive)', 'Below VWAP (cheap relative to average)', 'At the highest point of the day', 'After 2:30 PM only'],
+            ans: 1,
+            explain: 'VWAP is the institutional benchmark. Any price below VWAP is considered a "good buy" — you\'re paying less than the average market participant paid today. Institutions are measured against VWAP; buying below it improves their performance vs benchmark.'
+          },
+          {
+            q: 'On a strong bull day, how does VWAP behave?',
+            opts: ['Price oscillates above and below VWAP', 'Price stays consistently above VWAP with VWAP acting as support', 'VWAP becomes resistance', 'VWAP moves in the opposite direction of price'],
+            ans: 1,
+            explain: 'On a trending bull day, institutional buyers step in every time price dips toward VWAP, keeping it above. VWAP acts as a rising dynamic support floor. When you see price consistently bounce off VWAP on a bull day, those dips are your entries.'
+          },
+          {
+            q: 'How often does VWAP reset?',
+            opts: ['Every week', 'Every month', 'Every trading day at market open (9:15 AM IST)', 'It never resets — it\'s continuous'],
+            ans: 2,
+            explain: 'VWAP resets every single trading day. It starts fresh at 9:15 AM and builds throughout the session. This is why it\'s purely an intraday tool — it has absolutely no meaning for positional or swing trades looking at daily/weekly charts.'
+          },
+          {
+            q: 'Price has been trading below VWAP all day with failed rallies to VWAP. The correct trade is:',
+            opts: ['Buy the dips aggressively', 'Short the rallies to VWAP — it\'s acting as resistance', 'Wait for VWAP to reset tomorrow', 'Buy breakout above VWAP immediately'],
+            ans: 1,
+            explain: 'When price is below VWAP and rallies consistently fail at VWAP, it\'s a bearish intraday structure. VWAP becomes dynamic resistance. The professional play is to short these VWAP rejections with a stop above VWAP and target the day\'s lows.'
+          }
+        ]
+      },
+      7: {
+        title: 'EMA Strategies',
+        xp: 35,
+        questions: [
+          {
+            q: 'What happens when EMA 9 crosses ABOVE EMA 21 on a 15-minute chart?',
+            opts: ['Bearish signal — prepare to sell', 'Bullish crossover — short-term trend has turned up', 'No significance', 'Only matters on daily charts'],
+            ans: 1,
+            explain: 'EMA 9 crossing above EMA 21 is a bullish crossover. It means short-term momentum (last 9 candles) has accelerated above medium-term momentum (21 candles). On the 15-min chart, this is one of the most widely used intraday buy signals, used by many algo systems.'
+          },
+          {
+            q: 'In a strong uptrend, EMA 21 typically acts as:',
+            opts: ['Fixed resistance that stops price', 'Dynamic support — each dip to EMA 21 is a buy opportunity', 'An irrelevant line', 'A sell signal zone'],
+            ans: 1,
+            explain: 'In a sustained uptrend, the EMA 21 rises with price and provides moving support. Institutional traders who missed the initial move wait for dips to EMA 21 to enter. This makes each touch of EMA 21 during a trend a high-probability buy entry.'
+          },
+          {
+            q: 'The "Golden Cross" refers to:',
+            opts: ['EMA 9 crossing EMA 21', 'EMA 50 crossing above EMA 200 on the daily chart', 'Price touching VWAP', 'Three green candles in a row'],
+            ans: 1,
+            explain: 'Golden Cross = EMA 50 crosses above EMA 200 on the daily chart. This is a major macro bullish signal, widely watched by institutions and fund managers. It signals that the intermediate trend (50-day) is now stronger than the long-term trend (200-day), indicating a potential sustained bull run.'
+          },
+          {
+            q: 'Why does EMA react faster to price changes than SMA (Simple Moving Average)?',
+            opts: ['EMA uses fewer data points', 'EMA gives exponentially more weight to recent prices', 'EMA ignores old data entirely', 'They react at the same speed'],
+            ans: 1,
+            explain: 'EMA applies a multiplier that gives greater weight to the most recent candles and decreasing weight to older ones. This makes it more responsive to current market conditions. SMA treats all periods equally, making it slower to react. For intraday trading, this responsiveness makes EMA the preferred moving average.'
+          },
+          {
+            q: 'Which EMA is the most widely watched as the long-term trend indicator?',
+            opts: ['EMA 9', 'EMA 21', 'EMA 50', 'EMA 200'],
+            ans: 3,
+            explain: 'EMA 200 on the daily chart is the gold standard of long-term trend indicators. When Nifty is above EMA 200, the structural trend is bullish and dips are buying opportunities. Below EMA 200, the trend is bearish. It\'s watched by literally every institutional portfolio manager globally.'
+          }
+        ]
+      },
+      8: {
+        title: 'RSI — Reading Momentum',
+        xp: 30,
+        questions: [
+          {
+            q: 'RSI above 70 means:',
+            opts: ['Strong buy signal — momentum is very bullish', 'Overbought — momentum is extreme and a reversal may be near', 'The stock has hit its maximum price', 'Guaranteed sell signal'],
+            ans: 1,
+            explain: 'RSI above 70 signals overbought conditions — buying momentum is extreme. However, in a strong trend, RSI can stay above 70 for extended periods. This is not a standalone sell signal. It\'s a warning to be cautious and look for confirming signals (candlestick patterns, S/R rejection) before shorting.'
+          },
+          {
+            q: 'What is "Bearish RSI Divergence"?',
+            opts: ['RSI is below 30 while price is falling', 'Price makes a new high but RSI makes a lower high — momentum is weakening', 'RSI and price both fall together', 'RSI staying above 70 for 3 consecutive days'],
+            ans: 1,
+            explain: 'Bearish divergence: price makes higher highs but RSI makes lower highs. This means the uptrend is losing momentum even as price continues rising. It\'s a warning that the rally is running out of steam. Very powerful at resistance levels or after extended uptrends.'
+          },
+          {
+            q: 'In a downtrend, RSI rallying to 50 often signals:',
+            opts: ['End of the downtrend — buy immediately', 'A sell opportunity — 50 acts as resistance in a downtrend', 'RSI reset to neutral', 'Volume confirmation'],
+            ans: 1,
+            explain: 'In a downtrend, RSI typically oscillates between 30–50 instead of 50–70. The 50 level acts as resistance. Each rally to RSI 50 that fails confirms the downtrend remains intact and provides a shorting opportunity. This is the "RSI range shift" concept.'
+          },
+          {
+            q: 'What is the default period for RSI (as developed by J. Welles Wilder)?',
+            opts: ['7', '10', '14', '21'],
+            ans: 2,
+            explain: 'RSI was developed with a 14-period default by J. Welles Wilder in 1978. The 14-period RSI remains the standard used across all major platforms. Shorter periods (7, 9) react faster but give more false signals. Longer periods (21) are smoother but lag more.'
+          },
+          {
+            q: 'RSI shows "Bullish Divergence." Price is at new lows but RSI is making higher lows. What does this mean?',
+            opts: ['The downtrend will accelerate', 'Selling momentum is weakening — a bounce or reversal is likely', 'Nothing — RSI divergence is unreliable', 'Price will gap up immediately'],
+            ans: 1,
+            explain: 'Bullish divergence (price new low, RSI higher low) means that despite lower prices, selling momentum is actually decreasing. Fewer sellers are participating on each new low. This is most powerful at major support levels — it often precedes significant bounces and reversals.'
+          }
+        ]
+      },
+      9: {
+        title: 'Options Chain Basics',
+        xp: 50,
+        questions: [
+          {
+            q: 'High Call OI (Open Interest) at a strike price of 22,000 suggests:',
+            opts: ['22,000 is a strong support level', '22,000 is a strong resistance level — call writers are betting Nifty won\'t cross it', 'Nifty will definitely reach 22,000', 'Low volatility expected'],
+            ans: 1,
+            explain: 'Call writers (sellers) collect premium by betting Nifty will stay BELOW their strike. High CE OI at 22,000 means thousands of traders have sold 22,000 calls and will actively defend that level. They\'ll sell on every approach to 22,000. This creates a strong resistance ceiling.'
+          },
+          {
+            q: 'PCR (Put-Call Ratio) of 1.5 indicates:',
+            opts: ['Strongly bearish — more calls than puts', 'Bullish — more put writing, option sellers betting market won\'t fall', 'Extremely bearish market conditions', 'Equal buyer and seller interest'],
+            ans: 1,
+            explain: 'High PCR (> 1.2) means more puts have been written (sold) than calls. Put writers are betting the market will NOT fall below their strikes — they\'re actually bullish. Counter-intuitively, high PCR is a bullish sentiment indicator because sellers are on the bull side.'
+          },
+          {
+            q: 'What is "Max Pain" in the context of options?',
+            opts: ['The maximum loss a trader can take', 'The strike where maximum options expire worthless — maximum loss for option buyers', 'The most volatile trading day', 'The highest IV point'],
+            ans: 1,
+            explain: 'Max Pain is the strike price where the combined value of all expiring options (CE + PE) is minimized — meaning option writers collect maximum premium and option buyers lose maximum value. Near expiry, Nifty tends to gravitate toward max pain as the market forces maximum option buyers to expire worthless.'
+          },
+          {
+            q: 'You see a sudden massive increase in Put OI at the 21,500 strike. What does this signal?',
+            opts: ['21,500 is about to be broken to the downside', '21,500 is becoming a strong support floor — put writers are protecting it', 'Ignore it — OI doesn\'t matter', 'Market will expire exactly at 21,500'],
+            ans: 1,
+            explain: 'Massive Put OI at 21,500 means many traders have SOLD 21,500 puts, collecting premium. They profit as long as Nifty stays above 21,500. These sellers will aggressively buy Nifty futures if it approaches 21,500, creating a support floor. Watch for this as a key intraday support level.'
+          },
+          {
+            q: 'On the options chain, "CE" stands for:',
+            opts: ['Closing Entry', 'Call European style option', 'Currency Exchange', 'Central Earnings'],
+            ans: 1,
+            explain: 'CE = Call European style option. In Indian markets, all index options (Nifty, BankNifty) are European style — they can only be exercised at expiry (not before). CE gives the buyer the right to buy the underlying at the strike price on expiry day.'
+          }
+        ]
+      },
+      10: {
+        title: 'Psychology & Risk Management',
+        xp: 40,
+        questions: [
+          {
+            q: 'The "2% Rule" in trading means:',
+            opts: ['Take profits at 2% gain', 'Never risk more than 2% of your total trading capital on a single trade', 'Only trade 2% of F&O stocks', 'Keep 2% of capital in cash always'],
+            ans: 1,
+            explain: 'The 2% rule: on any single trade, maximum possible loss = 2% of total capital. On ₹5 lakh capital, max risk per trade = ₹10,000. This rule ensures no single trade can significantly damage your account. With proper 2% risk management, you can survive 50 consecutive losses and still have capital to trade.'
+          },
+          {
+            q: 'What is a Risk-Reward Ratio of 1:3?',
+            opts: ['Risk ₹3 to make ₹1', 'Risk ₹1 to potentially make ₹3', 'Equal chance of winning and losing', 'Take 3 trades for every 1 loss'],
+            ans: 1,
+            explain: 'RR 1:3 means if your stop loss is ₹1,000, your target profit is ₹3,000. With this ratio, you only need to be right 25% of the time to break even. Most professional traders target minimum 1:2 RR. This is why risk management — not accuracy — is the real edge in trading.'
+          },
+          {
+            q: 'You\'re in a long trade and it\'s going against you. Your trading plan said to exit at -50 points. What should you do?',
+            opts: ['Hold and hope it reverses', 'Average down — buy more to reduce your average cost', 'Exit immediately — your plan was to exit at -50 points', 'Move your stop loss lower to give it more room'],
+            ans: 2,
+            explain: 'Your plan said -50 is wrong. Honor it. Moving stops lower (hoping for recovery) is how traders turn small losses into account-destroying losses. "Hope" is not a trading strategy. Professionals exit when proven wrong and re-enter when a new setup forms — never marry a losing position.'
+          },
+          {
+            q: 'Averaging down (buying more as a losing trade falls) is:',
+            opts: ['A smart strategy to reduce your average cost', 'The fastest way to blow up a trading account', 'Only useful in intraday trading', 'Standard practice among professionals'],
+            ans: 1,
+            explain: 'Averaging down is the most common reason retail traders blow accounts. If you\'re wrong on a trade, the market is telling you something. Adding to a losing position magnifies the loss when (not if) the trade finally hits stop. The correct response to a losing trade is to exit, not to add.'
+          },
+          {
+            q: 'You\'ve had 2 consecutive losing trades today. What should you do according to disciplined risk management?',
+            opts: ['Trade larger to recover losses quickly', 'Take a break and stop trading for the day', 'Switch to a different strategy immediately', 'Double your position size on the next trade'],
+            ans: 1,
+            explain: '2 consecutive losses signals either the market conditions have changed (choppy, no trends) or you\'re emotionally compromised. Either way, continuing to trade in this state leads to revenge trading — emotional, oversized trades that compound losses. Walk away. Reset. Revisit tomorrow with a clear head.'
+          }
+        ]
+      }
+    }
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   QUIZ ENGINE
+══════════════════════════════════════════════════════════════ */
+let MODULE, CHAPTER, QUESTIONS, CHAPTER_DATA;
+let currentQ = 0;
+let answered  = false;
+let userAnswers = [];
+let score = 0;
+
+function init() {
+  const params  = new URLSearchParams(window.location.search);
+  MODULE  = params.get('module') || 'ta';
+  const ch = parseInt(params.get('ch') || '1');
+  CHAPTER = ch;
+
+  const mod = QUIZ_BANK[MODULE];
+  if (!mod) { showError('Unknown module.'); return; }
+
+  CHAPTER_DATA = mod.chapters[ch];
+  if (!CHAPTER_DATA) { showError(`Chapter ${ch} not found.`); return; }
+
+  QUESTIONS = CHAPTER_DATA.questions;
+
+  // Update nav labels
+  document.getElementById('navModLabel').textContent = `QUIZ · ${mod.meta.name.toUpperCase()}`;
+  document.getElementById('navChLabel').textContent  = `Ch.${ch}: ${CHAPTER_DATA.title}`;
+  document.getElementById('exitLink').href = `/learn_technical.html#ch${ch}`;
+  document.title = `Quiz: ${CHAPTER_DATA.title} | TradeZen`;
+
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+
+  showQuestion(0);
+}
+
+function showQuestion(idx) {
+  currentQ = idx;
+  answered = false;
+  const q = QUESTIONS[idx];
+  const total = QUESTIONS.length;
+
+  document.getElementById('stepLabel').textContent = `Question ${idx + 1} of ${total}`;
+  document.getElementById('qNum').textContent = `QUESTION ${idx + 1}`;
+  document.getElementById('qText').textContent = q.q;
+
+  const pct = (idx / total) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const xpEarned = userAnswers.filter(a => a).length * Math.round(CHAPTER_DATA.xp / total);
+  document.getElementById('xpLabel').textContent = `⚡ ${xpEarned} XP earned`;
+
+  // Render options
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.opts.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'opt';
+    div.dataset.idx = i;
+    div.innerHTML = `<div class="opt-letter">${letters[i]}</div><div class="opt-text">${opt}</div>`;
+    div.addEventListener('click', () => selectOption(i));
+    container.appendChild(div);
+  });
+
+  // Reset explanation and buttons
+  const exp = document.getElementById('explanation');
+  exp.className = 'explanation';
+  exp.style.display = 'none';
+  document.getElementById('qCard').className = 'q-card';
+  document.getElementById('btnNext').className   = 'btn-next';
+  document.getElementById('btnSubmit').className = 'btn-submit';
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q       = QUESTIONS[currentQ];
+  const correct = q.ans;
+  const isRight = idx === correct;
+  const total   = QUESTIONS.length;
+
+  if (isRight) score++;
+  userAnswers[currentQ] = isRight;
+
+  // Visual feedback
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  opts[idx].classList.add(isRight ? 'correct-ans' : 'wrong-ans');
+  if (!isRight) opts[correct].classList.add('correct-ans');
+
+  document.getElementById('qCard').className = 'q-card ' + (isRight ? 'correct' : 'wrong');
+
+  // Show explanation
+  const exp = document.getElementById('explanation');
+  exp.className = 'explanation show ' + (isRight ? 'exp-green' : 'exp-red');
+  exp.style.display = 'flex';
+  document.getElementById('expIcon').textContent = isRight ? '✅' : '❌';
+  document.getElementById('expText').innerHTML = `<strong>${isRight ? 'Correct!' : 'Not quite.'}</strong> ${q.explain}`;
+
+  // XP update
+  const xpEarned = userAnswers.filter(a => a).length * Math.round(CHAPTER_DATA.xp / total);
+  document.getElementById('xpLabel').textContent = `⚡ ${xpEarned} XP earned`;
+
+  // Show next or submit
+  if (currentQ < total - 1) {
+    document.getElementById('btnNext').className = 'btn-next show';
+  } else {
+    document.getElementById('btnSubmit').className = 'btn-submit show';
+  }
+}
+
+function nextQuestion() {
+  showQuestion(currentQ + 1);
+}
+
+function submitQuiz() {
+  const total = QUESTIONS.length;
+  const xpEarned = Math.round(score / total * CHAPTER_DATA.xp);
+
+  // Update progress bar to 100%
+  document.getElementById('progressFill').style.width = '100%';
+
+  // Switch views
+  document.getElementById('quizArea').style.display   = 'none';
+  document.getElementById('resultsArea').className    = 'results show';
+
+  // Result icon and title
+  const pct = score / total;
+  let icon, title, sub;
+  if (pct === 1) { icon = '🏆'; title = 'Perfect Score!'; sub = 'Outstanding — you nailed every question!'; }
+  else if (pct >= 0.8) { icon = '🎉'; title = 'Excellent!'; sub = 'Strong performance — you know your stuff!'; }
+  else if (pct >= 0.6) { icon = '⭐'; title = 'Good Job!'; sub = 'Solid understanding. Review the explanations to improve.'; }
+  else { icon = '📚'; title = 'Keep Learning!'; sub = 'Review the chapter and retake the quiz to earn full XP.'; }
+
+  document.getElementById('resIcon').textContent  = icon;
+  document.getElementById('resTitle').textContent = title;
+  document.getElementById('resSub').textContent   = sub;
+  document.getElementById('resScore').textContent = `${score}/${total}`;
+  document.getElementById('resXp').textContent    = `+${xpEarned} XP`;
+
+  // XP meter animation
+  const meterPct = Math.round(xpEarned / CHAPTER_DATA.xp * 100);
+  setTimeout(() => {
+    document.getElementById('xpMeterFill').style.width = meterPct + '%';
+  }, 200);
+
+  // Review grid
+  const grid = document.getElementById('reviewGrid');
+  grid.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const correct = userAnswers[i];
+    const div = document.createElement('div');
+    div.className = 'rv-item';
+    div.innerHTML = `
+      <div class="rv-icon">${correct ? '✅' : '❌'}</div>
+      <div class="rv-q">Q${i+1}. ${q.q}</div>
+      <div class="rv-ans ${correct ? 'rv-correct' : 'rv-wrong'}">${correct ? 'CORRECT' : 'WRONG'}</div>`;
+    grid.appendChild(div);
+  });
+
+  // Store in localStorage for quiz_ace badge
+  document.getElementById('btnFinish').dataset.score    = score;
+  document.getElementById('btnFinish').dataset.xpEarned = xpEarned;
+}
+
+function finishQuiz() {
+  const chId    = `${MODULE}_${CHAPTER}`;
+  const sc      = parseInt(document.getElementById('btnFinish').dataset.score);
+  const xp      = parseInt(document.getElementById('btnFinish').dataset.xpEarned);
+  const today   = new Date().toDateString();
+
+  // Save to localStorage
+  const STORE_KEY = 'tz_learn';
+  let data;
+  try { data = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { data = {}; }
+
+  const done = data.chapters_done || [];
+  if (!done.includes(chId)) {
+    done.push(chId);
+    data.chapters_done = done;
+    data.xp = (data.xp || 0) + xp;
+    data.activity = data.activity || [];
+    data.activity.push({ icon: '🎯', title: `Quiz: ${CHAPTER_DATA.title} (${sc}/${QUESTIONS.length})`, xp, date: today });
+
+    // Save quiz score
+    data.quiz_scores = data.quiz_scores || {};
+    data.quiz_scores[chId] = { score: sc, total: QUESTIONS.length, date: today, xp };
+
+    // Badge: quiz ace
+    if (sc === QUESTIONS.length) {
+      const badges = data.badges_earned || [];
+      if (!badges.includes('quiz_ace')) {
+        badges.push('quiz_ace');
+        data.xp += 30;
+        data.activity.push({ icon: '🎯', title: 'Badge: Quiz Ace — perfect score!', xp: 30, date: today });
+        data.badges_earned = badges;
+      }
+    }
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  }
+
+  // Navigate back
+  const nextCh = CHAPTER + 1;
+  const hasCh  = QUIZ_BANK[MODULE]?.chapters[nextCh];
+  if (hasCh) {
+    window.location.href = `/learn_technical.html#ch${nextCh}`;
+  } else {
+    window.location.href = `/learn_dashboard.html`;
+  }
+}
+
+function retakeQuiz() {
+  currentQ    = 0;
+  answered    = false;
+  userAnswers = [];
+  score       = 0;
+  document.getElementById('resultsArea').className = 'results';
+  document.getElementById('quizArea').style.display = 'block';
+  showQuestion(0);
+}
+
+function showError(msg) {
+  document.getElementById('loadingState').innerHTML = `<div style="color:var(--red)">${msg}</div><br><a href="/learn_dashboard.html" style="color:var(--accent)">← Back to Dashboard</a>`;
+}
+
+/* ── i18n foundation ─────────────────────────────────────────── */
+const _LANG = localStorage.getItem('tz_lang') || 'en';
+const _T = { en: {} };
+function t(k) { return (_T[_LANG] || _T.en)[k] || k; }
+
+init();
+</script>
+</body>
+</html>

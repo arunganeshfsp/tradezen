@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Analysis — Full Course | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+}
+
+/* COURSE PROGRESS BAR (sticky sub-header) */
+.course-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:56px;z-index:100}
+.cb-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
+.cb-track{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;min-width:80px}
+.cb-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:3px;transition:width .5s ease;width:0}
+.cb-pct{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);white-space:nowrap}
+.cb-back{font-size:12px;color:var(--dim);text-decoration:none;display:flex;align-items:center;gap:4px;transition:color .15s;white-space:nowrap}
+.cb-back:hover{color:var(--text)}
+
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+
+/* HERO */
+.hero{text-align:center;padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:40px}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--cyan);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--dim);font-size:14px;max-width:580px;margin:0 auto;line-height:1.7}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:22px 26px;margin-bottom:44px}
+.toc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.toc h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.toc-xp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--yellow)}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+@media(max-width:580px){.toc-grid{grid-template-columns:1fr}}
+.toc-item{display:flex;align-items:center;gap:8px;padding:5px 0;text-decoration:none;color:var(--dim);font-size:13px;border-radius:4px;transition:color .15s}
+.toc-item:hover{color:var(--accent)}
+.toc-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .15s}
+.toc-item:hover .toc-dot{background:var(--accent)}
+.toc-dot.done{background:var(--green)}
+.toc-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:18px}
+
+/* CHAPTER SECTIONS */
+.chapter{margin-bottom:56px;scroll-margin-top:110px}
+.ch-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.ch-head-left{display:flex;align-items:center;gap:14px}
+.ch-num-badge{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.ch-num-badge.done{background:linear-gradient(135deg,var(--green),#16a34a)}
+.ch-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.ch-xp-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);padding:3px 10px;border-radius:20px;white-space:nowrap}
+
+/* CONTENT PRIMITIVES */
+.ch-body p{color:var(--dim);font-size:14px;line-height:1.78;margin-bottom:12px}
+.ch-body p strong{color:var(--text)}
+.ch-body h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin:20px 0 8px}
+
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:14px 0}
+.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}
+.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}
+.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}
+.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}
+.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}
+.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.65}
+
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:14px 0}
+.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}
+.step-row:last-child{border-bottom:none}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.sn.green{background:var(--green)}
+.sn.red{background:var(--red)}
+.sb .st{font-weight:600;font-size:13px;color:#fff;margin-bottom:3px}
+.sb p{font-size:13px;color:var(--dim);line-height:1.65;margin:0}
+
+/* PATTERN CARDS */
+.pattern-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:14px 0}
+.pat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.pat-candle{display:flex;justify-content:center;align-items:flex-end;gap:8px;height:80px;margin-bottom:10px}
+.candle{display:flex;flex-direction:column;align-items:center;gap:2px}
+.wick{width:2px;background:currentColor;border-radius:1px}
+.cbody{width:14px;border-radius:2px}
+.bull-c{color:#2ecc71}.bear-c{color:#e74c3c}.doji-c{color:#f5a623}
+.pat-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+.pat-signal{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:6px}
+.sig-bull{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.sig-bear{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.sig-neutral{background:rgba(245,166,35,0.1);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+.pat-desc{font-size:11px;color:var(--dim);line-height:1.55}
+
+/* LEVEL DIAGRAM */
+.level-diagram{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin:14px 0;font-family:'JetBrains Mono',monospace;font-size:11px}
+.ld-line{display:flex;align-items:center;gap:10px;padding:5px 0}
+.ld-label{width:40px;font-weight:700}
+.ld-bar{flex:1;height:2px;border-radius:1px}
+.ld-desc{font-size:10px;color:var(--muted);min-width:120px;text-align:right}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.55}
+.tbl tr:last-child td{border-bottom:none}
+
+/* STRATEGY CARDS */
+.strat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.strat-card{border-radius:var(--r);padding:16px;border:1px solid var(--border);background:var(--bg2)}
+.strat-icon{font-size:22px;margin-bottom:8px}
+.strat-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:4px}
+.strat-body{font-size:12px;color:var(--dim);line-height:1.6}
+.strat-entry{margin-top:8px;padding:8px 10px;background:var(--bg3);border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:10px}
+.strat-entry div{color:var(--muted);margin-bottom:2px}
+.strat-entry span{color:var(--text)}
+
+/* QUIZ CTA */
+.quiz-cta{margin-top:28px;padding:20px 24px;background:linear-gradient(135deg,rgba(124,106,247,0.12),rgba(0,212,255,0.06));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.qcta-left h4{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:4px}
+.qcta-left p{font-size:12px;color:var(--dim)}
+.qcta-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--accent);border-radius:var(--r2);color:#fff;font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;white-space:nowrap}
+.qcta-btn:hover{opacity:.85}
+.qcta-done{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r2);color:var(--green);font-weight:600;font-size:13px}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.mark-btn:hover{border-color:var(--green);color:var(--green)}
+.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+
+/* CHAPTER DIVIDER */
+.ch-divider{height:1px;background:var(--border);margin:0 0 56px}
+
+/* PAGE NAV */
+.page-nav{display:flex;justify-content:space-between;margin-top:40px;padding-top:24px;border-top:1px solid var(--border)}
+.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.pn-btn:hover{background:var(--bg3);color:var(--text)}
+
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- STICKY COURSE PROGRESS BAR -->
+<div class="course-bar">
+  <a href="/learn_dashboard.html" class="cb-back">← Dashboard</a>
+  <span class="cb-title">Technical Analysis</span>
+  <div class="cb-track"><div class="cb-fill" id="cbFill"></div></div>
+  <span class="cb-pct" id="cbPct">0 / 10</span>
+</div>
+
+<div class="page">
+
+<div class="hero">
+  <div class="hero-tag">📊 Full Course · 10 Chapters · 370 XP</div>
+  <h1>Technical Analysis<br><em>Masterclass</em></h1>
+  <p>From reading a single candle to understanding market structure — everything you need to trade Nifty with confidence. Indian market examples throughout.</p>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-head">
+    <h3>Course Contents</h3>
+    <span class="toc-xp">⚡ 370 XP available</span>
+  </div>
+  <div class="toc-grid" id="tocGrid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 1 ═══ -->
+<div class="chapter" id="ch1">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_1">1</div>
+      <h2 class="ch-title">Price Action Fundamentals</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 30 XP</span>
+  </div>
+  <div class="ch-body">
+    <p><strong>Price action</strong> is the study of a security's price movement over time — without relying on lagging indicators. It is the purest form of market analysis. Every indicator you'll ever use is derived from price; learning to read price directly makes you a better trader regardless of which tools you use.</p>
+    <p>A candlestick tells you four things in 5 minutes: where price <strong>opened</strong>, where it went <strong>high</strong>, where it went <strong>low</strong>, and where it <strong>closed</strong>. That one candle contains more information than most people realise.</p>
+
+    <h4>The Two Forces: Buyers vs Sellers</h4>
+    <p>Every candlestick is the result of a battle. The candle <strong>body</strong> shows who won. The <strong>wicks</strong> show where the other side fought back.</p>
+    <div class="step-block">
+      <div class="step-row">
+        <div class="sn green">▲</div>
+        <div class="sb">
+          <div class="st">Bullish (Green) Candle</div>
+          <p>Close is higher than open. Buyers won the session. A large green body with small wicks means buyers dominated with little resistance.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn red">▼</div>
+        <div class="sb">
+          <div class="st">Bearish (Red) Candle</div>
+          <p>Close is lower than open. Sellers dominated. A long red body with tiny wicks = a clean bearish session with no meaningful buyer response.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn" style="background:var(--yellow)">—</div>
+        <div class="sb">
+          <div class="st">Doji (Indecision)</div>
+          <p>Open ≈ Close. Neither side won. The market is paused. At a key level, a Doji is a powerful signal — the winning trend may be about to stall.</p>
+        </div>
+      </div>
+    </div>
+
+    <h4>Reading Wicks</h4>
+    <p>Wicks are rejected price levels. They tell you where the market tried to go but couldn't sustain.</p>
+    <div class="info-box ib-yellow">
+      <span class="info-icon">💡</span>
+      <p><strong>Long upper wick</strong> = sellers pushed price back from the high. Bearish rejection. If this happens at a resistance level, it's a strong sell signal.<br><br>
+      <strong>Long lower wick</strong> = buyers stepped in from the low. Bullish rejection. If this happens at a support level, it's a strong buy signal (Hammer pattern).</p>
+    </div>
+
+    <h4>Nifty Context</h4>
+    <p>On a 5-minute Nifty chart, each candle covers 5 minutes of actual trading. Opening session candles (9:15–9:30 AM) are often the most volatile and set the tone for the day. <strong>Never trade the first 2–3 candles blindly</strong> — wait for the market to show direction before entering.</p>
+    <div class="info-box ib-green">
+      <span class="info-icon">🇮🇳</span>
+      <p><strong>Indian market tip:</strong> Nifty opens at 9:15 AM IST. The first 15 minutes form the Opening Range. Most institutional decisions are made after 9:30 AM. Retail traders who wait for the first 15-minute candle to close before acting avoid the majority of false signals.</p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_1">
+    <div class="qcta-left">
+      <h4>Chapter 1 Quiz</h4>
+      <p>5 questions · Price action basics · Earn 30 XP</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_1" onclick="markChapter('ta_1')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=1" class="qcta-btn" id="qbtn_ta_1">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 2 ═══ -->
+<div class="chapter" id="ch2">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_2">2</div>
+      <h2 class="ch-title">Candlestick Patterns</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 40 XP</span>
+  </div>
+  <div class="ch-body">
+    <p>Candlestick patterns are formations of 1–3 candles that signal a probable shift or continuation in price direction. They originated in Japanese rice markets in the 18th century and remain some of the most reliable visual signals in modern markets.</p>
+    <p>Patterns only have meaning <strong>in context</strong> — a bullish reversal pattern only matters if it appears at a support level or after a downtrend. A pattern in the middle of nowhere is noise.</p>
+
+    <h4>Single Candle Patterns</h4>
+    <div class="pattern-grid">
+      <div class="pat-card">
+        <div class="pat-candle">
+          <div class="candle bull-c">
+            <div class="wick" style="height:10px"></div>
+            <div class="cbody" style="height:40px;background:#2ecc71"></div>
+            <div class="wick" style="height:30px"></div>
+          </div>
+        </div>
+        <div class="pat-name">Hammer</div>
+        <span class="pat-signal sig-bull">BULLISH REVERSAL</span>
+        <div class="pat-desc">Long lower wick (≥2× body), small body at top. Appears at support — buyers aggressively rejected the lows.</div>
+      </div>
+      <div class="pat-card">
+        <div class="pat-candle">
+          <div class="candle bear-c">
+            <div class="wick" style="height:30px"></div>
+            <div class="cbody" style="height:40px;background:#e74c3c"></div>
+            <div class="wick" style="height:10px"></div>
+          </div>
+        </div>
+        <div class="pat-name">Shooting Star</div>
+        <span class="pat-signal sig-bear">BEARISH REVERSAL</span>
+        <div class="pat-desc">Long upper wick (≥2× body), small body at bottom. At resistance — sellers rejected the highs sharply.</div>
+      </div>
+      <div class="pat-card">
+        <div class="pat-candle">
+          <div class="candle doji-c">
+            <div class="wick" style="height:28px"></div>
+            <div class="cbody" style="height:4px;background:#f5a623"></div>
+            <div class="wick" style="height:28px"></div>
+          </div>
+        </div>
+        <div class="pat-name">Doji</div>
+        <span class="pat-signal sig-neutral">INDECISION</span>
+        <div class="pat-desc">Open ≈ Close. Neither buyers nor sellers won. At key levels, signals trend exhaustion.</div>
+      </div>
+      <div class="pat-card">
+        <div class="pat-candle">
+          <div class="candle bull-c">
+            <div class="wick" style="height:2px"></div>
+            <div class="cbody" style="height:60px;background:#2ecc71"></div>
+            <div class="wick" style="height:2px"></div>
+          </div>
+        </div>
+        <div class="pat-name">Bullish Marubozu</div>
+        <span class="pat-signal sig-bull">STRONG BULL</span>
+        <div class="pat-desc">Full green body, no wicks. Pure buying. Trend continuation signal — buyers in complete control.</div>
+      </div>
+      <div class="pat-card">
+        <div class="pat-candle">
+          <div class="candle bear-c">
+            <div class="wick" style="height:2px"></div>
+            <div class="cbody" style="height:60px;background:#e74c3c"></div>
+            <div class="wick" style="height:2px"></div>
+          </div>
+        </div>
+        <div class="pat-name">Bearish Marubozu</div>
+        <span class="pat-signal sig-bear">STRONG BEAR</span>
+        <div class="pat-desc">Full red body, no wicks. Pure selling. Strong continuation or reversal signal when breaking support.</div>
+      </div>
+      <div class="pat-card">
+        <div class="pat-candle">
+          <div class="candle bear-c">
+            <div class="wick" style="height:5px"></div>
+            <div class="cbody" style="height:40px;background:#e74c3c"></div>
+            <div class="wick" style="height:28px"></div>
+          </div>
+        </div>
+        <div class="pat-name">Inverted Hammer</div>
+        <span class="pat-signal sig-bull">POTENTIAL REVERSAL</span>
+        <div class="pat-desc">Long upper wick after downtrend. Buyers tried to push up. Needs next candle confirmation — not standalone.</div>
+      </div>
+    </div>
+
+    <h4>Two-Candle Patterns</h4>
+    <div class="step-block">
+      <div class="step-row">
+        <div class="sn green">↑</div>
+        <div class="sb">
+          <div class="st">Bullish Engulfing</div>
+          <p>A small red candle followed by a large green candle whose body <em>completely engulfs</em> the red body. Strong reversal signal at support. The second candle proves buyers overwhelmed the previous sellers.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn red">↓</div>
+        <div class="sb">
+          <div class="st">Bearish Engulfing</div>
+          <p>A small green candle followed by a large red candle that engulfs it. At resistance, signals a shift to selling. Very reliable when combined with overbought RSI.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn" style="background:var(--yellow)">⟂</div>
+        <div class="sb">
+          <div class="st">Harami</div>
+          <p>A large candle followed by a small candle whose body fits entirely <em>inside</em> the first. The large momentum has paused — the market is hesitating. Watch for confirmation in the next candle.</p>
+        </div>
+      </div>
+    </div>
+
+    <h4>Three-Candle Patterns</h4>
+    <div class="step-block">
+      <div class="step-row">
+        <div class="sn green">⭐</div>
+        <div class="sb">
+          <div class="st">Morning Star</div>
+          <p><strong>Red candle → Small body (star) → Green candle.</strong> Classic bottom reversal. The star shows sellers losing momentum. The final green candle must close above the midpoint of the first red candle for confirmation.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn red">⭐</div>
+        <div class="sb">
+          <div class="st">Evening Star</div>
+          <p><strong>Green candle → Small body (star) → Red candle.</strong> Classic top reversal. Mirror of Morning Star. At resistance, this pattern consistently signals a change in trend on all timeframes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box ib-blue">
+      <span class="info-icon">📌</span>
+      <p><strong>Rule of thumb:</strong> Single candle patterns need context. Two-candle patterns need confirmation. Three-candle patterns are largely self-confirming. Always ask: <em>"Where did this pattern form?"</em> A Hammer at CPR BC is far more powerful than a Hammer in the middle of a range.</p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_2">
+    <div class="qcta-left">
+      <h4>Chapter 2 Quiz</h4>
+      <p>5 questions · Candlestick patterns · Earn 40 XP</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_2" onclick="markChapter('ta_2')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=2" class="qcta-btn" id="qbtn_ta_2">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 3 ═══ -->
+<div class="chapter" id="ch3">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_3">3</div>
+      <h2 class="ch-title">Support &amp; Resistance</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 35 XP</span>
+  </div>
+  <div class="ch-body">
+    <p><strong>Support</strong> is a price level where demand is strong enough to prevent further decline. <strong>Resistance</strong> is where supply overwhelms demand and prevents further rise. These are the most fundamental concepts in all of technical analysis.</p>
+    <p>S/R levels form because of <strong>price memory</strong> — traders remember where price reversed before, and they act at those levels again. Institutional participants often place large orders at round numbers and prior highs/lows, creating self-fulfilling levels.</p>
+
+    <h4>How to Identify Strong S/R Levels</h4>
+    <div class="step-block">
+      <div class="step-row">
+        <div class="sn">1</div>
+        <div class="sb">
+          <div class="st">Multiple Touches</div>
+          <p>A level that has been tested and held 3+ times is far more significant than one that's held only once. Each touch that holds the level strengthens it.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn">2</div>
+        <div class="sb">
+          <div class="st">Prior Swing Highs/Lows</div>
+          <p>The most important levels on any chart are prior swing highs (old resistance) and swing lows (old support). These are where institutional orders reside.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn">3</div>
+        <div class="sb">
+          <div class="st">Round Numbers (Psychological Levels)</div>
+          <p>Nifty 18000, 19000, 20000, 21000 — these are major psychological magnets. The market gravitates toward and reacts sharply at these numbers because traders and algorithms alike cluster orders there.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="sn">4</div>
+        <div class="sb">
+          <div class="st">High Volume Areas</div>
+          <p>Levels where abnormally high volume traded in the past. Heavy volume means many participants took positions there — they'll defend or exit at those levels again.</p>
+        </div>
+      </div>
+    </div>
+
+    <h4>Role Reversal — The Most Powerful Concept</h4>
+    <p>When a <strong>support level breaks</strong>, it becomes new resistance. When <strong>resistance breaks</strong>, it becomes new support. This role reversal is one of the most tradeable setups in the market.</p>
+    <div class="info-box ib-purple">
+      <span class="info-icon">🔄</span>
+      <p><strong>Classic Nifty example:</strong> Nifty held 19,200 as support for 3 weeks. When it broke below with volume, 19,200 immediately became resistance on every rally back up. Traders who bought the retest of 19,200 from below (as resistance) got one of the cleanest short entries of the year.</p>
+    </div>
+
+    <h4>False Breakouts (Bull Traps / Bear Traps)</h4>
+    <p>A false breakout occurs when price pierces a level, triggers stop orders, then reverses sharply. These are <strong>deliberately engineered by large players</strong> to accumulate or distribute positions.</p>
+    <div class="info-box ib-red">
+      <span class="info-icon">⚠️</span>
+      <p><strong>How to avoid traps:</strong> Wait for a candle to <em>close</em> beyond the level — not just touch it. A wick through resistance with a close below is not a breakout. A strong body close above resistance with above-average volume is a real breakout.</p>
+    </div>
+
+    <table class="tbl">
+      <thead><tr><th>Scenario</th><th>What it Means</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>Price bounces at support</td><td>Buyers defending the level</td><td style="color:var(--green)">Buy near support, SL below</td></tr>
+        <tr><td>Price rejects at resistance</td><td>Sellers absorbing buying</td><td style="color:var(--red)">Sell near resistance, SL above</td></tr>
+        <tr><td>Resistance breaks with volume</td><td>Level flipped — now support</td><td style="color:var(--green)">Buy the retest from above</td></tr>
+        <tr><td>Support breaks with volume</td><td>Level flipped — now resistance</td><td style="color:var(--red)">Sell the retest from below</td></tr>
+        <tr><td>False breakout above resistance</td><td>Bull trap — distribution</td><td style="color:var(--red)">Short when price closes back below</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_3">
+    <div class="qcta-left">
+      <h4>Chapter 3 Quiz</h4>
+      <p>5 questions · Support &amp; Resistance · Earn 35 XP</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_3" onclick="markChapter('ta_3')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=3" class="qcta-btn" id="qbtn_ta_3">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 4 ═══ -->
+<div class="chapter" id="ch4">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_4">4</div>
+      <h2 class="ch-title">Volume Analysis</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 30 XP</span>
+  </div>
+  <div class="ch-body">
+    <p><strong>Volume is the fuel of price movement.</strong> A breakout on high volume is real. A breakout on low volume is suspect. Volume tells you the conviction behind every price move.</p>
+    <div class="step-block">
+      <div class="step-row"><div class="sn">✓</div><div class="sb"><div class="st">High Volume Breakout</div><p>When price breaks a key level on volume 1.5–3× the average, the move has institutional participation. These moves tend to follow through. Enter on the first pullback.</p></div></div>
+      <div class="step-row"><div class="sn">✗</div><div class="sb"><div class="st">Low Volume Breakout</div><p>Breakout on &lt;0.8× average volume = weak signal. Large players haven't committed. These often fail — wait for re-test or avoid entirely.</p></div></div>
+      <div class="step-row"><div class="sn">!</div><div class="sb"><div class="st">Volume Climax</div><p>Extremely high volume spike at the end of a trend (exhaustion volume). This is when the last buyers/sellers get trapped. Often marks a major reversal point — the exact opposite of what most retail traders think.</p></div></div>
+      <div class="step-row"><div class="sn">↗</div><div class="sb"><div class="st">Volume Divergence</div><p>Price makes new highs but volume is declining — bullish momentum is weakening. This is bearish divergence. Conversely, price making new lows with declining volume is bullish (sellers losing steam).</p></div></div>
+    </div>
+    <div class="info-box ib-cyan">
+      <span class="info-icon">🇮🇳</span>
+      <p><strong>Nifty F&O expiry tip:</strong> On weekly expiry Thursdays, volume spikes dramatically due to options unwinding. Price moves on expiry day often don't follow standard S/R rules — treat them with extra caution and reduce position size.</p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_4">
+    <div class="qcta-left"><h4>Chapter 4 Quiz</h4><p>5 questions · Volume Analysis · Earn 30 XP</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_4" onclick="markChapter('ta_4')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=4" class="qcta-btn" id="qbtn_ta_4">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 5 ═══ -->
+<div class="chapter" id="ch5">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_5">5</div>
+      <h2 class="ch-title">CPR — Central Pivot Range</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 45 XP</span>
+  </div>
+  <div class="ch-body">
+    <p>CPR is a set of three levels — <strong>TC (Top Central), PP (Pivot), BC (Bottom Central)</strong> — calculated from the previous day's High, Low, and Close. It tells you the market's likely bias before the opening bell.</p>
+    <div class="level-diagram">
+      <div class="ld-line"><span class="ld-label" style="color:var(--green)">TC</span><div class="ld-bar" style="background:var(--green);height:2px"></div><span class="ld-desc" style="color:var(--green)">Top of CPR zone</span></div>
+      <div class="ld-line" style="padding:2px 0"><span class="ld-label" style="color:var(--yellow)">PP</span><div class="ld-bar" style="background:var(--yellow);height:2px"></div><span class="ld-desc" style="color:var(--yellow)">Pivot point</span></div>
+      <div class="ld-line"><span class="ld-label" style="color:var(--red)">BC</span><div class="ld-bar" style="background:var(--red);height:2px"></div><span class="ld-desc" style="color:var(--red)">Bottom of CPR zone</span></div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>CPR Width</th><th>Day Type</th><th>Strategy</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--green)">Narrow (&lt;40 pts)</td><td>Strong trend expected</td><td>Pick a direction after ORB, ride it</td></tr>
+        <tr><td style="color:var(--yellow)">Moderate (40–80)</td><td>Mixed, wait and watch</td><td>Wait for confirmed breakout first</td></tr>
+        <tr><td style="color:var(--red)">Wide (&gt;80 pts)</td><td>Range/choppy day</td><td>Mean reversion — buy BC, sell TC</td></tr>
+      </tbody>
+    </table>
+    <div class="info-box ib-blue">
+      <span class="info-icon">📐</span>
+      <p>TradeZen has a full CPR Monitor and tutorial. <a href="/cpr_tutorial.html" style="color:var(--accent)">Read the complete CPR guide →</a> and <a href="/cpr_monitor.html" style="color:var(--accent)">open the live CPR Monitor →</a></p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_5">
+    <div class="qcta-left"><h4>Chapter 5 Quiz</h4><p>5 questions · CPR · Earn 45 XP</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_5" onclick="markChapter('ta_5')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=5" class="qcta-btn" id="qbtn_ta_5">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 6 ═══ -->
+<div class="chapter" id="ch6">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_6">6</div>
+      <h2 class="ch-title">VWAP in Practice</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 35 XP</span>
+  </div>
+  <div class="ch-body">
+    <p><strong>VWAP (Volume Weighted Average Price)</strong> is the average price at which an instrument has traded throughout the day, weighted by volume. It is the most widely used intraday benchmark by institutional traders globally.</p>
+    <p>Every large fund, desk, and algorithm uses VWAP as a reference. When price is above VWAP, institutions consider it expensive — they prefer to sell or avoid buying. When below VWAP, they consider it cheap — prefer to buy.</p>
+    <div class="step-block">
+      <div class="step-row"><div class="sn">↑</div><div class="sb"><div class="st">Price Above VWAP</div><p>Bullish intraday structure. VWAP acts as dynamic support. In a strong bull day, price will bounce off VWAP multiple times. Trade long, use VWAP dips as entries.</p></div></div>
+      <div class="step-row"><div class="sn">↓</div><div class="sb"><div class="st">Price Below VWAP</div><p>Bearish intraday structure. VWAP becomes dynamic resistance. Rallies to VWAP fail. Trade short, use VWAP retests as entries.</p></div></div>
+      <div class="step-row"><div class="sn">⟺</div><div class="sb"><div class="st">Price Oscillating Around VWAP</div><p>Range day — no directional bias. Both sides fighting. Avoid trend trades; use VWAP as the mean to fade extreme moves away from it.</p></div></div>
+    </div>
+    <div class="info-box ib-yellow">
+      <span class="info-icon">⚡</span>
+      <p><strong>Key rule:</strong> VWAP resets every day at market open (9:15 AM). It's an intraday-only tool — it has no meaning on daily or weekly charts. Never use VWAP as a positional trade signal.</p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_6">
+    <div class="qcta-left"><h4>Chapter 6 Quiz</h4><p>5 questions · VWAP · Earn 35 XP</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_6" onclick="markChapter('ta_6')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=6" class="qcta-btn" id="qbtn_ta_6">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 7 ═══ -->
+<div class="chapter" id="ch7">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_7">7</div>
+      <h2 class="ch-title">EMA Strategies</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 35 XP</span>
+  </div>
+  <div class="ch-body">
+    <p>The <strong>Exponential Moving Average (EMA)</strong> gives more weight to recent prices than a simple moving average, making it more responsive to current market conditions. The key EMAs for intraday Nifty trading are <strong>EMA 9, 21, 50, and 200</strong>.</p>
+    <div class="strat-grid">
+      <div class="strat-card">
+        <div class="strat-icon">🚀</div>
+        <div class="strat-name">EMA 9/21 Crossover</div>
+        <div class="strat-body">When EMA 9 crosses above EMA 21 on the 15-min chart, trend turns bullish. Below = bearish. Primary intraday signal used by most algo systems.</div>
+        <div class="strat-entry">
+          <div>Buy: <span>EMA 9 crosses above EMA 21</span></div>
+          <div>Sell: <span>EMA 9 crosses below EMA 21</span></div>
+          <div>SL: <span>Below EMA 21</span></div>
+        </div>
+      </div>
+      <div class="strat-card">
+        <div class="strat-icon">📏</div>
+        <div class="strat-name">EMA as Dynamic S/R</div>
+        <div class="strat-body">In a strong uptrend, EMA 21 acts as moving support. Each dip to EMA 21 is a buy opportunity. In downtrend, EMA 21 is resistance.</div>
+        <div class="strat-entry">
+          <div>Setup: <span>Strong trend in place</span></div>
+          <div>Entry: <span>First touch of EMA 21</span></div>
+          <div>SL: <span>Close below EMA 21</span></div>
+        </div>
+      </div>
+      <div class="strat-card">
+        <div class="strat-icon">⚡</div>
+        <div class="strat-name">Golden/Death Cross</div>
+        <div class="strat-body">EMA 50 crossing above EMA 200 on the daily chart = Golden Cross (major bull signal). Below = Death Cross. Used for positional trade bias.</div>
+        <div class="strat-entry">
+          <div>Golden Cross: <span>EMA50 &gt; EMA200</span></div>
+          <div>Death Cross: <span>EMA50 &lt; EMA200</span></div>
+          <div>Timeframe: <span>Daily chart</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="info-box ib-green">
+      <span class="info-icon">🇮🇳</span>
+      <p><strong>TradeZen tool:</strong> The <a href="/ema_scenario.html" style="color:var(--accent)">EMA Scenario page</a> shows live EMA 9/21 crossover status for Nifty with backtested signals across the last 30 trading days.</p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_7">
+    <div class="qcta-left"><h4>Chapter 7 Quiz</h4><p>5 questions · EMA · Earn 35 XP</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_7" onclick="markChapter('ta_7')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=7" class="qcta-btn" id="qbtn_ta_7">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 8 ═══ -->
+<div class="chapter" id="ch8">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_8">8</div>
+      <h2 class="ch-title">RSI — Reading Momentum</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 30 XP</span>
+  </div>
+  <div class="ch-body">
+    <p>The <strong>Relative Strength Index (RSI)</strong> measures the speed and magnitude of price changes on a scale of 0–100. Above 70 = overbought. Below 30 = oversold. Developed by J. Welles Wilder, it's one of the most reliable momentum oscillators.</p>
+    <table class="tbl">
+      <thead><tr><th>RSI Reading</th><th>Market State</th><th>Interpretation</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--red);font-weight:700">&gt; 70</td><td>Overbought</td><td>Momentum is extreme — watch for reversal. Don't short just because RSI is high in a strong trend.</td></tr>
+        <tr><td style="color:var(--yellow);font-weight:700">50–70</td><td>Bullish zone</td><td>Price is in an uptrend. Dips toward 50 are buy opportunities in a bull trend.</td></tr>
+        <tr><td style="color:var(--yellow);font-weight:700">30–50</td><td>Bearish zone</td><td>Price is in a downtrend. Rallies toward 50 are sell opportunities in a bear trend.</td></tr>
+        <tr><td style="color:var(--green);font-weight:700">&lt; 30</td><td>Oversold</td><td>Momentum is extreme to downside — watch for bounce. Don't buy just because RSI is low in a strong downtrend.</td></tr>
+      </tbody>
+    </table>
+    <h4>RSI Divergence — The Hidden Signal</h4>
+    <div class="step-block">
+      <div class="step-row"><div class="sn red">↑</div><div class="sb"><div class="st">Bearish Divergence</div><p>Price makes a higher high but RSI makes a lower high. Momentum is weakening even as price rises. Strong warning that the uptrend is exhausting — look to reduce longs or prepare for short.</p></div></div>
+      <div class="step-row"><div class="sn green">↑</div><div class="sb"><div class="st">Bullish Divergence</div><p>Price makes a lower low but RSI makes a higher low. Selling momentum is fading even as price declines. Often precedes a strong bounce — particularly powerful at major support levels.</p></div></div>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_8">
+    <div class="qcta-left"><h4>Chapter 8 Quiz</h4><p>5 questions · RSI · Earn 30 XP</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_8" onclick="markChapter('ta_8')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=8" class="qcta-btn" id="qbtn_ta_8">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 9 ═══ -->
+<div class="chapter" id="ch9">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_9">9</div>
+      <h2 class="ch-title">Options Chain Basics</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 50 XP</span>
+  </div>
+  <div class="ch-body">
+    <p>The <strong>options chain</strong> is a real-time snapshot of all available call and put contracts for a given underlying. Reading it correctly tells you where smart money is positioned and where significant levels lie.</p>
+    <div class="step-block">
+      <div class="step-row"><div class="sn">CE</div><div class="sb"><div class="st">Call Options (CE)</div><p>The right to buy Nifty at a strike price. High Call OI at a strike = resistance level. Writers (sellers) of calls are paid to keep Nifty below that strike — they defend it aggressively.</p></div></div>
+      <div class="step-row"><div class="sn">PE</div><div class="sb"><div class="st">Put Options (PE)</div><p>The right to sell Nifty at a strike price. High Put OI at a strike = support level. Put writers defend Nifty above that strike. Where puts are heaviest = the floor the market is trying to protect.</p></div></div>
+      <div class="step-row"><div class="sn">PCR</div><div class="sb"><div class="st">Put-Call Ratio</div><p>PCR = Total Put OI ÷ Total Call OI. PCR &gt; 1.2 = bullish (more puts written, sellers betting market won't fall). PCR &lt; 0.8 = bearish. PCR 0.8–1.2 = neutral.</p></div></div>
+      <div class="step-row"><div class="sn">⚡</div><div class="sb"><div class="st">Max Pain</div><p>The strike price where the maximum number of options (both CE and PE) expire worthless — causing maximum loss to option buyers. Near expiry, Nifty gravitates toward max pain. Used as a target for expiry-day trades.</p></div></div>
+    </div>
+    <div class="info-box ib-purple">
+      <span class="info-icon">⚡</span>
+      <p><strong>TradeZen live tool:</strong> The <a href="/options_analysis.html" style="color:var(--accent)">Options Analysis page</a> shows live chain OI, PCR, max pain, and signal score for Nifty and BankNifty. Use it alongside this chapter to see these concepts in real data.</p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_9">
+    <div class="qcta-left"><h4>Chapter 9 Quiz</h4><p>5 questions · Options Chain · Earn 50 XP</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_9" onclick="markChapter('ta_9')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=9" class="qcta-btn" id="qbtn_ta_9">Take Quiz →</a>
+    </div>
+  </div>
+</div><div class="ch-divider"></div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 10 ═══ -->
+<div class="chapter" id="ch10">
+  <div class="ch-header">
+    <div class="ch-head-left">
+      <div class="ch-num-badge" id="badge_ta_10">10</div>
+      <h2 class="ch-title">Psychology &amp; Risk Management</h2>
+    </div>
+    <span class="ch-xp-tag">⚡ 40 XP</span>
+  </div>
+  <div class="ch-body">
+    <p>Trading psychology and risk management separate profitable traders from everyone else. You can master every indicator and pattern in this course — none of it matters if you can't control your emotions and protect your capital.</p>
+    <h4>The 2% Rule</h4>
+    <p>Never risk more than <strong>2% of your total trading capital</strong> on a single trade. If your capital is ₹5,00,000, your maximum loss per trade is ₹10,000. This rule alone keeps you in the game long enough to become consistently profitable.</p>
+    <div class="info-box ib-red">
+      <span class="info-icon">⚠️</span>
+      <p><strong>Position sizing formula:</strong><br>Units to trade = (Capital × Risk%) ÷ (Entry − Stop Loss)<br><em>Example: ₹5L × 2% = ₹10,000 risk. If SL is 50 pts away on Nifty, trade 200 units (₹10,000 ÷ ₹50).</em></p>
+    </div>
+    <h4>The Golden Rules</h4>
+    <div class="step-block">
+      <div class="step-row"><div class="sn">1</div><div class="sb"><div class="st">Always define your stop loss before entering</div><p>If you don't know where you're wrong before you enter, you have no plan. Stop losses are not optional — they are the entire foundation of risk management.</p></div></div>
+      <div class="step-row"><div class="sn">2</div><div class="sb"><div class="st">Minimum 1:2 Risk-Reward Ratio</div><p>Risk ₹1 to make ₹2. With a 1:2 RR, you can be wrong 40% of the time and still be profitable. Most retail traders lose because they have 1:1 or worse RR.</p></div></div>
+      <div class="step-row"><div class="sn">3</div><div class="sb"><div class="st">Never average a losing trade</div><p>Adding to a losing position (averaging down) is the fastest way to blow an account. The market is telling you you're wrong. Listen to it.</p></div></div>
+      <div class="step-row"><div class="sn">4</div><div class="sb"><div class="st">Follow your plan, not your emotions</div><p>Write your plan before market open — what you'll buy, where you'll enter, where you'll exit. Stick to it. Decisions made during a live trade are made under adrenaline, not logic.</p></div></div>
+      <div class="step-row"><div class="sn">5</div><div class="sb"><div class="st">Stop after 2 consecutive losses</div><p>Two losses in a row means either the market conditions have changed or you're in the wrong mindset. Walk away, reset. Tomorrow is a new day with new opportunities.</p></div></div>
+    </div>
+    <div class="info-box ib-green">
+      <span class="info-icon">🏆</span>
+      <p><strong>Congratulations!</strong> You've completed all 10 chapters of the Technical Analysis course. Return to the <a href="/learn_dashboard.html" style="color:var(--accent)">Learning Dashboard</a> to claim your TA Master badge and see your final XP tally.</p>
+    </div>
+  </div>
+  <div class="quiz-cta" id="qcta_ta_10">
+    <div class="qcta-left"><h4>Final Chapter Quiz</h4><p>5 questions · Psychology &amp; Risk · Earn 40 XP</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="mark-btn" id="mark_ta_10" onclick="markChapter('ta_10')">✓ Mark Complete</button>
+      <a href="/learn_quiz.html?module=ta&ch=10" class="qcta-btn" id="qbtn_ta_10">Take Final Quiz →</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a href="/learn_dashboard.html" class="pn-btn">← Dashboard</a>
+  <a href="/learn_quiz.html?module=ta&ch=1" class="pn-btn">Start Quizzes →</a>
+</div>
+
+</div><!-- /page -->
+<footer>TradeZen · Technical Analysis Course · 10 Chapters · 370 XP</footer>
+
+<script>
+/* ── i18n foundation ─────────────────────────────────────────── */
+const _LANG = localStorage.getItem('tz_lang') || 'en';
+const _T = { en: {} };
+function t(k) { return (_T[_LANG] || _T.en)[k] || k; }
+
+/* ── Progress ────────────────────────────────────────────────── */
+const STORE_KEY = 'tz_learn';
+const TA_CHAPTERS = [
+  {id:'ta_1',n:1,name:'Price Action Fundamentals',xp:30},
+  {id:'ta_2',n:2,name:'Candlestick Patterns',xp:40},
+  {id:'ta_3',n:3,name:'Support & Resistance',xp:35},
+  {id:'ta_4',n:4,name:'Volume Analysis',xp:30},
+  {id:'ta_5',n:5,name:'CPR — Central Pivot Range',xp:45},
+  {id:'ta_6',n:6,name:'VWAP in Practice',xp:35},
+  {id:'ta_7',n:7,name:'EMA Strategies',xp:35},
+  {id:'ta_8',n:8,name:'RSI — Reading Momentum',xp:30},
+  {id:'ta_9',n:9,name:'Options Chain Basics',xp:50},
+  {id:'ta_10',n:10,name:'Psychology & Risk Mgmt',xp:40},
+];
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+function saveProgress(data) { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+function getDone() { return loadProgress().chapters_done || []; }
+
+function markChapter(id) {
+  const data = loadProgress();
+  const done = data.chapters_done || [];
+  if (done.includes(id)) return;
+
+  const ch = TA_CHAPTERS.find(c => c.id === id);
+  done.push(id);
+  data.chapters_done = done;
+  data.xp = (data.xp || 0) + (ch?.xp || 30);
+
+  // Badge checks
+  const badges = data.badges_earned || [];
+  const today = new Date().toDateString();
+  if (done.length >= 1 && !badges.includes('first_step')) { badges.push('first_step'); data.xp += 10; data.activity = [...(data.activity||[]),{icon:'👣',title:'Badge: First Step',xp:10,date:today}]; }
+  if (done.length >= 3 && !badges.includes('quick_start')) { badges.push('quick_start'); data.xp += 25; data.activity = [...(data.activity||[]),{icon:'🚀',title:'Badge: Quick Start',xp:25,date:today}]; }
+  if (done.length >= 5 && !badges.includes('halfway'))     { badges.push('halfway');     data.xp += 50; data.activity = [...(data.activity||[]),{icon:'⭐',title:'Badge: Halfway There',xp:50,date:today}]; }
+  if (done.length >= 10 && !badges.includes('ta_master'))  { badges.push('ta_master');   data.xp += 100;data.activity = [...(data.activity||[]),{icon:'🏆',title:'Badge: TA Master',xp:100,date:today}]; }
+  if (id === 'ta_5' && !badges.includes('cpr_expert'))     { badges.push('cpr_expert');  data.xp += 40; data.activity = [...(data.activity||[]),{icon:'📐',title:'Badge: CPR Expert',xp:40,date:today}]; }
+  if (id === 'ta_9' && !badges.includes('options_eye'))    { badges.push('options_eye'); data.xp += 40; data.activity = [...(data.activity||[]),{icon:'👁',title:'Badge: Options Eye',xp:40,date:today}]; }
+  data.badges_earned = badges;
+
+  // Activity log
+  data.activity = data.activity || [];
+  data.activity.push({ icon:'📖', title:`Completed: ${ch?.name}`, xp: ch?.xp || 30, date: today });
+
+  saveProgress(data);
+  refreshUI(done);
+}
+
+/* ── Render TOC ──────────────────────────────────────────────── */
+function renderTOC(done) {
+  const grid = document.getElementById('tocGrid');
+  grid.innerHTML = '';
+  TA_CHAPTERS.forEach(ch => {
+    const isDone = done.includes(ch.id);
+    const a = document.createElement('a');
+    a.href = `#ch${ch.n}`;
+    a.className = 'toc-item';
+    a.innerHTML = `<div class="toc-dot ${isDone ? 'done' : ''}"></div><span class="toc-num">${String(ch.n).padStart(2,'0')}</span>${ch.name}`;
+    grid.appendChild(a);
+  });
+}
+
+/* ── Refresh chapter headers and buttons ─────────────────────── */
+function refreshUI(done) {
+  TA_CHAPTERS.forEach(ch => {
+    const badge = document.getElementById(`badge_${ch.id}`);
+    if (badge) badge.className = 'ch-num-badge' + (done.includes(ch.id) ? ' done' : '');
+
+    const markBtn = document.getElementById(`mark_${ch.id}`);
+    if (markBtn) {
+      if (done.includes(ch.id)) {
+        markBtn.className = 'mark-btn done';
+        markBtn.textContent = '✓ Completed';
+        markBtn.disabled = true;
+      }
+    }
+
+    const qbtn = document.getElementById(`qbtn_${ch.id}`);
+    if (qbtn && done.includes(ch.id)) {
+      qbtn.textContent = 'Retake Quiz';
+      qbtn.style.background = 'transparent';
+      qbtn.style.border = '1px solid var(--accent)';
+      qbtn.style.color = 'var(--accent)';
+    }
+  });
+
+  // Course bar
+  const count = TA_CHAPTERS.filter(c => done.includes(c.id)).length;
+  const pct   = Math.round(count / TA_CHAPTERS.length * 100);
+  document.getElementById('cbPct').textContent  = `${count} / ${TA_CHAPTERS.length}`;
+  setTimeout(() => { document.getElementById('cbFill').style.width = pct + '%'; }, 80);
+  renderTOC(done);
+}
+
+/* ── Handle quiz return (URL param ?completed=ta_X&score=Y) ─── */
+function handleQuizReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const completed = params.get('completed');
+  const score     = parseInt(params.get('score') || '0');
+  if (!completed) return;
+
+  const data = loadProgress();
+  const done = data.chapters_done || [];
+  const ch   = TA_CHAPTERS.find(c => c.id === completed);
+  if (ch && !done.includes(completed)) {
+    done.push(completed);
+    data.chapters_done = done;
+    const earned = Math.round(ch.xp * (score / 5));
+    data.xp = (data.xp || 0) + earned;
+    const today = new Date().toDateString();
+    data.activity = data.activity || [];
+    data.activity.push({ icon:'🎯', title:`Quiz passed: ${ch.name} (${score}/5)`, xp: earned, date: today });
+
+    if (score === 5) {
+      const badges = data.badges_earned || [];
+      if (!badges.includes('quiz_ace')) {
+        badges.push('quiz_ace');
+        data.xp += 30;
+        data.activity.push({ icon:'🎯', title:'Badge: Quiz Ace — perfect score!', xp:30, date:today });
+        data.badges_earned = badges;
+      }
+    }
+    saveProgress(data);
+  }
+  // Clean URL
+  window.history.replaceState({}, '', '/learn_technical.html' + (completed ? '#ch' + (ch?.n||1) : ''));
+}
+
+/* ── Init ────────────────────────────────────────────────────── */
+handleQuizReturn();
+refreshUI(getDone());
+
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
+});
+</script>
+</body>
+</html>

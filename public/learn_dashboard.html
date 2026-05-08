@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Hub | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover{color:#fff;background:var(--bg3)}
+.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+}
+
+.page{max-width:1060px;margin:0 auto;padding:36px 24px 80px}
+
+/* HERO */
+.learn-hero{padding:48px 0 36px;border-bottom:1px solid var(--border);margin-bottom:36px}
+.lh-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);color:var(--accent);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+.lh-title{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:#fff;margin-bottom:6px}
+.lh-title em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lh-sub{font-size:14px;color:var(--dim);line-height:1.65;margin-bottom:24px;max-width:560px}
+
+/* STATS ROW */
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.stat-pill{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;min-width:120px}
+.sp-icon{font-size:20px}
+.sp-right{}
+.sp-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;line-height:1}
+.sp-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* XP BAR */
+.xp-bar-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.xp-level-badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;white-space:nowrap}
+.xp-bar-inner{flex:1;min-width:160px}
+.xp-bar-row{display:flex;justify-content:space-between;margin-bottom:6px}
+.xp-label{font-size:12px;color:var(--dim)}
+.xp-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text)}
+.xp-track{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:4px;transition:width .7s ease;width:0}
+
+/* SECTION TITLE */
+.sec-title{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.sec-title h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:12px}
+.tag-active{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.tag-soon{color:var(--muted);background:rgba(74,80,112,0.15);border:1px solid var(--border)}
+.sec-line{flex:1;height:1px;background:var(--border)}
+
+/* COURSE CARDS */
+.course-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-bottom:44px}
+.course-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;position:relative;overflow:hidden;transition:border-color .2s}
+.course-card:hover{border-color:var(--border2)}
+.course-card.locked{opacity:.55}
+.cc-glow{position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;pointer-events:none;opacity:.06}
+.cc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px}
+.cc-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.cc-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;padding:4px 10px;border-radius:20px;font-weight:700;white-space:nowrap}
+.cc-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;margin-bottom:5px}
+.cc-desc{font-size:12px;color:var(--dim);line-height:1.65;margin-bottom:16px}
+.cc-meta{display:flex;gap:12px;margin-bottom:14px}
+.cc-meta-item{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+
+/* PROGRESS BAR */
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.prog-label{font-size:12px;color:var(--muted)}
+.prog-pct{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text)}
+.prog-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:16px}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* CHAPTER LIST */
+.chapter-list{display:flex;flex-direction:column;gap:4px;margin-bottom:16px}
+.ch-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r2);text-decoration:none;color:var(--text);transition:background .15s;font-size:12px}
+.ch-item:hover{background:var(--bg3)}
+.ch-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .2s}
+.ch-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.ch-dot.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,0.15)}
+.ch-dot.locked{border-color:var(--muted);opacity:.4}
+.ch-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:22px;flex-shrink:0}
+.ch-name{flex:1}
+.ch-xp{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow)}
+
+.cc-cta{display:block;text-align:center;padding:10px 16px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s}
+.cc-cta:hover{opacity:.85}
+.cc-cta.primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.cc-cta.muted{background:transparent;border:1px solid var(--border);color:var(--muted);cursor:not-allowed}
+
+/* BADGES */
+.badges-section{margin-bottom:44px}
+.badges-grid{display:flex;flex-wrap:wrap;gap:10px}
+.badge-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:84px;transition:border-color .2s}
+.badge-card.earned{border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.04)}
+.badge-card.locked{opacity:.35;filter:grayscale(.8)}
+.badge-icon{font-size:26px;line-height:1}
+.badge-name{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-align:center;letter-spacing:.5px;text-transform:uppercase;line-height:1.4}
+.badge-xp{font-size:10px;color:var(--yellow)}
+
+/* RECENT ACTIVITY */
+.activity-list{display:flex;flex-direction:column;gap:8px;margin-bottom:44px}
+.act-item{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2)}
+.act-icon{font-size:18px;flex-shrink:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:8px}
+.act-body{flex:1;min-width:0}
+.act-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.act-sub{font-size:11px;color:var(--muted)}
+.act-xp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--yellow);flex-shrink:0}
+.empty-state{text-align:center;padding:32px;color:var(--muted);font-size:13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r)}
+
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl on" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+    <a class="nl" href="/options_analysis.html">⚡ Options</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="learn-hero">
+    <div class="lh-tag">📚 Learning Hub</div>
+    <h1 class="lh-title">Master the Markets with <em>Structured Learning</em></h1>
+    <p class="lh-sub">Courses built for Indian traders — from price action basics to advanced options strategies. Learn at your pace, track your progress.</p>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-pill">
+        <span class="sp-icon">⚡</span>
+        <div class="sp-right">
+          <div class="sp-val" id="statXp">0</div>
+          <div class="sp-label">Total XP</div>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-icon">✅</span>
+        <div class="sp-right">
+          <div class="sp-val" id="statChapters">0</div>
+          <div class="sp-label">Chapters Done</div>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-icon">🏆</span>
+        <div class="sp-right">
+          <div class="sp-val" id="statBadges">0</div>
+          <div class="sp-label">Badges</div>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-icon">🔥</span>
+        <div class="sp-right">
+          <div class="sp-val" id="statStreak">0</div>
+          <div class="sp-label">Day Streak</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <span class="xp-level-badge" id="levelBadge">LEVEL 1 — NOVICE</span>
+      <div class="xp-bar-inner">
+        <div class="xp-bar-row">
+          <span class="xp-label" id="xpLabel">0 / 200 XP to next level</span>
+          <span class="xp-val" id="xpPct">0%</span>
+        </div>
+        <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COURSES -->
+  <div class="sec-title">
+    <h2>Your Courses</h2>
+    <span class="sec-tag tag-active">ENROLLED</span>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="course-grid">
+
+    <!-- Technical Analysis Course -->
+    <div class="course-card">
+      <div class="cc-glow" style="background:var(--accent)"></div>
+      <div class="cc-head">
+        <div class="cc-icon" style="background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.25)">📊</div>
+        <span class="cc-badge" style="background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.25);color:var(--accent)">ACTIVE</span>
+      </div>
+      <div class="cc-title">Technical Analysis</div>
+      <div class="cc-desc">Price action, candlesticks, CPR, VWAP, EMA, RSI, volume, options chain basics, and trading psychology — the complete intraday toolkit.</div>
+      <div class="cc-meta">
+        <span class="cc-meta-item">📖 10 chapters</span>
+        <span class="cc-meta-item">⚡ 370 XP total</span>
+        <span class="cc-meta-item">⏱ ~4 hrs</span>
+      </div>
+      <div class="prog-row">
+        <span class="prog-label" id="taProgLabel">0 of 10 chapters complete</span>
+        <span class="prog-pct" id="taProgPct">0%</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="taProgFill" style="background:linear-gradient(90deg,var(--accent),var(--cyan));width:0"></div>
+      </div>
+      <div class="chapter-list" id="taChapterList"></div>
+      <a href="/learn_technical.html" class="cc-cta primary" id="taCta">Start Course →</a>
+    </div>
+
+    <!-- Fundamentals Course — Coming Soon -->
+    <div class="course-card locked">
+      <div class="cc-glow" style="background:var(--green)"></div>
+      <div class="cc-head">
+        <div class="cc-icon" style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.2)">📈</div>
+        <span class="cc-badge" style="background:rgba(74,80,112,0.2);border:1px solid var(--border);color:var(--muted)">COMING SOON</span>
+      </div>
+      <div class="cc-title">Fundamental Analysis</div>
+      <div class="cc-desc">PE ratio, balance sheet reading, revenue growth, ROE/ROCE, debt analysis, management quality, sector outlook — for long-term investors.</div>
+      <div class="cc-meta">
+        <span class="cc-meta-item">📖 12 chapters</span>
+        <span class="cc-meta-item">⚡ 480 XP total</span>
+        <span class="cc-meta-item">⏱ ~6 hrs</span>
+      </div>
+      <div class="prog-row">
+        <span class="prog-label">Not yet available</span>
+        <span class="prog-pct">—</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" style="background:var(--muted);width:0"></div>
+      </div>
+      <div style="height:8px"></div>
+      <a class="cc-cta muted">Unlocking soon</a>
+    </div>
+
+  </div>
+
+  <!-- BADGES -->
+  <div class="badges-section">
+    <div class="sec-title">
+      <h2>Achievements</h2>
+      <span class="sec-tag" style="color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25)">BADGES</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="badges-grid" id="badgesGrid"></div>
+  </div>
+
+  <!-- RECENT ACTIVITY -->
+  <div>
+    <div class="sec-title">
+      <h2>Recent Activity</h2>
+      <span class="sec-tag tag-soon">HISTORY</span>
+      <div class="sec-line"></div>
+    </div>
+    <div id="activityList"></div>
+  </div>
+
+</div><!-- /page -->
+
+<footer>TradeZen &nbsp;·&nbsp; Learning Hub &nbsp;·&nbsp; NSE · IST</footer>
+
+<script>
+/* ── i18n foundation (extend _T.ta for Tamil, etc.) ─────────────── */
+const _LANG = localStorage.getItem('tz_lang') || 'en';
+const _T = {
+  en: {
+    'level.1': 'LEVEL 1 — NOVICE',
+    'level.2': 'LEVEL 2 — LEARNER',
+    'level.3': 'LEVEL 3 — STUDENT',
+    'level.4': 'LEVEL 4 — ANALYST',
+    'level.5': 'LEVEL 5 — TRADER',
+    'level.6': 'LEVEL 6 — EXPERT',
+    'cta.start': 'Start Course →',
+    'cta.continue': 'Continue Learning →',
+    'cta.review': 'Review All Chapters →',
+  }
+};
+function t(k) { return (_T[_LANG] || _T.en)[k] || k; }
+
+/* ── Progress storage ────────────────────────────────────────────── */
+const STORE_KEY = 'tz_learn';
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+function saveProgress(data) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+function getProgress() {
+  const d = loadProgress();
+  return {
+    xp: d.xp || 0,
+    chapters_done: d.chapters_done || [],
+    quiz_scores: d.quiz_scores || {},
+    badges_earned: d.badges_earned || [],
+    activity: d.activity || [],
+    streak: d.streak || 0,
+    last_active: d.last_active || null,
+  };
+}
+
+/* ── Level system ────────────────────────────────────────────────── */
+const LEVELS = [
+  { min: 0,   max: 199,  label: t('level.1') },
+  { min: 200, max: 499,  label: t('level.2') },
+  { min: 500, max: 899,  label: t('level.3') },
+  { min: 900, max: 1399, label: t('level.4') },
+  { min: 1400,max: 1999, label: t('level.5') },
+  { min: 2000,max: 99999,label: t('level.6') },
+];
+function getLevel(xp) {
+  return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0];
+}
+
+/* ── TA Chapters definition ──────────────────────────────────────── */
+const TA_CHAPTERS = [
+  { id:'ta_1',  n:1,  name:'Price Action Fundamentals',  xp:30  },
+  { id:'ta_2',  n:2,  name:'Candlestick Patterns',        xp:40  },
+  { id:'ta_3',  n:3,  name:'Support & Resistance',        xp:35  },
+  { id:'ta_4',  n:4,  name:'Volume Analysis',             xp:30  },
+  { id:'ta_5',  n:5,  name:'CPR — Central Pivot Range',   xp:45  },
+  { id:'ta_6',  n:6,  name:'VWAP in Practice',            xp:35  },
+  { id:'ta_7',  n:7,  name:'EMA Strategies',              xp:35  },
+  { id:'ta_8',  n:8,  name:'RSI — Reading Momentum',      xp:30  },
+  { id:'ta_9',  n:9,  name:'Options Chain Basics',        xp:50  },
+  { id:'ta_10', n:10, name:'Psychology & Risk Mgmt',      xp:40  },
+];
+
+/* ── Badges definition ───────────────────────────────────────────── */
+const BADGES = [
+  { id:'first_step',  icon:'👣', name:'First Step',    desc:'Complete your first chapter',   xp:'+10 XP' },
+  { id:'quick_start', icon:'🚀', name:'Quick Start',   desc:'Complete 3 chapters',            xp:'+25 XP' },
+  { id:'halfway',     icon:'⭐', name:'Halfway',       desc:'Complete 5 chapters',            xp:'+50 XP' },
+  { id:'ta_master',   icon:'🏆', name:'TA Master',     desc:'Complete all 10 TA chapters',    xp:'+100 XP'},
+  { id:'quiz_ace',    icon:'🎯', name:'Quiz Ace',      desc:'Score 100% on any quiz',         xp:'+30 XP' },
+  { id:'streak_3',    icon:'🔥', name:'On Fire',       desc:'3-day learning streak',          xp:'+20 XP' },
+  { id:'cpr_expert',  icon:'📐', name:'CPR Expert',    desc:'Complete CPR chapter + quiz',    xp:'+40 XP' },
+  { id:'options_eye', icon:'👁', name:'Options Eye',   desc:'Complete options chain chapter', xp:'+40 XP' },
+];
+
+/* ── Render functions ────────────────────────────────────────────── */
+function renderStats(p) {
+  document.getElementById('statXp').textContent      = p.xp.toLocaleString();
+  document.getElementById('statChapters').textContent = p.chapters_done.length;
+  document.getElementById('statBadges').textContent   = p.badges_earned.length;
+  document.getElementById('statStreak').textContent   = p.streak;
+
+  const lvl = getLevel(p.xp);
+  const nextLvl = LEVELS[LEVELS.indexOf(lvl) + 1];
+  document.getElementById('levelBadge').textContent = lvl.label;
+
+  if (nextLvl) {
+    const range = nextLvl.min - lvl.min;
+    const done  = p.xp - lvl.min;
+    const pct   = Math.min(100, Math.round(done / range * 100));
+    document.getElementById('xpLabel').textContent = `${p.xp} / ${nextLvl.min} XP to next level`;
+    document.getElementById('xpPct').textContent   = pct + '%';
+    setTimeout(() => { document.getElementById('xpFill').style.width = pct + '%'; }, 80);
+  } else {
+    document.getElementById('xpLabel').textContent = 'Max level reached!';
+    document.getElementById('xpPct').textContent   = '100%';
+    setTimeout(() => { document.getElementById('xpFill').style.width = '100%'; }, 80);
+  }
+}
+
+function renderTACourse(p) {
+  const done = p.chapters_done;
+  const total = TA_CHAPTERS.length;
+  const count = TA_CHAPTERS.filter(c => done.includes(c.id)).length;
+  const pct   = Math.round(count / total * 100);
+
+  document.getElementById('taProgLabel').textContent = `${count} of ${total} chapters complete`;
+  document.getElementById('taProgPct').textContent   = pct + '%';
+  setTimeout(() => { document.getElementById('taProgFill').style.width = pct + '%'; }, 80);
+
+  // Show first 6 chapters in the card
+  const list = document.getElementById('taChapterList');
+  list.innerHTML = '';
+  TA_CHAPTERS.slice(0, 6).forEach((ch, i) => {
+    const isDone   = done.includes(ch.id);
+    const isActive = !isDone && (i === 0 || done.includes(TA_CHAPTERS[i - 1]?.id));
+    const a = document.createElement('a');
+    a.href = `/learn_technical.html#ch${ch.n}`;
+    a.className = 'ch-item';
+    a.innerHTML = `
+      <div class="ch-dot ${isDone ? 'done' : isActive ? 'active' : 'locked'}">
+        ${isDone ? '✓' : ch.n}
+      </div>
+      <span class="ch-num"></span>
+      <span class="ch-name">${ch.name}</span>
+      <span class="ch-xp">${ch.xp} XP</span>`;
+    list.appendChild(a);
+  });
+  // "View all" link
+  const more = document.createElement('a');
+  more.href = '/learn_technical.html';
+  more.className = 'ch-item';
+  more.style.cssText = 'color:var(--accent);font-family:"JetBrains Mono",monospace;font-size:11px;justify-content:center';
+  more.textContent = 'View all 10 chapters →';
+  list.appendChild(more);
+
+  // CTA label
+  const cta = document.getElementById('taCta');
+  if (count === 0) cta.textContent = t('cta.start');
+  else if (count === total) cta.textContent = t('cta.review');
+  else cta.textContent = t('cta.continue');
+}
+
+function renderBadges(p) {
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = '';
+  BADGES.forEach(b => {
+    const earned = p.badges_earned.includes(b.id);
+    const div = document.createElement('div');
+    div.className = 'badge-card ' + (earned ? 'earned' : 'locked');
+    div.title = b.desc;
+    div.innerHTML = `
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-xp">${earned ? b.xp : '🔒'}</div>`;
+    grid.appendChild(div);
+  });
+}
+
+function renderActivity(p) {
+  const list = document.getElementById('activityList');
+  if (!p.activity.length) {
+    list.innerHTML = '<div class="empty-state">No activity yet — complete your first chapter to get started!</div>';
+    return;
+  }
+  list.innerHTML = '';
+  [...p.activity].reverse().slice(0, 8).forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'act-item';
+    div.innerHTML = `
+      <div class="act-icon">${a.icon || '📖'}</div>
+      <div class="act-body">
+        <div class="act-title">${a.title}</div>
+        <div class="act-sub">${a.date}</div>
+      </div>
+      <div class="act-xp">+${a.xp} XP</div>`;
+    list.appendChild(div);
+  });
+}
+
+/* ── Streak check ────────────────────────────────────────────────── */
+function checkStreak(p) {
+  const today = new Date().toDateString();
+  if (p.last_active === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  const data = loadProgress();
+  data.streak = (p.last_active === yesterday) ? (p.streak + 1) : 1;
+  data.last_active = today;
+  if (data.streak >= 3 && !(data.badges_earned || []).includes('streak_3')) {
+    data.badges_earned = [...(data.badges_earned || []), 'streak_3'];
+    data.xp = (data.xp || 0) + 20;
+    data.activity = [...(data.activity || []), { icon:'🔥', title:'Earned badge: On Fire', xp:20, date:today }];
+  }
+  saveProgress(data);
+}
+
+/* ── Init ────────────────────────────────────────────────────────── */
+function init() {
+  const p = getProgress();
+  checkStreak(p);
+  const fresh = getProgress(); // re-read after streak check
+  renderStats(fresh);
+  renderTACourse(fresh);
+  renderBadges(fresh);
+  renderActivity(fresh);
+}
+
+function toggleNav() { document.getElementById('navLinks').classList.toggle('open'); }
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#navLinks .nl').forEach(a =>
+    a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open')));
+});
+
+init();
+</script>
+</body>
+</html>
