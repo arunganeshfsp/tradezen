@@ -12,9 +12,9 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// 👉 Plug routes
-app.use("/api", stockRoutes);
+// 👉 Plug routes — admin must be before stock so /api/admin/* isn't consumed by stockRoutes
 app.use("/api/admin", adminRoutes);
+app.use("/api", stockRoutes);
 
 // Static files
 app.use(express.static(path.join(__dirname, "public")));
