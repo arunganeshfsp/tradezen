@@ -247,6 +247,7 @@
 
 </div>
 
+<div id="api-error" style="display:none;margin:16px auto 0;max-width:860px;padding:10px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.35);border-radius:8px;font-family:monospace;font-size:0.78rem;color:#f87171"></div>
 <p class="refresh-note">Auto-refreshing every 5 s &nbsp;|&nbsp; Last checked: <span id="last-checked">—</span></p>
 
 <script>
@@ -275,18 +276,38 @@
     if (e.key === 'Enter') saveToken();
   });
 
+  // ── Error banner ──────────────────────────────────────────────────────────────
+  function showApiError(msg) {
+    const el = document.getElementById('api-error');
+    el.textContent = '⚠ ' + msg;
+    el.style.display = 'block';
+  }
+  function clearApiError() {
+    document.getElementById('api-error').style.display = 'none';
+  }
+
   // ── Fetch wrapper ─────────────────────────────────────────────────────────────
   async function api(path, method = 'GET') {
-    const res = await fetch(`/api/admin${path}`, {
-      method,
-      headers: { 'x-admin-token': getToken() },
-    });
+    let res;
+    try {
+      res = await fetch(`/api/admin${path}`, {
+        method,
+        headers: { 'x-admin-token': getToken() },
+      });
+    } catch (netErr) {
+      throw new Error('Network error — cannot reach server: ' + netErr.message);
+    }
     if (res.status === 401) {
       document.getElementById('token-err').style.display = 'block';
       document.getElementById('token-gate').style.display = 'flex';
       throw new Error('Unauthorized');
     }
-    return res.json();
+    let data;
+    try { data = await res.json(); } catch (_) {
+      throw new Error(`Server returned non-JSON (HTTP ${res.status}) — route may not be registered`);
+    }
+    if (!res.ok) throw new Error(data?.error || data?.detail || `HTTP ${res.status}`);
+    return data;
   }
 
   // ── Status ────────────────────────────────────────────────────────────────────
@@ -310,10 +331,14 @@
   async function refreshStatus() {
     try {
       const data = await api('/status');
+      clearApiError();
       setStatus('python', data.python);
       setStatus('node',   data.node);
       document.getElementById('last-checked').textContent = new Date().toLocaleTimeString();
-    } catch (_) {}
+    } catch (err) {
+      showApiError(err.message);
+      document.getElementById('last-checked').textContent = new Date().toLocaleTimeString() + ' (error)';
+    }
   }
 
   // ── Logs ──────────────────────────────────────────────────────────────────────
@@ -347,14 +372,20 @@
   // ── Actions ───────────────────────────────────────────────────────────────────
   async function action(type, srv) {
     setPending(srv);
-    try { await api(`/${type}/${srv}`, 'POST'); } catch (_) {}
+    try {
+      await api(`/${type}/${srv}`, 'POST');
+      clearApiError();
+    } catch (err) { showApiError(`${type} ${srv}: ${err.message}`); }
     setTimeout(refreshStatus, 2500);
     setTimeout(refreshStatus, 6000);
   }
 
   async function restartAll() {
     setPending('python'); setPending('node');
-    try { await api('/restart/all', 'POST'); } catch (_) {}
+    try {
+      await api('/restart/all', 'POST');
+      clearApiError();
+    } catch (err) { showApiError('Restart all: ' + err.message); }
     setTimeout(refreshStatus, 4000);
     setTimeout(refreshStatus, 9000);
   }
@@ -364,7 +395,8 @@
     try {
       await api('/stop/python', 'POST');
       await api('/stop/node',   'POST');
-    } catch (_) {}
+      clearApiError();
+    } catch (err) { showApiError('Stop all: ' + err.message); }
     setTimeout(refreshStatus, 2000);
   }
 

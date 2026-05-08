@@ -17,9 +17,12 @@ const PM2_NAME = {
   node:   'tradezen-node',
 };
 
+// Ensure /usr/local/bin is in PATH so pm2 is found when Node exec's a shell command
+const EXEC_ENV = { ...process.env, PATH: `/usr/local/bin:/usr/bin:/bin:${process.env.PATH || ''}` };
+
 function run(cmd) {
   return new Promise((resolve) => {
-    exec(cmd, { timeout: 15000 }, (err, stdout, stderr) => {
+    exec(cmd, { timeout: 15000, env: EXEC_ENV }, (err, stdout, stderr) => {
       resolve({ ok: !err, out: (stdout || '') + (stderr || ''), err: err?.message });
     });
   });
@@ -68,17 +71,18 @@ router.post('/stop/:srv', auth, async (req, res) => {
   res.json({ ok, detail: out });
 });
 
+// /restart/all MUST be defined before /restart/:srv — otherwise Express matches 'all' as :srv param
+router.post('/restart/all', auth, async (req, res) => {
+  res.json({ ok: true, detail: 'Restarting all…' });
+  run(`pm2 restart tradezen-python`);
+  setTimeout(() => run(`pm2 restart tradezen-node`), 3000);
+});
+
 router.post('/restart/:srv', auth, async (req, res) => {
   const name = PM2_NAME[req.params.srv];
   if (!name) return res.status(400).json({ error: 'unknown server' });
   res.json({ ok: true, detail: `Restarting ${name}…` }); // respond first
   run(`pm2 restart ${name}`);                             // then restart (non-blocking for node self-restart)
-});
-
-router.post('/restart/all', auth, async (req, res) => {
-  res.json({ ok: true, detail: 'Restarting all…' });
-  run(`pm2 restart tradezen-python`);
-  setTimeout(() => run(`pm2 restart tradezen-node`), 3000);
 });
 
 module.exports = router;
