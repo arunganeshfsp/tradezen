@@ -10,6 +10,7 @@ module.exports = {
       env_production: {
         NODE_ENV: 'production',
         PORT: '3000',
+        ADMIN_TOKEN: 'TZ2026-Admin',
       },
     },
     {
