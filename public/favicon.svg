@@ -1,24 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
   <defs>
-    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#7c6af7"/>
       <stop offset="100%" stop-color="#5b8af5"/>
     </linearGradient>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#14113a"/>
-      <stop offset="100%" stop-color="#0c1432"/>
-    </linearGradient>
   </defs>
-  <!-- Rounded-square background -->
-  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
-  <rect width="32" height="32" rx="7" stroke="rgba(124,106,247,0.3)" stroke-width="1" fill="none"/>
-  <!-- C-arc — thicker for clarity at small sizes, no glow filter -->
-  <path d="M16 3 A12 12 0 1 0 27 16" stroke="url(#g1)" stroke-width="2.8" stroke-linecap="round"/>
-  <!-- Candle bodies only — no wicks, no overlap -->
-  <!-- Bearish (red) -->
-  <rect x="6"  y="17" width="5" height="8"  rx="1" fill="rgba(248,113,113,0.35)" stroke="#f87171" stroke-width="1.2"/>
-  <!-- Neutral (purple) — tallest, solid fill -->
-  <rect x="13" y="12" width="5" height="11" rx="1" fill="url(#g1)"/>
-  <!-- Bullish (green) -->
-  <rect x="21" y="14" width="5" height="9"  rx="1" fill="rgba(52,211,153,0.35)" stroke="#34d399" stroke-width="1.2"/>
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#0f0c2e"/>
+  <!-- Bold arc — readable at 16 px -->
+  <path d="M15 4 A10 10 0 1 0 26 15" stroke="url(#g)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Three solid candle blocks, no wicks, no stroke outlines -->
+  <rect x="6"  y="18" width="5" height="8"  rx="1" fill="#f87171"/>
+  <rect x="13" y="13" width="5" height="13" rx="1" fill="url(#g)"/>
+  <rect x="21" y="15" width="5" height="9"  rx="1" fill="#34d399"/>
 </svg>

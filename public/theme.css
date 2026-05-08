@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&display=swap');
 
 body {
   font-family: 'Inter', sans-serif;
@@ -153,6 +154,32 @@ body {
 /* ── Theme toggle icon ── */
 #themeToggle::after                          { content: "☀️"; }
 :root[data-theme="light"] #themeToggle::after { content: "🌙"; }
+
+/* ── Language toggle button ── */
+#langToggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  height: 30px;
+  min-width: 50px;
+  padding: 0 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dim);
+  font-family: 'Noto Sans Tamil', 'Inter', sans-serif;
+  transition: border-color .15s, color .15s;
+  flex-shrink: 0;
+}
+#langToggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Tamil body font ── */
+[data-lang="ta"] body {
+  font-family: 'Noto Sans Tamil', 'DM Sans', sans-serif;
+}
 
 /* ── Scrollbar ── */
 :root[data-theme="light"] * {
