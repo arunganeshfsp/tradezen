@@ -24,6 +24,7 @@ module.exports = {
       max_restarts: 10,
       env_production: {
         NODE_ENV: 'production',
+        ADMIN_TOKEN: 'TZ2026-Admin',
       },
     },
   ],

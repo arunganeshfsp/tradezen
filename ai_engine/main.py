@@ -2564,6 +2564,23 @@ async def mgmt_start(srv: str, request: Request):
         return JSONResponse(status_code=400, content={"error": "unknown server"})
     return _pm2(f"pm2 start {name}")
 
+@app.post("/mgmt/stop/{srv}")
+async def mgmt_stop(srv: str, request: Request):
+    if not _check_token(request):
+        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+    name = PM2_NAMES.get(srv)
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "unknown server"})
+    return _pm2(f"pm2 stop {name}")
+
+@app.post("/mgmt/restart/all")
+async def mgmt_restart_all(request: Request):
+    if not _check_token(request):
+        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+    _pm2("pm2 restart tradezen-python")
+    _pm2("pm2 restart tradezen-node")
+    return {"ok": True, "detail": "Restarting all…"}
+
 @app.post("/mgmt/restart/{srv}")
 async def mgmt_restart(srv: str, request: Request):
     if not _check_token(request):
@@ -2572,3 +2589,17 @@ async def mgmt_restart(srv: str, request: Request):
     if not name:
         return JSONResponse(status_code=400, content={"error": "unknown server"})
     return _pm2(f"pm2 restart {name}")
+
+@app.get("/mgmt/logs/{srv}")
+async def mgmt_logs(srv: str, request: Request):
+    if not _check_token(request):
+        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+    name = PM2_NAMES.get(srv)
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "unknown server"})
+    r = subprocess.run(
+        f"pm2 logs {name} --nostream --lines 80 --no-color",
+        shell=True, capture_output=True, text=True, timeout=15, env=PM2_ENV
+    )
+    lines = [l for l in (r.stdout + r.stderr).split("\n") if l.strip()][-80:]
+    return {"logs": lines}

@@ -287,11 +287,12 @@
   }
 
   // ── Fetch wrapper ─────────────────────────────────────────────────────────────
-  // base: '/mgmt' = Node server, '/api/mgmt' = Python server (always alive)
-  async function _fetch(base, path, method = 'GET') {
+  // All management calls go to Python (/api/mgmt/*) — Python is always alive.
+  // Node being stopped never causes a 502 because it's never called directly.
+  async function api(path, method = 'GET') {
     let res;
     try {
-      res = await fetch(`${base}${path}`, {
+      res = await fetch(`/api/mgmt${path}`, {
         method,
         headers: { 'x-admin-token': getToken() },
       });
@@ -310,10 +311,6 @@
     if (!res.ok) throw new Error(data?.error || data?.detail || `HTTP ${res.status}`);
     return data;
   }
-  // Node server (may be offline)
-  const api       = (path, method = 'GET') => _fetch('/mgmt',     path, method);
-  // Python server (always alive — used as fallback and for Node start/restart)
-  const apiPython = (path, method = 'GET') => _fetch('/api/mgmt', path, method);
 
   // ── Status ────────────────────────────────────────────────────────────────────
   function setStatus(srv, info) {
@@ -335,10 +332,7 @@
 
   async function refreshStatus() {
     try {
-      // Try Node first; if it's offline fall back to Python
-      let data;
-      try { data = await api('/status'); }
-      catch (_) { data = await apiPython('/status'); }
+      const data = await api('/status');
       clearApiError();
       setStatus('python', data.python);
       setStatus('node',   data.node);
@@ -381,9 +375,7 @@
   async function action(type, srv) {
     setPending(srv);
     try {
-      // Node start/restart must go via Python — Node may be offline and can't receive its own start command
-      const usePython = (srv === 'node' && (type === 'start' || type === 'restart'));
-      await (usePython ? apiPython : api)(`/${type}/${srv}`, 'POST');
+      await api(`/${type}/${srv}`, 'POST');
       clearApiError();
     } catch (err) { showApiError(`${type} ${srv}: ${err.message}`); }
     setTimeout(refreshStatus, 2500);
