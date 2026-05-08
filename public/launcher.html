@@ -287,12 +287,15 @@
   }
 
   // ── Fetch wrapper ─────────────────────────────────────────────────────────────
-  // All management calls go to Python (/api/mgmt/*) — Python is always alive.
-  // Node being stopped never causes a 502 because it's never called directly.
-  async function api(path, method = 'GET') {
+  // Mutual-backup routing:
+  //   Python card actions → Node  (/mgmt/*)        so Node can start Python when Python is down
+  //   Node   card actions → Python (/api/mgmt/*)   so Python can start Node when Node is down
+  //   Status / restartAll → try Python first, fall back to Node
+  async function _call(path, method, backend) {
+    const prefix = backend === 'node' ? '/mgmt' : '/api/mgmt';
     let res;
     try {
-      res = await fetch(`/api/mgmt${path}`, {
+      res = await fetch(prefix + path, {
         method,
         headers: { 'x-admin-token': getToken() },
       });
@@ -306,10 +309,22 @@
     }
     let data;
     try { data = await res.json(); } catch (_) {
-      throw new Error(`Server returned non-JSON (HTTP ${res.status}) — route may not be registered`);
+      throw new Error(`Server returned non-JSON (HTTP ${res.status})`);
     }
     if (!res.ok) throw new Error(data?.error || data?.detail || `HTTP ${res.status}`);
     return data;
+  }
+
+  // Try Python; if unreachable or 5xx, fall back to Node
+  async function api(path, method = 'GET') {
+    try {
+      return await _call(path, method, 'python');
+    } catch (err) {
+      if (/Network error|HTTP 50[0-9]|non-JSON/.test(err.message)) {
+        return await _call(path, method, 'node');
+      }
+      throw err;
+    }
   }
 
   // ── Status ────────────────────────────────────────────────────────────────────
@@ -351,7 +366,8 @@
   async function refreshLogs(srv) {
     if (!logVisible[srv]) return;
     try {
-      const data = await api(`/logs/${srv}`);
+      const via  = srv === 'python' ? 'node' : 'python';
+      const data = await _call(`/logs/${srv}`, 'GET', via);
       const box  = document.getElementById(`log-${srv}`);
       box.innerHTML = (data.logs || []).map((l) => {
         const cls = /error|ERROR|traceback|Traceback/i.test(l) ? 'err'
@@ -374,8 +390,11 @@
   // ── Actions ───────────────────────────────────────────────────────────────────
   async function action(type, srv) {
     setPending(srv);
+    // Route through the OTHER server so it can act even when the target is down.
+    // Python card → Node manages it; Node card → Python manages it.
+    const via = srv === 'python' ? 'node' : 'python';
     try {
-      await api(`/${type}/${srv}`, 'POST');
+      await _call(`/${type}/${srv}`, 'POST', via);
       clearApiError();
     } catch (err) { showApiError(`${type} ${srv}: ${err.message}`); }
     setTimeout(refreshStatus, 2500);
@@ -385,7 +404,7 @@
   async function restartAll() {
     setPending('python'); setPending('node');
     try {
-      await api('/restart/all', 'POST');
+      await api('/restart/all', 'POST'); // try Python, fall back to Node
       clearApiError();
     } catch (err) { showApiError('Restart all: ' + err.message); }
     setTimeout(refreshStatus, 4000);
@@ -395,8 +414,12 @@
   async function stopAll() {
     setPending('python'); setPending('node');
     try {
-      await api('/stop/python', 'POST');
-      await api('/stop/node',   'POST');
+      // Both servers are up when this fires — send both stop commands in parallel.
+      // Node stops Python; Python stops Node.
+      await Promise.all([
+        _call('/stop/python', 'POST', 'node'),
+        _call('/stop/node',   'POST', 'python'),
+      ]);
       clearApiError();
     } catch (err) { showApiError('Stop all: ' + err.message); }
     setTimeout(refreshStatus, 2000);
