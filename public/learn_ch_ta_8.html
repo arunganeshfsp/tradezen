@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 8: RSI — Reading Momentum | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--border:#252a44;--border2:#323868;--accent:#7c6af7;--blue:#5b8af5;--green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);--red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);--yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);--cyan:#00d4ff;--text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;--r:10px;--r2:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.cb-breadcrumb a{color:var(--muted);text-decoration:none}.cb-breadcrumb a:hover{color:var(--accent)}.cb-sep{color:var(--border2)}.cb-current{color:var(--text);font-weight:600}.cb-spacer{flex:1}.cb-prog{display:flex;align-items:center;gap:8px}.cb-dots{display:flex;gap:4px}.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}.toc-list{display:flex;flex-direction:column;gap:2px}.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}.section p strong{color:var(--text)}.section p em{color:var(--accent);font-style:normal}.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.ex-content{font-size:13px;color:var(--dim);line-height:1.75}.ex-content strong{color:var(--text)}.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+/* RSI BAR */
+.rsi-bar{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin:16px 0}
+.rsi-scale{display:flex;height:24px;border-radius:var(--r2);overflow:hidden;margin-bottom:10px;position:relative}
+.rsi-zone{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700}
+.rsi-labels{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px}
+.rsi-row{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--dim)}
+.rsi-val{font-family:'JetBrains Mono',monospace;font-size:12px;width:36px;flex-shrink:0}
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}.mc-icon{font-size:20px;margin-bottom:8px}.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}.mc-body{font-size:12px;color:var(--dim);line-height:1.6}.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}.tk-list{display:flex;flex-direction:column;gap:8px}.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}.qcta-left p{font-size:12px;color:var(--dim)}.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}.qbtn:hover{opacity:.85}.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}.mark-btn:hover{border-color:var(--green);color:var(--green)}.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a><span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a><span class="cb-sep">›</span>
+    <span class="cb-current">Ch.8 RSI</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog"><span class="cb-ch-label">CHAPTER</span><div class="cb-dots" id="chDots"></div></div>
+</div>
+
+<div class="page">
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">8</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 08 · Technical Analysis</div>
+      <h1>RSI — <em>Reading Momentum</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">The RSI (Relative Strength Index) is the most widely used momentum oscillator in the world. When used correctly — not as an overbought/oversold trigger but as a momentum and divergence tool — it dramatically improves the quality of your entry and exit decisions.</p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~20 min read</span>
+    <span class="ch-meta-pill">⚡ 35 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>What RSI Measures</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>RSI Zones Explained</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>The Biggest RSI Mistake</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>RSI Divergence — Bullish</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>RSI Divergence — Bearish</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>RSI Midline (50) — The Bias Filter</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>RSI Trend Following — Bull/Bear Zones</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>RSI Failure Swings</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Best RSI Settings for Nifty</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>What RSI Measures</h2></div>
+  <p>The <strong>Relative Strength Index (RSI)</strong>, developed by J. Welles Wilder, measures the <strong>speed and magnitude of recent price changes</strong> to assess whether a security is gaining momentum or losing it. It oscillates between 0 and 100.</p>
+  <p>RSI compares the average gains to average losses over a lookback period (default: 14). If Nifty has been closing up more days than down over the past 14 sessions, RSI will be above 50. If it has been closing down more, RSI will be below 50.</p>
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>RSI formula summary:</strong> RS = Average Gain (14 periods) ÷ Average Loss (14 periods). RSI = 100 − (100 ÷ (1 + RS)). When RS is infinite (only gains, no losses), RSI = 100. When RS = 0 (only losses), RSI = 0. In practice, RSI stays mostly between 20 and 80.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>RSI Zones Explained</h2></div>
+
+  <div class="rsi-bar">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:12px">RSI SCALE — 0 TO 100</div>
+    <div class="rsi-scale">
+      <div class="rsi-zone" style="width:20%;background:rgba(231,76,60,0.3);color:var(--red)">BEAR &lt;30</div>
+      <div class="rsi-zone" style="width:20%;background:rgba(231,76,60,0.1);color:var(--red)">30–40</div>
+      <div class="rsi-zone" style="width:20%;background:rgba(124,106,247,0.1);color:var(--accent)">40–60 NEUTRAL</div>
+      <div class="rsi-zone" style="width:20%;background:rgba(46,204,113,0.1);color:var(--green)">60–70</div>
+      <div class="rsi-zone" style="width:20%;background:rgba(46,204,113,0.3);color:var(--green)">BULL &gt;70</div>
+    </div>
+    <div class="rsi-labels">
+      <span>0</span><span>20</span><span>30</span><span>50</span><span>70</span><span>80</span><span>100</span>
+    </div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">
+      <div class="rsi-row"><span class="rsi-val" style="color:var(--red)">0–30</span><span>Oversold zone — not automatically a buy. In bear markets, RSI can stay below 30 for weeks.</span></div>
+      <div class="rsi-row"><span class="rsi-val" style="color:var(--accent)">30–70</span><span>Normal operating range for most market conditions. This is where the best trades occur.</span></div>
+      <div class="rsi-row"><span class="rsi-val" style="color:var(--green)">70–100</span><span>Overbought zone — not automatically a sell. In bull markets, RSI can stay above 70 for weeks.</span></div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>The Biggest RSI Mistake</h2></div>
+  <p>The most common (and most costly) RSI mistake: <strong>shorting when RSI crosses above 70, and buying when RSI crosses below 30</strong>. This is the exact opposite of what RSI was designed for — and it causes traders to fight strong trends.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty RSI Overbought Trap — Jan–Mar 2024</div>
+    <div class="ex-content">
+      Nifty's RSI (14-day) crossed above 70 in late January 2024 when Nifty was at <span class="price">21,700</span>. By the textbook "overbought = sell" rule, traders shorted here. <strong>Nifty continued to <span class="price">22,526</span> — rising another 826 points</strong> while the RSI stayed above 70 for nearly 3 weeks. Every short was stopped out. <strong>RSI above 70 in a strong bull trend means MOMENTUM IS HIGH — not that a reversal is imminent.</strong>
+    </div>
+  </div>
+
+  <div class="info-box ib-red">
+    <span class="info-icon">⚠️</span>
+    <p><strong>The correct interpretation:</strong> RSI above 70 in a bull trend = <strong>strong momentum, trend continuation likely</strong>. Only use RSI levels as reversal signals when combined with a price reversal at a key level AND RSI divergence (covered in the next two sections). Standalone RSI levels are NOT trade signals.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>RSI Divergence — Bullish</h2></div>
+  <p><strong>Bullish RSI divergence</strong> occurs when price makes a <em>lower low</em> but RSI makes a <em>higher low</em>. This means the downward momentum is weakening even as price falls further — sellers are running out of energy. It's an early warning that a reversal may be near.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Price makes Low 1, RSI registers a low</div>
+        <p>Note the RSI value at the first significant price low. This is your reference point.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Price rallies partially then makes Low 2 (lower than Low 1)</div>
+        <p>Price makes a new lower low — bearish from a price action perspective. However, you now check RSI...</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">RSI at Low 2 is HIGHER than at Low 1 = bullish divergence confirmed</div>
+        <p>Despite price making a new low, RSI is showing less bearish momentum. This is the divergence. It signals that sellers are exhausted — the bears couldn't push RSI to new lows even though price went lower.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">4</div>
+      <div class="sb">
+        <div class="st">Wait for a reversal candle at the price low for entry</div>
+        <p>Divergence alone is not an entry. Wait for a Hammer, Bullish Engulfing, or Morning Star at the price low. Divergence + reversal candle + key S/R level = high-probability long setup.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Bullish RSI Divergence — Oct 2023</div>
+    <div class="ex-content">
+      <strong>Low 1 (Oct 4):</strong> Nifty at <span class="price">19,251</span>, RSI(14) = <span class="price">38</span>.<br>
+      <strong>Low 2 (Oct 26):</strong> Nifty at <span class="price">18,837</span> (new lower low), RSI(14) = <span class="price">44</span> (higher than 38).<br><br>
+      Price made a lower low. RSI made a higher low. <strong>Classic bullish divergence at the 200 EMA.</strong> Combined with the Bullish Engulfing candle at the 200 EMA (covered in Chapter 7), this was one of the highest-probability long setups of 2023. Nifty ran from 18,837 to over 21,000 within 6 weeks.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>RSI Divergence — Bearish</h2></div>
+  <p><strong>Bearish RSI divergence</strong> is the exact mirror: price makes a <em>higher high</em> but RSI makes a <em>lower high</em>. Buying pressure is declining even as price continues higher — a warning that the trend is exhausting.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Bearish RSI Divergence — ATH Zone Sept 2024</div>
+    <div class="ex-content">
+      <strong>High 1 (Sept 20):</strong> Nifty at <span class="price">25,383</span>, RSI(14) = <span class="price">68</span>.<br>
+      <strong>High 2 (Sept 26):</strong> Nifty at <span class="price">25,670</span> (new ATH), RSI(14) = <span class="price">62</span> (lower than 68).<br><br>
+      Price made a new ATH. RSI made a lower high. <strong>Bearish divergence at the ATH zone.</strong> Combined with the near-Gravestone Doji candle at the high (covered in Chapter 2), this was the signal to close longs and prepare for a correction. Nifty fell to <span class="price">23,893</span> over the following 3 weeks — a 7% correction.
+    </div>
+  </div>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Divergence timing:</strong> RSI divergence can play out over varying timeframes. A daily chart divergence may take 1–3 weeks to fully materialise. A 15-min chart divergence may take 1–4 hours. <strong>Never size up aggressively on divergence alone</strong> — trade it with reduced size and tight stops, adding only as the reversal confirms.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>RSI Midline (50) — The Bias Filter</h2></div>
+  <p>The <strong>RSI 50 level</strong> is the neutral line — the midpoint between overbought and oversold. Crossing above 50 indicates that recent gains are outpacing losses (bullish momentum). Crossing below 50 indicates losses outpacing gains (bearish momentum).</p>
+
+  <p>Using RSI 50 as a bias filter improves trade quality significantly:</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">Bull</div>
+      <div class="sb">
+        <div class="st">Only take long trades when RSI is above 50</div>
+        <p>RSI above 50 means the recent price momentum is bullish. Long trades in this zone align with momentum. Below 50 = the momentum is working against your long — avoid new longs.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">Bear</div>
+      <div class="sb">
+        <div class="st">Only take short trades when RSI is below 50</div>
+        <p>RSI below 50 means recent momentum is bearish. Short trades in this zone have momentum on their side. Above 50 = momentum is turning bullish — avoid new shorts or tighten stops on existing ones.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>RSI 50 crossover as trend confirmation:</strong> When RSI crosses above 50 after being below it for weeks, this often coincides with an EMA crossover or CPR bullish breakout — multiple indicators confirming the same trend change at the same time. These "stack" confirmations are the highest-conviction entries.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>RSI Trend Following — Bull/Bear Zones</h2></div>
+  <p>In strong trending markets, RSI tends to <strong>range within specific zones</strong> rather than oscillating between overbought and oversold. Recognising these zones lets you trade with the trend instead of against it.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Market Phase</th><th>RSI Typical Range</th><th>Implication</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--green)">Strong bull trend</td><td>40–80 (bull zone)</td><td>RSI pulls back to 40–50 on dips (buy zone) and rallies to 70–80 on advances</td></tr>
+      <tr><td>Ranging market</td><td>30–70 (full oscillation)</td><td>RSI uses the full range — buy near 30, sell near 70</td></tr>
+      <tr><td style="color:var(--red)">Strong bear trend</td><td>20–60 (bear zone)</td><td>RSI rallies to 50–60 (short zone) and falls to 20–30 on declines</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">💡</span>
+    <p><strong>Practical application:</strong> In Nifty's 2023–2024 bull market, RSI regularly dipped to 40–45 during corrections before recovering. Traders who bought every RSI 40–45 touch on the daily chart (in alignment with the bullish EMA stack) captured the best risk/reward entries of the entire bull run.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>RSI Failure Swings</h2></div>
+  <p>An RSI <strong>Failure Swing</strong> is a specific pattern within the RSI line itself that signals a reversal — independent of price action. It is considered one of the most reliable RSI signals because it doesn't depend on comparing price to RSI (divergence) but instead reads the RSI's own momentum.</p>
+
+  <h3>Bearish Failure Swing</h3>
+  <div class="step-block">
+    <div class="step-row"><div class="sn">1</div><div class="sb"><div class="st">RSI rises above 70 (overbought)</div><p>Momentum is strong — RSI reaches overbought territory.</p></div></div>
+    <div class="step-row"><div class="sn">2</div><div class="sb"><div class="st">RSI pulls back below 70</div><p>A minor RSI correction occurs — it briefly dips back below the 70 level.</p></div></div>
+    <div class="step-row"><div class="sn">3</div><div class="sb"><div class="st">RSI rallies again but FAILS to reach 70 again</div><p>This is the key signal — RSI made a lower high while price potentially made a new high. Momentum is clearly waning.</p></div></div>
+    <div class="step-row"><div class="sn r">4</div><div class="sb"><div class="st">RSI breaks below the prior pullback low = SELL signal</div><p>When RSI breaks below the low of the pullback made in Step 2, the failure swing is confirmed. This is the short entry trigger.</p></div></div>
+  </div>
+
+  <p>The bullish failure swing is the exact mirror: RSI drops below 30, bounces, tries to go lower but fails (higher low in RSI), then breaks above the prior bounce high = buy signal.</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Best RSI Settings for Nifty</h2></div>
+  <p>The default RSI period (14) works well for daily charts. For intraday Nifty trading, different period settings may give cleaner signals:</p>
+
+  <table class="tbl">
+    <thead><tr><th>Chart Timeframe</th><th>Recommended RSI Period</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>5-min intraday</td><td>9 or 14</td><td>Faster RSI captures intraday momentum shifts better. 14 is smoother, 9 is more responsive (more signals, more noise).</td></tr>
+      <tr><td>15-min intraday</td><td>14 (default)</td><td>The standard 14-period works well. Provides a good balance of responsiveness and smoothness.</td></tr>
+      <tr><td>Daily chart</td><td>14 (default)</td><td>Wilder's original setting is optimal for daily chart analysis in all markets including Nifty.</td></tr>
+      <tr><td>Weekly chart</td><td>14</td><td>Same default. Weekly RSI divergence is very powerful — use for identifying major turning points.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-green">
+    <span class="info-icon">✅</span>
+    <p><strong>The RSI sweet spot for divergence:</strong> For identifying divergence on the daily chart, use RSI(14). For intraday divergence on 15-min chart, RSI(14) also works well. The key is consistency — use the same settings every day so you can visually recognise patterns quickly without recalibrating.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Key Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">📉</div>
+      <div class="mc-title">Shorting RSI Above 70</div>
+      <div class="mc-body">The #1 RSI mistake — treating overbought as a sell signal. In a bull trend, RSI stays above 70 for extended periods. Every short is stopped out repeatedly.</div>
+      <div class="mc-fix">Fix: RSI above 70 in a bull trend = momentum is high, not a sell. Only short at RSI 70+ if you also have: (1) bearish divergence AND (2) a reversal candle at resistance.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">⏰</div>
+      <div class="mc-title">Acting on Divergence Too Early</div>
+      <div class="mc-body">Entering a reversal trade the moment divergence is spotted without waiting for a confirming candle or price pattern. Divergence can develop over many more periods before the reversal.</div>
+      <div class="mc-fix">Fix: Treat divergence as a yellow light, not a green light. Wait for a reversal candle at a key S/R level AFTER spotting divergence before entering.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔢</div>
+      <div class="mc-title">Changing RSI Settings Constantly</div>
+      <div class="mc-body">Backtesting different RSI periods until finding one that "perfectly" caught historical tops/bottoms. This is curve fitting — the optimised settings won't work going forward.</div>
+      <div class="mc-fix">Fix: Use RSI(14) universally. The standard settings work because enough other traders use them — creating self-fulfilling reactions at key RSI levels.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔍</div>
+      <div class="mc-title">Ignoring RSI 50 as a Filter</div>
+      <div class="mc-body">Taking long trades when RSI is at 35–40 (momentum still bearish) because "it looks oversold." Fighting bearish momentum on longs leads to slow, losing trades even when price eventually works.</div>
+      <div class="mc-fix">Fix: For directional trades, require RSI above 50 for longs, below 50 for shorts. This single filter eliminates many poor timing decisions.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📊</div>
+      <div class="mc-title">Watching RSI Alone</div>
+      <div class="mc-body">Making trading decisions based solely on RSI without looking at price, EMAs, or S/R levels. RSI is a confirmation and filter tool — not a complete trading system.</div>
+      <div class="mc-fix">Fix: Always use RSI as one factor in a 3-confluence rule: price at key level + reversal candle + RSI confirmation. All three together = trade. One alone = no trade.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Missing Hidden Divergence</div>
+      <div class="mc-body">Only looking for regular divergence (trend reversals) and missing hidden divergence — where price makes a higher low but RSI makes a lower low. Hidden bullish divergence is a trend continuation signal, not reversal.</div>
+      <div class="mc-fix">Fix: Learn both regular (reversal) and hidden (continuation) divergence. In strong trends, hidden divergence occurs during pullbacks — confirming the trend will resume.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 8</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>RSI measures the speed and magnitude of price changes — it's a momentum indicator, not a simple overbought/oversold signal</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The biggest RSI mistake: shorting when RSI &gt;70 in a bull trend. RSI above 70 means strong momentum, not imminent reversal</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Bullish RSI divergence (price lower low, RSI higher low) signals exhausted selling — wait for a reversal candle to confirm entry</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Bearish RSI divergence (price higher high, RSI lower high) signals weakening buying — wait for a reversal candle at resistance to confirm short</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>RSI 50 is the bias filter: only take longs when RSI &gt;50, only shorts when RSI &lt;50 — this eliminates fighting the momentum</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>In strong bull trends, RSI ranges in the 40–80 bull zone (not the full 0–100). Buying RSI at 40–45 in bull trends gives the best risk/reward</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>RSI failure swings are reliable reversal signals that read RSI's own momentum, independent of price divergence</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Use RSI(14) as the standard setting for all timeframes — never optimise RSI periods for historical data</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on RSI · Earn up to 35 XP</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=8">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_7.html">← Chapter 7: EMA Strategies</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_9.html">Chapter 9: Options Chain →</a>
+</div>
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 8 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=35,CH_ID='ta_8';
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.8 RSI',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;}
+  const taIds=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  if(taIds.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===8)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>

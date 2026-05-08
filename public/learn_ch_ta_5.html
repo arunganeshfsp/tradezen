@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 5: CPR — Central Pivot Range | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;--border:#252a44;--border2:#323868;--accent:#7c6af7;--blue:#5b8af5;--green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);--red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);--yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);--cyan:#00d4ff;--orange:#f39c12;--text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;--r:10px;--r2:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.cb-breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}.cb-breadcrumb a:hover{color:var(--accent)}.cb-sep{color:var(--border2)}.cb-current{color:var(--text);font-weight:600}.cb-spacer{flex:1}.cb-prog{display:flex;align-items:center;gap:8px}.cb-dots{display:flex;gap:4px}.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}.toc-list{display:flex;flex-direction:column;gap:2px}.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}.section p strong{color:var(--text)}.section p em{color:var(--accent);font-style:normal}.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.ex-content{font-size:13px;color:var(--dim);line-height:1.75}.ex-content strong{color:var(--text)}.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* CPR DIAGRAM */
+.cpr-diagram{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:16px 0;position:relative}
+.cpr-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.cpr-levels{display:flex;flex-direction:column;gap:8px;position:relative}
+.cpr-line{display:flex;align-items:center;gap:12px}
+.cpr-line-bar{flex:1;height:3px;border-radius:2px;position:relative}
+.cpr-price{font-family:'JetBrains Mono',monospace;font-size:12px;width:76px;flex-shrink:0;text-align:right}
+.cpr-name{font-size:12px;color:var(--dim);min-width:90px}
+.cpr-desc{font-size:11px;color:var(--muted)}
+.cpr-zone{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.2);border-radius:var(--r2);padding:8px 12px;margin:4px 0;font-size:12px;color:var(--accent);text-align:center}
+
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:560px){.scenario-grid{grid-template-columns:1fr}}
+.scenario-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;overflow:hidden;position:relative}
+.scenario-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc-bull::before{background:var(--green)}.sc-bear::before{background:var(--red)}.sc-range::before{background:var(--yellow)}
+.sc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px}
+.sc-body{font-size:12px;color:var(--dim);line-height:1.6}
+
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}.mc-icon{font-size:20px;margin-bottom:8px}.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}.mc-body{font-size:12px;color:var(--dim);line-height:1.6}.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}.tk-list{display:flex;flex-direction:column;gap:8px}.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}.qcta-left p{font-size:12px;color:var(--dim)}.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}.qbtn:hover{opacity:.85}.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}.mark-btn:hover{border-color:var(--green);color:var(--green)}.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a><span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a><span class="cb-sep">›</span>
+    <span class="cb-current">Ch.5 CPR</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog"><span class="cb-ch-label">CHAPTER</span><div class="cb-dots" id="chDots"></div></div>
+</div>
+
+<div class="page">
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">5</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 05 · Technical Analysis</div>
+      <h1>CPR — <em>Central Pivot Range</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">The CPR is the single most powerful intraday tool in Nifty trading. Calculated from the prior day's OHLC, it gives you three precise levels — TC, PP, BC — that define the day's bias before the market even opens. Used correctly, it transforms reactive trading into proactive trading.</p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~22 min read</span>
+    <span class="ch-meta-pill">⚡ 40 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>What is CPR?</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>The Formula — How CPR is Calculated</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>Reading the CPR Width</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>CPR as a Magnet — Virgin CPR</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>CPR Scenarios — Bull, Bear, Range</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>CPR Breakout Trades</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>CPR Reversal Trades</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>CPR + Camarilla Levels</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Using TradeZen Trade Flow for CPR</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>What is CPR?</h2></div>
+  <p>The <strong>Central Pivot Range (CPR)</strong> is a three-level price structure — Top Pivot (TC), Pivot Point (PP), and Bottom Pivot (BC) — calculated using the <strong>previous trading day's High, Low, and Close</strong>. It represents the fair value zone and directional bias for the next session.</p>
+  <p>CPR was popularised in Indian markets by Camarilla traders and later by system traders using it as the primary intraday bias tool. What makes CPR special compared to most indicators is that it is <strong>calculated before the market opens</strong> — giving you precise, objective levels to plan your trades before the opening bell.</p>
+  <div class="info-box ib-purple">
+    <span class="info-icon">🎯</span>
+    <p><strong>Why CPR works:</strong> Institutional players, option writers, and professional traders calculate CPR levels daily. When enough participants use the same levels, price reacts to them — creating self-fulfilling behaviour at TC, PP, and BC. This is not a theoretical concept — you will see price stop at these levels repeatedly in Nifty's intraday action.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>The Formula — How CPR is Calculated</h2></div>
+  <p>CPR uses the prior day's High (H), Low (L), and Close (C). The three levels are:</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">PP</div>
+      <div class="sb">
+        <div class="st">Pivot Point = (H + L + C) ÷ 3</div>
+        <p>The central anchor of the CPR. The arithmetic mean of the prior day's three key prices. If today's price stays above PP, the bias is bullish; below PP = bearish.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">TC</div>
+      <div class="sb">
+        <div class="st">Top Pivot (TC) = (H + L) ÷ 2</div>
+        <p>The upper boundary of the CPR zone. Price above TC = strong bullish bias. TC acts as resistance when price approaches from below, and as support once broken above.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">BC</div>
+      <div class="sb">
+        <div class="st">Bottom Pivot (BC) = PP − (TC − BC) = (TC + BC) ÷ 2 resolve → BC = PP × 2 − TC</div>
+        <p>The lower boundary. Price below BC = strong bearish bias. BC acts as support from above and resistance once broken below.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Worked Calculation — Nifty Jan 15, 2024</div>
+    <div class="ex-content">
+      Prior day (Jan 14) OHLC: O=<span class="price">21,650</span>, H=<span class="price">21,889</span>, L=<span class="price">21,612</span>, C=<span class="price">21,850</span><br><br>
+      <strong>PP</strong> = (21,889 + 21,612 + 21,850) ÷ 3 = 65,351 ÷ 3 = <span class="price">21,783.67</span><br>
+      <strong>TC</strong> = (21,889 + 21,612) ÷ 2 = 43,501 ÷ 2 = <span class="price">21,750.50</span><br>
+      <strong>BC</strong> = PP × 2 − TC = 21,783.67 × 2 − 21,750.50 = <span class="price">21,816.84</span><br><br>
+      Wait — TC &lt; PP which means TC and BC labels are swapped. When TC &lt; PP &lt; BC, rename: <strong>TC = 21,816.84</strong> (higher), <strong>BC = 21,750.50</strong> (lower). This is normal — the label "TC" always refers to the higher value, "BC" to the lower. CPR zone for Jan 15: <span class="price">21,751 – 21,817</span>.
+    </div>
+  </div>
+
+  <div class="cpr-diagram">
+    <div class="cpr-title">CPR LEVELS VISUAL STRUCTURE</div>
+    <div class="cpr-levels">
+      <div class="cpr-line">
+        <span class="cpr-price" style="color:var(--green)">21,817</span>
+        <div class="cpr-line-bar" style="background:var(--green);opacity:0.7"></div>
+        <span class="cpr-name" style="color:var(--green)">TC (Top Pivot)</span>
+        <span class="cpr-desc">Upper CPR boundary — resistance</span>
+      </div>
+      <div class="cpr-zone">▸ CPR Zone ◂ — if price stays inside, expect chop/range</div>
+      <div class="cpr-line">
+        <span class="cpr-price" style="color:var(--accent)">21,784</span>
+        <div class="cpr-line-bar" style="background:var(--accent);opacity:0.7"></div>
+        <span class="cpr-name" style="color:var(--accent)">PP (Pivot)</span>
+        <span class="cpr-desc">Central anchor — bias divider</span>
+      </div>
+      <div class="cpr-line">
+        <span class="cpr-price" style="color:var(--red)">21,751</span>
+        <div class="cpr-line-bar" style="background:var(--red);opacity:0.7"></div>
+        <span class="cpr-name" style="color:var(--red)">BC (Bottom Pivot)</span>
+        <span class="cpr-desc">Lower CPR boundary — support</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>Reading the CPR Width</h2></div>
+  <p>The <strong>width of the CPR zone</strong> (TC − BC) is one of the most important things to check each morning. It tells you what kind of day to expect before the session begins.</p>
+  <table class="tbl">
+    <thead><tr><th>Width (Nifty)</th><th>Interpretation</th><th>Trading Approach</th></tr></thead>
+    <tbody>
+      <tr><td>&lt; 50 pts (Narrow)</td><td>Tight range day expected — market indecision, equal prior day forces</td><td>Range-bound strategies; look for breakout from CPR zone for momentum trades</td></tr>
+      <tr><td>50–100 pts (Normal)</td><td>Average day expected</td><td>Standard CPR levels — respect TC as resistance, BC as support until broken</td></tr>
+      <tr><td>&gt;150 pts (Wide)</td><td>High volatility day expected — strong directional prior day</td><td>Price unlikely to chop inside CPR — expect strong trends; look for reversals at TC/BC extremes</td></tr>
+    </tbody>
+  </table>
+  <div class="example-box">
+    <div class="ex-label">Nifty CPR Width Context — Election Week June 2024</div>
+    <div class="ex-content">
+      June 4, 2024 (election result day): Nifty H=<span class="price">22,527</span>, L=<span class="price">21,964</span>, C=<span class="price">21,884</span>. This created an <strong>extremely wide CPR for June 5</strong>: TC ≈ <span class="price">22,246</span>, BC ≈ <span class="price">21,891</span> — width of <span class="price">355 points</span>. This told traders immediately: June 5 would be a directional day with high volatility. <strong>The wide CPR meant price would likely trend strongly in one direction</strong> rather than chop. Nifty trended upward through the CPR zone on June 5, recovering to <span class="price">22,621</span>.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>CPR as a Magnet — Virgin CPR</h2></div>
+  <p>A <strong>Virgin CPR</strong> is a CPR zone that price has never traded through during its calculation day. When the next session's price approaches an untested CPR from a previous day, that CPR acts like a magnet — price is drawn toward it and then either breaks through or reverses.</p>
+  <p>This concept is powerful because the CPR represents an "unfinished" zone — the market never fully explored that price area. Institutional players know this and often use it as a target.</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">Buy</div>
+      <div class="sb">
+        <div class="st">Price below a virgin CPR from prior day → bullish magnet</div>
+        <p>If yesterday's market opened above CPR and never revisited it, today price will often rally toward the prior day's CPR from below. Look for confirmation candles before the CPR as entry zones.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">Sell</div>
+      <div class="sb">
+        <div class="st">Price above a virgin CPR from prior day → bearish magnet</div>
+        <p>If yesterday's market opened below CPR and never retested it, today price will often fall back toward the prior day's CPR from above. Use this as a target for short trades.</p>
+      </div>
+    </div>
+  </div>
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>Multi-day virgin CPR stacking:</strong> If a CPR has been untested for 2–3 consecutive days, its magnetic pull becomes very strong. The longer an area remains untested, the more likely price will eventually visit it. These zones are excellent targets for swing trades.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>CPR Scenarios — Bull, Bear, Range</h2></div>
+  <p>The <strong>opening position of price relative to CPR</strong> at 9:15 AM sets the day's primary bias. There are three core scenarios:</p>
+
+  <div class="scenario-grid">
+    <div class="scenario-card sc-bull">
+      <div class="sc-title" style="color:var(--green)">Bull Day Setup</div>
+      <div class="sc-body">
+        <strong style="color:var(--text)">Open above TC</strong><br>
+        The day opens above the entire CPR zone. Bias is immediately bullish. TC becomes the first support. Buy dips to TC with targets at Camarilla R1/R2 above. Avoid short trades until TC is broken with a close.
+      </div>
+    </div>
+    <div class="scenario-card sc-bear">
+      <div class="sc-title" style="color:var(--red)">Bear Day Setup</div>
+      <div class="sc-body">
+        <strong style="color:var(--text)">Open below BC</strong><br>
+        The day opens below the entire CPR zone. Bias is immediately bearish. BC becomes the first resistance. Short rallies to BC with targets at Camarilla S1/S2 below. Avoid long trades until BC is broken upward.
+      </div>
+    </div>
+    <div class="scenario-card sc-range" style="grid-column:span 2">
+      <div class="sc-title" style="color:var(--yellow)">Range Day Setup</div>
+      <div class="sc-body" style="color:var(--dim)">
+        <strong style="color:var(--text)">Open inside CPR (between TC and BC)</strong><br>
+        The day opens within the CPR zone. Expect chop and two-sided price action. This is the most challenging scenario — price will test both TC and BC before committing to direction. Strategy: wait for a clean break and close above TC (go long) or below BC (go short) before entering directional trades. Inside-CPR is not an entry — it is a waiting zone.
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Bull Day Setup — Feb 9, 2024</div>
+    <div class="ex-content">
+      CPR for Feb 9: TC = <span class="price">21,945</span>, PP = <span class="price">21,910</span>, BC = <span class="price">21,875</span>.<br>
+      Nifty opened at <span class="price">21,988</span> — <strong>above TC by 43 points</strong>. Immediate bullish bias established. First pullback came at 9:45 to <span class="price">21,953</span> — touching TC from above. That was the long entry: entry at <span class="price">21,953</span>, stop below TC at <span class="price">21,920</span>. Nifty rallied through the session to <span class="price">22,097</span>. <strong>Risk: 33 pts, Reward: 144 pts — a 4.4:1 trade from a pre-calculated CPR level.</strong>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>CPR Breakout Trades</h2></div>
+  <p>When price is <strong>inside the CPR</strong> at the open and then breaks out, it often makes a strong directional move. The CPR provides the reference for the breakout and the stop.</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">1</div>
+      <div class="sb">
+        <div class="st">Wait for price to enter the CPR zone</div>
+        <p>If price opens outside the CPR and then enters it (retest), or if price opens inside CPR — in both cases, this sets up a potential breakout.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb">
+        <div class="st">Wait for a 15-min candle to close outside the CPR</div>
+        <p>A candle that closes above TC = bullish breakout signal. A close below BC = bearish breakout. Do not enter on wick pokes through the level — wait for a full candle close.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Entry on breakout candle close; stop inside CPR</div>
+        <p>Enter at the close of the breakout candle. Stop goes to the middle of the CPR (PP) or the opposite boundary (TC for long breakout, BC for short). This gives a tight, logical stop.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">4</div>
+      <div class="sb">
+        <div class="st">Target: Camarilla R1/R2 or prior day high/low</div>
+        <p>The first target for a CPR bullish breakout is Camarilla R1 (above TC). Second target is R2 or prior day high. Use 1:2 risk:reward minimum. TradeZen Trade Flow shows all these levels automatically.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>CPR Reversal Trades</h2></div>
+  <p>When price comes from outside the CPR and approaches TC or BC, these levels often act as reversal points — especially when combined with candlestick patterns and volume confirmation.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn r">Setup 1</div>
+      <div class="sb">
+        <div class="st">Rally to TC from below — short setup</div>
+        <p>Price opens below CPR (bear day), rallies up to test TC from below. TC acts as resistance. A Shooting Star, Bearish Engulfing, or Doji at TC = short entry. Stop above TC + 20 pts. Target: BC and below.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">Setup 2</div>
+      <div class="sb">
+        <div class="st">Fall to BC from above — long setup</div>
+        <p>Price opens above CPR (bull day), falls to test BC from above. BC acts as support. A Hammer, Bullish Engulfing, or Doji at BC = long entry. Stop below BC − 20 pts. Target: TC and above.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty CPR Reversal — BC Support Trade · Mar 15, 2024</div>
+    <div class="ex-content">
+      CPR for Mar 15: TC=<span class="price">22,125</span>, PP=<span class="price">22,075</span>, BC=<span class="price">22,025</span>. Nifty opened at <span class="price">22,158</span> (above TC — bull day). By 10:30 AM, Nifty had pulled back and touched <span class="price">22,030</span> — exactly at the BC level. A Hammer candle formed on the 15-min chart at BC. <strong>Long entry: 22,048 (close of Hammer), stop: 22,005 (below BC), target: 22,200+ (above TC).</strong> Nifty recovered to <span class="price">22,193</span> by 1:30 PM. Risk 43 pts, reward 145 pts.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>CPR + Camarilla Levels</h2></div>
+  <p>CPR is most powerful when combined with <strong>Camarilla pivot levels</strong> (H3/H4/L3/L4). These are calculated from the same prior-day OHLC and give the day's extended support and resistance zones beyond the CPR.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Level</th><th>Role</th><th>When to use</th></tr></thead>
+    <tbody>
+      <tr><td>H4 (Camarilla)</td><td>Extreme resistance — breakout level</td><td>Close above H4 = very strong bull signal; potential for large run</td></tr>
+      <tr><td>H3</td><td>First resistance above CPR</td><td>Profit target for CPR bullish breakouts; short trade setup level</td></tr>
+      <tr><td>TC (CPR)</td><td>Upper CPR boundary</td><td>Bias level — above = bullish</td></tr>
+      <tr><td>PP (CPR)</td><td>Central pivot</td><td>Neutral zone, bias divider</td></tr>
+      <tr><td>BC (CPR)</td><td>Lower CPR boundary</td><td>Bias level — below = bearish</td></tr>
+      <tr><td>L3</td><td>First support below CPR</td><td>Profit target for CPR bearish breakouts; long trade setup level</td></tr>
+      <tr><td>L4 (Camarilla)</td><td>Extreme support — reversal level</td><td>Close below L4 = strong bear signal or extreme oversold reversal</td></tr>
+    </tbody>
+  </table>
+
+  <p>TradeZen's Trade Flow tool displays all these levels automatically every day. The CPR width indicator also shows whether to expect a trending day (narrow CPR → momentum expected) or ranging day (wide CPR → wait for direction).</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Using TradeZen Trade Flow for CPR</h2></div>
+  <p>The TradeZen Trade Flow tool (<a href="/trade_flow.html" style="color:var(--accent)">trade_flow.html</a>) calculates and displays CPR levels automatically. Here is how to use it as part of your pre-market routine:</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Open Trade Flow before 9:15 AM</div>
+        <p>The tool auto-fetches prior day's Nifty OHLC and calculates TC, PP, BC, and Camarilla levels. No manual calculation required — the levels are ready before the session opens.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Check CPR width and day type expectation</div>
+        <p>The Trade Flow tool classifies the expected day type (Trending / Range / High Volatility) based on CPR width. Use this to choose between momentum strategies (trending day) or mean-reversion strategies (range day).</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Note opening price vs. CPR at 9:15 AM</div>
+        <p>At market open, immediately check: is Nifty opening above TC, below BC, or inside the CPR? This determines your primary bias for the day in the first 30 seconds of trading.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">4</div>
+      <div class="sb">
+        <div class="st">Watch the first 15-minute candle close</div>
+        <p>The 9:15–9:30 candle is the ORB (Opening Range Bar). If it closes above TC = confirm bullish bias. If it closes below BC = confirm bearish bias. If it closes inside CPR = range day confirmed, wait.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Key Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">📅</div>
+      <div class="mc-title">Not Checking CPR Before the Open</div>
+      <div class="mc-body">Opening TradeZen at 9:20 AM after the market has moved. Missing the opening position vs CPR means missing the day's bias entirely.</div>
+      <div class="mc-fix">Fix: Open Trade Flow before 9:15 AM every day. The 5 minutes of CPR review saves hours of reactive decision-making.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔀</div>
+      <div class="mc-title">Trading Inside CPR</div>
+      <div class="mc-body">Entering directional trades when price is still inside the CPR zone. This leads to getting stopped out repeatedly as price churns between TC and BC.</div>
+      <div class="mc-fix">Fix: When price is inside CPR, wait for a 15-min close outside (above TC or below BC) before entering any directional trade.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📏</div>
+      <div class="mc-title">Ignoring CPR Width</div>
+      <div class="mc-body">Using the same trading strategy regardless of CPR width. Applying range-bound strategies on a wide-CPR trending day leads to repeated losses from being stopped out.</div>
+      <div class="mc-fix">Fix: Check CPR width first. Narrow (&lt;50 pts): range strategies. Wide (&gt;150 pts): trend following strategies. Adjust your approach each morning.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🎯</div>
+      <div class="mc-title">Using CPR Alone Without Confluence</div>
+      <div class="mc-body">Entering every TC/BC touch as a trade without looking for candlestick confirmation or volume support. CPR levels that align with S/R, EMA, or volume spikes are far more powerful.</div>
+      <div class="mc-fix">Fix: Require at least one additional confluent factor at any CPR level before entering. CPR + Hammer + above-average volume = high-probability trade.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">↩️</div>
+      <div class="mc-title">Forgetting the Virgin CPR Concept</div>
+      <div class="mc-body">Treating each day in isolation and not maintaining a record of prior days' untested CPR zones. Missing powerful magnet-level opportunities across multiple sessions.</div>
+      <div class="mc-fix">Fix: Mark the prior 2–3 days' CPR zones on your daily chart. Flag any that were never tested. These become priority levels for the next session.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">⏰</div>
+      <div class="mc-title">Using CPR on Daily Chart (Wrong Timeframe)</div>
+      <div class="mc-body">CPR calculated from daily OHLC is for <strong>intraday</strong> use on 5-min/15-min charts. Using it on a daily chart doesn't make sense — it's already contained within that day's candle.</div>
+      <div class="mc-fix">Fix: Daily CPR → use on 5-min or 15-min charts. For positional trading, calculate weekly or monthly CPR using weekly/monthly OHLC.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 5</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>CPR (TC, PP, BC) is calculated from prior day's OHLC and gives you three precise, objective intraday levels before the market opens</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>CPR width predicts day type: narrow CPR = expect range chop, wide CPR = expect directional trending day</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Opening above TC = bullish bias; opening below BC = bearish bias; opening inside CPR = wait for breakout before trading</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Virgin CPR zones (untested CPRs from prior sessions) act as magnets — price is drawn to test them</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>CPR breakout trades: wait for a 15-min candle close outside the CPR zone before entering, with stop inside the zone</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>CPR reversal trades: TC and BC act as support/resistance for pattern-based entries with tight stops at the zone boundaries</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Combine CPR with Camarilla levels (H3/H4/L3/L4) for complete intraday support/resistance map — TradeZen calculates all automatically</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Pre-market CPR review is the single most important 5-minute ritual for Nifty intraday traders</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on CPR · Earn up to 40 XP</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=5">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_4.html">← Chapter 4: Volume Analysis</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_6.html">Chapter 6: VWAP →</a>
+</div>
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 5 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=40,CH_ID='ta_5';
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.5 CPR',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;p.activity.unshift({icon:'🏆',title:'Badge: First Step earned!',xp:10,date:new Date().toISOString()});}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;p.activity.unshift({icon:'🏆',title:'Badge: Quick Start earned!',xp:25,date:new Date().toISOString()});}
+  const taIds=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  if(taIds.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  if(p.chapters_done.includes('ta_5')&&!p.badges_earned.includes('cpr_expert')){p.badges_earned.push('cpr_expert');p.xp+=75;p.activity.unshift({icon:'🏆',title:'Badge: CPR Expert earned!',xp:75,date:new Date().toISOString()});}
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===5)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>

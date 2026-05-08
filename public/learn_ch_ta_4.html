@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 4: Volume Analysis | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.cb-breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
+.cb-breadcrumb a:hover{color:var(--accent)}
+.cb-sep{color:var(--border2)}
+.cb-current{color:var(--text);font-weight:600}
+.cb-spacer{flex:1}
+.cb-prog{display:flex;align-items:center;gap:8px}
+.cb-dots{display:flex;gap:4px}
+.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}
+.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}
+.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}
+.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}
+.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}
+.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}
+.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}
+.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.toc-list{display:flex;flex-direction:column;gap:2px}
+.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}
+.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}
+.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}
+.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}
+.section p strong{color:var(--text)}
+.section p em{color:var(--accent);font-style:normal}
+.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}
+.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}
+.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}
+.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}
+.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}
+.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}
+.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}
+.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}
+.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.ex-content{font-size:13px;color:var(--dim);line-height:1.75}
+.ex-content strong{color:var(--text)}
+.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}
+.step-row:last-child{border-bottom:none}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}
+.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}
+.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}
+.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}
+.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}
+.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* VOLUME BAR CHART */
+.vol-chart{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin:16px 0}
+.vc-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.vc-bars{display:flex;gap:4px;align-items:flex-end;height:80px}
+.vc-bar{flex:1;border-radius:3px 3px 0 0;position:relative;min-width:12px;transition:opacity .2s}
+.vc-bar:hover{opacity:.8}
+.vc-label{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);text-align:center;margin-top:4px;white-space:nowrap}
+
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}
+.mc-icon{font-size:20px;margin-bottom:8px}
+.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}
+.mc-body{font-size:12px;color:var(--dim);line-height:1.6}
+.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}
+.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.tk-list{display:flex;flex-direction:column;gap:8px}
+.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}
+.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}
+.qcta-left p{font-size:12px;color:var(--dim)}
+.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}
+.qbtn:hover{opacity:.85}
+.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.mark-btn:hover{border-color:var(--green);color:var(--green)}
+.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* VOLUME SCENARIO GRID */
+.vol-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:560px){.vol-grid{grid-template-columns:1fr}}
+.vol-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;position:relative;overflow:hidden}
+.vol-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.vol-bull::before{background:var(--green)}
+.vol-bear::before{background:var(--red)}
+.vol-warn::before{background:var(--yellow)}
+.vol-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+.vol-card-tag{font-family:'JetBrains Mono',monospace;font-size:10px;margin-bottom:8px;display:inline-block}
+.vol-card-body{font-size:12px;color:var(--dim);line-height:1.6}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a>
+    <span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a>
+    <span class="cb-sep">›</span>
+    <span class="cb-current">Ch.4 Volume Analysis</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog">
+    <span class="cb-ch-label">CHAPTER</span>
+    <div class="cb-dots" id="chDots"></div>
+  </div>
+</div>
+
+<div class="page">
+
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">4</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 04 · Technical Analysis</div>
+      <h1>Volume <em>Analysis</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">
+    Price tells you <em>what</em> happened. Volume tells you <em>how seriously</em> it happened. A breakout on high volume is conviction. The same breakout on low volume is a trap. Learn to read volume as the most important confirmation tool in your technical analysis toolkit.
+  </p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~18 min read</span>
+    <span class="ch-meta-pill">⚡ 35 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>Volume — The Market's Lie Detector</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>Reading Volume Bars</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>Volume and Price — Four Scenarios</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>Volume Breakouts — Real vs Fake</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>Volume Climax and Exhaustion</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>Intraday Volume Patterns in Nifty</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>OBV — On Balance Volume</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>Volume in the F&O Context</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Volume Divergence</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Key Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>Volume — The Market's Lie Detector</h2></div>
+
+  <p>Every price move is accompanied by volume — the number of shares/lots traded in that period. Volume reveals <strong>the participation level behind any price move</strong>. Price can be manipulated by a few large orders. Volume is much harder to fake because it requires actual capital to be committed.</p>
+
+  <p>When institutional players — foreign institutional investors (FIIs), domestic mutual funds, large prop desks — are actively participating, volume is high. When only retail traders are pushing price around, volume is low. Learning to read this is like having a window into what the "smart money" is doing.</p>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>Core rule:</strong> <strong>High volume confirms moves. Low volume suspects them.</strong> A price move of 200 points on 3× average volume = real move. The same 200 points on 0.5× volume = be suspicious, it may reverse.</p>
+  </div>
+
+  <h3>What Volume Measures in Indian Markets</h3>
+  <p>In Nifty futures (NSE), volume is measured in <strong>lots transacted</strong>. In spot stocks (NSE/BSE), it is in shares. For equity charts, most charting platforms show the total shares traded per candle. <strong>The absolute number matters less than the comparison to recent average volume</strong> — which is why volume analysis is about relative changes, not absolute values.</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>Reading Volume Bars</h2></div>
+
+  <p>Most charting platforms show a volume bar chart below the price chart. Each bar represents the total volume in that candle's time period. The bar is usually coloured green (if that candle's close > open) or red (if close < open). The <strong>height of the bar relative to surrounding bars</strong> is what you read.</p>
+
+  <div class="vol-chart">
+    <div class="vc-title">VOLUME BAR EXAMPLE — NIFTY 15-MIN SESSION (ILLUSTRATIVE)</div>
+    <div class="vc-bars">
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:30%;background:rgba(46,204,113,0.5);width:100%"></div>
+        <div class="vc-label">9:30</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:75%;background:rgba(46,204,113,0.8);width:100%"></div>
+        <div class="vc-label">9:45</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:100%;background:rgba(231,76,60,0.9);border:1px solid var(--red);width:100%"></div>
+        <div class="vc-label" style="color:var(--red)">10:00↑</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:60%;background:rgba(46,204,113,0.6);width:100%"></div>
+        <div class="vc-label">10:15</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:25%;background:rgba(46,204,113,0.3);width:100%"></div>
+        <div class="vc-label">10:30</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:20%;background:rgba(231,76,60,0.3);width:100%"></div>
+        <div class="vc-label">10:45</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:35%;background:rgba(46,204,113,0.4);width:100%"></div>
+        <div class="vc-label">11:00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:45%;background:rgba(46,204,113,0.5);width:100%"></div>
+        <div class="vc-label">11:15</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:80%;background:rgba(46,204,113,0.85);width:100%"></div>
+        <div class="vc-label" style="color:var(--green)">11:30↑</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div class="vc-bar" style="height:40%;background:rgba(46,204,113,0.5);width:100%"></div>
+        <div class="vc-label">11:45</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px">↑ Tall red bar at 10:00 = large selling volume spike (watch for reversal). Tall green bar at 11:30 = breakout with conviction.</div>
+  </div>
+
+  <h3>The Average Volume Baseline</h3>
+  <p>To judge whether a volume bar is "high" or "low," you need a baseline. Most traders use a <strong>20-period moving average of volume</strong> (shown as a line on the volume pane). If the current bar is above this line, volume is above average. Below it = below average.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Volume Level</th><th>Meaning</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>&gt;2× average</td><td>Very high — institutional event, news, major level break</td><td>High conviction — can trade the move</td></tr>
+      <tr><td>1.5–2× average</td><td>Above average — strong participation</td><td>Good confirmation for entry</td></tr>
+      <tr><td>0.8–1.5× average</td><td>Normal range</td><td>Neutral — look for other confluences</td></tr>
+      <tr><td>&lt;0.8× average</td><td>Below average — low participation, potential noise</td><td>Caution — avoid entering on low volume moves</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>Volume and Price — Four Scenarios</h2></div>
+
+  <p>The relationship between price direction and volume creates four distinct scenarios, each with a specific market interpretation:</p>
+
+  <div class="vol-grid">
+    <div class="vol-card vol-bull">
+      <div class="vol-card-title" style="color:var(--green)">Price UP + Volume UP</div>
+      <div class="vol-card-tag" style="color:var(--green);background:var(--green-bg);padding:2px 8px;border-radius:8px">BULLISH STRENGTH</div>
+      <div class="vol-card-body">The most bullish scenario. Buyers are actively participating at increasing levels of commitment. Institutions are buying. Trend is healthy and likely to continue. This is the market's way of saying "we all agree — up."</div>
+    </div>
+    <div class="vol-card vol-bear">
+      <div class="vol-card-title" style="color:var(--red)">Price DOWN + Volume UP</div>
+      <div class="vol-card-tag" style="color:var(--red);background:var(--red-bg);padding:2px 8px;border-radius:8px">BEARISH STRENGTH</div>
+      <div class="vol-card-body">The most bearish scenario. Sellers are dumping aggressively. Panic or large institutional liquidation is driving the fall. This kind of selling can persist for sessions or even weeks. Don't buy into this — wait for volume to dry up first.</div>
+    </div>
+    <div class="vol-card vol-warn">
+      <div class="vol-card-title" style="color:var(--yellow)">Price UP + Volume DOWN</div>
+      <div class="vol-card-tag" style="color:var(--yellow);background:var(--yellow-bg);padding:2px 8px;border-radius:8px">WEAK RALLY — WARNING</div>
+      <div class="vol-card-body">Price is rising but fewer people are participating. This is a "thin air" rally — easy to reverse. Often seen at the late stage of a bull run or during low-liquidity afternoon sessions. Be cautious about chasing this move — it lacks institutional backing.</div>
+    </div>
+    <div class="vol-card vol-warn">
+      <div class="vol-card-title" style="color:var(--accent)">Price DOWN + Volume DOWN</div>
+      <div class="vol-card-tag" style="color:var(--accent);background:rgba(124,106,247,0.1);padding:2px 8px;border-radius:8px">WEAK DECLINE — NEUTRAL</div>
+      <div class="vol-card-body">Price is falling but nobody is urgently selling. This is a "lack of buyers" decline rather than active selling. Often seen in healthy pullbacks within an uptrend. This is the scenario to look for before buying a dip — selling is not accelerating.</div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Application — June 2024 Post-Election Rally</div>
+    <div class="ex-content">
+      After the sharp June 4 election-day fall (Bear Marubozu, high volume), Nifty began recovering. June 5–7 showed: <strong>Price UP + Volume declining gradually</strong> — a weak rally scenario. This warned that the recovery might not be sustainable. Indeed, Nifty stalled near <span class="price">22,700</span> before resuming the decline. <strong>Traders who watched volume alongside price avoided buying the bounce too early.</strong> The real recovery came only when volume expanded again above <span class="price">22,000</span> in mid-June.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>Volume Breakouts — Real vs Fake</h2></div>
+
+  <p>Not all breakouts above resistance or below support are real. Many are "false breakouts" — price briefly crosses the level and then snaps back. Volume is the primary tool to distinguish real breakouts from fakes.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">✓</div>
+      <div class="sb">
+        <div class="st">Real breakout: volume ≥ 1.5× the 20-day average</div>
+        <p>A genuine breakout attracts new buyers/sellers who weren't in the previous range. This creates a volume expansion. The breakout candle should be wide-range (large body) and the volume bar should be clearly above average.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">✗</div>
+      <div class="sb">
+        <div class="st">Fake breakout: volume below average on the break</div>
+        <p>Price crosses the level on below-average volume = no conviction. The "breakout" is just noise — a few stop-loss orders triggered or thin liquidity. Price typically reverses back into the range within 1–3 candles.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">?</div>
+      <div class="sb">
+        <div class="st">Marginal breakout: wait for the close</div>
+        <p>If volume is in the 1.0–1.5× range during the breakout candle, wait for the candle to close above the level before entering. A close above the level with even moderate volume is more reliable than a wick poke on high volume.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Breakout Comparison — 22,500 Level · 2024</div>
+    <div class="ex-content">
+      <strong>Attempt 1 (Feb 12):</strong> Nifty crossed <span class="price">22,500</span> briefly, closed at <span class="price">22,491</span>. Volume was <span class="price">0.7× average</span>. Price returned below <span class="price">22,300</span> within 3 sessions — fake breakout.<br><br>
+      <strong>Attempt 2 (Feb 20):</strong> Nifty crossed <span class="price">22,500</span> and closed at <span class="price">22,570</span>. Volume was <span class="price">2.1× average</span> — the largest volume session in 3 weeks. This was a genuine breakout. Nifty continued to <span class="price">22,526</span> high over the next 2 weeks. <strong>The only difference between the two attempts was volume.</strong>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>Volume Climax and Exhaustion</h2></div>
+
+  <p>A <strong>volume climax</strong> is an extreme, abnormal spike in volume that often marks the <em>end</em> of a directional move rather than a continuation. When everyone who wants to sell has sold (selling climax) or everyone who wants to buy has bought (buying climax), there are no more participants left to push price further — and it reverses.</p>
+
+  <h3>Selling Climax (Bullish Reversal Signal)</h3>
+  <p>Characteristics: very large volume spike on a down candle, often with a long lower wick. The high volume represents the last desperate sellers unloading positions. After the selling climax, price often rebounds sharply because all the sellers have exited.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Selling Climax — March 2020 COVID Low</div>
+    <div class="ex-content">
+      Nifty's COVID low was set on March 23, 2020, at <span class="price">7,511</span>. The volume on that day was <strong>5–6× the 3-month average</strong> — an extreme climax. That single session represented the maximum panic — and was the absolute bottom. Over the next 18 months, Nifty rallied from <span class="price">7,511</span> to <span class="price">18,600</span>. <strong>The selling climax did not mean "buy immediately" — but it was a clear signal that the panic selling was reaching exhaustion.</strong>
+    </div>
+  </div>
+
+  <h3>Buying Climax (Bearish Reversal Signal)</h3>
+  <p>Characteristics: extreme volume spike on an up candle, often at a new high. The high volume represents a feeding frenzy of late buyers piling in at the top — who will soon become trapped as price reverses. When you see an extreme volume spike at or near resistance/ATH, it is often the last burst of buying before a correction.</p>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Climax caution:</strong> Volume climaxes on <strong>news events</strong> (RBI policy, budget day, election results) are different from organic climaxes. News-driven extreme volumes don't always mean reversal — the news itself may have permanently changed the fundamental picture. Always read the context alongside the volume data.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>Intraday Volume Patterns in Nifty</h2></div>
+
+  <p>Nifty's intraday volume follows a consistent <strong>U-shape pattern</strong> throughout the trading session. Understanding this normal pattern helps you identify when volume is abnormally high or low at any point in the day.</p>
+
+  <div class="vol-chart">
+    <div class="vc-title">NIFTY AVERAGE INTRADAY VOLUME DISTRIBUTION — TYPICAL SESSION</div>
+    <div class="vc-bars">
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:90%;background:rgba(91,138,245,0.7);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">9:15</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:75%;background:rgba(91,138,245,0.6);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">9:30</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:50%;background:rgba(91,138,245,0.5);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">10:00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:35%;background:rgba(91,138,245,0.4);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">11:00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:25%;background:rgba(91,138,245,0.3);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">12:00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:20%;background:rgba(91,138,245,0.25);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">1:00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:30%;background:rgba(91,138,245,0.35);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">2:00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:55%;background:rgba(91,138,245,0.55);width:100%;border-radius:3px 3px 0 0"></div>
+        <div class="vc-label">2:45</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="height:100%;background:rgba(91,138,245,0.8);width:100%;border-radius:3px 3px 0 0;border:1px solid rgba(91,138,245,0.4)"></div>
+        <div class="vc-label" style="color:var(--blue)">3:15↑</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px">High at open (9:15–9:30), declining midday, rising sharply into close (3:00–3:30 expiry settlements)</div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">9:15</div>
+      <div class="sb">
+        <div class="st">Opening (9:15–9:45) — High volume, volatile</div>
+        <p>Market digests overnight news, global cues, pre-open auction results. Volume spikes are normal. Do not use opening volume spikes to validate breakouts — they're expected. Wait for the 9:30–10:00 window to normalise before reading volume.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">Mid</div>
+      <div class="sb">
+        <div class="st">Midday (11:00–1:30) — Low volume, slow moves</div>
+        <p>This is the quietest period. Breakouts on low midday volume are often false. If price breaks a level during lunch hours, require a close confirmation and don't over-trade.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3PM</div>
+      <div class="sb">
+        <div class="st">Closing (2:45–3:30) — Volume surges, often directional</div>
+        <p>FII and institutional order execution happens in the last 45 minutes. Volume expansion in this window is highly meaningful. A directional move on closing volume often sets the next day's opening bias.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>OBV — On Balance Volume</h2></div>
+
+  <p><strong>On Balance Volume (OBV)</strong> is a simple but powerful indicator that tracks cumulative volume directionally. When price closes up, the period's volume is added. When price closes down, volume is subtracted. The result is a running total that shows whether volume is flowing into or out of an asset.</p>
+
+  <p>OBV is most useful for <strong>divergence analysis</strong> — when price and OBV move in opposite directions, it often precedes a price reversal (covered in Section 9).</p>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">💡</span>
+    <p><strong>OBV practical use:</strong> In an uptrend, OBV should also be making higher highs. If Nifty makes a new high but OBV fails to make a new high (bearish divergence), selling pressure is building beneath the surface — a warning sign for the trend. Conversely, OBV making new highs while price hasn't yet = accumulation (bullish lead indicator).</p>
+  </div>
+
+  <h3>OBV Setup on Charting Platforms</h3>
+  <p>Add OBV as a separate indicator panel below your price chart. Use it alongside price for confirmation: new price high + new OBV high = healthy trend. New price high + OBV flat or declining = distribution phase, potential top forming. Most Indian charting platforms (Zerodha Kite, TradingView) include OBV under "indicators."</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>Volume in the F&O Context</h2></div>
+
+  <p>For Nifty options and futures traders, volume analysis extends beyond spot chart volume to <strong>open interest (OI) changes</strong> — which are the futures/options equivalent of volume analysis.</p>
+
+  <table class="tbl">
+    <thead><tr><th>OI Change</th><th>Price Change</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td>OI rising</td><td>Price rising</td><td>New money entering longs — bullish trend strength</td></tr>
+      <tr><td>OI rising</td><td>Price falling</td><td>New money entering shorts — bearish trend strength</td></tr>
+      <tr><td>OI falling</td><td>Price rising</td><td>Short covering — bullish but less strong (temporary)</td></tr>
+      <tr><td>OI falling</td><td>Price falling</td><td>Long unwinding — bearish but less strong (may stabilise)</td></tr>
+    </tbody>
+  </table>
+
+  <p>In TradeZen's Options Analysis tool, the OI chart for each strike shows this relationship in real time. When Nifty is rallying and OI at the ATM call is rising rapidly, it signals that fresh longs are building — bullish. When OI at the ATM put is declining while Nifty falls, it signals put writers covering — the fall may slow.</p>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>PCR (Put-Call Ratio):</strong> The ratio of put OI to call OI. PCR &gt; 1.2 = excessive bearish bets = contrarian bullish signal (market often reverses up). PCR &lt; 0.7 = excessive bullish bets = contrarian bearish signal. Extreme PCR readings with volume spikes = potential reversal zone.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Volume Divergence</h2></div>
+
+  <p><strong>Volume divergence</strong> is when price and volume move in opposite directions — a powerful early warning signal. There are two types:</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn r">⚠</div>
+      <div class="sb">
+        <div class="st">Bearish divergence: price makes higher high, volume makes lower high</div>
+        <p>Price is going up on declining participation — the rally is running out of fuel. Institutional sellers are absorbing the buying. This is a warning to tighten stops on long positions and avoid adding new longs near resistance.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">✓</div>
+      <div class="sb">
+        <div class="st">Bullish divergence: price makes lower low, volume makes lower low too</div>
+        <p>Price is declining but on decreasing sell pressure — the decline is running out of steam. Sellers are exhausted. Combined with a support level and a reversal pattern (Hammer, Engulfing), this is a high-probability long setup.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Volume Divergence — Sept–Oct 2024</div>
+    <div class="ex-content">
+      Nifty made a new ATH at <span class="price">25,670</span> on Sept 26, 2024. The volume on the high day was notably <strong>below</strong> the volume from the prior ATH at <span class="price">25,235</span> three weeks earlier. <strong>Bearish volume divergence at ATH</strong> — the new high had less conviction than the prior high. Combined with the near-Gravestone Doji at the top, this signalled distribution. Nifty corrected to <span class="price">23,893</span> over the next 3 weeks.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Key Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">🙈</div>
+      <div class="mc-title">Trading Without Volume Panel</div>
+      <div class="mc-body">Many beginners trade on charts without a volume indicator. Removing a crucial confirmation tool and trading on price alone massively reduces edge.</div>
+      <div class="mc-fix">Fix: Always have a volume panel on your chart. Add a 20-period volume MA to it. Never take a breakout trade without checking the volume bar.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📰</div>
+      <div class="mc-title">Misreading News Volume</div>
+      <div class="mc-body">Seeing a high-volume sell day (Budget day, RBI policy) and treating it as a selling climax signal to buy. News events can sustain high volume for days without the reversal you expect.</div>
+      <div class="mc-fix">Fix: Separate "organic" volume climaxes from news-driven volume. News events require fundamental context before treating volume as a reversal signal.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🕐</div>
+      <div class="mc-title">Judging Opening Volume</div>
+      <div class="mc-body">Seeing high volume at 9:15 AM and concluding a breakout is "confirmed." Opening volume is structurally high every day — it is not a reliable breakout filter.</div>
+      <div class="mc-fix">Fix: Use the 10:00 AM volume as your first reliable intraday volume benchmark. Compare candles from 10 AM onward against their recent session averages.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📊</div>
+      <div class="mc-title">Ignoring OI in F&O Trades</div>
+      <div class="mc-body">Trading Nifty options based only on spot price chart without checking OI changes. Missing the signal that a rally is only short covering (temporary) vs. fresh buying (sustained).</div>
+      <div class="mc-fix">Fix: For any Nifty options position, check OI vs price relationship. Use TradeZen's Options Analysis OI chart alongside the spot chart.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📉</div>
+      <div class="mc-title">Only Watching Volume Spikes</div>
+      <div class="mc-body">Only reacting when volume is very high and missing the signal of gradually declining volume during a move — which is equally important (warns of trend exhaustion).</div>
+      <div class="mc-fix">Fix: Watch volume trends, not just individual bars. Is volume expanding or contracting over the last 5–10 candles? A trend of declining volume is as important as a single spike.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Using Volume Alone</div>
+      <div class="mc-body">Buying every high-volume green candle without checking if price is at a key level, in the right trend, and showing a pattern. Volume confirms — it doesn't initiate trades.</div>
+      <div class="mc-fix">Fix: Volume is a confirmation tool, not a trigger. The trigger comes from S/R levels and candlestick patterns. Volume confirms the trigger's validity.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 4</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>Volume is the market's lie detector — it confirms whether price moves have institutional backing or are just retail noise</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The four volume-price combinations: Price↑Vol↑ = bullish strength; Price↓Vol↑ = bearish strength; Price↑Vol↓ = weak rally; Price↓Vol↓ = weak decline</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Breakouts require volume ≥ 1.5× average to be reliable — below-average volume breakouts fail more than 60% of the time</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Volume climaxes (extreme spikes) often mark turning points — especially when they appear with reversal candlestick patterns</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Nifty volume follows a U-shape intraday: high at open, low midday, high at close. Adjust your interpretation accordingly</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>OBV divergence — when OBV doesn't confirm price new highs/lows — is an early warning of trend weakness or reversal</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>In F&O, OI changes are the volume equivalent — rising OI with rising price = fresh longs (bullish); rising OI with falling price = fresh shorts (bearish)</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Volume is a confirmation tool, not a trigger — use it to validate trades identified by S/R levels and candlestick patterns</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on volume analysis · Earn up to 35 XP</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=4">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_3.html">← Chapter 3: Support & Resistance</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_5.html">Chapter 5: CPR →</a>
+</div>
+
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 4 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=35,CH_ID='ta_4';
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();
+  if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.4 Volume Analysis',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;p.activity.unshift({icon:'🏆',title:'Badge: First Step earned!',xp:10,date:new Date().toISOString()});}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;p.activity.unshift({icon:'🏆',title:'Badge: Quick Start earned!',xp:25,date:new Date().toISOString()});}
+  const taIds=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  if(taIds.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}
+  renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===4)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>

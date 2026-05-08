@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 2: Candlestick Patterns | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+}
+
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.cb-breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
+.cb-breadcrumb a:hover{color:var(--accent)}
+.cb-sep{color:var(--border2)}
+.cb-current{color:var(--text);font-weight:600}
+.cb-spacer{flex:1}
+.cb-prog{display:flex;align-items:center;gap:8px}
+.cb-dots{display:flex;gap:4px}
+.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}
+.cb-dot.done{background:var(--green)}
+.cb-dot.current{background:var(--accent)}
+.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}
+.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}
+.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}
+.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}
+.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}
+.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.toc-list{display:flex;flex-direction:column;gap:2px}
+.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}
+.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}
+.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+
+.section{margin-bottom:56px;scroll-margin-top:106px}
+.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}
+.section p strong{color:var(--text)}
+.section p em{color:var(--accent);font-style:normal}
+.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.section h4{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin:20px 0 8px;letter-spacing:.3px}
+
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}
+.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}
+.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}
+.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}
+.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}
+.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}
+.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}
+.info-box p strong{color:var(--text)}
+
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}
+.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.ex-content{font-size:13px;color:var(--dim);line-height:1.75}
+.ex-content strong{color:var(--text)}
+.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}
+.step-row:last-child{border-bottom:none}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}
+.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}
+.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}
+.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}
+.sb p strong{color:var(--text)}
+
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}
+.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* CANDLE DIAGRAMS */
+.candle-lab{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:16px 0}
+.cl-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.cl-row{display:flex;gap:20px;align-items:flex-end;justify-content:center;flex-wrap:wrap}
+.cl-item{display:flex;flex-direction:column;align-items:center}
+.cl-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:8px;text-align:center;line-height:1.5}
+.cl-label span{display:block;font-size:9px;color:var(--muted)}
+.c{display:flex;flex-direction:column;align-items:center}
+.wick-t{width:2px;border-radius:1px}
+.cbody{width:18px;border-radius:2px}
+.wick-b{width:2px;border-radius:1px}
+.bull{color:#2ecc71}.bear{color:#e74c3c}.doji{color:#f5a623}.grey{color:#9ba3bf}
+
+/* PATTERN CARD GRID */
+.pattern-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:16px 0}
+.pattern-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.pattern-card.bullish{border-top:2px solid var(--green)}
+.pattern-card.bearish{border-top:2px solid var(--red)}
+.pattern-card.neutral{border-top:2px solid var(--yellow)}
+.pc-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff}
+.pc-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:10px;margin-top:2px}
+.pc-bull{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.pc-bear{color:var(--red);background:var(--red-bg);border:1px solid var(--red-border)}
+.pc-neut{color:var(--yellow);background:var(--yellow-bg);border:1px solid var(--yellow-border)}
+.pc-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.pc-rule{font-size:11px;color:var(--dim);padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);width:100%;text-align:left;line-height:1.5}
+.pc-rule strong{color:var(--text)}
+
+/* TWO-CANDLE PATTERN */
+.two-candle-display{display:flex;gap:6px;align-items:flex-end;justify-content:center;padding:12px 0}
+
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}
+.mc-icon{font-size:20px;margin-bottom:8px}
+.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}
+.mc-body{font-size:12px;color:var(--dim);line-height:1.6}
+.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}
+.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.tk-list{display:flex;flex-direction:column;gap:8px}
+.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}
+.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}
+.qcta-left p{font-size:12px;color:var(--dim)}
+.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}
+.qbtn:hover{opacity:.85}
+.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.qbtn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.mark-btn:hover{border-color:var(--green);color:var(--green)}
+.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.pn-btn.primary:hover{opacity:.85}
+
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a>
+    <span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a>
+    <span class="cb-sep">›</span>
+    <span class="cb-current">Ch.2 Candlestick Patterns</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog">
+    <span class="cb-ch-label">CHAPTER</span>
+    <div class="cb-dots" id="chDots"></div>
+  </div>
+</div>
+
+<div class="page">
+
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">2</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 02 · Technical Analysis</div>
+      <h1>Candlestick <em>Patterns</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">
+    Individual candles tell you what happened in one session. Candlestick <strong>patterns</strong> tell you what is about to happen next. Learn the 12 most important single, two-candle, and three-candle patterns that appear repeatedly in Nifty and BankNifty — with real price levels to anchor every concept.
+  </p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~22 min read</span>
+    <span class="ch-meta-pill">⚡ 35 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>Why Patterns Work</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>The Hammer & Inverted Hammer</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>Shooting Star & Hanging Man</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>Doji Varieties</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>Marubozu — The Power Candle</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>Engulfing Patterns</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>Harami — Inside Reversal</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>Morning Star & Evening Star</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Context is Everything</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Takeaways</a>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head">
+    <div class="sec-num">1</div>
+    <h2>Why Patterns Work</h2>
+  </div>
+
+  <p>Candlestick patterns were developed by Japanese rice traders in the 18th century. They survived for 300 years because they capture something fundamental: <strong>the psychology of buyers and sellers at key price levels</strong>. When a Hammer forms at support, it is not magic — it represents a real-world event: sellers drove price down hard, buyers came in and overwhelmed them, and the session closed near the open. That's a story about who won control.</p>
+
+  <p>Modern institutional traders still pay attention to these patterns — not because they believe in them religiously, but because enough participants watch them to create self-fulfilling reactions at major levels. When Nifty prints a Bullish Engulfing at a 200-day EMA, thousands of traders simultaneously see it on their charts and buy. That buying itself becomes the catalyst.</p>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>The Rule of Context:</strong> A pattern in isolation is noise. A pattern at a <strong>key level</strong> (support, resistance, CPR, VWAP, prior high/low) is a signal. This is the single most important concept in this entire chapter.</p>
+  </div>
+
+  <h3>Single vs Two-Candle vs Three-Candle Patterns</h3>
+
+  <p>Patterns vary in the number of candles required to form. Each type has a different reliability profile:</p>
+
+  <table class="tbl">
+    <thead><tr><th>Type</th><th>Candles</th><th>Speed</th><th>Reliability</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>Single candle</td><td>1</td><td>Fastest signal</td><td>Moderate — needs context</td><td>Hammer, Doji, Marubozu</td></tr>
+      <tr><td>Two-candle</td><td>2</td><td>One-day lag</td><td>Good — confirmation built in</td><td>Engulfing, Harami</td></tr>
+      <tr><td>Three-candle</td><td>3</td><td>Two-day lag</td><td>Highest — multi-session agreement</td><td>Morning Star, Evening Star</td></tr>
+    </tbody>
+  </table>
+
+  <p>In intraday Nifty trading on a 5-minute or 15-minute chart, "candles" can be individual bars within the session. The same pattern logic applies — just compressed into minutes instead of days.</p>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">🎯</span>
+    <p><strong>Practical filter:</strong> On intraday charts, focus on patterns that form at <strong>CPR levels, ORB (Opening Range) high/low, prior day high/low, and VWAP</strong>. On daily charts, focus on patterns at 20 EMA, 200 EMA, and weekly support/resistance.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head">
+    <div class="sec-num">2</div>
+    <h2>The Hammer & Inverted Hammer</h2>
+  </div>
+
+  <p>The <strong>Hammer</strong> is arguably the most recognizable bullish reversal pattern. It signals that sellers tried aggressively to drive price lower during the session but were completely rejected — buyers flooded in near the lows and pushed price back up to close near the open.</p>
+
+  <h3>Hammer Structure</h3>
+
+  <div class="candle-lab">
+    <div class="cl-title">HAMMER vs INVERTED HAMMER vs SHOOTING STAR — VISUAL COMPARISON</div>
+    <div class="cl-row">
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:6px;background:#2ecc71"></div>
+          <div class="cbody" style="height:14px;background:#2ecc71;width:18px"></div>
+          <div class="wick-b" style="height:46px;background:#2ecc71"></div>
+        </div>
+        <div class="cl-label">HAMMER<span>Bullish reversal</span><span style="color:#2ecc71">Lower wick ≥ 2× body</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c bear">
+          <div class="wick-t" style="height:6px;background:#e74c3c"></div>
+          <div class="cbody" style="height:14px;background:#e74c3c;width:18px"></div>
+          <div class="wick-b" style="height:46px;background:#e74c3c"></div>
+        </div>
+        <div class="cl-label">HAMMER (bear)<span>Still bullish reversal</span><span>Color less important</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:46px;background:#2ecc71"></div>
+          <div class="cbody" style="height:14px;background:#2ecc71;width:18px"></div>
+          <div class="wick-b" style="height:6px;background:#2ecc71"></div>
+        </div>
+        <div class="cl-label">INVERTED HAMMER<span>Bullish reversal</span><span style="color:#2ecc71">Upper wick ≥ 2× body</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c bear">
+          <div class="wick-t" style="height:46px;background:#e74c3c"></div>
+          <div class="cbody" style="height:14px;background:#e74c3c;width:18px"></div>
+          <div class="wick-b" style="height:6px;background:#e74c3c"></div>
+        </div>
+        <div class="cl-label">SHOOTING STAR<span>Bearish reversal</span><span style="color:#e74c3c">At top of uptrend</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Hammer Rules</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">1</div>
+      <div class="sb">
+        <div class="st">Small real body at the top</div>
+        <p>The open and close should be within 30% of the high. The body can be green or red — colour matters less than structure.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb">
+        <div class="st">Lower wick at least 2× the body length</div>
+        <p>The longer the lower wick, the stronger the rejection. A wick that is 3–4× the body is extremely bullish.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Must appear after a downtrend or at support</div>
+        <p>A Hammer forming at a new high means nothing. Context — a drop of several candles or a key support zone — is mandatory.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">4</div>
+      <div class="sb">
+        <div class="st">Confirmation: next candle should close higher</div>
+        <p>Aggressive traders enter at the close of the Hammer. Conservative traders wait for the next candle to open and hold above the Hammer's close.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Example — 15-min chart · Jan 2024</div>
+    <div class="ex-content">
+      Nifty had been falling for three 15-min candles from <span class="price">21,820</span> to <span class="price">21,712</span>. The fourth candle opened at <span class="price">21,715</span>, dropped to a low of <span class="price">21,668</span>, then recovered sharply to close at <span class="price">21,708</span>. Body = <span class="price">7 pts</span>, Lower wick = <span class="price">47 pts</span> — that is a 6.7× ratio. This Hammer formed directly on the CPR Bottom Pivot at <span class="price">21,670</span>. The next candle opened gap-up at <span class="price">21,730</span> and ran to <span class="price">21,810</span> within two candles. <strong>The entry for a long was the next candle's open at 21,730 with a stop below the Hammer low at 21,668.</strong>
+    </div>
+  </div>
+
+  <h3>Inverted Hammer — The Overlooked Cousin</h3>
+  <p>The <strong>Inverted Hammer</strong> looks like an upside-down Hammer: small body at the bottom, long upper wick, tiny or no lower wick. It appears at the bottom of a downtrend and is also a bullish reversal signal. The long upper wick shows that buyers pushed price aggressively higher — but couldn't hold it. Even though sellers partially won that session, the buyers' attempt shows intent. The next session's direction confirms or denies.</p>
+
+  <div class="info-box ib-green">
+    <span class="info-icon">✅</span>
+    <p><strong>Reliability boost:</strong> A green (bullish) Hammer is marginally more reliable than a red one because it shows buyers completely took over. Either colour can be traded, but green body = extra conviction for the trade.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head">
+    <div class="sec-num">3</div>
+    <h2>Shooting Star & Hanging Man</h2>
+  </div>
+
+  <p>These two patterns are the bearish mirror images of the Inverted Hammer and Hammer respectively. The structure is identical — only the <strong>context (location in trend)</strong> changes their meaning.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Pattern</th><th>Structure</th><th>Location</th><th>Signal</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Shooting Star</strong></td><td>Long upper wick, small body at bottom</td><td>Top of uptrend / at resistance</td><td>Bearish reversal</td></tr>
+      <tr><td><strong>Hanging Man</strong></td><td>Long lower wick, small body at top</td><td>Top of uptrend / at resistance</td><td>Bearish reversal warning</td></tr>
+      <tr><td><strong>Inverted Hammer</strong></td><td>Long upper wick, small body at bottom</td><td>Bottom of downtrend / at support</td><td>Bullish reversal</td></tr>
+      <tr><td><strong>Hammer</strong></td><td>Long lower wick, small body at top</td><td>Bottom of downtrend / at support</td><td>Bullish reversal</td></tr>
+    </tbody>
+  </table>
+
+  <p>Notice the pattern: same shape, different location = opposite meaning. This is why <strong>context is the primary filter</strong>, not the pattern shape alone.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Example — Shooting Star · Mar 2024 Daily Chart</div>
+    <div class="ex-content">
+      Nifty had been in a strong uptrend, climbing from <span class="price">21,000</span> to a high of <span class="price">22,526</span> over 8 sessions. On March 14, the daily candle opened at <span class="price">22,400</span>, spiked to <span class="price">22,526</span> (new all-time high at the time), then sold off hard to close at <span class="price">22,302</span>. Body = <span class="price">98 pts</span>, Upper wick = <span class="price">224 pts</span>. Classic Shooting Star structure at a key resistance zone. Over the next 4 days, Nifty retraced to <span class="price">21,884</span>. <strong>Stop for short traders: above the Shooting Star high at 22,526.</strong>
+    </div>
+  </div>
+
+  <h3>Shooting Star vs Inverted Hammer — How to Tell Them Apart</h3>
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p>These two patterns look <strong>identical in isolation</strong>. The only difference is trend context. Always scroll left before naming a pattern — if the candle appears after a sustained move UP, it is a Shooting Star (bearish). If it appears after a sustained move DOWN, it is an Inverted Hammer (bullish).</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head">
+    <div class="sec-num">4</div>
+    <h2>Doji Varieties</h2>
+  </div>
+
+  <p>A <strong>Doji</strong> forms when the open and close are nearly equal — the real body is extremely thin or invisible. It represents a <strong>battle between buyers and sellers that ended in a draw</strong>. After a strong directional move, a Doji signals exhaustion — neither side could push further. It is one of the most important signals for market turning points.</p>
+
+  <h3>Four Doji Types</h3>
+
+  <div class="candle-lab">
+    <div class="cl-title">DOJI FAMILY — ALL SIGNAL INDECISION BUT WITH DIFFERENT NUANCE</div>
+    <div class="cl-row">
+      <div class="cl-item">
+        <div class="c doji">
+          <div class="wick-t" style="height:30px;background:#f5a623;width:2px"></div>
+          <div class="cbody" style="height:2px;background:#f5a623;width:18px"></div>
+          <div class="wick-b" style="height:30px;background:#f5a623;width:2px"></div>
+        </div>
+        <div class="cl-label">STANDARD DOJI<span>Pure indecision</span><span>Equal upper/lower wicks</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c doji">
+          <div class="wick-t" style="height:52px;background:#f5a623;width:2px"></div>
+          <div class="cbody" style="height:2px;background:#f5a623;width:18px"></div>
+          <div class="wick-b" style="height:52px;background:#f5a623;width:2px"></div>
+        </div>
+        <div class="cl-label">LONG-LEGGED DOJI<span>High volatility indecision</span><span>Both sides fought hard</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c doji">
+          <div class="wick-t" style="height:46px;background:#f5a623;width:2px"></div>
+          <div class="cbody" style="height:2px;background:#f5a623;width:18px"></div>
+          <div class="wick-b" style="height:4px;background:#f5a623;width:2px"></div>
+        </div>
+        <div class="cl-label">GRAVESTONE DOJI<span>Bearish at top</span><span>Buyers pushed up, failed</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c doji">
+          <div class="wick-t" style="height:4px;background:#f5a623;width:2px"></div>
+          <div class="cbody" style="height:2px;background:#f5a623;width:18px"></div>
+          <div class="wick-b" style="height:46px;background:#f5a623;width:2px"></div>
+        </div>
+        <div class="cl-label">DRAGONFLY DOJI<span>Bullish at bottom</span><span>Sellers pushed down, failed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p>The <strong>Gravestone Doji</strong> is particularly powerful at resistance: it shows buyers initially took control (long upper wick) but were completely beaten back to the open by the close. It is the strongest single-candle bearish reversal signal. The <strong>Dragonfly Doji</strong> does the opposite at support.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Example — Gravestone Doji at All-Time High · Sept 2024</div>
+    <div class="ex-content">
+      Nifty had rallied to <span class="price">25,670</span> on Sept 26, a fresh all-time high. The daily candle: Open <span class="price">25,590</span>, High <span class="price">25,670</span>, Low <span class="price">25,561</span>, Close <span class="price">25,601</span>. Body = <span class="price">11 pts</span> (near-Doji). Upper wick = <span class="price">69 pts</span>, lower wick = <span class="price">29 pts</span>. This near-Gravestone Doji at ATH preceded a 7% correction over the next 3 weeks down to <span class="price">23,893</span>. <strong>The long upper wick showed strong seller presence at the new high — a warning to long holders to tighten stops.</strong>
+    </div>
+  </div>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>Doji in Nifty intraday:</strong> Look for Dojis on the 15-min chart between 10:30 AM and 12:30 PM after a directional morning session. A Doji at VWAP during this period often signals a mid-session reversal. The standard Doji is most common; Gravestone/Dragonfly Dojis are rarer but more powerful.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head">
+    <div class="sec-num">5</div>
+    <h2>Marubozu — The Power Candle</h2>
+  </div>
+
+  <p>The <strong>Marubozu</strong> (Japanese for "close-cropped" or "bald") has no wicks — or negligible wicks. It means the market opened at one extreme and closed at the other without any hesitation. It is the purest expression of directional conviction in a candlestick.</p>
+
+  <div class="candle-lab">
+    <div class="cl-title">MARUBOZU — FULL CONVICTION, NO INDECISION</div>
+    <div class="cl-row">
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:1px;background:#2ecc71;width:2px"></div>
+          <div class="cbody" style="height:72px;background:#2ecc71;width:22px;border-radius:3px"></div>
+          <div class="wick-b" style="height:1px;background:#2ecc71;width:2px"></div>
+        </div>
+        <div class="cl-label">BULL MARUBOZU<span>Open = Low, Close = High</span><span style="color:#2ecc71">Buyers in complete control</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c bear">
+          <div class="wick-t" style="height:1px;background:#e74c3c;width:2px"></div>
+          <div class="cbody" style="height:72px;background:#e74c3c;width:22px;border-radius:3px"></div>
+          <div class="wick-b" style="height:1px;background:#e74c3c;width:2px"></div>
+        </div>
+        <div class="cl-label">BEAR MARUBOZU<span>Open = High, Close = Low</span><span style="color:#e74c3c">Sellers in complete control</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:1px;background:#2ecc71;width:2px"></div>
+          <div class="cbody" style="height:52px;background:#2ecc71;width:18px;border-radius:3px"></div>
+          <div class="wick-b" style="height:12px;background:#2ecc71;width:2px"></div>
+        </div>
+        <div class="cl-label">BULL CLOSING MARU<span>Small lower wick only</span><span>Buyers dominated close</span></div>
+      </div>
+      <div class="cl-item">
+        <div class="c bear">
+          <div class="wick-t" style="height:12px;background:#e74c3c;width:2px"></div>
+          <div class="cbody" style="height:52px;background:#e74c3c;width:18px;border-radius:3px"></div>
+          <div class="wick-b" style="height:1px;background:#e74c3c;width:2px"></div>
+        </div>
+        <div class="cl-label">BEAR CLOSING MARU<span>Small upper wick only</span><span>Sellers dominated close</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Real Example — BankNifty Bear Marubozu · June 4, 2024 Election Results Day</div>
+    <div class="ex-content">
+      June 4, 2024 — Indian election results. BankNifty opened at <span class="price">49,265</span> on fears of coalition government and closed at <span class="price">46,272</span> — a fall of nearly <span class="price">3,000 points</span> in a single session with almost no wicks. Nifty opened at <span class="price">22,527</span> and closed at <span class="price">21,884</span>. <strong>These were textbook Bear Marubozus</strong> — sellers were in complete control from open to close with no meaningful buying attempt. The pattern flagged continuation: both indices fell further in the next 3 sessions before stabilising.
+    </div>
+  </div>
+
+  <h3>Trading with Marubozu</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">✓</div>
+      <div class="sb">
+        <div class="st">Breakout confirmation</div>
+        <p>A Bull Marubozu breaking above a key resistance level is a high-conviction breakout signal. Volume should be above average to confirm institutional participation.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">✓</div>
+      <div class="sb">
+        <div class="st">Trend continuation</div>
+        <p>A Marubozu in the direction of the existing trend is a <em>continuation</em> signal, not reversal. It tells you the trend is accelerating — a good place to add to existing positions.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">✗</div>
+      <div class="sb">
+        <div class="st">Don't chase after a gap + Marubozu</div>
+        <p>When a Marubozu forms with a large gap, chasing the move is risky — the big move may already be priced in. Wait for a retest of the Marubozu body or a consolidation setup before entering.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head">
+    <div class="sec-num">6</div>
+    <h2>Engulfing Patterns</h2>
+  </div>
+
+  <p>The <strong>Engulfing Pattern</strong> is a two-candle reversal signal and one of the most reliable patterns in all of technical analysis. The second candle completely <em>engulfs</em> (covers) the entire body of the first candle — showing a complete takeover by the opposing side.</p>
+
+  <h3>Bullish Engulfing</h3>
+  <p>After a downtrend: a small bearish (red) candle is followed by a larger bullish (green) candle whose body completely covers the prior candle's body. This shows that buyers absorbed all the prior day's selling and then some — a strong reversal signal.</p>
+
+  <div class="candle-lab">
+    <div class="cl-title">BULLISH ENGULFING vs BEARISH ENGULFING</div>
+    <div class="cl-row">
+      <!-- Bullish Engulfing -->
+      <div class="cl-item">
+        <div style="display:flex;gap:4px;align-items:flex-end">
+          <div class="c bear">
+            <div class="wick-t" style="height:8px;background:#e74c3c;width:2px"></div>
+            <div class="cbody" style="height:28px;background:#e74c3c;width:14px;border-radius:2px"></div>
+            <div class="wick-b" style="height:8px;background:#e74c3c;width:2px"></div>
+          </div>
+          <div class="c bull">
+            <div class="wick-t" style="height:6px;background:#2ecc71;width:2px"></div>
+            <div class="cbody" style="height:52px;background:#2ecc71;width:20px;border-radius:2px"></div>
+            <div class="wick-b" style="height:6px;background:#2ecc71;width:2px"></div>
+          </div>
+        </div>
+        <div class="cl-label">BULLISH ENGULFING<span style="color:#2ecc71">Green body engulfs red body</span><span>After downtrend = strong buy</span></div>
+      </div>
+      <!-- Bearish Engulfing -->
+      <div class="cl-item">
+        <div style="display:flex;gap:4px;align-items:flex-end">
+          <div class="c bull">
+            <div class="wick-t" style="height:8px;background:#2ecc71;width:2px"></div>
+            <div class="cbody" style="height:28px;background:#2ecc71;width:14px;border-radius:2px"></div>
+            <div class="wick-b" style="height:8px;background:#2ecc71;width:2px"></div>
+          </div>
+          <div class="c bear">
+            <div class="wick-t" style="height:6px;background:#e74c3c;width:2px"></div>
+            <div class="cbody" style="height:52px;background:#e74c3c;width:20px;border-radius:2px"></div>
+            <div class="wick-b" style="height:6px;background:#e74c3c;width:2px"></div>
+          </div>
+        </div>
+        <div class="cl-label">BEARISH ENGULFING<span style="color:#e74c3c">Red body engulfs green body</span><span>After uptrend = strong sell</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>The Three Rules for a Valid Engulfing</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">The prior trend must exist</div>
+        <p>Bullish Engulfing must come after a downtrend (at least 3–5 falling candles or a significant support level). No trend = no reversal.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Body must fully engulf the prior body</div>
+        <p>The second candle's body must open below (for bullish) or above (for bearish) the first candle's body AND close beyond it. Wick overlap doesn't count — only <strong>bodies</strong>.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Larger body = stronger signal</div>
+        <p>The bigger the second candle relative to the first, the stronger the reversal. An engulfing candle that is 3× the size of the prior candle is more powerful than one that is barely larger.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Example — Bullish Engulfing at 20 EMA · Oct 2023</div>
+    <div class="ex-content">
+      Nifty fell from <span class="price">19,850</span> to <span class="price">18,837</span> over 12 sessions. On Oct 26, after touching the 200-day EMA at <span class="price">18,837</span>, a Bullish Engulfing formed: prior day close <span class="price">18,876</span> (red candle body <span class="price">80 pts</span>), engulfing candle open <span class="price">18,820</span> and close <span class="price">19,046</span> (green body <span class="price">226 pts</span> — nearly 3× the prior candle). <strong>Entry at the close of the engulfing candle at 19,046, stop below the pattern low at 18,837.</strong> Nifty reached <span class="price">20,192</span> in the following 3 weeks.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head">
+    <div class="sec-num">7</div>
+    <h2>Harami — Inside Reversal</h2>
+  </div>
+
+  <p>The <strong>Harami</strong> (Japanese for "pregnant") is the opposite concept to Engulfing. Instead of the second candle being larger, it is <em>smaller and contained within</em> the first candle's body. After a large directional move, the market suddenly contracts — a sign that momentum is running out and indecision has entered.</p>
+
+  <div class="candle-lab">
+    <div class="cl-title">HARAMI PATTERNS — SMALLER CANDLE INSIDE THE PRIOR CANDLE'S BODY</div>
+    <div class="cl-row">
+      <div class="cl-item">
+        <div style="display:flex;gap:4px;align-items:center;padding-top:10px">
+          <div class="c bear">
+            <div class="wick-t" style="height:8px;background:#e74c3c;width:2px"></div>
+            <div class="cbody" style="height:54px;background:#e74c3c;width:20px;border-radius:2px"></div>
+            <div class="wick-b" style="height:8px;background:#e74c3c;width:2px"></div>
+          </div>
+          <div class="c bull" style="margin-bottom:12px">
+            <div class="wick-t" style="height:4px;background:#2ecc71;width:2px"></div>
+            <div class="cbody" style="height:20px;background:#2ecc71;width:14px;border-radius:2px"></div>
+            <div class="wick-b" style="height:4px;background:#2ecc71;width:2px"></div>
+          </div>
+        </div>
+        <div class="cl-label">BULLISH HARAMI<span style="color:#2ecc71">Small green inside large red</span><span>After downtrend = reversal warning</span></div>
+      </div>
+      <div class="cl-item">
+        <div style="display:flex;gap:4px;align-items:center;padding-top:10px">
+          <div class="c bull">
+            <div class="wick-t" style="height:8px;background:#2ecc71;width:2px"></div>
+            <div class="cbody" style="height:54px;background:#2ecc71;width:20px;border-radius:2px"></div>
+            <div class="wick-b" style="height:8px;background:#2ecc71;width:2px"></div>
+          </div>
+          <div class="c bear" style="margin-bottom:12px">
+            <div class="wick-t" style="height:4px;background:#e74c3c;width:2px"></div>
+            <div class="cbody" style="height:20px;background:#e74c3c;width:14px;border-radius:2px"></div>
+            <div class="wick-b" style="height:4px;background:#e74c3c;width:2px"></div>
+          </div>
+        </div>
+        <div class="cl-label">BEARISH HARAMI<span style="color:#e74c3c">Small red inside large green</span><span>After uptrend = reversal warning</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p>The Harami is a <em>warning</em>, not a confirmed reversal signal. It must be followed by a confirming candle in the reversal direction. It's weaker than the Engulfing — but it's faster to form and can catch a turn earlier, giving a better risk/reward entry.</p>
+
+  <h3>Harami Cross — Maximum Indecision</h3>
+  <p>When the second candle in a Harami is specifically a Doji (body = near zero), it becomes a <strong>Harami Cross</strong> — the strongest version of the Harami. The Doji inside the prior candle's body represents maximum uncertainty following a large directional move. In Nifty, a Harami Cross at the 20 EMA or CPR level after 3–5 falling candles is a high-probability reversal setup.</p>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Harami trade management:</strong> Because the Harami is a warning signal (not confirmed reversal), position size should be <strong>half</strong> of your normal size on the entry candle. Add the other half only after the confirming close above the Harami high (bullish) or below the Harami low (bearish).</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head">
+    <div class="sec-num">8</div>
+    <h2>Morning Star & Evening Star</h2>
+  </div>
+
+  <p>Three-candle patterns represent multi-session agreement on a reversal. The <strong>Morning Star</strong> (bullish) and <strong>Evening Star</strong> (bearish) are the most important three-candle patterns. They are highly reliable because three consecutive sessions all point the same way.</p>
+
+  <h3>Morning Star Structure</h3>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn r">1</div>
+      <div class="sb">
+        <div class="st">First candle: Large Bearish</div>
+        <p>A large red candle continuing the existing downtrend. Sellers appear to be in full control. This confirms the bearish context that sets up the reversal.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">2</div>
+      <div class="sb">
+        <div class="st">Second candle: Small body (the "star")</div>
+        <p>A small body candle — can be green, red, or a Doji — that gaps down from the first candle. This is the indecision/transition candle. The gap shows sellers initially still in control, but the small body shows momentum stalling.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Third candle: Large Bullish</div>
+        <p>A large green candle that closes at least halfway into the first (red) candle's body. This is the confirmation — buyers have now taken over completely. The deeper into the first candle, the stronger the reversal.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Example — Morning Star at 200 EMA · March 2023</div>
+    <div class="ex-content">
+      <strong>Day 1 (Mar 20):</strong> Nifty down from <span class="price">17,250</span> to close at <span class="price">16,988</span>. Large red candle — sellers dominant. The 200-day EMA was at approximately <span class="price">17,010</span>.<br><br>
+      <strong>Day 2 (Mar 21):</strong> Opened at <span class="price">16,972</span>, traded between <span class="price">16,828</span> and <span class="price">17,043</span>, closed at <span class="price">17,014</span>. Small Doji-like candle — complete indecision. The <span class="price">200 EMA</span> acted as a floor.<br><br>
+      <strong>Day 3 (Mar 22):</strong> Opened gap-up at <span class="price">17,055</span> and closed at <span class="price">17,359</span>. Large green candle that penetrated deeply into Day 1's red candle body. <strong>Morning Star confirmed. Entry at the open of Day 3 (17,055), stop below the Day 2 low (16,828).</strong> Nifty ran to <span class="price">18,888</span> over the next 6 weeks.
+    </div>
+  </div>
+
+  <h3>Evening Star — The Bearish Version</h3>
+  <p>The Evening Star is the exact mirror: large green candle → small star candle (gaps up) → large red candle closing at least halfway into the first candle. It signals the end of an uptrend. The most powerful Evening Stars form at resistance levels, ATH zones, or where the gap-up on Day 2 fills with a gap-down on Day 3.</p>
+
+  <div class="info-box ib-red">
+    <span class="info-icon">⚠️</span>
+    <p><strong>On Indian intraday charts:</strong> True gaps are less common within a session. On 5-min or 15-min Nifty charts, a "gap" translates to a fast move between candles. The key element is the star candle's small body after a large directional candle — the gap is a "nice to have," not a hard requirement in intraday application.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head">
+    <div class="sec-num">9</div>
+    <h2>Context is Everything</h2>
+  </div>
+
+  <p>By now you've learned over a dozen patterns. Here is the single most important lesson that separates profitable pattern traders from losing ones: <strong>the pattern is 30% of the trade — the context is 70%.</strong></p>
+
+  <h3>The Three Context Filters</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Level context — Is the pattern at a key price level?</div>
+        <p>Key levels: CPR (TC/BC/PP), prior day high/low, weekly open, 20/50/200 EMA, VWAP, ORB high/low, round numbers (22,000 / 23,000 etc). A Hammer at a random spot in the middle of range = low probability. A Hammer exactly at CPR Bottom Pivot = high probability.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Trend context — Is the pattern in the right direction vs the trend?</div>
+        <p>Trading reversals against a strong trend has a low success rate. Bullish patterns in a strong downtrend are pullback entries — risky. Bullish patterns in an uptrend after a pullback to support are continuation entries — higher probability.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Volume context — Did volume expand or contract?</div>
+        <p>A Bullish Engulfing on 3× average volume is far more powerful than the same pattern on below-average volume. Volume is the fuel behind the pattern's validity. Check the volume bar at the bottom of your chart for every pattern you identify.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Pattern + Level Confluence Examples</h3>
+  <table class="tbl">
+    <thead><tr><th>Pattern</th><th>Level</th><th>Direction</th><th>Reliability</th></tr></thead>
+    <tbody>
+      <tr><td>Bullish Engulfing</td><td>200 EMA + CPR Bottom Pivot</td><td>Long</td><td style="color:var(--green)">Very High</td></tr>
+      <tr><td>Hammer</td><td>Prior day low + VWAP retest</td><td>Long</td><td style="color:var(--green)">High</td></tr>
+      <tr><td>Evening Star</td><td>All-time high / key resistance</td><td>Short</td><td style="color:var(--green)">Very High</td></tr>
+      <tr><td>Doji</td><td>Middle of range, no key level</td><td>Any</td><td style="color:var(--red)">Low</td></tr>
+      <tr><td>Shooting Star</td><td>ORB high after breakout failure</td><td>Short</td><td style="color:var(--yellow)">Moderate-High</td></tr>
+      <tr><td>Harami</td><td>Any level, no confirmation</td><td>Any</td><td style="color:var(--red)">Low</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">🧠</span>
+    <p><strong>The 3-confluence rule:</strong> Before taking any pattern-based trade, identify at least <strong>3 independent factors</strong> supporting your trade. Example: Bullish Engulfing (1) + at 20 EMA (2) + above-average volume (3). Three confluences = execute. One or two = pass or reduce size significantly.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- SECTION 10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head">
+    <div class="sec-num">10</div>
+    <h2>Common Mistakes & Key Takeaways</h2>
+  </div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">🔍</div>
+      <div class="mc-title">Trading Patterns in Isolation</div>
+      <div class="mc-body">Identifying a Hammer and immediately buying without checking for context. Most standalone patterns fail more than they succeed without level confluence.</div>
+      <div class="mc-fix">Fix: Always ask "is this at a key level?" before entering any pattern-based trade.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Confusing Reversal vs Continuation</div>
+      <div class="mc-body">A Hammer in the middle of an uptrend after just 2 pullback candles is not a reversal signal — it is a continuation signal (dip buy). Calling everything "reversal" leads to misreads.</div>
+      <div class="mc-fix">Fix: First label the trend, then label the pattern's role within that trend.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">⚡</div>
+      <div class="mc-title">Entering Before Confirmation</div>
+      <div class="mc-body">Buying the moment a Harami or Doji forms without waiting for the confirming candle. These patterns are warnings — not entry signals by themselves.</div>
+      <div class="mc-fix">Fix: For single-candle patterns at support, enter at close. For Harami/Doji, wait for the next candle's direction first.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📉</div>
+      <div class="mc-title">Ignoring Volume</div>
+      <div class="mc-body">An Engulfing pattern on below-average volume is a low-conviction signal. Without volume expansion, there is no institutional participation behind the move.</div>
+      <div class="mc-fix">Fix: Add a volume bar to your chart and require at least 1.5× average volume for two-candle and three-candle reversal patterns.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🕐</div>
+      <div class="mc-title">Applying Daily Patterns to 1-min Charts</div>
+      <div class="mc-body">Candlestick patterns lose reliability on very short timeframes (1-min, 2-min) due to random noise. Patterns on these charts have near-random outcomes.</div>
+      <div class="mc-fix">Fix: Use 5-min or 15-min charts for intraday pattern trading in Nifty/BankNifty. Daily charts for positional trades.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📚</div>
+      <div class="mc-title">Memorising Too Many Patterns</div>
+      <div class="mc-body">Beginners try to memorise 30+ patterns and end up paralysed or seeing patterns everywhere. Most experienced traders use 5–6 patterns consistently.</div>
+      <div class="mc-fix">Fix: Master these 6 first: Hammer, Shooting Star, Engulfing (both), Doji, Morning Star. Everything else is a variation.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 2</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>Candlestick patterns work because they capture buyer-seller psychology at specific price levels — not because of magic</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Context (level, trend, volume) determines a pattern's probability — the pattern shape alone is only 30% of the trade</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The Hammer and Shooting Star are the same shape — location (bottom vs top of trend) is what makes them bullish or bearish</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Engulfing patterns are more reliable than single-candle patterns because they require two-session confirmation</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Morning Star and Evening Star are the highest-reliability reversal patterns — three sessions of agreement is hard to fake</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The Doji represents indecision: Gravestone Doji = bearish at tops, Dragonfly Doji = bullish at bottoms</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Apply the 3-confluence rule: identify 3 independent factors before executing any pattern-based trade</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Master 6 patterns well rather than knowing 30 poorly — Hammer, Shooting Star, Bullish Engulfing, Bearish Engulfing, Doji, Morning Star</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on candlestick patterns · Earn up to 35 XP</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=2">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_1.html">← Chapter 1: Price Action</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_3.html">Chapter 3: Support & Resistance →</a>
+</div>
+
+</div>
+
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 2 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+
+const CH_XP = 35;
+const CH_ID = 'ta_2';
+
+function getProgress(){
+  try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}
+}
+function saveProgress(p){
+  try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}
+}
+
+function markChapterRead(){
+  let p = getProgress();
+  if(!p.chapters_done) p.chapters_done = [];
+  if(p.chapters_done.includes(CH_ID)){
+    document.getElementById('markBtn').textContent = '✓ Already Completed';
+    return;
+  }
+  p.chapters_done.push(CH_ID);
+  p.xp = (p.xp||0) + CH_XP;
+  if(!p.activity) p.activity = [];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.2 Candlestick Patterns',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length > 20) p.activity = p.activity.slice(0,20);
+
+  // Badge: first_step
+  if(!p.badges_earned) p.badges_earned = [];
+  if(p.chapters_done.length >= 1 && !p.badges_earned.includes('first_step')){
+    p.badges_earned.push('first_step');
+    p.xp += 10;
+    p.activity.unshift({icon:'🏆',title:'Badge: First Step earned!',xp:10,date:new Date().toISOString()});
+  }
+  // Badge: quick_start (2 chapters)
+  if(p.chapters_done.length >= 2 && !p.badges_earned.includes('quick_start')){
+    p.badges_earned.push('quick_start');
+    p.xp += 25;
+    p.activity.unshift({icon:'🏆',title:'Badge: Quick Start earned!',xp:25,date:new Date().toISOString()});
+  }
+  // Badge: halfway (5 chapters)
+  const taIds = ['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  const taDone = taIds.filter(id => p.chapters_done.includes(id));
+  if(taDone.length >= 5 && !p.badges_earned.includes('halfway')){
+    p.badges_earned.push('halfway');
+    p.xp += 50;
+    p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});
+  }
+
+  p.last_active = new Date().toISOString();
+  saveProgress(p);
+  restoreState();
+}
+
+function restoreState(){
+  const p = getProgress();
+  const done = (p.chapters_done||[]).includes(CH_ID);
+  const btn = document.getElementById('markBtn');
+  if(done){
+    btn.textContent = '✓ Completed';
+    btn.classList.add('done');
+  }
+  renderDots(p);
+}
+
+function renderDots(p){
+  const done = p.chapters_done||[];
+  const container = document.getElementById('chDots');
+  container.innerHTML='';
+  for(let i=1;i<=10;i++){
+    const d = document.createElement('div');
+    d.className = 'cb-dot';
+    const id = 'ta_'+i;
+    if(done.includes(id)) d.classList.add('done');
+    else if(i===2) d.classList.add('current');
+    container.appendChild(d);
+  }
+}
+
+function handleQuizReturn(){
+  const params = new URLSearchParams(window.location.search);
+  const completed = params.get('completed');
+  const score = params.get('score');
+  if(completed === CH_ID && score !== null){
+    let p = getProgress();
+    if(!p.chapters_done) p.chapters_done = [];
+    if(!p.chapters_done.includes(CH_ID)){
+      p.chapters_done.push(CH_ID);
+      p.last_active = new Date().toISOString();
+      saveProgress(p);
+    }
+    restoreState();
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  handleQuizReturn();
+  restoreState();
+});
+</script>
+</body>
+</html>

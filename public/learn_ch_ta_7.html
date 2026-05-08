@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 7: EMA Strategies | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--border:#252a44;--border2:#323868;--accent:#7c6af7;--blue:#5b8af5;--green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);--red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);--yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);--cyan:#00d4ff;--text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;--r:10px;--r2:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.cb-breadcrumb a{color:var(--muted);text-decoration:none}.cb-breadcrumb a:hover{color:var(--accent)}.cb-sep{color:var(--border2)}.cb-current{color:var(--text);font-weight:600}.cb-spacer{flex:1}.cb-prog{display:flex;align-items:center;gap:8px}.cb-dots{display:flex;gap:4px}.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}.toc-list{display:flex;flex-direction:column;gap:2px}.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}.section p strong{color:var(--text)}.section p em{color:var(--accent);font-style:normal}.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.ex-content{font-size:13px;color:var(--dim);line-height:1.75}.ex-content strong{color:var(--text)}.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}.mc-icon{font-size:20px;margin-bottom:8px}.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}.mc-body{font-size:12px;color:var(--dim);line-height:1.6}.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}.tk-list{display:flex;flex-direction:column;gap:8px}.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}.qcta-left p{font-size:12px;color:var(--dim)}.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}.qbtn:hover{opacity:.85}.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}.mark-btn:hover{border-color:var(--green);color:var(--green)}.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.ema-stack{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin:16px 0}
+.ema-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ema-row:last-child{border-bottom:none}
+.ema-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.ema-name{font-family:'JetBrains Mono',monospace;font-size:12px;width:60px;flex-shrink:0}
+.ema-role{font-size:13px;color:var(--dim);flex:1}
+.ema-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:8px}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a><span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a><span class="cb-sep">›</span>
+    <span class="cb-current">Ch.7 EMA Strategies</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog"><span class="cb-ch-label">CHAPTER</span><div class="cb-dots" id="chDots"></div></div>
+</div>
+
+<div class="page">
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">7</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 07 · Technical Analysis</div>
+      <h1>EMA <em>Strategies</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">Exponential Moving Averages are the backbone of trend analysis. The 20, 50, and 200 EMAs define three different time horizons of the same market — and their interaction tells you everything from intraday momentum to long-term trend health. Learn to read the EMA stack like a professional.</p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~20 min read</span>
+    <span class="ch-meta-pill">⚡ 35 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>EMA vs SMA — Why EMA Wins</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>The Three Key EMAs: 20, 50, 200</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>The EMA Stack — Reading Trend Health</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>EMA Pullback Trades</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>EMA Crossover Signals</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>200 EMA — The Trend Divider</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>EMA on Intraday Charts</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>EMA Squeeze — Coiling Momentum</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>EMA + Candlestick Confluence</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>EMA vs SMA — Why EMA Wins</h2></div>
+  <p>A <strong>Simple Moving Average (SMA)</strong> gives equal weight to every price in its lookback period. A 20-day SMA treats a price from 20 days ago equally to yesterday's price. An <strong>Exponential Moving Average (EMA)</strong> gives <em>more weight to recent prices</em> — making it react faster to current price changes.</p>
+  <p>In fast-moving markets like Nifty, the EMA is preferred because it captures trend changes earlier. A 20-day SMA can lag by 3–5 days behind a trend change. A 20-day EMA typically lags by just 1–2 days. In intraday trading, this difference in responsiveness is the difference between a timely entry and a late one.</p>
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>The EMA formula</strong> uses a multiplier k = 2÷(n+1) where n is the period. For 20 EMA: k = 2÷21 = 0.0952. Today's EMA = (Close × 0.0952) + (Prior EMA × 0.9048). This means the most recent close contributes ~9.5% to the 20 EMA — much more than the 5% weight it would get in a 20-period SMA.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>The Three Key EMAs: 20, 50, 200</h2></div>
+
+  <div class="ema-stack">
+    <div class="ema-row">
+      <div class="ema-dot" style="background:#2ecc71"></div>
+      <span class="ema-name" style="color:#2ecc71">20 EMA</span>
+      <span class="ema-role">Short-term momentum average. Represents about 4 trading weeks. This is the "pulse" of the current trend — if price stays above 20 EMA consistently, the short-term trend is bullish. Most commonly used for pullback entry timing.</span>
+      <span class="ema-tag" style="color:#2ecc71;background:var(--green-bg);border:1px solid var(--green-border)">SHORT</span>
+    </div>
+    <div class="ema-row">
+      <div class="ema-dot" style="background:#f5a623"></div>
+      <span class="ema-name" style="color:#f5a623">50 EMA</span>
+      <span class="ema-role">Medium-term trend average. Represents about 10 trading weeks (~2.5 months). Shallow corrections in healthy bull trends often find support at the 50 EMA before resuming. Used for intermediate-term trade management.</span>
+      <span class="ema-tag" style="color:#f5a623;background:var(--yellow-bg);border:1px solid var(--yellow-border)">MED</span>
+    </div>
+    <div class="ema-row">
+      <div class="ema-dot" style="background:#5b8af5"></div>
+      <span class="ema-name" style="color:#5b8af5">200 EMA</span>
+      <span class="ema-role">Long-term trend divider. Represents about 40 weeks (~10 months). This is the line that separates bull markets from bear markets. Institutional investors use this as the primary benchmark for portfolio risk management.</span>
+      <span class="ema-tag" style="color:#5b8af5;background:rgba(91,138,245,0.08);border:1px solid rgba(91,138,245,0.25)">LONG</span>
+    </div>
+  </div>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">💡</span>
+    <p><strong>Which timeframe to use each EMA on:</strong> 20 EMA on the 15-min chart for intraday. 20 EMA on the daily chart for swing trades (4–10 day holds). 50 EMA daily for medium-term trades (3–8 weeks). 200 EMA daily for long-term portfolio positioning.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>The EMA Stack — Reading Trend Health</h2></div>
+  <p>The <strong>EMA stack</strong> refers to the vertical order of the three EMAs on your chart. When all three are properly aligned, the trend is at its healthiest — offering the highest-probability directional trades.</p>
+
+  <table class="tbl">
+    <thead><tr><th>EMA Alignment</th><th>Trend Health</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--green)">Price &gt; 20 &gt; 50 &gt; 200 EMA (bullish stack)</td><td style="color:var(--green)">Maximum bullish health</td><td>Buy dips to 20 EMA. No shorts.</td></tr>
+      <tr><td>Price between 20 and 50 EMA</td><td>Moderate bull — consolidating</td><td>Wait for price to reclaim 20 EMA. Reduce position size.</td></tr>
+      <tr><td>20 EMA below 50 EMA, above 200 EMA</td><td>Bull trend correcting</td><td>Wait for EMAs to re-align. No new longs at these levels.</td></tr>
+      <tr><td style="color:var(--red)">Price &lt; 20 &lt; 50 &lt; 200 EMA (bearish stack)</td><td style="color:var(--red)">Maximum bearish health</td><td>Short rallies to 20 EMA. No longs.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty EMA Stack — Bull Market 2023–2024</div>
+    <div class="ex-content">
+      From Jan 2023 to Sept 2024, Nifty maintained a near-perfect bullish EMA stack: Price &gt; 20 EMA &gt; 50 EMA &gt; 200 EMA on the daily chart for over 18 months. <strong>Any dip to the 20 EMA</strong> (e.g., <span class="price">19,250</span> in Aug 2023, <span class="price">21,100</span> in Oct 2023) was a high-probability long entry with the trend in full health. The stack only broke when Nifty fell below its 20 EMA in Oct 2024, signalling the correction had begun.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>EMA Pullback Trades</h2></div>
+  <p>The most reliable EMA-based trade: <strong>in a bull trend (bullish EMA stack), buy the first pullback to the 20 EMA</strong>. This is a trend-following entry — you are buying the dip in the direction of the established trend, which is the highest-probability trade in all of technical analysis.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">1</div>
+      <div class="sb">
+        <div class="st">Confirm bullish EMA stack on daily chart</div>
+        <p>20 EMA above 50 EMA above 200 EMA. Price has been making higher highs and higher lows. This confirms you're in an uptrend, not a countertrend bounce.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb">
+        <div class="st">Wait for a pullback to the 20 EMA</div>
+        <p>Price declines from its recent high toward the 20 EMA. The decline should happen on <strong>decreasing volume</strong> (not panic selling). Multiple down days on low volume = healthy pullback. High volume selling = potential trend break, not a pullback.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Look for a reversal candle at the 20 EMA</div>
+        <p>A Hammer, Bullish Engulfing, Doji, or Morning Star forming right at the 20 EMA zone. This confirms buyers are defending the level. Enter at the close of the reversal candle.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">4</div>
+      <div class="sb">
+        <div class="st">Stop below the 20 EMA by a zone (15–20 pts on daily chart)</div>
+        <p>Don't stop at the exact EMA — place it 15–20 pts below on the daily Nifty chart to allow for a wick poke without triggering the stop. A close below 20 EMA = trend signal to exit, not a wick.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty 20 EMA Pullback — Oct 2023 Correction</div>
+    <div class="ex-content">
+      During the Oct 2023 correction, Nifty pulled back from <span class="price">19,850</span> to a low of <span class="price">18,837</span> over 12 sessions. The 20 EMA had been rising steadily and by Oct 26 was at approximately <span class="price">19,050</span>. The 50 EMA was at <span class="price">18,900</span>. Nifty actually fell to the 200 EMA before reversing (signalling a deeper correction than normal).<br><br>
+      On the daily chart, a Bullish Engulfing formed at the 200 EMA zone (<span class="price">18,837–18,900</span>) on Oct 26. <strong>Entry: 19,046 (Engulfing close), Stop: 18,820 (below 200 EMA zone), Target: prior high 19,850.</strong> The trade ran over 800 points to eventual new highs.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>EMA Crossover Signals</h2></div>
+  <p>An <strong>EMA crossover</strong> happens when a shorter EMA crosses above or below a longer EMA. The most watched crossovers in Nifty analysis:</p>
+
+  <table class="tbl">
+    <thead><tr><th>Crossover</th><th>Name</th><th>Signal</th><th>Lag</th></tr></thead>
+    <tbody>
+      <tr><td>20 EMA crosses above 50 EMA</td><td>Bullish crossover</td><td>Medium-term uptrend resuming</td><td>1–2 weeks after trend change</td></tr>
+      <tr><td>20 EMA crosses below 50 EMA</td><td>Bearish crossover</td><td>Medium-term downtrend beginning</td><td>1–2 weeks after trend change</td></tr>
+      <tr><td>50 EMA crosses above 200 EMA</td><td>"Golden Cross"</td><td>Major bull market signal</td><td>2–4 weeks after trend change</td></tr>
+      <tr><td>50 EMA crosses below 200 EMA</td><td>"Death Cross"</td><td>Major bear market signal</td><td>2–4 weeks after trend change</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Crossovers are lagging signals.</strong> By the time the 50 EMA crosses above the 200 EMA (Golden Cross), the market has usually already moved 10–20% from the bottom. Use crossovers to <em>confirm</em> trend changes, not as entry signals themselves. The better entry is on the initial price reversal with candlestick patterns, not waiting for the crossover.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>200 EMA — The Trend Divider</h2></div>
+  <p>The <strong>200-day EMA</strong> is the most important single line on any chart of Indian equities. It separates the bull phase from the bear phase. Institutional funds, mutual funds, and large professional traders use this level as their primary benchmark:</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">Bull</div>
+      <div class="sb">
+        <div class="st">Price above 200 EMA = bull market territory</div>
+        <p>In this zone, equity mutual funds are fully invested, FIIs are net buyers, and the primary strategy is to buy dips. Short trades against the trend have a lower success rate.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">Bear</div>
+      <div class="sb">
+        <div class="st">Price below 200 EMA = bear market territory</div>
+        <p>Mutual funds reduce equity exposure, FIIs become net sellers, and rallies are sold into by institutional sellers. The primary strategy shifts to shorting rallies. Long trades require very tight stops.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty 200 EMA Test History</div>
+    <div class="ex-content">
+      <strong>March 2020:</strong> Nifty fell sharply below the 200 EMA to <span class="price">7,511</span> — the start of the COVID bear market. Recovery was confirmed when Nifty reclaimed the 200 EMA in June 2020.<br><br>
+      <strong>Oct 2023:</strong> Nifty touched its 200 EMA at <span class="price">18,837</span> during the correction — and bounced hard. This confirmed the 200 EMA as long-term support in a bull trend.<br><br>
+      <strong>Key lesson:</strong> In a bull market, touching the 200 EMA is an extreme event. When it happens, it is one of the highest-probability long entry points available — provided the long-term trend (weekly chart) remains bullish.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>EMA on Intraday Charts</h2></div>
+  <p>EMAs on intraday charts (5-min, 15-min) serve the same function as on daily charts — dynamic support/resistance — but compressed into the trading session. The key EMAs for intraday Nifty:</p>
+
+  <table class="tbl">
+    <thead><tr><th>EMA (15-min)</th><th>Equivalent (daily)</th><th>Intraday Role</th></tr></thead>
+    <tbody>
+      <tr><td>9 EMA</td><td>~2-day EMA</td><td>Very fast — used for aggressive scalps and momentum trades. Too noisy for swing entries.</td></tr>
+      <tr><td>20 EMA</td><td>~5-day EMA</td><td>Short-term intraday momentum. First pullback target after breakout moves.</td></tr>
+      <tr><td>50 EMA</td><td>~12-day EMA</td><td>Medium intraday trend. If price is above 50 EMA on 15-min, intraday trend is bullish.</td></tr>
+      <tr><td>200 EMA</td><td>~50-day EMA</td><td>Major intraday level. Rarely tested in trending sessions — but when hit, significant reaction expected.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>Intraday EMA setup for Nifty 15-min chart:</strong> Apply 20 EMA (green) and 50 EMA (yellow). Trade long above both EMAs when they are in bullish alignment (20 above 50). Trade short below both when in bearish alignment. The space between the EMAs is the "trend zone" — price staying in this zone after pullbacks confirms the trend's health.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>EMA Squeeze — Coiling Momentum</h2></div>
+  <p>An <strong>EMA squeeze</strong> (also called "EMA compression") happens when all three EMAs converge close together and start moving horizontally. This represents a period of low momentum and indecision — but like a compressed spring, it precedes explosive directional moves.</p>
+
+  <p>The EMA squeeze in Nifty typically happens after:</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Prolonged consolidation after a strong trend</div>
+        <p>After Nifty runs 1500–2000 points in a directional move, it often consolidates for 4–8 weeks. During this consolidation, all EMAs flatten and converge. The breakout from this consolidation determines the next directional move.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Pre-event consolidation</div>
+        <p>Before major events (RBI policy, Budget, elections), Nifty often consolidates with tight EMAs as traders reduce positions and wait. The post-event break typically has strong momentum because pent-up energy releases at once.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-green">
+    <span class="info-icon">✅</span>
+    <p><strong>How to trade the EMA squeeze:</strong> When EMAs are converged and price is coiling in a tight range, don't trade inside the range. Instead, identify the breakout levels (above the range high and below the range low). Enter the direction of the breakout on a candle close beyond the range, with stop inside the range. EMA squeeze breakouts are among the highest-momentum trades available.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>EMA + Candlestick Confluence</h2></div>
+  <p>EMAs become significantly more powerful when combined with candlestick patterns at the EMA level. This is the standard professional trade setup: <strong>candlestick pattern at EMA = high-probability entry</strong>.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Setup</th><th>Signal</th><th>Entry</th><th>Stop</th></tr></thead>
+    <tbody>
+      <tr><td>Hammer at 20 EMA (bull trend)</td><td>Bullish reversal at trend support</td><td>Close of Hammer candle</td><td>Below Hammer low</td></tr>
+      <tr><td>Bullish Engulfing at 50 EMA (bull trend)</td><td>Strong reversal at medium support</td><td>Close of Engulfing candle</td><td>Below 50 EMA zone</td></tr>
+      <tr><td>Morning Star at 200 EMA</td><td>Very high-probability reversal</td><td>Close of 3rd candle</td><td>Below 200 EMA</td></tr>
+      <tr><td>Shooting Star at 20 EMA (bear trend)</td><td>Bearish reversal at trend resistance</td><td>Close of Shooting Star</td><td>Above 20 EMA</td></tr>
+      <tr><td>Bearish Engulfing at 50 EMA (bear trend)</td><td>Strong resistance confirmation</td><td>Close of Engulfing</td><td>Above 50 EMA zone</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Key Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">📊</div>
+      <div class="mc-title">Using Too Many EMAs</div>
+      <div class="mc-body">Adding 5–6 EMAs to the chart creates a visual mess. With too many lines, there is "always" an EMA nearby to justify any trade — removing the selectivity that makes the indicator useful.</div>
+      <div class="mc-fix">Fix: Use exactly 3 EMAs: 20, 50, 200. Add colours to distinguish them. Anything more is noise.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">⏱️</div>
+      <div class="mc-title">Treating Crossovers as Entries</div>
+      <div class="mc-body">Buying the moment the 20 EMA crosses above 50 EMA. By the time the crossover happens, the trend change may be 2–3 weeks old. Late entry means buying near a short-term high.</div>
+      <div class="mc-fix">Fix: Use crossovers to confirm the trend exists. Enter on the next meaningful pullback to the 20 EMA after the crossover, not the crossover itself.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Buying EMA Touches in a Bear Trend</div>
+      <div class="mc-body">The same 20 EMA that was support in a bull trend becomes resistance in a bear trend. Buying every 20 EMA touch regardless of the overall trend leads to consistent losses in bear phases.</div>
+      <div class="mc-fix">Fix: Always check the EMA stack alignment first. Below bearish stack = 20 EMA is resistance to short, not support to buy.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📏</div>
+      <div class="mc-title">Exact EMA Entries</div>
+      <div class="mc-body">Waiting for price to tick exactly to the EMA before entering. EMAs are zones, not precise levels — price rarely touches the exact EMA value before bouncing.</div>
+      <div class="mc-fix">Fix: Use a zone of ±10–20 pts around the EMA for daily charts (±5 pts for 15-min). Enter when price is in the zone AND shows a reversal candle.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🙈</div>
+      <div class="mc-title">Ignoring Daily EMA While Trading Intraday</div>
+      <div class="mc-body">Only watching intraday chart EMAs without checking the daily chart EMA stack. If the daily 20 EMA is acting as resistance, intraday bullish breakouts above it will likely fail.</div>
+      <div class="mc-fix">Fix: Before any intraday session, check the daily chart EMA alignment. The daily trend context must support your intraday trade direction.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🎯</div>
+      <div class="mc-title">No Candle Confirmation at EMA</div>
+      <div class="mc-body">Buying the moment price touches the 20 EMA on a 15-min chart without waiting for a reversal candle. Price sometimes touches the EMA and continues through it — without confirmation, these are losing trades.</div>
+      <div class="mc-fix">Fix: Always require a reversal candle pattern at the EMA before entering. A Doji, Hammer, or Engulfing at the EMA = entry. A naked touch without pattern = wait.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 7</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>EMA reacts faster than SMA because it gives more weight to recent prices — use EMA, not SMA, for trend analysis in Nifty</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The three key EMAs: 20 (short-term), 50 (medium-term), 200 (long-term) — each represents a different institutional time horizon</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Bullish EMA stack: Price &gt; 20 &gt; 50 &gt; 200 — maximum bull health. Buy every 20 EMA pullback in this alignment</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The 20 EMA pullback trade is the most reliable trend-following strategy — buy dips to 20 EMA in a confirmed bull trend</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>EMA crossovers are lagging signals — use them to confirm trends, not as entry triggers themselves</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The 200 EMA is the bull/bear market divider — price above = bull territory; price below = bear territory</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>EMA squeezes (converged EMAs) precede explosive moves — trade the breakout, not inside the compression</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>EMA + candlestick pattern = highest-probability trade setup — never enter at an EMA without a confirming reversal candle</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on EMA strategies · Earn up to 35 XP</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=7">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_6.html">← Chapter 6: VWAP</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_8.html">Chapter 8: RSI →</a>
+</div>
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 7 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=35,CH_ID='ta_7';
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.7 EMA Strategies',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;p.activity.unshift({icon:'🏆',title:'Badge: First Step earned!',xp:10,date:new Date().toISOString()});}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;p.activity.unshift({icon:'🏆',title:'Badge: Quick Start earned!',xp:25,date:new Date().toISOString()});}
+  const taIds=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  if(taIds.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===7)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>

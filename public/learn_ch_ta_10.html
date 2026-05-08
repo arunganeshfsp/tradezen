@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 10: Psychology & Risk Management | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--border:#252a44;--border2:#323868;--accent:#7c6af7;--blue:#5b8af5;--green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);--red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);--yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);--cyan:#00d4ff;--text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;--r:10px;--r2:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.cb-breadcrumb a{color:var(--muted);text-decoration:none}.cb-breadcrumb a:hover{color:var(--accent)}.cb-sep{color:var(--border2)}.cb-current{color:var(--text);font-weight:600}.cb-spacer{flex:1}.cb-prog{display:flex;align-items:center;gap:8px}.cb-dots{display:flex;gap:4px}.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}.toc-list{display:flex;flex-direction:column;gap:2px}.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}.section p strong{color:var(--text)}.section p em{color:var(--accent);font-style:normal}.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.ex-content{font-size:13px;color:var(--dim);line-height:1.75}.ex-content strong{color:var(--text)}.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* PSYCHOLOGY SPECTRUM */
+.psych-spectrum{margin:16px 0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px}
+.ps-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.ps-bar{height:12px;border-radius:6px;background:linear-gradient(90deg,#4a90d9 0%,#2ecc71 45%,#f5a623 75%,#e74c3c 100%);margin-bottom:10px;position:relative}
+.ps-markers{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:14px}
+.ps-marker{text-align:center;flex:1}
+.ps-marker strong{display:block;font-size:12px;color:var(--text);font-weight:600}
+.ps-states{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ps-state{background:var(--bg3);border-radius:var(--r2);padding:10px 12px;border:1px solid var(--border)}
+.ps-state.bad{border-color:var(--red-border);background:var(--red-bg)}
+.ps-state.good{border-color:var(--green-border);background:var(--green-bg)}
+.ps-state.warn{border-color:var(--yellow-border);background:var(--yellow-bg)}
+.ps-state-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;margin-bottom:4px}
+.ps-state-desc{font-size:11px;color:var(--dim);line-height:1.5}
+.ps-state.bad .ps-state-name{color:var(--red)}
+.ps-state.good .ps-state-name{color:var(--green)}
+.ps-state.warn .ps-state-name{color:var(--yellow)}
+
+/* RISK FORMULA */
+.risk-formula{background:var(--bg2);border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);padding:20px 24px;margin:16px 0;text-align:center}
+.rf-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.rf-eq{font-family:'JetBrains Mono',monospace;font-size:18px;color:#fff;font-weight:700;margin-bottom:12px;line-height:1.6}
+.rf-eq span{color:var(--accent)}
+.rf-vars{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.rf-var{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:var(--bg3);padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
+
+/* DRAWDOWN TABLE */
+.dd-row-low td{color:var(--green)}
+.dd-row-med td{color:var(--yellow)}
+.dd-row-high td{color:var(--red)}
+.dd-row-crit td{color:var(--red);font-weight:700}
+
+/* JOURNAL ENTRY MOCK */
+.journal-entry{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.je-header{background:var(--bg3);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.je-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff}
+.je-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.je-body{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.je-row{display:flex;gap:10px;align-items:flex-start;font-size:12px}
+.je-key{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;min-width:100px;flex-shrink:0;padding-top:1px}
+.je-val{color:var(--dim);line-height:1.6}.je-val strong{color:var(--text)}
+.je-val.win{color:var(--green)}.je-val.loss{color:var(--red)}
+
+/* CHECKLIST */
+.checklist{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.cl-section{padding:14px 18px;border-bottom:1px solid var(--border)}
+.cl-section:last-child{border-bottom:none}
+.cl-section-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.cl-items{display:flex;flex-direction:column;gap:6px}
+.cl-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--dim);line-height:1.55}
+.cl-item::before{content:"☐";font-size:13px;color:var(--border2);flex-shrink:0;margin-top:1px}
+
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}.mc-icon{font-size:20px;margin-bottom:8px}.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}.mc-body{font-size:12px;color:var(--dim);line-height:1.6}.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}.tk-list{display:flex;flex-direction:column;gap:8px}.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}.qcta-left p{font-size:12px;color:var(--dim)}.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}.qbtn:hover{opacity:.85}.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}.mark-btn:hover{border-color:var(--green);color:var(--green)}.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+
+/* MASTER BADGE BANNER */
+.master-banner{background:linear-gradient(135deg,rgba(124,106,247,0.15),rgba(0,212,255,0.08));border:1px solid rgba(124,106,247,0.4);border-radius:var(--r);padding:24px 28px;margin:32px 0;text-align:center}
+.mb-icon{font-size:40px;margin-bottom:10px}
+.mb-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:6px}
+.mb-sub{font-size:13px;color:var(--dim);line-height:1.7}
+.mb-sub strong{color:var(--accent)}
+
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a><span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a><span class="cb-sep">›</span>
+    <span class="cb-current">Ch.10 Psychology & Risk</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog"><span class="cb-ch-label">CHAPTER</span><div class="cb-dots" id="chDots"></div></div>
+</div>
+
+<div class="page">
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">10</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 10 · Final Chapter</div>
+      <h1>Psychology & <em>Risk Management</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">You can master every indicator in this course — CPR, VWAP, EMA, RSI, Options Chain — and still blow up your account. Psychology and risk management are the invisible infrastructure that determine whether your technical edge actually translates into consistent profits. This is the chapter that separates traders who survive from those who don't.</p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~24 min read</span>
+    <span class="ch-meta-pill">⚡ 40 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🏆 Final chapter</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>The Missing Edge — Psychology</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>FOMO — Fear of Missing Out</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>Revenge Trading — The Loss Spiral</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>Overconfidence After a Winning Streak</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>Position Sizing — The 1-2% Rule</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>Drawdown Management</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>Stop Loss Discipline</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>The Trading Journal</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Building Your Daily Trading Routine</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>The Missing Edge — Psychology</h2></div>
+  <p>Studies across global retail traders consistently show that <strong>the primary reason traders fail is not lack of knowledge — it is lack of emotional control.</strong> Most losing retail traders understand support and resistance, know what an EMA is, can read a candlestick. The gap is execution under pressure: taking impulsive trades, exiting winners too early, holding losers too long, and abandoning their system after a string of losses.</p>
+
+  <p>Emotions follow a predictable cycle in trading. Understanding where you are in this cycle at any given moment is the first step to managing it.</p>
+
+  <div class="psych-spectrum">
+    <div class="ps-label">The Trading Emotion Spectrum</div>
+    <div class="ps-bar"></div>
+    <div class="ps-markers">
+      <div class="ps-marker"><strong style="color:#4a90d9">Fear</strong><br>After losses</div>
+      <div class="ps-marker"><strong style="color:#2ecc71">Optimal</strong><br>Process focus</div>
+      <div class="ps-marker"><strong style="color:#f5a623">Overconfident</strong><br>After wins</div>
+      <div class="ps-marker"><strong style="color:#e74c3c">Greed</strong><br>FOMO / Revenge</div>
+    </div>
+    <div class="ps-states">
+      <div class="ps-state bad">
+        <div class="ps-state-name">Fear State</div>
+        <div class="ps-state-desc">Hesitating on valid setups, exiting winners at first sign of retracement, revenge-avoiding inaction</div>
+      </div>
+      <div class="ps-state good">
+        <div class="ps-state-name">Optimal State</div>
+        <div class="ps-state-desc">Following the plan, taking setups that meet criteria, accepting small losses without emotion</div>
+      </div>
+      <div class="ps-state warn">
+        <div class="ps-state-name">Overconfident</div>
+        <div class="ps-state-desc">Oversizing positions, skipping confirmations, "I know where this is going" thinking</div>
+      </div>
+      <div class="ps-state bad">
+        <div class="ps-state-name">Greed/Revenge</div>
+        <div class="ps-state-desc">Chasing missed moves, doubling after losses, holding losers hoping for a reversal</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">🧠</span>
+    <p><strong>The core insight:</strong> A trading system with 50% win rate and 2:1 reward-risk is mathematically profitable over 100+ trades. But if emotional state causes you to skip 30% of valid setups (fear), take 20% extra bad setups (FOMO), and hold losers 50% longer than planned (hope) — the same system becomes a consistent money loser. Your edge exists in the strategy. Your execution destroys or preserves it.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>FOMO — Fear of Missing Out</h2></div>
+  <p><strong>FOMO</strong> is the compulsion to enter a trade because you see the market moving and fear being left behind — not because your setup has triggered. It is the single most common reason retail traders buy tops and sell bottoms. FOMO trades bypass your entry criteria, which means they bypass your edge.</p>
+
+  <h3>How FOMO Unfolds</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb"><div class="st">You have a valid setup but wait for confirmation</div><p>Your plan says: enter CPR TC retest with a hammer candle. Market is at TC but no hammer yet.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb"><div class="st">Market moves without you — 80 points in 15 minutes</div><p>You watch it go. The emotional discomfort builds. Rationalization starts: "the trend is clearly up, this is obvious."</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">3</div>
+      <div class="sb"><div class="st">You enter at the extended price — no setup, no defined stop</div><p>You chase 80 points into the move. Your entry is near the day's high. Your "stop" is vague: "I'll exit if it comes back."</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">4</div>
+      <div class="sb"><div class="st">Market pulls back to the original setup level and bounces</div><p>You've been stopped out (or panic-exited). The original setup plays out perfectly — the entry you waited for now delivers the full target. You took the loss instead of the profit.</p></div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Real Example — Nifty · June 4, 2024 (Election Results Day)</div>
+    <div class="ex-content">
+      Nifty opened with a massive gap-down of <span class="price">~1,379 pts</span> (from prior close ~<span class="price">22,704</span> to open ~<span class="price">21,325</span>) as early exit poll results caused panic. Within the first 30 minutes, FOMO-driven selling pushed Nifty down to <span class="price">21,281</span>. Traders who chased the fear and sold the open locked in their worst price of the day.<br><br>
+      <strong>What actually happened:</strong> Nifty recovered through the entire session, closing at <span class="price">21,884</span> — a ~600-point intraday recovery from the panic low. By June 10, Nifty had fully recovered to above the pre-election level. Traders who chased FOMO selling at the open captured maximum loss; traders who waited for a setup and bought the low (21,281 Hammer on 15-min) captured the full recovery.
+    </div>
+  </div>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>The FOMO antidote:</strong> Write your pre-market setup triggers before the open. If the market triggers your pre-defined criteria, enter. If it doesn't, there is no trade. A missed opportunity is not a loss. An unplanned FOMO trade often is. The market will always provide another setup — next candle, next session, next week.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>Revenge Trading — The Loss Spiral</h2></div>
+  <p><strong>Revenge trading</strong> is the act of increasing position size, overtrading, or abandoning your plan after a loss — driven by the emotional need to "get the money back" immediately. It is the fastest way to turn a small, manageable loss into an account-destroying disaster.</p>
+  <p>The mechanism is rooted in <strong>loss aversion</strong> — psychologically, losses feel 2.5× more painful than equivalent gains feel rewarding. This asymmetric pain pushes traders to take irrational risks to avoid "accepting" the loss.</p>
+
+  <h3>The Revenge Spiral Pattern</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn r">1</div>
+      <div class="sb"><div class="st">Valid trade triggers — stop hit, planned loss of ₹2,000</div><p>Setup was correct but market didn't cooperate. This is normal — a 50% win rate strategy loses half the time.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">2</div>
+      <div class="sb"><div class="st">Emotional state shifts — "I need to recover that ₹2,000"</div><p>The goal changes from "find the next good setup" to "get the money back now." This is the moment everything goes wrong.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">3</div>
+      <div class="sb"><div class="st">Double position size on the very next trade — no setup analysis</div><p>4 lots instead of 2. Stop hit again. Loss: ₹4,000. Total: ₹6,000 in two trades.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">4</div>
+      <div class="sb"><div class="st">Now need to recover ₹6,000 — triple position on third trade</div><p>6 lots. The math is now working exponentially against you. One more stop hit and the day's total loss is ₹14,000+ on a trade that should have been ₹2,000.</p></div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Real Example — Nifty · March 15, 2024</div>
+    <div class="ex-content">
+      Nifty was in a consolidation between <span class="price">22,000–22,200</span>. A trader planned a breakout entry at <span class="price">22,205</span> with a stop at <span class="price">22,155</span> (50 pts, 2 lots = ₹5,000 risk). The breakout triggered, ran to <span class="price">22,220</span>, then reversed sharply back through entry — stop hit: <strong>−₹5,000</strong>.<br><br>
+      <strong>Revenge trade 1:</strong> Entered short at 22,175 (chasing the drop), 4 lots. Market bounced to 22,210 — stop hit: <strong>−₹7,000</strong>. Total: ₹12,000.<br>
+      <strong>Revenge trade 2:</strong> Entered long again at 22,208, 6 lots, no stop placed. Market drifted to 22,140 — manually exited in panic: <strong>−₹20,400</strong>. Day total: ₹32,400 — from a trade that should have been a ₹5,000 planned loss.
+    </div>
+  </div>
+
+  <div class="info-box ib-red">
+    <span class="info-icon">🛑</span>
+    <p><strong>The only cure:</strong> A hard daily loss limit rule. Decide in advance: "If I lose ₹X today, I close the platform and do not trade again until tomorrow." Write this limit on paper before the session starts. When hit, the trading day is over — not negotiable. Most professional traders enforce a 2-session max daily loss rule.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>Overconfidence After a Winning Streak</h2></div>
+  <p>A winning streak feels like proof of skill. After 8 or 10 consecutive profitable trades, the brain begins to believe it has "figured out the market." Caution is abandoned. Position sizes creep up. Setups that don't fully meet criteria are taken because "I've been right all week." This is how bull markets create overconfident traders — and then a single volatile day destroys months of gains.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Streak Length</th><th>What the Brain Tells You</th><th>What Is Actually Happening</th></tr></thead>
+    <tbody>
+      <tr><td>3–4 wins</td><td>"My system is working"</td><td>Normal variance — expected in any positive-edge system</td></tr>
+      <tr><td>5–7 wins</td><td>"I'm reading the market well"</td><td>Possibly skill, possibly favourable market conditions for your setup</td></tr>
+      <tr><td>8–10 wins</td><td>"I can't lose, my edge is exceptional"</td><td>Overconfidence zone — criteria begin to loosen, size begins to creep</td></tr>
+      <tr><td>10+ wins</td><td>"Normal rules don't apply to me right now"</td><td>Maximum danger — the next trade will be the most over-sized and under-analyzed of the streak</td></tr>
+    </tbody>
+  </table>
+
+  <div class="example-box">
+    <div class="ex-label">Real Example — Nifty Bull Market Oct–Dec 2023</div>
+    <div class="ex-content">
+      Nifty rallied from <span class="price">18,837</span> (Oct 26) to <span class="price">21,593</span> (Dec 28) — a 14.6% move in 9 weeks. Momentum traders who rode CPR breakouts and EMA pullbacks during this period often accumulated 10–12 consecutive winning trades in a month. Many began using 3–5× their normal lot sizes by December.<br><br>
+      <strong>The reset:</strong> January 2024 opened with a sharp reversal — Nifty dropped from <span class="price">21,593</span> to <span class="price">21,137</span> in the first week. Overconfident traders with oversized positions who had 50-point stops on 10 lots instead of 2 lost 5× their normal risk — wiping out 2–3 weeks of gains in a single session. Traders who maintained consistent sizing preserved their capital and continued profiting.
+    </div>
+  </div>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>The discipline rule:</strong> Never increase position size because of recent wins. Your maximum position size is determined by your risk rules and account balance — not your recent P&L. After a winning streak, tighten your criteria slightly rather than loosening them. The streak has already given you a statistical gift; protect it.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>Position Sizing — The 1-2% Rule</h2></div>
+  <p>The single most important mechanical rule in trading is: <strong>never risk more than 1–2% of your total account on any single trade.</strong> This rule keeps you in the game after losing streaks, prevents any single trade from being catastrophic, and ensures you have capital to trade tomorrow even after a bad day.</p>
+
+  <div class="risk-formula">
+    <div class="rf-title">Position Size Formula</div>
+    <div class="rf-eq">
+      Lots = <span>Account × Risk%</span> ÷ <span>(Stop Pts × Lot Size)</span>
+    </div>
+    <div class="rf-vars">
+      <span class="rf-var">Account = Total capital</span>
+      <span class="rf-var">Risk% = 1% or 2%</span>
+      <span class="rf-var">Stop Pts = Entry − Stop price</span>
+      <span class="rf-var">Lot Size = 50 (Nifty) / 15 (BankNifty)</span>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Worked Example — Nifty Futures Position Sizing</div>
+    <div class="ex-content">
+      <strong>Account:</strong> ₹5,00,000 &nbsp;|&nbsp; <strong>Risk per trade:</strong> 1% = ₹5,000<br>
+      <strong>Trade setup:</strong> Entry at CPR TC <span class="price">22,340</span>, Stop at CPR PP <span class="price">22,290</span> → Stop distance = <span class="price">50 points</span><br>
+      <strong>Calculation:</strong> ₹5,000 ÷ (50 pts × 50 units/lot) = ₹5,000 ÷ 2,500 = <strong>2 lots</strong><br><br>
+      Checking: 2 lots × 50 pts stop × ₹50/pt = ₹5,000 max loss ✓<br><br>
+      <strong>If the stop was tighter at 30 pts:</strong> ₹5,000 ÷ (30 × 50) = 3.33 → 3 lots max<br>
+      <strong>If the stop was wider at 80 pts:</strong> ₹5,000 ÷ (80 × 50) = 1.25 → 1 lot max<br><br>
+      <strong>Key insight:</strong> The position size varies with the stop, not with your conviction. A tighter setup naturally allows more lots while maintaining the same rupee risk.
+    </div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>Account Size</th><th>1% Risk Limit</th><th>2% Risk Limit</th><th>Example: 50-pt Nifty stop (max lots)</th></tr></thead>
+    <tbody>
+      <tr><td>₹2,00,000</td><td>₹2,000</td><td>₹4,000</td><td>1 lot (1%) / 1 lot (2%)</td></tr>
+      <tr><td>₹5,00,000</td><td>₹5,000</td><td>₹10,000</td><td>2 lots (1%) / 4 lots (2%)</td></tr>
+      <tr><td>₹10,00,000</td><td>₹10,000</td><td>₹20,000</td><td>4 lots (1%) / 8 lots (2%)</td></tr>
+      <tr><td>₹25,00,000</td><td>₹25,000</td><td>₹50,000</td><td>10 lots (1%) / 20 lots (2%)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-green">
+    <span class="info-icon">✅</span>
+    <p><strong>Why 1% and not 5%?</strong> At 1% risk, a 10-trade losing streak costs you 9.6% of capital — painful but recoverable. At 5% risk, the same 10-trade losing streak costs 40% of your capital — requiring a 67% gain just to break even. Streaks of 7–10 losses in a row are statistically normal even in profitable trading systems. The 1% rule keeps them survivable.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>Drawdown Management</h2></div>
+  <p>A <strong>drawdown</strong> is the peak-to-trough decline in your account balance. Every trader experiences drawdowns — even the best performing funds have 15–25% drawdowns regularly. The question is not whether you will have a drawdown, but whether it is small enough to recover from.</p>
+  <p>The mathematics of recovery are deeply asymmetric: losing 50% of your account requires gaining 100% to return to break-even. This is why preventing large drawdowns is the most important risk management goal.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Loss From Peak</th><th>Recovery Needed</th><th>Severity</th><th>Recommended Action</th></tr></thead>
+    <tbody>
+      <tr class="dd-row-low"><td>5%</td><td>5.3%</td><td>Normal variance</td><td>Continue trading — review if needed</td></tr>
+      <tr class="dd-row-low"><td>10%</td><td>11.1%</td><td>Moderate</td><td>Reduce position size by 50% until recovered</td></tr>
+      <tr class="dd-row-med"><td>20%</td><td>25%</td><td>Significant</td><td>Pause trading — review system for 2+ weeks</td></tr>
+      <tr class="dd-row-high"><td>30%</td><td>42.9%</td><td>Severe</td><td>Stop trading — fundamental review of approach required</td></tr>
+      <tr class="dd-row-crit"><td>50%</td><td>100%</td><td>Account-threatening</td><td>Full stop — rebuild plan, paper trade before real capital</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Daily and Weekly Loss Limits</h3>
+  <p>Beyond maximum drawdown, set <strong>daily and weekly loss limits</strong> as hard stops. These prevent a bad day from becoming a bad week, and a bad week from becoming a bad month.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Limit Type</th><th>Recommended Threshold</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td>Daily loss limit</td><td>2–3% of account</td><td>Hit the limit → close platform, done for the day</td></tr>
+      <tr><td>Weekly loss limit</td><td>5% of account</td><td>Hit the limit → no new trades until next week</td></tr>
+      <tr><td>Monthly drawdown trigger</td><td>10% of account</td><td>Drop to half position size for the remainder of the month</td></tr>
+      <tr><td>Max drawdown circuit breaker</td><td>15–20% of account</td><td>Full trading halt — system review before resuming</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Drawdown during trending markets:</strong> Nifty had 8 consecutive strong bullish weeks in Oct–Dec 2023. Even in this environment, intraday traders who did not manage drawdown limits could have multiple 3–4% account losses in the same week during intraday reversals. A smooth equity curve comes from drawdown rules, not from a favourable market.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>Stop Loss Discipline</h2></div>
+  <p>A stop loss is not optional. It is the single mechanism that keeps any one trade from ending your trading career. <strong>Every trade must have a pre-determined stop loss before entry — defined at the time of entering, not after the trade is running.</strong></p>
+  <p>The most destructive habit in retail trading is the "mental stop" — a stop the trader intends to trigger manually when price reaches a level, but which is never actually placed. Under emotional pressure, mental stops almost never get executed at the planned level. They get moved, then moved again, then abandoned entirely as hope takes over.</p>
+
+  <h3>Proper Stop Loss Workflow</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">1</div>
+      <div class="sb"><div class="st">Identify stop level before entry</div><p>Where is your setup invalidated? For CPR trades: below BC. For EMA pullbacks: below the EMA that was tested. For breakouts: back inside the range. This is your stop — not an arbitrary number of points.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb"><div class="st">Calculate lot size from the stop distance</div><p>Use the 1-2% rule formula. If the stop is too far for your account to risk appropriately, there is no trade — not a smaller stop. Finding the setup elsewhere or waiting for a tighter entry near the level.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb"><div class="st">Place the stop order immediately after entry</div><p>Not "after I see how it opens." Not "I'll set it in 2 minutes." Immediately, as the very next action after entry. A stop not placed is not a stop.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">4</div>
+      <div class="sb"><div class="st">Move stop to breakeven only when price reaches 1:1 reward</div><p>Once the trade has moved as many points in your favour as your initial stop distance, move the stop to entry. You are now in a risk-free trade. Do not move to breakeven too early — you'll be stopped out by normal noise.</p></div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">5</div>
+      <div class="sb"><div class="st">Never widen a stop once placed</div><p>Stops can only be moved in your favour (to lock in profit) or held at original level. Never moved away from price to give a losing trade "more room." If it reaches your stop, the thesis was wrong — exit and re-evaluate.</p></div>
+    </div>
+  </div>
+
+  <div class="info-box ib-red">
+    <span class="info-icon">🛑</span>
+    <p><strong>The most common stop loss failure:</strong> "It was just 10 points away from my stop before reversing — so I moved my stop 15 more points." This single sentence, repeated 3 times in a session, converts a 50-point stop into a 200-point disaster. The original stop was placed where the trade idea was wrong. Moving it past that point means continuing to hold a trade you've already acknowledged is incorrect.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>The Trading Journal</h2></div>
+  <p>A trading journal is the only objective feedback mechanism available to a trader. Your memory is unreliable — it selectively recalls winners more vividly than losers, and attributes wins to skill while blaming losses on bad luck. A journal bypasses memory bias entirely. It gives you the raw data to identify exactly what is and isn't working.</p>
+  <p><strong>Traders who keep journals improve faster.</strong> Not because writing magically creates skill, but because a journal forces post-trade review — which is the mechanism of learning. Without it, patterns (good and bad) repeat indefinitely.</p>
+
+  <h3>Sample Journal Entry</h3>
+  <div class="journal-entry">
+    <div class="je-header">
+      <div class="je-title">Trade Journal — Nifty Futures</div>
+      <div class="je-date">Feb 09, 2024 · 09:32 Entry</div>
+    </div>
+    <div class="je-body">
+      <div class="je-row"><div class="je-key">Setup</div><div class="je-val">CPR TC pullback + 20 EMA support + bullish engulfing on 15-min</div></div>
+      <div class="je-row"><div class="je-key">Entry</div><div class="je-val"><strong>₹21,953</strong> — bought 2 lots Nifty Futures at CPR TC retest</div></div>
+      <div class="je-row"><div class="je-key">Stop</div><div class="je-val"><strong>₹21,908</strong> — below CPR PP (45 pts stop, ₹4,500 max risk)</div></div>
+      <div class="je-row"><div class="je-key">Target</div><div class="je-val"><strong>₹22,098</strong> — prior day high (145 pts target, ~3:1 R:R)</div></div>
+      <div class="je-row"><div class="je-key">Exit</div><div class="je-val class='win'"><strong>₹22,097</strong> at 11:45 · Target hit · +144 pts · <span class="win">+₹14,400</span></div></div>
+      <div class="je-row"><div class="je-key">Emotion</div><div class="je-val">Felt hesitation at entry (market was choppy morning). Followed plan. Moved stop to BE at 1:1 (22,000).</div></div>
+      <div class="je-row"><div class="je-key">Review</div><div class="je-val">Setup was clean. Entry timing was right. Could have entered 1 more lot — CPR TC + 20 EMA + engulfing is A-grade setup. Add to playbook.</div></div>
+    </div>
+  </div>
+
+  <h3>What to Record for Every Trade</h3>
+  <table class="tbl">
+    <thead><tr><th>Field</th><th>What to Note</th><th>Why It Matters</th></tr></thead>
+    <tbody>
+      <tr><td>Setup name</td><td>CPR TC pullback / EMA bounce / S/R reversal etc.</td><td>Track which setups have the highest win rate for you</td></tr>
+      <tr><td>Entry, Stop, Target</td><td>Exact prices before entry</td><td>Calculates planned R:R — forces discipline before entry</td></tr>
+      <tr><td>Actual exit</td><td>Price + reason (target/stop/time exit)</td><td>Reveals if you exit winners too early or move stops</td></tr>
+      <tr><td>Emotional state</td><td>Calm / anxious / FOMO / revenge etc.</td><td>Reveals if emotional state correlates with losing trades</td></tr>
+      <tr><td>Post-trade notes</td><td>What you would do differently</td><td>The actual learning mechanism — review weekly for patterns</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Building Your Daily Trading Routine</h2></div>
+  <p>Consistency in results comes from consistency in process. A written daily routine eliminates the most common source of trading errors: <em>decision fatigue</em>. When you follow a checklist, you don't decide whether to check the options chain — you just do it. This removes the "I know I should but..." gap that causes most preparation failures.</p>
+
+  <div class="checklist">
+    <div class="cl-section">
+      <div class="cl-section-title">Pre-Market (15 min before open)</div>
+      <div class="cl-items">
+        <div class="cl-item">Calculate today's CPR (TC, PP, BC) for Nifty and BankNifty using yesterday's OHLC</div>
+        <div class="cl-item">Note CPR width — narrow = range day likely, wide = trending day expected</div>
+        <div class="cl-item">Check overnight SGX Nifty / Dow futures for gap-up or gap-down context</div>
+        <div class="cl-item">Open options chain — identify max call OI (resistance) and max put OI (support) strikes</div>
+        <div class="cl-item">Write 2–3 specific setup triggers: "If Nifty tests 22,340 TC and forms a hammer, enter long — stop 22,290"</div>
+        <div class="cl-item">Check economic calendar — budget/RBI/earnings releases that could cause IV expansion or gap moves</div>
+      </div>
+    </div>
+    <div class="cl-section">
+      <div class="cl-section-title">During Market (09:15 – 15:30)</div>
+      <div class="cl-items">
+        <div class="cl-item">First 15 minutes: observe only — do not trade the open unless a pre-planned gap setup triggers</div>
+        <div class="cl-item">Maximum 2–3 trades per session — more trades = more chances for emotional decisions</div>
+        <div class="cl-item">After any stop hit: 15-minute cooling-off period before the next trade — no exceptions</div>
+        <div class="cl-item">Check VWAP bias at 10:00 — is price above or below VWAP? Sets directional bias for session</div>
+        <div class="cl-item">After daily loss limit is reached: close the platform. The day is done.</div>
+      </div>
+    </div>
+    <div class="cl-section">
+      <div class="cl-section-title">Post-Market (30 min after close)</div>
+      <div class="cl-items">
+        <div class="cl-item">Record all trades in journal: entry, stop, target, actual exit, emotion, review notes</div>
+        <div class="cl-item">Note today's Nifty OHLC for tomorrow's CPR calculation</div>
+        <div class="cl-item">Review: did you follow your plan? Any FOMO / revenge trades? What would you do differently?</div>
+        <div class="cl-item">Check week-to-date P&L against weekly loss limit — adjust position size for next session if needed</div>
+      </div>
+    </div>
+    <div class="cl-section">
+      <div class="cl-section-title">Weekly Review (Sunday, 30 min)</div>
+      <div class="cl-items">
+        <div class="cl-item">Review all journal entries — identify recurring patterns in wins and losses</div>
+        <div class="cl-item">Calculate win rate and average R:R by setup type — which setups are actually profitable for you?</div>
+        <div class="cl-item">Identify one specific thing to improve next week — not a vague goal, a specific rule change</div>
+        <div class="cl-item">Review TradeZen dashboard — check XP progress, quiz scores, areas needing re-study</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>The compound effect of routine:</strong> Following this routine 5 days a week creates 250+ trade reviews per year. Each review is a micro-lesson. After 12 months of consistent journaling and weekly review, you will have identified your 3–4 highest-probability setups, eliminated your most recurring mistakes, and have objective data on exactly what works for your style and market conditions. No course can substitute for this personal data set.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">🎯</div>
+      <div class="mc-title">No Pre-Defined Stop Loss</div>
+      <div class="mc-body">Entering trades with a "mental stop" — a level you intend to exit manually. Under emotional pressure, mental stops never trigger at the planned price. They get moved until the trade is a catastrophe.</div>
+      <div class="mc-fix">Fix: Place a hard stop order on the exchange immediately after entry. The stop must be in the system before you watch the trade, not after.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📈</div>
+      <div class="mc-title">Oversizing After a Winning Streak</div>
+      <div class="mc-body">Increasing position size because "I'm in a groove." Position size is determined by the 1-2% rule and your stop distance — never by recent performance. The next trade doesn't know you've been winning.</div>
+      <div class="mc-fix">Fix: Use a fixed position sizing formula for every trade. After a 5+ win streak, if anything, reduce size slightly and tighten criteria as a discipline check.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Averaging Down on Losing Trades</div>
+      <div class="mc-body">Adding to a position that is moving against you to "average" your entry price lower. This converts a small defined loss into a catastrophically large undefined loss if the trend continues.</div>
+      <div class="mc-fix">Fix: One entry per trade idea. If stopped out, the original thesis was wrong. Averaging down is hope masquerading as a strategy — it is not position management.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">⏰</div>
+      <div class="mc-title">Overtrading — Taking Every Candle as a Setup</div>
+      <div class="mc-body">Taking 8–12 trades per day "because the market is active." More trades means more exposure to variance, more commissions, and more emotional decisions. Quality over quantity always.</div>
+      <div class="mc-fix">Fix: Set a maximum trade count (2–3/day for Nifty intraday). Once your limit is reached, close the charts. Your best trades are setups that meet all 4–5 confluence criteria — not every movement.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📓</div>
+      <div class="mc-title">Not Keeping a Journal</div>
+      <div class="mc-body">Relying on memory to track performance. Memory is selective — it amplifies wins and minimises losses, creating a false picture of your actual edge and preventing pattern recognition.</div>
+      <div class="mc-fix">Fix: 5 minutes of post-trade journaling after every session. After 3 months, you will have data that no amount of reading can provide: your actual personal win rate, average R:R, and loss patterns.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🚫</div>
+      <div class="mc-title">Trading When Emotional</div>
+      <div class="mc-body">Continuing to trade after a large loss, after personal stress events, or in a state of anger or anxiety. Emotional state directly affects decision quality — a stressed brain makes statistically worse decisions.</div>
+      <div class="mc-fix">Fix: Assess emotional state before each trade. Rate yourself 1–10 (10 = fully calm, objective). If below 7, step away. Return only when you can honestly describe your setup criteria without mentioning your P&L.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 10</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>Technical knowledge is necessary but not sufficient — emotional control is the invisible edge that separates consistently profitable traders from consistent losers</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>FOMO trades bypass your entry criteria and therefore bypass your statistical edge — a missed trade is not a loss, an unplanned trade often is</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Revenge trading converts small planned losses into account-destroying spirals — the only cure is a hard daily loss limit with zero exceptions</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Position sizing using the 1-2% rule is the single most important mechanical protection — it makes even 10-trade losing streaks survivable</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The mathematics of drawdown recovery are asymmetric — a 50% loss needs 100% gain to recover. Preventing large drawdowns is more valuable than generating large gains</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Stop losses must be placed on the exchange immediately after entry — never mental stops, never widened once placed, only moved in your favour to lock in profit</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>A trading journal is the only objective feedback mechanism you have — 5 minutes of post-trade recording creates the personal performance data that no course can provide</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>A written daily routine with pre-market preparation, intraday rules, and post-market review eliminates decision fatigue — the compound effect over 12 months is transformational</span></div>
+    </div>
+  </div>
+
+  <div class="master-banner">
+    <div class="mb-icon">🏆</div>
+    <div class="mb-title">Course Complete — TA Master</div>
+    <div class="mb-sub">You have completed all 10 chapters of the Technical Analysis course. You now understand Price Action, Candlestick Patterns, Support & Resistance, Volume, CPR, VWAP, EMA Strategies, RSI, Options Chain, and Psychology & Risk Management — the complete framework used by professional Nifty traders.<br><br><strong>Mark this chapter as read to earn the TA Master badge (+100 XP bonus)</strong></div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Final Chapter Quiz</h4>
+      <p>5 questions on psychology & risk · Earn 40 XP · Unlock TA Master badge</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=10">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_9.html">← Chapter 9: Options Chain</a>
+  <a class="pn-btn primary" href="/learn_technical.html">Course Overview →</a>
+</div>
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 10 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=40,CH_ID='ta_10';
+const TA_ALL=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.10 Psychology & Risk',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;}
+  if(TA_ALL.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  if(TA_ALL.every(id=>p.chapters_done.includes(id))&&!p.badges_earned.includes('ta_master')){
+    p.badges_earned.push('ta_master');p.xp+=100;
+    p.activity.unshift({icon:'🏆',title:'Badge: TA Master earned! All 10 chapters complete.',xp:100,date:new Date().toISOString()});
+  }
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===10)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 6: VWAP in Practice | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;--border:#252a44;--border2:#323868;--accent:#7c6af7;--blue:#5b8af5;--green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);--red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);--yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);--cyan:#00d4ff;--text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;--r:10px;--r2:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.cb-breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}.cb-breadcrumb a:hover{color:var(--accent)}.cb-sep{color:var(--border2)}.cb-current{color:var(--text);font-weight:600}.cb-spacer{flex:1}.cb-prog{display:flex;align-items:center;gap:8px}.cb-dots{display:flex;gap:4px}.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}.toc-list{display:flex;flex-direction:column;gap:2px}.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}.section p strong{color:var(--text)}.section p em{color:var(--accent);font-style:normal}.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.ex-content{font-size:13px;color:var(--dim);line-height:1.75}.ex-content strong{color:var(--text)}.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}.mc-icon{font-size:20px;margin-bottom:8px}.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}.mc-body{font-size:12px;color:var(--dim);line-height:1.6}.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}.tk-list{display:flex;flex-direction:column;gap:8px}.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}.qcta-left p{font-size:12px;color:var(--dim)}.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}.qbtn:hover{opacity:.85}.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}.mark-btn:hover{border-color:var(--green);color:var(--green)}.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* VWAP VISUAL */
+.vwap-chart{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin:16px 0;position:relative;overflow:hidden}
+.vc-header{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.vwap-zone{padding:8px 14px;border-radius:var(--r2);font-size:12px;margin:4px 0;display:flex;align-items:center;justify-content:space-between}
+.vz-bull{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+.vz-bear{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+.vz-neutral{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.2);color:var(--accent)}
+.vz-price{font-family:'JetBrains Mono',monospace;font-size:11px}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a><span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a><span class="cb-sep">›</span>
+    <span class="cb-current">Ch.6 VWAP</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog"><span class="cb-ch-label">CHAPTER</span><div class="cb-dots" id="chDots"></div></div>
+</div>
+
+<div class="page">
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">6</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 06 · Technical Analysis</div>
+      <h1>VWAP <em>in Practice</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">VWAP (Volume Weighted Average Price) is the intraday benchmark that every institutional trader watches. It is the price at which the most volume has transacted during the session — making it the single most important intraday support and resistance level in Nifty trading.</p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~18 min read</span>
+    <span class="ch-meta-pill">⚡ 35 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>What is VWAP?</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>How VWAP is Calculated</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>VWAP as Intraday Bias</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>VWAP Standard Deviation Bands</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>VWAP Pullback Trades</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>VWAP Reclaim Trade</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>VWAP + CPR Confluence</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>Anchored VWAP</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Institutional Use of VWAP</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>What is VWAP?</h2></div>
+  <p><strong>VWAP (Volume Weighted Average Price)</strong> is the average price at which a security has traded throughout the day, weighted by volume. A trade of 1000 lots at 22,500 counts more toward VWAP than 10 lots at 22,600. This weighting by volume is what makes VWAP the "true" average price — not just a simple arithmetic mean.</p>
+  <p>VWAP resets to zero at the start of each trading session (9:15 AM IST) and updates continuously throughout the day. Because of this reset, VWAP is a <strong>pure intraday indicator</strong> — it does not carry over to the next session. This is different from a moving average, which uses historical data.</p>
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>VWAP = Σ(Price × Volume) ÷ Σ(Volume)</strong> — summed from 9:15 AM to the current time. Early in the day (9:15–10:00), VWAP is heavily influenced by opening range volume. By afternoon, it stabilises and large single trades have less impact on its value.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>How VWAP is Calculated</h2></div>
+  <p>For each period (candle), calculate the <strong>Typical Price</strong> = (High + Low + Close) ÷ 3. Then multiply by that period's volume. VWAP at any point = sum of all (Typical Price × Volume) from session start ÷ sum of all volumes from session start.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Simplified VWAP Calculation — First 3 Candles of Session</div>
+    <div class="ex-content">
+      <strong>9:15 candle:</strong> H=22,100, L=21,950, C=22,050 → TP = 22,033. Volume = 50,000 lots. Contribution = 22,033 × 50,000 = 1,101,650,000<br>
+      <strong>9:30 candle:</strong> H=22,080, L=22,010, C=22,060 → TP = 22,050. Volume = 30,000. Contribution = 661,500,000<br>
+      <strong>9:45 candle:</strong> H=22,120, L=22,040, C=22,100 → TP = 22,087. Volume = 20,000. Contribution = 441,733,000<br><br>
+      <strong>VWAP at 9:45</strong> = (1,101,650,000 + 661,500,000 + 441,733,000) ÷ (50,000 + 30,000 + 20,000) = 2,204,883,000 ÷ 100,000 = <span class="price">22,049</span><br><br>
+      Notice VWAP is closest to the high-volume 9:15 candle (22,033) — that's the volume weighting at work.
+    </div>
+  </div>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>You don't need to calculate VWAP manually.</strong> All major Indian charting platforms (Zerodha Kite, TradingView, Upstox Pro) show VWAP as a built-in indicator on intraday charts. Add it to your 5-min or 15-min Nifty chart and it calculates automatically in real time.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>VWAP as Intraday Bias</h2></div>
+  <p>The simplest and most powerful VWAP rule: <strong>price above VWAP = bullish intraday bias; price below VWAP = bearish intraday bias</strong>. This is the institutional standard — most large funds execute buy orders when price is below VWAP (to get a better-than-average price) and sell when above VWAP (to get a better-than-average sale price).</p>
+
+  <div class="vwap-chart">
+    <div class="vc-header">VWAP ZONES — INTRADAY BIAS GUIDE</div>
+    <div class="vwap-zone vz-bull">
+      <span>Price well above VWAP (+1 std dev or more)</span>
+      <span class="vz-price">STRONG BULL — hold longs, avoid new longs here</span>
+    </div>
+    <div class="vwap-zone" style="background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)">
+      <span>Price above VWAP (within +1 std dev)</span>
+      <span class="vz-price">BULLISH — look for long entries on VWAP pulls</span>
+    </div>
+    <div class="vwap-zone vz-neutral">
+      <span>Price at VWAP (± a few points)</span>
+      <span class="vz-price">NEUTRAL — breakout zone, both directions possible</span>
+    </div>
+    <div class="vwap-zone" style="background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)">
+      <span>Price below VWAP (within -1 std dev)</span>
+      <span class="vz-price">BEARISH — look for short entries on VWAP pops</span>
+    </div>
+    <div class="vwap-zone vz-bear">
+      <span>Price well below VWAP (-1 std dev or more)</span>
+      <span class="vz-price">STRONG BEAR — hold shorts, avoid new shorts here</span>
+    </div>
+  </div>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">🎯</span>
+    <p><strong>The VWAP bias rule for Nifty:</strong> If Nifty opens above VWAP at 9:15 AM AND the CPR analysis confirms a bull bias (open above TC), you have <strong>double confirmation</strong>. In this scenario, buy any pullback to VWAP with high confidence. The reverse applies for bearish setups.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>VWAP Standard Deviation Bands</h2></div>
+  <p>Most VWAP indicators include <strong>standard deviation bands</strong> (±1 SD, ±2 SD) plotted above and below the VWAP line. These bands show how far price has deviated from the volume-weighted average and create natural support/resistance zones.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Band</th><th>Location</th><th>Meaning</th><th>Trading Use</th></tr></thead>
+    <tbody>
+      <tr><td>+2 SD</td><td>Far above VWAP</td><td>Significantly overbought intraday</td><td>Profit target for bull trades; potential short fade area</td></tr>
+      <tr><td>+1 SD</td><td>Above VWAP</td><td>Mild overbought</td><td>First profit target for long entries at VWAP</td></tr>
+      <tr><td>VWAP (0)</td><td>Centre</td><td>Fair value for the session</td><td>Dynamic support (bull day) or resistance (bear day)</td></tr>
+      <tr><td>-1 SD</td><td>Below VWAP</td><td>Mild oversold</td><td>First profit target for short entries at VWAP; potential long bounce zone</td></tr>
+      <tr><td>-2 SD</td><td>Far below VWAP</td><td>Significantly oversold intraday</td><td>Profit target for shorts; potential mean-reversion long setup</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>Nifty VWAP band statistics:</strong> On a typical day, Nifty price stays within ±1 SD of VWAP approximately 68% of the time (standard deviation property). On high-volatility days (budget, election results, RBI policy), the +2 SD or -2 SD bands may be reached. These extreme bands are where mean-reversion trades offer the best risk/reward.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>VWAP Pullback Trades</h2></div>
+  <p>The most common and reliable VWAP-based trade: <strong>buy a pullback to VWAP on a bull day; short a rally to VWAP on a bear day</strong>. The logic is simple — institutional buyers want to buy below VWAP to get a better-than-average price. When price returns to VWAP, they add to positions, creating the bounce you can ride.</p>
+
+  <h3>Bull Day VWAP Pullback — Setup Rules</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">1</div>
+      <div class="sb">
+        <div class="st">Confirm it's a bull day first</div>
+        <p>Price opened above VWAP (or quickly moved above it after open). CPR analysis shows open above TC or price has sustained above VWAP for at least 30–45 minutes.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb">
+        <div class="st">Wait for a pullback to VWAP</div>
+        <p>Price retreats from the session high toward VWAP. This is not a breakdown — it is a healthy pullback in an uptrend. The pullback should happen on declining volume (not panic selling).</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Enter on a reversal candle AT VWAP</div>
+        <p>A Hammer, Doji, or bullish candle forming right at VWAP = entry signal. Enter at the candle's close. Stop: 20–30 points below VWAP (below -1 SD if bands are shown).</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">4</div>
+      <div class="sb">
+        <div class="st">Target: +1 SD band or prior session high</div>
+        <p>First profit target is the +1 SD VWAP band. Second target is the prior high of the session. Exit 50–75% at first target, run the rest with a trailing stop at VWAP.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty VWAP Pullback Trade · Jan 22, 2024</div>
+    <div class="ex-content">
+      Session opened bullish — Nifty at <span class="price">21,988</span>, VWAP at <span class="price">21,950</span>. By 10:30, Nifty ran to <span class="price">22,097</span>. By 11:15, it pulled back to <span class="price">21,963</span> — almost exactly at VWAP (<span class="price">21,958</span>). A bullish Hammer formed on the 15-min chart at this level. <strong>Entry: 21,970 (Hammer close), Stop: 21,930 (below VWAP -1 SD at 21,925), Target: 22,097 (prior high).</strong> Nifty recovered and made a new session high at <span class="price">22,135</span>. Risk 40 pts, Reward 165 pts.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>VWAP Reclaim Trade</h2></div>
+  <p>A <strong>VWAP reclaim</strong> happens when price breaks below VWAP (going bearish), then fights back and closes above it again. This transition from bearish to bullish is a powerful signal — it means buyers overwhelmed sellers and reclaimed control of the session's average price.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Price drops below VWAP — bearish phase begins</div>
+        <p>The initial break below VWAP is a negative signal. Most intraday traders turn bearish at this point. Short sellers pile in expecting further decline.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb">
+        <div class="st">Price churns near VWAP, refusing to follow through lower</div>
+        <p>If price breaks below VWAP but doesn't continue lower — keeps coming back to VWAP — this is a warning sign that short sellers are trapped. Low volume on the decline below VWAP strengthens this read.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">A 15-min candle closes ABOVE VWAP = reclaim confirmed</div>
+        <p>This is the reclaim entry. Shorts who entered on the VWAP break are now trapped below and will cover as price rises, adding fuel to the move. Enter long at the close of the reclaim candle.</p>
+      </div>
+    </div>
+  </div>
+
+  <p>The VWAP reclaim trade works best during the Prime Zone (10:15 AM – 1:00 PM) when there is still significant session time remaining. A reclaim near 3:00 PM has less follow-through potential.</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>VWAP + CPR Confluence</h2></div>
+  <p>When VWAP aligns with a CPR level (TC, PP, or BC), the resulting support/resistance zone is significantly stronger than either level alone. This happens because two entirely independent calculation methods point to the same price — doubling the participant base that is watching that level.</p>
+
+  <div class="example-box">
+    <div class="ex-label">VWAP + CPR Confluence — Nifty Feb 19, 2024</div>
+    <div class="ex-content">
+      CPR BC for Feb 19 was at <span class="price">21,875</span>. By 10:45 AM, VWAP had settled at <span class="price">21,882</span> — just 7 points above CPR BC. <strong>VWAP (21,882) and CPR BC (21,875) had converged into a single support zone.</strong><br><br>
+      When Nifty pulled back to this zone at 11:00 AM and touched <span class="price">21,878</span>, the bounce was immediate and sharp — Nifty ran 150 points to <span class="price">22,028</span> within two hours. The confluence of two major levels created the strongest possible support zone in that session.
+    </div>
+  </div>
+
+  <h3>How Often Do VWAP and CPR Align?</h3>
+  <p>VWAP is dynamic (changes throughout the day). CPR is fixed (calculated pre-market). They will naturally converge at various points during the session. The most significant convergence happens when VWAP approaches a CPR level during the Prime Zone (10:15 AM – 1:00 PM) — this is when the alignment carries the most weight for intraday entries.</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>Anchored VWAP</h2></div>
+  <p><strong>Anchored VWAP (AVWAP)</strong> is a VWAP calculated from a specific historical starting point — such as a major swing low, a major news event, or the beginning of a new bull/bear phase. It gives the average price since that anchor point, making it a multi-day or multi-week reference level.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Anchor Point</th><th>Purpose</th><th>Use Case</th></tr></thead>
+    <tbody>
+      <tr><td>IPO date</td><td>Average price since listing</td><td>Identify if stock is above/below IPO buyers' average cost</td></tr>
+      <tr><td>Major low (swing/correction)</td><td>Average price since recovery began</td><td>Support level during pullbacks in bull trend</td></tr>
+      <tr><td>Earnings announcement</td><td>Average price since major news</td><td>Fair value established since earnings — support/resistance</td></tr>
+      <tr><td>52-week high/low</td><td>Average since extreme level hit</td><td>Reference for whether trend is above/below "ATH buyers' average"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>Practical AVWAP for Nifty:</strong> Anchor VWAP to Nifty's major correction low (e.g., Oct 2023 low at 18,837). If current Nifty is above the AVWAP from that low, the long-term buyers from the recovery are in profit and bullish sentiment is intact. If Nifty falls below this AVWAP, it signals distribution of those positions — a medium-term bearish signal.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Institutional Use of VWAP</h2></div>
+  <p>Understanding <em>why</em> institutions use VWAP makes you a better trader — because you can predict where institutional order flow will appear. Large institutions (mutual funds, insurance companies, FIIs) use VWAP as their execution benchmark.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">Buy</div>
+      <div class="sb">
+        <div class="st">Institutional buying: price below VWAP</div>
+        <p>When a mutual fund needs to buy 1000 crore worth of Nifty, they use algorithmic VWAP orders to execute over the day at or below VWAP. Each time price dips below VWAP, their algorithm places buy orders — which creates the "VWAP support" effect you see on your chart.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">Sell</div>
+      <div class="sb">
+        <div class="st">Institutional selling: price above VWAP</div>
+        <p>Similarly, when selling large positions, institutions sell above VWAP to get a better-than-average execution price. Their sell orders above VWAP create resistance — which is why VWAP becomes resistance on bear days.</p>
+      </div>
+    </div>
+  </div>
+
+  <p>This institutional algorithm behaviour is self-reinforcing. Because institutions use VWAP-based execution, the levels create real order flow at VWAP — which makes VWAP "work" as a technical level. It is one of the clearest examples of technical analysis creating its own reality through participant behaviour.</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Key Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">📅</div>
+      <div class="mc-title">Using VWAP on Daily Chart</div>
+      <div class="mc-body">VWAP resets every session. On a daily chart, the "VWAP" shown is not the same metric — it becomes a multi-day calculation that loses its intraday significance.</div>
+      <div class="mc-fix">Fix: Only use VWAP on intraday charts (5-min, 15-min). On daily charts, use EMAs instead.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">⏰</div>
+      <div class="mc-title">Trading VWAP Crosses in First 15 Min</div>
+      <div class="mc-body">VWAP is unstable in the first 15 minutes due to the opening auction's large volume skewing the average. Early VWAP crosses are unreliable — too much noise.</div>
+      <div class="mc-fix">Fix: Ignore VWAP signals before 9:30 AM. Wait until at least 9:45 AM before using VWAP levels for entries.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">↕️</div>
+      <div class="mc-title">Treating VWAP as an Exact Level</div>
+      <div class="mc-body">Expecting price to bounce off VWAP at exactly that price point. VWAP has a zone around it (±10–15 pts for Nifty) within which it acts as support/resistance.</div>
+      <div class="mc-fix">Fix: Enter when price is within 15 pts of VWAP and shows a reversal candle. Don't wait for an exact tick hit before placing the order.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Ignoring Late-Day VWAP Reclaims</div>
+      <div class="mc-body">A VWAP reclaim after 2:30 PM has very little time for follow-through. Entering full position size near close based on VWAP reclaim is risky — the move may not have time to develop.</div>
+      <div class="mc-fix">Fix: VWAP reclaims work best between 10:00–1:30 PM. After 2:30 PM, only take reclaims with very tight stops and reduced size.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📊</div>
+      <div class="mc-title">Using VWAP Alone for Entry</div>
+      <div class="mc-body">Buying every VWAP touch without a confirming candle pattern or volume check. Not every VWAP test holds — some break through and continue lower.</div>
+      <div class="mc-fix">Fix: Require a reversal candle (Hammer, Engulfing) AND volume confirmation at the VWAP level before entering. Naked VWAP touches have lower success rates.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔀</div>
+      <div class="mc-title">Forgetting VWAP + CPR Confluence</div>
+      <div class="mc-body">Tracking VWAP and CPR separately without noticing when they align. Missing the strongest S/R zones of the day.</div>
+      <div class="mc-fix">Fix: When VWAP gets within 20 pts of a CPR level (TC, PP, or BC), mark that zone as a priority level for that time period. These confluences create the day's most reliable entry points.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 6</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>VWAP is the volume-weighted average price since session open — the institutional benchmark for "fair value" during the trading day</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Price above VWAP = bullish intraday bias; price below VWAP = bearish intraday bias — this is the single most reliable real-time bias indicator</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>VWAP standard deviation bands (±1 SD, ±2 SD) create natural support/resistance zones — price spends ~68% of time within ±1 SD</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>VWAP pullback trades on confirmed bull/bear days are the most common and reliable VWAP-based setups</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>VWAP reclaim (price closing back above VWAP after breaking below it) is a high-probability long signal, especially during Prime Zone hours</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>VWAP + CPR confluence creates the strongest intraday S/R zones — double confirmation from independent level systems</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Institutions use VWAP algorithmically to execute large orders — their behaviour makes VWAP support/resistance self-fulfilling</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>VWAP is only valid on intraday charts (5-min, 15-min) — avoid VWAP on daily/weekly charts where EMAs are more appropriate</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on VWAP · Earn up to 35 XP</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=6">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_5.html">← Chapter 5: CPR</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_7.html">Chapter 7: EMA Strategies →</a>
+</div>
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 6 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=35,CH_ID='ta_6';
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.6 VWAP',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;p.activity.unshift({icon:'🏆',title:'Badge: First Step earned!',xp:10,date:new Date().toISOString()});}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;p.activity.unshift({icon:'🏆',title:'Badge: Quick Start earned!',xp:25,date:new Date().toISOString()});}
+  const taIds=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  if(taIds.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===6)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>

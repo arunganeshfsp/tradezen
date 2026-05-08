@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 9: Options Chain Basics | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--border:#252a44;--border2:#323868;--accent:#7c6af7;--blue:#5b8af5;--green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);--red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);--yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);--cyan:#00d4ff;--text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;--r:10px;--r2:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.cb-breadcrumb a{color:var(--muted);text-decoration:none}.cb-breadcrumb a:hover{color:var(--accent)}.cb-sep{color:var(--border2)}.cb-current{color:var(--text);font-weight:600}.cb-spacer{flex:1}.cb-prog{display:flex;align-items:center;gap:8px}.cb-dots{display:flex;gap:4px}.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}.toc-list{display:flex;flex-direction:column;gap:2px}.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}.section p strong{color:var(--text)}.section p em{color:var(--accent);font-style:normal}.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.ex-content{font-size:13px;color:var(--dim);line-height:1.75}.ex-content strong{color:var(--text)}.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}.step-row:last-child{border-bottom:none}.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* OPTIONS CHAIN MOCK */
+.chain-mock{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.chain-header{display:grid;grid-template-columns:1fr 1fr 80px 1fr 1fr;gap:0;background:var(--bg3);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+.chain-header div,.chain-row div{padding:8px 12px;text-align:center}
+.chain-row{display:grid;grid-template-columns:1fr 1fr 80px 1fr 1fr;gap:0;border-bottom:1px solid var(--border);font-size:12px}
+.chain-row.atm{background:rgba(124,106,247,0.06);border-color:rgba(124,106,247,0.2)}
+.chain-row:last-child{border-bottom:none}
+.c-ce{color:var(--green)}.c-pe{color:var(--red)}.c-str{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700}
+.high-oi{font-weight:700;text-decoration:underline;text-underline-offset:2px}
+
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}.mc-icon{font-size:20px;margin-bottom:8px}.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}.mc-body{font-size:12px;color:var(--dim);line-height:1.6}.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}.tk-list{display:flex;flex-direction:column;gap:8px}.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}.qcta-left p{font-size:12px;color:var(--dim)}.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}.qbtn:hover{opacity:.85}.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}.mark-btn:hover{border-color:var(--green);color:var(--green)}.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a><span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a><span class="cb-sep">›</span>
+    <span class="cb-current">Ch.9 Options Chain</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog"><span class="cb-ch-label">CHAPTER</span><div class="cb-dots" id="chDots"></div></div>
+</div>
+
+<div class="page">
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">9</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 09 · Technical Analysis</div>
+      <h1>Options Chain <em>Basics</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">The options chain is not just a pricing table — it is a real-time sentiment map of where institutional money expects Nifty to go. Learn to read OI, max pain, PCR, and IV from the chain to give your technical analysis a powerful additional dimension.</p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~22 min read</span>
+    <span class="ch-meta-pill">⚡ 40 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>Reading the Options Chain</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>Open Interest — The Big Picture</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>Max Pain — The Expiry Magnet</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>PCR — Put-Call Ratio</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>Implied Volatility (IV)</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>OI Change Analysis</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>Support & Resistance from Options Chain</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>TradeZen Options Analysis Tool</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Combining Options Data with TA</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>Reading the Options Chain</h2></div>
+  <p>The <strong>options chain</strong> displays all available contracts for a specific underlying (Nifty/BankNifty) at all available strike prices. For each strike, it shows the Call (CE) data on the left and the Put (PE) data on the right — with the current spot price highlighted in the middle as the ATM (At-The-Money) strike.</p>
+
+  <div class="chain-mock">
+    <div class="chain-header">
+      <div>CE OI (lots)</div>
+      <div>CE LTP</div>
+      <div>STRIKE</div>
+      <div>PE LTP</div>
+      <div>PE OI (lots)</div>
+    </div>
+    <div class="chain-row">
+      <div class="c-ce">8,24,000</div>
+      <div class="c-ce">320.5</div>
+      <div class="c-str">22,000</div>
+      <div class="c-pe">12.4</div>
+      <div class="c-pe high-oi">62,40,000</div>
+    </div>
+    <div class="chain-row">
+      <div class="c-ce">12,60,000</div>
+      <div class="c-ce">218.0</div>
+      <div class="c-str">22,100</div>
+      <div class="c-pe">18.5</div>
+      <div class="c-pe">44,20,000</div>
+    </div>
+    <div class="chain-row atm">
+      <div class="c-ce high-oi">48,80,000</div>
+      <div class="c-ce">142.5</div>
+      <div class="c-str" style="color:var(--cyan)">22,200 ★ATM</div>
+      <div class="c-pe">138.0</div>
+      <div class="c-pe high-oi">52,10,000</div>
+    </div>
+    <div class="chain-row">
+      <div class="c-ce high-oi">58,40,000</div>
+      <div class="c-ce">88.0</div>
+      <div class="c-str">22,300</div>
+      <div class="c-pe">185.0</div>
+      <div class="c-pe">28,30,000</div>
+    </div>
+    <div class="chain-row">
+      <div class="c-ce high-oi">72,10,000</div>
+      <div class="c-ce">44.0</div>
+      <div class="c-str">22,500</div>
+      <div class="c-pe">320.5</div>
+      <div class="c-pe">12,40,000</div>
+    </div>
+  </div>
+
+  <p>In the mock chain above, notice: the <strong>22,000 PE has the highest put OI</strong> (62.4 lakh lots) — this is strong support, as massive put writing here means sellers expect Nifty to stay above 22,000. The <strong>22,500 CE has the highest call OI</strong> — resistance, as call writers expect Nifty to stay below 22,500.</p>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">🎯</span>
+    <p><strong>The chain tells you the battleground:</strong> The strike with maximum call OI = resistance (call writers defending it). The strike with maximum put OI = support (put writers defending it). The expiry price tends to settle between these two extremes — this is the Max Pain concept.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>Open Interest — The Big Picture</h2></div>
+  <p><strong>Open Interest (OI)</strong> is the total number of outstanding (not yet expired or closed) options contracts at a given strike. Unlike volume (which resets each day), OI builds over time and represents the total commitment of money at each strike.</p>
+
+  <table class="tbl">
+    <thead><tr><th>OI Location</th><th>Meaning</th><th>Market Implication</th></tr></thead>
+    <tbody>
+      <tr><td>High CE OI at a strike</td><td>Large number of call writers at this level</td><td>Resistance — market expected to stay below this strike by expiry</td></tr>
+      <tr><td>High PE OI at a strike</td><td>Large number of put writers at this level</td><td>Support — market expected to stay above this strike by expiry</td></tr>
+      <tr><td>Rising CE OI at ATM</td><td>Fresh call writing at current level</td><td>Bears selling calls = expecting flat/down market</td></tr>
+      <tr><td>Rising PE OI at ATM</td><td>Fresh put writing at current level</td><td>Bulls selling puts = expecting flat/up market</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>OI vs Volume distinction:</strong> OI is the total open positions (cumulative). Volume is the number of contracts traded today (resets daily). A strike can have high OI with low volume (old positions held) or low OI with high volume (positions being opened and closed rapidly). <strong>For S/R identification, use OI. For momentum signals, use volume changes in OI.</strong></p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>Max Pain — The Expiry Magnet</h2></div>
+  <p><strong>Max Pain</strong> is the strike price at which the total dollar value of options expiring worthless is maximised — causing the maximum loss to option buyers as a group. Since option writers (sellers) are typically large institutions and market makers, there is an implicit gravity toward the Max Pain level as expiry approaches.</p>
+  <p>Max Pain is calculated by summing the total value of all calls and puts that would expire worthless at each possible expiry price, then finding the price at which this total is maximum. Most option chain tools and TradeZen's Options Analysis page calculate this automatically.</p>
+  <div class="example-box">
+    <div class="ex-label">Nifty Max Pain — Weekly Expiry Jan 18, 2024</div>
+    <div class="ex-content">
+      On Tuesday Jan 16, with 2 days to Thursday expiry, Nifty was trading at <span class="price">22,050</span>. The Max Pain calculation for the expiry showed <span class="price">22,000</span> as the pain level. <strong>Nifty drifted toward 22,000 through Wednesday and expired at <span class="price">21,997</span></strong> — within 3 points of max pain. Option buyers above 22,000 on calls and below 22,000 on puts both experienced losses, while writers collected premiums. This "pinning" to max pain is not coincidence — it is the result of institutional hedging and delta-neutral positioning.
+    </div>
+  </div>
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Max Pain limitations:</strong> Max Pain works best in the <strong>last 2–3 days before expiry</strong>. Earlier in the week, the market can be far from Max Pain without any gravitational pull. Also, max pain shifts daily as new positions are added — check it fresh each morning near expiry, not just once.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>PCR — Put-Call Ratio</h2></div>
+  <p>The <strong>PCR (Put-Call Ratio)</strong> measures the ratio of total Put OI to total Call OI across all strikes. It's a sentiment indicator — showing whether the overall market is positioned more bullishly (more calls) or bearishly (more puts).</p>
+  <p><strong>PCR = Total Put OI ÷ Total Call OI</strong></p>
+  <table class="tbl">
+    <thead><tr><th>PCR Value</th><th>Interpretation</th><th>Contrarian Signal</th></tr></thead>
+    <tbody>
+      <tr><td>&gt; 1.3 (very high)</td><td>Excessive bearishness — too many puts</td><td style="color:var(--green)">Contrarian bullish — market may reverse up</td></tr>
+      <tr><td>1.0–1.3</td><td>Moderately bearish</td><td>Neutral to slightly bullish</td></tr>
+      <tr><td>0.8–1.0</td><td>Balanced</td><td>Neutral — no strong signal</td></tr>
+      <tr><td>0.5–0.8</td><td>Moderately bullish</td><td>Neutral to slightly bearish</td></tr>
+      <tr><td>&lt; 0.5 (very low)</td><td>Excessive bullishness — too many calls</td><td style="color:var(--red)">Contrarian bearish — market may reverse down</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box ib-cyan">
+    <span class="info-icon">💡</span>
+    <p><strong>PCR is a contrarian indicator.</strong> When everyone is buying puts (PCR very high), the market is over-hedged bearishly — creating fuel for a bullish reversal as those puts expire worthless. Extreme PCR readings (above 1.5 or below 0.4) at key technical levels are some of the most reliable reversal signals in Nifty.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>Implied Volatility (IV)</h2></div>
+  <p><strong>Implied Volatility (IV)</strong> is the market's expectation of future volatility embedded in option prices. When IV is high, options are expensive. When IV is low, options are cheap. IV is expressed as a percentage (e.g., Nifty IV = 14% annualised).</p>
+  <table class="tbl">
+    <thead><tr><th>IV Level</th><th>Meaning</th><th>Strategy Implication</th></tr></thead>
+    <tbody>
+      <tr><td>Low IV (below 12%)</td><td>Market is calm, options are cheap</td><td>Buy options (debit strategies). Premium is affordable. Straddles/strangles are cheap to enter.</td></tr>
+      <tr><td>Normal IV (12–18%)</td><td>Average market conditions</td><td>Standard directional option buying. ATM options offer reasonable premium for expected move.</td></tr>
+      <tr><td>High IV (above 18%)</td><td>Market is fearful, options are expensive</td><td>Sell options (credit strategies). IV crush after the event destroys option values rapidly.</td></tr>
+    </tbody>
+  </table>
+  <div class="example-box">
+    <div class="ex-label">Nifty IV Spike — Budget Day Feb 2024</div>
+    <div class="ex-content">
+      In the week before the Union Budget (Feb 1, 2024), Nifty ATM IV rose from <span class="price">11%</span> to <span class="price">22%</span> as traders bought options expecting a big move. After the Budget announcement, Nifty moved just 200 points. IV <strong>crashed from 22% back to 12%</strong> within 2 hours — halving the value of ATM options even though price moved. Option buyers who paid inflated premiums lost money despite being directionally correct. <strong>This is the "IV crush" phenomenon that destroys option buyers around major events.</strong>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>OI Change Analysis</h2></div>
+  <p>The change in OI during a session (how much OI was added or reduced) is more informative than the absolute OI level. OI change tells you what's happening in real time.</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">Bull</div>
+      <div class="sb">
+        <div class="st">Large CE OI being written at a strike while Nifty is below it</div>
+        <p>Fresh call writing = writers don't expect price to reach that strike by expiry. The strike becomes a strong resistance level. If Nifty approaches it, heavy supply from delta hedging by call writers creates a wall.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">Bear</div>
+      <div class="sb">
+        <div class="st">Large CE OI being unwound (reduced) at a resistance strike</div>
+        <p>When call OI at a resistance level starts declining rapidly, it means call writers are buying back their positions — reducing the "ceiling." This often precedes a breakout through that resistance. Watch for OI reduction as a pre-breakout signal.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">Watch</div>
+      <div class="sb">
+        <div class="st">Sharp PE OI addition at a support strike</div>
+        <p>Fresh put writing at a support level = institutions defending that level, expecting price to stay above it. Strong put addition + price at the level = high-probability bounce setup.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>Support & Resistance from Options Chain</h2></div>
+  <p>The options chain creates <strong>dynamic support and resistance levels</strong> that update throughout the week. These levels are complementary to the technical S/R, CPR, and EMA levels you've learned — providing an additional dimension from the derivatives market.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Identify the highest Call OI strike = resistance</div>
+        <p>The strike with the most accumulated call OI is where call writers are most committed. This is the strongest overhead resistance from the options market.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Identify the highest Put OI strike = support</div>
+        <p>The strike with the most accumulated put OI is where put writers are most committed. This is the strongest underlying support from the options market.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Confluence with technical levels = highest-probability zones</div>
+        <p>When an options chain support (high PE OI strike) coincides with a technical S/R, CPR level, or EMA, the combined zone is extremely powerful. Both technical and derivatives-based market forces defend the same price.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Options Chain + Technical Confluence — Nifty 22,000 Level 2024</div>
+    <div class="ex-content">
+      In Jan 2024, the <span class="price">22,000</span> strike had the highest put OI on the weekly expiry chain — over <span class="price">60 lakh lots</span> written. Simultaneously, <span class="price">22,000</span> was:<br>
+      • The prior all-time high (technical resistance → support after breakout)<br>
+      • A major round-number psychological level<br>
+      • The CPR BC zone on multiple sessions when Nifty pulled back<br><br>
+      <strong>Three independent systems (options OI, technical S/R, psychology) all pointed to 22,000 as support.</strong> Each time Nifty dipped to 22,000 area, it bounced strongly — the put writers, technical buyers, and psychological buyers all acted simultaneously.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>TradeZen Options Analysis Tool</h2></div>
+  <p>The TradeZen Options Analysis tool (<a href="/options_analysis.html" style="color:var(--accent)">options_analysis.html</a>) provides all the options chain data discussed in this chapter, pre-processed and visualised. Key features to use:</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">OI</div>
+      <div class="sb">
+        <div class="st">OI Bar Chart — visualise support and resistance strikes</div>
+        <p>The horizontal bar chart shows OI at each strike. The tallest call bar = resistance strike. Tallest put bar = support strike. Visually identifying these takes 5 seconds on the OI chart versus 2 minutes scanning a raw chain table.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">⚡</div>
+      <div class="sb">
+        <div class="st">Signal Score — composite direction indicator</div>
+        <p>The Options Signal Score (0–100) aggregates OI changes, PCR, IV skew, and Greeks into a single directional score. Above 60 = bullish options signal. Below 40 = bearish. 40–60 = neutral/choppy conditions expected.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">💊</div>
+      <div class="sb">
+        <div class="st">Max Pain indicator</div>
+        <p>Shown prominently with the expiry date and distance from current price. As expiry approaches, if price is significantly above or below Max Pain, watch for gravitational pull toward it.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">Δ</div>
+      <div class="sb">
+        <div class="st">Greeks panel — position risk calculator</div>
+        <p>For option position management, the Greeks panel shows Delta, Gamma, Theta, and Vega for any strike/expiry combination. Use Theta to understand daily premium decay cost for long positions.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Combining Options Data with TA</h2></div>
+  <p>The complete intraday analysis framework combines everything from this course into a single decision process:</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Pre-market: CPR + Options Chain (5 min)</div>
+        <p>Check today's CPR (TC/BC/PP) from TradeZen Trade Flow. Check the options chain for the highest call and put OI strikes. These define your key levels for the day.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Opening: Bias setup from EMA + VWAP + CPR (9:15–9:30)</div>
+        <p>At 9:15 AM: Is price above or below 20 EMA? Above or below VWAP? Above TC or below BC? Three inputs give immediate bias direction without analysis paralysis.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Entry: S/R + Candle + Volume + Options OI confirmation</div>
+        <p>Wait for price to approach a key level (from all the above). Look for a reversal candle. Check volume is above average. Check if options OI confirms the level (high PE OI = strong support for long). Enter when 3+ confluences align.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">4</div>
+      <div class="sb">
+        <div class="st">Risk: Stop below the key level; Target at next resistance</div>
+        <p>Stop placement is always at the level that invalidates the trade thesis. If you're long at CPR BC (because it's support), the stop goes below BC. Target is TC or the next options chain resistance strike.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Key Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">📅</div>
+      <div class="mc-title">Using Max Pain Too Early in Week</div>
+      <div class="mc-body">Expecting Nifty to move toward Max Pain on Monday or Tuesday. Max Pain gravity is only relevant in the last 2–3 sessions before expiry.</div>
+      <div class="mc-fix">Fix: Only start referencing Max Pain on Wednesday for Thursday expiry (Nifty weekly). Ignore it Monday and Tuesday.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Treating PCR as a Direct Signal</div>
+      <div class="mc-body">Buying when PCR is high (assuming bullish) without understanding it is a CONTRARIAN indicator — high PCR means market is bearishly positioned, which can reverse. It is not a confirmation signal.</div>
+      <div class="mc-fix">Fix: Use PCR as a sentiment extreme detector. Very high PCR (>1.3) at a technical support = contrarian long signal. Not useful in isolation.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">💥</div>
+      <div class="mc-title">Buying Options Before Events (IV Crush)</div>
+      <div class="mc-body">Buying straddles or ATM options before Budget/RBI policy/Elections when IV is already elevated. Even if right on direction, IV crush destroys the premium after the event.</div>
+      <div class="mc-fix">Fix: Check IV percentile before buying options. If IV is above its 6-month 80th percentile, consider selling strategies instead of buying. Buy options only when IV is low.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🎯</div>
+      <div class="mc-title">Ignoring OI Shift Before Breakouts</div>
+      <div class="mc-body">Watching static OI (the total) without tracking daily changes. Missing the signal when large call OI at resistance suddenly starts unwinding — which precedes breakouts.</div>
+      <div class="mc-fix">Fix: Check "OI change today" not just "total OI." A resistance strike with rapidly declining call OI is about to break — that's the pre-breakout signal.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📊</div>
+      <div class="mc-title">Using Options Chain Without Price Context</div>
+      <div class="mc-body">Making directional trades based solely on OI data without checking where price is on the technical chart. Options chain gives context — price action gives the timing.</div>
+      <div class="mc-fix">Fix: Always overlay options chain levels on the price chart. Options show WHERE to expect reactions; price action + candles show WHEN to enter.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔍</div>
+      <div class="mc-title">Buying Deep OTM Options</div>
+      <div class="mc-body">Buying far out-of-the-money options because they're cheap (₹5–₹20 premium) expecting a huge move. These options have very low delta — even a 200-point Nifty move may not significantly profit deep OTM options.</div>
+      <div class="mc-fix">Fix: For directional trades, use ATM or 1-strike OTM options. Deep OTM options are for defined-risk hedges, not core directional positions.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 9</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>The options chain is a real-time sentiment map — max call OI = resistance, max put OI = support, from institutional positioning</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>OI change (daily) is more important than absolute OI — declining call OI at resistance is a pre-breakout signal</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Max Pain is the expiry gravitational level — only relevant in the last 2–3 sessions before weekly/monthly expiry</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>PCR is a contrarian indicator — very high PCR (>1.3) at technical support = contrarian bullish; very low (<0.5) at resistance = contrarian bearish</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>IV tells you option pricing — buy options when IV is low, sell when IV is high. Never buy options before major events with elevated IV</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Options chain + technical S/R confluence = strongest trade setups. When max put OI strike coincides with CPR/EMA/round number, that level rarely breaks intraday</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>TradeZen's Options Analysis tool pre-calculates OI chart, Signal Score, Max Pain, and Greeks — use it as part of pre-market preparation</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>The complete analysis framework: CPR levels + EMA stack + VWAP + options OI + reversal candle + volume = highest-confidence trade setups</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on options chain · Earn up to 40 XP · Unlock Options Eye badge</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=9">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_8.html">← Chapter 8: RSI</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_10.html">Chapter 10: Psychology & Risk →</a>
+</div>
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 9 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=40,CH_ID='ta_9';
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.9 Options Chain',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;}
+  const taIds=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  if(taIds.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  if(p.chapters_done.includes('ta_9')&&!p.badges_earned.includes('options_eye')){p.badges_earned.push('options_eye');p.xp+=75;p.activity.unshift({icon:'🏆',title:'Badge: Options Eye earned!',xp:75,date:new Date().toISOString()});}
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===9)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>

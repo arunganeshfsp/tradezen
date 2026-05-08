@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 1: Price Action Fundamentals | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+}
+
+/* CHAPTER PROGRESS BAR */
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.cb-breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
+.cb-breadcrumb a:hover{color:var(--accent)}
+.cb-sep{color:var(--border2)}
+.cb-current{color:var(--text);font-weight:600}
+.cb-spacer{flex:1}
+.cb-prog{display:flex;align-items:center;gap:8px}
+.cb-dots{display:flex;gap:4px}
+.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}
+.cb-dot.done{background:var(--green)}
+.cb-dot.current{background:var(--accent)}
+.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+
+/* HERO */
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}
+.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.ch-hero-meta{}
+.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}
+.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}
+.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}
+.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}
+.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.toc-list{display:flex;flex-direction:column;gap:2px}
+.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}
+.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}
+.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+
+/* SECTIONS */
+.section{margin-bottom:56px;scroll-margin-top:106px}
+.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+
+/* BODY TEXT */
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}
+.section p strong{color:var(--text)}
+.section p em{color:var(--accent);font-style:normal}
+.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.section h4{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin:20px 0 8px;letter-spacing:.3px}
+
+/* INFO BOXES */
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}
+.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}
+.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}
+.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}
+.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}
+.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}
+.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}
+.info-box p strong{color:var(--text)}
+
+/* EXAMPLE BOXES */
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}
+.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.ex-content{font-size:13px;color:var(--dim);line-height:1.75}
+.ex-content strong{color:var(--text)}
+.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+
+/* STEP BLOCK */
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}
+.step-row:last-child{border-bottom:none}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}
+.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}
+.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}
+.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}
+.sb p strong{color:var(--text)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}
+.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* CANDLE DIAGRAMS */
+.candle-lab{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:16px 0}
+.cl-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.cl-row{display:flex;gap:28px;align-items:flex-end;justify-content:center;flex-wrap:wrap}
+.cl-item{display:flex;flex-direction:column;align-items:center;gap:0}
+.cl-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;text-align:center;line-height:1.4}
+.cl-label span{display:block;font-size:9px;color:var(--border2)}
+
+/* Candle builder */
+.c{display:flex;flex-direction:column;align-items:center;gap:0}
+.wick-t{width:2px;background:currentColor;border-radius:1px}
+.cbody{width:16px;border-radius:2px}
+.wick-b{width:2px;background:currentColor;border-radius:1px}
+.bull{color:#2ecc71}.bear{color:#e74c3c}.doji{color:#f5a623}.grey{color:#6b7280}
+
+/* ANATOMY DIAGRAM */
+.anatomy-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:28px;margin:16px 0;display:flex;gap:32px;align-items:center;flex-wrap:wrap;justify-content:center}
+.anatomy-candle{position:relative;display:flex;flex-direction:column;align-items:center;gap:0;flex-shrink:0}
+.anatomy-label{position:absolute;font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap}
+.an-line{position:absolute;height:1px;background:var(--border2)}
+.anatomy-legend{flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px}
+.an-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--r2);border:1px solid var(--border)}
+.an-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.an-item h5{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);margin-bottom:2px}
+.an-item p{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
+
+/* PRICE ACTION SEQUENCE */
+.pa-sequence{display:flex;gap:4px;align-items:flex-end;padding:20px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);margin:16px 0;justify-content:center;overflow-x:auto}
+.pase-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-align:center;margin-top:6px;white-space:nowrap}
+
+/* MISTAKE CARD */
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}
+.mc-icon{font-size:20px;margin-bottom:8px}
+.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}
+.mc-body{font-size:12px;color:var(--dim);line-height:1.6}
+.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+
+/* KEY TAKEAWAYS */
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}
+.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.tk-list{display:flex;flex-direction:column;gap:8px}
+.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}
+.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+
+/* QUIZ CTA */
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.qcta-left{}
+.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}
+.qcta-left p{font-size:12px;color:var(--dim)}
+.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}
+.qbtn:hover{opacity:.85}
+.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.qbtn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.mark-btn:hover{border-color:var(--green);color:var(--green)}
+.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+
+/* PAGE NAV */
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.pn-btn.primary:hover{opacity:.85}
+
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* NIFTY SESSION CHART */
+.session-chart{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin:16px 0;overflow-x:auto}
+.sc-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.sc-zones{display:flex;gap:2px;align-items:stretch;min-width:500px}
+.sc-zone{flex:1;padding:10px 8px;border-radius:6px;text-align:center}
+.sc-zone-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;margin-bottom:4px}
+.sc-zone-time{font-size:11px;color:var(--muted);margin-bottom:6px}
+.sc-zone-desc{font-size:11px;line-height:1.5}
+.zone-danger{background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25)}
+.zone-caution{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.25)}
+.zone-safe{background:rgba(46,204,113,0.07);border:1px solid rgba(46,204,113,0.2)}
+
+/* COMPARISON TABLE */
+.compare-block{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:560px){.compare-block{grid-template-columns:1fr}}
+.compare-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;overflow:hidden}
+.compare-col-head{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:6px 10px;border-radius:var(--r2);text-align:center;margin-bottom:12px}
+.compare-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.55}
+.compare-item strong{color:var(--text)}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- CHAPTER PROGRESS BAR -->
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a>
+    <span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a>
+    <span class="cb-sep">›</span>
+    <span class="cb-current">Ch.1 Price Action</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog">
+    <span class="cb-ch-label">CHAPTER</span>
+    <div class="cb-dots" id="chDots"></div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- HERO -->
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">1</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 01 · Technical Analysis</div>
+      <h1>Price Action <em>Fundamentals</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">
+    Price action is the foundation beneath every indicator, strategy, and trading system. Before you learn CPR, VWAP, or RSI — you need to understand how to read the raw language of the market: the candlestick. This chapter builds that foundation from scratch, with real Nifty examples.
+  </p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~20 min read</span>
+    <span class="ch-meta-pill">⚡ 30 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>What is Price Action?</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>Anatomy of a Candlestick</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>The Body — Who Won the Battle</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>The Wicks — Rejected Prices</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>Candle Size in Context</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>The Nifty Opening — The Most Critical Zone</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>Reading a Sequence of Candles</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>Price Action vs Indicators</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Common Mistakes</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Key Takeaways</a>
+  </div>
+</div>
+
+<!-- ══════════════════════ S1: WHAT IS PRICE ACTION ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s1"></a>
+  <div class="sec-head">
+    <div class="sec-num">1</div>
+    <h2>What is Price Action?</h2>
+  </div>
+
+  <p>
+    <strong>Price action</strong> is the study of how a financial instrument moves over time using only its raw price — no indicators, no overlays, no algorithms. Every candlestick you see on a chart is the recorded result of millions of buy and sell decisions made by everyone from retail traders in Chennai to hedge fund desks in New York. Reading price action means learning to decode what those decisions tell you collectively.
+  </p>
+  <p>
+    Here is the core truth about all of technical analysis: <strong>every indicator is a derivative of price.</strong> RSI is calculated from price. EMA is calculated from price. VWAP is calculated from price × volume. If you understand price itself, you understand the source from which every other tool is derived. A trader who reads price well will always have an edge over someone blindly following indicator crossovers.
+  </p>
+  <p>
+    This is especially important for Nifty 50 intraday trading. Nifty moves fast — a 100-point swing can happen in 3 minutes. Indicators that lag by even one candle can have you entering as the move is ending. Price action, by contrast, is happening <em>right now</em>. The candle forming in front of you is live information.
+  </p>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">💡</span>
+    <p><strong>A useful mental model:</strong> Think of the market as an auction. Buyers are bidding prices up; sellers are pushing prices down. A candlestick is a 5-minute auction result. The body shows who won that auction. The wicks show where the other side briefly took control and failed. When you read price action, you are reading the live outcome of the auction process.</p>
+  </div>
+
+  <h3>Where price action fits in your trading system</h3>
+  <p>
+    Price action is not a standalone trading system — it is the foundation on which every system is built. You use price action to:
+  </p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Confirm entries and exits</div>
+        <p>A VWAP level or CPR TC might be your signal zone, but <strong>a specific candle closing at that level</strong> is your precise entry trigger. Without price action reading, you enter blindly into zones rather than at high-probability moments within them.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Judge the quality of a signal</div>
+        <p>Not all RSI crossovers or EMA touches are equal. A bullish signal accompanied by a strong green Marubozu candle is far more reliable than the same signal alongside a tiny Doji. Price action tells you <em>how much conviction</em> is behind a signal.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Read market context without tools</div>
+        <p>When your broker's platform freezes mid-session (it happens), a trader who reads raw charts can still make informed decisions. Understanding price action gives you independence from any specific tool or setup.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S2: ANATOMY ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s2"></a>
+  <div class="sec-head">
+    <div class="sec-num">2</div>
+    <h2>Anatomy of a Candlestick</h2>
+  </div>
+
+  <p>
+    Every candlestick encodes <strong>exactly four pieces of information</strong> about the period it covers: the <strong>Open</strong>, <strong>High</strong>, <strong>Low</strong>, and <strong>Close</strong>. On a 5-minute chart, each candle represents one 5-minute interval of trading. On a daily chart, each candle represents one full trading day.
+  </p>
+
+  <!-- ANATOMY DIAGRAM -->
+  <div class="anatomy-wrap">
+    <!-- The candle -->
+    <div style="position:relative;width:100px;height:200px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <!-- Top wick -->
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:2px;height:48px;background:#2ecc71;border-radius:1px"></div>
+      <!-- Body -->
+      <div style="position:absolute;top:58px;left:50%;transform:translateX(-50%);width:28px;height:80px;background:rgba(46,204,113,0.9);border-radius:3px"></div>
+      <!-- Bottom wick -->
+      <div style="position:absolute;top:138px;left:50%;transform:translateX(-50%);width:2px;height:52px;background:#2ecc71;border-radius:1px"></div>
+
+      <!-- Labels -->
+      <div style="position:absolute;top:4px;right:-52px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);white-space:nowrap">HIGH</div>
+      <div style="position:absolute;top:4px;right:-52px;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);white-space:nowrap">↕ upper wick</div>
+      <div style="position:absolute;top:64px;right:-54px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;white-space:nowrap">CLOSE</div>
+      <div style="position:absolute;top:88px;right:-52px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);white-space:nowrap">↕ body</div>
+      <div style="position:absolute;top:128px;right:-52px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;white-space:nowrap">OPEN</div>
+      <div style="position:absolute;top:156px;right:-52px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);white-space:nowrap">↕ lower wick</div>
+      <div style="position:absolute;top:178px;right:-52px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);white-space:nowrap">LOW</div>
+    </div>
+
+    <!-- Legend -->
+    <div class="anatomy-legend">
+      <div class="an-item">
+        <div class="an-dot" style="background:var(--green)"></div>
+        <div>
+          <h5>HIGH</h5>
+          <p>The highest price reached during this candle's period. Shown at the top of the upper wick. Price went here but couldn't sustain it.</p>
+        </div>
+      </div>
+      <div class="an-item">
+        <div class="an-dot" style="background:#fff"></div>
+        <div>
+          <h5>CLOSE (Bullish candle)</h5>
+          <p>The last traded price when the candle closed. For a green candle, Close is at the top of the body — buyers ended higher than they started.</p>
+        </div>
+      </div>
+      <div class="an-item">
+        <div class="an-dot" style="background:#aaa"></div>
+        <div>
+          <h5>OPEN</h5>
+          <p>The first traded price when the candle opened. For a green candle, Open is at the bottom of the body.</p>
+        </div>
+      </div>
+      <div class="an-item">
+        <div class="an-dot" style="background:var(--red)"></div>
+        <div>
+          <h5>LOW</h5>
+          <p>The lowest price reached during this period. Shown at the bottom of the lower wick. Price tested this but buyers stepped in.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Bullish vs Bearish candle — the body flip:</strong> On a <strong>green (bullish)</strong> candle, <em>Close > Open</em>, so Close is at the top of the body and Open is at the bottom. On a <strong>red (bearish)</strong> candle, <em>Close &lt; Open</em>, so Open is at the top and Close is at the bottom. New traders often confuse this — the open and close positions <em>swap</em> depending on candle colour.</p>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">🇮🇳 Real Example — Nifty 5-Minute Candle</div>
+    <div class="ex-content">
+      On a typical intraday session, a single 5-minute candle for Nifty might read:<br><br>
+      Open: <span class="price">23,140</span> &nbsp;·&nbsp; High: <span class="price">23,168</span> &nbsp;·&nbsp; Low: <span class="price">23,122</span> &nbsp;·&nbsp; Close: <span class="price">23,157</span><br><br>
+      This is a <strong>green candle</strong>. The body runs from 23,140 (open) to 23,157 (close) — a 17-point gain. The upper wick extends 11 points above close to 23,168 — sellers pushed price back from that high. The lower wick extends 18 points below open to 23,122 — buyers defended the low and drove price back up. Net result: buyers won this 5-minute period, but there was a brief selling battle at the top.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S3: THE BODY ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s3"></a>
+  <div class="sec-head">
+    <div class="sec-num">3</div>
+    <h2>The Body — Who Won the Battle</h2>
+  </div>
+
+  <p>
+    The <strong>candle body</strong> — the rectangle between the open and close — is the most important part of the candle. It directly answers the question: <em>who won the period?</em> A large body means one side dominated completely. A small body means the battle was even.
+  </p>
+
+  <h3>Body Size Tells You Conviction</h3>
+
+  <!-- CANDLE COMPARISON -->
+  <div class="candle-lab">
+    <div class="cl-title">Candle Body Size — What Each Tells You</div>
+    <div class="cl-row">
+
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:6px"></div>
+          <div class="cbody" style="height:70px;background:#2ecc71"></div>
+          <div class="wick-b" style="height:6px"></div>
+        </div>
+        <div class="cl-label">Large Green Body<span>Strong buying<br>conviction</span></div>
+      </div>
+
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:14px"></div>
+          <div class="cbody" style="height:35px;background:#2ecc71"></div>
+          <div class="wick-b" style="height:14px"></div>
+        </div>
+        <div class="cl-label">Medium Green Body<span>Moderate buying<br>some resistance</span></div>
+      </div>
+
+      <div class="cl-item">
+        <div class="c doji">
+          <div class="wick-t" style="height:28px"></div>
+          <div class="cbody" style="height:5px;background:#f5a623"></div>
+          <div class="wick-b" style="height:28px"></div>
+        </div>
+        <div class="cl-label">Doji (tiny body)<span>Neither side won<br>indecision</span></div>
+      </div>
+
+      <div class="cl-item">
+        <div class="c bear">
+          <div class="wick-t" style="height:14px"></div>
+          <div class="cbody" style="height:35px;background:#e74c3c"></div>
+          <div class="wick-b" style="height:14px"></div>
+        </div>
+        <div class="cl-label">Medium Red Body<span>Moderate selling<br>some support</span></div>
+      </div>
+
+      <div class="cl-item">
+        <div class="c bear">
+          <div class="wick-t" style="height:6px"></div>
+          <div class="cbody" style="height:70px;background:#e74c3c"></div>
+          <div class="wick-b" style="height:6px"></div>
+        </div>
+        <div class="cl-label">Large Red Body<span>Strong selling<br>conviction</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <h3>The Marubozu — Maximum Conviction</h3>
+  <p>
+    A <strong>Marubozu</strong> (Japanese for "close-cropped") is a candle with no wicks — or extremely tiny ones — meaning the body spans almost the entire candle range. The open was the extreme, and the close was the other extreme. No resistance whatsoever from the other side.
+  </p>
+
+  <div class="compare-block">
+    <div class="compare-col">
+      <div class="compare-col-head" style="background:var(--green-bg);color:var(--green)">📈 Bullish Marubozu</div>
+      <div class="compare-item">✅ <span>Open = Low, Close = High (or very close)</span></div>
+      <div class="compare-item">✅ <span>Buyers controlled the <strong>entire</strong> candle</span></div>
+      <div class="compare-item">✅ <span>Not a single candle where sellers could push back</span></div>
+      <div class="compare-item">✅ <span>Strong continuation signal in an uptrend</span></div>
+      <div class="compare-item">✅ <span>As a breakout candle above resistance — extremely reliable</span></div>
+    </div>
+    <div class="compare-col">
+      <div class="compare-col-head" style="background:var(--red-bg);color:var(--red)">📉 Bearish Marubozu</div>
+      <div class="compare-item">🔴 <span>Open = High, Close = Low (or very close)</span></div>
+      <div class="compare-item">🔴 <span>Sellers controlled the <strong>entire</strong> candle</span></div>
+      <div class="compare-item">🔴 <span>Buyers had no meaningful response</span></div>
+      <div class="compare-item">🔴 <span>Strong continuation signal in a downtrend</span></div>
+      <div class="compare-item">🔴 <span>As a breakdown candle below support — extremely reliable</span></div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">🇮🇳 Real Example — Bearish Marubozu on Nifty Daily Chart</div>
+    <div class="ex-content">
+      On <strong>4-Jun-2024</strong> (election results day), Nifty opened at <span class="price">22,527</span> and closed at <span class="price">21,884</span> — a massive 643-point fall with barely any wicks. This was a near-perfect Bearish Marubozu on the daily chart. There were no meaningful buying attempts throughout the entire session. Sellers were in complete control from the opening bell to close. Traders who recognised this candle type on the daily chart the following morning stayed bearish and avoided the trap of buying "cheap" prices in the days that followed.
+    </div>
+  </div>
+
+  <h3>The Spinning Top — Indecision at Its Purest</h3>
+  <p>
+    A <strong>Spinning Top</strong> has a small body (either colour) with long wicks on both sides. It looks like a spinning top toy. It means: buyers pushed price up during the period, sellers pushed it back down, and neither side ended up significantly ahead of where they started. It is the visual equivalent of a draw.
+  </p>
+  <p>
+    A Spinning Top in isolation tells you very little. But a Spinning Top <strong>after a strong trending move</strong> is powerful — the trend is losing momentum. The side that was dominating has suddenly met equal resistance. Watch for direction in the <em>next</em> candle for confirmation.
+  </p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S4: WICKS ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s4"></a>
+  <div class="sec-head">
+    <div class="sec-num">4</div>
+    <h2>The Wicks — Rejected Prices</h2>
+  </div>
+
+  <p>
+    If the body tells you who won, the wicks tell you <strong>where the other side fought back</strong>. Every wick is a price level that was reached, tested, and then rejected. This is the most underappreciated information in candlestick reading.
+  </p>
+
+  <!-- WICK TYPES DIAGRAM -->
+  <div class="candle-lab">
+    <div class="cl-title">Understanding Wicks — Rejection Evidence</div>
+    <div class="cl-row">
+
+      <div class="cl-item">
+        <div class="c bear">
+          <div class="wick-t" style="height:52px"></div>
+          <div class="cbody" style="height:20px;background:#e74c3c"></div>
+          <div class="wick-b" style="height:8px"></div>
+        </div>
+        <div class="cl-label" style="max-width:90px">Long Upper Wick<span>Sellers pushed back<br>from the highs</span></div>
+      </div>
+
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:8px"></div>
+          <div class="cbody" style="height:20px;background:#2ecc71"></div>
+          <div class="wick-b" style="height:52px"></div>
+        </div>
+        <div class="cl-label" style="max-width:90px">Long Lower Wick<span>Buyers defended<br>the lows (Hammer)</span></div>
+      </div>
+
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:28px"></div>
+          <div class="cbody" style="height:20px;background:#2ecc71"></div>
+          <div class="wick-b" style="height:28px"></div>
+        </div>
+        <div class="cl-label" style="max-width:90px">Equal Wicks<span>Both sides<br>tested and rejected</span></div>
+      </div>
+
+      <div class="cl-item">
+        <div class="c bull">
+          <div class="wick-t" style="height:2px"></div>
+          <div class="cbody" style="height:68px;background:#2ecc71"></div>
+          <div class="wick-b" style="height:2px"></div>
+        </div>
+        <div class="cl-label" style="max-width:90px">No Wicks<span>Marubozu<br>no rejection</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <h3>Upper Wick — Selling Rejection</h3>
+  <p>
+    An <strong>upper wick</strong> forms when price rose during the candle period but sellers pushed it back down before close. The longer the upper wick, the more aggressive the selling at that high. This is <em>evidence of supply</em> — sellers were ready and waiting at that price level.
+  </p>
+  <p>
+    When an upper wick forms precisely at a known resistance level — a prior swing high, a CPR TC, a round number — it is not coincidence. Sellers placed limit orders there in advance. The wick is their fingerprint. This is one of the highest-probability short setups in intraday trading.
+  </p>
+
+  <div class="example-box">
+    <div class="ex-label">🇮🇳 Real Example — Upper Wick Rejection at CPR TC</div>
+    <div class="ex-content">
+      Consider a day where Nifty's CPR TC is calculated at <span class="price">22,050</span>. The 10:15 AM candle opens at <span class="price">22,020</span>, pushes up to <span class="price">22,064</span> (14 points above TC), then closes back at <span class="price">22,028</span>. The result: a 36-point red candle with a significant upper wick reaching <em>exactly</em> to the TC zone. <strong>This is sellers defending the TC level.</strong> The 14-point wick above TC was a stop-hunt — price swept above to trigger buy stops, then reversed. Traders who saw this wick at TC had a high-probability short entry on the close of that candle.
+    </div>
+  </div>
+
+  <h3>Lower Wick — Buying Rejection (The Hammer Signal)</h3>
+  <p>
+    A <strong>lower wick</strong> forms when price fell during the candle but buyers aggressively stepped in and pushed it back up. The longer the lower wick relative to the body, the more conviction buyers showed at the low. When this occurs at a support level — a prior swing low, CPR BC, VWAP, a round number — it is called a <strong>Hammer</strong> and is one of the most reliable bullish reversal signals.
+  </p>
+
+  <div class="info-box ib-green">
+    <span class="info-icon">🎯</span>
+    <p><strong>The wick trader's rule:</strong> A wick at a <em>known level</em> has meaning. A wick in the middle of nowhere is just noise. Always identify your key levels first (CPR, VWAP, S/R, round numbers) and <em>then</em> look for wicks at those levels. Never reverse the process — don't look for wicks first and then try to justify a level.</p>
+  </div>
+
+  <h3>Wick Proportions Matter</h3>
+  <p>
+    A rule of thumb: a wick is significant when it is <strong>at least twice the size of the candle body</strong>. A candle with a 10-point body and a 25-point lower wick is a clear Hammer. A candle with a 40-point body and a 10-point lower wick is just a normal green candle — the buyers won easily and a small lower wick is expected noise.
+  </p>
+  <table class="tbl">
+    <thead>
+      <tr><th>Wick Type</th><th>Appears At</th><th>Signal</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Long Upper Wick</td>
+        <td>Resistance / CPR TC / R1</td>
+        <td style="color:var(--red)">Selling rejection — bearish</td>
+        <td>Short on candle close, SL above wick high</td>
+      </tr>
+      <tr>
+        <td>Long Lower Wick</td>
+        <td>Support / CPR BC / S1</td>
+        <td style="color:var(--green)">Buying rejection — bullish</td>
+        <td>Buy on candle close, SL below wick low</td>
+      </tr>
+      <tr>
+        <td>Equal wicks both sides</td>
+        <td>Any level</td>
+        <td style="color:var(--yellow)">Indecision — no clear winner</td>
+        <td>Wait for next candle direction</td>
+      </tr>
+      <tr>
+        <td>Long upper wick after rally</td>
+        <td>New high area</td>
+        <td style="color:var(--red)">Exhaustion — Shooting Star</td>
+        <td>Short with confirmation, target swing low</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S5: CANDLE SIZE IN CONTEXT ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s5"></a>
+  <div class="sec-head">
+    <div class="sec-num">5</div>
+    <h2>Candle Size in Context</h2>
+  </div>
+
+  <p>
+    A 30-point candle on Nifty might be enormous on a quiet day or completely normal on a volatile day. <strong>Candle size is always relative to recent context.</strong> There is no universal definition of a "large" candle — you measure it against the preceding 5–10 candles.
+  </p>
+
+  <h3>Average True Range — Your Sizing Reference</h3>
+  <p>
+    The <strong>Average True Range (ATR)</strong> measures the average daily or intraday range over a period. For Nifty, on most normal trading days, the 5-minute ATR is between 20–35 points. A candle of 60+ points on a normal day is therefore unusually large and carries significant information. On a budget day or event day (RBI policy, global selloff), the ATR can double — a 60-point candle is then just average.
+  </p>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">📊</span>
+    <p><strong>Relative size rule:</strong> When a candle is <em>significantly larger</em> than the recent surrounding candles, it means the balance of power shifted decisively in one period. This often occurs at breakouts, reversals, or key news reactions. These "breakout candles" are the market's way of shouting — they deserve your full attention.</p>
+  </div>
+
+  <h3>The "Mother Candle" Concept</h3>
+  <p>
+    A <strong>Mother Candle</strong> is an unusually large candle that is followed by several smaller candles that fit entirely within its high-low range. The market is digesting the big move. This consolidation inside the mother candle often precedes the next directional move — in the <em>same direction</em> as the mother candle if the trend is intact, or in the <em>opposite direction</em> if the mother candle was a reversal signal.
+  </p>
+
+  <div class="example-box">
+    <div class="ex-label">🇮🇳 Example — Mother Candle Consolidation on Nifty</div>
+    <div class="ex-content">
+      On a typical trending morning, Nifty forms a large green candle at 9:30 AM: Open <span class="price">23,200</span>, High <span class="price">23,285</span>, Low <span class="price">23,195</span>, Close <span class="price">23,278</span> — an 85-point range candle. The next three 5-minute candles all trade between <span class="price">23,240</span> and <span class="price">23,280</span>. They fit inside the mother candle's range. This is healthy consolidation. The market is absorbing the breakout before resuming. When the 4th candle closes above <span class="price">23,285</span> (the mother candle high), that is the continuation entry signal — buyers have digested the move and are resuming the push higher.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S6: NIFTY OPENING ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s6"></a>
+  <div class="sec-head">
+    <div class="sec-num">6</div>
+    <h2>The Nifty Opening — The Most Critical Zone</h2>
+  </div>
+
+  <p>
+    Nothing in intraday trading carries more information — and more danger — than the <strong>Nifty opening session from 9:15 to 9:30 AM IST</strong>. This is where 15-hour pent-up supply and demand collides in 15 minutes. Understanding what happens at the open is essential because it shapes the entire day's price structure.
+  </p>
+
+  <!-- SESSION ZONES -->
+  <div class="session-chart">
+    <div class="sc-title">Nifty Intraday Session Risk Zones</div>
+    <div class="sc-zones">
+      <div class="sc-zone zone-danger">
+        <div class="sc-zone-label" style="color:var(--red)">⚠️ DANGER ZONE</div>
+        <div class="sc-zone-time">9:15 – 9:30 AM</div>
+        <div class="sc-zone-desc" style="color:var(--dim)">Institutional orders hit simultaneously. Price swings 50–150 pts in minutes. Traps are common. <strong style="color:var(--red)">Avoid entering.</strong></div>
+      </div>
+      <div class="sc-zone zone-caution">
+        <div class="sc-zone-label" style="color:var(--yellow)">⚡ SETUP ZONE</div>
+        <div class="sc-zone-time">9:30 – 10:15 AM</div>
+        <div class="sc-zone-desc" style="color:var(--dim)">ORB forming. Direction becoming clearer. First high-probability trades appear. <strong style="color:var(--yellow)">Trade carefully.</strong></div>
+      </div>
+      <div class="sc-zone zone-safe">
+        <div class="sc-zone-label" style="color:var(--green)">✅ PRIME ZONE</div>
+        <div class="sc-zone-time">10:15 AM – 1:00 PM</div>
+        <div class="sc-zone-desc" style="color:var(--dim)">Trend established. Institutions participating. Best quality setups. <strong style="color:var(--green)">Ideal trading window.</strong></div>
+      </div>
+      <div class="sc-zone zone-caution">
+        <div class="sc-zone-label" style="color:var(--yellow)">⚡ LUNCH ZONE</div>
+        <div class="sc-zone-time">1:00 – 2:00 PM</div>
+        <div class="sc-zone-desc" style="color:var(--dim)">Volume drops. Random moves. Many algo systems pause. <strong style="color:var(--yellow)">Reduce size.</strong></div>
+      </div>
+      <div class="sc-zone zone-caution">
+        <div class="sc-zone-label" style="color:var(--orange)">🔔 CLOSING ZONE</div>
+        <div class="sc-zone-time">2:00 – 3:30 PM</div>
+        <div class="sc-zone-desc" style="color:var(--dim)">Institutional squaring. Options unwinding. Moves can be sharp. <strong style="color:var(--orange)">Exit before 3:15.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Why the First 15 Minutes Are Dangerous</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn y">1</div>
+      <div class="sb">
+        <div class="st">Overnight gap creates immediate imbalance</div>
+        <p>If global markets moved overnight (SGX Nifty, US futures, Asian markets), Nifty opens with a gap. That gap triggers stop losses, margin calls, and panic — all within the first few candles. The price swings are real but often temporary.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">2</div>
+      <div class="sb">
+        <div class="st">Institutional order book hits simultaneously</div>
+        <p>Large funds place overnight orders that execute at 9:15 AM. When a ₹500 crore buy order hits in the first minute, it can move Nifty 40–60 points instantly. Retail traders cannot react fast enough and often chase the move at the worst price.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">3</div>
+      <div class="sb">
+        <div class="st">Opening traps are engineered</div>
+        <p>A common pattern: Nifty opens 80 points gap up, retail buyers rush in, Nifty immediately reverses 120 points — trapping every buyer from the open. This is called a "gap fill reversal." It happens multiple times every month. The first 15-minute candle frequently contains an engineered trap.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>The Opening Range — Your Directional Compass</h3>
+  <p>
+    The <strong>Opening Range (ORB)</strong> is the high and low formed in the first 15–30 minutes. Once these levels are defined, they become the most important price action reference for the rest of the day. A <em>breakout above the opening range high</em> confirms bullish direction. A <em>breakdown below the opening range low</em> confirms bearish direction.
+  </p>
+  <p>
+    The TradeZen Trade Flow tool calculates the ORB automatically and shows you live when a breakout is occurring. The candle that closes beyond the ORB is your entry trigger — not the wick, not the touch, the <em>close</em>.
+  </p>
+
+  <div class="info-box ib-cyan">
+    <span class="info-icon">🧭</span>
+    <p><strong>TradeZen tool tip:</strong> The <a href="/trade_flow.html" style="color:var(--cyan)">Trade Flow page</a> shows the ORB High and Low levels on the live chart, updates in real time, and signals when a confirmed breakout candle forms. You can see the exact candles discussed in this section live every trading day.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S7: READING A SEQUENCE ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s7"></a>
+  <div class="sec-head">
+    <div class="sec-num">7</div>
+    <h2>Reading a Sequence of Candles</h2>
+  </div>
+
+  <p>
+    Individual candles give you snapshots. But markets tell their story through sequences. <strong>Price action is a narrative</strong> — each candle is a sentence, and the sequence is the paragraph. Learning to read sequences separates good traders from those who only react to single candles.
+  </p>
+
+  <h3>The Uptrend Sequence — Higher Highs, Higher Lows</h3>
+  <p>
+    An uptrend is defined by price making <strong>Higher Highs (HH)</strong> and <strong>Higher Lows (HL)</strong>. This sequence tells you buyers are consistently stepping in at higher prices and sellers are failing to push price back to the previous low. Every new higher low is a foothold for the next push up.
+  </p>
+
+  <!-- UPTREND SEQUENCE DIAGRAM -->
+  <div class="candle-lab">
+    <div class="cl-title">Uptrend — Higher Highs · Higher Lows</div>
+    <div style="display:flex;gap:6px;align-items:flex-end;justify-content:center;padding:16px 0;flex-wrap:wrap">
+      <!-- Candle 1 small green -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div class="c bull"><div class="wick-t" style="height:8px"></div><div class="cbody" style="height:25px;background:#2ecc71;width:14px"></div><div class="wick-b" style="height:8px"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted)">HL₁</div>
+      </div>
+      <!-- Red pullback -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div class="c bear"><div class="wick-t" style="height:6px"></div><div class="cbody" style="height:16px;background:#e74c3c;width:14px"></div><div class="wick-b" style="height:10px"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted)">pullback</div>
+      </div>
+      <!-- Candle 2 medium green -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:-10px">
+        <div class="c bull"><div class="wick-t" style="height:6px"></div><div class="cbody" style="height:38px;background:#2ecc71;width:14px"></div><div class="wick-b" style="height:6px"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">HH₁</div>
+      </div>
+      <!-- Red pullback -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div class="c bear"><div class="wick-t" style="height:5px"></div><div class="cbody" style="height:14px;background:#e74c3c;width:14px"></div><div class="wick-b" style="height:12px"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted)">HL₂</div>
+      </div>
+      <!-- Candle 3 tall green -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:-18px">
+        <div class="c bull"><div class="wick-t" style="height:5px"></div><div class="cbody" style="height:52px;background:#2ecc71;width:14px"></div><div class="wick-b" style="height:5px"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">HH₂</div>
+      </div>
+      <!-- Small pullback -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div class="c bear"><div class="wick-t" style="height:4px"></div><div class="cbody" style="height:12px;background:#e74c3c;width:14px"></div><div class="wick-b" style="height:10px"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted)">HL₃</div>
+      </div>
+      <!-- Candle 4 tallest -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:-28px">
+        <div class="c bull"><div class="wick-t" style="height:5px"></div><div class="cbody" style="height:68px;background:#2ecc71;width:14px"></div><div class="wick-b" style="height:5px"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">HH₃</div>
+      </div>
+      <!-- Arrow -->
+      <div style="font-size:28px;color:var(--green);padding:0 8px;align-self:center">→</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);align-self:center;text-align:left">TREND<br>INTACT</div>
+    </div>
+  </div>
+
+  <h3>When the Uptrend Breaks</h3>
+  <p>
+    An uptrend is <em>broken</em> when price makes a <strong>Lower Low</strong> — it drops below the previous Higher Low. This is the first warning that the trend may be reversing. It does not confirm a downtrend yet (you need a lower high too), but it is a signal to tighten stops and reduce long exposure.
+  </p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">↑</div>
+      <div class="sb">
+        <div class="st">Healthy uptrend: each pullback holds above the prior low</div>
+        <p>Price makes HH → pulls back → holds above previous HL → pushes to new HH. This is the "staircase" pattern. Each Higher Low is a potential entry for traders who missed the initial move.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">→</div>
+      <div class="sb">
+        <div class="st">Warning: pullback breaks previous Higher Low</div>
+        <p>Price pulls back and closes <em>below</em> the previous Higher Low. The staircase pattern is broken. This is not a reversal confirmation but it means <strong>tighten your stop</strong> and do not add to longs.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">↓</div>
+      <div class="sb">
+        <div class="st">Confirmed reversal: Lower High followed by Lower Low</div>
+        <p>After the Lower Low, price rallies but fails to make a new high — forming a Lower High. This is now a confirmed downtrend structure. Exit remaining longs, look for short entries on rallies.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">🇮🇳 Real Context — Nifty Trend Identification in Practice</div>
+    <div class="ex-content">
+      During a strong trending morning, watch for this sequence on the 5-minute chart: Nifty makes <span class="price">23,180</span> (HH₁), pulls back to <span class="price">23,140</span> (HL₁), pushes to <span class="price">23,220</span> (HH₂), pulls back to <span class="price">23,170</span> (HL₂). As long as each pullback holds above the previous HL, <strong>the trend is intact and every dip is a buy opportunity</strong>. The moment price closes below <span class="price">23,140</span> (the previous HL₁), the structure is broken and you stop buying dips.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S8: PRICE ACTION VS INDICATORS ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s8"></a>
+  <div class="sec-head">
+    <div class="sec-num">8</div>
+    <h2>Price Action vs Indicators</h2>
+  </div>
+
+  <p>
+    This is one of the most debated topics in trading. The truth is not that one is better than the other — it's that they serve different purposes and work best together. Here's an honest comparison:
+  </p>
+
+  <div class="compare-block">
+    <div class="compare-col">
+      <div class="compare-col-head" style="background:rgba(0,212,255,0.08);color:var(--cyan)">📊 Price Action</div>
+      <div class="compare-item">✅ <span><strong>Zero lag</strong> — you see the candle forming in real time</span></div>
+      <div class="compare-item">✅ <span>Works on all timeframes and all instruments</span></div>
+      <div class="compare-item">✅ <span>Gives you the <strong>raw truth</strong> of what buyers/sellers are doing</span></div>
+      <div class="compare-item">✅ <span>Does not repaint or change retroactively</span></div>
+      <div class="compare-item">⚠️ <span>Requires practice and subjectivity — two traders can read the same candle differently</span></div>
+      <div class="compare-item">⚠️ <span>Can be overwhelming without a framework for key levels</span></div>
+    </div>
+    <div class="compare-col">
+      <div class="compare-col-head" style="background:rgba(124,106,247,0.1);color:var(--accent)">📈 Indicators</div>
+      <div class="compare-item">✅ <span><strong>Objective</strong> — RSI 68.4 is RSI 68.4 for every trader</span></div>
+      <div class="compare-item">✅ <span>Good at quantifying momentum, trend strength, volatility</span></div>
+      <div class="compare-item">✅ <span>Useful for filtering entries within a price action signal</span></div>
+      <div class="compare-item">⚠️ <span><strong>All lag</strong> — they are calculated from past prices</span></div>
+      <div class="compare-item">⚠️ <span>Can give conflicting signals across different settings</span></div>
+      <div class="compare-item">⚠️ <span>Over-reliance creates "indicator soup" — paralysis by analysis</span></div>
+    </div>
+  </div>
+
+  <h3>The Right Relationship</h3>
+  <p>
+    Think of it this way: <strong>price action tells you <em>what</em> is happening. Indicators help confirm <em>how strong</em> it is.</strong> A Hammer candle at CPR BC is your price action signal. RSI at 32 (near oversold) at the same moment is your indicator confirmation. Together, they give you higher conviction than either alone.
+  </p>
+  <p>
+    This course teaches both — and every chapter on indicators will specifically explain how to combine them with the price action foundation you're building here.
+  </p>
+
+  <div class="info-box ib-red">
+    <span class="info-icon">⚠️</span>
+    <p><strong>The most common mistake:</strong> Traders who rely entirely on indicators often find that by the time an indicator signals "buy," price has already moved 40 points. They buy at the worst possible entry. Price action readers enter at the first candle signal. Indicators are best used as filters, not primary entry signals, on fast-moving instruments like Nifty.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S9: COMMON MISTAKES ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s9"></a>
+  <div class="sec-head">
+    <div class="sec-num">9</div>
+    <h2>Common Mistakes</h2>
+  </div>
+
+  <p>These are the most frequent price action errors made by traders in their first 6–12 months. Recognising them in yourself is the first step to fixing them.</p>
+
+  <div class="mistake-grid">
+
+    <div class="mistake-card">
+      <div class="mc-icon">🔴</div>
+      <div class="mc-title">Trading wicks as entries without level context</div>
+      <div class="mc-body">Seeing a long lower wick anywhere and buying it — even when there's no nearby support level. Random wicks are just noise.</div>
+      <div class="mc-fix">✅ Fix: Identify your key levels first. A wick only matters when it forms at a level you already identified.</div>
+    </div>
+
+    <div class="mistake-card">
+      <div class="mc-icon">🔴</div>
+      <div class="mc-title">Entering during the first 15 minutes</div>
+      <div class="mc-body">Chasing the opening move because it "looks so strong." Opening moves frequently reverse — this is where most retail losses accumulate.</div>
+      <div class="mc-fix">✅ Fix: Never enter in the first 15 minutes. Wait for the ORB to form and a confirmed breakout direction.</div>
+    </div>
+
+    <div class="mistake-card">
+      <div class="mc-icon">🔴</div>
+      <div class="mc-title">Reading candles without timeframe context</div>
+      <div class="mc-body">A Hammer on a 1-minute chart at noon means almost nothing. The same pattern on a 15-minute chart at a major support is significant.</div>
+      <div class="mc-fix">✅ Fix: Always check at least two timeframes. Use 15-min for trend bias, 5-min for entry timing.</div>
+    </div>
+
+    <div class="mistake-card">
+      <div class="mc-icon">🔴</div>
+      <div class="mc-title">Ignoring the direction of the candle's close</div>
+      <div class="mc-body">Entering on price reaching a level rather than waiting for the candle to close there. Wicks frequently touch levels and reverse — you need the close to confirm.</div>
+      <div class="mc-fix">✅ Fix: Enter only on candle close, not on price touch. This single habit eliminates most false entries.</div>
+    </div>
+
+    <div class="mistake-card">
+      <div class="mc-icon">🔴</div>
+      <div class="mc-title">Treating every Doji as a reversal</div>
+      <div class="mc-body">A Doji signals indecision — not reversal. Indecision in a strong trend often leads to continuation, not reversal.</div>
+      <div class="mc-fix">✅ Fix: Wait for the next candle after a Doji to tell you who won. Never counter-trade a strong trend on a Doji alone.</div>
+    </div>
+
+    <div class="mistake-card">
+      <div class="mc-icon">🔴</div>
+      <div class="mc-title">Forgetting the trend when reading individual candles</div>
+      <div class="mc-body">Finding bearish candles in an uptrend and shorting. Against a strong trend, bearish candles are just pullback candles — they often resolve back in trend direction.</div>
+      <div class="mc-fix">✅ Fix: Always establish the current trend structure (HH/HL or LH/LL) before entering any trade. Trade with the trend, not against it, unless at a major reversal zone.</div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- ══════════════════════ S10: KEY TAKEAWAYS ══════════════════════ -->
+<div class="section">
+  <a class="sec-anchor" id="s10"></a>
+  <div class="sec-head">
+    <div class="sec-num">10</div>
+    <h2>Key Takeaways</h2>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">📋 Chapter 1 Summary</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span>Every candlestick encodes OHLC data — Open, High, Low, Close. The body shows who won. The wicks show where the other side fought back.</div>
+      <div class="tk-item"><span class="tk-check">✓</span>A large body = conviction. A small body = indecision. A Marubozu (no wicks) = complete domination by one side.</div>
+      <div class="tk-item"><span class="tk-check">✓</span>Wicks are only meaningful at known key levels — support, resistance, CPR TC/BC, VWAP, round numbers. A wick in the middle of nowhere is noise.</div>
+      <div class="tk-item"><span class="tk-check">✓</span>Never trade the first 15 minutes (9:15–9:30 AM). Wait for the ORB to form. Enter on candle close, never on a wick touch.</div>
+      <div class="tk-item"><span class="tk-check">✓</span>Uptrend = Higher Highs + Higher Lows. Downtrend = Lower Highs + Lower Lows. The trend is broken when the sequence first fails.</div>
+      <div class="tk-item"><span class="tk-check">✓</span>Price action has zero lag — it shows what is happening now. Indicators confirm how strong it is. Use both, with price action as the primary signal.</div>
+      <div class="tk-item"><span class="tk-check">✓</span>Candle size is relative — always compare a candle to the surrounding 5–10 candles. A large candle relative to recent ones signals a power shift.</div>
+      <div class="tk-item"><span class="tk-check">✓</span>Always enter on candle close — not on a touch, not on a wick. The close confirms the verdict of that auction period.</div>
+    </div>
+  </div>
+
+  <div class="info-box ib-blue" style="margin-top:20px">
+    <span class="info-icon">🧭</span>
+    <p><strong>Apply it live today:</strong> Open the <a href="/trade_flow.html" style="color:var(--blue)">Trade Flow page</a> during market hours. Look at each 5-minute candle and ask: (1) Is the body large or small? (2) Are there significant wicks? (3) Is the candle near a key level? (4) Does it fit the HH/HL sequence? You've just started reading price action.</p>
+  </div>
+</div>
+
+<!-- QUIZ CTA -->
+<div class="quiz-cta">
+  <div class="qcta-left">
+    <h4>Chapter 1 Quiz — Test Your Understanding</h4>
+    <p>5 questions · Price Action Fundamentals · Earn up to 30 XP · ~3 minutes</p>
+  </div>
+  <div class="qcta-btns">
+    <button class="mark-btn" id="markBtn" onclick="markChapterRead()">✓ Mark as Read</button>
+    <a href="/learn_quiz.html?module=ta&ch=1" class="qbtn qbtn-primary">Take Quiz &amp; Earn XP →</a>
+  </div>
+</div>
+
+<!-- PAGE NAV -->
+<div class="page-nav">
+  <a href="/learn_technical.html" class="pn-btn">← Course Overview</a>
+  <a href="/learn_ch_ta_2.html" class="pn-btn primary">Chapter 2: Candlestick Patterns →</a>
+</div>
+
+</div><!-- /page -->
+
+<footer>TradeZen · TA Course · Chapter 1 of 10 · Price Action Fundamentals</footer>
+
+<script>
+/* ── i18n foundation ─────────────────────────────────────── */
+const _LANG = localStorage.getItem('tz_lang') || 'en';
+const _T = { en: {} };
+function t(k) { return (_T[_LANG] || _T.en)[k] || k; }
+
+/* ── Progress ────────────────────────────────────────────── */
+const STORE_KEY  = 'tz_learn';
+const CHAPTER_ID = 'ta_1';
+const CHAPTER_XP = 30;
+const TOTAL_CHAPTERS = 10;
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+function saveProgress(d) { localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+
+/* ── Render chapter dots in bar ──────────────────────────── */
+function renderDots() {
+  const p    = loadProgress();
+  const done = p.chapters_done || [];
+  const grid = document.getElementById('chDots');
+  grid.innerHTML = '';
+  for (let i = 1; i <= TOTAL_CHAPTERS; i++) {
+    const id  = `ta_${i}`;
+    const div = document.createElement('div');
+    div.className = 'cb-dot ' + (done.includes(id) ? 'done' : i === 1 ? 'current' : '');
+    div.title = `Chapter ${i}`;
+    grid.appendChild(div);
+  }
+}
+
+/* ── Mark chapter as read (without quiz) ─────────────────── */
+function markChapterRead() {
+  const data = loadProgress();
+  const done = data.chapters_done || [];
+  if (done.includes(CHAPTER_ID)) return;
+
+  done.push(CHAPTER_ID);
+  data.chapters_done = done;
+  data.xp = (data.xp || 0) + CHAPTER_XP;
+  const today = new Date().toDateString();
+  data.activity = data.activity || [];
+  data.activity.push({ icon: '📖', title: 'Read: Price Action Fundamentals', xp: CHAPTER_XP, date: today });
+
+  // Badge checks
+  const badges = data.badges_earned || [];
+  if (done.length === 1 && !badges.includes('first_step')) {
+    badges.push('first_step');
+    data.xp += 10;
+    data.activity.push({ icon: '👣', title: 'Badge: First Step!', xp: 10, date: today });
+  }
+  data.badges_earned = badges;
+  saveProgress(data);
+
+  const btn = document.getElementById('markBtn');
+  btn.className = 'mark-btn done';
+  btn.textContent = '✓ Marked Complete';
+  btn.disabled = true;
+  renderDots();
+}
+
+/* ── Restore completed state on load ─────────────────────── */
+function restoreState() {
+  const done = loadProgress().chapters_done || [];
+  if (done.includes(CHAPTER_ID)) {
+    const btn = document.getElementById('markBtn');
+    btn.className = 'mark-btn done';
+    btn.textContent = '✓ Marked Complete';
+    btn.disabled = true;
+  }
+}
+
+/* ── Handle return from quiz ─────────────────────────────── */
+function handleQuizReturn() {
+  const params    = new URLSearchParams(window.location.search);
+  const completed = params.get('completed');
+  const score     = parseInt(params.get('score') || '0');
+  if (completed !== CHAPTER_ID) return;
+
+  const data = loadProgress();
+  const done = data.chapters_done || [];
+  const today = new Date().toDateString();
+  if (!done.includes(CHAPTER_ID)) {
+    done.push(CHAPTER_ID);
+    data.chapters_done = done;
+    const xpEarned = Math.round(CHAPTER_XP * (score / 5));
+    data.xp = (data.xp || 0) + xpEarned;
+    data.activity = data.activity || [];
+    data.activity.push({ icon: '🎯', title: `Quiz: Price Action (${score}/5)`, xp: xpEarned, date: today });
+    saveProgress(data);
+  }
+  window.history.replaceState({}, '', '/learn_ch_ta_1.html');
+}
+
+function toggleNav() { document.getElementById('navLinks').classList.toggle('open'); }
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#navLinks .nl').forEach(a =>
+    a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open')));
+});
+
+handleQuizReturn();
+restoreState();
+renderDots();
+</script>
+</body>
+</html>

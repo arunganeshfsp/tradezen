@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 3: Support & Resistance | TradeZen Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--orange:#f39c12;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:20px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+.ch-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:56px;z-index:100;flex-wrap:wrap}
+.cb-breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.cb-breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
+.cb-breadcrumb a:hover{color:var(--accent)}
+.cb-sep{color:var(--border2)}
+.cb-current{color:var(--text);font-weight:600}
+.cb-spacer{flex:1}
+.cb-prog{display:flex;align-items:center;gap:8px}
+.cb-dots{display:flex;gap:4px}
+.cb-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s}
+.cb-dot.done{background:var(--green)}.cb-dot.current{background:var(--accent)}
+.cb-ch-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.page{max-width:860px;margin:0 auto;padding:36px 24px 80px}
+.ch-hero{padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}
+.ch-hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ch-num-big{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.ch-hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1.15}
+.ch-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ch-hero-sub{font-size:14px;color:var(--dim);line-height:1.7;max-width:640px;margin-bottom:20px}
+.ch-meta-row{display:flex;gap:16px;flex-wrap:wrap}
+.ch-meta-pill{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:20px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:48px}
+.toc h3{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.toc-list{display:flex;flex-direction:column;gap:2px}
+.toc-link{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:var(--r2);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.toc-link:hover{color:var(--accent);background:rgba(124,106,247,0.06)}
+.toc-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:20px;flex-shrink:0}
+.toc-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.section{margin-bottom:56px;scroll-margin-top:106px}
+.sec-anchor{display:block;height:106px;margin-top:-106px;visibility:hidden}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.sec-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.82;margin-bottom:14px}
+.section p strong{color:var(--text)}
+.section p em{color:var(--accent);font-style:normal}
+.section h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin:28px 0 10px}
+.section h4{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin:20px 0 8px}
+.info-box{display:flex;gap:12px;border-radius:var(--r2);padding:14px 16px;margin:16px 0}
+.ib-blue{background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2)}
+.ib-yellow{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.25)}
+.ib-green{background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}
+.ib-red{background:var(--red-bg);border:1px solid rgba(231,76,60,0.25)}
+.ib-purple{background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25)}
+.ib-cyan{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2)}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}
+.info-box p strong{color:var(--text)}
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r2);padding:16px 18px;margin:16px 0}
+.ex-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.ex-content{font-size:13px;color:var(--dim);line-height:1.75}
+.ex-content strong{color:var(--text)}
+.ex-content .price{font-family:'JetBrains Mono',monospace;color:var(--yellow);font-size:12px}
+.step-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.step-row{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--border)}
+.step-row:last-child{border-bottom:none}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}
+.sn.g{background:var(--green)}.sn.r{background:var(--red)}.sn.y{background:var(--yellow)}
+.sb .st{font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}
+.sb p{font-size:13px;color:var(--dim);line-height:1.7;margin:0}
+.sb p strong{color:var(--text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:var(--r);overflow:hidden}
+.tbl th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+
+/* SR LEVEL DIAGRAM */
+.sr-diagram{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:16px 0;position:relative;overflow:hidden}
+.sr-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.sr-level{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.sr-line{flex:1;height:2px;position:relative}
+.sr-r{background:rgba(231,76,60,0.4);border:1px dashed rgba(231,76,60,0.6)}
+.sr-s{background:rgba(46,204,113,0.4);border:1px dashed rgba(46,204,113,0.6)}
+.sr-price{font-family:'JetBrains Mono',monospace;font-size:11px;width:70px;flex-shrink:0}
+.sr-label{font-size:11px;color:var(--muted);flex:1}
+.sr-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:8px}
+.tag-res{color:var(--red);background:var(--red-bg);border:1px solid var(--red-border)}
+.tag-sup{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.mistake-card{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--r);padding:16px}
+.mc-icon{font-size:20px;margin-bottom:8px}
+.mc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}
+.mc-body{font-size:12px;color:var(--dim);line-height:1.6}
+.mc-fix{margin-top:8px;padding:6px 10px;background:var(--green-bg);border-radius:var(--r2);font-size:11px;color:var(--green);border:1px solid var(--green-border)}
+.takeaways{background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(0,212,255,0.04));border:1px solid rgba(124,106,247,0.25);border-radius:var(--r);padding:24px 28px;margin:16px 0}
+.tk-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.tk-list{display:flex;flex-direction:column;gap:8px}
+.tk-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);line-height:1.65}
+.tk-check{color:var(--green);flex-shrink:0;font-size:14px;margin-top:1px}
+.quiz-cta{margin-top:32px;padding:22px 26px;background:linear-gradient(135deg,rgba(124,106,247,0.1),rgba(91,138,245,0.05));border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.qcta-left h4{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}
+.qcta-left p{font-size:12px;color:var(--dim)}
+.qcta-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r2);font-weight:600;font-size:13px;text-decoration:none;transition:opacity .15s;cursor:pointer;border:none}
+.qbtn:hover{opacity:.85}
+.qbtn-primary{background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff}
+.mark-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--border);border-radius:var(--r2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.mark-btn:hover{border-color:var(--green);color:var(--green)}
+.mark-btn.done{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.page-nav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.pn-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r2);background:var(--bg2);border:1px solid var(--border);color:var(--dim);text-decoration:none;font-size:13px;transition:all .15s}
+.pn-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.pn-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.pn-btn.primary:hover{opacity:.85}
+hr.sec-divider{border:none;border-top:1px solid var(--border);margin:52px 0}
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/index.html">Home</a>
+    <a class="nl" href="/learn_dashboard.html">📚 Learn</a>
+    <a class="nl on" href="/learn_technical.html">📊 TA Course</a>
+    <a class="nl" href="/trade_flow.html">🧭 Flow</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="ch-bar">
+  <div class="cb-breadcrumb">
+    <a href="/learn_dashboard.html">Dashboard</a>
+    <span class="cb-sep">›</span>
+    <a href="/learn_technical.html">TA Course</a>
+    <span class="cb-sep">›</span>
+    <span class="cb-current">Ch.3 Support & Resistance</span>
+  </div>
+  <div class="cb-spacer"></div>
+  <div class="cb-prog">
+    <span class="cb-ch-label">CHAPTER</span>
+    <div class="cb-dots" id="chDots"></div>
+  </div>
+</div>
+
+<div class="page">
+
+<div class="ch-hero">
+  <div class="ch-hero-top">
+    <div class="ch-num-big">3</div>
+    <div class="ch-hero-meta">
+      <div class="ch-tag">Chapter 03 · Technical Analysis</div>
+      <h1>Support & <em>Resistance</em></h1>
+    </div>
+  </div>
+  <p class="ch-hero-sub">
+    Support and resistance are the invisible walls that price bounces between. Every trading strategy — whether based on candles, indicators, or options — comes back to these levels. Learn to identify them precisely, understand why they work, and use them in real Nifty trade setups.
+  </p>
+  <div class="ch-meta-row">
+    <span class="ch-meta-pill">⏱ ~20 min read</span>
+    <span class="ch-meta-pill">⚡ 35 XP available</span>
+    <span class="ch-meta-pill">📊 10 sections</span>
+    <span class="ch-meta-pill">🇮🇳 Nifty examples</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>In this chapter</h3>
+  <div class="toc-list">
+    <a href="#s1" class="toc-link"><span class="toc-n">01</span><div class="toc-dot"></div>What Are Support & Resistance?</a>
+    <a href="#s2" class="toc-link"><span class="toc-n">02</span><div class="toc-dot"></div>How to Draw Levels Correctly</a>
+    <a href="#s3" class="toc-link"><span class="toc-n">03</span><div class="toc-dot"></div>Static vs Dynamic Support/Resistance</a>
+    <a href="#s4" class="toc-link"><span class="toc-n">04</span><div class="toc-dot"></div>Role Reversal — Support Becomes Resistance</a>
+    <a href="#s5" class="toc-link"><span class="toc-n">05</span><div class="toc-dot"></div>Round Numbers and Psychological Levels</a>
+    <a href="#s6" class="toc-link"><span class="toc-n">06</span><div class="toc-dot"></div>Prior Day High/Low (PDH/PDL)</a>
+    <a href="#s7" class="toc-link"><span class="toc-n">07</span><div class="toc-dot"></div>Weekly and Monthly Levels</a>
+    <a href="#s8" class="toc-link"><span class="toc-n">08</span><div class="toc-dot"></div>Zones, Not Lines</a>
+    <a href="#s9" class="toc-link"><span class="toc-n">09</span><div class="toc-dot"></div>Building a Level Map for Nifty Trading</a>
+    <a href="#s10" class="toc-link"><span class="toc-n">10</span><div class="toc-dot"></div>Common Mistakes & Key Takeaways</a>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <span class="sec-anchor" id="s1"></span>
+  <div class="sec-head"><div class="sec-num">1</div><h2>What Are Support & Resistance?</h2></div>
+
+  <p><strong>Support</strong> is a price level where demand exceeds supply — buyers step in and prevent price from falling further. <strong>Resistance</strong> is a level where supply exceeds demand — sellers overwhelm buyers and prevent price from rising further.</p>
+
+  <p>These levels exist because of <strong>collective memory</strong>. When Nifty bounces from 22,000 three times over two months, a large number of traders notice this. On the fourth visit, even more buyers step in expecting the same result — which actually creates the bounce they were anticipating. This is how technical levels become self-reinforcing.</p>
+
+  <div class="info-box ib-blue">
+    <span class="info-icon">📌</span>
+    <p><strong>Core principle:</strong> Support and resistance levels are not lines where price always bounces. They are <strong>zones of increased probability</strong>. Price tests them, sometimes breaches them slightly, then reverses. Your job is to trade the probabilities, not predict exact bounces.</p>
+  </div>
+
+  <h3>Why These Levels Form</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Prior highs and lows — memory of pain and profit</div>
+        <p>Traders who bought at a prior high and saw price fall will sell when price returns to their entry (to "get out even"). This selling creates resistance at prior highs. Conversely, traders who missed a rally will buy when price returns to a prior support level.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">High-volume nodes — price spent time here</div>
+        <p>Areas where a lot of volume transacted are "accepted" price zones. When price leaves and returns, it tends to gravitate back to these nodes — creating support/resistance.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Institutional order placement</div>
+        <p>Large funds place iceberg orders at key levels. These orders absorb market orders and create the "invisible wall" effect. Retail traders see the result on their charts without knowing the cause.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty — The 22,000 Level · 2024</div>
+    <div class="ex-content">
+      The <span class="price">22,000</span> level on Nifty acted as resistance twice in Jan 2024 (Dec 2023 high), then became support after the breakout. When Nifty pulled back to <span class="price">22,000–22,050</span> in Feb 2024, it bounced strongly. This is textbook role reversal (covered in Section 4). <strong>Institutional buyers placed buy orders at 22,000 expecting support at the prior breakout level</strong> — and they were right. The level held and Nifty rallied to <span class="price">22,526</span>.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S2 -->
+<div class="section">
+  <span class="sec-anchor" id="s2"></span>
+  <div class="sec-head"><div class="sec-num">2</div><h2>How to Draw Levels Correctly</h2></div>
+
+  <p>Most beginners draw too many lines and create a chart that looks like a web — useless for actual trading. The goal is to identify the <em>3–5 most significant levels</em> on any timeframe and watch those.</p>
+
+  <h3>The Correct Drawing Method</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">1</div>
+      <div class="sb">
+        <div class="st">Use wicks, not just candle bodies</div>
+        <p>Draw your level through the wick extremes, not through the body. Wicks represent the actual price where transactions occurred — they are real prints that were rejected. A level at the wick high is more meaningful than one through the candle body.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb">
+        <div class="st">Count touches — more touches = stronger level</div>
+        <p>A level that has been tested 3 or more times is confirmed strong. Each test without a breakout shows the opposing force (buyers at support, sellers at resistance) is holding. Two touches = tentative level. Three or more = high-conviction zone.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Look left — older levels still matter</div>
+        <p>Levels formed months or even years ago still work. Nifty's 2022 low at <span style="font-family:monospace;color:var(--yellow)">15,183</span> acted as a reference level for over 18 months. Before trading any level, scroll left to see if it was previously significant.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">4</div>
+      <div class="sb">
+        <div class="st">Use the weekly chart for the most important levels</div>
+        <p>Weekly chart levels carry more weight than daily, which carry more than hourly. When identifying the key S/R levels for a week of trading, start on the weekly chart and work down to daily, then to the intraday timeframe you trade.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box ib-yellow">
+    <span class="info-icon">⚠️</span>
+    <p><strong>The "3 lines max" rule for intraday:</strong> When you open a 15-min Nifty chart for the trading day, draw no more than 3 horizontal lines above current price (resistance) and 3 below (support). More than that creates decision paralysis and constant second-guessing.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S3 -->
+<div class="section">
+  <span class="sec-anchor" id="s3"></span>
+  <div class="sec-head"><div class="sec-num">3</div><h2>Static vs Dynamic Support/Resistance</h2></div>
+
+  <p>Support and resistance comes in two forms: <strong>static</strong> (horizontal lines that don't move) and <strong>dynamic</strong> (lines that move with price, typically moving averages or trendlines).</p>
+
+  <table class="tbl">
+    <thead><tr><th>Type</th><th>Examples</th><th>Characteristic</th><th>When to Use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Static</strong></td><td>Prior high/low, round numbers, PDH/PDL, CPR</td><td>Horizontal, exact price level</td><td>Range-bound markets, key inflection points</td></tr>
+      <tr><td><strong>Dynamic</strong></td><td>20 EMA, 50 EMA, 200 EMA, VWAP, Trendline</td><td>Moves with price over time</td><td>Trending markets, pullback entries</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Dynamic Support: EMAs in Nifty</h3>
+  <p>In a bull trend, Nifty tends to find support at the <strong>20 EMA on the daily chart</strong> during shallow pullbacks. During deeper corrections, it often finds support at the <strong>50 EMA</strong>. The <strong>200 EMA</strong> is the last line of defense — a close below it on the weekly chart has historically preceded major bear phases.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty — 20 EMA as Dynamic Support · Aug-Sept 2023</div>
+    <div class="ex-content">
+      During Nifty's bull run from July to Sept 2023, the 20-day EMA rose from approximately <span class="price">19,200</span> to <span class="price">19,800</span>. Every time Nifty dipped toward the 20 EMA (<span class="price">19,250 on Aug 18</span>, <span class="price">19,430 on Aug 24</span>), buyers stepped in within 1–2 sessions. <strong>Pullback traders used the 20 EMA touch as an entry trigger</strong>: buy at the close of the first candle to touch the 20 EMA, stop below it by 50–80 points, target the prior high.
+    </div>
+  </div>
+
+  <h3>Trendlines as Dynamic Support</h3>
+  <p>A trendline connects two or more significant lows (uptrend) or highs (downtrend). Once it is tested and holds a third time, it becomes high-probability support/resistance. The key is to <em>draw the line through the wicks of the most significant swing points</em>, not trying to make it "fit" as many touches as possible.</p>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S4 -->
+<div class="section">
+  <span class="sec-anchor" id="s4"></span>
+  <div class="sec-head"><div class="sec-num">4</div><h2>Role Reversal — Support Becomes Resistance</h2></div>
+
+  <p>This is one of the most powerful and reliable concepts in technical analysis: <strong>when a support level is broken, it often flips to become resistance</strong> on the next test from below. The opposite is equally true — a broken resistance becomes support on retest.</p>
+
+  <p>Why does this happen? Traders who were long at the support level and saw it break are now sitting on losses. When price rallies back to their entry, they sell to "get out flat" — creating the new resistance. This collective behavior is highly predictable.</p>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty Role Reversal — The 21,000 Level · Oct–Dec 2023</div>
+    <div class="ex-content">
+      <span class="price">21,000</span> was major resistance for Nifty from Sept to Oct 2023. After a strong breakout on Nov 3 (closed at <span class="price">21,117</span>), Nifty pulled back. On Nov 14, Nifty tested <span class="price">21,000</span> from above — the exact prior resistance level. <strong>It bounced from <span class="price">20,971</span>, confirming the role reversal: former resistance became support.</strong> Traders who identified this in advance had a near-perfect low-risk long entry with a tight stop below 20,971.
+    </div>
+  </div>
+
+  <h3>Strength of Role Reversal</h3>
+  <p>The strength of the role reversal depends on two factors:</p>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">How long the original level held</div>
+        <p>A level that held for 3 months as resistance creates a stronger role reversal when broken than one that held for just 2 weeks. More traders have memory of the level = stronger psychology.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">How fast/strong the breakout was</div>
+        <p>A large-volume, wide-range breakout candle creates a cleaner role reversal than a slow, grinding break. The explosive move traps more sellers in losing positions who will cover on the next test.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S5 -->
+<div class="section">
+  <span class="sec-anchor" id="s5"></span>
+  <div class="sec-head"><div class="sec-num">5</div><h2>Round Numbers & Psychological Levels</h2></div>
+
+  <p>Markets are moved by humans, and humans think in round numbers. In Nifty, the levels <strong>22,000 / 23,000 / 24,000 / 25,000</strong> are not just arbitrary numbers — they are massive psychological barriers where option writers, institutional traders, and retail traders all place orders simultaneously.</p>
+
+  <div class="sr-diagram">
+    <div class="sr-title">NIFTY KEY PSYCHOLOGICAL LEVELS — 2024</div>
+    <div class="sr-level">
+      <span class="sr-price" style="color:var(--red)">25,000</span>
+      <div class="sr-line sr-r"></div>
+      <span class="sr-label">Psychological round number + ATH zone Oct 2024</span>
+      <span class="sr-tag tag-res">RESIST</span>
+    </div>
+    <div class="sr-level">
+      <span class="sr-price" style="color:var(--red)">24,000</span>
+      <div class="sr-line sr-r"></div>
+      <span class="sr-label">Major breakout level July 2024, prior resistance</span>
+      <span class="sr-tag tag-res">RESIST</span>
+    </div>
+    <div class="sr-level">
+      <span class="sr-price" style="color:var(--green)">23,000</span>
+      <div class="sr-line sr-s"></div>
+      <span class="sr-label">Role reversal — was resistance Jan 2024, became support post-breakout</span>
+      <span class="sr-tag tag-sup">SUPPORT</span>
+    </div>
+    <div class="sr-level">
+      <span class="sr-price" style="color:var(--green)">22,000</span>
+      <div class="sr-line sr-s"></div>
+      <span class="sr-label">Major support — multiple tests held in 2024</span>
+      <span class="sr-tag tag-sup">SUPPORT</span>
+    </div>
+    <div class="sr-level">
+      <span class="sr-price" style="color:var(--green)">21,000</span>
+      <div class="sr-line sr-s"></div>
+      <span class="sr-label">Long-term support — role reversal from Oct 2023 breakout</span>
+      <span class="sr-tag tag-sup">SUPPORT</span>
+    </div>
+  </div>
+
+  <p>Options data amplifies round numbers further. Nifty options have maximum open interest at round strikes (22,000 CE / 22,000 PE). When Nifty approaches these levels, option writers defend their positions aggressively, which literally creates the support/resistance effect through order flow.</p>
+
+  <div class="info-box ib-purple">
+    <span class="info-icon">⚡</span>
+    <p><strong>Intraday tip:</strong> Half-round numbers (22,500 / 23,500) are also significant — less powerful than whole thousands but still meaningful. On a 15-min chart, look for option chain max pain and strikes with the largest OI — these often act as intraday magnet levels.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S6 -->
+<div class="section">
+  <span class="sec-anchor" id="s6"></span>
+  <div class="sec-head"><div class="sec-num">6</div><h2>Prior Day High/Low (PDH/PDL)</h2></div>
+
+  <p>The <strong>Prior Day High (PDH)</strong> and <strong>Prior Day Low (PDL)</strong> are among the most reliable intraday support/resistance levels. Every professional intraday trader marks these before the session opens. Here's why they work:</p>
+
+  <p>When Nifty broke above a prior day high, all the short sellers from the previous session are now in a loss. As price retests the PDH from above, their anxiety peaks and many cover — adding to buying demand. When price breaks below a PDL, longs from the prior session are trapped.</p>
+
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">BUY</div>
+      <div class="sb">
+        <div class="st">Long above PDH retest</div>
+        <p>If today's Nifty opens above yesterday's high and then pulls back to retest the PDH level (as support), that is a high-probability long entry. Entry at the PDH level, stop below PDH by 30–50 points.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn r">SELL</div>
+      <div class="sb">
+        <div class="st">Short below PDL retest</div>
+        <p>If today opens below yesterday's low and retests the PDL from below (as resistance), that is a high-probability short setup. Entry at PDL, stop above PDL by 30–50 points.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty PDH Retest — Jan 17, 2024</div>
+    <div class="ex-content">
+      Prior day (Jan 16) high was <span class="price">21,964</span>. On Jan 17, Nifty opened gap-up at <span class="price">22,002</span> (above PDH). By 10:15 AM, it had pulled back to <span class="price">21,958</span> — testing the prior PDH from above. That was the entry for a long trade. <strong>Stop: below 21,920 (40 pts below PDH). Target: 22,200 (prior swing high).</strong> Nifty moved to <span class="price">22,097</span> by 12:30 PM, a gain of approximately 130 points from entry.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S7 -->
+<div class="section">
+  <span class="sec-anchor" id="s7"></span>
+  <div class="sec-head"><div class="sec-num">7</div><h2>Weekly and Monthly Levels</h2></div>
+
+  <p>Higher timeframe levels carry more weight than lower timeframe ones. A weekly high or monthly open that aligns with a daily support level creates what traders call <strong>confluence</strong> — multiple reasons to expect a reaction at the same price zone.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Level Type</th><th>Timeframe Weight</th><th>Key Levels to Watch</th></tr></thead>
+    <tbody>
+      <tr><td>Monthly Open/High/Low</td><td>⭐⭐⭐⭐⭐ Highest</td><td>First session of month open, monthly ATH, monthly range extremes</td></tr>
+      <tr><td>Weekly Open/High/Low</td><td>⭐⭐⭐⭐ Very High</td><td>Monday open, prior week high/low</td></tr>
+      <tr><td>Daily PDH/PDL</td><td>⭐⭐⭐ High</td><td>Prior day high, low, close</td></tr>
+      <tr><td>Intraday ORB</td><td>⭐⭐ Moderate</td><td>First 15-min or 1-hour high/low</td></tr>
+      <tr><td>Real-time CPR/VWAP</td><td>⭐⭐ Moderate</td><td>TC, BC, PP levels; VWAP deviation bands</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box ib-green">
+    <span class="info-icon">✅</span>
+    <p><strong>The confluence checklist:</strong> Before entering a trade near a S/R level, count how many independent sources agree. <strong>PDH + weekly high + round number + CPR top pivot = 4 confluences = very high probability resistance.</strong> One level alone = medium probability.</p>
+  </div>
+
+  <div class="example-box">
+    <div class="ex-label">Nifty — Multi-Timeframe Confluence · Mar 2024</div>
+    <div class="ex-content">
+      On March 28, 2024 (month-end), the following levels converged near <span class="price">22,500</span>:<br>
+      • Monthly close (March) was <span class="price">22,514</span><br>
+      • Weekly high the prior week: <span class="price">22,526</span><br>
+      • CPR Top Camarilla was near <span class="price">22,490</span><br>
+      • Major round-number psychological resistance at <span class="price">22,500</span><br><br>
+      <strong>Four independent reasons to expect resistance at 22,500.</strong> Nifty was rejected sharply from this zone and retraced 8% over the following weeks. Traders who mapped these levels in advance knew to protect long positions and look for short setups near this zone.
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S8 -->
+<div class="section">
+  <span class="sec-anchor" id="s8"></span>
+  <div class="sec-head"><div class="sec-num">8</div><h2>Zones, Not Lines</h2></div>
+
+  <p>Beginners think of S/R as exact price points. Professional traders think of them as <strong>zones</strong> — a range of 20–80 points on Nifty within which the market reacts. The exact bounce point can vary slightly from your drawn level without the level being "broken."</p>
+
+  <h3>How Wide Should a Zone Be?</h3>
+  <p>The zone width depends on the timeframe and volatility. A rough guide for Nifty:</p>
+
+  <table class="tbl">
+    <thead><tr><th>Timeframe</th><th>Zone Width</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>5-min intraday</td><td>10–25 points</td><td>Level at 22,000 → Zone: 21,975 to 22,025</td></tr>
+      <tr><td>15-min intraday</td><td>25–50 points</td><td>Level at 22,000 → Zone: 21,960 to 22,040</td></tr>
+      <tr><td>Daily chart</td><td>50–100 points</td><td>Level at 22,000 → Zone: 21,950 to 22,050</td></tr>
+      <tr><td>Weekly chart</td><td>100–200 points</td><td>Level at 22,000 → Zone: 21,900 to 22,100</td></tr>
+    </tbody>
+  </table>
+
+  <p>When price enters a zone, slow down your analysis. Look for candle confirmation (Hammer, Engulfing, Doji) within the zone before entering. Don't enter at the first touch of the zone boundary — wait to see how price behaves inside it.</p>
+
+  <div class="info-box ib-red">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Zone breach rule:</strong> A zone is "broken" only when price closes (on the timeframe you're trading) <strong>beyond</strong> the zone, not just touches it. A 5-minute candle closing 30 points below your support zone = break. A wick poking 10 points through = noise within the zone.</p>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S9 -->
+<div class="section">
+  <span class="sec-anchor" id="s9"></span>
+  <div class="sec-head"><div class="sec-num">9</div><h2>Building a Level Map for Nifty Trading</h2></div>
+
+  <p>A <strong>level map</strong> is your pre-market preparation document — the list of key levels you expect price to interact with during the trading session. Building this before 9:15 AM each day keeps you objective during the chaos of live trading.</p>
+
+  <h3>Pre-Market Level Mapping — Step by Step</h3>
+  <div class="step-block">
+    <div class="step-row">
+      <div class="sn g">1</div>
+      <div class="sb">
+        <div class="st">Open a weekly Nifty chart — mark this week's range</div>
+        <p>Note the weekly open (Monday's opening price), prior week's high, prior week's low. These are the outer boundaries that define the current week's trading range.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">2</div>
+      <div class="sb">
+        <div class="st">Switch to daily — mark PDH, PDL, prior week levels</div>
+        <p>Note yesterday's high and low. Check if there are any daily candle extremes from 3–10 days ago that are near current price. These are your daily-level zones.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn g">3</div>
+      <div class="sb">
+        <div class="st">Add CPR levels from TradeZen</div>
+        <p>The CPR (Central Pivot Range) gives you the Top Pivot (TC), Bottom Pivot (BC), and Pivot Point (PP) for the day. These are calculated automatically from the prior day's OHLC — use the TradeZen Trade Flow tool to get today's values before 9:15 AM.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">4</div>
+      <div class="sb">
+        <div class="st">Note round numbers within ±500 points</div>
+        <p>Check which round-number thousands are within 500 points of current price (e.g., if Nifty is near 22,800, mark 22,500 and 23,000). These will act as intraday magnets.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="sn y">5</div>
+      <div class="sb">
+        <div class="st">Prioritise — choose your top 3 levels</div>
+        <p>From all levels identified, select the 3 most significant ones above and below current price. These are your primary trade zones for the day. Having a pre-decided list prevents "level shopping" during live trading.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="sec-divider">
+
+<!-- S10 -->
+<div class="section">
+  <span class="sec-anchor" id="s10"></span>
+  <div class="sec-head"><div class="sec-num">10</div><h2>Common Mistakes & Key Takeaways</h2></div>
+
+  <div class="mistake-grid">
+    <div class="mistake-card">
+      <div class="mc-icon">📉</div>
+      <div class="mc-title">Drawing Too Many Lines</div>
+      <div class="mc-body">Adding 10–15 horizontal lines to the chart creates paralysis — every price action becomes "near a level." Too much clutter = no trade clarity.</div>
+      <div class="mc-fix">Fix: Maximum 3 support + 3 resistance levels per trading session. Fewer, higher-quality levels beat many mediocre ones.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🎯</div>
+      <div class="mc-title">Expecting Exact Level Hits</div>
+      <div class="mc-body">Waiting for price to touch exactly 22,000.00 before acting. Price rarely hits a round number exactly — it bounces from a zone around it.</div>
+      <div class="mc-fix">Fix: Define zones (±25–50 pts) before the session. Enter when price enters the zone and shows a pattern signal, not at the exact line.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-title">Missing Role Reversals</div>
+      <div class="mc-body">Continuing to treat a broken support as support after it is clearly broken. This causes traders to "buy the dip" that turns into a crash.</div>
+      <div class="mc-fix">Fix: After any level breaks with a strong close, immediately reclassify it as resistance (support→resistance) or support (resistance→support).</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">🔍</div>
+      <div class="mc-title">Ignoring Higher Timeframes</div>
+      <div class="mc-body">Drawing S/R only on a 5-min chart and missing the major weekly/monthly level that sits right at the same price — which is why the bounce was so strong.</div>
+      <div class="mc-fix">Fix: Always map levels top-down: weekly → daily → hourly → 15-min. A level that appears on multiple timeframes is always more powerful.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📊</div>
+      <div class="mc-title">No Confluence Requirement</div>
+      <div class="mc-body">Trading every single S/R touch without requiring additional confirmation. This leads to many small losses from false bounces.</div>
+      <div class="mc-fix">Fix: Require at least 2 confluences: e.g., S/R level + candlestick pattern, or S/R level + volume spike, before entering any trade.</div>
+    </div>
+    <div class="mistake-card">
+      <div class="mc-icon">📅</div>
+      <div class="mc-title">Not Updating Levels Daily</div>
+      <div class="mc-body">Using the same S/R levels from Monday all week without updating for PDH/PDL each day. Levels from 3 days ago are less reliable than yesterday's levels.</div>
+      <div class="mc-fix">Fix: 5 minutes of pre-market level mapping every single session. The PDH/PDL change every day and should always be on your chart.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <div class="tk-title">⚡ Key Takeaways — Chapter 3</div>
+    <div class="tk-list">
+      <div class="tk-item"><span class="tk-check">✓</span><span>S/R levels work due to collective trader memory — they are self-reinforcing because many people watch and act on the same levels</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Draw through wick extremes, require 3+ touches for high-confidence levels, and always look left on the chart before marking a level</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Role reversal is highly reliable: broken support becomes resistance, broken resistance becomes support on the first retest</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Round numbers (22,000 / 23,000) are amplified by options data — max OI strikes are natural intraday magnets</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>PDH and PDL are the two most important intraday levels — mark them before 9:15 AM every day without exception</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Think in zones, not lines: a level ±25–50 points is normal. Price poking through by a few points is not a break</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Higher timeframe levels (weekly, monthly) carry more weight than lower ones — always map top-down</span></div>
+      <div class="tk-item"><span class="tk-check">✓</span><span>Build a pre-market level map every session: weekly range → PDH/PDL → CPR → round numbers → top 3 priority levels</span></div>
+    </div>
+  </div>
+
+  <div class="quiz-cta">
+    <div class="qcta-left">
+      <h4>Test Your Knowledge</h4>
+      <p>5 questions on support & resistance · Earn up to 35 XP</p>
+    </div>
+    <div class="qcta-btns">
+      <a class="qbtn qbtn-primary" href="/learn_quiz.html?module=ta&ch=3">Take Chapter Quiz →</a>
+      <button class="mark-btn" id="markBtn" onclick="markChapterRead()">☐ Mark as Read</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pn-btn" href="/learn_ch_ta_2.html">← Chapter 2: Candlestick Patterns</a>
+  <a class="pn-btn primary" href="/learn_ch_ta_4.html">Chapter 4: Volume Analysis →</a>
+</div>
+
+</div>
+<footer>TradeZen Learning Hub &nbsp;·&nbsp; Chapter 3 of 10 &nbsp;·&nbsp; Technical Analysis Course</footer>
+
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+const CH_XP=35,CH_ID='ta_3';
+function getProgress(){try{return JSON.parse(localStorage.getItem('tz_learn'))||{};}catch(e){return{};}}
+function saveProgress(p){try{localStorage.setItem('tz_learn',JSON.stringify(p));}catch(e){}}
+function markChapterRead(){
+  let p=getProgress();
+  if(!p.chapters_done)p.chapters_done=[];
+  if(p.chapters_done.includes(CH_ID)){document.getElementById('markBtn').textContent='✓ Already Completed';return;}
+  p.chapters_done.push(CH_ID);p.xp=(p.xp||0)+CH_XP;
+  if(!p.activity)p.activity=[];
+  p.activity.unshift({icon:'📖',title:'Completed Ch.3 Support & Resistance',xp:CH_XP,date:new Date().toISOString()});
+  if(p.activity.length>20)p.activity=p.activity.slice(0,20);
+  if(!p.badges_earned)p.badges_earned=[];
+  if(p.chapters_done.length>=1&&!p.badges_earned.includes('first_step')){p.badges_earned.push('first_step');p.xp+=10;p.activity.unshift({icon:'🏆',title:'Badge: First Step earned!',xp:10,date:new Date().toISOString()});}
+  if(p.chapters_done.length>=2&&!p.badges_earned.includes('quick_start')){p.badges_earned.push('quick_start');p.xp+=25;p.activity.unshift({icon:'🏆',title:'Badge: Quick Start earned!',xp:25,date:new Date().toISOString()});}
+  const taIds=['ta_1','ta_2','ta_3','ta_4','ta_5','ta_6','ta_7','ta_8','ta_9','ta_10'];
+  if(taIds.filter(id=>p.chapters_done.includes(id)).length>=5&&!p.badges_earned.includes('halfway')){p.badges_earned.push('halfway');p.xp+=50;p.activity.unshift({icon:'🏆',title:'Badge: Halfway There earned!',xp:50,date:new Date().toISOString()});}
+  p.last_active=new Date().toISOString();saveProgress(p);restoreState();
+}
+function restoreState(){
+  const p=getProgress();const done=(p.chapters_done||[]).includes(CH_ID);
+  const btn=document.getElementById('markBtn');
+  if(done){btn.textContent='✓ Completed';btn.classList.add('done');}
+  renderDots(p);
+}
+function renderDots(p){
+  const done=p.chapters_done||[];const container=document.getElementById('chDots');container.innerHTML='';
+  for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='cb-dot';const id='ta_'+i;if(done.includes(id))d.classList.add('done');else if(i===3)d.classList.add('current');container.appendChild(d);}
+}
+function handleQuizReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('completed')===CH_ID&&params.get('score')!==null){let p=getProgress();if(!p.chapters_done)p.chapters_done=[];if(!p.chapters_done.includes(CH_ID)){p.chapters_done.push(CH_ID);p.last_active=new Date().toISOString();saveProgress(p);}restoreState();}
+}
+document.addEventListener('DOMContentLoaded',()=>{handleQuizReturn();restoreState();});
+</script>
+</body>
+</html>
