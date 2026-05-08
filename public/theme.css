@@ -102,6 +102,11 @@ body {
 :root[data-theme="light"] .pn-label,
 :root[data-theme="light"] .ch-title { color: var(--text) !important; }
 
+/* ── Learn dashboard: hardcoded #fff on div elements ── */
+:root[data-theme="light"] .lh-title,
+:root[data-theme="light"] .sp-val,
+:root[data-theme="light"] .cc-title { color: var(--text) !important; }
+
 /* ── Footer brand ── */
 :root[data-theme="light"] .fbrand span,
 :root[data-theme="light"] .flogo + span { color: var(--dim); }
