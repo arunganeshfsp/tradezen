@@ -6,45 +6,47 @@ body {
 
 /* ── Light theme overrides ── */
 :root[data-theme="light"] {
-  --bg:       #EEF1F9;
-  --bg1:      #FFFFFF;
-  --bg2:      #E6EAF6;
-  --bg3:      #D8DEEF;
-  --bg4:      #C9D0E8;
-  --border:   #BCC6E0;
-  --border2:  #9AAAD4;
-  --accent:   #5B4FD4;
-  --blue:     #2E6FD8;
-  --green:    #14A044;
-  --green2:   #0F7A33;
-  --green-bg: rgba(20,160,68,0.12);
-  --red:      #CC1F1F;
-  --red2:     #A81818;
-  --red-bg:   rgba(204,31,31,0.12);
-  --yellow:   #C47A00;
-  --yellow-bg:rgba(196,122,0,0.12);
-  --cyan:     #0272B5;
-  --text:     #0B0E1E;
-  --dim:      #252D5C;
-  --muted:    #52607A;
+  --bg:        #f8fafc;
+  --bg1:       #ffffff;
+  --bg2:       #f1f5f9;
+  --bg3:       #e2e8f0;
+  --bg4:       #cbd5e1;
+  --border:    #e2e8f0;
+  --border2:   #cbd5e1;
+  --accent:    #5B4FD4;
+  --blue:      #2563eb;
+  --green:     #16a34a;
+  --green2:    #15803d;
+  --green-bg:  rgba(22,163,74,0.10);
+  --green-border: rgba(22,163,74,0.25);
+  --red:       #dc2626;
+  --red2:      #b91c1c;
+  --red-bg:    rgba(220,38,38,0.10);
+  --red-border:rgba(220,38,38,0.25);
+  --yellow:    #d97706;
+  --yellow-bg: rgba(217,119,6,0.10);
+  --cyan:      #0284c7;
+  --text:      #0f172a;
+  --dim:       #334155;
+  --muted:     #64748b;
 }
 
-/* ── Nav background (hardcoded per page) ── */
+/* ── Nav background ── */
 :root[data-theme="light"] nav {
-  background: rgba(238,241,249,0.97);
+  background: rgba(248,250,252,0.97);
   border-bottom-color: var(--border);
 }
 @media (max-width: 768px) {
   :root[data-theme="light"] .nav-links {
-    background: rgba(238,241,249,0.98);
+    background: rgba(248,250,252,0.98);
     border-bottom-color: var(--border);
   }
   :root[data-theme="light"] .tz-nav-links {
-    background: rgba(238,241,249,0.98);
+    background: rgba(248,250,252,0.98);
   }
 }
 
-/* ── Brand / logo text (hardcoded #fff) ── */
+/* ── Brand / logo text ── */
 :root[data-theme="light"] .brand,
 :root[data-theme="light"] .nav-brand { color: var(--text); }
 
@@ -63,18 +65,15 @@ body {
   border-color: var(--border);
 }
 
-/* ── Hero headings (hardcoded #fff) ── */
-:root[data-theme="light"] .hero h1,
-:root[data-theme="light"] .hero-title,
-:root[data-theme="light"] h1 { color: var(--text); }
-
+/* ── All hardcoded #fff headings ── */
+:root[data-theme="light"] h1,
 :root[data-theme="light"] h2,
-:root[data-theme="light"] h3 { color: var(--text); }
+:root[data-theme="light"] h3,
+:root[data-theme="light"] h4 { color: var(--text); }
 
-/* Keep gradient text on hero em/span */
 :root[data-theme="light"] .hero h1 em { color: var(--accent); }
 
-/* ── Section / card headings (hardcoded #fff) ── */
+/* ── Section / card headings ── */
 :root[data-theme="light"] .section-title h2,
 :root[data-theme="light"] .panel-title,
 :root[data-theme="light"] .tool-card h3,
@@ -85,29 +84,40 @@ body {
 :root[data-theme="light"] .sig-name,
 :root[data-theme="light"] .card-title { color: var(--text); }
 
+/* ── Learn chapter pages: div/span elements with hardcoded #fff ── */
+:root[data-theme="light"] .ch-hero h1,
+:root[data-theme="light"] .section h2,
+:root[data-theme="light"] .section h3,
+:root[data-theme="light"] .sb .st,
+:root[data-theme="light"] .tk-title,
+:root[data-theme="light"] .qcta-left h4,
+:root[data-theme="light"] .pn-label,
+:root[data-theme="light"] .ch-title { color: var(--text) !important; }
+
 /* ── Footer brand ── */
 :root[data-theme="light"] .fbrand span,
 :root[data-theme="light"] .flogo + span { color: var(--dim); }
 
 /* ── tz-nav pages ── */
 :root[data-theme="light"] .tz-nav {
-  background: rgba(238,241,249,0.97);
+  background: rgba(248,250,252,0.97);
   border-bottom-color: var(--border);
 }
-:root[data-theme="light"] .tz-nav a      { color: var(--dim); }
+:root[data-theme="light"] .tz-nav a       { color: var(--dim); }
 :root[data-theme="light"] .tz-nav a:hover { color: var(--text); }
-:root[data-theme="light"] .tz-logo-text  { color: var(--text); }
+:root[data-theme="light"] .tz-logo-text   { color: var(--text); }
 :root[data-theme="light"] .tz-nav-chip {
   color: var(--accent);
   border-color: var(--border);
   background: var(--bg3);
 }
 
-/* ── Misc inline-style overrides via !important (chart panels, etc.) ── */
+/* ── Inline style overrides (diagram labels, chart panels, etc.) ── */
 :root[data-theme="light"] .hero h1[style*="color:#fff"],
 :root[data-theme="light"] span[style*="color:#fff"],
 :root[data-theme="light"] div[style*="color:#fff"],
-:root[data-theme="light"] td[style*="color:#fff"] { color: var(--text) !important; }
+:root[data-theme="light"] td[style*="color:#fff"],
+:root[data-theme="light"] p[style*="color:#fff"] { color: var(--text) !important; }
 
 /* ── F&O Scanner table ── */
 :root[data-theme="light"] .sym,
@@ -119,25 +129,17 @@ body {
   background: rgba(91,79,212,0.07);
   border-bottom-color: rgba(91,79,212,0.25);
 }
-:root[data-theme="light"] .notif-text {
-  color: var(--dim);
-}
+:root[data-theme="light"] .notif-text        { color: var(--dim); }
 :root[data-theme="light"] .notif-btn-enable {
   background: rgba(91,79,212,0.12);
   border-color: rgba(91,79,212,0.4);
   color: var(--accent);
 }
-:root[data-theme="light"] .notif-btn-dismiss {
-  color: var(--muted);
-}
+:root[data-theme="light"] .notif-btn-dismiss { color: var(--muted); }
 
-/* ── Theme toggle button icon via CSS ── */
-#themeToggle::after {
-  content: "☀️";
-}
-:root[data-theme="light"] #themeToggle::after {
-  content: "🌙";
-}
+/* ── Theme toggle icon ── */
+#themeToggle::after                          { content: "☀️"; }
+:root[data-theme="light"] #themeToggle::after { content: "🌙"; }
 
 /* ── Scrollbar ── */
 :root[data-theme="light"] * {
