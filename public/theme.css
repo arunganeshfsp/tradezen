@@ -4,6 +4,14 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+/* ── Logo: replace TZ text with actual brand icon ── */
+.logo {
+  background: url('/favicon.svg') center / 100% 100% no-repeat;
+  font-size: 0;
+  color: transparent;
+  border-radius: 7px;
+}
+
 /* ── Light theme overrides ── */
 :root[data-theme="light"] {
   --bg:        #f8fafc;
