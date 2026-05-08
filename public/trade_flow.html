@@ -2776,10 +2776,11 @@ function _renderOiPanel(d) {
 // Price Alerts
 // ─────────────────────────────────────────────
 let _alertsOn       = false;
-const _alertSnoozed = new Map();   // levelName → timestamp of last alert
-const _ALERT_PROX   = 10;          // pts within this distance → alert
-const _ALERT_COOL   = 5 * 60000;  // 5-min cooldown per level
-let   _prevAlertLtp = null;        // LTP from previous poll — used to detect rising vs falling
+const _alertSnoozed = new Map();    // levelName → absolute timestamp when next alert is allowed
+const _ALERT_PROX   = 10;           // pts within this distance → alert
+const _ALERT_COOL   = 15 * 60000;  // 15-min cooldown per level
+const _ALERT_COOL_MISS = 30 * 60000; // 30-min cooldown after FLAT or MISS outcome
+let   _prevAlertLtp = null;         // LTP from previous poll — used to detect rising vs falling
 
 function toggleAlerts() {
   if (!_alertsOn && Notification.permission === 'default') {
@@ -2849,6 +2850,11 @@ function _getLevelsToWatch() {
 
 function _checkPriceAlerts(ltp) {
   if (!_alertsOn || !ltp) return;
+  // Only fire alerts during NSE market hours 09:15–15:30 IST
+  const nowDate = new Date();
+  const mins    = nowDate.getHours() * 60 + nowDate.getMinutes();
+  if (mins < 9 * 60 + 15 || mins >= 15 * 60 + 30) return;
+
   const now    = Date.now();
   const levels = _getLevelsToWatch();
   // Determine approach direction: rising if LTP went up ≥2 pts since last poll
@@ -2857,9 +2863,9 @@ function _checkPriceAlerts(ltp) {
   for (const lvl of levels) {
     const dist = Math.abs(ltp - lvl.price);
     if (dist > _ALERT_PROX) continue;
-    const last = _alertSnoozed.get(lvl.name) || 0;
-    if (now - last < _ALERT_COOL) continue;
-    _alertSnoozed.set(lvl.name, now);
+    const nextAllowed = _alertSnoozed.get(lvl.name) || 0;
+    if (now < nextAllowed) continue;
+    _alertSnoozed.set(lvl.name, now + _ALERT_COOL);
     _fireAlert(lvl, ltp, dist, rising);
   }
 }
@@ -3164,6 +3170,13 @@ function _evaluatePendingAlerts(currentLtp) {
       e.outcome = diff >= _HIT_PTS ? 'hit' : diff <= -_MISS_PTS ? 'miss' : 'flat';
     } else if (e.dir === 'SHORT') {
       e.outcome = diff <= -_HIT_PTS ? 'hit' : diff >= _MISS_PTS ? 'miss' : 'flat';
+    }
+    // After FLAT or MISS, push next allowed alert for this level 30 min out
+    // to suppress repeated alerts when price keeps hovering near the same level
+    if (e.outcome === 'flat' || e.outcome === 'miss') {
+      const extendUntil = now + _ALERT_COOL_MISS;
+      const current = _alertSnoozed.get(e.level) || 0;
+      if (extendUntil > current) _alertSnoozed.set(e.level, extendUntil);
     }
     changed = true;
   });
