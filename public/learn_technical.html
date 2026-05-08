@@ -835,7 +835,7 @@ function renderTOC(done) {
   TA_CHAPTERS.forEach(ch => {
     const isDone = done.includes(ch.id);
     const a = document.createElement('a');
-    a.href = `#ch${ch.n}`;
+    a.href = `/learn_ch_ta_${ch.n}.html`;
     a.className = 'toc-item';
     a.innerHTML = `<div class="toc-dot ${isDone ? 'done' : ''}"></div><span class="toc-num">${String(ch.n).padStart(2,'0')}</span>${ch.name}`;
     grid.appendChild(a);
@@ -863,6 +863,22 @@ function refreshUI(done) {
       qbtn.style.background = 'transparent';
       qbtn.style.border = '1px solid var(--accent)';
       qbtn.style.color = 'var(--accent)';
+    }
+  });
+
+  // Deep-dive links — inject once per chapter CTA
+  TA_CHAPTERS.forEach(ch => {
+    const cta = document.getElementById(`qcta_${ch.id}`);
+    if (cta && !cta.querySelector('.deepdive-btn')) {
+      const btnGroup = cta.querySelector('div[style]');
+      if (btnGroup) {
+        const a = document.createElement('a');
+        a.href = `/learn_ch_ta_${ch.n}.html`;
+        a.className = 'deepdive-btn';
+        a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.25);border-radius:var(--r2);color:var(--cyan);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;transition:opacity .15s';
+        a.textContent = 'Read Full Chapter →';
+        btnGroup.prepend(a);
+      }
     }
   });
 

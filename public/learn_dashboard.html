@@ -407,16 +407,17 @@ function renderTACourse(p) {
   TA_CHAPTERS.slice(0, 6).forEach((ch, i) => {
     const isDone   = done.includes(ch.id);
     const isActive = !isDone && (i === 0 || done.includes(TA_CHAPTERS[i - 1]?.id));
+    const nameColor = isDone ? 'var(--green)' : isActive ? 'var(--text)' : 'var(--muted)';
     const a = document.createElement('a');
-    a.href = `/learn_technical.html#ch${ch.n}`;
+    a.href = `/learn_ch_ta_${ch.n}.html`;
     a.className = 'ch-item';
     a.innerHTML = `
       <div class="ch-dot ${isDone ? 'done' : isActive ? 'active' : 'locked'}">
         ${isDone ? '✓' : ch.n}
       </div>
       <span class="ch-num"></span>
-      <span class="ch-name">${ch.name}</span>
-      <span class="ch-xp">${ch.xp} XP</span>`;
+      <span class="ch-name" style="color:${nameColor}">${ch.name}</span>
+      <span class="ch-xp" style="color:${isDone ? 'var(--green)' : 'var(--yellow)'}">${isDone ? '✓ Done' : ch.xp + ' XP'}</span>`;
     list.appendChild(a);
   });
   // "View all" link
