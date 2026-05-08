@@ -57,11 +57,20 @@ router.get('/logs/:srv', auth, async (req, res) => {
 });
 
 // ── Start / Stop / Restart ────────────────────────────────────────────────────
-router.post('/start/:srv', auth, async (req, res) => {
+// All mutating commands respond immediately then run pm2 async to avoid nginx 502.
+// pm2 start/restart can take several seconds (waiting for process online state);
+// awaiting inside the request handler causes nginx to timeout the upstream connection.
+// For restart/node specifically, Node must not exit before the response is flushed.
+
+function fireAfterFlush(res, cmd, delayMs = 400) {
+  res.on('finish', () => setTimeout(() => run(cmd), delayMs));
+}
+
+router.post('/start/:srv', auth, (req, res) => {
   const name = PM2_NAME[req.params.srv];
   if (!name) return res.status(400).json({ error: 'unknown server' });
-  const { ok, out } = await run(`pm2 start ${name}`);
-  res.json({ ok, detail: out });
+  res.json({ ok: true, detail: `Starting ${name}…` });
+  fireAfterFlush(res, `pm2 start ${name}`);
 });
 
 router.post('/stop/:srv', auth, async (req, res) => {
@@ -72,17 +81,17 @@ router.post('/stop/:srv', auth, async (req, res) => {
 });
 
 // /restart/all MUST be defined before /restart/:srv — otherwise Express matches 'all' as :srv param
-router.post('/restart/all', auth, async (req, res) => {
+router.post('/restart/all', auth, (req, res) => {
   res.json({ ok: true, detail: 'Restarting all…' });
-  run(`pm2 restart tradezen-python`);
-  setTimeout(() => run(`pm2 restart tradezen-node`), 3000);
+  fireAfterFlush(res, 'pm2 restart tradezen-python', 400);
+  res.on('finish', () => setTimeout(() => run('pm2 restart tradezen-node'), 3400));
 });
 
-router.post('/restart/:srv', auth, async (req, res) => {
+router.post('/restart/:srv', auth, (req, res) => {
   const name = PM2_NAME[req.params.srv];
   if (!name) return res.status(400).json({ error: 'unknown server' });
-  res.json({ ok: true, detail: `Restarting ${name}…` }); // respond first
-  run(`pm2 restart ${name}`);                             // then restart (non-blocking for node self-restart)
+  res.json({ ok: true, detail: `Restarting ${name}…` });
+  fireAfterFlush(res, `pm2 restart ${name}`);
 });
 
 module.exports = router;
