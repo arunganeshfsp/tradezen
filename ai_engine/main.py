@@ -1956,7 +1956,7 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
 
     df = yf.Ticker(yf_sym).history(period=yf_period, interval=yf_interval)
     if df.empty:
-        return {"error": "No data available — market may be closed", "candles": []}
+        return {"error": "No intraday data — market closed or holiday", "candles": [], "market_closed": True}
 
     try:
         df.index = df.index.tz_convert("Asia/Kolkata")
@@ -1964,13 +1964,27 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
         pass
 
     df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
+
+    # Require today's data — reject stale bars from previous sessions
+    now_ist   = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    today_ist = now_ist.date()
+    try:
+        df = df[pd.to_datetime(df.index).normalize().dt.date == today_ist]
+    except Exception:
+        pass
+
     try:
         df = df.between_time("09:15", "15:30")
     except Exception:
         pass
 
     if df.empty:
-        return {"error": "Market closed — no intraday data", "candles": []}
+        return {"error": "No intraday data — market closed or holiday today", "candles": [], "market_closed": True}
+
+    # Sanity check: intraday candles should span a sane price range (< 10% H-L swing total)
+    price_swing = (df["High"].max() - df["Low"].min()) / df["Close"].mean()
+    if price_swing > 0.15:
+        return {"error": "Unexpected data quality — market may be closed", "candles": [], "market_closed": True}
 
     # Intraday VWAP — reset each calendar day so multi-day 15m data stays correct
     typical  = (df["High"] + df["Low"] + df["Close"]) / 3
@@ -2026,7 +2040,9 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
         "as_of":    now_ist.strftime("%H:%M"),
     })
 
-    _PSYCH_CACHE[key] = (now, result)
+    # Cache normal data for _PSYCH_CACHE_TTL; don't cache market-closed so it clears immediately when market opens
+    if not result.get("market_closed"):
+        _PSYCH_CACHE[key] = (now, result)
     return result
 
 

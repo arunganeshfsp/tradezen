@@ -187,10 +187,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .err-banner{max-width:1240px;margin:16px auto 0;padding:0 28px}
 .err-inner{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.35);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#f87171;display:none}
 
-/* ── LOADING OVERLAY ── */
+/* ── LOADING / CLOSED OVERLAY ── */
 .loading-state{display:flex;align-items:center;justify-content:center;gap:10px;height:360px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
 .spin{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.closed-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:360px;text-align:center;padding:24px}
+.closed-moon{font-size:40px;line-height:1}
+.closed-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.closed-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);line-height:1.7}
+.closed-hours{margin-top:4px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.closed-chip{padding:4px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--dim)}
 
 /* ── ANIMATIONS ── */
 @keyframes insightSlide{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
@@ -459,8 +465,12 @@ async function reload() {
     const res  = await fetch(`/api/psychology/candles?symbol=${_sym}&interval=${_tf}`);
     const data = await res.json();
 
-    if (data.error || !data.candles || data.candles.length === 0) {
-      showError(data.error || 'No candle data — market may be closed');
+    if (data.market_closed || !data.candles || data.candles.length === 0) {
+      showMarketClosed(data.error || 'Market closed — no intraday data today');
+      return;
+    }
+    if (data.error) {
+      showError(data.error);
       return;
     }
 
@@ -791,14 +801,42 @@ function rpSpeed(btn) {
   if (_rpPlaying) { rpStop(); rpPlay(); }
 }
 
-// ─── Error handling ───────────────────────────────────────────────────────────
+// ─── Error / closed handling ──────────────────────────────────────────────────
 function showError(msg) {
-  document.getElementById('err-msg').textContent  = msg;
+  document.getElementById('err-msg').textContent      = msg;
   document.getElementById('err-banner').style.display = 'flex';
 }
 
 function clearError() {
   document.getElementById('err-banner').style.display = 'none';
+}
+
+function showMarketClosed(msg) {
+  clearError();
+  const el = document.getElementById('psych-chart');
+  el.innerHTML = `
+    <div class="closed-state">
+      <div class="closed-moon">🌙</div>
+      <div class="closed-title">Market Closed</div>
+      <div class="closed-sub">
+        NSE is closed today — holiday or weekend<br>
+        <span style="color:var(--accent)">${msg}</span>
+      </div>
+      <div class="closed-hours">
+        <span class="closed-chip">🕘 Opens 09:15 IST</span>
+        <span class="closed-chip">🕞 Closes 15:30 IST</span>
+        <span class="closed-chip">Mon – Fri only</span>
+      </div>
+    </div>`;
+  document.getElementById('chart-asof').textContent = 'No trading session today';
+  document.getElementById('ctrl-asof').textContent  = 'Closed';
+  document.getElementById('pulse-dot').classList.add('paused');
+  // Reset sidebar to neutral state
+  document.getElementById('dom-score').textContent   = '—';
+  document.getElementById('dom-score').className     = 'dom-score neut';
+  document.getElementById('state-name').textContent  = 'Market Closed';
+  document.getElementById('state-desc').textContent  = 'No data available today';
+  document.getElementById('insight-txt').textContent = 'Come back on the next trading day (Mon–Fri, 09:15–15:30 IST).';
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
