@@ -530,25 +530,21 @@ function buildChart(candles) {
   });
   _vwapSeries.setData(candles.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
 
-  // Supertrend UP (green support line)
+  // Supertrend UP (green support line) — only include valid up-direction points, no nulls
   _stUpSeries = _chart.addLineSeries({
     color: '#2ecc71', lineWidth: 2, priceLineVisible: false,
     lastValueVisible: false, crosshairMarkerVisible: false,
   });
-  _stUpSeries.setData(candles.map(c => ({
-    time: c.time,
-    value: c.supertrend_dir === 'up' && c.supertrend ? c.supertrend : null,
-  })));
+  _stUpSeries.setData(candles.filter(c => c.supertrend_dir === 'up' && c.supertrend)
+    .map(c => ({ time: c.time, value: c.supertrend })));
 
-  // Supertrend DOWN (red resistance line)
+  // Supertrend DOWN (red resistance line) — only include valid down-direction points, no nulls
   _stDownSeries = _chart.addLineSeries({
     color: '#e74c3c', lineWidth: 2, priceLineVisible: false,
     lastValueVisible: false, crosshairMarkerVisible: false,
   });
-  _stDownSeries.setData(candles.map(c => ({
-    time: c.time,
-    value: c.supertrend_dir === 'down' && c.supertrend ? c.supertrend : null,
-  })));
+  _stDownSeries.setData(candles.filter(c => c.supertrend_dir === 'down' && c.supertrend)
+    .map(c => ({ time: c.time, value: c.supertrend })));
 
   _chart.timeScale().fitContent();
   window.addEventListener('resize', _resizeChart);
@@ -746,8 +742,8 @@ function rpRender() {
   if (_candleSeries) {
     _candleSeries.setData(slice.map(c => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close })));
     _vwapSeries.setData(slice.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
-    _stUpSeries.setData(slice.map(c => ({ time: c.time, value: c.supertrend_dir === 'up' && c.supertrend ? c.supertrend : null })));
-    _stDownSeries.setData(slice.map(c => ({ time: c.time, value: c.supertrend_dir === 'down' && c.supertrend ? c.supertrend : null })));
+    _stUpSeries.setData(slice.filter(c => c.supertrend_dir === 'up' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
+    _stDownSeries.setData(slice.filter(c => c.supertrend_dir === 'down' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
     _chart.timeScale().scrollToPosition(-2, false);
   }
 

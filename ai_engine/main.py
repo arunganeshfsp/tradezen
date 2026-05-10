@@ -1965,13 +1965,12 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
 
     df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
 
-    # Require today's data — reject stale bars from previous sessions
+    # Require today's IST date — reject stale bars from previous sessions / holidays
     now_ist   = datetime.utcnow() + timedelta(hours=5, minutes=30)
     today_ist = now_ist.date()
-    try:
-        df = df[pd.to_datetime(df.index).normalize().dt.date == today_ist]
-    except Exception:
-        pass
+
+    if df.empty or df.index[-1].date() != today_ist:
+        return {"error": "No trading session today — market closed or holiday", "candles": [], "market_closed": True}
 
     try:
         df = df.between_time("09:15", "15:30")
@@ -1980,11 +1979,6 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
 
     if df.empty:
         return {"error": "No intraday data — market closed or holiday today", "candles": [], "market_closed": True}
-
-    # Sanity check: intraday candles should span a sane price range (< 10% H-L swing total)
-    price_swing = (df["High"].max() - df["Low"].min()) / df["Close"].mean()
-    if price_swing > 0.15:
-        return {"error": "Unexpected data quality — market may be closed", "candles": [], "market_closed": True}
 
     # Intraday VWAP — reset each calendar day so multi-day 15m data stays correct
     typical  = (df["High"] + df["Low"] + df["Close"]) / 3
