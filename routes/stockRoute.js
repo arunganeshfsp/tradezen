@@ -384,6 +384,34 @@ router.get("/candles", async (req, res) => {
   }
 });
 
+// ─── GET /api/psychology/candles ─────────────────────────────────────────────
+// Full OHLCV + VWAP + Supertrend + dominance scores — used by TradeFun page
+router.get("/psychology/candles", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.symbol)   params.set("symbol",   req.query.symbol);
+    if (req.query.interval) params.set("interval", req.query.interval);
+    const data = await aiService.proxy("GET", `/psychology/candles?${params}`, 30000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/psychology/tick ─────────────────────────────────────────────────
+// Latest candle + dominance — polled every 5s for live updates
+router.get("/psychology/tick", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.symbol)   params.set("symbol",   req.query.symbol);
+    if (req.query.interval) params.set("interval", req.query.interval);
+    const data = await aiService.proxy("GET", `/psychology/tick?${params}`, 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/indicators/snapshot ────────────────────────────────────────────
 // VWAP · EMA 9/21 · MACD · RSI from today's 5-min yfinance candles
 router.get("/indicators/snapshot", async (req, res) => {

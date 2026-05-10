@@ -1774,6 +1774,294 @@ async def nifty_candles():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Market Psychology Engine — dominance scoring + Supertrend + VWAP per candle
+# ══════════════════════════════════════════════════════════════════════════════
+
+from core.indicators.supertrend import compute as _compute_supertrend
+
+_PSYCH_CACHE: dict = {}          # {"{symbol}-{interval}": (unix_ts, result)}
+_PSYCH_CACHE_TTL   = 10          # seconds before re-fetching
+
+_YF_SYMBOLS = {
+    "NIFTY":     "^NSEI",
+    "BANKNIFTY": "^NSEBANK",
+}
+
+_INTERVAL_MAP = {          # interval → (yf_interval, yf_period)
+    "1m":  ("1m",  "1d"),
+    "5m":  ("5m",  "1d"),
+    "15m": ("15m", "5d"),
+}
+
+IST_OFFSET = 19800   # +5h30m in seconds — aligns UTC unix timestamps to IST for chart display
+
+
+# ── Dominance scoring for one candle ─────────────────────────────────────────
+
+def _psych_dominance(o, h, l, c, v, vwap, vol_ma, st, history):
+    """Compute buyer/seller dominance for a single candle. Returns a dict."""
+    total_range = (h - l) if h != l else 0.0001
+    body        = abs(c - o)
+    bullish     = c >= o
+    dir_sign    = 1 if bullish else -1
+
+    body_pct    = body / total_range
+    close_pos   = (c - l) / total_range          # 0 = close at low, 1 = close at high
+    upper_wick  = (h - max(o, c)) / total_range
+    lower_wick  = (min(o, c) - l) / total_range
+    rel_volume  = (v / vol_ma) if vol_ma > 0 else 1.0
+
+    # VWAP position
+    if vwap and vwap > 0:
+        vwap_diff = (c - vwap) / vwap * 100
+        if   vwap_diff >  0.05: vwap_sign, vwap_pos = 1,  "above"
+        elif vwap_diff < -0.05: vwap_sign, vwap_pos = -1, "below"
+        else:                   vwap_sign, vwap_pos = 0,  "at"
+    else:
+        vwap_sign, vwap_pos = 0, "unknown"
+
+    # Supertrend alignment
+    st_dir = (st or {}).get("direction", "neutral")
+    if   st_dir == "up"   and bullish:  trend_sign = 1
+    elif st_dir == "down" and not bullish: trend_sign = -1
+    elif st_dir == "neutral":           trend_sign = 0
+    else:                               trend_sign = -0.5   # counter-trend
+
+    # Weighted score: -100..+100
+    body_score  = body_pct   * dir_sign * 30          # ±30
+    close_score = (close_pos * 2 - 1)   * 20          # ±20  (independent of direction)
+    vwap_score  = vwap_sign             * 15          # ±15
+    trend_score = trend_sign            * 10          # ±10
+    # Opposing wick reduces score
+    opp_wick    = upper_wick if bullish else lower_wick
+    wick_pen    = -dir_sign  * opp_wick * 12          # ±12 penalty
+
+    vol_amp     = max(0.5, min(1.5, 0.6 + rel_volume * 0.45))
+    raw         = body_score + close_score + vwap_score + trend_score + wick_pen
+    score       = max(-100.0, min(100.0, round(raw * vol_amp, 1)))
+
+    state   = _psych_state(score, body_pct, rel_volume, upper_wick, lower_wick, vwap_pos, st_dir, history)
+    insight = _psych_insight(state, vwap_pos, st_dir)
+
+    # Visual pct (0-100) — display only, not exact order flow
+    buyer_pct  = round(max(0.0, min(100.0, (score + 100) / 2)), 1)
+    seller_pct = round(100.0 - buyer_pct, 1)
+
+    return {
+        "score":      score,
+        "state":      state,
+        "insight":    insight,
+        "buyer_pct":  buyer_pct,
+        "seller_pct": seller_pct,
+        "vwap_pos":   vwap_pos,
+        "components": {
+            "body_pct":   round(body_pct,   3),
+            "close_pos":  round(close_pos,  3),
+            "upper_wick": round(upper_wick, 3),
+            "lower_wick": round(lower_wick, 3),
+            "rel_volume": round(rel_volume, 3),
+            "vwap_sign":  vwap_sign,
+            "trend_sign": trend_sign,
+            "st_dir":     st_dir,
+        },
+    }
+
+
+def _psych_state(score, body_pct, rel_vol, upper_wick, lower_wick, vwap_pos, st_dir, history):
+    """Classify market state for one candle."""
+    # Fake breakout: strong prior move + wick rejection this candle
+    if history:
+        prev_score = history[-1]["score"]
+        if prev_score > 50 and score < 15 and upper_wick > 0.45:
+            return "fake_breakout"
+        if prev_score < -50 and score > -15 and lower_wick > 0.45:
+            return "fake_breakout"
+
+    # Absorption: compressed body on heavy volume
+    if body_pct < 0.28 and rel_vol > 1.3:
+        return "absorption"
+
+    # Momentum weakening: 3-candle shrinking body pattern during a trend
+    if len(history) >= 3:
+        comps  = [h["components"]["body_pct"] for h in history[-3:]]
+        scores = [h["score"]                  for h in history[-3:]]
+        if (comps[-1] < comps[-2] < comps[0] and
+                (all(s > 35 for s in scores) or all(s < -35 for s in scores))):
+            return "momentum_weakening"
+
+    if   score >=  60: return "buyer_domination"
+    elif score <= -60: return "seller_domination"
+    elif score >=  30: return "buyer_pressure"
+    elif score <= -30: return "seller_pressure"
+    return "neutral"
+
+
+_PSYCH_INSIGHTS = {
+    "buyer_domination":   "Strong buyer control — bulls absorbing all supply",
+    "seller_domination":  "Strong seller control — bears dominating session",
+    "absorption":         "Possible absorption — watch next candle for direction",
+    "momentum_weakening": "Momentum weakening — trend losing conviction",
+    "fake_breakout":      "Breakout failed — strong wick rejection detected",
+    "buyer_pressure":     "Mild buyer pressure — needs volume confirmation",
+    "seller_pressure":    "Mild seller pressure — watch for breakdown signal",
+    "neutral":            "Low participation — wait for directional signal",
+}
+
+def _psych_insight(state, vwap_pos, st_dir):
+    """Return context-enriched educational insight string."""
+    if vwap_pos == "above" and state == "buyer_domination":
+        return "Buyers defending VWAP — bullish session bias confirmed"
+    if vwap_pos == "above" and state == "buyer_pressure":
+        return "Price holding above VWAP — buyers in slight control"
+    if vwap_pos == "below" and state == "seller_domination":
+        return "Sellers pressing below VWAP — bearish bias confirmed"
+    if vwap_pos == "below" and state == "seller_pressure":
+        return "Price below VWAP — sellers maintain slight edge"
+    if vwap_pos == "at"    and state in ("buyer_pressure", "buyer_domination"):
+        return "Breaking above VWAP — potential bullish momentum shift"
+    if vwap_pos == "at"    and state in ("seller_pressure", "seller_domination"):
+        return "Failing at VWAP — potential bearish rejection"
+    if vwap_pos == "at"    and state == "neutral":
+        return "Price at VWAP — indecision zone, wait for breakout direction"
+    if st_dir == "up"   and state == "buyer_domination":
+        return "Supertrend bullish + strong buyers — trend momentum at peak"
+    if st_dir == "down" and state == "seller_domination":
+        return "Supertrend bearish + strong sellers — trend momentum at peak"
+    if state == "fake_breakout":
+        return "Breakout lacks participation — possible reversal trap ahead"
+    if state == "absorption":
+        return "Absorption at key level — large players positioning quietly"
+    return _PSYCH_INSIGHTS.get(state, "Analyzing market structure…")
+
+
+# ── Full history computation ──────────────────────────────────────────────────
+
+def _psychology_sync(symbol: str, interval: str) -> dict:
+    import yfinance as yf
+    import pandas as pd
+    import time as _time
+
+    symbol   = symbol.upper()
+    interval = interval.lower()
+    key      = f"{symbol}-{interval}"
+    now      = _time.time()
+
+    if key in _PSYCH_CACHE:
+        cached_ts, cached_data = _PSYCH_CACHE[key]
+        if now - cached_ts < _PSYCH_CACHE_TTL:
+            return cached_data
+
+    yf_sym, yf_period = _YF_SYMBOLS.get(symbol, "^NSEI"), "1d"
+    yf_interval, yf_period = _INTERVAL_MAP.get(interval, ("5m", "1d"))
+
+    df = yf.Ticker(yf_sym).history(period=yf_period, interval=yf_interval)
+    if df.empty:
+        return {"error": "No data available — market may be closed", "candles": []}
+
+    try:
+        df.index = df.index.tz_convert("Asia/Kolkata")
+    except Exception:
+        pass
+
+    df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
+    try:
+        df = df.between_time("09:15", "15:30")
+    except Exception:
+        pass
+
+    if df.empty:
+        return {"error": "Market closed — no intraday data", "candles": []}
+
+    # Intraday VWAP — reset each calendar day so multi-day 15m data stays correct
+    typical  = (df["High"] + df["Low"] + df["Close"]) / 3
+    pv       = typical * df["Volume"]
+    day_grp  = pd.Series(df.index.date, index=df.index)
+    df["vwap"] = (
+        pv.groupby(day_grp).cumsum()
+        / df["Volume"].groupby(day_grp).cumsum().replace(0, float("nan"))
+    )
+
+    # Supertrend
+    st_list = _compute_supertrend(df, period=10, multiplier=3.0)
+
+    # 20-period volume moving average
+    df["vol_ma"] = df["Volume"].rolling(20, min_periods=1).mean()
+
+    candles_out = []
+    history     = []
+
+    for i in range(len(df)):
+        row    = df.iloc[i]
+        o, h, l, c = float(row.Open), float(row.High), float(row.Low), float(row.Close)
+        v      = float(row.Volume)
+        vwap   = float(row.vwap)   if not pd.isna(row.vwap)   else None
+        vol_ma = float(row.vol_ma) if not pd.isna(row.vol_ma) else v
+        st     = st_list[i] if i < len(st_list) else {"value": None, "direction": "neutral"}
+
+        dom = _psych_dominance(o, h, l, c, v, vwap, vol_ma, st, history)
+
+        ts_ist = int(row.name.timestamp()) + IST_OFFSET
+
+        candle = {
+            "time":           ts_ist,
+            "open":           round(o, 2),
+            "high":           round(h, 2),
+            "low":            round(l, 2),
+            "close":          round(c, 2),
+            "volume":         int(v),
+            "vwap":           round(vwap, 2)              if vwap else None,
+            "supertrend":     round(float(st["value"]), 2) if st.get("value") else None,
+            "supertrend_dir": st["direction"],
+            "dominance":      dom,
+        }
+        candles_out.append(candle)
+        history.append({"score": dom["score"], "components": dom["components"]})
+
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    result  = _sanitize_floats({
+        "symbol":   symbol,
+        "interval": interval,
+        "candles":  candles_out,
+        "count":    len(candles_out),
+        "as_of":    now_ist.strftime("%H:%M"),
+    })
+
+    _PSYCH_CACHE[key] = (now, result)
+    return result
+
+
+@app.get("/psychology/candles")
+async def psychology_candles(symbol: str = "NIFTY", interval: str = "5m"):
+    """Full candle history with VWAP, Supertrend and dominance scores."""
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _psychology_sync, symbol, interval)
+        return result
+    except Exception as e:
+        log.error(f"Psychology candles error ({symbol}/{interval}): {e}")
+        return {"error": str(e), "candles": []}
+
+
+@app.get("/psychology/tick")
+async def psychology_tick(symbol: str = "NIFTY", interval: str = "5m"):
+    """Latest candle + dominance — polled every ~5s by the live panel."""
+    loop = asyncio.get_event_loop()
+    try:
+        full = await loop.run_in_executor(None, _psychology_sync, symbol, interval)
+        if full.get("error") or not full.get("candles"):
+            return full
+        return {
+            "symbol":   full["symbol"],
+            "interval": full["interval"],
+            "as_of":    full["as_of"],
+            "candle":   full["candles"][-1],
+        }
+    except Exception as e:
+        log.error(f"Psychology tick error ({symbol}/{interval}): {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # F&O Scanner — buy/sell dominance for equities in a price range
 # ══════════════════════════════════════════════════════════════════════════════
 
