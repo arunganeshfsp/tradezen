@@ -1790,7 +1790,7 @@ _YF_SYMBOLS = {
 _INTERVAL_MAP = {          # interval → (yf_interval, yf_period)
     "1m":  ("1m",  "1d"),
     "5m":  ("5m",  "1d"),
-    "15m": ("15m", "5d"),
+    "15m": ("15m", "1d"),
 }
 
 IST_OFFSET = 19800   # +5h30m in seconds — aligns UTC unix timestamps to IST for chart display
