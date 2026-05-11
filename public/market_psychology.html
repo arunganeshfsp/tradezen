@@ -527,7 +527,7 @@ function buildChart(candles) {
 
   // VWAP — tag shown on right axis
   _vwapSeries = _chart.addLineSeries({
-    color: '#00d4ff', lineWidth: 1, priceLineVisible: false,
+    color: '#00d4ff', lineWidth: 2, priceLineVisible: false,
     lastValueVisible: true, title: 'VWAP', crosshairMarkerVisible: false,
     lineStyle: LightweightCharts.LineStyle.Dashed,
   });
@@ -549,16 +549,15 @@ function buildChart(candles) {
   _stDownSeries.setData(candles.filter(c => c.supertrend_dir === 'down' && c.supertrend)
     .map(c => ({ time: c.time, value: c.supertrend })));
 
-  // Volume histogram — overlaid in bottom 20% of the same chart
+  // Volume histogram — overlaid in bottom 18% of the same chart
   _volumeSeries = _chart.addHistogramSeries({
     priceFormat: { type: 'volume' },
     priceScaleId: 'volume',
     lastValueVisible: false,
     priceLineVisible: false,
   });
-  _chart.priceScale('volume').applyOptions({
+  _volumeSeries.priceScale().applyOptions({
     scaleMargins: { top: 0.82, bottom: 0 },
-    drawTicks: false,
     visible: false,
   });
   _volumeSeries.setData(candles.map(c => ({
