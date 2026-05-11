@@ -78,9 +78,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .chart-panel.glow-abs {box-shadow:0 0 0 1px rgba(245,166,35,0.3),0 4px 32px rgba(245,166,35,0.12)}
 .chart-hdr{padding:14px 16px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
 .chart-hdr-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
-.chart-legend{display:flex;gap:12px;flex-wrap:wrap;margin-left:auto}
-.leg-item{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)}
-.leg-line{width:18px;height:2px;border-radius:1px;display:inline-block;flex-shrink:0}
+.chart-legend{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.leg-item{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;padding:2px 8px}
+.leg-line{width:14px;height:2px;border-radius:1px;display:inline-block;flex-shrink:0}
+.leg-bar{width:6px;height:10px;border-radius:1px;display:inline-block;flex-shrink:0;opacity:0.7}
 #psych-chart{height:360px;position:relative}
 #psych-chart .chart-placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
 .chart-asof{padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);border-top:1px solid var(--border)}
@@ -276,9 +277,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="chart-hdr">
       <span class="chart-hdr-title" id="chart-title">NIFTY · 5m</span>
       <div class="chart-legend" id="chart-legend">
-        <div class="leg-item"><span class="leg-line" style="background:var(--cyan)"></span>VWAP</div>
+        <div class="leg-item"><span class="leg-line" style="background:var(--cyan);border-top:1px dashed var(--cyan);height:0"></span>VWAP</div>
         <div class="leg-item"><span class="leg-line" style="background:var(--green)"></span>ST ↑</div>
         <div class="leg-item"><span class="leg-line" style="background:var(--red)"></span>ST ↓</div>
+        <div class="leg-item"><span class="leg-bar" style="background:var(--accent)"></span>Vol</div>
       </div>
     </div>
     <div id="psych-chart">
@@ -413,6 +415,7 @@ let _candleSeries  = null;
 let _vwapSeries    = null;
 let _stUpSeries    = null;
 let _stDownSeries  = null;
+let _volumeSeries  = null;
 let _livePoll = null;        // setInterval id
 let _rpIdx    = 0;           // replay cursor
 let _rpTimer  = null;        // replay setInterval id
@@ -495,7 +498,7 @@ function setChartLoading() {
   const el = document.getElementById('psych-chart');
   el.innerHTML = '<div class="loading-state"><div class="spin"></div>Loading candles…</div>';
   _chart = null; _candleSeries = null; _vwapSeries = null;
-  _stUpSeries = null; _stDownSeries = null;
+  _stUpSeries = null; _stDownSeries = null; _volumeSeries = null;
 }
 
 function buildChart(candles) {
@@ -522,10 +525,10 @@ function buildChart(candles) {
     time: c.time, open: c.open, high: c.high, low: c.low, close: c.close,
   })));
 
-  // VWAP
+  // VWAP — tag shown on right axis
   _vwapSeries = _chart.addLineSeries({
     color: '#00d4ff', lineWidth: 1, priceLineVisible: false,
-    lastValueVisible: false, crosshairMarkerVisible: false,
+    lastValueVisible: true, title: 'VWAP', crosshairMarkerVisible: false,
     lineStyle: LightweightCharts.LineStyle.Dashed,
   });
   _vwapSeries.setData(candles.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
@@ -533,7 +536,7 @@ function buildChart(candles) {
   // Supertrend UP (green support line) — only include valid up-direction points, no nulls
   _stUpSeries = _chart.addLineSeries({
     color: '#2ecc71', lineWidth: 2, priceLineVisible: false,
-    lastValueVisible: false, crosshairMarkerVisible: false,
+    lastValueVisible: true, title: 'ST↑', crosshairMarkerVisible: false,
   });
   _stUpSeries.setData(candles.filter(c => c.supertrend_dir === 'up' && c.supertrend)
     .map(c => ({ time: c.time, value: c.supertrend })));
@@ -541,10 +544,28 @@ function buildChart(candles) {
   // Supertrend DOWN (red resistance line) — only include valid down-direction points, no nulls
   _stDownSeries = _chart.addLineSeries({
     color: '#e74c3c', lineWidth: 2, priceLineVisible: false,
-    lastValueVisible: false, crosshairMarkerVisible: false,
+    lastValueVisible: true, title: 'ST↓', crosshairMarkerVisible: false,
   });
   _stDownSeries.setData(candles.filter(c => c.supertrend_dir === 'down' && c.supertrend)
     .map(c => ({ time: c.time, value: c.supertrend })));
+
+  // Volume histogram — overlaid in bottom 20% of the same chart
+  _volumeSeries = _chart.addHistogramSeries({
+    priceFormat: { type: 'volume' },
+    priceScaleId: 'volume',
+    lastValueVisible: false,
+    priceLineVisible: false,
+  });
+  _chart.priceScale('volume').applyOptions({
+    scaleMargins: { top: 0.82, bottom: 0 },
+    drawTicks: false,
+    visible: false,
+  });
+  _volumeSeries.setData(candles.map(c => ({
+    time:  c.time,
+    value: c.volume,
+    color: c.close >= c.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)',
+  })));
 
   _chart.timeScale().fitContent();
   window.addEventListener('resize', _resizeChart);
@@ -567,6 +588,8 @@ function chartUpdateLast(candle) {
     _stUpSeries.update({ time: candle.time, value: candle.supertrend });
   if (candle.supertrend && candle.supertrend_dir === 'down')
     _stDownSeries.update({ time: candle.time, value: candle.supertrend });
+  if (candle.volume && _volumeSeries)
+    _volumeSeries.update({ time: candle.time, value: candle.volume, color: candle.close >= candle.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)' });
 }
 
 // ─── Panel updates ────────────────────────────────────────────────────────────
@@ -744,6 +767,7 @@ function rpRender() {
     _vwapSeries.setData(slice.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
     _stUpSeries.setData(slice.filter(c => c.supertrend_dir === 'up' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
     _stDownSeries.setData(slice.filter(c => c.supertrend_dir === 'down' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
+    _volumeSeries.setData(slice.map(c => ({ time: c.time, value: c.volume, color: c.close >= c.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)' })));
     _chart.timeScale().scrollToPosition(-2, false);
   }
 
