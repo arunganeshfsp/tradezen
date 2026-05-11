@@ -2280,7 +2280,7 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
         if not d:
             continue
         ltp = float(d.get("ltp") or 0)
-        if not nifty50 and not nifty500 and not (min_price <= ltp <= max_price):
+        if not nifty50 and not (min_price <= ltp <= max_price):
             continue
 
         buy_qty  = int(d.get("totBuyQuan") or 0)
