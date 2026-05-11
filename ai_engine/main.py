@@ -1980,6 +1980,23 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
     if df.empty:
         return {"error": "No intraday data — market closed or holiday today", "candles": [], "market_closed": True}
 
+    # yfinance returns Volume=0 for index tickers (^NSEI, ^NSEBANK) on intraday data.
+    # Use liquid ETF as volume proxy so VWAP and volume histogram work correctly.
+    _VOL_PROXY = {"NIFTY": "NIFTYBEES.NS", "BANKNIFTY": "BANKBEES.NS"}
+    vol_proxy = _VOL_PROXY.get(symbol.upper())
+    if vol_proxy and (df["Volume"] == 0).all():
+        try:
+            vdf = yf.Ticker(vol_proxy).history(period=yf_period, interval=yf_interval)
+            if not vdf.empty:
+                try:
+                    vdf.index = vdf.index.tz_convert("Asia/Kolkata")
+                except Exception:
+                    pass
+                vdf = vdf[["Volume"]].reindex(df.index, method="nearest", tolerance=pd.Timedelta("5min"))
+                df["Volume"] = vdf["Volume"].fillna(0).astype(int)
+        except Exception:
+            pass
+
     # Intraday VWAP — all intervals now use 1d so simple cumsum is correct
     typical  = (df["High"] + df["Low"] + df["Close"]) / 3
     pv       = typical * df["Volume"]
