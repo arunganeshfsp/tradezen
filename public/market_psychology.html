@@ -82,6 +82,16 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .leg-item{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;padding:2px 8px}
 .leg-line{width:14px;height:2px;border-radius:1px;display:inline-block;flex-shrink:0}
 .leg-bar{width:6px;height:10px;border-radius:1px;display:inline-block;flex-shrink:0;opacity:0.7}
+.levels-btn{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:20px;padding:2px 9px;cursor:pointer;transition:all .15s;line-height:1.6}
+.levels-btn.active{color:var(--yellow);border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.07)}
+.chart-fs-btn{background:none;border:1px solid var(--border);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;color:var(--muted);transition:all .15s;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-left:6px}
+.chart-fs-btn:hover{color:var(--text);border-color:var(--border2)}
+/* Fullscreen overlay */
+.chart-panel.fs-mode{position:fixed;inset:0;z-index:400;border-radius:0;margin:0;width:100vw !important;flex:none !important;overflow:hidden}
+.chart-panel.fs-mode #psych-chart{height:calc(100vh - 88px) !important}
+body.fs-lock{overflow:hidden}
+/* Floating indicator labels on chart */
+.chart-float-label{position:absolute;left:6px;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;border:1px solid;pointer-events:none;z-index:20;white-space:nowrap;line-height:1.7;letter-spacing:0.3px}
 #psych-chart{height:360px;position:relative}
 #psych-chart .chart-placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
 .chart-asof{padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);border-top:1px solid var(--border)}
@@ -281,7 +291,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="leg-item"><span class="leg-line" style="background:var(--green)"></span>ST ↑</div>
         <div class="leg-item"><span class="leg-line" style="background:var(--red)"></span>ST ↓</div>
         <div class="leg-item"><span class="leg-bar" style="background:var(--accent)"></span>Vol</div>
+        <div class="leg-item"><span class="leg-line" style="background:var(--cyan);opacity:0.7"></span>CPR</div>
+        <div class="leg-item"><span class="leg-line" style="background:var(--red);opacity:0.8"></span>L4</div>
+        <div class="leg-item"><span class="leg-line" style="background:var(--green);opacity:0.8"></span>H4</div>
+        <button class="levels-btn active" id="levelsToggle" onclick="toggleLevels()">Levels</button>
       </div>
+      <button class="chart-fs-btn" id="fsBtn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
     </div>
     <div id="psych-chart">
       <div class="loading-state"><div class="spin"></div>Loading candles…</div>
@@ -416,6 +431,11 @@ let _vwapSeries    = null;
 let _stUpSeries    = null;
 let _stDownSeries  = null;
 let _volumeSeries  = null;
+let _priceLines    = [];
+let _cprData       = null;
+let _levelsVisible = true;
+let _floatLabels   = [];
+let _isFullscreen  = false;
 let _livePoll = null;        // setInterval id
 let _rpIdx    = 0;           // replay cursor
 let _rpTimer  = null;        // replay setInterval id
@@ -479,6 +499,7 @@ async function reload() {
 
     _candles = data.candles;
     buildChart(data.candles);
+    fetchAndDrawLevels();
     updatePanel(_candles[_candles.length - 1]);
     updateHistStrip(_candles);
     document.getElementById('chart-asof').textContent =
@@ -499,6 +520,7 @@ function setChartLoading() {
   el.innerHTML = '<div class="loading-state"><div class="spin"></div>Loading candles…</div>';
   _chart = null; _candleSeries = null; _vwapSeries = null;
   _stUpSeries = null; _stDownSeries = null; _volumeSeries = null;
+  _priceLines = []; clearFloatingLabels();
 }
 
 function buildChart(candles) {
@@ -512,8 +534,9 @@ function buildChart(candles) {
     rightPriceScale: { borderColor: '#252a44' },
     timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
     width:  container.clientWidth,
-    height: 360,
+    height: _isFullscreen ? (window.innerHeight - 88) : 360,
   });
+  _chart.timeScale().subscribeVisibleLogicalRangeChange(updateFloatingLabels);
 
   // Candlestick
   _candleSeries = _chart.addCandlestickSeries({
@@ -574,7 +597,140 @@ function _resizeChart() {
   if (_chart) {
     const c = document.getElementById('psych-chart');
     _chart.applyOptions({ width: c.clientWidth });
+    updateFloatingLabels();
   }
+}
+
+// ─── CPR & Camarilla levels ───────────────────────────────────────────────────
+function _calcCam(H, L, C) {
+  const r = H - L, r2 = v => Math.round(v * 100) / 100;
+  return {
+    h4: r2(C + r * 1.1 / 2), h3: r2(C + r * 1.1 / 4),
+    l3: r2(C - r * 1.1 / 4), l4: r2(C - r * 1.1 / 2),
+  };
+}
+
+async function fetchAndDrawLevels() {
+  if (_sym !== 'NIFTY') return;
+  try {
+    const res = await fetch('/api/trade-flow');
+    const d   = await res.json();
+    if (!d.cpr || !d.prev_day) return;
+    _cprData = { cpr: d.cpr, cam: _calcCam(d.prev_day.high, d.prev_day.low, d.prev_day.close) };
+    if (_levelsVisible) drawLevels();
+  } catch(e) {}
+}
+
+function drawLevels() {
+  if (!_candleSeries || !_cprData) return;
+  clearLevels();
+  const LS = LightweightCharts.LineStyle;
+  const { cpr, cam } = _cprData;
+  [
+    // CPR zone
+    { price: cpr.tc, color: '#00d4ff',              width: 1, style: LS.Solid,        title: 'TC' },
+    { price: cpr.pp, color: 'rgba(200,200,200,0.5)', width: 1, style: LS.SparseDotted, title: 'PP' },
+    { price: cpr.bc, color: '#00d4ff',              width: 1, style: LS.Solid,        title: 'BC' },
+    // Standard pivots
+    { price: cpr.r1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted,       title: 'R1' },
+    { price: cpr.r2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted,       title: 'R2' },
+    { price: cpr.s1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted,       title: 'S1' },
+    { price: cpr.s2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted,       title: 'S2' },
+    // Camarilla — key levels only
+    { price: cam.h4, color: '#2ecc71',              width: 2, style: LS.Dashed,        title: 'H4 ▲' },
+    { price: cam.h3, color: 'rgba(46,204,113,0.55)', width: 1, style: LS.Dotted,       title: 'H3' },
+    { price: cam.l3, color: 'rgba(231,76,60,0.55)',  width: 1, style: LS.Dotted,       title: 'L3' },
+    { price: cam.l4, color: '#e74c3c',              width: 2, style: LS.Dashed,        title: 'L4 ▼' },
+  ].forEach(s => {
+    _priceLines.push(_candleSeries.createPriceLine({
+      price: s.price, color: s.color, lineWidth: s.width,
+      lineStyle: s.style, axisLabelVisible: true, title: s.title,
+    }));
+  });
+
+  // Floating labels over the chart (left side)
+  clearFloatingLabels();
+  [
+    [cpr.tc, 'TC',    '#00d4ff',             'rgba(0,212,255,0.13)'],
+    [cpr.pp, 'PP',    'rgba(180,180,180,0.9)','rgba(180,180,180,0.08)'],
+    [cpr.bc, 'BC',    '#00d4ff',             'rgba(0,212,255,0.13)'],
+    [cpr.r1, 'R1',    '#f5a623',             'rgba(245,166,35,0.11)'],
+    [cpr.r2, 'R2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
+    [cpr.s1, 'S1',    '#f5a623',             'rgba(245,166,35,0.11)'],
+    [cpr.s2, 'S2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
+    [cam.h4, 'H4 ▲', '#2ecc71',             'rgba(46,204,113,0.13)'],
+    [cam.h3, 'H3',    'rgba(46,204,113,0.65)','rgba(46,204,113,0.07)'],
+    [cam.l3, 'L3',    'rgba(231,76,60,0.65)', 'rgba(231,76,60,0.07)'],
+    [cam.l4, 'L4 ▼', '#e74c3c',             'rgba(231,76,60,0.13)'],
+  ].forEach(([price, text, color, bg]) => _makeFloatLabel(price, text, color, bg));
+  updateFloatingLabels();
+}
+
+function clearLevels() {
+  _priceLines.forEach(l => { try { _candleSeries.removePriceLine(l); } catch(e) {} });
+  _priceLines = [];
+  clearFloatingLabels();
+}
+
+function toggleLevels() {
+  _levelsVisible = !_levelsVisible;
+  document.getElementById('levelsToggle').classList.toggle('active', _levelsVisible);
+  if (_levelsVisible) drawLevels();
+  else clearLevels();
+}
+
+// ─── Floating labels (indicators drawn over the chart area) ──────────────────
+function _makeFloatLabel(price, text, color, bg) {
+  const wrap = document.getElementById('psych-chart');
+  if (!wrap) return;
+  const el = document.createElement('div');
+  el.className = 'chart-float-label';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.background = bg;
+  el.style.borderColor = color;
+  wrap.appendChild(el);
+  _floatLabels.push({ el, price });
+}
+
+function updateFloatingLabels() {
+  if (!_candleSeries || !_chart) return;
+  const chartH = _isFullscreen ? (window.innerHeight - 88) : 360;
+  _floatLabels.forEach(({ el, price }) => {
+    const y = _candleSeries.priceToCoordinate(price);
+    if (y !== null && y > 4 && y < chartH - 4) {
+      el.style.top     = Math.round(y - 9) + 'px';
+      el.style.opacity = '1';
+    } else {
+      el.style.opacity = '0';
+    }
+  });
+}
+
+function clearFloatingLabels() {
+  _floatLabels.forEach(({ el }) => { try { el.remove(); } catch(e) {} });
+  _floatLabels = [];
+}
+
+// ─── Fullscreen ───────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  _isFullscreen = !_isFullscreen;
+  const panel = document.getElementById('chart-panel');
+  const btn   = document.getElementById('fsBtn');
+  panel.classList.toggle('fs-mode', _isFullscreen);
+  document.body.classList.toggle('fs-lock', _isFullscreen);
+  btn.textContent = _isFullscreen ? '✕' : '⛶';
+  btn.title       = _isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
+  setTimeout(() => {
+    if (_chart) {
+      const c = document.getElementById('psych-chart');
+      _chart.applyOptions({
+        width:  c.clientWidth,
+        height: _isFullscreen ? (window.innerHeight - 88) : 360,
+      });
+      updateFloatingLabels();
+    }
+  }, 30);
 }
 
 // Update only the last candle in chart (live mode)
@@ -589,6 +745,7 @@ function chartUpdateLast(candle) {
     _stDownSeries.update({ time: candle.time, value: candle.supertrend });
   if (candle.volume && _volumeSeries)
     _volumeSeries.update({ time: candle.time, value: candle.volume, color: candle.close >= candle.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)' });
+  updateFloatingLabels();
 }
 
 // ─── Panel updates ────────────────────────────────────────────────────────────
