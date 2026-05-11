@@ -552,7 +552,7 @@ function buildChart(candles) {
   _vwapSeries = _chart.addLineSeries({
     color: '#00d4ff', lineWidth: 2, priceLineVisible: false,
     lastValueVisible: true, title: 'VWAP', crosshairMarkerVisible: false,
-    lineStyle: LightweightCharts.LineStyle.SparseDotted,
+    lineStyle: LightweightCharts.LineStyle.Dashed,
   });
   _vwapSeries.setData(candles.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
 
@@ -575,11 +575,11 @@ function buildChart(candles) {
   // Volume histogram — overlaid on the left (invisible) price scale, bottom 18%
   _volumeSeries = _chart.addHistogramSeries({
     priceFormat: { type: 'volume' },
-    priceScaleId: 'left',
+    priceScaleId: '',
     lastValueVisible: false,
     priceLineVisible: false,
   });
-  _chart.priceScale('left').applyOptions({
+  _chart.priceScale('').applyOptions({
     scaleMargins: { top: 0.82, bottom: 0 },
     visible: false,
   });
@@ -590,13 +590,15 @@ function buildChart(candles) {
   })));
 
   _chart.timeScale().fitContent();
-  window.addEventListener('resize', _resizeChart);
 }
 
 function _resizeChart() {
   if (_chart) {
     const c = document.getElementById('psych-chart');
-    _chart.applyOptions({ width: c.clientWidth });
+    _chart.applyOptions({
+      width:  c.clientWidth,
+      height: _isFullscreen ? (window.innerHeight - 88) : 360,
+    });
     updateFloatingLabels();
   }
 }
@@ -611,12 +613,11 @@ function _calcCam(H, L, C) {
 }
 
 async function fetchAndDrawLevels() {
-  if (_sym !== 'NIFTY') return;
   try {
-    const res = await fetch('/api/trade-flow');
+    const res = await fetch(`/api/psychology/levels?symbol=${_sym}`);
     const d   = await res.json();
-    if (!d.cpr || !d.prev_day) return;
-    _cprData = { cpr: d.cpr, cam: _calcCam(d.prev_day.high, d.prev_day.low, d.prev_day.close) };
+    if (!d.cpr || !d.camarilla) return;
+    _cprData = { cpr: d.cpr, cam: d.camarilla };
     if (_levelsVisible) drawLevels();
   } catch(e) {}
 }
@@ -766,9 +767,9 @@ function updatePanel(candle) {
   const comp = d.components;
   const meta = STATE_META[d.state] || STATE_META.neutral;
 
-  // Chart glow
+  // Chart glow — preserve fs-mode when resetting glow classes
   const panel = document.getElementById('chart-panel');
-  panel.className = 'chart-panel';
+  panel.classList.remove('glow-buy', 'glow-sell', 'glow-abs');
   if      (['buyer_domination', 'buyer_pressure'].includes(d.state))  panel.classList.add('glow-buy');
   else if (['seller_domination', 'seller_pressure'].includes(d.state)) panel.classList.add('glow-sell');
   else if (['absorption', 'momentum_weakening', 'fake_breakout'].includes(d.state)) panel.classList.add('glow-abs');
@@ -1017,6 +1018,7 @@ function showMarketClosed(msg) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('resize', _resizeChart);
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && _isFullscreen) toggleFullscreen(); });
 reload();
 </script>
 </body>

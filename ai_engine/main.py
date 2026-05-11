@@ -1980,14 +1980,10 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
     if df.empty:
         return {"error": "No intraday data — market closed or holiday today", "candles": [], "market_closed": True}
 
-    # Intraday VWAP — reset each calendar day so multi-day 15m data stays correct
+    # Intraday VWAP — all intervals now use 1d so simple cumsum is correct
     typical  = (df["High"] + df["Low"] + df["Close"]) / 3
     pv       = typical * df["Volume"]
-    day_grp  = pd.Series(df.index.date, index=df.index)
-    df["vwap"] = (
-        pv.groupby(day_grp).cumsum()
-        / df["Volume"].groupby(day_grp).cumsum().replace(0, float("nan"))
-    )
+    df["vwap"] = pv.cumsum() / df["Volume"].cumsum().replace(0, float("nan"))
 
     # Supertrend
     st_list = _compute_supertrend(df, period=10, multiplier=3.0)
@@ -2069,6 +2065,32 @@ async def psychology_tick(symbol: str = "NIFTY", interval: str = "5m"):
     except Exception as e:
         log.error(f"Psychology tick error ({symbol}/{interval}): {e}")
         return {"error": str(e)}
+
+
+@app.get("/psychology/levels")
+async def psychology_levels(symbol: str = "NIFTY"):
+    import yfinance as yf
+    yf_sym = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}.get(symbol.upper(), "^NSEI")
+    df = yf.Ticker(yf_sym).history(period="5d", interval="1d")
+    if df.empty or len(df) < 2:
+        return {"error": "Insufficient data"}
+    prev = df.iloc[-2]
+    H, L, C = float(prev.High), float(prev.Low), float(prev.Close)
+    pp = round((H + L + C) / 3, 2)
+    bc = round((H + L) / 2, 2)
+    tc = round(pp - bc + pp, 2)
+    r1 = round(2 * pp - L, 2);  r2 = round(pp + (H - L), 2)
+    s1 = round(2 * pp - H, 2);  s2 = round(pp - (H - L), 2)
+    rng = H - L
+    cam = {
+        "h4": round(C + rng * 1.1 / 2, 2), "h3": round(C + rng * 1.1 / 4, 2),
+        "l3": round(C - rng * 1.1 / 4, 2), "l4": round(C - rng * 1.1 / 2, 2),
+    }
+    return {
+        "symbol": symbol.upper(),
+        "cpr": {"tc": tc, "pp": pp, "bc": bc, "r1": r1, "r2": r2, "s1": s1, "s2": s2},
+        "camarilla": cam,
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════

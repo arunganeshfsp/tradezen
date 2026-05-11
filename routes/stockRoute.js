@@ -412,6 +412,18 @@ router.get("/psychology/tick", async (req, res) => {
   }
 });
 
+// ─── GET /api/psychology/levels ──────────────────────────────────────────────
+router.get("/psychology/levels", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.symbol) params.set("symbol", req.query.symbol);
+    const data = await aiService.proxy("GET", `/psychology/levels?${params}`, 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/indicators/snapshot ────────────────────────────────────────────
 // VWAP · EMA 9/21 · MACD · RSI from today's 5-min yfinance candles
 router.get("/indicators/snapshot", async (req, res) => {
