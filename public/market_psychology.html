@@ -88,13 +88,30 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .chart-fs-btn:hover{color:var(--text);border-color:var(--border2)}
 /* Fullscreen overlay */
 .chart-panel.fs-mode{position:fixed;inset:0;z-index:400;border-radius:0;margin:0;width:100vw !important;flex:none !important;overflow:hidden}
-.chart-panel.fs-mode #psych-chart{height:calc(100vh - 88px) !important}
 body.fs-lock{overflow:hidden}
 /* Floating indicator labels on chart */
 .chart-float-label{position:absolute;left:6px;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;border:1px solid;pointer-events:none;z-index:20;white-space:nowrap;line-height:1.7;letter-spacing:0.3px}
 #psych-chart{height:360px;position:relative}
 #psych-chart .chart-placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
 .chart-asof{padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);border-top:1px solid var(--border)}
+/* ─── Indicator toggle bar ─── */
+.ind-bar{display:flex;flex-wrap:wrap;gap:5px;padding:8px 14px;border-top:1px solid var(--border);background:var(--bg1)}
+.ind-pill{display:flex;align-items:center;border-radius:20px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:transparent;transition:border-color .15s;overflow:hidden}
+.ind-pill.active{border-color:var(--border2)}
+.ind-pill-lbl{display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;transition:background .15s;line-height:1.6}
+.ind-pill-lbl:hover{background:rgba(255,255,255,0.05)}
+.ind-pill.active .ind-pill-lbl{color:var(--text)}
+.ind-dot{flex-shrink:0}
+.ind-info-btn{background:none;border:none;border-left:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:10px;padding:3px 7px;transition:all .15s;font-family:'JetBrains Mono',monospace;line-height:1.6}
+.ind-info-btn:hover{color:var(--cyan);background:rgba(0,212,255,0.07)}
+/* ─── Sub-panels (RSI / MACD) ─── */
+.sub-panel{border-top:1px solid var(--border);background:var(--bg1)}
+.sub-panel-hdr{display:flex;align-items:center;gap:6px;padding:4px 14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.sub-panel-lbl{font-weight:600;color:var(--dim);letter-spacing:.4px}
+.sub-panel-period{color:var(--muted);font-size:9px}
+.sub-panel-val{margin-left:auto;color:var(--text);font-weight:700;font-size:11px}
+/* ─── Info tooltip ─── */
+.ind-tooltip{position:fixed;z-index:600;max-width:280px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 13px;font-size:11px;color:var(--text);line-height:1.55;display:none;box-shadow:0 6px 24px rgba(0,0,0,0.5)}
 
 /* ── PSYCHOLOGY SIDEBAR ── */
 .psych-sidebar{display:flex;flex-direction:column;gap:14px}
@@ -286,23 +303,71 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="chart-panel" id="chart-panel">
     <div class="chart-hdr">
       <span class="chart-hdr-title" id="chart-title">NIFTY · 5m</span>
-      <div class="chart-legend" id="chart-legend">
-        <div class="leg-item"><span class="leg-line" style="background:var(--cyan);border-top:1px dashed var(--cyan);height:0"></span>VWAP</div>
-        <div class="leg-item"><span class="leg-line" style="background:var(--green)"></span>ST ↑</div>
-        <div class="leg-item"><span class="leg-line" style="background:var(--red)"></span>ST ↓</div>
-        <div class="leg-item"><span class="leg-bar" style="background:var(--accent)"></span>Vol</div>
-        <div class="leg-item"><span class="leg-line" style="background:var(--cyan);opacity:0.7"></span>CPR</div>
-        <div class="leg-item"><span class="leg-line" style="background:var(--red);opacity:0.8"></span>L4</div>
-        <div class="leg-item"><span class="leg-line" style="background:var(--green);opacity:0.8"></span>H4</div>
-        <button class="levels-btn active" id="levelsToggle" onclick="toggleLevels()">Levels</button>
-      </div>
       <button class="chart-fs-btn" id="fsBtn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
     </div>
     <div id="psych-chart">
       <div class="loading-state"><div class="spin"></div>Loading candles…</div>
     </div>
+
+    <!-- RSI sub-panel -->
+    <div id="rsi-panel" class="sub-panel" style="display:none">
+      <div class="sub-panel-hdr">
+        <span class="sub-panel-lbl">RSI</span><span class="sub-panel-period">&nbsp;14</span>
+        <span id="rsi-val" class="sub-panel-val">—</span>
+      </div>
+      <div id="rsi-chart"></div>
+    </div>
+
+    <!-- MACD sub-panel -->
+    <div id="macd-panel" class="sub-panel" style="display:none">
+      <div class="sub-panel-hdr">
+        <span class="sub-panel-lbl">MACD</span><span class="sub-panel-period">&nbsp;12,26,9</span>
+        <span id="macd-val" class="sub-panel-val">—</span>
+      </div>
+      <div id="macd-chart"></div>
+    </div>
+
+    <!-- Indicator toggle bar -->
+    <div class="ind-bar" id="ind-bar">
+      <div class="ind-pill active" data-ind="vwap">
+        <span class="ind-pill-lbl" onclick="toggleInd('vwap')"><span class="ind-dot" style="display:inline-block;width:14px;height:0;border-top:2px dashed #00d4ff"></span>VWAP</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'vwap')">ⓘ</button>
+      </div>
+      <div class="ind-pill active" data-ind="st">
+        <span class="ind-pill-lbl" onclick="toggleInd('st')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;background:linear-gradient(to right,#2ecc71 50%,#e74c3c 50%);border-radius:1px"></span>ST</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'st')">ⓘ</button>
+      </div>
+      <div class="ind-pill active" data-ind="vol">
+        <span class="ind-pill-lbl" onclick="toggleInd('vol')"><span class="ind-dot" style="display:inline-block;width:6px;height:10px;border-radius:1px;background:#7c6af7;opacity:.85"></span>Vol</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'vol')">ⓘ</button>
+      </div>
+      <div class="ind-pill" data-ind="ema9">
+        <span class="ind-pill-lbl" onclick="toggleInd('ema9')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#f5a623"></span>EMA 9</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'ema9')">ⓘ</button>
+      </div>
+      <div class="ind-pill" data-ind="ema21">
+        <span class="ind-pill-lbl" onclick="toggleInd('ema21')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#8b5cf6"></span>EMA 21</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'ema21')">ⓘ</button>
+      </div>
+      <div class="ind-pill active" data-ind="cpr">
+        <span class="ind-pill-lbl" onclick="toggleInd('cpr')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#00d4ff;opacity:.8"></span>CPR</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'cpr')">ⓘ</button>
+      </div>
+      <div class="ind-pill" data-ind="rsi">
+        <span class="ind-pill-lbl" onclick="toggleInd('rsi')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#5b8af5"></span>RSI</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'rsi')">ⓘ</button>
+      </div>
+      <div class="ind-pill" data-ind="macd">
+        <span class="ind-pill-lbl" onclick="toggleInd('macd')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:linear-gradient(to right,#5b8af5 50%,#f5a623 50%)"></span>MACD</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'macd')">ⓘ</button>
+      </div>
+    </div>
+
     <div class="chart-asof" id="chart-asof"></div>
   </div>
+
+  <!-- Indicator info tooltip -->
+  <div id="ind-tooltip" class="ind-tooltip"></div>
 
   <!-- PSYCHOLOGY SIDEBAR -->
   <div class="psych-sidebar">
@@ -431,6 +496,14 @@ let _vwapSeries    = null;
 let _stUpSeries    = null;
 let _stDownSeries  = null;
 let _volumeSeries  = null;
+let _ema9Series    = null;
+let _ema21Series   = null;
+let _rsiChart      = null;
+let _rsiSeries     = null;
+let _macdChart     = null;
+let _macdLineSeries   = null;
+let _macdSignalSeries = null;
+let _macdHistSeries   = null;
 let _priceLines    = [];
 let _cprData       = null;
 let _levelsVisible = true;
@@ -441,6 +514,20 @@ let _rpIdx    = 0;           // replay cursor
 let _rpTimer  = null;        // replay setInterval id
 let _rpMs     = 1000;        // replay speed ms
 let _rpPlaying = false;
+
+// Indicator toggle state — true = visible
+const _indState = { vwap:true, st:true, vol:true, ema9:false, ema21:false, cpr:true, rsi:false, macd:false };
+
+const _IND_INFO = {
+  vwap:  'VWAP — Volume Weighted Average Price. Session average price weighted by volume. Price above VWAP = bullish intraday bias; below = bearish. Acts as a dynamic support/resistance that resets each session.',
+  st:    'Supertrend — trend-following indicator using ATR. Green line below price = uptrend (acts as support). Red line above price = downtrend (acts as resistance). The flip point signals a trend reversal entry.',
+  vol:   'Volume — contracts traded per candle. High volume confirms the direction of a move. Low volume on a breakout = weak signal, likely to fail. Opening and closing candles typically carry the highest volume.',
+  ema9:  'EMA 9 (Fast EMA) — reacts quickly to price. Price above EMA 9 = short-term bullish momentum. Useful as dynamic support in uptrends. Often used with EMA 21 for crossover signals.',
+  ema21: 'EMA 21 (Medium EMA) — smoother trend filter. EMA 9 crossing above EMA 21 = Golden Cross (buy). EMA 9 crossing below EMA 21 = Death Cross (sell). In a strong trend price stays above both EMAs.',
+  cpr:   'CPR + Camarilla — Central Pivot Range (TC/PP/BC) from previous day OHLC. Narrow CPR = trending day ahead. Wide CPR = sideways. Camarilla H4/L4 are critical breakout/breakdown levels watched by professionals.',
+  rsi:   'RSI 14 — Relative Strength Index (0–100). Above 70 = overbought (watch for reversal). Below 30 = oversold (watch for bounce). 40–60 = neutral zone. In strong trends RSI can stay extreme for extended periods.',
+  macd:  'MACD (12,26,9) — momentum indicator. Blue line = MACD (EMA12−EMA26). Orange line = Signal (EMA9 of MACD). Histogram above 0 = bullish momentum building. MACD crossing above Signal = buy signal.',
+};
 
 // ─── Controls ─────────────────────────────────────────────────────────────────
 function setSym(sym, btn) {
@@ -548,59 +635,79 @@ function buildChart(candles) {
     time: c.time, open: c.open, high: c.high, low: c.low, close: c.close,
   })));
 
-  // VWAP — tag shown on right axis
+  // VWAP — dashed cyan line
   _vwapSeries = _chart.addLineSeries({
     color: '#00d4ff', lineWidth: 2, priceLineVisible: false,
     lastValueVisible: true, title: 'VWAP', crosshairMarkerVisible: false,
-    lineStyle: LightweightCharts.LineStyle.Dashed,
+    lineStyle: LightweightCharts.LineStyle.Dashed, visible: _indState.vwap,
   });
   _vwapSeries.setData(candles.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
 
-  // Supertrend UP (green support line) — only include valid up-direction points, no nulls
+  // Supertrend UP — green below price (support)
   _stUpSeries = _chart.addLineSeries({
     color: '#2ecc71', lineWidth: 2, priceLineVisible: false,
-    lastValueVisible: true, title: 'ST↑', crosshairMarkerVisible: false,
+    lastValueVisible: true, title: 'ST↑', crosshairMarkerVisible: false, visible: _indState.st,
   });
   _stUpSeries.setData(candles.filter(c => c.supertrend_dir === 'up' && c.supertrend)
     .map(c => ({ time: c.time, value: c.supertrend })));
 
-  // Supertrend DOWN (red resistance line) — only include valid down-direction points, no nulls
+  // Supertrend DOWN — red above price (resistance)
   _stDownSeries = _chart.addLineSeries({
     color: '#e74c3c', lineWidth: 2, priceLineVisible: false,
-    lastValueVisible: true, title: 'ST↓', crosshairMarkerVisible: false,
+    lastValueVisible: true, title: 'ST↓', crosshairMarkerVisible: false, visible: _indState.st,
   });
   _stDownSeries.setData(candles.filter(c => c.supertrend_dir === 'down' && c.supertrend)
     .map(c => ({ time: c.time, value: c.supertrend })));
 
-  // Volume histogram — overlaid on the left (invisible) price scale, bottom 18%
+  // Volume histogram — overlay scale, bottom 18%
   _volumeSeries = _chart.addHistogramSeries({
-    priceFormat: { type: 'volume' },
-    priceScaleId: '',
-    lastValueVisible: false,
-    priceLineVisible: false,
+    priceFormat: { type: 'volume' }, priceScaleId: '',
+    lastValueVisible: false, priceLineVisible: false, visible: _indState.vol,
   });
-  _chart.priceScale('').applyOptions({
-    scaleMargins: { top: 0.82, bottom: 0 },
-    visible: false,
-  });
+  _chart.priceScale('').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 }, visible: false });
   _volumeSeries.setData(candles.map(c => ({
-    time:  c.time,
-    value: c.volume,
+    time: c.time, value: c.volume,
     color: c.close >= c.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)',
   })));
 
+  // EMA 9 — fast, orange
+  _ema9Series = _chart.addLineSeries({
+    color: '#f5a623', lineWidth: 1, priceLineVisible: false,
+    lastValueVisible: true, title: 'EMA9', crosshairMarkerVisible: false, visible: _indState.ema9,
+  });
+  _ema9Series.setData(_calcEMAData(candles, 9));
+
+  // EMA 21 — medium, purple
+  _ema21Series = _chart.addLineSeries({
+    color: '#8b5cf6', lineWidth: 1, priceLineVisible: false,
+    lastValueVisible: true, title: 'EMA21', crosshairMarkerVisible: false, visible: _indState.ema21,
+  });
+  _ema21Series.setData(_calcEMAData(candles, 21));
+
   _chart.timeScale().fitContent();
+}
+
+function _mainChartHeight() {
+  if (_isFullscreen) {
+    let h = window.innerHeight - 44 - 44 - 30; // hdr ~44 + ind-bar ~44 + asof ~30
+    if (_indState.rsi)  h -= 132;
+    if (_indState.macd) h -= 132;
+    return Math.max(180, h);
+  }
+  return 360;
 }
 
 function _resizeChart() {
   if (_chart) {
     const c = document.getElementById('psych-chart');
-    _chart.applyOptions({
-      width:  c.clientWidth,
-      height: _isFullscreen ? (window.innerHeight - 88) : 360,
-    });
+    const h = _mainChartHeight();
+    if (_isFullscreen) c.style.height = h + 'px';
+    else c.style.height = '';
+    _chart.applyOptions({ width: c.clientWidth, height: h });
     updateFloatingLabels();
   }
+  if (_rsiChart)  { const el = document.getElementById('rsi-chart');  if (el) _rsiChart.applyOptions({ width: el.clientWidth }); }
+  if (_macdChart) { const el = document.getElementById('macd-chart'); if (el) _macdChart.applyOptions({ width: el.clientWidth }); }
 }
 
 // ─── CPR & Camarilla levels ───────────────────────────────────────────────────
@@ -673,11 +780,161 @@ function clearLevels() {
   clearFloatingLabels();
 }
 
-function toggleLevels() {
-  _levelsVisible = !_levelsVisible;
-  document.getElementById('levelsToggle').classList.toggle('active', _levelsVisible);
-  if (_levelsVisible) drawLevels();
-  else clearLevels();
+function toggleLevels() { toggleInd('cpr'); }
+
+// ─── Indicator toggles ────────────────────────────────────────────────────────
+function toggleInd(ind) {
+  _indState[ind] = !_indState[ind];
+  document.querySelector(`.ind-pill[data-ind="${ind}"]`)?.classList.toggle('active', _indState[ind]);
+  applyIndVisibility();
+}
+
+function applyIndVisibility() {
+  if (_vwapSeries)   _vwapSeries.applyOptions({ visible: _indState.vwap });
+  if (_stUpSeries)   _stUpSeries.applyOptions({ visible: _indState.st });
+  if (_stDownSeries) _stDownSeries.applyOptions({ visible: _indState.st });
+  if (_volumeSeries) _volumeSeries.applyOptions({ visible: _indState.vol });
+  if (_ema9Series)   _ema9Series.applyOptions({ visible: _indState.ema9 });
+  if (_ema21Series)  _ema21Series.applyOptions({ visible: _indState.ema21 });
+  // CPR levels
+  _levelsVisible = _indState.cpr;
+  if (_indState.cpr) { if (_cprData) drawLevels(); } else clearLevels();
+  // RSI sub-panel
+  const rsiEl = document.getElementById('rsi-panel');
+  if (rsiEl) rsiEl.style.display = _indState.rsi ? '' : 'none';
+  if (_indState.rsi && !_rsiChart) buildRsiChart();
+  // MACD sub-panel
+  const macdEl = document.getElementById('macd-panel');
+  if (macdEl) macdEl.style.display = _indState.macd ? '' : 'none';
+  if (_indState.macd && !_macdChart) buildMacdChart();
+  // Recompute EMA data if newly enabled
+  if (_indState.ema9  && _ema9Series  && _candles.length) _ema9Series.setData(_calcEMAData(_candles, 9));
+  if (_indState.ema21 && _ema21Series && _candles.length) _ema21Series.setData(_calcEMAData(_candles, 21));
+  setTimeout(_resizeChart, 30);
+}
+
+function showIndInfo(event, ind) {
+  event.stopPropagation();
+  const tip = document.getElementById('ind-tooltip');
+  tip.textContent = _IND_INFO[ind] || '';
+  tip.style.display = 'block';
+  const r = event.currentTarget.getBoundingClientRect();
+  tip.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 296)) + 'px';
+  tip.style.top  = (r.top - 8) + 'px';
+  requestAnimationFrame(() => {
+    const tr = tip.getBoundingClientRect();
+    if (tr.top < 8) tip.style.top = (r.bottom + 8) + 'px';
+    if (tr.bottom > window.innerHeight - 8) tip.style.top = Math.max(8, window.innerHeight - tr.height - 8) + 'px';
+  });
+  const dismiss = e => { if (!tip.contains(e.target)) { tip.style.display = 'none'; document.removeEventListener('click', dismiss); } };
+  setTimeout(() => document.addEventListener('click', dismiss), 0);
+}
+
+// ─── Client-side indicator computations ──────────────────────────────────────
+function _calcEMAData(candles, period) {
+  if (candles.length < period) return [];
+  const k = 2 / (period + 1);
+  let ema = candles.slice(0, period).reduce((s, c) => s + c.close, 0) / period;
+  const out = [{ time: candles[period - 1].time, value: +ema.toFixed(2) }];
+  for (let i = period; i < candles.length; i++) {
+    ema = candles[i].close * k + ema * (1 - k);
+    out.push({ time: candles[i].time, value: +ema.toFixed(2) });
+  }
+  return out;
+}
+
+function _calcRSIData(candles, period = 14) {
+  if (candles.length < period + 1) return [];
+  const out = [];
+  let ag = 0, al = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = candles[i].close - candles[i - 1].close;
+    if (d > 0) ag += d; else al -= d;
+  }
+  ag /= period; al /= period;
+  out.push({ time: candles[period].time, value: +(al === 0 ? 100 : 100 - 100 / (1 + ag / al)).toFixed(2) });
+  for (let i = period + 1; i < candles.length; i++) {
+    const d = candles[i].close - candles[i - 1].close;
+    ag = (ag * (period - 1) + Math.max(d, 0)) / period;
+    al = (al * (period - 1) + Math.max(-d, 0)) / period;
+    out.push({ time: candles[i].time, value: +(al === 0 ? 100 : 100 - 100 / (1 + ag / al)).toFixed(2) });
+  }
+  return out;
+}
+
+function _calcMACDData(candles, fast = 12, slow = 26, sig = 9) {
+  const ef = _calcEMAData(candles, fast);
+  const es = _calcEMAData(candles, slow);
+  const efMap = new Map(ef.map(x => [x.time, x.value]));
+  const macdLine = es.filter(x => efMap.has(x.time))
+    .map(x => ({ time: x.time, value: +(efMap.get(x.time) - x.value).toFixed(2) }));
+  if (macdLine.length < sig) return { line: macdLine, signal: [], hist: [] };
+  const sk = 2 / (sig + 1);
+  let se = macdLine.slice(0, sig).reduce((s, c) => s + c.value, 0) / sig;
+  const signalLine = [{ time: macdLine[sig - 1].time, value: +se.toFixed(2) }];
+  for (let i = sig; i < macdLine.length; i++) {
+    se = macdLine[i].value * sk + se * (1 - sk);
+    signalLine.push({ time: macdLine[i].time, value: +se.toFixed(2) });
+  }
+  const hist = signalLine.map((s, idx) => {
+    const m = macdLine[sig - 1 + idx];
+    if (!m) return null;
+    const v = +(m.value - s.value).toFixed(2);
+    return { time: s.time, value: v, color: v >= 0 ? 'rgba(46,204,113,0.7)' : 'rgba(231,76,60,0.7)' };
+  }).filter(Boolean);
+  return { line: macdLine, signal: signalLine, hist };
+}
+
+// ─── Sub-panel chart builders ─────────────────────────────────────────────────
+function buildRsiChart() {
+  const el = document.getElementById('rsi-chart');
+  el.innerHTML = '';
+  _rsiChart = LightweightCharts.createChart(el, {
+    layout:          { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid:            { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    rightPriceScale: { borderColor: '#252a44', scaleMargins: { top: 0.1, bottom: 0.1 } },
+    timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
+    width: el.clientWidth, height: 110,
+  });
+  _rsiSeries = _rsiChart.addLineSeries({
+    color: '#5b8af5', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'RSI',
+  });
+  const LS = LightweightCharts.LineStyle;
+  _rsiSeries.createPriceLine({ price: 70, color: 'rgba(231,76,60,0.55)', lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: 'OB' });
+  _rsiSeries.createPriceLine({ price: 30, color: 'rgba(46,204,113,0.55)', lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: 'OS' });
+  _rsiSeries.createPriceLine({ price: 50, color: 'rgba(155,163,191,0.2)', lineWidth: 1, lineStyle: LS.Dotted, axisLabelVisible: false });
+  const rsiData = _calcRSIData(_candles);
+  _rsiSeries.setData(rsiData);
+  _rsiChart.timeScale().fitContent();
+  if (rsiData.length) document.getElementById('rsi-val').textContent = rsiData[rsiData.length - 1].value.toFixed(1);
+}
+
+function buildMacdChart() {
+  const el = document.getElementById('macd-chart');
+  el.innerHTML = '';
+  _macdChart = LightweightCharts.createChart(el, {
+    layout:          { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid:            { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    rightPriceScale: { borderColor: '#252a44' },
+    timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
+    width: el.clientWidth, height: 110,
+  });
+  const macd = _calcMACDData(_candles);
+  _macdHistSeries = _macdChart.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false });
+  _macdHistSeries.setData(macd.hist);
+  _macdLineSeries = _macdChart.addLineSeries({
+    color: '#5b8af5', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'MACD',
+  });
+  _macdLineSeries.setData(macd.line);
+  _macdSignalSeries = _macdChart.addLineSeries({
+    color: '#f5a623', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+    priceLineVisible: false, lastValueVisible: true, title: 'Sig',
+  });
+  _macdSignalSeries.setData(macd.signal);
+  _macdChart.timeScale().fitContent();
+  if (macd.line.length) document.getElementById('macd-val').textContent = macd.line[macd.line.length - 1].value.toFixed(2);
 }
 
 // ─── Floating labels (indicators drawn over the chart area) ──────────────────
@@ -696,7 +953,7 @@ function _makeFloatLabel(price, text, color, bg) {
 
 function updateFloatingLabels() {
   if (!_candleSeries || !_chart) return;
-  const chartH = _isFullscreen ? (window.innerHeight - 88) : 360;
+  const chartH = _mainChartHeight();
   _floatLabels.forEach(({ el, price }) => {
     const y = _candleSeries.priceToCoordinate(price);
     if (y !== null && y > 4 && y < chartH - 4) {
@@ -722,23 +979,13 @@ function toggleFullscreen() {
   document.body.classList.toggle('fs-lock', _isFullscreen);
   btn.textContent = _isFullscreen ? '✕' : '⛶';
   btn.title       = _isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
-  setTimeout(() => {
-    if (_chart) {
-      const c = document.getElementById('psych-chart');
-      _chart.applyOptions({
-        width:  c.clientWidth,
-        height: _isFullscreen ? (window.innerHeight - 88) : 360,
-      });
-      updateFloatingLabels();
-    }
-  }, 30);
+  setTimeout(_resizeChart, 30);
 }
 
 // Update only the last candle in chart (live mode)
 function chartUpdateLast(candle) {
   if (!_candleSeries) return;
-  const bar = { time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close };
-  _candleSeries.update(bar);
+  _candleSeries.update({ time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close });
   if (candle.vwap)      _vwapSeries.update({ time: candle.time, value: candle.vwap });
   if (candle.supertrend && candle.supertrend_dir === 'up')
     _stUpSeries.update({ time: candle.time, value: candle.supertrend });
@@ -746,6 +993,21 @@ function chartUpdateLast(candle) {
     _stDownSeries.update({ time: candle.time, value: candle.supertrend });
   if (candle.volume && _volumeSeries)
     _volumeSeries.update({ time: candle.time, value: candle.volume, color: candle.close >= candle.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)' });
+  // EMA live update
+  if (_ema9Series  && _indState.ema9)  { const d = _calcEMAData(_candles, 9);  if (d.length) _ema9Series.update(d[d.length-1]); }
+  if (_ema21Series && _indState.ema21) { const d = _calcEMAData(_candles, 21); if (d.length) _ema21Series.update(d[d.length-1]); }
+  // RSI live update
+  if (_rsiChart && _indState.rsi) {
+    const d = _calcRSIData(_candles);
+    if (d.length) { _rsiSeries.update(d[d.length-1]); document.getElementById('rsi-val').textContent = d[d.length-1].value.toFixed(1); }
+  }
+  // MACD live update
+  if (_macdChart && _indState.macd) {
+    const m = _calcMACDData(_candles);
+    if (m.hist.length)   _macdHistSeries.update(m.hist[m.hist.length-1]);
+    if (m.line.length)   { _macdLineSeries.update(m.line[m.line.length-1]); document.getElementById('macd-val').textContent = m.line[m.line.length-1].value.toFixed(2); }
+    if (m.signal.length) _macdSignalSeries.update(m.signal[m.signal.length-1]);
+  }
   updateFloatingLabels();
 }
 
