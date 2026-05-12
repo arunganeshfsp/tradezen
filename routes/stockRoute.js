@@ -362,6 +362,52 @@ router.get("/options/monitor", async (req, res) => {
   }
 });
 
+// ─── GET /api/options/past-expiries ──────────────────────────────────────────
+router.get("/options/past-expiries", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/options/past-expiries?${params}`);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/options/contract-history ───────────────────────────────────────
+router.get("/options/contract-history", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/options/contract-history?${params}`, 60000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/options/parse-bhavcopy ────────────────────────────────────────
+// Multipart file upload — pipe raw request stream to Python
+const AI_ENGINE_URL = process.env.AI_ENGINE_URL || "http://localhost:8000";
+router.post("/options/parse-bhavcopy", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const axios = require("axios");
+    const response = await axios.post(
+      `${AI_ENGINE_URL}/options/parse-bhavcopy?${params}`,
+      req,
+      {
+        headers: { "content-type": req.headers["content-type"] },
+        timeout: 60000,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      }
+    );
+    res.json(response.data);
+  } catch (err) {
+    console.error("parse-bhavcopy proxy error:", err.message);
+    res.status(500).json({ error: "Python engine unreachable" });
+  }
+});
+
 // ─── GET /api/iv ─────────────────────────────────────────────────────────────
 // ATM implied volatility for nearest NIFTY expiry via Angel One
 router.get("/iv", async (req, res) => {
