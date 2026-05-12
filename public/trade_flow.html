@@ -2458,6 +2458,7 @@ function _drawChartLines() {
   if (!_niftyCandleSeries) return;
   const cpr = flowData && flowData.cpr;
   const mp  = mpData;
+  const orb = flowData && flowData.orb;
   const LS  = LightweightCharts.LineStyle;
   const legendItems = [];
 
@@ -2485,6 +2486,11 @@ function _drawChartLines() {
     pl(mp.val,    '#7c6af7', 'VAL',  LS.LargeDashed, 2);
     if (mp.ib_high) pl(mp.ib_high, 'rgba(0,212,255,0.45)',  'IB H', LS.Dotted, 1);
     if (mp.ib_low)  pl(mp.ib_low,  'rgba(124,106,247,0.45)', 'IB L', LS.Dotted, 1);
+  }
+
+  if (orb) {
+    pl(orb.high, '#a78bfa', 'ORB H', LS.Solid, 2);
+    pl(orb.low,  '#a78bfa', 'ORB L', LS.Solid, 2);
   }
 
   document.getElementById('chart-legend').innerHTML = legendItems.map(l =>

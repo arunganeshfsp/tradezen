@@ -189,7 +189,7 @@ body.fs-lock{overflow:hidden}
 .hist-strip::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .hist-candle{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-width:110px;flex-shrink:0;cursor:pointer;transition:border-color .2s}
 .hist-candle:hover{border-color:var(--border2)}
-.hc-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:5px}
+.hc-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:5px}
 .hc-state{font-size:11px;font-weight:600;margin-bottom:6px}
 .hc-bar-wrap{background:var(--bg3);border-radius:2px;height:4px;overflow:hidden}
 .hc-buy-fill{height:100%;border-radius:2px;transition:width .4s}
@@ -346,7 +346,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button class="ind-info-btn" onclick="showIndInfo(event,'ema9')">ⓘ</button>
       </div>
       <div class="ind-pill" data-ind="ema21">
-        <span class="ind-pill-lbl" onclick="toggleInd('ema21')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#8b5cf6"></span>EMA 21</span>
+        <span class="ind-pill-lbl" onclick="toggleInd('ema21')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#e8a045"></span>EMA 21</span>
         <button class="ind-info-btn" onclick="showIndInfo(event,'ema21')">ⓘ</button>
       </div>
       <div class="ind-pill active" data-ind="cpr">
@@ -354,11 +354,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button class="ind-info-btn" onclick="showIndInfo(event,'cpr')">ⓘ</button>
       </div>
       <div class="ind-pill" data-ind="rsi">
-        <span class="ind-pill-lbl" onclick="toggleInd('rsi')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#5b8af5"></span>RSI</span>
+        <span class="ind-pill-lbl" onclick="toggleInd('rsi')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#f5a623"></span>RSI</span>
         <button class="ind-info-btn" onclick="showIndInfo(event,'rsi')">ⓘ</button>
       </div>
       <div class="ind-pill" data-ind="macd">
-        <span class="ind-pill-lbl" onclick="toggleInd('macd')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:linear-gradient(to right,#5b8af5 50%,#f5a623 50%)"></span>MACD</span>
+        <span class="ind-pill-lbl" onclick="toggleInd('macd')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#f5a623"></span>MACD</span>
         <button class="ind-info-btn" onclick="showIndInfo(event,'macd')">ⓘ</button>
       </div>
     </div>
@@ -506,6 +506,8 @@ let _macdSignalSeries = null;
 let _macdHistSeries   = null;
 let _priceLines    = [];
 let _cprData       = null;
+let _orbData       = null;
+let _orbLines      = [];
 let _levelsVisible = true;
 let _floatLabels   = [];
 let _isFullscreen  = false;
@@ -587,6 +589,7 @@ async function reload() {
     _candles = data.candles;
     buildChart(data.candles);
     fetchAndDrawLevels();
+    fetchAndDrawOrb();
     updatePanel(_candles[_candles.length - 1]);
     updateHistStrip(_candles);
     document.getElementById('chart-asof').textContent =
@@ -679,7 +682,7 @@ function buildChart(candles) {
 
   // EMA 21 — medium, purple
   _ema21Series = _chart.addLineSeries({
-    color: '#8b5cf6', lineWidth: 1, priceLineVisible: false,
+    color: '#e8a045', lineWidth: 1, priceLineVisible: false,
     lastValueVisible: true, title: 'EMA21', crosshairMarkerVisible: false, visible: _indState.ema21,
   });
   _ema21Series.setData(_calcEMAData(candles, 21));
@@ -778,6 +781,29 @@ function clearLevels() {
   _priceLines.forEach(l => { try { _candleSeries.removePriceLine(l); } catch(e) {} });
   _priceLines = [];
   clearFloatingLabels();
+}
+
+async function fetchAndDrawOrb() {
+  try {
+    const res = await fetch('/api/trade-flow');
+    const d   = await res.json();
+    if (!d.orb || d.orb.high == null) return;
+    _orbData = d.orb;
+    drawOrbLines();
+  } catch(e) {}
+}
+
+function drawOrbLines() {
+  if (!_candleSeries || !_orbData) return;
+  clearOrbLines();
+  const LS = LightweightCharts.LineStyle;
+  _orbLines.push(_candleSeries.createPriceLine({ price: _orbData.high, color: '#a78bfa', lineWidth: 2, lineStyle: LS.Solid, axisLabelVisible: true, title: 'ORB H' }));
+  _orbLines.push(_candleSeries.createPriceLine({ price: _orbData.low,  color: '#a78bfa', lineWidth: 2, lineStyle: LS.Solid, axisLabelVisible: true, title: 'ORB L' }));
+}
+
+function clearOrbLines() {
+  _orbLines.forEach(l => { try { _candleSeries.removePriceLine(l); } catch(e) {} });
+  _orbLines = [];
 }
 
 function toggleLevels() { toggleInd('cpr'); }
@@ -880,7 +906,7 @@ function _calcMACDData(candles, fast = 12, slow = 26, sig = 9) {
     const m = macdLine[sig - 1 + idx];
     if (!m) return null;
     const v = +(m.value - s.value).toFixed(2);
-    return { time: s.time, value: v, color: v >= 0 ? 'rgba(46,204,113,0.7)' : 'rgba(231,76,60,0.7)' };
+    return { time: s.time, value: v, color: v >= 0 ? 'rgba(245,166,35,0.9)' : 'rgba(231,76,60,0.8)' };
   }).filter(Boolean);
   return { line: macdLine, signal: signalLine, hist };
 }
@@ -898,7 +924,7 @@ function buildRsiChart() {
     width: el.clientWidth, height: 110,
   });
   _rsiSeries = _rsiChart.addLineSeries({
-    color: '#5b8af5', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'RSI',
+    color: '#f5a623', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'RSI',
   });
   const LS = LightweightCharts.LineStyle;
   _rsiSeries.createPriceLine({ price: 70, color: 'rgba(231,76,60,0.55)', lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: 'OB' });
@@ -925,11 +951,11 @@ function buildMacdChart() {
   _macdHistSeries = _macdChart.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false });
   _macdHistSeries.setData(macd.hist);
   _macdLineSeries = _macdChart.addLineSeries({
-    color: '#5b8af5', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'MACD',
+    color: '#f5a623', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'MACD',
   });
   _macdLineSeries.setData(macd.line);
   _macdSignalSeries = _macdChart.addLineSeries({
-    color: '#f5a623', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+    color: 'rgba(220,220,220,0.75)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
     priceLineVisible: false, lastValueVisible: true, title: 'Sig',
   });
   _macdSignalSeries.setData(macd.signal);
@@ -1123,12 +1149,14 @@ function updateHistStrip(candles) {
     const d     = c.dominance;
     const meta  = STATE_META[d.state] || STATE_META.neutral;
     const bullish = c.close >= c.open;
-    const timeStr = new Date(c.time * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const _cd = new Date(c.time * 1000);
+    const timeStr = `${String(_cd.getUTCHours()).padStart(2,'0')}:${String(_cd.getUTCMinutes()).padStart(2,'0')}`;
     const scoreStr = (d.score >= 0 ? '+' : '') + d.score;
     const barColor = d.score >= 0 ? 'var(--green)' : 'var(--red)';
     return `<div class="hist-candle" onclick="rpJump(${candles.length - last5.length + i})">
       <div class="hc-time">${timeStr}</div>
       <div class="hc-state" style="color:${meta.ring}">${meta.icon} ${scoreStr}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${bullish ? 'var(--green)' : 'var(--red)'};margin-bottom:4px">${c.close.toFixed(0)}</div>
       <div class="hc-bar-wrap"><div class="hc-buy-fill" style="width:${d.buyer_pct}%;background:${barColor}"></div></div>
     </div>`;
   }).join('');
@@ -1152,6 +1180,7 @@ async function pollTick() {
 
     const candle = data.candle;
     document.getElementById('ctrl-asof').textContent = data.as_of + ' IST';
+    document.getElementById('chart-asof').textContent = `${_candles.length} candles · last: ${data.as_of} IST`;
 
     // Update or append candle in our array
     if (_candles.length && _candles[_candles.length - 1].time === candle.time) {
