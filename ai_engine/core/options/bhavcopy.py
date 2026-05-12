@@ -1,13 +1,11 @@
 """
-NSE F&O Bhavcopy — in-memory downloader, parser, and Black-Scholes engine.
+NSE F&O Bhavcopy — in-memory downloader using NSE website's internal API.
 
-Fetches NSE daily EOD archives, filters for the requested contract only,
-and holds the result in a single in-memory cache. The cache is replaced
-on every new contract search — nothing is written to disk.
+Uses https://www.nseindia.com/api/historical/foBhavcopy?from=DD-Mon-YYYY&to=DD-Mon-YYYY
+which powers the NSE website's own Bhavcopy download page.
 
-NSE requires a valid browser session (cookies) for archive access.
-We create one requests.Session, hit the homepage first to get cookies,
-then download bhavcopy ZIPs. Multiple URL formats are tried in order.
+One API call covers the full 90-day range (no per-day loops).
+Result held in memory; replaced on every new contract search.
 """
 
 import io
@@ -15,6 +13,7 @@ import math
 import logging
 import datetime
 import zipfile
+import time
 from typing import Optional
 
 log = logging.getLogger(__name__)
@@ -22,15 +21,13 @@ log = logging.getLogger(__name__)
 _MONTHS    = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
 _RISK_FREE = 0.065
 
-# ── In-memory cache ────────────────────────────────────────────────────────────
 _cache: dict = {"key": None, "data": None}
-
-# ── Persistent NSE session (reused across days in one search) ──────────────────
 _nse_session = None
 
 
+# ── NSE session ────────────────────────────────────────────────────────────────
+
 def _get_session():
-    """Return a requests.Session with NSE cookies. Creates one if needed."""
     global _nse_session
     import requests
     if _nse_session is not None:
@@ -47,37 +44,79 @@ def _get_session():
         "Accept-Encoding": "gzip, deflate, br",
         "Connection":      "keep-alive",
     })
-    # Hit NSE homepage to acquire session cookies (nsit, nseappid, etc.)
-    for warmup in [
-        "https://www.nseindia.com/",
-        "https://www.nseindia.com/market-data/live-equity-market",
-    ]:
+
+    # Warmup sequence — NSE requires cookies from the main site before API calls
+    warmup_pages = [
+        ("https://www.nseindia.com/",                               "text/html,application/xhtml+xml,*/*"),
+        ("https://www.nseindia.com/market-data/fo-bhav-copy",       "text/html,application/xhtml+xml,*/*"),
+    ]
+    for url, accept in warmup_pages:
         try:
-            s.get(warmup, timeout=12, headers={"Accept": "text/html,application/xhtml+xml,*/*"})
-        except Exception:
-            pass
+            s.get(url, timeout=15, headers={"Accept": accept})
+            time.sleep(0.5)
+        except Exception as e:
+            log.debug(f"NSE warmup {url}: {e}")
 
     _nse_session = s
     return s
 
 
-def _url_candidates(date: datetime.date) -> list[str]:
-    """Return all known URL formats for a date's bhavcopy, best-first."""
-    mon = _MONTHS[date.month - 1]
-    dd  = f"{date.day:02d}"
-    yr  = date.year
-    fn  = f"fo_{dd}{mon}{yr}_bhav.csv.zip"
-    return [
-        # Format 1 — classic archives path (pre-2024)
-        f"https://archives.nseindia.com/content/historical/DERIVATIVES/{yr}/{mon}/{fn}",
-        # Format 2 — nsearchives subdomain variant
-        f"https://nsearchives.nseindia.com/content/historical/DERIVATIVES/{yr}/{mon}/{fn}",
-        # Format 3 — flat BhavCopy folder
-        f"https://archives.nseindia.com/content/fo/BhavCopy/{fn}",
-        # Format 4 — nsearchives flat folder
-        f"https://nsearchives.nseindia.com/content/fo/BhavCopy/{fn}",
-    ]
+# ── Fetch the full date range via NSE API ──────────────────────────────────────
 
+def _fetch_range_csv(from_date: datetime.date, to_date: datetime.date) -> Optional[list[str]]:
+    """
+    Call NSE's /api/historical/foBhavcopy for the full date range.
+    Returns list of CSV lines (header + data), or None on failure.
+    """
+    sess = _get_session()
+
+    # NSE expects "DD-Mon-YYYY" e.g. "01-Jan-2026"
+    from_str = from_date.strftime("%d-%b-%Y")
+    to_str   = to_date.strftime("%d-%b-%Y")
+
+    url = (f"https://www.nseindia.com/api/historical/foBhavcopy"
+           f"?from={from_str}&to={to_str}")
+
+    try:
+        resp = sess.get(url, timeout=60, headers={
+            "Referer": "https://www.nseindia.com/market-data/fo-bhav-copy",
+            "Accept":  "*/*",
+            "X-Requested-With": "XMLHttpRequest",
+        })
+    except Exception as e:
+        log.warning(f"NSE foBhavcopy API request failed: {e}")
+        return None
+
+    if resp.status_code != 200:
+        log.warning(f"NSE foBhavcopy API: HTTP {resp.status_code} for {from_str}–{to_str}")
+        return None
+
+    content = resp.content
+
+    # Response is a ZIP file
+    if content[:2] == b'PK':
+        try:
+            zf       = zipfile.ZipFile(io.BytesIO(content))
+            csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
+            lines    = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
+            log.info(f"NSE foBhavcopy API: got {len(lines)} lines (ZIP) for {from_str}–{to_str}")
+            return lines
+        except Exception as e:
+            log.warning(f"NSE foBhavcopy ZIP parse failed: {e}")
+            return None
+
+    # Response is plain CSV
+    text = resp.text
+    if text.strip():
+        lines = text.splitlines()
+        log.info(f"NSE foBhavcopy API: got {len(lines)} lines (CSV) for {from_str}–{to_str}")
+        return lines
+
+    log.warning(f"NSE foBhavcopy API: empty response for {from_str}–{to_str}")
+    return None
+
+
+# ── Parse CSV lines for a specific contract ────────────────────────────────────
 
 def _parse_expiry(s: str) -> str:
     """'29-MAY-2025' → '2025-05-29'"""
@@ -87,49 +126,16 @@ def _parse_expiry(s: str) -> str:
         return s.strip()
 
 
-def _fetch_one_day(
-    date: datetime.date,
-    symbol: str,
-    strike: float,
-    expiry: str,
+def _filter_contract(
+    lines:    list[str],
+    symbol:   str,
+    strike:   float,
+    expiry:   str,
     opt_type: str,
-) -> tuple[Optional[dict], str]:
-    """
-    Try every known URL format for this date. Parse the ZIP and return
-    (matching_row_or_None, status).
-    status: 'ok' | 'no_match' | 'holiday' | 'http_NNN' | 'error:TYPE'
-    """
-    sess = _get_session()
-    raw  = None
-    last_status = "error:no_url"
-
-    for url in _url_candidates(date):
-        try:
-            resp = sess.get(url, timeout=20, headers={"Referer": "https://www.nseindia.com/"})
-            if resp.status_code == 200:
-                raw = resp.content
-                break
-            last_status = f"http_{resp.status_code}"
-            log.debug(f"bhavcopy {date}: {resp.status_code} — {url}")
-        except Exception as e:
-            last_status = f"error:{type(e).__name__}"
-            log.debug(f"bhavcopy {date}: {e} — {url}")
-
-    if raw is None:
-        if not last_status.startswith("http_404"):
-            log.warning(f"bhavcopy {date}: all URLs failed, last={last_status}")
-        return None, last_status
-
-    try:
-        zf       = zipfile.ZipFile(io.BytesIO(raw))
-        csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
-        lines    = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
-    except Exception as e:
-        log.warning(f"bhavcopy {date}: unzip failed — {e}")
-        return None, f"error:{type(e).__name__}"
-
-    if len(lines) <= 1:
-        return None, "holiday"
+) -> list[dict]:
+    """Parse CSV lines and return rows matching the requested contract."""
+    if not lines:
+        return []
 
     headers = [h.strip() for h in lines[0].split(",")]
 
@@ -142,6 +148,7 @@ def _fetch_one_day(
 
     sym_up = symbol.upper()
     opt_up = opt_type.upper()
+    rows   = []
 
     for line in lines[1:]:
         if not line.strip():
@@ -150,6 +157,7 @@ def _fetch_one_day(
         if len(cols) < len(headers):
             continue
         d = dict(zip(headers, cols))
+
         if d.get("INSTRUMENT", "") not in ("OPTIDX", "OPTSTK"):
             continue
         if d.get("SYMBOL", "").strip() != sym_up:
@@ -161,8 +169,12 @@ def _fetch_one_day(
         row_strike = _flt(d.get("STRIKE_PR", "0")) or 0.0
         if abs(row_strike - strike) > 0.5:
             continue
-        return {
-            "trade_date": date.strftime("%Y-%m-%d"),
+
+        # Try to determine trade date from TIMESTAMP column or fallback
+        trade_date = _parse_expiry(d.get("TIMESTAMP", "")) or ""
+
+        rows.append({
+            "trade_date": trade_date,
             "open":       _flt(d.get("OPEN", "")),
             "high":       _flt(d.get("HIGH", "")),
             "low":        _flt(d.get("LOW", "")),
@@ -170,9 +182,10 @@ def _fetch_one_day(
             "contracts":  _int(d.get("CONTRACTS", "0")),
             "open_int":   _int(d.get("OPEN_INT", "0")),
             "chg_in_oi":  _int(d.get("CHG_IN_OI", "0")),
-        }, "ok"
+        })
 
-    return None, "no_match"
+    rows.sort(key=lambda r: r["trade_date"])
+    return rows
 
 
 # ── Spot price ─────────────────────────────────────────────────────────────────
@@ -197,10 +210,10 @@ def _spot_series(symbol: str, from_date: datetime.date, to_date: datetime.date) 
 
 # ── Black-Scholes engine ───────────────────────────────────────────────────────
 
-def _ncdf(x: float) -> float:
+def _ncdf(x):
     return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
 
-def _npdf(x: float) -> float:
+def _npdf(x):
     return math.exp(-0.5 * x * x) / math.sqrt(2.0 * math.pi)
 
 def _bs_price(S, K, T, r, sigma, opt):
@@ -219,16 +232,15 @@ def _bs_theta(S, K, T, r, sigma, opt):
     sqT = math.sqrt(T)
     d1  = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * sqT)
     d2  = d1 - sigma * sqT
-    common = -(S * sigma * _npdf(d1)) / (2.0 * sqT)
-    theta_yr = (common - r * K * math.exp(-r * T) * _ncdf(d2)  if opt == "CE"
+    common   = -(S * sigma * _npdf(d1)) / (2.0 * sqT)
+    theta_yr = (common - r * K * math.exp(-r * T) * _ncdf(d2)   if opt == "CE"
                 else common + r * K * math.exp(-r * T) * _ncdf(-d2))
     return theta_yr / 365.0
 
 def _implied_vol(price, S, K, T, r, opt) -> Optional[float]:
     if T <= 0 or price <= 0 or S <= 0:
         return None
-    intrinsic = max(0.0, S - K) if opt == "CE" else max(0.0, K - S)
-    if price < intrinsic:
+    if price < max(0.0, S - K if opt == "CE" else K - S):
         return None
     lo, hi = 0.001, 8.0
     for _ in range(120):
@@ -245,65 +257,48 @@ def _implied_vol(price, S, K, T, r, opt) -> Optional[float]:
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
-    """
-    Download EOD data for the contract from NSE bhavcopy, enrich with
-    spot / IV / theta, cache in memory. New contract search replaces cache.
-    """
     global _cache, _nse_session
-    cache_key = (symbol.upper(), strike, expiry, opt_type.upper())
 
+    cache_key = (symbol.upper(), strike, expiry, opt_type.upper())
     if _cache["key"] == cache_key and _cache["data"] is not None:
         log.info(f"bhavcopy cache hit: {cache_key}")
         return _cache["data"]
 
-    # New search — reset session so fresh cookies are fetched
+    # New search — reset session for fresh cookies
     _nse_session = None
     _cache = {"key": cache_key, "data": None}
 
     try:
-        exp_dt  = datetime.date.fromisoformat(expiry)
+        exp_dt = datetime.date.fromisoformat(expiry)
     except Exception:
         return {"error": "Invalid expiry format. Use YYYY-MM-DD."}
 
     from_dt = exp_dt - datetime.timedelta(days=90)
     to_dt   = min(exp_dt, datetime.date.today())
 
-    eod_rows: list[dict] = []
-    stats: dict[str, int] = {}
-    cur = from_dt
-    while cur <= to_dt:
-        if cur.weekday() < 5:
-            row, status = _fetch_one_day(cur, symbol, strike, expiry, opt_type)
-            stats[status] = stats.get(status, 0) + 1
-            if row:
-                eod_rows.append(row)
-        cur += datetime.timedelta(days=1)
+    # Single API call for the full date range
+    lines = _fetch_range_csv(from_dt, to_dt)
+    if lines is None:
+        return {
+            "error": (
+                "Could not fetch data from NSE. "
+                "NSE's bhavcopy API requires an active browser session — "
+                "the server's plain HTTP request is being blocked. "
+                "Try refreshing, or wait a few minutes and retry."
+            )
+        }
 
-    log.info(f"bhavcopy {symbol} {strike} {opt_type} {expiry}: stats={stats} rows={len(eod_rows)}")
+    eod_rows = _filter_contract(lines, symbol, strike, expiry, opt_type)
+    log.info(f"bhavcopy filter: {symbol} {strike} {opt_type} {expiry} → {len(eod_rows)} rows from {len(lines)} total")
 
     if not eod_rows:
-        http_err = {k: v for k, v in stats.items() if k.startswith("http_") and k != "http_404"}
-        net_err  = {k: v for k, v in stats.items() if k.startswith("error:")}
-        if http_err:
-            codes = ", ".join(f"{k.split('_')[1]} ({v}x)" for k, v in http_err.items())
-            return {"error": f"NSE archive returned HTTP errors: {codes}. Try again later."}
-        if net_err:
-            kinds = ", ".join(f"{k.split(':')[1]} ({v}x)" for k, v in net_err.items())
-            return {"error": f"Network errors: {kinds}. Check internet connectivity."}
-        no_match = stats.get("no_match", 0)
-        holidays = stats.get("holiday", 0)
-        all_404  = all(k == "http_404" for k in stats)
-        if all_404:
-            return {"error": (
-                f"NSE archive returned 404 for all {sum(stats.values())} dates. "
-                "NSE may have changed their archive URL structure. "
-                "This feature relies on the public NSE bhavcopy archive which can change."
-            )}
-        return {"error": (
-            f"No data for {symbol} {strike} {opt_type} expiry {expiry}. "
-            f"({no_match} trading days had no row, {holidays} holidays). "
-            "Verify strike and expiry are correct."
-        )}
+        return {
+            "error": (
+                f"API returned data but no rows matched "
+                f"{symbol} {strike} {opt_type} expiry {expiry}. "
+                "Verify the strike and expiry date are correct."
+            )
+        }
 
     spots = _spot_series(
         symbol,
@@ -317,8 +312,8 @@ def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dic
         td    = row["trade_date"]
         price = row["close"] or 0.0
         S     = spots.get(td)
-        T     = (exp_dt - datetime.date.fromisoformat(td)).days / 365.0
-        ivs.append(_implied_vol(price, S, strike, T, _RISK_FREE, opt_up) if S and price else None)
+        T     = (exp_dt - datetime.date.fromisoformat(td)).days / 365.0 if td else 0
+        ivs.append(_implied_vol(price, S, strike, T, _RISK_FREE, opt_up) if S and price and T > 0 else None)
 
     anchor_iv = next((v for v in ivs if v is not None), 0.20)
 
@@ -327,7 +322,7 @@ def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dic
         td    = row["trade_date"]
         price = row["close"] or 0.0
         S     = spots.get(td)
-        dte   = (exp_dt - datetime.date.fromisoformat(td)).days
+        dte   = (exp_dt - datetime.date.fromisoformat(td)).days if td else 0
         T     = dte / 365.0
         iv    = ivs[i]
         eff   = iv or anchor_iv
