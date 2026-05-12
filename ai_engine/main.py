@@ -2607,6 +2607,53 @@ async def options_chain(symbol: str = "NIFTY", expiry: str = "", spot_price: flo
         return {"error": str(e)}
 
 
+def _compute_candle_data(symbol: str) -> dict | None:
+    """Fetch today's 5m intraday bars and compute EMA9/21, VWAP, RSI, Volume for signal scoring."""
+    import yfinance as yf
+    import datetime as _dt
+    try:
+        IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+        yf_sym = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}.get(symbol.upper(), f"{symbol.upper()}.NS")
+        df = yf.Ticker(yf_sym).history(period="2d", interval="5m")
+        if df.empty:
+            return None
+        df.index = df.index.tz_convert(IST)
+        today = _dt.datetime.now(IST).date()
+        df = df[df.index.date == today]
+        if len(df) < 5:
+            return None
+
+        closes  = df["Close"]
+        volumes = df["Volume"]
+
+        ema9  = float(closes.ewm(span=9,  adjust=False).mean().iloc[-1])
+        ema21 = float(closes.ewm(span=21, adjust=False).mean().iloc[-1])
+        close = float(closes.iloc[-1])
+        volume    = float(volumes.iloc[-1])
+        avg_volume = float(volumes.mean())
+
+        # VWAP — cumulative (typical price × volume) / cumulative volume
+        typical = (df["High"] + df["Low"] + df["Close"]) / 3
+        cum_vol = volumes.cumsum().iloc[-1]
+        vwap = float((typical * volumes).cumsum().iloc[-1] / cum_vol) if cum_vol else close
+
+        # RSI(14) via Wilder EWM
+        delta = closes.diff()
+        gain  = delta.where(delta > 0, 0.0).ewm(com=13, adjust=False).mean()
+        loss  = (-delta.where(delta < 0, 0.0)).ewm(com=13, adjust=False).mean()
+        last_loss = loss.iloc[-1]
+        rsi = float(100 - 100 / (1 + gain.iloc[-1] / last_loss)) if last_loss else 100.0
+
+        return {
+            "close": close, "vwap": vwap,
+            "volume": volume, "avg_volume": avg_volume,
+            "ema9": ema9, "ema21": ema21, "rsi": rsi,
+        }
+    except Exception as e:
+        log.warning(f"_compute_candle_data({symbol}): {e}")
+        return None
+
+
 @app.get("/options/score")
 def options_score(
     symbol: str = "NIFTY",
@@ -2617,20 +2664,33 @@ def options_score(
 ):
     """
     Composite signal score (0–17) for a CE/PE trade.
-    Requires chain analytics + context — fetched on-demand from cached/live data.
+    Fetches real chain analytics, OI signals, and intraday candle data.
     """
     try:
-        context      = _oc_context(symbol)
+        context        = _oc_context(symbol)
         effective_spot = spot_price or context.get("spot")
 
         if not expiry:
             exp_list = _oc_expiries(symbol)
             expiry   = exp_list[0] if exp_list else ""
 
-        # Build minimal analytics from previously fetched chain or empty fallback
+        # Fetch real chain for OI walls + OI change signals
         analytics  = {"pcr": 1.0, "pcr_label": "NEUTRAL",
                       "resistance_wall": None, "support_wall": None, "max_pain": None}
         oi_signals = {}
+        try:
+            global smart
+            _s = smart or _get_smart()
+            chain_data = _oc_fetch_chain(_s, symbol, expiry, effective_spot)
+            if "error" not in chain_data:
+                chain      = chain_data.get("chain", [])
+                analytics  = _oc_max_pain(chain, effective_spot)
+                oi_signals = _oc_oi_signals(symbol, expiry, chain)
+        except Exception as ce:
+            log.warning(f"options/score chain fetch skipped: {ce}")
+
+        # Compute intraday candle indicators (EMA9/21, VWAP, RSI, Volume)
+        candle_data = _compute_candle_data(symbol)
 
         result = _oc_score(
             direction       = direction,
@@ -2638,6 +2698,7 @@ def options_score(
             chain_analytics = analytics,
             oi_signals      = oi_signals,
             target_strike   = strike,
+            candle_data     = candle_data,
         )
         return result
     except Exception as e:
