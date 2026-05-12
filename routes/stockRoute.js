@@ -385,27 +385,33 @@ router.get("/options/contract-history", async (req, res) => {
 });
 
 // ─── POST /api/options/parse-bhavcopy ────────────────────────────────────────
-// Multipart file upload — pipe raw request stream to Python
-const AI_ENGINE_URL = process.env.AI_ENGINE_URL || "http://localhost:8000";
-router.post("/options/parse-bhavcopy", async (req, res) => {
-  try {
-    const params = new URLSearchParams(req.query);
-    const axios = require("axios");
-    const response = await axios.post(
-      `${AI_ENGINE_URL}/options/parse-bhavcopy?${params}`,
-      req,
-      {
-        headers: { "content-type": req.headers["content-type"] },
-        timeout: 60000,
-        maxBodyLength: Infinity,
-        maxContentLength: Infinity,
-      }
-    );
-    res.json(response.data);
-  } catch (err) {
+// Multipart file upload — pipe raw request stream to Python via native http
+const _http = require("http");
+const _PYTHON_HOST = "127.0.0.1";
+const _PYTHON_PORT = parseInt((process.env.AI_ENGINE_URL || "http://127.0.0.1:8000").split(":")[2] || "8000");
+
+router.post("/options/parse-bhavcopy", (req, res) => {
+  const params = new URLSearchParams(req.query);
+  const options = {
+    hostname: _PYTHON_HOST,
+    port:     _PYTHON_PORT,
+    path:     `/options/parse-bhavcopy?${params}`,
+    method:   "POST",
+    headers:  { "content-type": req.headers["content-type"] },
+  };
+  const proxyReq = _http.request(options, (proxyRes) => {
+    let body = "";
+    proxyRes.on("data", (d) => { body += d; });
+    proxyRes.on("end", () => {
+      try { res.json(JSON.parse(body)); }
+      catch { res.status(502).json({ error: "Bad response from Python engine" }); }
+    });
+  });
+  proxyReq.on("error", (err) => {
     console.error("parse-bhavcopy proxy error:", err.message);
     res.status(500).json({ error: "Python engine unreachable" });
-  }
+  });
+  req.pipe(proxyReq);
 });
 
 // ─── GET /api/iv ─────────────────────────────────────────────────────────────
