@@ -48,14 +48,17 @@ def _fetch_one_day(
     strike: float,
     expiry: str,
     opt_type: str,
-) -> Optional[dict]:
+) -> tuple[Optional[dict], str]:
     """
-    Download one day's bhavcopy zip, parse it in memory, and return the
-    matching row dict — or None if no match / holiday / download error.
+    Download one day's bhavcopy zip, parse it in memory, and return
+    (matching_row_or_None, status_string).
+    status: 'ok' | 'no_match' | 'holiday' | 'http_NNN' | 'error:...'
     """
+    import urllib.error
+    url = _url(date)
     try:
         req = urllib.request.Request(
-            _url(date),
+            url,
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                               "AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
@@ -65,20 +68,25 @@ def _fetch_one_day(
         )
         with urllib.request.urlopen(req, timeout=20) as resp:
             raw = resp.read()
+    except urllib.error.HTTPError as e:
+        status = f"http_{e.code}"
+        log.warning(f"bhavcopy {date}: HTTP {e.code} — {url}")
+        return None, status
     except Exception as e:
-        log.debug(f"bhavcopy {date}: download failed — {e}")
-        return None
+        status = f"error:{type(e).__name__}"
+        log.warning(f"bhavcopy {date}: download failed — {e}")
+        return None, status
 
     try:
         zf       = zipfile.ZipFile(io.BytesIO(raw))
         csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
         lines    = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
     except Exception as e:
-        log.debug(f"bhavcopy {date}: unzip failed — {e}")
-        return None
+        log.warning(f"bhavcopy {date}: unzip/parse failed — {e}")
+        return None, f"error:{type(e).__name__}"
 
     if len(lines) <= 1:
-        return None  # holiday
+        return None, "holiday"  # NSE holiday — file is empty
 
     headers = [h.strip() for h in lines[0].split(",")]
 
@@ -121,8 +129,8 @@ def _fetch_one_day(
             "contracts":  _int(d.get("CONTRACTS","0")),
             "open_int":   _int(d.get("OPEN_INT","0")),
             "chg_in_oi":  _int(d.get("CHG_IN_OI","0")),
-        }
-    return None
+        }, "ok"
+    return None, "no_match"
 
 
 # ── Spot price ─────────────────────────────────────────────────────────────────
@@ -233,16 +241,35 @@ def build_history(
 
     # Download each weekday and collect matching rows
     eod_rows: list[dict] = []
+    stats: dict[str, int] = {}
     cur = from_dt
     while cur <= to_dt:
         if cur.weekday() < 5:
-            row = _fetch_one_day(cur, symbol, strike, expiry, opt_type)
+            row, status = _fetch_one_day(cur, symbol, strike, expiry, opt_type)
+            stats[status] = stats.get(status, 0) + 1
             if row:
                 eod_rows.append(row)
         cur += datetime.timedelta(days=1)
 
+    log.info(f"bhavcopy {symbol} {strike} {opt_type} {expiry}: download stats {stats}, rows={len(eod_rows)}")
+
     if not eod_rows:
-        return {"error": "No data found. This contract may not have traded in the selected period."}
+        # Build a helpful error message based on what actually happened
+        http_errors = {k: v for k, v in stats.items() if k.startswith("http_")}
+        net_errors  = {k: v for k, v in stats.items() if k.startswith("error:")}
+        if http_errors:
+            codes = ", ".join(f"{k.split('_')[1]} ({v}x)" for k, v in http_errors.items())
+            return {"error": f"NSE archive returned HTTP errors: {codes}. "
+                             f"NSE may be blocking automated downloads. Try again later."}
+        if net_errors:
+            kinds = ", ".join(f"{k.split(':')[1]} ({v}x)" for k, v in net_errors.items())
+            return {"error": f"Network errors while downloading: {kinds}. "
+                             f"Check internet connectivity."}
+        no_match = stats.get("no_match", 0)
+        holidays = stats.get("holiday", 0)
+        return {"error": f"No data found for {symbol} {strike} {opt_type} expiry {expiry}. "
+                         f"({no_match} trading days had no matching row, {holidays} holidays). "
+                         f"Verify the strike and expiry are correct."}
 
     # Fetch underlying spot prices for the date range
     spots = _spot_series(

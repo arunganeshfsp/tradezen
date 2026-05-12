@@ -375,7 +375,11 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
         </div>
         <div class="tb-field">
           <label>Expiry (Past)</label>
-          <select id="chExpiry" style="width:155px"><option value="">Select expiry</option></select>
+          <select id="chExpiry" style="width:145px" onchange="document.getElementById('chExpiryCustom').value=this.value"><option value="">Select expiry</option></select>
+        </div>
+        <div class="tb-field">
+          <label>or type date</label>
+          <input type="date" id="chExpiryCustom" style="width:145px" onchange="document.getElementById('chExpiry').value=''">
         </div>
         <div class="tb-field">
           <label>Type</label>
@@ -863,9 +867,9 @@ async function loadChExpiries() {
 async function loadContractHistory() {
   const sym    = (document.getElementById('symbolInput').value.trim().toUpperCase()) || 'RELIANCE';
   const strike = parseFloat(document.getElementById('chStrike').value);
-  const expiry = document.getElementById('chExpiry').value;
+  const expiry = document.getElementById('chExpiryCustom').value || document.getElementById('chExpiry').value;
   const btn    = document.getElementById('chLoadBtn');
-  if (!strike || !expiry) { alert('Enter a strike and select an expiry.'); return; }
+  if (!strike || !expiry) { alert('Enter a strike and select or type an expiry date.'); return; }
 
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   ['chStats','chLegend','chChartWrap','chIvWrap'].forEach(id=>document.getElementById(id).style.display='none');

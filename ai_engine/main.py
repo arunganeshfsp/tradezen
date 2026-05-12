@@ -2786,8 +2786,8 @@ def options_contract_history(
 @app.get("/options/past-expiries")
 def options_past_expiries(symbol: str = "NIFTY"):
     """
-    Return recent past monthly expiries (last Thursday of each month)
-    as suggestions for the Contract History tab.
+    Return recent past monthly expiries (last Tuesday of each month —
+    current NSE F&O monthly expiry day) as suggestions for Contract History.
     """
     import calendar
     today    = _dt.date.today()
@@ -2799,7 +2799,7 @@ def options_past_expiries(symbol: str = "NIFTY"):
             mo = 12; yr -= 1
         last_day = calendar.monthrange(yr, mo)[1]
         d = _dt.date(yr, mo, last_day)
-        while d.weekday() != 3:   # walk back to last Thursday
+        while d.weekday() != 1:   # walk back to last Tuesday (weekday 1)
             d -= _dt.timedelta(days=1)
         expiries.append(d.isoformat())
     return {"symbol": symbol.upper(), "expiries": expiries}
