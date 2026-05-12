@@ -182,6 +182,55 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   .status-bar{padding:10px 16px}
   .dom-bar-wrap{width:100px}
 }
+
+/* ── OPTIONS BOTTOM SHEET ── */
+.opt-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg1);border-top:2px solid var(--border2);z-index:350;transform:translateY(100%);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
+.opt-sheet.open{transform:translateY(0)}
+.opt-sheet-inner{padding:14px 24px 20px;max-width:1200px;margin:0 auto}
+.os-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.os-sym{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
+.os-badge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px}
+.os-badge.buyer{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.os-badge.seller{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.os-price{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)}
+.os-close{margin-left:auto;background:var(--bg3);border:1px solid var(--border2);color:var(--dim);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.os-close:hover{color:#fff;border-color:var(--accent)}
+.os-expiry-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.os-expiry-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.os-exp-tab{padding:4px 13px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.os-exp-tab.active{background:var(--bg3);border-color:var(--accent);color:var(--accent)}
+.os-atm-grid{display:grid;grid-template-columns:1fr 120px 1fr;gap:8px;align-items:center;margin-bottom:10px}
+.os-atm-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px}
+.os-atm-card.ce{border-left:3px solid var(--blue)}
+.os-atm-card.pe{border-left:3px solid var(--red)}
+.os-atm-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:4px}
+.os-atm-ltp{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:2px}
+.os-atm-ltp.ce{color:var(--blue)}.os-atm-ltp.pe{color:var(--red)}
+.os-atm-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)}
+.os-strike-badge{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r2);padding:10px;text-align:center}
+.os-strike-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff}
+.os-strike-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:3px;text-transform:uppercase}
+.os-footer{display:flex;align-items:center;justify-content:flex-end}
+.os-analyse-btn{padding:8px 22px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;transition:all .15s}
+.os-analyse-btn:hover{opacity:.85;transform:translateY(-1px)}
+.os-loading{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);padding:10px 0}
+/* ── OPTIONS CONFIRM MODAL ── */
+.oc-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:600;display:none;align-items:center;justify-content:center;padding:20px}
+.oc-overlay.open{display:flex}
+.oc-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:420px;overflow:hidden;animation:slideUp .2s ease}
+.oc-head{padding:20px 24px 14px;border-bottom:1px solid var(--border)}
+.oc-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:4px}
+.oc-sub{font-size:12px;color:var(--dim)}
+.oc-body{padding:16px 24px}
+.oc-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.oc-row:last-child{border:none}
+.oc-key{font-size:12px;color:var(--dim)}
+.oc-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#fff}
+.oc-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.oc-cancel{padding:7px 18px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.oc-cancel:hover{color:var(--text);border-color:var(--accent)}
+.oc-confirm{padding:7px 18px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;transition:all .15s}
+.oc-confirm:hover{opacity:.85;transform:translateY(-1px)}
 </style>
 <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
@@ -299,7 +348,42 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   </div>
 </div>
 
-<!-- CONFIRMATION MODAL -->
+<!-- OPTIONS BOTTOM SHEET -->
+<div class="opt-sheet" id="optSheet">
+  <div class="opt-sheet-inner">
+    <div class="os-hdr">
+      <div class="os-sym" id="osSym">—</div>
+      <div class="os-badge buyer" id="osBadge">—</div>
+      <div class="os-price" id="osPrice">—</div>
+      <button class="os-close" onclick="closeOptSheet()">✕</button>
+    </div>
+    <div class="os-expiry-row">
+      <span class="os-expiry-lbl">Expiry</span>
+      <div id="osExpiryTabs" style="display:flex;gap:6px;flex-wrap:wrap"><span class="os-loading">—</span></div>
+    </div>
+    <div class="os-atm-grid" id="osAtmGrid"></div>
+    <div class="os-footer">
+      <button class="os-analyse-btn" id="osAnalyseBtn" onclick="openOptionsConfirm()" style="display:none">Analyse Options →</button>
+    </div>
+  </div>
+</div>
+
+<!-- OPTIONS CONFIRM MODAL -->
+<div class="oc-overlay" id="ocOverlay" onclick="closeOcOverlay(event)">
+  <div class="oc-modal">
+    <div class="oc-head">
+      <div class="oc-title" id="ocTitle">Open Stock Options?</div>
+      <div class="oc-sub">You'll be taken to the full stock options analysis page</div>
+    </div>
+    <div class="oc-body" id="ocBody"></div>
+    <div class="oc-footer">
+      <button class="oc-cancel" onclick="closeOcOverlayDirect()">Cancel</button>
+      <button class="oc-confirm" onclick="goToStockOptions()">Open Options Page →</button>
+    </div>
+  </div>
+</div>
+
+<!-- INDICATOR MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal" id="modal">
     <div class="modal-head">
@@ -427,7 +511,7 @@ async function fetchScanner() {
       const domText  = s.dominance === 'BUYER' ? '▲ BUYER' : '▼ SELLER';
 
       return `
-        <tr onclick="openConfirm(window._scanStocks[${i}])" title="Click for confirmation signal" style="cursor:pointer">
+        <tr onclick="openStockRow(window._scanStocks[${i}])" title="Click for trend & options" style="cursor:pointer">
           <td class="rank">${i + 1}</td>
           <td class="sym">${s.symbol}</td>
           <td>
@@ -651,6 +735,130 @@ function renderConfirm(stock, ind) {
       </div>
     </div>
   `;
+}
+
+// ── OPTIONS PANEL ────────────────────────────────────────────────────────────
+
+let _selectedStock  = null;
+let _selectedExpiry = null;
+
+function openStockRow(stock) {
+  openConfirm(stock);   // keep existing trend modal
+  openOptSheet(stock);  // also load options panel
+}
+
+function openOptSheet(stock) {
+  _selectedStock  = stock;
+  _selectedExpiry = null;
+  document.getElementById('osSym').textContent  = stock.symbol;
+  const isBuyer = stock.dominance === 'BUYER';
+  const badge = document.getElementById('osBadge');
+  badge.textContent = isBuyer ? '▲ BUYER' : '▼ SELLER';
+  badge.className   = 'os-badge ' + (isBuyer ? 'buyer' : 'seller');
+  document.getElementById('osPrice').textContent = `₹${fmtPrice(stock.ltp)}  ${stock.change_pct >= 0 ? '+' : ''}${stock.change_pct}%  ·  Strength ${stock.strength}%`;
+  document.getElementById('osExpiryTabs').innerHTML = '<span class="os-loading">Loading…</span>';
+  document.getElementById('osAtmGrid').innerHTML   = '';
+  document.getElementById('osAnalyseBtn').style.display = 'none';
+  document.getElementById('optSheet').classList.add('open');
+  fetchOptExpiries(stock.symbol);
+}
+
+function closeOptSheet() {
+  document.getElementById('optSheet').classList.remove('open');
+}
+
+async function fetchOptExpiries(symbol) {
+  try {
+    const res = await fetch(`/api/options/expiries?symbol=${encodeURIComponent(symbol)}`);
+    const d   = await res.json();
+    const expiries = (d.expiries || []).slice(0, 3);
+    if (!expiries.length) {
+      document.getElementById('osExpiryTabs').innerHTML = '<span class="os-loading">No expiries found</span>';
+      return;
+    }
+    document.getElementById('osExpiryTabs').innerHTML = expiries.map((e, i) =>
+      `<button class="os-exp-tab${i === 0 ? ' active' : ''}" onclick="selectOptExpiry('${e}', this)">${e}</button>`
+    ).join('');
+    selectOptExpiry(expiries[0], document.querySelector('.os-exp-tab.active'));
+  } catch {
+    document.getElementById('osExpiryTabs').innerHTML = '<span class="os-loading">⚠ Could not fetch expiries</span>';
+  }
+}
+
+async function selectOptExpiry(expiry, btn) {
+  _selectedExpiry = expiry;
+  document.querySelectorAll('.os-exp-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('osAtmGrid').innerHTML = '<div class="os-loading" style="grid-column:1/-1">Loading chain…</div>';
+  document.getElementById('osAnalyseBtn').style.display = 'none';
+  if (!_selectedStock) return;
+  try {
+    const res = await fetch(`/api/options/chain?symbol=${encodeURIComponent(_selectedStock.symbol)}&expiry=${encodeURIComponent(expiry)}`);
+    const d   = await res.json();
+    if (d.error || !d.chain || !d.chain.length) {
+      document.getElementById('osAtmGrid').innerHTML = `<div class="os-loading" style="grid-column:1/-1">⚠ ${d.error || 'No chain data'}</div>`;
+      return;
+    }
+    const spot = d.spot || _selectedStock.ltp;
+    const atm  = d.chain.reduce((best, row) =>
+      Math.abs(row.strike - spot) < Math.abs(best.strike - spot) ? row : best, d.chain[0]);
+    const ce = atm.ce || {}, pe = atm.pe || {};
+    const fN  = v => v != null ? Number(v).toLocaleString('en-IN', {maximumFractionDigits:2}) : '—';
+    const fOi = v => {
+      if (v == null) return '—';
+      if (v >= 1e7) return (v/1e7).toFixed(1)+'Cr';
+      if (v >= 1e5) return (v/1e5).toFixed(1)+'L';
+      return v.toLocaleString('en-IN');
+    };
+    document.getElementById('osAtmGrid').innerHTML = `
+      <div class="os-atm-card ce">
+        <div class="os-atm-lbl">ATM CALL (CE)</div>
+        <div class="os-atm-ltp ce">₹${fN(ce.ltp)}</div>
+        <div class="os-atm-meta">IV ${ce.iv ? ce.iv.toFixed(1)+'%' : '—'} · OI ${fOi(ce.oi)}</div>
+      </div>
+      <div class="os-strike-badge">
+        <div class="os-strike-lbl">ATM Strike</div>
+        <div class="os-strike-val">${fN(atm.strike)}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px">Spot ${fN(spot)}</div>
+      </div>
+      <div class="os-atm-card pe">
+        <div class="os-atm-lbl">ATM PUT (PE)</div>
+        <div class="os-atm-ltp pe">₹${fN(pe.ltp)}</div>
+        <div class="os-atm-meta">IV ${pe.iv ? pe.iv.toFixed(1)+'%' : '—'} · OI ${fOi(pe.oi)}</div>
+      </div>`;
+    document.getElementById('osAnalyseBtn').style.display = 'block';
+  } catch {
+    document.getElementById('osAtmGrid').innerHTML = '<div class="os-loading" style="grid-column:1/-1">⚠ Engine unreachable</div>';
+  }
+}
+
+function openOptionsConfirm() {
+  if (!_selectedStock || !_selectedExpiry) return;
+  const s = _selectedStock;
+  const isBuyer = s.dominance === 'BUYER';
+  document.getElementById('ocTitle').textContent = `Analyse ${s.symbol} Options?`;
+  document.getElementById('ocBody').innerHTML = `
+    <div class="oc-row"><span class="oc-key">Stock</span><span class="oc-val">${s.symbol} &nbsp; ₹${fmtPrice(s.ltp)}</span></div>
+    <div class="oc-row"><span class="oc-key">Dominance</span><span class="oc-val" style="color:${isBuyer ? 'var(--green)' : 'var(--red)'}">${isBuyer ? '▲ BUYER' : '▼ SELLER'} &nbsp; ${s.strength}%</span></div>
+    <div class="oc-row"><span class="oc-key">Expiry</span><span class="oc-val">${_selectedExpiry}</span></div>
+    <div class="oc-row"><span class="oc-key">Direction</span><span class="oc-val" style="color:${isBuyer ? 'var(--blue)' : 'var(--red)'}">${isBuyer ? 'CE — Call Option' : 'PE — Put Option'}</span></div>
+  `;
+  document.getElementById('ocOverlay').classList.add('open');
+}
+
+function closeOcOverlay(e) {
+  if (e.target === document.getElementById('ocOverlay')) closeOcOverlayDirect();
+}
+function closeOcOverlayDirect() {
+  document.getElementById('ocOverlay').classList.remove('open');
+}
+
+function goToStockOptions() {
+  if (!_selectedStock || !_selectedExpiry) return;
+  const dir = _selectedStock.dominance === 'BUYER' ? 'CE' : 'PE';
+  const url = `/stock_options.html?symbol=${encodeURIComponent(_selectedStock.symbol)}&expiry=${encodeURIComponent(_selectedExpiry)}&direction=${dir}`;
+  window.open(url, '_blank');
+  closeOcOverlayDirect();
 }
 
 // Init

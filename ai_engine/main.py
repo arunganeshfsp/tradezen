@@ -2087,11 +2087,23 @@ async def psychology_tick(symbol: str = "NIFTY", interval: str = "5m"):
 @app.get("/psychology/levels")
 async def psychology_levels(symbol: str = "NIFTY"):
     import yfinance as yf
-    yf_sym = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}.get(symbol.upper(), "^NSEI")
-    df = yf.Ticker(yf_sym).history(period="5d", interval="1d")
+    import datetime as _dt
+    IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    yf_sym = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}.get(symbol.upper(), f"{symbol.upper()}.NS")
+    df = yf.Ticker(yf_sym).history(period="10d", interval="1d")
     if df.empty or len(df) < 2:
         return {"error": "Insufficient data"}
-    prev = df.iloc[-2]
+    today = _dt.datetime.now(IST).date()
+    try:
+        df.index = df.index.normalize()
+        past = df[df.index.date < today]
+        if past.empty:
+            past = df.iloc[:-1]
+    except Exception:
+        past = df.iloc[:-1]
+    if past.empty:
+        return {"error": "No prior session data"}
+    prev = past.iloc[-1]
     H, L, C = float(prev.High), float(prev.Low), float(prev.Close)
     pp = round((H + L + C) / 3, 2)
     bc = round((H + L) / 2, 2)
@@ -2103,10 +2115,41 @@ async def psychology_levels(symbol: str = "NIFTY"):
         "h4": round(C + rng * 1.1 / 2, 2), "h3": round(C + rng * 1.1 / 4, 2),
         "l3": round(C - rng * 1.1 / 4, 2), "l4": round(C - rng * 1.1 / 2, 2),
     }
+    # Latest spot from intraday
+    spot = None
+    try:
+        intra = yf.Ticker(yf_sym).history(period="1d", interval="5m")
+        if not intra.empty:
+            spot = round(float(intra.iloc[-1]["Close"]), 2)
+    except Exception:
+        pass
+    if spot is None:
+        spot = round(float(df.iloc[-1]["Close"]), 2)
+    # ORB — 9:15–9:30 IST
+    orb = None
+    try:
+        intra2 = yf.Ticker(yf_sym).history(period="1d", interval="5m")
+        if not intra2.empty:
+            try:
+                intra2.index = intra2.index.tz_convert("Asia/Kolkata")
+            except Exception:
+                pass
+            t_open = _dt.datetime.now(IST).replace(hour=9, minute=15, second=0, microsecond=0)
+            t_orb  = _dt.datetime.now(IST).replace(hour=9, minute=30, second=0, microsecond=0)
+            orb_bars = intra2[(intra2.index >= t_open) & (intra2.index <= t_orb)]
+            if not orb_bars.empty:
+                orb = {
+                    "high": round(float(orb_bars["High"].max()), 2),
+                    "low":  round(float(orb_bars["Low"].min()),  2),
+                }
+    except Exception:
+        pass
     return {
         "symbol": symbol.upper(),
-        "cpr": {"tc": tc, "pp": pp, "bc": bc, "r1": r1, "r2": r2, "s1": s1, "s2": s2},
+        "spot":   spot,
+        "cpr":    {"tc": tc, "pp": pp, "bc": bc, "r1": r1, "r2": r2, "s1": s1, "s2": s2},
         "camarilla": cam,
+        "orb":    orb,
     }
 
 
