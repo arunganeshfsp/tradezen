@@ -11,6 +11,7 @@ pyotp
 # API layer
 fastapi
 uvicorn
+python-multipart
 
 # Data processing
 pandas
