@@ -15,6 +15,7 @@ import subprocess
 import threading
 import logging
 from contextlib import asynccontextmanager
+import datetime as _dt
 from datetime import datetime, timedelta
 
 from fastapi import FastAPI, Request
@@ -2541,6 +2542,7 @@ from core.options.max_pain          import analyze_chain      as _oc_max_pain
 from core.options.signal_scorer     import score_signals      as _oc_score
 from core.options.strike_selector   import select_strike      as _oc_strike
 from core.options.risk_calculator   import calculate          as _oc_risk
+from core.options.bhavcopy          import build_history       as _bhav_history
 from core.options.trade_monitor     import evaluate           as _oc_monitor, update_position as _oc_update
 
 
@@ -2759,6 +2761,48 @@ def options_risk(
     except Exception as e:
         log.error(f"options/risk error: {e}")
         return {"error": str(e)}
+
+
+@app.get("/options/contract-history")
+def options_contract_history(
+    symbol:   str   = "NIFTY",
+    strike:   float = 24300,
+    expiry:   str   = "",
+    opt_type: str   = "CE",
+):
+    """
+    Historical EOD data for a specific options contract from NSE bhavcopy.
+    Includes spot price, IV, theoretical theta-decay price, and daily theta.
+    """
+    if not expiry:
+        return {"error": "expiry is required (format: YYYY-MM-DD)"}
+    try:
+        return _bhav_history(symbol, strike, expiry, opt_type)
+    except Exception as e:
+        log.error(f"options/contract-history error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/past-expiries")
+def options_past_expiries(symbol: str = "NIFTY"):
+    """
+    Return recent past monthly expiries (last Thursday of each month)
+    as suggestions for the Contract History tab.
+    """
+    import calendar
+    today    = _dt.date.today()
+    expiries = []
+    yr, mo   = today.year, today.month
+    for _ in range(12):
+        mo -= 1
+        if mo == 0:
+            mo = 12; yr -= 1
+        last_day = calendar.monthrange(yr, mo)[1]
+        d = _dt.date(yr, mo, last_day)
+        while d.weekday() != 3:   # walk back to last Thursday
+            d -= _dt.timedelta(days=1)
+        expiries.append(d.isoformat())
+    return {"symbol": symbol.upper(), "expiries": expiries}
 
 
 @app.get("/options/monitor")

@@ -173,8 +173,17 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 .err-msg{color:var(--red);font-size:13px;background:var(--red-bg);border:1px solid rgba(231,76,60,.25);border-radius:var(--r2);padding:10px 14px;margin:8px 0}
 .notice{color:var(--yellow);font-size:12px;background:var(--yellow-bg);border:1px solid rgba(245,166,35,.2);border-radius:var(--r2);padding:8px 12px;margin:8px 0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* Contract History */
+.ch-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ch-stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;flex:1;min-width:110px;text-align:center}
+.ch-stat .k{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.ch-stat .v{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff}
+.ch-stat .v.green{color:var(--green)}.ch-stat .v.red{color:var(--red)}.ch-stat .v.yellow{color:var(--yellow)}.ch-stat .v.cyan{color:var(--cyan)}.ch-stat .v.purple{color:var(--purple)}
+.ch-legend{display:flex;gap:16px;font-size:11px;color:var(--dim);margin-bottom:6px;flex-wrap:wrap;align-items:center}
+.ch-leg-line{display:inline-block;width:20px;height:2px;border-radius:2px;vertical-align:middle;margin-right:4px}
 </style>
 <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 
@@ -292,6 +301,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
       <button class="tab active" onclick="showTab('chain',this)">Option Chain</button>
       <button class="tab" onclick="showTab('analytics',this)">Max Pain &amp; PCR</button>
       <button class="tab" onclick="showTab('monitor',this)">Trade Monitor</button>
+      <button class="tab" onclick="showTab('history',this);loadChExpiries()">Contract History</button>
     </div>
 
     <!-- CHAIN TAB -->
@@ -354,6 +364,42 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
         </div>
         <div id="monitorResult"></div>
       </div>
+    </div>
+
+    <!-- CONTRACT HISTORY TAB -->
+    <div class="tab-panel" id="tab-history">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+        <div class="tb-field">
+          <label>Strike</label>
+          <input type="number" id="chStrike" placeholder="e.g. 2500" step="50" style="width:110px">
+        </div>
+        <div class="tb-field">
+          <label>Expiry (Past)</label>
+          <select id="chExpiry" style="width:155px"><option value="">Select expiry</option></select>
+        </div>
+        <div class="tb-field">
+          <label>Type</label>
+          <div class="dir-toggle">
+            <button class="dir-btn active-CE" id="chBtnCE" onclick="chSetDir('CE')">CE</button>
+            <button class="dir-btn" id="chBtnPE" onclick="chSetDir('PE')">PE</button>
+          </div>
+        </div>
+        <div class="tb-field" style="align-self:flex-end">
+          <button class="btn btn-primary" id="chLoadBtn" onclick="loadContractHistory()">Load History</button>
+        </div>
+      </div>
+      <div class="notice" style="font-size:11px;margin-bottom:12px">
+        &#9432; Data from NSE Bhavcopy (free public archive). First load downloads ~90 days of files — takes 15–30 sec. Subsequent loads are instant from local cache.
+      </div>
+      <div id="chStats" class="ch-stats" style="display:none"></div>
+      <div id="chLegend" class="ch-legend" style="display:none">
+        <span><span class="ch-leg-line" style="background:#7c6af7"></span>Actual LTP</span>
+        <span><span class="ch-leg-line" style="background:#f5a623"></span>Theoretical Decay (constant IV anchor)</span>
+        <span style="color:var(--muted);font-size:10px">IV chart below</span>
+      </div>
+      <div id="chChartWrap" style="height:300px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;display:none"></div>
+      <div id="chIvWrap"    style="height:120px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:12px;display:none"></div>
+      <div id="chTable"></div>
     </div>
 
   </div>
@@ -789,10 +835,128 @@ document.getElementById("symbolInput").addEventListener("input",()=>{
 loadExpiries().then(()=>{
   const p = new URLSearchParams(location.search);
   if (p.get('symbol') && p.get('expiry')) {
-    // Auto-run analysis if both symbol + expiry came in via URL
     setTimeout(runAnalysis, 400);
   }
 });
+
+// ── Contract History ─────────────────────────────────────────────────────────
+let _chDir = 'CE', _chChart = null, _chIvChart = null;
+
+function chSetDir(d) {
+  _chDir = d;
+  document.getElementById('chBtnCE').className = 'dir-btn' + (d==='CE'?' active-CE':'');
+  document.getElementById('chBtnPE').className = 'dir-btn' + (d==='PE'?' active-PE':'');
+}
+
+async function loadChExpiries() {
+  const sym = (document.getElementById('symbolInput').value.trim().toUpperCase()) || 'RELIANCE';
+  const sel = document.getElementById('chExpiry');
+  sel.innerHTML = "<option value=''>Loading…</option>";
+  try {
+    const d = await fetch(`${API}/options/past-expiries?symbol=${sym}`).then(r=>r.json());
+    sel.innerHTML = (d.expiries||[]).length
+      ? d.expiries.map(e=>`<option value="${e}">${e}</option>`).join('')
+      : "<option value=''>No data yet</option>";
+  } catch { sel.innerHTML = "<option value=''>Error</option>"; }
+}
+
+async function loadContractHistory() {
+  const sym    = (document.getElementById('symbolInput').value.trim().toUpperCase()) || 'RELIANCE';
+  const strike = parseFloat(document.getElementById('chStrike').value);
+  const expiry = document.getElementById('chExpiry').value;
+  const btn    = document.getElementById('chLoadBtn');
+  if (!strike || !expiry) { alert('Enter a strike and select an expiry.'); return; }
+
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  ['chStats','chLegend','chChartWrap','chIvWrap'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('chTable').innerHTML = '';
+
+  try {
+    const d = await fetch(`${API}/options/contract-history?symbol=${sym}&strike=${strike}&expiry=${expiry}&opt_type=${_chDir}`).then(r=>r.json());
+    if (d.error) { document.getElementById('chTable').innerHTML=`<div class="err-msg">${d.error}</div>`; return; }
+    _renderChHistory(d);
+  } catch(e) {
+    document.getElementById('chTable').innerHTML = `<div class="err-msg">Failed: ${e.message}</div>`;
+  } finally { btn.disabled=false; btn.textContent='Load History'; }
+}
+
+function _renderChHistory(d) {
+  const days = d.days || [];
+  if (!days.length) { document.getElementById('chTable').innerHTML='<div class="notice">No data found for this contract.</div>'; return; }
+
+  const first = days[0], last = days[days.length-1];
+  const peak  = Math.max(...days.map(r=>r.close||0));
+  const decay = first.close > 0 ? ((first.close - last.close)/first.close*100).toFixed(1) : '—';
+
+  document.getElementById('chStats').style.display = 'flex';
+  document.getElementById('chStats').innerHTML = `
+    <div class="ch-stat"><div class="k">Contract</div><div class="v cyan">${d.symbol} ${d.strike} ${d.opt_type}</div></div>
+    <div class="ch-stat"><div class="k">Expiry</div><div class="v">${d.expiry}</div></div>
+    <div class="ch-stat"><div class="k">Anchor IV</div><div class="v yellow">${d.anchor_iv}%</div></div>
+    <div class="ch-stat"><div class="k">Peak LTP</div><div class="v green">₹${peak.toFixed(2)}</div></div>
+    <div class="ch-stat"><div class="k">Total Decay</div><div class="v red">${decay}%</div></div>
+    <div class="ch-stat"><div class="k">IV Last Day</div><div class="v purple">${last.iv_pct!=null?last.iv_pct+'%':'—'}</div></div>
+    <div class="ch-stat"><div class="k">Theta (last)</div><div class="v red">${last.theta!=null?last.theta+'/day':'—'}</div></div>`;
+
+  if (_chChart)   { _chChart.remove();   _chChart   = null; }
+  if (_chIvChart) { _chIvChart.remove(); _chIvChart = null; }
+  const LC = LightweightCharts;
+  const base = { layout:{background:{type:'Solid',color:'#13162b'},textColor:'#9ba3bf'},
+    grid:{vertLines:{color:'rgba(37,42,68,.4)'},horzLines:{color:'rgba(37,42,68,.4)'}},
+    rightPriceScale:{borderColor:'#252a44'}, timeScale:{borderColor:'#252a44',timeVisible:false},
+    crosshair:{mode:LC.CrosshairMode.Normal}, handleScale:true, handleScroll:true };
+
+  _chChart = LC.createChart(document.getElementById('chChartWrap'), {...base, height:300});
+  const ltpS  = _chChart.addAreaSeries({lineColor:'#7c6af7',topColor:'rgba(124,106,247,.22)',bottomColor:'rgba(124,106,247,.02)',lineWidth:2,title:'LTP'});
+  const theoS = _chChart.addLineSeries({color:'#f5a623',lineWidth:1,lineStyle:LC.LineStyle.Dashed,title:'Theo'});
+
+  _chIvChart = LC.createChart(document.getElementById('chIvWrap'), {...base, height:120});
+  const ivS = _chIvChart.addLineSeries({color:'#00d4ff',lineWidth:1.5,title:'IV%'});
+
+  const ltpD=[], theoD=[], ivD=[];
+  days.forEach(row => {
+    const t = Math.floor(new Date(row.date+'T00:00:00').getTime()/1000) + 19800;
+    if (row.close     != null) ltpD.push({time:t, value:row.close});
+    if (row.theo_price!= null) theoD.push({time:t, value:row.theo_price});
+    if (row.iv_pct    != null) ivD.push({time:t, value:row.iv_pct});
+  });
+  ltpS.setData(ltpD); theoS.setData(theoD); ivS.setData(ivD);
+  _chChart.timeScale().fitContent();
+  _chIvChart.timeScale().fitContent();
+
+  document.getElementById('chChartWrap').style.display = 'block';
+  document.getElementById('chIvWrap').style.display    = 'block';
+  document.getElementById('chLegend').style.display    = 'flex';
+
+  document.getElementById('chTable').innerHTML = `
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px">
+      <thead><tr style="background:var(--bg3)">
+        <th style="padding:6px 8px;text-align:left;color:var(--dim)">Date</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">Spot</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">DTE</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">LTP</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">Theo</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">IV%</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">Theta/day</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">OI</th>
+        <th style="padding:6px 8px;text-align:right;color:var(--dim)">OI Chg</th>
+      </tr></thead>
+      <tbody>${days.map(r=>`
+        <tr style="border-bottom:1px solid rgba(37,42,68,.5)">
+          <td style="padding:5px 8px;color:#fff">${r.date}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--dim)">${r.spot!=null?r.spot.toLocaleString('en-IN'):'—'}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--yellow)">${r.dte}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--accent);font-weight:700">${r.close!=null?'₹'+r.close:'—'}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--orange)">${r.theo_price!=null?'₹'+r.theo_price:'—'}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--cyan)">${r.iv_pct!=null?r.iv_pct+'%':'—'}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--red)">${r.theta!=null?r.theta+'/day':'—'}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--dim)">${r.open_int!=null?r.open_int.toLocaleString('en-IN'):'—'}</td>
+          <td style="padding:5px 8px;text-align:right;color:${(r.chg_in_oi||0)>=0?'var(--green)':'var(--red)'}">${r.chg_in_oi!=null?((r.chg_in_oi>=0?'+':'')+r.chg_in_oi.toLocaleString('en-IN')):'—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`;
+}
 </script>
 </body>
 </html>

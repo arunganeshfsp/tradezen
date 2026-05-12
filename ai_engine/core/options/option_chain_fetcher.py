@@ -303,8 +303,8 @@ def get_nse_equity_token(symbol: str) -> str | None:
 
 def get_oi_change_signals(symbol: str, expiry: str, chain: list) -> dict[float, dict]:
     """
-    Compare current OI/LTP against the snapshot from 30–55 min ago.
-    Returns {strike: {ce_signal, pe_signal}} using the 4-quadrant model:
+    Compare current OI/LTP against the most recent snapshot that is at least
+    5 minutes old (per strike). Uses the 4-quadrant model:
       long_buildup  = price ↑ + OI ↑   (fresh long positions)
       short_buildup = price ↓ + OI ↑   (fresh short positions)
       short_covering= price ↑ + OI ↓   (shorts exiting)
@@ -312,20 +312,23 @@ def get_oi_change_signals(symbol: str, expiry: str, chain: list) -> dict[float, 
     """
     signals: dict[float, dict] = {}
     try:
-        conn     = get_conn()
+        conn    = get_conn()
         _ensure_oi_table(conn)
-        now_utc  = datetime.utcnow()
-        cutoff_hi = (now_utc - timedelta(minutes=30)).isoformat()
-        cutoff_lo = (now_utc - timedelta(minutes=55)).isoformat()
+        cutoff  = (datetime.utcnow() - timedelta(minutes=5)).isoformat()
 
         cur = conn.execute(
             """SELECT strike, ce_oi, pe_oi, ce_ltp, pe_ltp
                FROM oi_snapshots
-               WHERE symbol=? AND expiry=? AND timestamp BETWEEN ? AND ?
+               WHERE symbol=? AND expiry=? AND timestamp < ?
                ORDER BY timestamp DESC""",
-            (symbol.upper(), expiry.upper(), cutoff_lo, cutoff_hi),
+            (symbol.upper(), expiry.upper(), cutoff),
         )
-        prev = {float(row["strike"]): row for row in cur.fetchall()}
+        # Take the most recent row per strike (rows already ordered DESC)
+        prev: dict[float, object] = {}
+        for row in cur.fetchall():
+            strike = float(row["strike"])
+            if strike not in prev:
+                prev[strike] = row
         conn.close()
 
         def _quad(price_up: bool, oi_up: bool) -> str:
