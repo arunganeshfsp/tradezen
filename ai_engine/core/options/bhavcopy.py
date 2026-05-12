@@ -256,6 +256,96 @@ def _implied_vol(price, S, K, T, r, opt) -> Optional[float]:
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
+def enrich_rows(eod_rows: list[dict], symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
+    """Enrich already-filtered EOD rows with spot price, IV, theta, theoretical decay."""
+    if not eod_rows:
+        return {"error": "No matching rows found for this contract in the uploaded file."}
+
+    try:
+        exp_dt = datetime.date.fromisoformat(expiry)
+    except Exception:
+        return {"error": "Invalid expiry format."}
+
+    spots = _spot_series(
+        symbol,
+        datetime.date.fromisoformat(eod_rows[0]["trade_date"]),
+        exp_dt,
+    )
+
+    opt_up = opt_type.upper()
+    ivs: list[Optional[float]] = []
+    for row in eod_rows:
+        td    = row["trade_date"]
+        price = row["close"] or 0.0
+        S     = spots.get(td)
+        T     = (exp_dt - datetime.date.fromisoformat(td)).days / 365.0 if td else 0
+        ivs.append(_implied_vol(price, S, strike, T, _RISK_FREE, opt_up) if S and price and T > 0 else None)
+
+    anchor_iv = next((v for v in ivs if v is not None), 0.20)
+    enriched  = []
+    for i, row in enumerate(eod_rows):
+        td    = row["trade_date"]
+        price = row["close"] or 0.0
+        S     = spots.get(td)
+        dte   = (exp_dt - datetime.date.fromisoformat(td)).days if td else 0
+        T     = dte / 365.0
+        iv    = ivs[i]
+        eff   = iv or anchor_iv
+        enriched.append({
+            "date":       td,
+            "open":       row["open"],
+            "high":       row["high"],
+            "low":        row["low"],
+            "close":      round(price, 2),
+            "open_int":   row["open_int"],
+            "chg_in_oi":  row["chg_in_oi"],
+            "contracts":  row["contracts"],
+            "spot":       round(S, 2) if S else None,
+            "dte":        dte,
+            "iv_pct":     round(iv * 100, 1) if iv else None,
+            "theo_price": round(_bs_price(S, strike, T, _RISK_FREE, anchor_iv, opt_up), 2) if S else None,
+            "theta":      round(_bs_theta(S, strike, T, _RISK_FREE, eff, opt_up), 2) if S else None,
+        })
+
+    return {
+        "symbol":    symbol.upper(),
+        "strike":    strike,
+        "expiry":    expiry,
+        "opt_type":  opt_up,
+        "anchor_iv": round(anchor_iv * 100, 1),
+        "days":      enriched,
+    }
+
+
+def parse_upload(file_bytes: bytes, filename: str,
+                 symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
+    """
+    Parse an uploaded NSE bhavcopy ZIP or CSV file, filter for the
+    requested contract, and return enriched history.
+    """
+    lines: list[str] = []
+
+    if filename.lower().endswith(".zip") or file_bytes[:2] == b'PK':
+        try:
+            zf       = zipfile.ZipFile(io.BytesIO(file_bytes))
+            csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
+            lines    = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
+        except Exception as e:
+            return {"error": f"Could not read ZIP file: {e}"}
+    else:
+        try:
+            lines = file_bytes.decode("utf-8", errors="ignore").splitlines()
+        except Exception as e:
+            return {"error": f"Could not read CSV file: {e}"}
+
+    if len(lines) <= 1:
+        return {"error": "Uploaded file appears to be empty."}
+
+    eod_rows = _filter_contract(lines, symbol, strike, expiry, opt_type)
+    log.info(f"upload parse: {symbol} {strike} {opt_type} {expiry} → {len(eod_rows)} rows from {len(lines)} lines")
+    return enrich_rows(eod_rows, symbol, strike, expiry, opt_type)
+
+
 def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
     global _cache, _nse_session
 

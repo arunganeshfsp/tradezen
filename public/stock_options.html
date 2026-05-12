@@ -389,11 +389,17 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
           </div>
         </div>
         <div class="tb-field" style="align-self:flex-end">
-          <button class="btn btn-primary" id="chLoadBtn" onclick="loadContractHistory()">Load History</button>
+          <label>NSE Bhavcopy File</label>
+          <input type="file" id="chFile" accept=".csv,.zip" style="display:none" onchange="loadContractHistory()">
+          <button class="btn btn-primary" id="chLoadBtn" onclick="document.getElementById('chFile').click()">
+            Upload &amp; Analyse
+          </button>
         </div>
       </div>
       <div class="notice" style="font-size:11px;margin-bottom:12px">
-        &#9432; Data from NSE Bhavcopy (free public archive). First load downloads ~90 days of files — takes 15–30 sec. Subsequent loads are instant from local cache.
+        &#9432; <strong>How to get the file:</strong>
+        Go to <a href="https://www.nseindia.com/market-data/fo-bhav-copy" target="_blank" style="color:var(--cyan)">nseindia.com → Market Data → F&amp;O Bhav Copy</a>,
+        select the date range covering the contract's life, download the ZIP, then upload it here.
       </div>
       <div id="chStats" class="ch-stats" style="display:none"></div>
       <div id="chLegend" class="ch-legend" style="display:none">
@@ -868,20 +874,26 @@ async function loadContractHistory() {
   const sym    = (document.getElementById('symbolInput').value.trim().toUpperCase()) || 'RELIANCE';
   const strike = parseFloat(document.getElementById('chStrike').value);
   const expiry = document.getElementById('chExpiryCustom').value || document.getElementById('chExpiry').value;
+  const file   = document.getElementById('chFile').files[0];
   const btn    = document.getElementById('chLoadBtn');
+
   if (!strike || !expiry) { alert('Enter a strike and select or type an expiry date.'); return; }
+  if (!file)               { alert('Select a NSE Bhavcopy ZIP or CSV file.'); return; }
 
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   ['chStats','chLegend','chChartWrap','chIvWrap'].forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('chTable').innerHTML = '';
 
   try {
-    const d = await fetch(`${API}/options/contract-history?symbol=${sym}&strike=${strike}&expiry=${expiry}&opt_type=${_chDir}`).then(r=>r.json());
+    const form = new FormData();
+    form.append('file', file);
+    const url = `${API}/options/parse-bhavcopy?symbol=${sym}&strike=${strike}&expiry=${expiry}&opt_type=${_chDir}`;
+    const d   = await fetch(url, {method:'POST', body:form}).then(r=>r.json());
     if (d.error) { document.getElementById('chTable').innerHTML=`<div class="err-msg">${d.error}</div>`; return; }
     _renderChHistory(d);
   } catch(e) {
     document.getElementById('chTable').innerHTML = `<div class="err-msg">Failed: ${e.message}</div>`;
-  } finally { btn.disabled=false; btn.textContent='Load History'; }
+  } finally { btn.disabled=false; btn.innerHTML='Upload &amp; Analyse'; }
 }
 
 function _renderChHistory(d) {
