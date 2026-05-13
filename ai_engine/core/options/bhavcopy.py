@@ -166,8 +166,6 @@ def _auto_expiry(
             continue
         d = dict(zip(headers, cols))
         if is_new:
-            if d.get("FinInstrmTp", "") not in ("IO", "SO"):
-                continue
             if d.get("TckrSymb", "").strip() != sym_up:
                 continue
             if d.get("OptnTp", "").strip() != opt_up:
@@ -253,8 +251,6 @@ def _filter_contract(
 
         if is_new:
             # ── New NSE format (BhavCopy_NSE_FO_0_0_0_YYYYMMDD_F_0000.csv) ──
-            if d.get("FinInstrmTp", "") not in ("IO", "SO"):
-                continue
             if d.get("TckrSymb", "").strip() != sym_up:
                 continue
             if d.get("OptnTp", "").strip() != opt_up:
@@ -264,8 +260,9 @@ def _filter_contract(
             row_strike = _flt(d.get("StrkPric", "0")) or 0.0
             if abs(row_strike - strike) > 0.5:
                 continue
+            tdate = _parse_expiry(d.get("TradDt", "")) or trade_date_override or ""
             rows.append({
-                "trade_date": trade_date_override or "",
+                "trade_date": tdate,
                 "open":       _flt(d.get("OpnPric", "")),
                 "high":       _flt(d.get("HghPric", "")),
                 "low":        _flt(d.get("LwPric", "")),
