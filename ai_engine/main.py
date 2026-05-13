@@ -2795,9 +2795,8 @@ async def options_parse_bhavcopy(
     Parse an uploaded NSE F&O Bhavcopy ZIP or CSV file.
     Filter for the requested contract and return enriched history.
     Download source: nseindia.com → Market Data → F&O Bhav Copy
+    Expiry is auto-detected from the file when not provided.
     """
-    if not expiry:
-        return {"error": "expiry is required (format: YYYY-MM-DD)"}
     try:
         contents = await file.read()
         return _bhav_parse_upload(contents, file.filename or "", symbol, strike, expiry, opt_type)

@@ -119,31 +119,124 @@ def _fetch_range_csv(from_date: datetime.date, to_date: datetime.date) -> Option
 # ── Parse CSV lines for a specific contract ────────────────────────────────────
 
 def _parse_expiry(s: str) -> str:
-    """'29-MAY-2025' → '2025-05-29'"""
-    try:
-        return datetime.datetime.strptime(s.strip(), "%d-%b-%Y").strftime("%Y-%m-%d")
-    except Exception:
-        return s.strip()
+    """Try multiple date formats → 'YYYY-MM-DD'."""
+    s = s.strip()
+    for fmt in ("%d-%b-%Y", "%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.datetime.strptime(s, fmt).strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    return s
+
+
+def _date_from_filename(filename: str) -> Optional[str]:
+    """Extract YYYYMMDD from NSE bhavcopy filename → 'YYYY-MM-DD'."""
+    import re
+    m = re.search(r"(\d{8})", filename)
+    if m:
+        try:
+            return datetime.datetime.strptime(m.group(1), "%Y%m%d").strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    return None
+
+
+def _auto_expiry(
+    lines: list[str],
+    symbol: str,
+    strike: float,
+    opt_type: str,
+    trade_date: Optional[str],
+) -> Optional[str]:
+    """
+    Find the best expiry for the given symbol+strike+opt_type from the CSV.
+    Picks the nearest expiry >= trade_date (or the smallest available).
+    """
+    headers  = [h.strip() for h in lines[0].split(",")]
+    is_new   = "TckrSymb" in headers or "XpryDt" in headers
+    sym_up   = symbol.upper()
+    opt_up   = opt_type.upper()
+    expiries = set()
+
+    for line in lines[1:]:
+        if not line.strip():
+            continue
+        cols = [c.strip() for c in line.split(",")]
+        if len(cols) < len(headers):
+            continue
+        d = dict(zip(headers, cols))
+        if is_new:
+            if d.get("FinInstrmTp", "") not in ("IO", "SO"):
+                continue
+            if d.get("TckrSymb", "").strip() != sym_up:
+                continue
+            if d.get("OptnTp", "").strip() != opt_up:
+                continue
+            try:
+                row_strike = float(d.get("StrkPric", "0").strip())
+            except Exception:
+                continue
+            if abs(row_strike - strike) > 0.5:
+                continue
+            exp = _parse_expiry(d.get("XpryDt", ""))
+        else:
+            if d.get("INSTRUMENT", "") not in ("OPTIDX", "OPTSTK"):
+                continue
+            if d.get("SYMBOL", "").strip() != sym_up:
+                continue
+            if d.get("OPTION_TYP", "").strip() != opt_up:
+                continue
+            try:
+                row_strike = float(d.get("STRIKE_PR", "0").strip())
+            except Exception:
+                continue
+            if abs(row_strike - strike) > 0.5:
+                continue
+            exp = _parse_expiry(d.get("EXPIRY_DT", ""))
+        if exp:
+            expiries.add(exp)
+
+    if not expiries:
+        return None
+    sorted_exp = sorted(expiries)
+    if trade_date:
+        future = [e for e in sorted_exp if e >= trade_date]
+        return future[0] if future else sorted_exp[0]
+    return sorted_exp[0]
 
 
 def _filter_contract(
     lines:    list[str],
     symbol:   str,
     strike:   float,
-    expiry:   str,
+    expiry:   Optional[str],
     opt_type: str,
-) -> list[dict]:
-    """Parse CSV lines and return rows matching the requested contract."""
+    trade_date_override: Optional[str] = None,
+) -> tuple[list[dict], str]:
+    """
+    Parse CSV lines and return (rows, detected_expiry).
+    If expiry is None or empty, auto-detects the nearest expiry from the file.
+    Handles both old NSE format (SYMBOL/EXPIRY_DT/STRIKE_PR)
+    and new NSE format (TckrSymb/XpryDt/StrkPric).
+    """
     if not lines:
-        return []
+        return [], expiry or ""
 
     headers = [h.strip() for h in lines[0].split(",")]
+    is_new  = "TckrSymb" in headers or "XpryDt" in headers
+
+    # Auto-detect expiry if not provided
+    resolved_expiry = expiry if expiry else _auto_expiry(
+        lines, symbol, strike, opt_type, trade_date_override
+    )
+    if not resolved_expiry:
+        return [], ""
 
     def _flt(v):
-        try:    return float(v.strip()) or None
+        try:    return float(str(v).strip()) or None
         except: return None
     def _int(v):
-        try:    return int(float(v.strip()))
+        try:    return int(float(str(v).strip()))
         except: return 0
 
     sym_up = symbol.upper()
@@ -158,34 +251,56 @@ def _filter_contract(
             continue
         d = dict(zip(headers, cols))
 
-        if d.get("INSTRUMENT", "") not in ("OPTIDX", "OPTSTK"):
-            continue
-        if d.get("SYMBOL", "").strip() != sym_up:
-            continue
-        if d.get("OPTION_TYP", "").strip() != opt_up:
-            continue
-        if _parse_expiry(d.get("EXPIRY_DT", "")) != expiry:
-            continue
-        row_strike = _flt(d.get("STRIKE_PR", "0")) or 0.0
-        if abs(row_strike - strike) > 0.5:
-            continue
-
-        # Try to determine trade date from TIMESTAMP column or fallback
-        trade_date = _parse_expiry(d.get("TIMESTAMP", "")) or ""
-
-        rows.append({
-            "trade_date": trade_date,
-            "open":       _flt(d.get("OPEN", "")),
-            "high":       _flt(d.get("HIGH", "")),
-            "low":        _flt(d.get("LOW", "")),
-            "close":      _flt(d.get("CLOSE", "")) or _flt(d.get("SETTLE_PR", "")),
-            "contracts":  _int(d.get("CONTRACTS", "0")),
-            "open_int":   _int(d.get("OPEN_INT", "0")),
-            "chg_in_oi":  _int(d.get("CHG_IN_OI", "0")),
-        })
+        if is_new:
+            # ── New NSE format (BhavCopy_NSE_FO_0_0_0_YYYYMMDD_F_0000.csv) ──
+            if d.get("FinInstrmTp", "") not in ("IO", "SO"):
+                continue
+            if d.get("TckrSymb", "").strip() != sym_up:
+                continue
+            if d.get("OptnTp", "").strip() != opt_up:
+                continue
+            if _parse_expiry(d.get("XpryDt", "")) != resolved_expiry:
+                continue
+            row_strike = _flt(d.get("StrkPric", "0")) or 0.0
+            if abs(row_strike - strike) > 0.5:
+                continue
+            rows.append({
+                "trade_date": trade_date_override or "",
+                "open":       _flt(d.get("OpnPric", "")),
+                "high":       _flt(d.get("HghPric", "")),
+                "low":        _flt(d.get("LwPric", "")),
+                "close":      _flt(d.get("ClsPric", "")) or _flt(d.get("SttlmPric", "")),
+                "contracts":  _int(d.get("TtlTradgVol", "0")),
+                "open_int":   _int(d.get("OpnIntrst", "0")),
+                "chg_in_oi":  _int(d.get("ChngInOpnIntrst", "0")),
+            })
+        else:
+            # ── Old NSE format (fo01MMMYYYY bhav.csv) ──
+            if d.get("INSTRUMENT", "") not in ("OPTIDX", "OPTSTK"):
+                continue
+            if d.get("SYMBOL", "").strip() != sym_up:
+                continue
+            if d.get("OPTION_TYP", "").strip() != opt_up:
+                continue
+            if _parse_expiry(d.get("EXPIRY_DT", "")) != resolved_expiry:
+                continue
+            row_strike = _flt(d.get("STRIKE_PR", "0")) or 0.0
+            if abs(row_strike - strike) > 0.5:
+                continue
+            trade_date = _parse_expiry(d.get("TIMESTAMP", "")) or trade_date_override or ""
+            rows.append({
+                "trade_date": trade_date,
+                "open":       _flt(d.get("OPEN", "")),
+                "high":       _flt(d.get("HIGH", "")),
+                "low":        _flt(d.get("LOW", "")),
+                "close":      _flt(d.get("CLOSE", "")) or _flt(d.get("SETTLE_PR", "")),
+                "contracts":  _int(d.get("CONTRACTS", "0")),
+                "open_int":   _int(d.get("OPEN_INT", "0")),
+                "chg_in_oi":  _int(d.get("CHG_IN_OI", "0")),
+            })
 
     rows.sort(key=lambda r: r["trade_date"])
-    return rows
+    return rows, resolved_expiry
 
 
 # ── Spot price ─────────────────────────────────────────────────────────────────
@@ -322,13 +437,17 @@ def parse_upload(file_bytes: bytes, filename: str,
     """
     Parse an uploaded NSE bhavcopy ZIP or CSV file, filter for the
     requested contract, and return enriched history.
+    Expiry is auto-detected from the file when not provided.
     """
     lines: list[str] = []
+    trade_date = _date_from_filename(filename)
 
     if filename.lower().endswith(".zip") or file_bytes[:2] == b'PK':
         try:
             zf       = zipfile.ZipFile(io.BytesIO(file_bytes))
             csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
+            if not trade_date:
+                trade_date = _date_from_filename(csv_name)
             lines    = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
         except Exception as e:
             return {"error": f"Could not read ZIP file: {e}"}
@@ -341,9 +460,18 @@ def parse_upload(file_bytes: bytes, filename: str,
     if len(lines) <= 1:
         return {"error": "Uploaded file appears to be empty."}
 
-    eod_rows = _filter_contract(lines, symbol, strike, expiry, opt_type)
-    log.info(f"upload parse: {symbol} {strike} {opt_type} {expiry} → {len(eod_rows)} rows from {len(lines)} lines")
-    return enrich_rows(eod_rows, symbol, strike, expiry, opt_type)
+    eod_rows, resolved_expiry = _filter_contract(
+        lines, symbol, strike, expiry or None, opt_type, trade_date
+    )
+    fmt = "new" if "TckrSymb" in lines[0] else "old"
+    log.info(f"upload parse: {symbol} {strike} {opt_type} expiry={resolved_expiry} → "
+             f"{len(eod_rows)} rows from {len(lines)} lines (fmt={fmt}, date={trade_date})")
+
+    if not eod_rows:
+        headers = lines[0] if lines else "empty"
+        return {"error": f"No matching rows found for {symbol} {strike} {opt_type} in the uploaded file. "
+                         f"Detected columns: {headers[:120]}"}
+    return enrich_rows(eod_rows, symbol, strike, resolved_expiry, opt_type)
 
 
 def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
@@ -378,7 +506,7 @@ def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dic
             )
         }
 
-    eod_rows = _filter_contract(lines, symbol, strike, expiry, opt_type)
+    eod_rows, expiry = _filter_contract(lines, symbol, strike, expiry, opt_type)
     log.info(f"bhavcopy filter: {symbol} {strike} {opt_type} {expiry} → {len(eod_rows)} rows from {len(lines)} total")
 
     if not eod_rows:

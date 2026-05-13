@@ -371,15 +371,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
         <div class="tb-field">
           <label>Strike</label>
-          <input type="number" id="chStrike" placeholder="e.g. 2500" step="50" style="width:110px">
-        </div>
-        <div class="tb-field">
-          <label>Expiry (Past)</label>
-          <select id="chExpiry" style="width:145px" onchange="document.getElementById('chExpiryCustom').value=this.value"><option value="">Select expiry</option></select>
-        </div>
-        <div class="tb-field">
-          <label>or type date</label>
-          <input type="date" id="chExpiryCustom" style="width:145px" onchange="document.getElementById('chExpiry').value=''">
+          <input type="number" id="chStrike" placeholder="e.g. 24100" step="50" style="width:110px">
         </div>
         <div class="tb-field">
           <label>Type</label>
@@ -873,12 +865,11 @@ async function loadChExpiries() {
 async function loadContractHistory() {
   const sym    = (document.getElementById('symbolInput').value.trim().toUpperCase()) || 'RELIANCE';
   const strike = parseFloat(document.getElementById('chStrike').value);
-  const expiry = document.getElementById('chExpiryCustom').value || document.getElementById('chExpiry').value;
   const file   = document.getElementById('chFile').files[0];
   const btn    = document.getElementById('chLoadBtn');
 
-  if (!strike || !expiry) { alert('Enter a strike and select or type an expiry date.'); return; }
-  if (!file)               { alert('Select a NSE Bhavcopy ZIP or CSV file.'); return; }
+  if (!strike) { alert('Enter a strike price.'); return; }
+  if (!file)   { alert('Select a NSE Bhavcopy ZIP or CSV file.'); return; }
 
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   ['chStats','chLegend','chChartWrap','chIvWrap'].forEach(id=>document.getElementById(id).style.display='none');
@@ -887,7 +878,7 @@ async function loadContractHistory() {
   try {
     const form = new FormData();
     form.append('file', file);
-    const url = `${API}/options/parse-bhavcopy?symbol=${sym}&strike=${strike}&expiry=${expiry}&opt_type=${_chDir}`;
+    const url = `${API}/options/parse-bhavcopy?symbol=${sym}&strike=${strike}&opt_type=${_chDir}`;
     const d   = await fetch(url, {method:'POST', body:form}).then(r=>r.json());
     if (d.error) { document.getElementById('chTable').innerHTML=`<div class="err-msg">${d.error}</div>`; return; }
     _renderChHistory(d);
