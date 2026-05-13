@@ -380,19 +380,29 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
             <button class="dir-btn" id="chBtnPE" onclick="chSetDir('PE')">PE</button>
           </div>
         </div>
+        <div class="tb-field">
+          <label>Expiry</label>
+          <input type="date" id="chExpiry" style="width:140px">
+        </div>
+        <div class="tb-field">
+          <label>From Date</label>
+          <input type="date" id="chFromDate" style="width:140px">
+        </div>
+        <div class="tb-field">
+          <label>To Date</label>
+          <input type="date" id="chToDate" style="width:140px">
+        </div>
         <div class="tb-field" style="align-self:flex-end">
-          <label>NSE Bhavcopy File</label>
-          <input type="file" id="chFile" accept=".csv,.zip" style="display:none" onchange="loadContractHistory()">
-          <button class="btn btn-primary" id="chLoadBtn" onclick="document.getElementById('chFile').click()">
-            Upload &amp; Analyse
+          <button class="btn btn-primary" id="chLoadBtn" onclick="fetchContractHistoryNSE()">
+            Fetch from NSE
           </button>
         </div>
       </div>
       <div class="notice" style="font-size:11px;margin-bottom:12px">
-        &#9432; <strong>How to get the file:</strong>
-        Go to <a href="https://www.nseindia.com/market-data/fo-bhav-copy" target="_blank" style="color:var(--cyan)">nseindia.com → Market Data → F&amp;O Bhav Copy</a>,
-        select the date range covering the contract's life, download the ZIP, then upload it here.
+        &#9432; Data fetched live from NSE API. Dates must be within the contract's traded range.
+        <span style="display:block;margin-top:4px;color:var(--muted)">If NSE API is unavailable, <a href="#" onclick="document.getElementById('chFile').click();return false" style="color:var(--cyan);text-decoration:underline">upload Bhavcopy files as fallback</a>.</span>
       </div>
+      <input type="file" id="chFile" accept=".csv,.zip" multiple style="display:none" onchange="loadContractHistory()">
       <div id="chStats" class="ch-stats" style="display:none"></div>
       <div id="chLegend" class="ch-legend" style="display:none">
         <span><span class="ch-leg-line" style="background:#7c6af7"></span>Actual LTP</span>
@@ -862,14 +872,50 @@ async function loadChExpiries() {
   } catch { sel.innerHTML = "<option value=''>Error</option>"; }
 }
 
+async function fetchContractHistoryNSE() {
+  const sym      = (document.getElementById('symbolInput').value.trim().toUpperCase()) || 'RELIANCE';
+  const strike   = parseFloat(document.getElementById('chStrike').value);
+  const expiryEl = document.getElementById('chExpiry');
+  const fromEl   = document.getElementById('chFromDate');
+  const toEl     = document.getElementById('chToDate');
+  const btn      = document.getElementById('chLoadBtn');
+
+  if (!strike) { alert('Enter a strike price.'); return; }
+  if (!expiryEl.value || !fromEl.value || !toEl.value) { alert('Enter expiry, from date, and to date.'); return; }
+
+  const _fmt = (dateStr) => {
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2,'0');
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+    const yr = d.getFullYear();
+    return `${day}-${mon}-${yr}`;
+  };
+  const expiry = _fmt(expiryEl.value);
+  const from   = _fmt(fromEl.value);
+  const to     = _fmt(toEl.value);
+
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  ['chStats','chLegend','chChartWrap','chIvWrap'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('chTable').innerHTML = '';
+
+  try {
+    const url = `${API}/options/contract-history-nse?symbol=${sym}&strike=${strike}&expiry=${expiry}&opt_type=${_chDir}&from_date=${from}&to_date=${to}`;
+    const d   = await fetch(url).then(r=>r.json());
+    if (d.error) { document.getElementById('chTable').innerHTML=`<div class="err-msg">${d.error}</div>`; return; }
+    _renderChHistory(d);
+  } catch(e) {
+    document.getElementById('chTable').innerHTML = `<div class="err-msg">Failed: ${e.message}</div>`;
+  } finally { btn.disabled=false; btn.innerHTML='Fetch from NSE'; }
+}
+
 async function loadContractHistory() {
   const sym    = (document.getElementById('symbolInput').value.trim().toUpperCase()) || 'RELIANCE';
   const strike = parseFloat(document.getElementById('chStrike').value);
-  const file   = document.getElementById('chFile').files[0];
+  const files  = document.getElementById('chFile').files;
   const btn    = document.getElementById('chLoadBtn');
 
   if (!strike) { alert('Enter a strike price.'); return; }
-  if (!file)   { alert('Select a NSE Bhavcopy ZIP or CSV file.'); return; }
+  if (!files.length) { alert('Select one or more NSE Bhavcopy ZIP or CSV files.'); return; }
 
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   ['chStats','chLegend','chChartWrap','chIvWrap'].forEach(id=>document.getElementById(id).style.display='none');
@@ -877,7 +923,7 @@ async function loadContractHistory() {
 
   try {
     const form = new FormData();
-    form.append('file', file);
+    for (const f of files) form.append('files', f);
     const url = `${API}/options/parse-bhavcopy?symbol=${sym}&strike=${strike}&opt_type=${_chDir}`;
     const d   = await fetch(url, {method:'POST', body:form}).then(r=>r.json());
     if (d.error) { document.getElementById('chTable').innerHTML=`<div class="err-msg">${d.error}</div>`; return; }

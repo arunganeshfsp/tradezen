@@ -270,6 +270,7 @@ def _filter_contract(
                 "contracts":  _int(d.get("TtlTradgVol", "0")),
                 "open_int":   _int(d.get("OpnIntrst", "0")),
                 "chg_in_oi":  _int(d.get("ChngInOpnIntrst", "0")),
+                "spot_raw":   _flt(d.get("UndrlyingVal", "")),
             })
         else:
             # ── Old NSE format (fo01MMMYYYY bhav.csv) ──
@@ -309,7 +310,7 @@ def _spot_series(symbol: str, from_date: datetime.date, to_date: datetime.date) 
         df = yf.Ticker(yf_sym).history(
             start=from_date.strftime("%Y-%m-%d"),
             end=(to_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
-            interval="1d", auto_adjust=True,
+            interval="1d", auto_adjust=False,
         )
         if df.empty:
             return {}
@@ -378,18 +379,26 @@ def enrich_rows(eod_rows: list[dict], symbol: str, strike: float, expiry: str, o
     except Exception:
         return {"error": "Invalid expiry format."}
 
-    spots = _spot_series(
-        symbol,
-        datetime.date.fromisoformat(eod_rows[0]["trade_date"]),
-        exp_dt,
-    )
+    # Use UndrlyingVal from file rows when available (new NSE format)
+    # Fall back to yfinance only for rows that don't have it
+    needs_yf = any(not row.get("spot_raw") for row in eod_rows)
+    spots_yf: dict[str, float] = {}
+    if needs_yf and eod_rows[0]["trade_date"]:
+        spots_yf = _spot_series(
+            symbol,
+            datetime.date.fromisoformat(eod_rows[0]["trade_date"]),
+            exp_dt,
+        )
+
+    def _spot(row: dict) -> Optional[float]:
+        return row.get("spot_raw") or spots_yf.get(row["trade_date"])
 
     opt_up = opt_type.upper()
     ivs: list[Optional[float]] = []
     for row in eod_rows:
         td    = row["trade_date"]
         price = row["close"] or 0.0
-        S     = spots.get(td)
+        S     = _spot(row)
         T     = (exp_dt - datetime.date.fromisoformat(td)).days / 365.0 if td else 0
         ivs.append(_implied_vol(price, S, strike, T, _RISK_FREE, opt_up) if S and price and T > 0 else None)
 
@@ -398,7 +407,7 @@ def enrich_rows(eod_rows: list[dict], symbol: str, strike: float, expiry: str, o
     for i, row in enumerate(eod_rows):
         td    = row["trade_date"]
         price = row["close"] or 0.0
-        S     = spots.get(td)
+        S     = _spot(row)
         dte   = (exp_dt - datetime.date.fromisoformat(td)).days if td else 0
         T     = dte / 365.0
         iv    = ivs[i]
@@ -429,46 +438,76 @@ def enrich_rows(eod_rows: list[dict], symbol: str, strike: float, expiry: str, o
     }
 
 
-def parse_upload(file_bytes: bytes, filename: str,
-                 symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
-    """
-    Parse an uploaded NSE bhavcopy ZIP or CSV file, filter for the
-    requested contract, and return enriched history.
-    Expiry is auto-detected from the file when not provided.
-    """
-    lines: list[str] = []
+def _read_lines(file_bytes: bytes, filename: str) -> tuple[list[str], Optional[str]]:
+    """Read CSV lines from ZIP or raw CSV bytes. Returns (lines, trade_date)."""
     trade_date = _date_from_filename(filename)
-
+    lines: list[str] = []
     if filename.lower().endswith(".zip") or file_bytes[:2] == b'PK':
         try:
-            zf       = zipfile.ZipFile(io.BytesIO(file_bytes))
+            zf = zipfile.ZipFile(io.BytesIO(file_bytes))
             csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
             if not trade_date:
                 trade_date = _date_from_filename(csv_name)
-            lines    = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
+            lines = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
         except Exception as e:
-            return {"error": f"Could not read ZIP file: {e}"}
+            log.warning(f"ZIP read error {filename}: {e}")
     else:
         try:
             lines = file_bytes.decode("utf-8", errors="ignore").splitlines()
         except Exception as e:
-            return {"error": f"Could not read CSV file: {e}"}
+            log.warning(f"CSV read error {filename}: {e}")
+    return lines, trade_date
 
+
+def parse_upload(file_bytes: bytes, filename: str,
+                 symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
+    """Parse a single uploaded bhavcopy file. Expiry auto-detected when not provided."""
+    lines, trade_date = _read_lines(file_bytes, filename)
     if len(lines) <= 1:
         return {"error": "Uploaded file appears to be empty."}
-
     eod_rows, resolved_expiry = _filter_contract(
         lines, symbol, strike, expiry or None, opt_type, trade_date
     )
-    fmt = "new" if "TckrSymb" in lines[0] else "old"
-    log.info(f"upload parse: {symbol} {strike} {opt_type} expiry={resolved_expiry} → "
-             f"{len(eod_rows)} rows from {len(lines)} lines (fmt={fmt}, date={trade_date})")
-
+    fmt = "new" if lines and "TckrSymb" in lines[0] else "old"
+    log.info(f"upload: {symbol} {strike} {opt_type} expiry={resolved_expiry} → "
+             f"{len(eod_rows)} rows/{len(lines)} lines fmt={fmt} date={trade_date}")
     if not eod_rows:
         headers = lines[0] if lines else "empty"
         return {"error": f"No matching rows found for {symbol} {strike} {opt_type} in the uploaded file. "
                          f"Detected columns: {headers[:120]}"}
     return enrich_rows(eod_rows, symbol, strike, resolved_expiry, opt_type)
+
+
+def parse_upload_multi(files: list[tuple[bytes, str]],
+                       symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
+    """
+    Parse multiple uploaded bhavcopy files (one per trading day) and combine
+    into a single enriched history for the theta decay chart.
+    """
+    all_rows: list[dict] = []
+    resolved_expiry: Optional[str] = expiry or None
+
+    for file_bytes, filename in files:
+        lines, trade_date = _read_lines(file_bytes, filename)
+        if len(lines) <= 1:
+            continue
+        rows, exp = _filter_contract(lines, symbol, strike, resolved_expiry, opt_type, trade_date)
+        if exp and not resolved_expiry:
+            resolved_expiry = exp
+        all_rows.extend(rows)
+
+    if not all_rows:
+        return {"error": f"No matching rows found for {symbol} {strike} {opt_type} in any uploaded file."}
+
+    # Deduplicate by trade_date — keep last seen per date
+    by_date: dict[str, dict] = {}
+    for row in all_rows:
+        by_date[row["trade_date"]] = row
+    combined = sorted(by_date.values(), key=lambda r: r["trade_date"])
+
+    log.info(f"upload_multi: {symbol} {strike} {opt_type} expiry={resolved_expiry} → "
+             f"{len(combined)} unique days from {len(files)} files")
+    return enrich_rows(combined, symbol, strike, resolved_expiry or "", opt_type)
 
 
 def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dict:
@@ -567,3 +606,125 @@ def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dic
     }
     _cache["data"] = result
     return result
+
+
+def fetch_contract_history_nse(
+    symbol: str,
+    strike: float,
+    expiry: str,
+    opt_type: str,
+    from_date: str,
+    to_date: str,
+) -> dict:
+    """
+    Fetch contract history directly from NSE's historical derivatives API.
+    Dates in DD-MMM-YYYY format (e.g., "08-May-2026").
+    """
+    sess = _get_session()
+
+    # Determine instrument type based on symbol
+    inst_type = "OPTIDX" if symbol.upper() in ["NIFTY", "BANKNIFTY", "FINNIFTY"] else "OPTSTK"
+
+    url = (f"https://www.nseindia.com/api/historical/fo/derivatives"
+           f"?instrumentType={inst_type}"
+           f"&symbol={symbol.upper()}"
+           f"&expiryDate={expiry}"
+           f"&optionType={opt_type.upper()}"
+           f"&strikePrice={strike}"
+           f"&fromDate={from_date}"
+           f"&toDate={to_date}")
+
+    try:
+        resp = sess.get(url, timeout=30, headers={
+            "Referer": "https://www.nseindia.com/market-data/derivatives",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "X-Requested-With": "XMLHttpRequest",
+        })
+    except Exception as e:
+        log.warning(f"NSE derivatives API request failed: {e}")
+        return {"error": f"NSE API request failed: {str(e)}"}
+
+    if resp.status_code != 200:
+        log.warning(f"NSE derivatives API: HTTP {resp.status_code}")
+        return {"error": f"NSE API returned HTTP {resp.status_code}"}
+
+    try:
+        data = resp.json()
+    except Exception as e:
+        log.warning(f"NSE derivatives API JSON parse failed: {e}")
+        return {"error": "NSE API response parse failed"}
+
+    rows = data.get("data", [])
+    if not rows:
+        return {"error": f"No data found for {symbol} {strike} {opt_type} expiry {expiry}"}
+
+    # Convert NSE API response to enrich_rows format
+    # NSE API response rows should be in chronological order
+    start_dt = datetime.datetime.strptime(from_date, "%d-%b-%Y").date()
+    eod_rows = []
+    current_dt = start_dt
+    for row in rows:
+        eod_rows.append({
+            "trade_date": current_dt.isoformat(),
+            "open": float(row.get("openPrice") or 0),
+            "high": float(row.get("highPrice") or 0),
+            "low": float(row.get("lowPrice") or 0),
+            "close": float(row.get("closePrice") or 0),
+            "open_int": int(row.get("openInterest") or 0),
+            "chg_in_oi": 0,  # NSE API doesn't provide this
+            "contracts": int(row.get("contracts") or 0),
+            "spot_raw": None,  # Will use yfinance fallback
+        })
+        current_dt += datetime.timedelta(days=1)
+
+    if not eod_rows:
+        return {"error": "No matching contract data from NSE"}
+
+    # Enrich with Greeks (same logic as file upload)
+    exp_dt = datetime.datetime.strptime(expiry, "%d-%b-%Y").date()
+    spots = _spot_series(symbol, eod_rows[0]["trade_date"][:10], exp_dt)
+
+    opt_up = opt_type.upper()
+    ivs: list[Optional[float]] = []
+    for row in eod_rows:
+        td = row["trade_date"]
+        price = row["close"] or 0.0
+        S = spots.get(td)
+        T = (exp_dt - datetime.date.fromisoformat(td)).days / 365.0 if td else 0
+        ivs.append(_implied_vol(price, S, strike, T, _RISK_FREE, opt_up) if S and price and T > 0 else None)
+
+    anchor_iv = next((v for v in ivs if v is not None), 0.20)
+
+    enriched = []
+    for i, row in enumerate(eod_rows):
+        td = row["trade_date"]
+        price = row["close"] or 0.0
+        S = spots.get(td)
+        dte = (exp_dt - datetime.date.fromisoformat(td)).days if td else 0
+        T = dte / 365.0
+        iv = ivs[i]
+        eff = iv or anchor_iv
+        enriched.append({
+            "date": td,
+            "open": row["open"],
+            "high": row["high"],
+            "low": row["low"],
+            "close": round(price, 2),
+            "open_int": row["open_int"],
+            "chg_in_oi": row["chg_in_oi"],
+            "contracts": row["contracts"],
+            "spot": round(S, 2) if S else None,
+            "dte": dte,
+            "iv_pct": round(iv * 100, 1) if iv else None,
+            "theo_price": round(_bs_price(S, strike, T, _RISK_FREE, anchor_iv, opt_up), 2) if S else None,
+            "theta": round(_bs_theta(S, strike, T, _RISK_FREE, eff, opt_up), 2) if S else None,
+        })
+
+    return {
+        "symbol": symbol.upper(),
+        "strike": strike,
+        "expiry": expiry,
+        "opt_type": opt_up,
+        "anchor_iv": round(anchor_iv * 100, 1),
+        "days": enriched,
+    }

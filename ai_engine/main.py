@@ -2542,7 +2542,9 @@ from core.options.max_pain          import analyze_chain      as _oc_max_pain
 from core.options.signal_scorer     import score_signals      as _oc_score
 from core.options.strike_selector   import select_strike      as _oc_strike
 from core.options.risk_calculator   import calculate          as _oc_risk
-from core.options.bhavcopy          import build_history       as _bhav_history, parse_upload as _bhav_parse_upload
+from core.options.bhavcopy          import (build_history as _bhav_history,
+                                             parse_upload_multi as _bhav_parse_multi,
+                                             fetch_contract_history_nse as _bhav_fetch_nse)
 from core.options.trade_monitor     import evaluate           as _oc_monitor, update_position as _oc_update
 
 
@@ -2785,23 +2787,41 @@ def options_contract_history(
 
 @app.post("/options/parse-bhavcopy")
 async def options_parse_bhavcopy(
-    file:     UploadFile = File(...),
+    files:    list[UploadFile] = File(...),
     symbol:   str   = "NIFTY",
     strike:   float = 24300,
     expiry:   str   = "",
     opt_type: str   = "CE",
 ):
     """
-    Parse an uploaded NSE F&O Bhavcopy ZIP or CSV file.
-    Filter for the requested contract and return enriched history.
-    Download source: nseindia.com → Market Data → F&O Bhav Copy
-    Expiry is auto-detected from the file when not provided.
+    Parse one or more uploaded NSE F&O Bhavcopy ZIP/CSV files.
+    Combine into a multi-day theta decay history. Expiry auto-detected.
     """
     try:
-        contents = await file.read()
-        return _bhav_parse_upload(contents, file.filename or "", symbol, strike, expiry, opt_type)
+        files_data = [(await f.read(), f.filename or "") for f in files]
+        return _bhav_parse_multi(files_data, symbol, strike, expiry, opt_type)
     except Exception as e:
         log.error(f"options/parse-bhavcopy error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/options/contract-history-nse")
+def options_contract_history_nse(
+    symbol:   str   = "NIFTY",
+    strike:   float = 24300,
+    expiry:   str   = "08-May-2026",
+    opt_type: str   = "CE",
+    from_date: str = "01-Apr-2026",
+    to_date:   str = "08-May-2026",
+):
+    """
+    Fetch contract history directly from NSE's derivatives API.
+    Dates must be in DD-MMM-YYYY format (e.g., "08-May-2026").
+    """
+    try:
+        return _bhav_fetch_nse(symbol, strike, expiry, opt_type, from_date, to_date)
+    except Exception as e:
+        log.error(f"options/contract-history-nse error: {e}")
         return {"error": str(e)}
 
 
