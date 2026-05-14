@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Options Analysis — பயன்பாட்டு வழிகாட்டி | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;--orange:#f39c12;--purple:#a78bfa;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Noto Sans Tamil',sans-serif;min-height:100vh;overflow-x:hidden}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+
+.page{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+
+.hero{text-align:center;padding:48px 0 40px}
+.hero-tag{display:inline-block;background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.3);color:var(--accent);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:16px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,4vw,38px);font-weight:800;color:#fff;line-height:1.15;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--dim);font-size:15px;max-width:600px;margin:0 auto;line-height:1.7;font-family:'Noto Sans Tamil',sans-serif}
+.cta-btn{display:inline-block;margin-top:24px;padding:10px 28px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;color:#fff;font-weight:600;font-size:14px;text-decoration:none;transition:opacity .15s}
+.cta-btn:hover{opacity:.85}
+
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px 28px;margin-bottom:40px}
+.toc h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.toc ol{padding-left:18px;display:grid;grid-template-columns:1fr 1fr;gap:6px 32px}
+@media(max-width:600px){.toc ol{grid-template-columns:1fr}}
+.toc li{font-size:13px;font-family:'Noto Sans Tamil',sans-serif}
+.toc a{color:var(--accent);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+.section{margin-bottom:56px}
+.section-anchor{display:block;height:72px;margin-top:-72px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.section-num{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.8;margin-bottom:12px;font-family:'Noto Sans Tamil',sans-serif}
+.section p strong{color:var(--text)}
+
+.steps{display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.step{display:flex;gap:14px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.step-n{width:26px;height:26px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.step-body .step-title{font-weight:700;font-size:14px;color:#fff;margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--dim);line-height:1.7;margin:0;font-family:'Noto Sans Tamil',sans-serif}
+
+.sig-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.sig-table th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.sig-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.sig-table tr:last-child td{border-bottom:none}
+.sig-table tr:hover td{background:var(--bg3)}
+.mono{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
+.pass{color:var(--green);font-weight:600}
+.fail{color:var(--red);font-weight:600}
+.warn{color:var(--yellow);font-weight:600}
+
+.lbl{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.lbl-green{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.lbl-blue{background:rgba(91,138,245,0.15);color:var(--blue);border:1px solid rgba(91,138,245,0.3)}
+.lbl-yellow{background:rgba(245,166,35,0.15);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+.lbl-red{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.lbl-cyan{background:rgba(0,212,255,0.12);color:var(--cyan);border:1px solid rgba(0,212,255,0.25)}
+.lbl-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
+
+.info-box{display:flex;gap:12px;background:rgba(91,138,245,0.06);border:1px solid rgba(91,138,245,0.2);border-radius:var(--r2);padding:14px 16px;margin:14px 0}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}
+.warn-box{background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2)}
+.tip-box{background:rgba(46,204,113,0.06);border-color:rgba(46,204,113,0.2)}
+.red-box{background:rgba(231,76,60,0.06);border-color:rgba(231,76,60,0.2)}
+
+.diagram{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin:16px 0;font-size:13px}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+
+.score-bands{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+@media(max-width:600px){.score-bands{grid-template-columns:repeat(2,1fr)}}
+.score-band{border-radius:var(--r2);padding:14px;text-align:center;border:1px solid var(--border)}
+.score-band .range{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;margin-bottom:6px}
+.score-band .meaning{font-size:11px;color:var(--dim);line-height:1.4;font-family:'Noto Sans Tamil',sans-serif}
+
+.chain-demo{display:grid;grid-template-columns:1fr auto 1fr;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.chain-hdr{background:var(--bg3);padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);text-align:center}
+.chain-hdr.ce{color:var(--blue)}.chain-hdr.pe{color:var(--red)}
+.cr>div{padding:7px 12px;border-top:1px solid var(--border)}
+.cr .ce-col{text-align:right;color:var(--blue)}
+.cr .pe-col{text-align:left;color:var(--red)}
+.cr .st{text-align:center;color:#fff;background:var(--bg3);font-weight:700}
+.cr.atm>div{background:rgba(124,106,247,0.1)}
+.cr.atm .st{color:var(--accent)}
+.hi{color:var(--yellow);font-weight:700}
+.mp-st{color:var(--yellow)!important}
+
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--accent);border-radius:var(--r);padding:18px 20px;margin:16px 0}
+.example-box .ex-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin-bottom:10px}
+.example-box p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:8px;font-family:'Noto Sans Tamil',sans-serif}
+.example-box p:last-child{margin:0}
+.ex-val{font-family:'JetBrains Mono',monospace;color:#fff;font-weight:700}
+
+.workflow{display:flex;align-items:flex-start;gap:0;margin:20px 0;flex-wrap:wrap;justify-content:center}
+.wf-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:90px;max-width:130px}
+.wf-circle{width:44px;height:44px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px}
+.wf-label{font-size:11px;color:var(--dim);text-align:center;margin-top:8px;line-height:1.4;font-family:'Noto Sans Tamil',sans-serif}
+.wf-arrow{color:var(--border2);font-size:20px;margin-top:12px;align-self:flex-start;padding-top:10px}
+
+.monitor-demo{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin:16px 0}
+.mon-action{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+.HOLD{color:var(--cyan)}.EXIT_T1{color:var(--green)}.EXIT_STOP{color:var(--red)}.TRAIL{color:var(--accent)}.EXIT_T2{color:#00ffaa}.EXIT_EOD{color:var(--yellow)}
+.mon-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.mon-row:last-child{border:0}
+.mon-key{color:var(--dim);font-family:'Noto Sans Tamil',sans-serif}
+.mon-val{font-family:'JetBrains Mono',monospace;font-weight:700}
+
+hr{border:none;border-top:1px solid var(--border);margin:40px 0}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><span class="logo">TZ</span>&nbsp;TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/trade_flow.html">Trade Flow</a>
+    <a class="nl" href="/fno_scanner.html">F&amp;O Scanner</a>
+    <a class="nl on" href="/stock_options.html">Stock Options</a>
+    <a class="nl" href="/options_analysis.html">Index Options</a>
+    <a class="nl" href="/market_psychology.html">TradeFun</a>
+  </div>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0;margin-left:auto"></button>
+  <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">How to Use · பயன்பாட்டு வழிகாட்டி</div>
+    <h1>Stock <em>Options</em> கருவி</h1>
+    <p>Option Chain, Max Pain, PCR, Trade Monitor, Contract History — இந்த கருவியை முழுமையாக பயன்படுத்த படிக்கவும்.</p>
+    <a class="cta-btn" href="/stock_options.html">கருவியை திறக்கவும் →</a>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h3>உள்ளடக்கம்</h3>
+    <ol>
+      <li><a href="#s1">அமைப்பு — Symbol, Expiry, திசை</a></li>
+      <li><a href="#s2">Stock Trade Flow &amp; Market Context</a></li>
+      <li><a href="#s3">Signal Score (0–17)</a></li>
+      <li><a href="#s4">Option Chain படிக்கும் முறை</a></li>
+      <li><a href="#s5">Max Pain — என்ன? எப்படி பயன்படுத்துவது?</a></li>
+      <li><a href="#s6">PCR — Put-Call Ratio</a></li>
+      <li><a href="#s7">Trade Monitor — நேரடி கண்காணிப்பு</a></li>
+      <li><a href="#s8">Contract History — Theta Decay</a></li>
+      <li><a href="#s9">முழு Workflow உதாரணம்</a></li>
+    </ol>
+  </div>
+
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <span class="section-anchor" id="s1"></span>
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>அமைப்பு — Symbol, Expiry, திசை</h2>
+    </div>
+    <p>பக்கத்தின் மேல் உள்ள toolbar-இல் மூன்று முக்கியமான inputs உள்ளன. இவற்றை சரியாக அமைத்த பின்னரே <strong>Analyze</strong> பொத்தான் அழுத்தவும்.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <div class="step-title">Stock Symbol உள்ளிடவும்</div>
+          <p>NSE-யில் பட்டியலிடப்பட்ட எந்த பங்கையும் உள்ளிடலாம். எ.கா: <strong>RELIANCE, TCS, NIFTY, BANKNIFTY, INFY, HDFCBANK</strong>. சின்னங்கள் எப்போதும் CAPITAL-இல் இருக்க வேண்டும்.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <div class="step-title">Expiry தேர்வு செய்யவும்</div>
+          <p>dropdown-இல் கிடைக்கும் expiry dates பட்டியலிலிருந்து தேர்வு செய்யவும். பொதுவாக <strong>நடப்பு மாத expiry</strong> (nearest expiry) தேர்வு செய்வது நல்லது. பங்குகளுக்கு monthly expiry மட்டுமே இருக்கும்; NIFTY, BANKNIFTY-க்கு weekly expiry கிடைக்கும்.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <div class="step-title">திசை — CE அல்லது PE</div>
+          <p><strong>CE (Call Option)</strong> = நீங்கள் விலை ஏறும் என்று நம்பும்போது வாங்குவது.<br><strong>PE (Put Option)</strong> = நீங்கள் விலை இறங்கும் என்று நம்பும்போது வாங்குவது.<br>இந்த திசை Signal Score-ஐயும் Strike Selection-ஐயும் நேரடியாக பாதிக்கும்.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">4</div>
+        <div class="step-body">
+          <div class="step-title">Analyze அழுத்தவும்</div>
+          <p>இந்த பொத்தான் அழுத்திய பின், Option Chain, Max Pain, PCR, Signal Score, Strike Selection அனைத்தும் தானாக ஏற்றப்படும். சுமார் <strong>5–8 வினாடிகள்</strong> ஆகலாம்.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">💡</span>
+      <p><strong>Expiry இல்லை என்றால்:</strong> "Refresh Expiries" பொத்தான் அழுத்தவும். Engine offline ஆக இருந்தால், பக்கத்தின் மேல்-வலது மூலையில் உள்ள பச்சை dot மங்கலாக இருக்கும் — சர்வர் connection சரிபார்க்கவும்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <span class="section-anchor" id="s2"></span>
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Stock Trade Flow &amp; Market Context</h2>
+    </div>
+    <p>இடது sidebar-இல் இரண்டு முக்கியமான பலகங்கள் உள்ளன — இவை அன்றாட trade முடிவுகளுக்கு வழிகாட்டும்.</p>
+
+    <p><strong>Stock Trade Flow</strong> என்பது CPR (Central Pivot Range) அடிப்படையில் இன்றைய சந்தை நிலையை காட்டுகிறது:</p>
+
+    <table class="sig-table">
+      <thead><tr><th>காட்டி</th><th>விளக்கம்</th><th>பொருள்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">TC (Top CPR)</span></td><td>நேற்றைய High, Low, Close-இலிருந்து கணக்கிடப்படும் மேல் pivot.</td><td>இதற்கு மேலே விலை இருந்தால் — <span class="pass">Bullish</span></td></tr>
+        <tr><td><span class="mono">PP (Pivot)</span></td><td>TC-க்கும் BC-க்கும் நடுவே உள்ள pivot magnet.</td><td>விலை இதை சுற்றி ஆடும்</td></tr>
+        <tr><td><span class="mono">BC (Bottom CPR)</span></td><td>CPR range-இன் கீழ் எல்லை.</td><td>இதற்கு கீழே விலை இருந்தால் — <span class="fail">Bearish</span></td></tr>
+        <tr><td><span class="mono">R1 / S1</span></td><td>முதல் resistance மற்றும் support நிலைகள்.</td><td>Target / Stop-loss reference</td></tr>
+        <tr><td><span class="mono">ORB H / L</span></td><td>9:15–9:30 opening range (High & Low).</td><td>Breakout திசையை உறுதி செய்ய</td></tr>
+      </tbody>
+    </table>
+
+    <div class="example-box">
+      <div class="ex-title">உதாரணம் — RELIANCE, 14 மே 2026</div>
+      <p>நேற்றைய OHLC: High <span class="ex-val">1,410</span>, Low <span class="ex-val">1,380</span>, Close <span class="ex-val">1,402</span></p>
+      <p>கணக்கீடு: PP = (1410+1380+1402)/3 = <span class="ex-val">1,397.3</span> &nbsp;|&nbsp; TC = <span class="ex-val">1,402.3</span> &nbsp;|&nbsp; BC = <span class="ex-val">1,392.3</span></p>
+      <p>இன்று Spot = <span class="ex-val">1,406</span> — <span class="pass">▲ ABOVE TC — Bullish</span> என்று காண்பிக்கும். CE வாங்குவதற்கு சாதகமான நிலை.</p>
+    </div>
+
+    <p><strong>Market Context</strong> பலகம் பின்வரும் தரவை காட்டுகிறது:</p>
+    <table class="sig-table">
+      <thead><tr><th>காட்டி</th><th>விளக்கம்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">Spot</span></td><td>தற்போதைய சந்தை விலை (live LTP)</td></tr>
+        <tr><td><span class="mono">IV Rank</span></td><td>Implied Volatility நிலை — அதிகம் = premium விலை அதிகம், குறைவு = premium மலிவு</td></tr>
+        <tr><td><span class="mono">ATM IV</span></td><td>ATM strike-இன் உண்மையான IV சதவீதம்</td></tr>
+        <tr><td><span class="mono">PCR</span></td><td>Put-Call Ratio — சந்தை உணர்வை காட்டும் (பகுதி 6-இல் விரிவாக)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <span class="section-anchor" id="s3"></span>
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Signal Score (0–17)</h2>
+    </div>
+    <p>Signal Score என்பது பல்வேறு technical காட்டிகளை ஒன்றிணைத்து, உங்கள் தேர்ந்தெடுத்த திசை (CE/PE) எவ்வளவு வலுவானது என்பதை 0–17 அளவில் காட்டும் ஒட்டுமொத்த மதிப்பீடு.</p>
+
+    <div class="score-bands">
+      <div class="score-band" style="background:rgba(46,204,113,0.08);border-color:rgba(46,204,113,0.3)">
+        <div class="range" style="color:var(--green)">14–17</div>
+        <div class="meaning">STRONG<br>நம்பிக்கையுடன் trade எடுக்கலாம்</div>
+      </div>
+      <div class="score-band" style="background:rgba(91,138,245,0.08);border-color:rgba(91,138,245,0.3)">
+        <div class="range" style="color:var(--blue)">10–13</div>
+        <div class="meaning">MODERATE<br>trade எடுக்கலாம், அளவை குறைக்கவும்</div>
+      </div>
+      <div class="score-band" style="background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.3)">
+        <div class="range" style="color:var(--yellow)">6–9</div>
+        <div class="meaning">WEAK<br>தெளிவு இல்லை, காத்திருங்கள்</div>
+      </div>
+      <div class="score-band" style="background:rgba(231,76,60,0.08);border-color:rgba(231,76,60,0.3)">
+        <div class="range" style="color:var(--red)">0–5</div>
+        <div class="meaning">SKIP<br>trade வேண்டாம்</div>
+      </div>
+    </div>
+
+    <p>Score-இன் கீழே ஒவ்வொரு signal-ஐயும் பட்டியல் காண்பிக்கும். ✅ = காட்டி ஆதரிக்கிறது, ❌ = எதிர்க்கிறது.</p>
+
+    <div class="info-box">
+      <span class="info-icon">📌</span>
+      <p>Signal Score ஒரு <strong>வழிகாட்டி மட்டுமே</strong>. இது 14+ இருந்தாலும் market context (CPR, VIX, news) சரிபார்த்த பின்னரே trade எடுங்கள். Score மட்டுமே பார்த்து blind-ஆக trade வேண்டாம்.</p>
+    </div>
+
+    <p>Score-இன் கீழே <strong>Selected Strike</strong> பலகம் தானாக பரிந்துரைக்கப்பட்ட strike-ஐ காட்டும்:</p>
+
+    <table class="sig-table">
+      <thead><tr><th>தகவல்</th><th>விளக்கம்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">Strike</span></td><td>பரிந்துரைக்கப்பட்ட strike price (ATM அல்லது OTM)</td></tr>
+        <tr><td><span class="mono">LTP</span></td><td>தற்போதைய premium விலை</td></tr>
+        <tr><td><span class="mono">IV%</span></td><td>அந்த strike-இன் implied volatility</td></tr>
+        <tr><td><span class="mono">Delta</span></td><td>Spot ₹1 மாறும்போது option-இன் விலை எவ்வளவு மாறும்</td></tr>
+        <tr><td><span class="mono">Theta</span></td><td>ஒவ்வொரு நாளும் time decay-ஆல் இழக்கும் தொகை</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Risk Plan</strong> பலகம் stop-loss மற்றும் target levels-ஐ தானாக கணக்கிட்டு காட்டும்:
+    Stop = Entry × 0.6 &nbsp;|&nbsp; T1 = Entry × 1.6 &nbsp;|&nbsp; T2 = Entry × 2.2</p>
+  </div>
+
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <span class="section-anchor" id="s4"></span>
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Option Chain படிக்கும் முறை</h2>
+    </div>
+    <p>Option Chain tab-இல் அனைத்து strikes-களுக்கும் CALL மற்றும் PUT தரவு பக்கவாட்டில் காட்டப்படும். <strong>ATM strike</strong> purple-ஆல் highlight ஆகும்; <strong>Max Pain strike</strong> மஞ்சள் MP badge-உடன் காட்டப்படும்.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Option Chain — மாதிரி காட்சி (RELIANCE, Spot 1,406)</div>
+      <div class="chain-demo">
+        <div class="chain-hdr ce">CALLS (CE)</div>
+        <div class="chain-hdr">STRIKE</div>
+        <div class="chain-hdr pe">PUTS (PE)</div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-green">long buildup</span> &nbsp;42.5k &nbsp;18.3%</div><div class="st">1,380</div><div class="pe-col">21.4%&nbsp; 8,200&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-green">long buildup</span> &nbsp;38.1k &nbsp;19.1%</div><div class="st">1,400</div><div class="pe-col">20.2%&nbsp; 6,100&nbsp; <span class="lbl lbl-cyan">short covering</span></div></div>
+        <div class="cr atm"><div class="ce-col"><span class="lbl lbl-yellow">long unwinding</span> 29.7k &nbsp;20.5%</div><div class="st">▶ 1,420 ◀</div><div class="pe-col">22.1%&nbsp; <span class="hi">51,200</span>&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-red">short buildup</span> &nbsp;&nbsp;18.2k &nbsp;22.8%</div><div class="st mp-st">1,440 MP</div><div class="pe-col">25.4%&nbsp; 44,800&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-red">short buildup</span> &nbsp;&nbsp;12.9k &nbsp;25.1%</div><div class="st">1,460</div><div class="pe-col">28.2%&nbsp; 38,500&nbsp; <span class="lbl lbl-cyan">short covering</span></div></div>
+      </div>
+    </div>
+
+    <p><strong>OI Signals (4 வகைகள்):</strong></p>
+    <table class="sig-table">
+      <thead><tr><th>Signal</th><th>OI</th><th>விலை</th><th>என்ன நடக்கிறது</th><th>பொருள்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="lbl lbl-green">long buildup</span></td><td>↑ அதிகம்</td><td>↑ ஏற்றம்</td><td>புதிய long positions சேர்க்கிறார்கள்</td><td><span class="pass">Bullish</span> — வாங்குவோர் அதிகம்</td></tr>
+        <tr><td><span class="lbl lbl-red">short buildup</span></td><td>↑ அதிகம்</td><td>↓ இறக்கம்</td><td>புதிய short positions சேர்க்கிறார்கள்</td><td><span class="fail">Bearish</span> — விற்பவர்கள் அதிகம்</td></tr>
+        <tr><td><span class="lbl lbl-cyan">short covering</span></td><td>↓ குறைவு</td><td>↑ ஏற்றம்</td><td>shorts திரும்ப வாங்குகிறார்கள்</td><td><span class="pass">Temporary Bullish</span> — விரைவில் முடியலாம்</td></tr>
+        <tr><td><span class="lbl lbl-yellow">long unwinding</span></td><td>↓ குறைவு</td><td>↓ இறக்கம்</td><td>longs விற்று வெளியேறுகிறார்கள்</td><td><span class="fail">Temporary Bearish</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">🔍</span>
+      <p><strong>Chain-ஐ எப்படி படிப்பது:</strong> ATM strike-க்கு அருகில் CE-இல் <span class="lbl lbl-red">short buildup</span> மற்றும் PE-இல் <span class="lbl lbl-red">short buildup</span> இருந்தால், சந்தை அந்த range-இல் உறைந்திருக்கும் (writers பவர் அதிகம்). ATM CE-இல் <span class="lbl lbl-green">long buildup</span> இருந்தால் — Bullish breakout வாய்ப்பு.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <span class="section-anchor" id="s5"></span>
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Max Pain — என்ன? எப்படி பயன்படுத்துவது?</h2>
+    </div>
+    <p><strong>Max Pain</strong> என்பது expiry நாளில் option writers (விற்பவர்கள்) அதிகபட்ச லாபம் பெறும் strike price. இந்த விலையில் அதிகமான options "worthless" ஆக expire ஆகும் — அதாவது buyers-க்கு அதிக loss; writers-க்கு அதிக gain.</p>
+
+    <div class="example-box">
+      <div class="ex-title">உதாரணம் — RELIANCE Max Pain</div>
+      <p>Spot இப்போது: <span class="ex-val">1,406</span> &nbsp;|&nbsp; Max Pain Strike: <span class="ex-val" style="color:var(--yellow)">1,440</span></p>
+      <p><strong>விளக்கம்:</strong> Expiry நாளில் RELIANCE 1,440-இல் close ஆனால், அதிகமான CE buyers மற்றும் PE buyers இரண்டும் loss-இல் expire ஆவார்கள். Institutional writers இதை நோக்கி விலையை இழுக்கும் சக்தி இருக்கும்.</p>
+      <p><strong>தற்போதைய நிலை:</strong> Spot (1,406) &lt; Max Pain (1,440) — விலை ஏற வாய்ப்பு அதிகம். CE வாங்குவதற்கு ஆதரவான signal.</p>
+    </div>
+
+    <table class="sig-table">
+      <thead><tr><th>நிலை</th><th>பொருள்</th><th>trade bias</th></tr></thead>
+      <tbody>
+        <tr><td>Spot &lt; Max Pain</td><td>விலை Max Pain-ஐ நோக்கி ஏற வாய்ப்பு</td><td><span class="pass">CE சாதகம்</span></td></tr>
+        <tr><td>Spot &gt; Max Pain</td><td>விலை Max Pain-ஐ நோக்கி இறங்க வாய்ப்பு</td><td><span class="fail">PE சாதகம்</span></td></tr>
+        <tr><td>Spot ≈ Max Pain</td><td>Expiry-க்கு அருகில் range-bound ஆக இருக்கும்</td><td><span class="warn">Straddle / காத்திரு</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box warn-box">
+      <span class="info-icon">⚠️</span>
+      <p>Max Pain <strong>expiry நாளில் மட்டும்</strong> அதிக சக்தி வாய்ந்தது. Expiry-க்கு 2–3 வாரங்கள் முன்பு இருந்தால், இது வழிகாட்டியாக மட்டுமே பயன்படுத்தவும் — market catalyst-கள் அதை override செய்யலாம்.</p>
+    </div>
+
+    <p><strong>Max Pain &amp; PCR Tab-இல்</strong> கிடைக்கும் தரவு:</p>
+    <table class="sig-table">
+      <thead><tr><th>தரவு</th><th>விளக்கம்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">Max Pain Strike</span></td><td>writers சதகும் விலை — expiry pull target</td></tr>
+        <tr><td><span class="mono">Pain Distance</span></td><td>Spot-லிருந்து Max Pain எவ்வளவு தொலைவில் உள்ளது (points &amp; %)</td></tr>
+        <tr><td><span class="mono">CE OI vs PE OI</span></td><td>மொத்த CE OI vs PE OI — யார் அதிகம் உள்ளனர்</td></tr>
+        <tr><td><span class="mono">Max Pain Chart</span></td><td>ஒவ்வொரு strike-லும் writers pain visualization</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <span class="section-anchor" id="s6"></span>
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>PCR — Put-Call Ratio</h2>
+    </div>
+    <p><strong>PCR = மொத்த Put OI ÷ மொத்த Call OI</strong></p>
+    <p>இது சந்தையின் உணர்வை (sentiment) காட்டும் எளிமையான அளவீடு. அதிக PE OI = பயம் அதிகம் = contrarian bullish signal.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">PCR விளக்கம்</div>
+      <table class="sig-table" style="margin:0">
+        <thead><tr><th>PCR மதிப்பு</th><th>சந்தை நிலை</th><th>trade bias</th></tr></thead>
+        <tbody>
+          <tr><td><span class="mono" style="color:var(--red)">&gt; 1.5</span></td><td>அதிக bearishness — PE writers அதிகம்</td><td><span class="pass">Contrarian Bullish</span> — இறக்கம் முடிவடையலாம்</td></tr>
+          <tr><td><span class="mono" style="color:var(--yellow)">1.0 – 1.5</span></td><td>சமச்சீர் — Neutral zone</td><td><span class="warn">Neutral</span> — திசை தெளிவில்லை</td></tr>
+          <tr><td><span class="mono" style="color:var(--green)">0.7 – 1.0</span></td><td>Balanced market</td><td><span class="pass">Moderate Bullish</span></td></tr>
+          <tr><td><span class="mono" style="color:var(--red)">&lt; 0.7</span></td><td>Complacency — CE writers அதிகம்</td><td><span class="fail">Contrarian Bearish</span> — ஏற்றம் முடிவடையலாம்</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="example-box">
+      <div class="ex-title">உதாரணம் — NIFTY PCR</div>
+      <p>CE OI = <span class="ex-val">82 லட்சம்</span> &nbsp;|&nbsp; PE OI = <span class="ex-val">1.12 கோடி</span></p>
+      <p>PCR = 1.12 / 0.82 = <span class="ex-val">1.37</span> — <span class="warn">Neutral to Slightly Bearish Sentiment</span></p>
+      <p>ஆனால் இது Contrarian-ஆக பார்த்தால்: அதிக PE OI = பயம் அதிகம் = <span class="pass">selling exhaustion வாய்ப்பு</span>. CPR மற்றும் Signal Score-உடன் இணைந்து confirm செய்யவும்.</p>
+    </div>
+
+    <div class="info-box">
+      <span class="info-icon">📌</span>
+      <p>PCR <strong>ஒரு contrarian indicator</strong>. மக்கள் அதிகமாக PE வாங்கும்போது, சந்தை பலவீனமாக இல்லாமல் திரும்ப ஏறலாம். எந்த ஒரு indicator-ஐயும் தனியே நம்பாதீர்கள் — Signal Score-உடன் சேர்த்து பாருங்கள்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 7 -->
+  <div class="section">
+    <span class="section-anchor" id="s7"></span>
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Trade Monitor — நேரடி கண்காணிப்பு</h2>
+    </div>
+    <p>Trade Monitor tab-இல் உங்கள் தற்போதைய நிலையை உள்ளிட்டு <strong>Evaluate</strong> பொத்தான் அழுத்தினால், கருவி HOLD / EXIT / TRAIL என்று சொல்லும்.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <div class="step-title">Entry LTP</div>
+          <p>நீங்கள் option வாங்கிய விலை. எ.கா: RELIANCE 1420 CE-ஐ <strong>₹85</strong>-க்கு வாங்கினீர்கள்.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <div class="step-title">Current LTP</div>
+          <p>தற்போதைய சந்தை விலை. Market open ஆக இருந்தால் இது மாறிக்கொண்டே இருக்கும். எ.கா: <strong>₹112</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <div class="step-title">Stop Price, T1, T2</div>
+          <p>Risk Plan பலகத்தில் இருந்து auto-fill ஆகும். அல்லது நீங்களாக இட்டுக்கொள்ளலாம். எ.கா: Stop = <strong>₹51</strong>, T1 = <strong>₹136</strong>, T2 = <strong>₹187</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">4</div>
+        <div class="step-body">
+          <div class="step-title">Lots &amp; Lot Size</div>
+          <p>நீங்கள் வாங்கிய lots எண்ணிக்கை மற்றும் அந்த பங்கின் lot size. RELIANCE lot size = 250. 2 lots வாங்கினீர்களா? <strong>2 lots × 250 = 500 shares</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:16px"><strong>முடிவு (Output) விளக்கம்:</strong></p>
+
+    <div class="monitor-demo">
+      <div class="mon-action HOLD">HOLD</div>
+      <p style="font-size:12px;color:var(--dim);margin-bottom:12px;font-family:'Noto Sans Tamil',sans-serif">T1 அடையவில்லை, Stop-க்கு மேலே உள்ளது</p>
+      <div class="mon-row"><span class="mon-key">நிலையான P&L</span><span class="mon-val" style="color:var(--green)">+₹13,500</span></div>
+      <div class="mon-row"><span class="mon-key">நுழைவு விலை</span><span class="mon-val">₹85</span></div>
+      <div class="mon-row"><span class="mon-key">தற்போதைய விலை</span><span class="mon-val">₹112</span></div>
+      <div class="mon-row"><span class="mon-key">Stop</span><span class="mon-val" style="color:var(--red)">₹51</span></div>
+      <div class="mon-row"><span class="mon-key">T1</span><span class="mon-val" style="color:var(--green)">₹136</span></div>
+    </div>
+
+    <table class="sig-table" style="margin-top:16px">
+      <thead><tr><th>முடிவு</th><th>நிலை</th><th>செயல்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="HOLD" style="font-weight:700">HOLD</span></td><td>T1-க்கு கீழே, Stop-க்கு மேலே</td><td>position-ஐ வைத்திருங்கள்</td></tr>
+        <tr><td><span class="EXIT_T1" style="font-weight:700">EXIT T1</span></td><td>Current LTP ≥ T1</td><td>பாதி lot விற்று profit book செய்யுங்கள்</td></tr>
+        <tr><td><span class="EXIT_T2" style="font-weight:700">EXIT T2</span></td><td>T1 hit + Current LTP ≥ T2</td><td>மீதி lot விற்று முழு profit எடுங்கள்</td></tr>
+        <tr><td><span class="TRAIL" style="font-weight:700">TRAIL</span></td><td>T1 hit, இன்னும் running</td><td>Stop-ஐ Entry-க்கு மேலே நகர்த்துங்கள் (risk-free)</td></tr>
+        <tr><td><span class="EXIT_STOP" style="font-weight:700">EXIT STOP</span></td><td>Current LTP ≤ Stop</td><td>உடனே வெளியேறுங்கள் — loss cut</td></tr>
+        <tr><td><span class="EXIT_EOD" style="font-weight:700">EXIT EOD</span></td><td>2:55 PM கடந்துவிட்டது</td><td>intraday-ஆக இருந்தால் close செய்யுங்கள்</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box red-box">
+      <span class="info-icon">🚨</span>
+      <p><strong>Stop-Loss கட்டாயம்:</strong> Trade Monitor "EXIT STOP" சொன்னால் உடனடியாக வெளியேறுங்கள். "இன்னும் கொஞ்சம் காத்திருக்கலாம்" என்று நினைக்காதீர்கள் — loss அதிகமாகும். Options-இல் time decay கூடுதல் risk சேர்க்கிறது.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <span class="section-anchor" id="s8"></span>
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Contract History — Theta Decay</h2>
+    </div>
+    <p>Contract History tab-இல் ஒரு குறிப்பிட்ட option contract-இன் கடந்த கால தரவை பார்க்கலாம். இது <strong>Theta Decay</strong> (time decay) எப்படி நடக்கிறது என்பதை காட்டுவதற்கு மிகவும் பயனுள்ளது.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <div class="step-title">Strike மற்றும் Type தேர்வு</div>
+          <p>நீங்கள் ஆய்வு செய்ய விரும்பும் strike-ஐ உள்ளிடுங்கள். CE / PE toggle அழுத்துங்கள். எ.கா: NIFTY 24100 CE.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <div class="step-title">Expiry, From Date, To Date</div>
+          <p>Contract-இன் expiry date தேர்வு செய்யுங்கள். From Date = contract trading தொடங்கிய தேதி (பொதுவாக முந்தைய expiry). To Date = expiry date அல்லது இன்றைய தேதி.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <div class="step-title">"Fetch from NSE" அழுத்தவும்</div>
+          <p>NSE API மூலம் நேரடியாக data ஏற்றப்படும். NSE API கிடைக்கவில்லை என்றால், <strong>Bhavcopy files fallback</strong> link-ஐ பயன்படுத்தி CSV file upload செய்யலாம்.</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:16px"><strong>Chart-இல் காண்பிக்கப்படும் தரவு:</strong></p>
+    <table class="sig-table">
+      <thead><tr><th>காட்டி</th><th>விளக்கம்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">Actual LTP</span> (purple)</td><td>ஒவ்வொரு நாளும் option-இன் closing price</td></tr>
+        <tr><td><span class="mono">Theoretical Decay</span> (orange)</td><td>Black-Scholes மாதிரி கணக்கிட்ட ideal decay — இது "நேர்மையான" decay path</td></tr>
+        <tr><td><span class="mono">IV%</span></td><td>ஒவ்வொரு நாளும் implied volatility சதவீதம்</td></tr>
+        <tr><td><span class="mono">DTE</span></td><td>Days to Expiry — எத்தனை நாட்கள் மீதமுள்ளன</td></tr>
+        <tr><td><span class="mono">Theta</span></td><td>அன்று ஒரு நாளின் time decay இழப்பு (₹ per lot)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="example-box">
+      <div class="ex-title">உதாரணம் — NIFTY 24100 CE (8 மே 2026 Expiry)</div>
+      <p>From: <span class="ex-val">28-Mar-2026</span> &nbsp;→&nbsp; To: <span class="ex-val">08-May-2026</span> (41 நாட்கள்)</p>
+      <p>40 DTE-இல் LTP: <span class="ex-val">₹420</span> &nbsp;|&nbsp; 10 DTE-இல் LTP: <span class="ex-val">₹85</span> &nbsp;|&nbsp; Expiry-ல்: <span class="ex-val">₹3</span></p>
+      <p><strong>பாடம்:</strong> Expiry-க்கு 30 நாட்களுக்கு முன்பு வாங்கினால் ₹420 → ₹3 ஆகும் — premium-இன் 99% போய்விடும். Options வாங்குபவர்களுக்கு TIME ஒரு எதிரி.</p>
+    </div>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">💡</span>
+      <p><strong>Option Writers-க்கு ஒரு குறிப்பு:</strong> Actual LTP &gt; Theoretical Decay என்று இருந்தால் — IV அதிகமாக உள்ளது, selling சாதகமான நேரம். Actual LTP &lt; Theoretical Decay என்றால் — IV குறைவாக உள்ளது, buying சாதகமான நேரம்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 9 — FULL WORKFLOW -->
+  <div class="section">
+    <span class="section-anchor" id="s9"></span>
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>முழு Workflow உதாரணம்</h2>
+    </div>
+    <p>இங்கே ஒரு real trade setup-ஐ step-by-step பார்ப்போம். Stock: <strong>RELIANCE</strong>, Date: <strong>14 மே 2026</strong>, Expiry: <strong>29 மே 2026</strong>.</p>
+
+    <div class="workflow">
+      <div class="wf-step"><div class="wf-circle">🔧</div><div class="wf-label">Symbol &amp; Expiry அமை</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">📊</div><div class="wf-label">Analyze அழுத்து</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">🧭</div><div class="wf-label">Trade Flow சரிபார்</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">🎯</div><div class="wf-label">Score &amp; Strike</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">📈</div><div class="wf-label">Chain + Max Pain</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">🛡️</div><div class="wf-label">Trade Monitor</div></div>
+    </div>
+
+    <div class="example-box" style="border-color:rgba(46,204,113,0.4)">
+      <div class="ex-title" style="color:var(--green)">Step 1 — Setup</div>
+      <p>Symbol: <span class="ex-val">RELIANCE</span> &nbsp;|&nbsp; Expiry: <span class="ex-val">29-May-2026</span> &nbsp;|&nbsp; Direction: <span class="lbl lbl-blue">CE</span> (bullish திசை நம்புகிறோம்)</p>
+      <p>Analyze அழுத்துங்கள் — 5–8 வினாடிகளில் அனைத்தும் ஏற்றப்படும்.</p>
+    </div>
+
+    <div class="example-box" style="border-color:rgba(0,212,255,0.4)">
+      <div class="ex-title" style="color:var(--cyan)">Step 2 — Stock Trade Flow சரிபார்</div>
+      <p>TC = <span class="ex-val">1,402</span> &nbsp;|&nbsp; Spot = <span class="ex-val">1,406</span> &nbsp;→&nbsp; <span class="pass">▲ ABOVE TC — Bullish</span></p>
+      <p>ORB High = <span class="ex-val">1,408</span>, Spot &gt; ORB High — breakout confirm. CPR bullish signal உள்ளது, CE trade-க்கு ஆதரவு.</p>
+    </div>
+
+    <div class="example-box" style="border-color:rgba(124,106,247,0.4)">
+      <div class="ex-title" style="color:var(--accent)">Step 3 — Signal Score</div>
+      <p>Score: <span class="ex-val" style="color:var(--green)">13 / 17</span> — <span class="lbl lbl-blue">MODERATE</span></p>
+      <p>✅ RSI Bullish &nbsp;✅ CPR Above TC &nbsp;✅ OI Bullish &nbsp;✅ PCR &gt; 1.0 &nbsp;✅ Max Pain தொலைவில் (upside) &nbsp;✅ Volume Spike</p>
+      <p>❌ VIX குறைவாக உள்ளது (premium மலிவு — buying சாதகம் ✓) &nbsp;❌ IV relatively low</p>
+      <p>பரிந்துரை Strike: <span class="ex-val">1,420 CE</span> &nbsp;|&nbsp; LTP: <span class="ex-val">₹42</span> &nbsp;|&nbsp; Delta: <span class="ex-val">0.38</span> &nbsp;|&nbsp; Theta: <span class="ex-val">-₹1.8/day</span></p>
+    </div>
+
+    <div class="example-box" style="border-color:rgba(245,166,35,0.4)">
+      <div class="ex-title" style="color:var(--yellow)">Step 4 — Option Chain &amp; Max Pain</div>
+      <p>1,420 CE-இல்: <span class="lbl lbl-green">long buildup</span> — OI ↑ + Price ↑. Institutional buying உள்ளது.</p>
+      <p>Max Pain = <span class="ex-val" style="color:var(--yellow)">1,440</span> &nbsp;|&nbsp; Spot (1,406) &lt; Max Pain (1,440) — upside pull இருக்கும்.</p>
+      <p>PCR = <span class="ex-val">1.22</span> — Slightly bearish sentiment = contrarian bullish signal.</p>
+      <p>அனைத்து signals CE-க்கு சாதகமாக உள்ளன. Trade எடுக்கலாம்.</p>
+    </div>
+
+    <div class="example-box" style="border-color:rgba(46,204,113,0.4)">
+      <div class="ex-title" style="color:var(--green)">Step 5 — Trade Monitor</div>
+      <p>வாங்கினோம்: <span class="ex-val">1,420 CE @ ₹42</span> &nbsp;|&nbsp; Lots: <span class="ex-val">2</span> &nbsp;|&nbsp; Lot Size: <span class="ex-val">250</span></p>
+      <p>Risk Plan (auto): Stop = <span class="ex-val" style="color:var(--red)">₹25</span> &nbsp;|&nbsp; T1 = <span class="ex-val" style="color:var(--green)">₹67</span> &nbsp;|&nbsp; T2 = <span class="ex-val" style="color:var(--green)">₹92</span></p>
+      <p>அடுத்த நாள் Current LTP = <span class="ex-val">₹68</span> → Monitor சொல்கிறது: <span class="EXIT_T1" style="font-weight:700">EXIT T1</span></p>
+      <p>1 lot @ ₹67 விற்றோம்: Profit = (67–42) × 250 = <span class="pass">+₹6,250</span>. மீதி 1 lot TRAIL-க்கு வைத்தோம்.</p>
+    </div>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">✅</span>
+      <p><strong>சுருக்கம்:</strong> CPR Bullish → Signal Score 13/17 → Long Buildup in Chain → Max Pain Upside → PCR Contrarian Bullish → Trade எடுத்தோம் → Monitor-இல் T1 hit → பாதி profit book செய்தோம். இதுவே Stock Options கருவியின் சரியான பயன்பாடு.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <div style="text-align:center;padding:20px 0 40px">
+    <p style="color:var(--dim);font-size:14px;margin-bottom:16px;font-family:'Noto Sans Tamil',sans-serif">கருவியை நேரடியாக பயன்படுத்த தயாரா?</p>
+    <a class="cta-btn" href="/stock_options.html">Stock Options கருவி திறக்கவும் →</a>
+  </div>
+
+</div>
+
+<script>
+function toggleNav() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+</script>
+</body>
+</html>
