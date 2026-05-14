@@ -366,9 +366,9 @@ const fmtP = v => v != null ? (v >= 0 ? '+' : '') + v.toFixed(2) : '';
 
 function formatTime(epochSec) {
   const d = new Date(epochSec * 1000);
-  // The candle times from yfinance have an IST offset added already
-  const h = String(d.getHours()).padStart(2,'0');
-  const m = String(d.getMinutes()).padStart(2,'0');
+  // Server already adds IST_OFFSET (+5:30) to timestamps — use UTC methods to avoid double-counting
+  const h = String(d.getUTCHours()).padStart(2,'0');
+  const m = String(d.getUTCMinutes()).padStart(2,'0');
   return `${h}:${m}`;
 }
 

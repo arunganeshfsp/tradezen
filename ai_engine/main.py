@@ -2106,9 +2106,11 @@ async def psychology_levels(symbol: str = "NIFTY"):
         return {"error": "No prior session data"}
     prev = past.iloc[-1]
     H, L, C = float(prev.High), float(prev.Low), float(prev.Close)
-    pp = round((H + L + C) / 3, 2)
-    bc = round((H + L) / 2, 2)
-    tc = round(pp - bc + pp, 2)
+    pp    = round((H + L + C) / 3, 2)
+    _bc   = round((H + L) / 2, 2)
+    _tc   = round(2 * pp - _bc, 2)
+    tc    = max(_tc, _bc)
+    bc    = min(_tc, _bc)
     r1 = round(2 * pp - L, 2);  r2 = round(pp + (H - L), 2)
     s1 = round(2 * pp - H, 2);  s2 = round(pp - (H - L), 2)
     rng = H - L
