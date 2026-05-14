@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPR Monitor — தமிழ் வழிகாட்டி | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;--orange:#f39c12;--purple:#a78bfa;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Noto Sans Tamil',sans-serif;min-height:100vh;overflow-x:hidden}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+@media(max-width:768px){nav{padding:0 16px}.hamburger{display:flex}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}.nav-links.open{display:flex}}
+
+.page{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+
+.hero{text-align:center;padding:48px 0 40px}
+.hero-tag{display:inline-block;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--cyan);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:16px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,4vw,38px);font-weight:800;color:#fff;line-height:1.15;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--cyan),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--dim);font-size:15px;max-width:600px;margin:0 auto;line-height:1.7;font-family:'Noto Sans Tamil',sans-serif}
+.cta-btn{display:inline-block;margin-top:24px;padding:10px 28px;background:linear-gradient(135deg,var(--cyan),var(--accent));border-radius:8px;color:#fff;font-weight:600;font-size:14px;text-decoration:none;transition:opacity .15s}
+.cta-btn:hover{opacity:.85}
+
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px 28px;margin-bottom:40px}
+.toc h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.toc ol{padding-left:18px;display:grid;grid-template-columns:1fr 1fr;gap:6px 32px}
+@media(max-width:600px){.toc ol{grid-template-columns:1fr}}
+.toc li{font-size:13px;font-family:'Noto Sans Tamil',sans-serif}
+.toc a{color:var(--cyan);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+.section{margin-bottom:56px}
+.section-anchor{display:block;height:72px;margin-top:-72px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.section-num{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.section p{color:var(--dim);font-size:14px;line-height:1.8;margin-bottom:12px;font-family:'Noto Sans Tamil',sans-serif}
+.section p strong{color:var(--text)}
+
+.steps{display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.step{display:flex;gap:14px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.step-n{width:26px;height:26px;background:var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#000;flex-shrink:0;margin-top:1px}
+.step-body .step-title{font-weight:700;font-size:14px;color:#fff;margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--dim);line-height:1.7;margin:0;font-family:'Noto Sans Tamil',sans-serif}
+
+.sig-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.sig-table th{background:var(--bg3);color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.sig-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.sig-table tr:last-child td{border-bottom:none}
+.sig-table tr:hover td{background:var(--bg3)}
+.mono{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan)}
+.pass{color:var(--green);font-weight:600}
+.fail{color:var(--red);font-weight:600}
+.warn{color:var(--yellow);font-weight:600}
+.acc{color:var(--accent);font-weight:600}
+
+.lbl{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.lbl-green{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.lbl-blue{background:rgba(91,138,245,0.15);color:var(--blue);border:1px solid rgba(91,138,245,0.3)}
+.lbl-yellow{background:rgba(245,166,35,0.15);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+.lbl-red{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.lbl-cyan{background:rgba(0,212,255,0.12);color:var(--cyan);border:1px solid rgba(0,212,255,0.25)}
+.lbl-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
+.lbl-narrow{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.lbl-wide{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.lbl-moderate{background:rgba(245,166,35,0.15);color:var(--yellow);border:1px solid rgba(245,166,35,0.3)}
+.lbl-virgin{background:rgba(124,106,247,0.15);color:var(--accent);border:1px solid rgba(124,106,247,0.4)}
+
+.info-box{display:flex;gap:12px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:var(--r2);padding:14px 16px;margin:14px 0}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.info-box p{font-size:13px;color:var(--dim);margin:0;line-height:1.7}
+.warn-box{background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2)}
+.tip-box{background:rgba(46,204,113,0.06);border-color:rgba(46,204,113,0.2)}
+.red-box{background:rgba(231,76,60,0.06);border-color:rgba(231,76,60,0.2)}
+.purple-box{background:rgba(124,106,247,0.07);border-color:rgba(124,106,247,0.3)}
+
+.diagram{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin:16px 0}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+
+.example-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:var(--r);padding:18px 20px;margin:16px 0}
+.example-box .ex-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+.example-box p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:8px;font-family:'Noto Sans Tamil',sans-serif}
+.example-box p:last-child{margin:0}
+.ex-val{font-family:'JetBrains Mono',monospace;color:#fff;font-weight:700}
+
+/* CPR Visual Diagrams */
+.cpr-ladder-demo{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin:12px 0;font-family:'JetBrains Mono',monospace;font-size:12px}
+.cld-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid rgba(37,42,68,.5)}
+.cld-row:last-child{border:none}
+.cld-name{width:44px;font-size:11px;font-weight:700}
+.cld-val{width:80px;font-weight:700}
+.cld-bar{flex:1;height:5px;border-radius:3px}
+.cld-desc{font-size:11px;color:var(--dim);font-family:'Noto Sans Tamil',sans-serif}
+.cld-row.r3 .cld-name{color:var(--cyan)} .cld-row.r2 .cld-name{color:var(--green)} .cld-row.r1 .cld-name{color:var(--green)}
+.cld-row.tc .cld-name{color:var(--yellow)} .cld-row.pp .cld-name{color:var(--yellow)} .cld-row.bc .cld-name{color:var(--yellow)}
+.cld-row.s1 .cld-name{color:var(--red)} .cld-row.s2 .cld-name{color:var(--red)} .cld-row.s3 .cld-name{color:#c0392b)}
+
+.cpr-width-demo{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.cpr-width-demo{grid-template-columns:1fr}}
+.cwd-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center}
+.cwd-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:8px}
+.cwd-width{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;margin-bottom:6px}
+.cwd-desc{font-size:11px;color:var(--dim);line-height:1.5;font-family:'Noto Sans Tamil',sans-serif}
+
+.alert-demo{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:16px 0}
+.ad-row{display:flex;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:flex-start}
+.ad-row:last-child{border:0}
+.ad-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:48px;padding-top:2px}
+.ad-type{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;margin-bottom:3px}
+.ad-dir{display:inline-block;padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-right:6px}
+.dir-buy{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)}
+.dir-sell{background:rgba(231,76,60,0.12);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.dir-watch{background:rgba(124,106,247,0.12);color:var(--accent);border:1px solid rgba(124,106,247,0.3)}
+.conf-high{display:inline-block;padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.25)}
+.conf-med{display:inline-block;padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;background:rgba(245,166,35,0.1);color:var(--yellow);border:1px solid rgba(245,166,35,0.25)}
+.ad-reason{font-size:12px;color:var(--dim);line-height:1.5;font-family:'Noto Sans Tamil',sans-serif}
+
+.workflow{display:flex;align-items:flex-start;gap:0;margin:20px 0;flex-wrap:wrap;justify-content:center}
+.wf-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:80px;max-width:120px}
+.wf-circle{width:44px;height:44px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px}
+.wf-label{font-size:11px;color:var(--dim);text-align:center;margin-top:8px;line-height:1.4;font-family:'Noto Sans Tamil',sans-serif}
+.wf-arrow{color:var(--border2);font-size:20px;margin-top:14px;align-self:flex-start}
+
+.trade-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin:10px 0}
+.tc-head{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.tc-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.tc-row:last-child{border:0}
+.tc-key{color:var(--dim);font-family:'Noto Sans Tamil',sans-serif}
+.tc-val{font-family:'JetBrains Mono',monospace;font-weight:700}
+
+hr{border:none;border-top:1px solid var(--border);margin:40px 0}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><span class="logo">TZ</span>&nbsp;TradeZen</a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/trade_flow.html">Trade Flow</a>
+    <a class="nl" href="/fno_scanner.html">F&amp;O Scanner</a>
+    <a class="nl" href="/stock_options.html">Stock Options</a>
+    <a class="nl on" href="/cpr_monitor.html">CPR</a>
+    <a class="nl" href="/market_psychology.html">TradeFun</a>
+  </div>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0;margin-left:auto"></button>
+  <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">How to Use · பயன்பாட்டு வழிகாட்டி</div>
+    <h1>CPR <em>Monitor</em> கருவி</h1>
+    <p>CPR என்றால் என்ன, அதன் வகைகள், Camarilla, Virgin CPR, Alerts மூலம் எப்படி trade செய்வது — அனைத்தும் தமிழில்.</p>
+    <a class="cta-btn" href="/cpr_monitor.html">CPR Monitor திறக்கவும் →</a>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h3>உள்ளடக்கம்</h3>
+    <ol>
+      <li><a href="#s1">CPR என்றால் என்ன?</a></li>
+      <li><a href="#s2">CPR கணக்கீடு — Step by Step</a></li>
+      <li><a href="#s3">CPR வகைகள் — Narrow, Moderate, Wide</a></li>
+      <li><a href="#s4">Virgin CPR — மிக முக்கியமான Signal</a></li>
+      <li><a href="#s5">Camarilla Levels — H3, H4, L3, L4</a></li>
+      <li><a href="#s6">Price Ladder &amp; Chart படிக்கும் முறை</a></li>
+      <li><a href="#s7">Alert Feed — 7 வகை Alerts</a></li>
+      <li><a href="#s8">Alerts மூலம் Trade செய்வது</a></li>
+      <li><a href="#s9">முழு நாள் உதாரணம் (End-to-End)</a></li>
+    </ol>
+  </div>
+
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <span class="section-anchor" id="s1"></span>
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>CPR என்றால் என்ன?</h2>
+    </div>
+
+    <p><strong>CPR (Central Pivot Range)</strong> என்பது நேற்றைய சந்தை தரவை (High, Low, Close) பயன்படுத்தி கணக்கிடப்படும் இன்றைய முக்கிய விலை வலயம். இது சந்தை திறக்கும் முன்பே தெரிந்திருக்கும் — எந்த real-time data-ம் தேவையில்லை.</p>
+
+    <p>CPR-இன் மூன்று அடுக்குகள்:</p>
+
+    <div class="cpr-ladder-demo">
+      <div class="cld-row tc" style="background:rgba(46,204,113,0.06)">
+        <div class="cld-name">TC</div>
+        <div class="cld-val" style="color:var(--green)">23,422</div>
+        <div class="cld-bar" style="background:rgba(46,204,113,0.4)"></div>
+        <div class="cld-desc">Top CPR — மேல் எல்லை (resistance zone)</div>
+      </div>
+      <div class="cld-row pp" style="background:rgba(245,166,35,0.06)">
+        <div class="cld-name">PP</div>
+        <div class="cld-val" style="color:var(--yellow)">23,419</div>
+        <div class="cld-bar" style="background:rgba(245,166,35,0.4)"></div>
+        <div class="cld-desc">Pivot Point — CPR-இன் நடு புள்ளி (magnet)</div>
+      </div>
+      <div class="cld-row bc" style="background:rgba(231,76,60,0.06)">
+        <div class="cld-name">BC</div>
+        <div class="cld-val" style="color:var(--red)">23,416</div>
+        <div class="cld-bar" style="background:rgba(231,76,60,0.4)"></div>
+        <div class="cld-desc">Bottom CPR — கீழ் எல்லை (support zone)</div>
+      </div>
+    </div>
+
+    <p><strong>CPR ஏன் முக்கியம்?</strong></p>
+    <table class="sig-table">
+      <thead><tr><th>விலை நிலை</th><th>பொருள்</th><th>நடை முறை</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Spot &gt; TC</td>
+          <td><span class="pass">Bullish Zone</span> — விலை CPR-க்கு மேலே</td>
+          <td>CE options வாங்க சாதகம்; CPR support ஆக செயல்படும்</td>
+        </tr>
+        <tr>
+          <td>BC ≤ Spot ≤ TC</td>
+          <td><span class="warn">Inside CPR</span> — குழப்பமான நிலை</td>
+          <td>திசை தெளிவில்லை; CPR உடைக்கும் வரை காத்திரு</td>
+        </tr>
+        <tr>
+          <td>Spot &lt; BC</td>
+          <td><span class="fail">Bearish Zone</span> — விலை CPR-க்கு கீழே</td>
+          <td>PE options வாங்க சாதகம்; CPR resistance ஆக செயல்படும்</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <span class="info-icon">📌</span>
+      <p>CPR-ஐ <strong>இன்றைய "highway median"</strong> என்று நினைத்துக்கொள்ளுங்கள். விலை இந்த median-க்கு மேலே ஓடினால் — bullish lane. கீழே போனால் — bearish lane. CPR-க்குள் இருந்தால் — traffic jam (choppy).</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <span class="section-anchor" id="s2"></span>
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>CPR கணக்கீடு — Step by Step</h2>
+    </div>
+
+    <p>நேற்றைய <strong>High (H), Low (L), Close (C)</strong> மட்டும் தேவை. TradeZen தானாகவே இதை கணக்கிடும்.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">CPR சூத்திரம்</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yellow);margin-bottom:8px">PP = (H + L + C) ÷ 3</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);margin-bottom:8px">TC = max(2×PP − (H+L)/2, (H+L)/2)</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--red)">BC = min(2×PP − (H+L)/2, (H+L)/2)</div>
+        </div>
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);margin-bottom:8px">R1 = 2×PP − L</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);margin-bottom:8px">R2 = PP + (H − L)</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px">S1 = 2×PP − H</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">S2 = PP − (H − L)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example-box">
+      <div class="ex-title">கணக்கு உதாரணம் — NIFTY, 13 மே 2026</div>
+      <p>நேற்றைய: High = <span class="ex-val">23,500</span> &nbsp;|&nbsp; Low = <span class="ex-val">23,300</span> &nbsp;|&nbsp; Close = <span class="ex-val">23,420</span></p>
+      <p><strong>PP</strong> = (23,500 + 23,300 + 23,420) ÷ 3 = <span class="ex-val">23,406.7</span></p>
+      <p><strong>Midpoint</strong> = (23,500 + 23,300) ÷ 2 = <span class="ex-val">23,400</span></p>
+      <p><strong>TC</strong> = max(2×23,406.7 − 23,400, 23,400) = max(23,413.4, 23,400) = <span class="ex-val" style="color:var(--green)">23,413</span></p>
+      <p><strong>BC</strong> = min(23,413.4, 23,400) = <span class="ex-val" style="color:var(--red)">23,400</span></p>
+      <p><strong>CPR Width</strong> = 23,413 − 23,400 = <span class="ex-val">13 points</span> — <span class="lbl lbl-narrow">NARROW</span></p>
+      <p><strong>R1</strong> = 2×23,406.7 − 23,300 = <span class="ex-val" style="color:var(--cyan)">23,513</span> &nbsp;|&nbsp; <strong>S1</strong> = 2×23,406.7 − 23,500 = <span class="ex-val" style="color:var(--accent)">23,313</span></p>
+    </div>
+
+    <p>இந்த levels இன்று சந்தை திறக்கும் முன்பே தெரியும். <strong>9:15 AM-க்கு முன்பே</strong> இவற்றை பார்த்து trade plan தயாரிக்கவும்.</p>
+  </div>
+
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <span class="section-anchor" id="s3"></span>
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>CPR வகைகள் — Narrow, Moderate, Wide</h2>
+    </div>
+
+    <p>CPR-இன் width (TC − BC) நேற்றைய சந்தை நடவடிக்கையை காட்டுகிறது. இது <strong>இன்றைய trade திட்டத்தை</strong> நேரடியாக பாதிக்கும்.</p>
+
+    <div class="cpr-width-demo">
+      <div class="cwd-card" style="border-color:rgba(46,204,113,0.3)">
+        <div class="cwd-title" style="color:var(--green)">NARROW</div>
+        <div class="cwd-width" style="color:var(--green)">&lt; 40 pts</div>
+        <div class="cwd-desc">நேற்று tight range. <strong>Trend day வாய்ப்பு அதிகம்.</strong> TC உடைத்தால் ஒரே திசையில் பெரிய move வரலாம். Pre-market plan தயார்.</div>
+      </div>
+      <div class="cwd-card" style="border-color:rgba(245,166,35,0.3)">
+        <div class="cwd-title" style="color:var(--yellow)">MODERATE</div>
+        <div class="cwd-width" style="color:var(--yellow)">40–80 pts</div>
+        <div class="cwd-desc">சாதாரண range. Trend அல்லது Range — இரண்டும் வாய்ப்பு உண்டு. CPR-ஐ உடைக்கும் திசையில் trade எடுக்கவும்.</div>
+      </div>
+      <div class="cwd-card" style="border-color:rgba(231,76,60,0.3)">
+        <div class="cwd-title" style="color:var(--red)">WIDE</div>
+        <div class="cwd-width" style="color:var(--red)">&gt; 80 pts</div>
+        <div class="cwd-desc">நேற்று volatile day. <strong>Range-bound day வாய்ப்பு அதிகம்.</strong> CPR-க்குள் பல முறை ஆடலாம். Option buyers-க்கு கடினம்; sellers-க்கு சாதகம்.</div>
+      </div>
+    </div>
+
+    <table class="sig-table">
+      <thead><tr><th>CPR Type</th><th>Width</th><th>இன்று என்ன நடக்கும்</th><th>சிறந்த Strategy</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="lbl lbl-narrow">NARROW</span></td>
+          <td>&lt; 40 pts</td>
+          <td>Trend day — ஒரே திசையில் strong move</td>
+          <td>TC அல்லது BC break confirm ஆனால் directional buy</td>
+        </tr>
+        <tr>
+          <td><span class="lbl lbl-moderate">MODERATE</span></td>
+          <td>40–80 pts</td>
+          <td>Either way — confirm பார்த்து trade</td>
+          <td>CPR break + volume confirmation</td>
+        </tr>
+        <tr>
+          <td><span class="lbl lbl-wide">WIDE</span></td>
+          <td>&gt; 80 pts</td>
+          <td>Range-bound — CPR-க்குள் oscillation</td>
+          <td>Reversal trades; Straddle/Strangle selling</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="example-box">
+      <div class="ex-title">உதாரணம் — NARROW CPR trade plan</div>
+      <p>CPR Width = <span class="ex-val">12 points</span> — <span class="lbl lbl-narrow">NARROW</span></p>
+      <p>BC = <span class="ex-val">23,400</span> &nbsp;|&nbsp; TC = <span class="ex-val">23,413</span> &nbsp;|&nbsp; R1 = <span class="ex-val">23,513</span></p>
+      <p><strong>Pre-market plan:</strong></p>
+      <p>▶ சந்தை 23,413 (TC) மேலே திறந்து hold ஆனால் → <span class="pass">Trend Bullish</span>. Target: R1 = 23,513. NIFTY CE வாங்கு.</p>
+      <p>▶ சந்தை 23,400 (BC) கீழே திறந்து hold ஆனால் → <span class="fail">Trend Bearish</span>. Target: S1 = 23,313. NIFTY PE வாங்கு.</p>
+      <p>▶ சந்தை CPR-க்குள் திறந்தால் → <span class="warn">காத்திரு</span>. 9:30 AM ORB confirmation பார்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <span class="section-anchor" id="s4"></span>
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Virgin CPR — மிக முக்கியமான Signal</h2>
+    </div>
+
+    <div class="info-box purple-box">
+      <span class="info-icon">🔮</span>
+      <p><strong>Virgin CPR</strong> என்பது நேற்றைய முழு trading day-லும் விலை எந்த நேரத்திலும் CPR zone-ஐ தொடாமல் போன நிலை. இது Institutional order flow-ஐ காட்டுகிறது — "நேற்று யாரும் இந்த zone-ஐ test செய்யவில்லை, இன்று முதல் முறை தொடும்போது வலுவான reaction வரும்."</p>
+    </div>
+
+    <p><strong>ஏன் முக்கியம்?</strong></p>
+    <p>நேற்று விலை தொடாத CPR zone-ஐ இன்று முதல் முறை தொடும்போது, இரண்டு விஷயங்களில் ஒன்று நடக்கும்:</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">A</div>
+        <div class="step-body">
+          <div class="step-title">Strong Reversal (மிக அதிக probability)</div>
+          <p>விலை Virgin CPR-ஐ தொட்டு திரும்பி போகும். CE வாங்கிய ஒருவர் பார்த்தால் — TC தொட்டு திரும்பினால் அது short entry. PE வாங்கியவர்க்கு — BC தொட்டு bounce ஆனால் அது long entry.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">B</div>
+        <div class="step-body">
+          <div class="step-title">Confirmed Breakout</div>
+          <p>விலை Virgin CPR-ஐ strong body-உடன் (candle body 45%+) உடைத்தால், அது Trend day-ஆக மாறும் — அந்த திசையில் aggressive move வரும். இது CPR_BREAKOUT alert ஆக தானாக fire ஆகும்.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="example-box" style="border-left-color:var(--accent)">
+      <div class="ex-title" style="color:var(--accent)">Virgin CPR உதாரணம் — NIFTY 14 மே 2026</div>
+      <p>நேற்று (13 மே): NIFTY 9:15 AM-ல் 23,450-ல் திறந்தது. முழு நாளும் 23,450–23,600 range-ல் இருந்தது.</p>
+      <p>CPR (BC=23,400, TC=23,413) — <strong>நேற்று ஒரு நாளும் இந்த zone-ஐ தொடவில்லை.</strong></p>
+      <p>இன்று (14 மே): சந்தை கீழே வந்து 23,415-ஐ தொட்டது.</p>
+      <p><strong>Alert fire:</strong> <span class="lbl lbl-purple">VIRGIN CPR</span> — "First touch of virgin CPR zone"</p>
+      <p><strong>Trade:</strong> 23,415 தொட்டு bounce ஆனால் → <span class="pass">CE Long Entry</span>. 23,400 உடைத்து கீழே போனால் → <span class="fail">PE Entry</span> (trend confirmed).</p>
+    </div>
+
+    <div class="info-box warn-box">
+      <span class="info-icon">⚠️</span>
+      <p>Virgin CPR alert வந்தவுடன் <strong>உடனே trade வேண்டாம்</strong>. அடுத்த 1–2 candles-ஐ பாருங்கள். Bounce confirm ஆனால் entry. Candle virgin CPR-ஐ உடைத்தால் — அந்த திசையில் trade.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <span class="section-anchor" id="s5"></span>
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Camarilla Levels — H3, H4, L3, L4</h2>
+    </div>
+
+    <p><strong>Camarilla Pivot</strong> என்பது நேற்றைய range மற்றும் Close-ஐ பயன்படுத்தி கணக்கிடப்படும் mean-reversion levels. CPR-ஐ விட இவை சற்று வேறுபட்ட கோணத்தில் சந்தையை பார்க்கும்.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Camarilla Formula</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2">
+        <div style="color:var(--cyan)">H4 = Close + (High − Low) × 0.55</div>
+        <div style="color:var(--green)">H3 = Close + (High − Low) × 0.275</div>
+        <div style="color:var(--red)">L3 = Close − (High − Low) × 0.275</div>
+        <div style="color:var(--accent)">L4 = Close − (High − Low) × 0.55</div>
+      </div>
+    </div>
+
+    <table class="sig-table">
+      <thead><tr><th>Level</th><th>விளக்கம்</th><th>Trade Strategy</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="mono" style="color:var(--cyan)">H4</span></td>
+          <td>Strong breakout zone மேலே. இதை உடைத்தால் பெரிய bull move.</td>
+          <td><span class="pass">H4 Break:</span> Aggressive CE buy — strong trend day signal</td>
+        </tr>
+        <tr>
+          <td><span class="mono" style="color:var(--green)">H3</span></td>
+          <td>Mean-reversion resistance. இங்கு rejection வரலாம்.</td>
+          <td><span class="warn">H3 Rejection:</span> Short-term PE buy or CE exit zone</td>
+        </tr>
+        <tr>
+          <td><span class="mono" style="color:var(--red)">L3</span></td>
+          <td>Mean-reversion support. இங்கு bounce வரலாம்.</td>
+          <td><span class="warn">L3 Bounce:</span> Short-term CE buy or PE exit zone</td>
+        </tr>
+        <tr>
+          <td><span class="mono" style="color:var(--accent)">L4</span></td>
+          <td>Strong breakdown zone கீழே. இதை உடைத்தால் பெரிய bear move.</td>
+          <td><span class="fail">L4 Break:</span> Aggressive PE buy — strong trend day signal</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="example-box">
+      <div class="ex-title">Camarilla உதாரணம் — NIFTY</div>
+      <p>நேற்று: H = <span class="ex-val">23,500</span>, L = <span class="ex-val">23,300</span>, C = <span class="ex-val">23,420</span> (Range = 200 pts)</p>
+      <p>H4 = 23,420 + 200 × 0.55 = <span class="ex-val" style="color:var(--cyan)">23,530</span></p>
+      <p>H3 = 23,420 + 200 × 0.275 = <span class="ex-val" style="color:var(--green)">23,475</span></p>
+      <p>L3 = 23,420 − 200 × 0.275 = <span class="ex-val" style="color:var(--red)">23,365</span></p>
+      <p>L4 = 23,420 − 200 × 0.55 = <span class="ex-val" style="color:var(--accent)">23,310</span></p>
+      <p><strong>Trade plan:</strong> விலை 23,475 (H3)-ஐ தொட்டால் — <span class="warn">Short-term short/reversal</span>. 23,530 (H4) உடைத்தால் — <span class="pass">Strong Bull run confirm, CE buy</span>.</p>
+    </div>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">💡</span>
+      <p><strong>H3/L3 = Mean Reversion.</strong> 70–80% நேரம் விலை H3 அல்லது L3-ல் திரும்பும். அந்த எதிர் திசையில் short-term trade எடுக்கலாம். <strong>H4/L4 Break = Trend.</strong> இவை உடைந்தால் அந்த திசையில் aggressive move வரும் — mean-reversion வேண்டாம்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <span class="section-anchor" id="s6"></span>
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Price Ladder &amp; Chart படிக்கும் முறை</h2>
+    </div>
+
+    <p>CPR Monitor பக்கத்தில் <strong>இரண்டு முக்கிய காட்சிகள்</strong> உள்ளன:</p>
+
+    <p><strong>1. Price Ladder (இடது பக்கம்):</strong></p>
+    <p>அனைத்து levels-ஐயும் price order-ல் காட்டும். தற்போதைய spot எங்கு உள்ளது, எந்த level நெருங்குகிறது என்பதை visual-ஆக பார்க்கலாம். <strong>CPR Zone Bar</strong> என்ற horizontal bar, spot-இன் CPR-க்கு உள்/வெளியே நிலையை காட்டும்.</p>
+
+    <table class="sig-table">
+      <thead><tr><th>Color</th><th>Level</th><th>பொருள்</th></tr></thead>
+      <tbody>
+        <tr><td><span style="color:var(--cyan);font-weight:700">●</span> Cyan</td><td>R3, R2, R1</td><td>Resistance — bull targets</td></tr>
+        <tr><td><span style="color:var(--yellow);font-weight:700">●</span> Yellow</td><td>TC, PP, BC</td><td>CPR Zone — core levels</td></tr>
+        <tr><td><span style="color:var(--red);font-weight:700">●</span> Red</td><td>S1, S2, S3</td><td>Support — bear targets</td></tr>
+        <tr><td><span style="color:var(--accent);font-weight:700">●</span> Purple</td><td>H3, H4, L3, L4</td><td>Camarilla levels</td></tr>
+        <tr><td><span style="color:var(--cyan);font-weight:700">━</span> Cyan line</td><td>Current Spot</td><td>தற்போதைய விலை நிலை</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>2. 5-Minute Chart (மேலே):</strong></p>
+    <p>5-நிமிட candlestick chart-இல் அனைத்து CPR மற்றும் Camarilla levels horizontal lines-ஆக காட்டப்படும். Alert fire ஆகும்போது chart-இல் <strong>colored triangle markers</strong> காண்பிக்கும் — இது எந்த நேரத்தில் என்ன நடந்தது என்பதை record செய்யும்.</p>
+
+    <div class="info-box">
+      <span class="info-icon">📈</span>
+      <p>Chart-இல் <strong>▲ (green triangle)</strong> = Buy signal / breakout above. <strong>▼ (red triangle)</strong> = Sell signal / breakdown below. இவை alert markers — chart-ஐ பார்க்கும்போது எந்த நேரத்தில் alert வந்தது என்று உடனே தெரியும்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 7 -->
+  <div class="section">
+    <span class="section-anchor" id="s7"></span>
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Alert Feed — 7 வகை Alerts</h2>
+    </div>
+
+    <p>Alert Feed (வலது பக்கம்) real-time-ல் fire ஆகும் CPR events-ஐ காட்டுகிறது. ஒவ்வொரு alert-லும் <strong>நேரம், வகை, திசை (Buy/Sell), Confidence (High/Medium)</strong> உள்ளது.</p>
+
+    <div class="alert-demo">
+      <div class="ad-row">
+        <div class="ad-time">09:32</div>
+        <div class="ad-body">
+          <div class="ad-type" style="color:var(--accent)">🔮 VIRGIN CPR</div>
+          <div><span class="dir-watch">Watch</span><span class="conf-high">HIGH</span></div>
+          <div class="ad-reason">முதல் முறை CPR zone-ஐ தொட்டது. BC 23,400 – TC 23,413 வலயம். Reversal அல்லது breakout வரலாம்.</div>
+        </div>
+      </div>
+      <div class="ad-row">
+        <div class="ad-time">09:45</div>
+        <div class="ad-body">
+          <div class="ad-type" style="color:var(--green)">⚡ CPR BREAKOUT</div>
+          <div><span class="dir-buy">Buy</span><span class="conf-high">HIGH</span></div>
+          <div class="ad-reason">TC (23,413)-க்கு மேலே strong close — Bullish breakout confirm. Candle body 72%.</div>
+        </div>
+      </div>
+      <div class="ad-row">
+        <div class="ad-time">10:15</div>
+        <div class="ad-body">
+          <div class="ad-type" style="color:var(--cyan)">🔄 CPR RETEST</div>
+          <div><span class="dir-buy">Buy</span><span class="conf-high">HIGH</span></div>
+          <div class="ad-reason">TC (23,413)-ஐ retest செய்தது — holding. Continuation long setup confirm.</div>
+        </div>
+      </div>
+      <div class="ad-row">
+        <div class="ad-time">11:20</div>
+        <div class="ad-body">
+          <div class="ad-type" style="color:var(--red)">💥 BREAKOUT FAILURE</div>
+          <div><span class="dir-sell">Sell</span><span class="conf-high">HIGH</span></div>
+          <div class="ad-reason">TC-க்கு மேலே சென்று திரும்பி CPR-க்குள் வந்தது — Bull trap. Short entry வாய்ப்பு.</div>
+        </div>
+      </div>
+      <div class="ad-row">
+        <div class="ad-time">13:05</div>
+        <div class="ad-body">
+          <div class="ad-type" style="color:var(--yellow)">↩ REVERSAL CPR</div>
+          <div><span class="dir-sell">Sell</span><span class="conf-med">MEDIUM</span></div>
+          <div class="ad-reason">TC-க்கு அதிகமாக மேலே இருந்த விலை CPR-க்குள் வந்தது — Trend reversal சாத்தியம்.</div>
+        </div>
+      </div>
+      <div class="ad-row">
+        <div class="ad-time">13:40</div>
+        <div class="ad-body">
+          <div class="ad-type" style="color:var(--purple)">📏 CAMARILLA H3</div>
+          <div><span class="dir-sell">Sell</span><span class="conf-med">MEDIUM</span></div>
+          <div class="ad-reason">H3 (23,475)-ல் rejection — Mean reversion short. Bounce வாய்ப்பு குறைவு.</div>
+        </div>
+      </div>
+      <div class="ad-row" style="border:none">
+        <div class="ad-time">14:10</div>
+        <div class="ad-body">
+          <div class="ad-type" style="color:var(--cyan)">💥 CAMARILLA H4 BREAK</div>
+          <div><span class="dir-buy">Buy</span><span class="conf-high">HIGH</span></div>
+          <div class="ad-reason">H4 (23,530) உடைத்தது — Strong trend continuation. Aggressive long setup.</div>
+        </div>
+      </div>
+    </div>
+
+    <table class="sig-table" style="margin-top:20px">
+      <thead><tr><th>Alert வகை</th><th>என்ன நடக்கிறது</th><th>Confidence</th><th>Trade Action</th></tr></thead>
+      <tbody>
+        <tr><td><span class="acc">VIRGIN CPR</span></td><td>CPR-ஐ முதல் முறை தொட்டது</td><td>High</td><td>Watch + Confirm; reversal அல்லது breakout</td></tr>
+        <tr><td><span class="pass">CPR BREAKOUT</span></td><td>TC/BC strong candle body-உடன் உடைந்தது</td><td>High/Med</td><td>அந்த திசையில் entry</td></tr>
+        <tr><td><span class="pass">CPR RETEST</span></td><td>Breakout பிறகு TC/BC-ஐ retest செய்து hold</td><td>High</td><td>Continuation entry — அதிக confidence</td></tr>
+        <tr><td><span class="fail">BREAKOUT FAILURE</span></td><td>TC/BC உடைத்து திரும்பி வந்தது (trap)</td><td>High</td><td>எதிர் திசையில் trade</td></tr>
+        <tr><td><span class="warn">REVERSAL CPR</span></td><td>Far outside இருந்து CPR-க்குள் வந்தது</td><td>Medium</td><td>எதிர் திசையில் scalp</td></tr>
+        <tr><td><span class="acc">CAMARILLA H3/L3</span></td><td>H3/L3-ல் rejection அல்லது bounce</td><td>Medium</td><td>Mean-reversion trade</td></tr>
+        <tr><td><span class="pass">CAMARILLA H4/L4 BREAK</span></td><td>H4/L4 உடைத்தது — strong trend signal</td><td>High</td><td>Aggressive directional trade</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <span class="section-anchor" id="s8"></span>
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Alerts மூலம் Trade செய்வது</h2>
+    </div>
+
+    <p>Alert வந்தவுடன் உடனே trade வேண்டாம். <strong>Confirmation + Entry Rule</strong> பின்பற்றவும்:</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <div class="step-title">Alert வந்தது — பார்க்கவும்</div>
+          <p>Alert feed-ல் notification பாருங்கள். Confidence: <span class="conf-high" style="font-size:12px">HIGH</span> என்றால் அதிக நம்பகத்தன்மை. <span class="conf-med" style="font-size:12px">MEDIUM</span> என்றால் confirmation அவசியம்.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <div class="step-title">Chart-ல் Confirm செய்யவும்</div>
+          <p>Alert marker-ஐ chart-ல் பாருங்கள். அடுத்த candle அந்த திசையில் close ஆகிறதா? Volume spike இருக்கிறதா? இல்லாவிட்டால் காத்திருங்கள்.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <div class="step-title">Entry எடுக்கவும்</div>
+          <p>Confirmation candle close ஆனவுடன் அந்த திசையில் option வாங்கவும். <strong>CPR Breakout (Bull):</strong> TC-க்கு மேலே ATM CE. <strong>CPR Breakdown (Bear):</strong> BC-க்கு கீழே ATM PE.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">4</div>
+        <div class="step-body">
+          <div class="step-title">Stop-Loss &amp; Target</div>
+          <p><strong>Breakout trade Stop:</strong> TC (bull entry-க்கு) அல்லது BC (bear entry-க்கு) ஐ மீண்டும் உடைத்தால் exit.<br><strong>Target:</strong> R1/S1 (CPR levels) அல்லது Camarilla H4/L4.<br>Option பக்கம்: Entry premium-இன் 40–50% loss = stop.</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:20px"><strong>Alert-வகை அடிப்படையில் Entry Rules:</strong></p>
+
+    <table class="sig-table">
+      <thead><tr><th>Alert</th><th>Entry Trigger</th><th>Stop-Loss</th><th>Target</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="acc">VIRGIN CPR</span></td>
+          <td>BC bounce → CE; TC rejection → PE (அடுத்த candle confirm)</td>
+          <td>CPR உடைத்தால்</td>
+          <td>R1 (bull) / S1 (bear)</td>
+        </tr>
+        <tr>
+          <td><span class="pass">CPR BREAKOUT</span></td>
+          <td>Confirmation candle close TC மேலே / BC கீழே</td>
+          <td>TC / BC மீண்டும் inside ஆனால்</td>
+          <td>R1 / S1 → R2 / S2</td>
+        </tr>
+        <tr>
+          <td><span class="pass">CPR RETEST</span></td>
+          <td>TC-ல் hold → CE add. BC-ல் hold → PE add.</td>
+          <td>TC / BC உடைத்தால்</td>
+          <td>R1 / S1 (original target)</td>
+        </tr>
+        <tr>
+          <td><span class="fail">BREAKOUT FAILURE</span></td>
+          <td>Inside CPR candle confirm ஆனால் எதிர் திசையில் entry</td>
+          <td>TC / BC மீண்டும் உடைத்தால்</td>
+          <td>எதிர் CPR boundary</td>
+        </tr>
+        <tr>
+          <td><span class="acc">CAMARILLA H3</span></td>
+          <td>H3 rejection candle → PE scalp (ATM PE)</td>
+          <td>H3 மேலே close ஆனால்</td>
+          <td>PP அல்லது TC</td>
+        </tr>
+        <tr>
+          <td><span class="pass">H4 BREAK</span></td>
+          <td>H4 உடைத்த candle close-ஐ அடுத்து CE</td>
+          <td>H4 கீழே திரும்பினால்</td>
+          <td>Open target (trend day)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box red-box">
+      <span class="info-icon">🚨</span>
+      <p><strong>Wide CPR-ல் Breakout trade வேண்டாம்:</strong> CPR width &gt; 80 pts என்றால் breakout fake ஆக மாற வாய்ப்பு அதிகம். Wide CPR நாட்களில் Camarilla H3/L3 mean-reversion trades மட்டும் செய்யவும். Breakout confirm ஆக H4/L4 வரை காத்திருங்கள்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 9 — FULL EXAMPLE -->
+  <div class="section">
+    <span class="section-anchor" id="s9"></span>
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>முழு நாள் உதாரணம் — 14 மே 2026</h2>
+    </div>
+
+    <p>NIFTY-யில் ஒரு முழு trading day-ஐ step-by-step பார்ப்போம்.</p>
+
+    <div class="example-box" style="border-left-color:rgba(0,212,255,0.6)">
+      <div class="ex-title">Pre-Market Preparation (9:00 AM)</div>
+      <p><strong>நேற்றைய OHLC:</strong> H = <span class="ex-val">23,500</span>, L = <span class="ex-val">23,300</span>, C = <span class="ex-val">23,420</span></p>
+      <p>CPR: BC = <span class="ex-val" style="color:var(--red)">23,400</span> | PP = <span class="ex-val" style="color:var(--yellow)">23,407</span> | TC = <span class="ex-val" style="color:var(--green)">23,413</span> | Width = <span class="ex-val">13 pts</span> — <span class="lbl lbl-narrow">NARROW</span></p>
+      <p>Camarilla: H3 = <span class="ex-val">23,475</span> | H4 = <span class="ex-val">23,530</span> | L3 = <span class="ex-val">23,365</span> | L4 = <span class="ex-val">23,310</span></p>
+      <p><strong>நேற்று CPR தொட்டதா?</strong> இல்லை — <span class="lbl lbl-virgin">🔮 VIRGIN CPR</span> confirmed!</p>
+      <p><strong>Pre-Market Plan:</strong><br>
+      📍 TC (23,413) மேலே திறந்தால் → Trend Bullish. CE entry plan. Target: H3 (23,475) → H4 (23,530).<br>
+      📍 BC (23,400) கீழே திறந்தால் → Trend Bearish. PE entry plan. Target: L3 (23,365) → L4 (23,310).<br>
+      📍 CPR-க்குள் திறந்தால் → 9:30 AM ORB confirm பார்.</p>
+    </div>
+
+    <div class="example-box" style="border-left-color:rgba(124,106,247,0.6)">
+      <div class="ex-title" style="color:var(--accent)">9:15 AM — Market Opens</div>
+      <p>NIFTY opens at: <span class="ex-val">23,395</span> — <span class="warn">BC (23,400)-க்கு கீழே</span></p>
+      <p><strong>Alert:</strong> <span class="lbl lbl-virgin">🔮 VIRGIN CPR</span> — "First touch of virgin CPR zone (BC 23,400 – TC 23,413)"</p>
+      <p>திசை: Bearish open. ஆனால் Virgin CPR-ல் இருக்கிறோம் — bounce வரலாம். <strong>2 candles காத்திருக்கவும்.</strong></p>
+    </div>
+
+    <div class="example-box" style="border-left-color:rgba(231,76,60,0.6)">
+      <div class="ex-title" style="color:var(--red)">9:20 AM — Confirmation</div>
+      <p>9:20 candle: Open 23,395, Close <span class="ex-val">23,378</span> — BC-க்கு கீழே strong close. Body = 17 pts (85% of range).</p>
+      <p><strong>Alert:</strong> <span class="lbl lbl-red">⚡ CPR BREAKOUT (Sell)</span> — "Strong close below BC — bearish breakout confirmed (body 85%)" — <span class="conf-high">HIGH</span></p>
+      <p><strong>Entry:</strong> NIFTY ATM PE வாங்கவும். Strike: 23,400 PE @ <span class="ex-val">₹65</span>. Lots: 2.</p>
+      <p><strong>Stop:</strong> 23,413 (TC)-க்கு மேலே close ஆனால் exit.</p>
+      <p><strong>Target 1:</strong> L3 = <span class="ex-val">23,365</span>. Target 2: L4 = <span class="ex-val">23,310</span>.</p>
+    </div>
+
+    <div class="example-box" style="border-left-color:rgba(245,166,35,0.6)">
+      <div class="ex-title" style="color:var(--yellow)">9:45 AM — Retest Alert</div>
+      <p>9:45 candle: NIFTY 23,395-ல் திரும்பி BC (23,400)-ஐ touch செய்தது.</p>
+      <p><strong>Alert:</strong> <span class="lbl lbl-cyan">🔄 CPR RETEST</span> — "Bearish retest of BC (23,400) holding — continuation short" — <span class="conf-high">HIGH</span></p>
+      <p>BC-ல் close ஆகாமல் திரும்பியது — <strong>short position hold செய்யவும்.</strong> இது Trend continue ஆகும் என்பதை confirm செய்கிறது.</p>
+    </div>
+
+    <div class="example-box" style="border-left-color:rgba(46,204,113,0.6)">
+      <div class="ex-title" style="color:var(--green)">10:30 AM — T1 Hit</div>
+      <p>NIFTY reaches: <span class="ex-val">23,363</span> — L3 (23,365) கீழே</p>
+      <p><strong>Action:</strong> 1 lot @ <span class="ex-val">₹118</span>-ல் exit. Profit = (118 − 65) × 75 = <span class="pass">+₹3,975</span> per lot.</p>
+      <p>மீதி 1 lot: Stop-ஐ entry price (₹65) → <span class="ex-val">₹65</span>-ல் trail (risk-free). Target 2: L4 (23,310).</p>
+      <p><strong>No new alert</strong> — position hold continue.</p>
+    </div>
+
+    <div class="example-box" style="border-left-color:rgba(167,139,250,0.6)">
+      <div class="ex-title" style="color:var(--purple)">11:15 AM — Camarilla Alert</div>
+      <p>NIFTY: <span class="ex-val">23,318</span> — L4 (23,310) நெருங்குகிறது</p>
+      <p><strong>Alert:</strong> <span class="lbl lbl-purple">💥 CAMARILLA L4 BREAK</span> — "Breakdown below L4 — strong trend continuation"</p>
+      <p><strong>Action:</strong> மீதி 1 lot @ <span class="ex-val">₹158</span>-ல் exit. Profit = (158 − 65) × 75 = <span class="pass">+₹6,975</span>.</p>
+      <p><strong>மொத்த trade profit:</strong> <span class="pass">3,975 + 6,975 = +₹10,950</span> (2 lots, 75 lot size).</p>
+    </div>
+
+    <div class="workflow">
+      <div class="wf-step"><div class="wf-circle">📐</div><div class="wf-label">Pre-market CPR Plan</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">🔮</div><div class="wf-label">Virgin CPR Alert</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">⚡</div><div class="wf-label">Breakout Confirm</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">🔄</div><div class="wf-label">Retest Hold</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">🎯</div><div class="wf-label">T1 at L3</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step"><div class="wf-circle">💰</div><div class="wf-label">Full Exit L4</div></div>
+    </div>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">✅</span>
+      <p><strong>சுருக்கம்:</strong> NARROW CPR + Virgin CPR = Trend day probability அதிகம். BC breakdown confirm → PE entry → Retest hold → L3 T1 → L4 full exit. <strong>Alert-ஐ பாருங்கள், chart-ல் confirm செய்யுங்கள், plan-படி trade செய்யுங்கள்.</strong> Emotion வேண்டாம்; system பின்பற்றுங்கள்.</p>
+    </div>
+
+    <div class="info-box warn-box">
+      <span class="info-icon">⚠️</span>
+      <p><strong>முக்கிய நினைவூட்டல்கள்:</strong><br>
+      1. WIDE CPR நாட்களில் breakout trade வேண்டாம் — mean-reversion மட்டும்.<br>
+      2. Alert வந்தவுடன் உடனே வாங்காதீர்கள் — confirmation candle பாருங்கள்.<br>
+      3. Stop-loss கட்டாயம் — CPR உடைந்தால் விரைவாக exit செய்யுங்கள்.<br>
+      4. PAUSE பொத்தான் அழுத்தி monitor off ஆனால் alerts வராது — page திறந்திருக்க வேண்டும்.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <div style="text-align:center;padding:20px 0 40px">
+    <p style="color:var(--dim);font-size:14px;margin-bottom:16px;font-family:'Noto Sans Tamil',sans-serif">CPR Monitor-ஐ நேரடியாக பயன்படுத்த தயாரா?</p>
+    <a class="cta-btn" href="/cpr_monitor.html">CPR Monitor திறக்கவும் →</a>
+  </div>
+
+</div>
+
+<script>
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+</script>
+</body>
+</html>
