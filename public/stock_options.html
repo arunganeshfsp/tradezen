@@ -304,7 +304,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
       <button class="tab active" onclick="showTab('chain',this)">Option Chain</button>
       <button class="tab" onclick="showTab('analytics',this)">Max Pain &amp; PCR</button>
       <button class="tab" onclick="showTab('monitor',this)">Trade Monitor</button>
-      <button class="tab" onclick="showTab('history',this);loadChExpiries()">Contract History</button>
+      <button class="tab" onclick="showTab('history',this)">Contract History</button>
     </div>
 
     <!-- CHAIN TAB -->
@@ -385,9 +385,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
         </div>
         <div class="tb-field">
           <label>Expiry</label>
-          <select id="chExpiry" style="width:140px" onchange="onChExpiryChange()">
-            <option value="">Select expiry</option>
-          </select>
+          <input type="date" id="chExpiry" style="width:140px" onchange="onChExpiryChange()">
         </div>
         <div class="tb-field">
           <label>From Date</label>
