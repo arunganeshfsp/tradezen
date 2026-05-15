@@ -384,6 +384,17 @@ router.get("/options/contract-history", async (req, res) => {
   }
 });
 
+// ─── GET /api/options/contract-history-nse ───────────────────────────────────
+router.get("/options/contract-history-nse", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/options/contract-history-nse?${params}`, 60000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── POST /api/options/parse-bhavcopy ────────────────────────────────────────
 // Multipart file upload — pipe raw request stream to Python via native http
 const _http = require("http");

@@ -547,7 +547,8 @@ function detectEvents(candles, lv) {
     }
 
     // ── CPR Breakout ────────────────────────────────────────────────────────
-    if ((prevInsideCPR || prevAboveTC) && currAboveTC && bodyPct >= CONFIRM_BODY && !prevAboveTC) {
+    // Bull: prev was inside CPR or below BC (not yet above TC) → curr closes above TC
+    if ((prevInsideCPR || prevBelowBC) && currAboveTC && bodyPct >= CONFIRM_BODY) {
       _breakoutDir = 'bull'; _breakoutIdx = i;
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
@@ -555,7 +556,8 @@ function detectEvents(candles, lv) {
         confidence: bodyPct > 0.65 ? 'High' : 'Medium',
         reason: `Strong close above TC (${fmt(tc)}) — bullish breakout confirmed (body ${Math.round(bodyPct*100)}%)`
       });
-    } else if ((prevInsideCPR || prevBelowBC) && currBelowBC && bodyPct >= CONFIRM_BODY && !prevBelowBC) {
+    // Bear: prev was inside CPR or above TC (not yet below BC) → curr closes below BC
+    } else if ((prevInsideCPR || prevAboveTC) && currBelowBC && bodyPct >= CONFIRM_BODY) {
       _breakoutDir = 'bear'; _breakoutIdx = i;
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
@@ -642,14 +644,14 @@ function detectEvents(candles, lv) {
         confidence: 'Medium',
         reason: `Rejection at Camarilla H3 (${fmt(h3)}) resistance — mean reversion short`
       });
-    } else if (curr.close > h4) {
+    } else if (curr.close > h4 && prev.close <= h4) {
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'CAMARILLA_H4_BREAK', price: curr.close, direction: 'Buy',
         confidence: 'High',
         reason: `Breakout above Camarilla H4 (${fmt(h4)}) — strong trend continuation long`
       });
-    } else if (curr.close < l4) {
+    } else if (curr.close < l4 && prev.close >= l4) {
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'CAMARILLA_L4_BREAK', price: curr.close, direction: 'Sell',
