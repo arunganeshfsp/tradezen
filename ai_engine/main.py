@@ -2830,23 +2830,46 @@ def options_contract_history_nse(
 @app.get("/options/past-expiries")
 def options_past_expiries(symbol: str = "NIFTY"):
     """
-    Return recent past monthly expiries (last Tuesday of each month —
-    current NSE F&O monthly expiry day) as suggestions for Contract History.
+    Return recent expiry dates for the given symbol.
+    NIFTY  → weekly Thursdays (weekday 3)
+    BANKNIFTY / MIDCPNIFTY → weekly Wednesdays (weekday 2)
+    FINNIFTY → weekly Tuesdays (weekday 1)
+    Stocks / others → monthly last-Thursday of each month.
+    Returns up to 12 dates in reverse-chronological order (most recent first),
+    from 90 days ago up to 7 days ahead (current/next week included).
     """
-    import calendar
-    today    = _dt.date.today()
-    expiries = []
-    yr, mo   = today.year, today.month
-    for _ in range(12):
-        mo -= 1
-        if mo == 0:
-            mo = 12; yr -= 1
-        last_day = calendar.monthrange(yr, mo)[1]
-        d = _dt.date(yr, mo, last_day)
-        while d.weekday() != 1:   # walk back to last Tuesday (weekday 1)
+    sym   = symbol.upper()
+    today = _dt.date.today()
+
+    # Weekly index expiry day
+    weekly = {"NIFTY": 3, "BANKNIFTY": 2, "MIDCPNIFTY": 2, "FINNIFTY": 1}
+
+    expiries: list[str] = []
+
+    if sym in weekly:
+        target_wd = weekly[sym]
+        d = today + _dt.timedelta(days=7)          # start from 1 week ahead
+        while d >= today - _dt.timedelta(days=90):
+            if d.weekday() == target_wd:
+                expiries.append(d.isoformat())
             d -= _dt.timedelta(days=1)
-        expiries.append(d.isoformat())
-    return {"symbol": symbol.upper(), "expiries": expiries}
+    else:
+        # Monthly: last Thursday of each month
+        import calendar
+        yr, mo = today.year, today.month
+        for _ in range(12):
+            last_day = calendar.monthrange(yr, mo)[1]
+            d = _dt.date(yr, mo, last_day)
+            while d.weekday() != 3:
+                d -= _dt.timedelta(days=1)
+            if d <= today + _dt.timedelta(days=7):
+                expiries.append(d.isoformat())
+            mo -= 1
+            if mo == 0:
+                mo = 12; yr -= 1
+
+    expiries = expiries[:12]
+    return {"symbol": sym, "expiries": expiries}
 
 
 @app.get("/options/monitor")

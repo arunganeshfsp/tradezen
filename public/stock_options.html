@@ -385,15 +385,17 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
         </div>
         <div class="tb-field">
           <label>Expiry</label>
-          <input type="date" id="chExpiry" style="width:140px">
+          <select id="chExpiry" style="width:140px" onchange="onChExpiryChange()">
+            <option value="">Select expiry</option>
+          </select>
         </div>
         <div class="tb-field">
           <label>From Date</label>
-          <input type="date" id="chFromDate" style="width:140px">
+          <input type="date" id="chFromDate" style="width:130px">
         </div>
         <div class="tb-field">
           <label>To Date</label>
-          <input type="date" id="chToDate" style="width:140px">
+          <input type="date" id="chToDate" style="width:130px">
         </div>
         <div class="tb-field" style="align-self:flex-end">
           <button class="btn btn-primary" id="chLoadBtn" onclick="fetchContractHistoryNSE()">
@@ -402,8 +404,8 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
         </div>
       </div>
       <div class="notice" style="font-size:11px;margin-bottom:12px">
-        &#9432; Data fetched live from NSE API. Dates must be within the contract's traded range.
-        <span style="display:block;margin-top:4px;color:var(--muted)">If NSE API is unavailable, <a href="#" onclick="document.getElementById('chFile').click();return false" style="color:var(--cyan);text-decoration:underline">upload Bhavcopy files as fallback</a>.</span>
+        &#9432; Select an expiry — From/To dates auto-fill to that week. Enter strike and hit Fetch. Today's data appears after ~6:30 PM once NSE publishes the archive.
+        <span style="display:block;margin-top:4px;color:var(--muted)">If fetch fails, <a href="#" onclick="document.getElementById('chFile').click();return false" style="color:var(--cyan);text-decoration:underline">upload Bhavcopy files manually</a>.</span>
       </div>
       <input type="file" id="chFile" accept=".csv,.zip" multiple style="display:none" onchange="loadContractHistory()">
       <div id="chStats" class="ch-stats" style="display:none"></div>
@@ -869,10 +871,36 @@ async function loadChExpiries() {
   sel.innerHTML = "<option value=''>Loading…</option>";
   try {
     const d = await fetch(`${API}/options/past-expiries?symbol=${sym}`).then(r=>r.json());
-    sel.innerHTML = (d.expiries||[]).length
-      ? d.expiries.map(e=>`<option value="${e}">${e}</option>`).join('')
-      : "<option value=''>No data yet</option>";
-  } catch { sel.innerHTML = "<option value=''>Error</option>"; }
+    if ((d.expiries||[]).length) {
+      sel.innerHTML = d.expiries.map(iso => {
+        const dt  = new Date(iso + 'T00:00:00');
+        const lbl = dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+        return `<option value="${iso}">${lbl}</option>`;
+      }).join('');
+      onChExpiryChange(); // auto-fill dates for the first (most recent) expiry
+    } else {
+      sel.innerHTML = "<option value=''>No expiries found</option>";
+    }
+  } catch { sel.innerHTML = "<option value=''>Error loading</option>"; }
+}
+
+function onChExpiryChange() {
+  const val = document.getElementById('chExpiry').value; // YYYY-MM-DD
+  if (!val) return;
+  const exp  = new Date(val + 'T00:00:00');
+  const dow  = exp.getDay(); // 0=Sun 1=Mon … 4=Thu
+  // Roll back to Monday of the expiry week
+  const mon  = new Date(exp);
+  mon.setDate(exp.getDate() - (dow === 0 ? 6 : dow - 1));
+  document.getElementById('chFromDate').value = mon.toISOString().slice(0, 10);
+  document.getElementById('chToDate').value   = val;
+  // Auto-suggest ATM strike from current chain spot if available
+  if (chainData && chainData.spot_price) {
+    const step = chainData.spot_price > 10000 ? 50 : 5;
+    const atm  = Math.round(chainData.spot_price / step) * step;
+    if (!document.getElementById('chStrike').value)
+      document.getElementById('chStrike').value = atm;
+  }
 }
 
 async function fetchContractHistoryNSE() {
@@ -883,15 +911,15 @@ async function fetchContractHistoryNSE() {
   const toEl     = document.getElementById('chToDate');
   const btn      = document.getElementById('chLoadBtn');
 
-  if (!strike) { alert('Enter a strike price.'); return; }
-  if (!expiryEl.value || !fromEl.value || !toEl.value) { alert('Enter expiry, from date, and to date.'); return; }
+  if (!strike)        { alert('Enter a strike price.'); return; }
+  if (!expiryEl.value){ alert('Select an expiry.'); return; }
+  if (!fromEl.value || !toEl.value) { alert('From/To dates are required.'); return; }
 
-  const _fmt = (dateStr) => {
-    const d = new Date(dateStr);
+  const _fmt = (iso) => {
+    const d = new Date(iso + 'T00:00:00');
     const day = String(d.getDate()).padStart(2,'0');
     const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-    const yr = d.getFullYear();
-    return `${day}-${mon}-${yr}`;
+    return `${day}-${mon}-${d.getFullYear()}`;
   };
   const expiry = _fmt(expiryEl.value);
   const from   = _fmt(fromEl.value);

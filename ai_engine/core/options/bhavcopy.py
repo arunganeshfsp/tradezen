@@ -14,6 +14,8 @@ import logging
 import datetime
 import zipfile
 import time
+import tempfile
+from pathlib import Path
 from typing import Optional
 
 log = logging.getLogger(__name__)
@@ -23,6 +25,11 @@ _RISK_FREE = 0.065
 
 _cache: dict = {"key": None, "data": None}
 _nse_session = None
+
+# Bhavcopy disk cache — ZIPs stored per trading date, purged after 5 days
+_BHAV_CACHE_DIR = Path(tempfile.gettempdir()) / "tradezen_bhavcopy"
+_BHAV_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_BHAV_CACHE_TTL_DAYS = 5
 
 
 # ── NSE session ────────────────────────────────────────────────────────────────
@@ -608,6 +615,72 @@ def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dic
     return result
 
 
+def _purge_old_cache():
+    """Delete cached bhavcopy ZIPs older than TTL. Called once per fetch batch."""
+    cutoff = datetime.datetime.now() - datetime.timedelta(days=_BHAV_CACHE_TTL_DAYS)
+    for f in _BHAV_CACHE_DIR.glob("*.zip"):
+        try:
+            if datetime.datetime.fromtimestamp(f.stat().st_mtime) < cutoff:
+                f.unlink()
+                log.debug(f"Purged old bhavcopy cache: {f.name}")
+        except Exception:
+            pass
+
+
+def _fetch_archive_day(date: datetime.date) -> Optional[list[str]]:
+    """
+    Return CSV lines for a single trading day's F&O bhavcopy.
+    Serves from disk cache when available; downloads from NSE archive otherwise.
+    Cache lives in {tempdir}/tradezen_bhavcopy/ and is purged after 5 days.
+    """
+    import requests
+    date_str  = date.strftime("%Y%m%d")
+    cache_path = _BHAV_CACHE_DIR / f"bhavcopy_{date_str}.zip"
+
+    # ── Serve from cache ───────────────────────────────────────────────────────
+    if cache_path.exists():
+        try:
+            zf       = zipfile.ZipFile(cache_path)
+            csv_name = next((n for n in zf.namelist() if n.endswith(".csv")), None)
+            if csv_name:
+                lines = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
+                log.debug(f"Bhavcopy cache hit: {date_str}")
+                return lines
+        except Exception as e:
+            log.debug(f"Bhavcopy cache read error {date_str}: {e}")
+            cache_path.unlink(missing_ok=True)
+
+    # ── Download from NSE archive ──────────────────────────────────────────────
+    url = (f"https://nsearchives.nseindia.com/content/fo/"
+           f"BhavCopy_NSE_FO_0_0_0_{date_str}_F_0000.csv.zip")
+    try:
+        resp = requests.get(url, timeout=20, headers={
+            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                           "AppleWebKit/537.36 (KHTML, like Gecko) "
+                           "Chrome/124.0.0.0 Safari/537.36"),
+        })
+        if resp.status_code != 200:
+            log.debug(f"Archive bhavcopy {date_str}: HTTP {resp.status_code}")
+            return None
+        if resp.content[:2] != b'PK':
+            log.debug(f"Archive bhavcopy {date_str}: not a ZIP")
+            return None
+
+        # Save to cache before parsing
+        cache_path.write_bytes(resp.content)
+
+        zf       = zipfile.ZipFile(io.BytesIO(resp.content))
+        csv_name = next((n for n in zf.namelist() if n.endswith(".csv")), None)
+        if not csv_name:
+            return None
+        lines = zf.read(csv_name).decode("utf-8", errors="ignore").splitlines()
+        log.info(f"Archive bhavcopy {date_str}: downloaded {len(lines)} lines, cached to disk")
+        return lines
+    except Exception as e:
+        log.debug(f"Archive bhavcopy {date_str}: {e}")
+        return None
+
+
 def fetch_contract_history_nse(
     symbol: str,
     strike: float,
@@ -617,114 +690,41 @@ def fetch_contract_history_nse(
     to_date: str,
 ) -> dict:
     """
-    Fetch contract history directly from NSE's historical derivatives API.
+    Fetch contract history from NSE daily bhavcopy archives (public CDN, no session needed).
+    Downloads one ZIP per trading day, filters for the requested contract, enriches with Greeks.
     Dates in DD-MMM-YYYY format (e.g., "08-May-2026").
     """
-    sess = _get_session()
-
-    # Determine instrument type based on symbol
-    inst_type = "OPTIDX" if symbol.upper() in ["NIFTY", "BANKNIFTY", "FINNIFTY"] else "OPTSTK"
-
-    url = (f"https://www.nseindia.com/api/historical/fo/derivatives"
-           f"?instrumentType={inst_type}"
-           f"&symbol={symbol.upper()}"
-           f"&expiryDate={expiry}"
-           f"&optionType={opt_type.upper()}"
-           f"&strikePrice={strike}"
-           f"&fromDate={from_date}"
-           f"&toDate={to_date}")
-
     try:
-        resp = sess.get(url, timeout=30, headers={
-            "Referer": "https://www.nseindia.com/market-data/derivatives",
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "X-Requested-With": "XMLHttpRequest",
-        })
-    except Exception as e:
-        log.warning(f"NSE derivatives API request failed: {e}")
-        return {"error": f"NSE API request failed: {str(e)}"}
+        start_dt = datetime.datetime.strptime(from_date, "%d-%b-%Y").date()
+        end_dt   = datetime.datetime.strptime(to_date,   "%d-%b-%Y").date()
+        exp_dt   = datetime.datetime.strptime(expiry,    "%d-%b-%Y").date()
+    except ValueError as e:
+        return {"error": f"Invalid date format: {e}. Use DD-MMM-YYYY (e.g., 08-May-2026)"}
 
-    if resp.status_code != 200:
-        log.warning(f"NSE derivatives API: HTTP {resp.status_code}")
-        return {"error": f"NSE API returned HTTP {resp.status_code}"}
+    exp_iso = exp_dt.strftime("%Y-%m-%d")
 
-    try:
-        data = resp.json()
-    except Exception as e:
-        log.warning(f"NSE derivatives API JSON parse failed: {e}")
-        return {"error": "NSE API response parse failed"}
+    _purge_old_cache()  # clean stale ZIPs before starting
 
-    rows = data.get("data", [])
-    if not rows:
-        return {"error": f"No data found for {symbol} {strike} {opt_type} expiry {expiry}"}
-
-    # Convert NSE API response to enrich_rows format
-    # NSE API response rows should be in chronological order
-    start_dt = datetime.datetime.strptime(from_date, "%d-%b-%Y").date()
-    eod_rows = []
+    all_rows: list[dict] = []
     current_dt = start_dt
-    for row in rows:
-        eod_rows.append({
-            "trade_date": current_dt.isoformat(),
-            "open": float(row.get("openPrice") or 0),
-            "high": float(row.get("highPrice") or 0),
-            "low": float(row.get("lowPrice") or 0),
-            "close": float(row.get("closePrice") or 0),
-            "open_int": int(row.get("openInterest") or 0),
-            "chg_in_oi": 0,  # NSE API doesn't provide this
-            "contracts": int(row.get("contracts") or 0),
-            "spot_raw": None,  # Will use yfinance fallback
-        })
+    while current_dt <= end_dt:
+        if current_dt.weekday() < 5:  # skip weekends
+            lines = _fetch_archive_day(current_dt)
+            if lines and len(lines) > 1:
+                rows, _ = _filter_contract(
+                    lines, symbol, strike, exp_iso, opt_type,
+                    trade_date_override=current_dt.isoformat(),
+                )
+                for r in rows:
+                    if not r.get("trade_date"):
+                        r["trade_date"] = current_dt.isoformat()
+                all_rows.extend(rows)
         current_dt += datetime.timedelta(days=1)
 
-    if not eod_rows:
-        return {"error": "No matching contract data from NSE"}
+    if not all_rows:
+        return {"error": (f"No data found for {symbol} {strike:.0f} {opt_type} "
+                          f"expiry {expiry} from {from_date} to {to_date}. "
+                          f"Verify symbol, strike, and expiry are correct.")}
 
-    # Enrich with Greeks (same logic as file upload)
-    exp_dt = datetime.datetime.strptime(expiry, "%d-%b-%Y").date()
-    spots = _spot_series(symbol, eod_rows[0]["trade_date"][:10], exp_dt)
-
-    opt_up = opt_type.upper()
-    ivs: list[Optional[float]] = []
-    for row in eod_rows:
-        td = row["trade_date"]
-        price = row["close"] or 0.0
-        S = spots.get(td)
-        T = (exp_dt - datetime.date.fromisoformat(td)).days / 365.0 if td else 0
-        ivs.append(_implied_vol(price, S, strike, T, _RISK_FREE, opt_up) if S and price and T > 0 else None)
-
-    anchor_iv = next((v for v in ivs if v is not None), 0.20)
-
-    enriched = []
-    for i, row in enumerate(eod_rows):
-        td = row["trade_date"]
-        price = row["close"] or 0.0
-        S = spots.get(td)
-        dte = (exp_dt - datetime.date.fromisoformat(td)).days if td else 0
-        T = dte / 365.0
-        iv = ivs[i]
-        eff = iv or anchor_iv
-        enriched.append({
-            "date": td,
-            "open": row["open"],
-            "high": row["high"],
-            "low": row["low"],
-            "close": round(price, 2),
-            "open_int": row["open_int"],
-            "chg_in_oi": row["chg_in_oi"],
-            "contracts": row["contracts"],
-            "spot": round(S, 2) if S else None,
-            "dte": dte,
-            "iv_pct": round(iv * 100, 1) if iv else None,
-            "theo_price": round(_bs_price(S, strike, T, _RISK_FREE, anchor_iv, opt_up), 2) if S else None,
-            "theta": round(_bs_theta(S, strike, T, _RISK_FREE, eff, opt_up), 2) if S else None,
-        })
-
-    return {
-        "symbol": symbol.upper(),
-        "strike": strike,
-        "expiry": expiry,
-        "opt_type": opt_up,
-        "anchor_iv": round(anchor_iv * 100, 1),
-        "days": enriched,
-    }
+    all_rows.sort(key=lambda r: r["trade_date"])
+    return enrich_rows(all_rows, symbol, strike, exp_iso, opt_type)
