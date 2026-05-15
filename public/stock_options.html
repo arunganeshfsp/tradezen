@@ -982,6 +982,11 @@ function _renderChHistory(d) {
     <div class="ch-stat"><div class="k">IV Last Day</div><div class="v purple">${lastIv ? lastIv.iv_pct+'%' : '—'}</div></div>
     <div class="ch-stat"><div class="k">Theta (last)</div><div class="v red">${lastTh ? lastTh.theta+'/day' : '—'}</div></div>`;
 
+  // Show containers BEFORE creating charts — LightweightCharts needs real dimensions
+  document.getElementById('chChartWrap').style.display = 'block';
+  document.getElementById('chIvWrap').style.display    = 'block';
+  document.getElementById('chLegend').style.display    = 'flex';
+
   if (_chChart)   { _chChart.remove();   _chChart   = null; }
   if (_chIvChart) { _chIvChart.remove(); _chIvChart = null; }
   const LC = LightweightCharts;
@@ -1007,10 +1012,6 @@ function _renderChHistory(d) {
   ltpS.setData(ltpD); theoS.setData(theoD); ivS.setData(ivD);
   _chChart.timeScale().fitContent();
   _chIvChart.timeScale().fitContent();
-
-  document.getElementById('chChartWrap').style.display = 'block';
-  document.getElementById('chIvWrap').style.display    = 'block';
-  document.getElementById('chLegend').style.display    = 'flex';
 
   document.getElementById('chTable').innerHTML = `
     <div style="overflow-x:auto">
