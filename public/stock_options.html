@@ -966,9 +966,11 @@ function _renderChHistory(d) {
   const days = d.days || [];
   if (!days.length) { document.getElementById('chTable').innerHTML='<div class="notice">No data found for this contract.</div>'; return; }
 
-  const first = days[0], last = days[days.length-1];
-  const peak  = Math.max(...days.map(r=>r.close||0));
-  const decay = first.close > 0 ? ((first.close - last.close)/first.close*100).toFixed(1) : '—';
+  const first   = days[0], last = days[days.length-1];
+  const peak    = Math.max(...days.map(r=>r.close||0));
+  const decay   = first.close > 0 ? ((first.close - last.close)/first.close*100).toFixed(1) : '—';
+  const lastIv  = [...days].reverse().find(r => r.iv_pct  != null);
+  const lastTh  = [...days].reverse().find(r => r.theta   != null);
 
   document.getElementById('chStats').style.display = 'flex';
   document.getElementById('chStats').innerHTML = `
@@ -977,8 +979,8 @@ function _renderChHistory(d) {
     <div class="ch-stat"><div class="k">Anchor IV</div><div class="v yellow">${d.anchor_iv}%</div></div>
     <div class="ch-stat"><div class="k">Peak LTP</div><div class="v green">₹${peak.toFixed(2)}</div></div>
     <div class="ch-stat"><div class="k">Total Decay</div><div class="v red">${decay}%</div></div>
-    <div class="ch-stat"><div class="k">IV Last Day</div><div class="v purple">${last.iv_pct!=null?last.iv_pct+'%':'—'}</div></div>
-    <div class="ch-stat"><div class="k">Theta (last)</div><div class="v red">${last.theta!=null?last.theta+'/day':'—'}</div></div>`;
+    <div class="ch-stat"><div class="k">IV Last Day</div><div class="v purple">${lastIv ? lastIv.iv_pct+'%' : '—'}</div></div>
+    <div class="ch-stat"><div class="k">Theta (last)</div><div class="v red">${lastTh ? lastTh.theta+'/day' : '—'}</div></div>`;
 
   if (_chChart)   { _chChart.remove();   _chChart   = null; }
   if (_chIvChart) { _chIvChart.remove(); _chIvChart = null; }
@@ -997,10 +999,10 @@ function _renderChHistory(d) {
 
   const ltpD=[], theoD=[], ivD=[];
   days.forEach(row => {
-    const t = Math.floor(new Date(row.date+'T00:00:00').getTime()/1000) + 19800;
-    if (row.close     != null) ltpD.push({time:t, value:row.close});
-    if (row.theo_price!= null) theoD.push({time:t, value:row.theo_price});
-    if (row.iv_pct    != null) ivD.push({time:t, value:row.iv_pct});
+    const t = row.date; // "YYYY-MM-DD" — LightweightCharts expects date strings for daily data
+    if (row.close      != null) ltpD.push({time:t, value:row.close});
+    if (row.theo_price != null) theoD.push({time:t, value:row.theo_price});
+    if (row.iv_pct     != null) ivD.push({time:t, value:row.iv_pct});
   });
   ltpS.setData(ltpD); theoS.setData(theoD); ivS.setData(ivD);
   _chChart.timeScale().fitContent();

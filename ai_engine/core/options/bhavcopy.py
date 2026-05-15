@@ -26,10 +26,9 @@ _RISK_FREE = 0.065
 _cache: dict = {"key": None, "data": None}
 _nse_session = None
 
-# Bhavcopy disk cache — ZIPs stored per trading date, purged after 5 days
+# Bhavcopy disk cache — one ZIP per trading date, cleared on each new date-range fetch
 _BHAV_CACHE_DIR = Path(tempfile.gettempdir()) / "tradezen_bhavcopy"
 _BHAV_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-_BHAV_CACHE_TTL_DAYS = 5
 
 
 # ── NSE session ────────────────────────────────────────────────────────────────
@@ -615,14 +614,14 @@ def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dic
     return result
 
 
-def _purge_old_cache():
-    """Delete cached bhavcopy ZIPs older than TTL. Called once per fetch batch."""
-    cutoff = datetime.datetime.now() - datetime.timedelta(days=_BHAV_CACHE_TTL_DAYS)
-    for f in _BHAV_CACHE_DIR.glob("*.zip"):
+def _purge_cache_outside_range(start: datetime.date, end: datetime.date):
+    """Delete cached bhavcopy ZIPs that fall outside the requested date range."""
+    for f in _BHAV_CACHE_DIR.glob("bhavcopy_*.zip"):
         try:
-            if datetime.datetime.fromtimestamp(f.stat().st_mtime) < cutoff:
+            d = datetime.datetime.strptime(f.stem.replace("bhavcopy_", ""), "%Y%m%d").date()
+            if d < start or d > end:
                 f.unlink()
-                log.debug(f"Purged old bhavcopy cache: {f.name}")
+                log.debug(f"Cleared out-of-range cache: {f.name}")
         except Exception:
             pass
 
@@ -703,7 +702,7 @@ def fetch_contract_history_nse(
 
     exp_iso = exp_dt.strftime("%Y-%m-%d")
 
-    _purge_old_cache()  # clean stale ZIPs before starting
+    _purge_cache_outside_range(start_dt, end_dt)  # drop ZIPs from previous queries
 
     all_rows: list[dict] = []
     current_dt = start_dt
