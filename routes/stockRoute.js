@@ -384,6 +384,17 @@ router.get("/options/contract-history", async (req, res) => {
   }
 });
 
+// ─── GET /api/stocks/movers ───────────────────────────────────────────────────
+router.get("/stocks/movers", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stocks/movers?${params}`, 30000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/options/contract-history-nse ───────────────────────────────────
 router.get("/options/contract-history-nse", async (req, res) => {
   try {

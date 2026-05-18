@@ -2827,6 +2827,17 @@ def options_contract_history_nse(
         return {"error": str(e)}
 
 
+@app.get("/stocks/movers")
+def stocks_movers(index: str = "nifty50"):
+    """Top/bottom 10 movers for the given NSE index. 5-minute cache."""
+    from core.movers import fetch_movers as _fetch_movers
+    try:
+        return _fetch_movers(index)
+    except Exception as e:
+        log.error(f"stocks/movers error: {e}")
+        return {"error": str(e)}
+
+
 @app.get("/options/past-expiries")
 def options_past_expiries(symbol: str = "NIFTY"):
     """
