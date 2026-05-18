@@ -2827,6 +2827,17 @@ def options_contract_history_nse(
         return {"error": str(e)}
 
 
+@app.get("/stocks/indicators")
+def stocks_indicators(symbol: str = "RELIANCE"):
+    """EMA 9/21 (5-min), EMA 50/200 (daily), VWAP, Supertrend + entry bias score."""
+    from core.stock_indicators import fetch_indicators as _fetch_ind
+    try:
+        return _fetch_ind(symbol.upper())
+    except Exception as e:
+        log.error(f"stocks/indicators error: {e}")
+        return {"error": str(e)}
+
+
 @app.get("/stocks/movers")
 def stocks_movers(index: str = "nifty50"):
     """Top/bottom 10 movers for the given NSE index. 5-minute cache."""

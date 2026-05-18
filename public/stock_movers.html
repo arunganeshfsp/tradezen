@@ -8,6 +8,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    :root{
+      --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+      --border:#252a44;--border2:#323868;
+      --accent:#7c6af7;--blue:#5b8af5;
+      --green:#2ecc71;--green2:#27ae60;
+      --red:#e74c3c;--red2:#c0392b;
+      --cyan:#00d4ff;
+      --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+    }
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;min-height:100vh}
 
@@ -120,6 +129,18 @@
     /* ── 52W bar ── */
     .yw-wrap{position:relative;width:50px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;display:inline-block;vertical-align:middle}
     .yw-dot{position:absolute;top:-2.5px;width:8px;height:8px;border-radius:50%;transform:translateX(-50%);background:var(--accent)}
+
+    /* ── Indicator modal ── */
+    .ind-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    @media(max-width:500px){.ind-grid{grid-template-columns:1fr 1fr}}
+    .ind-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;transition:border-color .15s}
+    .ind-card.ind-bull{border-color:rgba(46,204,113,.2)}
+    .ind-card.ind-bear{border-color:rgba(231,76,60,.15)}
+    .ind-label{font-size:10px;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;
+               display:flex;justify-content:space-between;align-items:center}
+    .ind-tf{font-size:8px;background:rgba(255,255,255,.06);padding:2px 5px;border-radius:4px;color:var(--dim)}
+    .ind-val{font-size:13px;font-weight:600;color:#fff}
+    .ind-status{font-size:9px;letter-spacing:.5px;font-weight:700}
   </style>
   <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
@@ -167,6 +188,15 @@
   </div>
 </div>
 
+<!-- ── Indicators Modal ── -->
+<div id="indOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;backdrop-filter:blur(4px)"
+     onclick="if(event.target===this)closeModal()"></div>
+<div id="indModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+     width:min(520px,95vw);max-height:90vh;overflow-y:auto;background:#0f1225;
+     border:1px solid rgba(255,255,255,.1);border-radius:14px;z-index:501;box-shadow:0 24px 60px rgba(0,0,0,.6)">
+  <!-- Modal content injected by JS -->
+</div>
+
 <!-- ── Stats strip ── -->
 <div class="stats-strip" id="statsStrip">
   <span class="s-chip" id="chipTotal">— stocks</span>
@@ -177,6 +207,7 @@
   <span class="s-sep">|</span>
   <span class="s-chip cyan"  id="chipTime">Loading…</span>
   <span class="s-source"     id="chipSource"></span>
+  <span id="countdownBadge" style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-left:4px"></span>
   <button class="refresh-btn" onclick="refresh()">↻ Refresh</button>
 </div>
 
@@ -196,7 +227,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 const API = '/api';
 let _currentIndex = 'nifty50';
-let _autoTimer = null;
+let _autoTimer     = null;
+let _countdownTimer= null;
+let _nextRefresh   = 0;
+const REFRESH_SEC  = 30;
+
+// Row cache: symbol → row data (avoids embedding JSON in HTML attributes)
+const _rowCache = {};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -246,19 +283,20 @@ function _ywBar(ltp, yl, yh) {
 
 function _renderRows(rows, isGainer) {
   return rows.map((r, i) => {
+    _rowCache[r.symbol] = r;  // store for modal lookup
     const chgCls  = r.pct_change >= 0 ? 'chg-pos' : 'chg-neg';
     const sign    = r.pct_change >= 0 ? '+' : '';
     const chgSign = r.change >= 0 ? '+' : '';
     return `
-    <tr>
+    <tr style="cursor:pointer" onclick="openModal('${r.symbol}')" title="Tap for entry signals">
       <td><span class="rank ${isGainer?'top':'bot'}">${i+1}</span></td>
       <td>
         <div class="sym-cell">
-          <span class="sym-name">${r.symbol}</span>
+          <span class="sym-name">${r.symbol} <span style="font-size:9px;color:var(--muted)">↗</span></span>
           <span class="sym-meta">PREV ₹${r.prev_close}</span>
         </div>
       </td>
-      <td style="color:#fff;font-weight:600">${_fmtPrice(r.ltp)}</td>
+      <td style="color:var(--text);font-weight:600">${_fmtPrice(r.ltp)}</td>
       <td class="${chgCls}">${chgSign}${r.change != null ? r.change.toFixed(2) : '—'}</td>
       <td><span class="${_pctClass(r.pct_change)}">${sign}${r.pct_change.toFixed(2)}%</span></td>
       <td>${_rangeBar(r.ltp, r.low, r.high, isGainer)}</td>
@@ -321,6 +359,7 @@ function _renderData(d) {
 
 async function loadMovers(index, btn) {
   _currentIndex = index;
+  _resetCountdown();
 
   // Update active button
   document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
@@ -344,17 +383,198 @@ async function loadMovers(index, btn) {
 }
 
 function refresh() {
+  _resetCountdown();
   loadMovers(_currentIndex, document.querySelector('.f-btn.active'));
 }
 
-// Auto-refresh every 5 min
-function startAutoRefresh() {
-  _autoTimer = setInterval(() => loadMovers(_currentIndex), 300000);
+function _resetCountdown() {
+  _nextRefresh = Date.now() + REFRESH_SEC * 1000;
+}
+
+function _startCountdown() {
+  if (_countdownTimer) clearInterval(_countdownTimer);
+  _resetCountdown();
+  _countdownTimer = setInterval(() => {
+    const secs = Math.max(0, Math.round((_nextRefresh - Date.now()) / 1000));
+    const el   = document.getElementById('countdownBadge');
+    if (el) el.textContent = secs > 0 ? `↻ ${secs}s` : '';
+    if (secs === 0) {
+      _resetCountdown();
+      loadMovers(_currentIndex);
+    }
+  }, 1000);
+}
+
+// ── Indicators Modal ─────────────────────────────────────────────────────────
+
+async function openModal(sym) {
+  const row     = _rowCache[sym] || {symbol: sym, ltp: null, pct_change: 0};
+  const overlay = document.getElementById('indOverlay');
+  const modal   = document.getElementById('indModal');
+  modal.innerHTML = _modalLoading(row);
+  overlay.style.display = 'block';
+  modal.style.display   = 'block';
+  try {
+    const d = await fetch(`${API}/stocks/indicators?symbol=${encodeURIComponent(sym)}`).then(r => r.json());
+    modal.innerHTML = d.error ? _modalError(row, d.error) : _modalContent(row, d);
+  } catch(e) {
+    modal.innerHTML = _modalError(row, e.message);
+  }
+}
+
+function closeModal() {
+  document.getElementById('indOverlay').style.display = 'none';
+  document.getElementById('indModal').style.display   = 'none';
+}
+
+function _closeBtn() {
+  return `<button onclick="closeModal()" style="position:absolute;top:14px;right:16px;
+    background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;line-height:1;z-index:1">✕</button>`;
+}
+
+function _fmtInd(v) {
+  if (v == null) return '—';
+  return '₹' + v.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function _modalLoading(row) {
+  const sign = row.pct_change >= 0 ? '+' : '';
+  const clr  = row.pct_change >= 0 ? 'var(--green)' : 'var(--red)';
+  return `
+  <div style="padding:20px 22px 26px;position:relative">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-right:28px;margin-bottom:20px">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff">${row.symbol}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.5px">NSE • Entry Indicators</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:16px;font-weight:700;color:#fff">${_fmtPrice(row.ltp)}</div>
+        <div style="font-size:12px;font-weight:600;color:${clr}">${sign}${row.pct_change.toFixed(2)}%</div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:30px 0;color:var(--muted)">
+      <div class="spinner"></div><br>Loading indicators…
+    </div>
+  </div>
+  ${_closeBtn()}`;
+}
+
+function _modalError(row, msg) {
+  return `
+  <div style="padding:20px 22px 26px;position:relative">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;margin-bottom:16px">${row.symbol}</div>
+    <div style="color:var(--red);font-size:13px;padding:20px;text-align:center">⚠ ${msg}</div>
+  </div>
+  ${_closeBtn()}`;
+}
+
+function _indCard(name, tf, val, dist, isAbove, isST, stDir) {
+  const bull = isST ? stDir === 'up' : isAbove;
+  if (val == null) return `
+  <div class="ind-card">
+    <div class="ind-label">${name}<span class="ind-tf">${tf}</span></div>
+    <div class="ind-val" style="color:var(--muted)">—</div>
+  </div>`;
+
+  const distStr = dist != null ? `${dist >= 0 ? '+' : ''}${dist.toFixed(2)}%` : '';
+  const distClr = dist != null ? (dist >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
+  let statusTxt, statusClr;
+  if (isST) {
+    statusTxt = stDir === 'up' ? '▲ BULLISH' : stDir === 'down' ? '▼ BEARISH' : '— NEUTRAL';
+    statusClr = stDir === 'up' ? 'var(--green)' : stDir === 'down' ? 'var(--red)' : 'var(--muted)';
+  } else {
+    statusTxt = isAbove ? '▲ ABOVE' : '▼ BELOW';
+    statusClr = isAbove ? 'var(--green)' : 'var(--red)';
+  }
+  return `
+  <div class="ind-card ${bull ? 'ind-bull' : 'ind-bear'}">
+    <div class="ind-label">${name}<span class="ind-tf">${tf}</span></div>
+    <div class="ind-val">${_fmtInd(val)}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+      <span style="font-size:10px;color:${distClr}">${distStr}</span>
+      <span class="ind-status" style="color:${statusClr}">${statusTxt}</span>
+    </div>
+  </div>`;
+}
+
+function _modalContent(row, d) {
+  const sign   = row.pct_change >= 0 ? '+' : '';
+  const chgClr = row.pct_change >= 0 ? 'var(--green)' : 'var(--red)';
+  const ind    = d.indicators;
+  const checks = d.checks;
+  const biasHex = {green:'#2ecc71', cyan:'#00d4ff', yellow:'#f1c40f', orange:'#e67e22', red:'#e74c3c'};
+  const biasClr = biasHex[d.bias_color] || '#fff';
+  const scorePct = Math.round((d.score / d.max_score) * 100);
+
+  const cards = [
+    _indCard('VWAP',       ind.vwap.timeframe,        ind.vwap.value,        ind.vwap.dist_pct,        checks.above_vwap,    false),
+    _indCard('EMA 9',      ind.ema9.timeframe,         ind.ema9.value,        ind.ema9.dist_pct,        checks.above_ema9,    false),
+    _indCard('EMA 21',     ind.ema21.timeframe,        ind.ema21.value,       ind.ema21.dist_pct,       checks.above_ema21,   false),
+    _indCard('EMA 50',     ind.ema50.timeframe,        ind.ema50.value,       ind.ema50.dist_pct,       checks.above_ema50,   false),
+    _indCard('EMA 200',    ind.ema200.timeframe,       ind.ema200.value,      ind.ema200.dist_pct,      checks.above_ema200,  false),
+    _indCard('Supertrend', ind.supertrend.timeframe,   ind.supertrend.value,  ind.supertrend.dist_pct,  false, true, ind.supertrend.direction),
+  ].join('');
+
+  const checkRows = [
+    {k:'above_vwap',       l:'Above VWAP (Today)'},
+    {k:'above_ema9',       l:'Above EMA 9  (5-min)'},
+    {k:'above_ema21',      l:'Above EMA 21 (5-min)'},
+    {k:'ema9_above_ema21', l:'EMA 9 > EMA 21'},
+    {k:'above_ema50',      l:'Above EMA 50 (Daily)'},
+    {k:'above_ema200',     l:'Above EMA 200 (Daily)'},
+    {k:'supertrend_up',    l:'Supertrend Bullish (5-min)'},
+  ].map(c => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span style="font-size:13px;line-height:1">${checks[c.k] ? '✅' : '❌'}</span>
+      <span style="font-size:11px;color:${checks[c.k] ? '#fff' : 'var(--muted)'}">${c.l}</span>
+    </div>`).join('');
+
+  return `
+  <div style="padding:20px 22px 22px;position:relative">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-right:28px;margin-bottom:18px">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff">${d.symbol}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.5px">NSE • Entry Signals</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:16px;font-weight:700;color:#fff">${_fmtInd(d.ltp)}</div>
+        <div style="font-size:12px;font-weight:600;color:${chgClr}">${sign}${row.pct_change.toFixed(2)}%</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:10px;letter-spacing:1px;color:var(--muted)">ENTRY BIAS</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:${biasClr}">${d.bias}</span>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:4px;height:8px;overflow:hidden">
+        <div style="height:100%;width:${scorePct}%;background:${biasClr};border-radius:4px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="font-size:10px;color:var(--muted)">BEARISH</span>
+        <span style="font-size:10px;color:var(--muted)">${d.score} / ${d.max_score} signals</span>
+        <span style="font-size:10px;color:var(--muted)">BULLISH</span>
+      </div>
+    </div>
+
+    <div class="ind-grid">${cards}</div>
+
+    <div style="margin-top:16px;padding:14px 16px;background:rgba(255,255,255,.03);
+                border:1px solid rgba(255,255,255,.07);border-radius:10px">
+      <div style="font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:8px">SIGNAL CHECKLIST</div>
+      ${checkRows}
+    </div>
+
+    <div style="margin-top:12px;font-size:10px;color:var(--muted);text-align:center">
+      5-min intraday • Daily EMA • data cached 3 min
+    </div>
+  </div>
+  ${_closeBtn()}`;
 }
 
 // Init
 loadMovers('nifty50', document.querySelector('.f-btn.active'));
-startAutoRefresh();
+_startCountdown();
 </script>
 </body>
 </html>
