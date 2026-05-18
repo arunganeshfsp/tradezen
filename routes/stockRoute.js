@@ -406,6 +406,17 @@ router.get("/stocks/movers", async (req, res) => {
   }
 });
 
+// ─── GET /api/stocks/live-prices ─────────────────────────────────────────────
+router.get("/stocks/live-prices", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stocks/live-prices?${params}`, 8000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/options/contract-history-nse ───────────────────────────────────
 router.get("/options/contract-history-nse", async (req, res) => {
   try {

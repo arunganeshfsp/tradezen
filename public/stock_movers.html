@@ -148,6 +148,15 @@
     .rsi-bar-mid{position:absolute;top:-2px;bottom:-2px;width:2px;left:50%;background:rgba(255,255,255,.2);border-radius:1px}
     .rsi-bar-dot{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:2px solid #0f1225}
     .rsi-zone-badge{display:inline-block;font-size:9px;letter-spacing:.8px;font-weight:700;padding:2px 7px;border-radius:8px}
+
+    /* ── Live price flash ── */
+    @keyframes flashUp  {0%{background:rgba(46,204,113,.35)}100%{background:transparent}}
+    @keyframes flashDown{0%{background:rgba(231,76,60,.35)} 100%{background:transparent}}
+    .flash-up  {animation:flashUp   .6s ease-out}
+    .flash-down{animation:flashDown .6s ease-out}
+    .live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);
+              animation:pulseLive 1.4s ease-in-out infinite;margin-right:5px;vertical-align:middle}
+    @keyframes pulseLive{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
   </style>
   <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
@@ -213,7 +222,7 @@
   <span class="s-chip"       id="chipUnch">— unchanged</span>
   <span class="s-sep">|</span>
   <span class="s-chip cyan"  id="chipTime">Loading…</span>
-  <span class="s-source"     id="chipSource"></span>
+  <span class="s-source" id="chipSource"><span id="liveDot" style="display:none" class="live-dot"></span><span id="chipSourceTxt"></span></span>
   <span id="countdownBadge" style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-left:4px"></span>
   <button class="refresh-btn" onclick="refresh()">↻ Refresh</button>
 </div>
@@ -233,11 +242,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 const API = '/api';
-let _currentIndex = 'nifty50';
+let _currentIndex  = 'nifty50';
 let _autoTimer     = null;
 let _countdownTimer= null;
+let _priceTimer    = null;
 let _nextRefresh   = 0;
 const REFRESH_SEC  = 30;
+const PRICE_SEC    = 5;
 
 // Row cache: symbol → row data (avoids embedding JSON in HTML attributes)
 const _rowCache = {};
@@ -295,7 +306,7 @@ function _renderRows(rows, isGainer) {
     const sign    = r.pct_change >= 0 ? '+' : '';
     const chgSign = r.change >= 0 ? '+' : '';
     return `
-    <tr style="cursor:pointer" onclick="openModal('${r.symbol}')" title="Tap for entry signals">
+    <tr data-sym="${r.symbol}" style="cursor:pointer" onclick="openModal('${r.symbol}')" title="Tap for entry signals">
       <td><span class="rank ${isGainer?'top':'bot'}">${i+1}</span></td>
       <td>
         <div class="sym-cell">
@@ -303,7 +314,7 @@ function _renderRows(rows, isGainer) {
           <span class="sym-meta">PREV ₹${r.prev_close}</span>
         </div>
       </td>
-      <td style="color:var(--text);font-weight:600">${_fmtPrice(r.ltp)}</td>
+      <td style="color:var(--text);font-weight:600"><span class="ltp-val" data-ltp="${r.ltp}">${_fmtPrice(r.ltp)}</span></td>
       <td class="${chgCls}">${chgSign}${r.change != null ? r.change.toFixed(2) : '—'}</td>
       <td><span class="${_pctClass(r.pct_change)}">${sign}${r.pct_change.toFixed(2)}%</span></td>
       <td>${_rangeBar(r.ltp, r.low, r.high, isGainer)}</td>
@@ -350,7 +361,8 @@ function _renderData(d) {
   document.getElementById('chipDec').textContent   = `▼ ${d.declining} declining`;
   document.getElementById('chipUnch').textContent  = `${d.unchanged} unchanged`;
   document.getElementById('chipTime').textContent  = `Updated ${_fmtTime(d.fetched_at)}`;
-  document.getElementById('chipSource').textContent= d.source;
+  document.getElementById('chipSourceTxt').textContent = d.source;
+  document.getElementById('liveDot').style.display = d.source === 'NSE Live' ? 'inline-block' : 'none';
   document.getElementById('lastUpdateBadge').textContent = d.index;
 
   // A/D ratio colour
@@ -367,6 +379,7 @@ function _renderData(d) {
 async function loadMovers(index, btn) {
   _currentIndex = index;
   _resetCountdown();
+  _startPricePoll();
 
   // Update active button (btn is undefined on auto-refresh — find by index)
   document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
@@ -630,9 +643,52 @@ function _modalContent(row, d) {
   ${_closeBtn()}`;
 }
 
+// ── Live price polling ────────────────────────────────────────────────────────
+
+function _updateLtp(sym, newLtp) {
+  const row = document.querySelector(`tr[data-sym="${sym}"]`);
+  if (!row) return;
+  const cell = row.querySelector('.ltp-val');
+  if (!cell) return;
+  const oldLtp = parseFloat(cell.dataset.ltp || '0');
+  if (newLtp === oldLtp) return;
+  cell.dataset.ltp = newLtp;
+  cell.textContent = _fmtPrice(newLtp);
+  // Flash green if price went up, red if down
+  cell.classList.remove('flash-up', 'flash-down');
+  void cell.offsetWidth; // force reflow to restart animation
+  cell.classList.add(newLtp > oldLtp ? 'flash-up' : 'flash-down');
+  // Also update _rowCache so modal shows fresh price
+  if (_rowCache[sym]) _rowCache[sym].ltp = newLtp;
+}
+
+async function _pollPrices() {
+  if (!document.querySelector('tr[data-sym]')) return; // table not rendered yet
+  try {
+    const d = await fetch(`${API}/stocks/live-prices?index=${_currentIndex}`).then(r => r.json());
+    if (d.prices) {
+      Object.entries(d.prices).forEach(([sym, info]) => {
+        const ltp = typeof info === 'object' ? info.ltp : info;
+        if (ltp != null) _updateLtp(sym, ltp);
+      });
+      // Update source indicator
+      if (d.source) {
+        document.getElementById('chipSourceTxt').textContent = d.source;
+        document.getElementById('liveDot').style.display = d.source === 'NSE Live' ? 'inline-block' : 'none';
+      }
+    }
+  } catch (_) {}  // silent fail — stale data is fine
+}
+
+function _startPricePoll() {
+  if (_priceTimer) clearInterval(_priceTimer);
+  _priceTimer = setInterval(_pollPrices, PRICE_SEC * 1000);
+}
+
 // Init
 loadMovers('nifty50', document.querySelector('.f-btn.active'));
 _startCountdown();
+_startPricePoll();
 </script>
 </body>
 </html>

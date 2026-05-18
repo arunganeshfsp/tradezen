@@ -208,6 +208,79 @@ def _fetch_yfinance(symbols: list[str]) -> list[dict]:
         return []
 
 
+# ── Yahoo Finance quote API (real-time fallback, no session needed) ───────────
+
+def _fetch_yahoo_prices(symbols: list[str]) -> dict[str, float]:
+    """Batch price fetch via Yahoo Finance quote API. Returns {symbol: ltp}."""
+    yf_syms = ",".join(s + ".NS" for s in symbols)
+    url = "https://query1.finance.yahoo.com/v7/finance/quote"
+    try:
+        r = requests.get(url, params={
+            "symbols": yf_syms,
+            "fields":  "regularMarketPrice,regularMarketChange,regularMarketChangePercent",
+        }, headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            )
+        }, timeout=10)
+        if r.status_code != 200:
+            return {}
+        prices = {}
+        for item in r.json().get("quoteResponse", {}).get("result", []):
+            sym_raw = item.get("symbol", "")
+            sym = sym_raw.replace(".NS", "")
+            ltp = item.get("regularMarketPrice")
+            if sym and ltp is not None:
+                prices[sym] = round(float(ltp), 2)
+        return prices
+    except Exception as e:
+        log.warning(f"Yahoo quote API failed: {e}")
+        return {}
+
+
+# ── Live prices (fast, 5-second cache) ────────────────────────────────────────
+
+_price_cache: dict = {}
+_PRICE_CACHE_TTL   = 5  # 5 seconds
+
+
+def fetch_live_prices(index: str = "nifty50") -> dict:
+    """
+    Return current LTPs for visible stocks in the given index.
+    Primary: NSE equity-stockIndices (real-time).
+    Fallback: Yahoo Finance quote API (near real-time).
+    5-second in-memory cache.
+    """
+    now    = time.time()
+    cached = _price_cache.get(index)
+    if cached and now - cached["ts"] < _PRICE_CACHE_TTL:
+        return cached["data"]
+
+    nse_index = _NSE_INDEX_MAP.get(index, "NIFTY 50")
+    rows      = _fetch_nse(nse_index)
+    source    = "NSE Live"
+
+    if rows:
+        prices = {r["symbol"]: {
+            "ltp":        r["ltp"],
+            "change":     r["change"],
+            "pct_change": r["pct_change"],
+        } for r in rows}
+    else:
+        # Fallback: Yahoo Finance quote API for fallback symbol list
+        symbols = _FALLBACK_SYMBOLS.get(index, _NIFTY50)
+        raw     = _fetch_yahoo_prices(symbols)
+        prices  = {sym: {"ltp": ltp, "change": None, "pct_change": None}
+                   for sym, ltp in raw.items()}
+        source  = "Yahoo (delayed)" if raw else "unavailable"
+
+    result = {"prices": prices, "source": source, "ts": int(now)}
+    _price_cache[index] = {"ts": now, "data": result}
+    return result
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 _cache: dict = {}

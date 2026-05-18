@@ -2849,6 +2849,17 @@ def stocks_movers(index: str = "nifty50"):
         return {"error": str(e)}
 
 
+@app.get("/stocks/live-prices")
+def stocks_live_prices(index: str = "nifty50"):
+    """Current LTPs for index constituents. NSE primary, Yahoo fallback. 5-second cache."""
+    from core.movers import fetch_live_prices as _fetch_prices
+    try:
+        return _fetch_prices(index)
+    except Exception as e:
+        log.error(f"stocks/live-prices error: {e}")
+        return {"error": str(e)}
+
+
 @app.get("/options/past-expiries")
 def options_past_expiries(symbol: str = "NIFTY"):
     """
