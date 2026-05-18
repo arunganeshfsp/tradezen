@@ -141,6 +141,13 @@
     .ind-tf{font-size:8px;background:rgba(255,255,255,.06);padding:2px 5px;border-radius:4px;color:var(--dim)}
     .ind-val{font-size:13px;font-weight:600;color:#fff}
     .ind-status{font-size:9px;letter-spacing:.5px;font-weight:700}
+    .rsi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+    .rsi-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px}
+    .rsi-bar-wrap{height:6px;border-radius:3px;background:rgba(255,255,255,.08);margin:8px 0 4px;position:relative;overflow:visible}
+    .rsi-bar-fill{height:100%;border-radius:3px;position:absolute;top:0;left:0}
+    .rsi-bar-mid{position:absolute;top:-2px;bottom:-2px;width:2px;left:50%;background:rgba(255,255,255,.2);border-radius:1px}
+    .rsi-bar-dot{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:2px solid #0f1225}
+    .rsi-zone-badge{display:inline-block;font-size:9px;letter-spacing:.8px;font-weight:700;padding:2px 7px;border-radius:8px}
   </style>
   <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 </head>
@@ -361,9 +368,10 @@ async function loadMovers(index, btn) {
   _currentIndex = index;
   _resetCountdown();
 
-  // Update active button
+  // Update active button (btn is undefined on auto-refresh — find by index)
   document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  const activeBtn = btn || document.querySelector(`.f-btn[onclick*="'${index}'"]`);
+  if (activeBtn) activeBtn.classList.add('active');
 
   document.getElementById('moversWrap').innerHTML =
     '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div><br>Fetching data…</div>';
@@ -497,6 +505,47 @@ function _indCard(name, tf, val, dist, isAbove, isST, stDir) {
   </div>`;
 }
 
+function _rsiCard(rsiObj, label, isBullish) {
+  if (!rsiObj || rsiObj.value == null) return `
+  <div class="rsi-card">
+    <div class="ind-label">${label}<span class="ind-tf">${rsiObj ? rsiObj.timeframe : '—'}</span></div>
+    <div class="ind-val" style="color:var(--muted)">—</div>
+  </div>`;
+
+  const v = rsiObj.value;
+  const zone = rsiObj.zone;
+  const zoneMap = {
+    overbought: {txt:'OVERBOUGHT', clr:'#e67e22', bg:'rgba(230,126,34,.15)'},
+    bullish:    {txt:'BULLISH',    clr:'#2ecc71', bg:'rgba(46,204,113,.12)'},
+    bearish:    {txt:'BEARISH',    clr:'#e74c3c', bg:'rgba(231,76,60,.12)'},
+    oversold:   {txt:'OVERSOLD',   clr:'#e67e22', bg:'rgba(230,126,34,.15)'},
+  };
+  const z    = zoneMap[zone] || zoneMap.bearish;
+  const pct  = Math.min(100, v);                          // 0-100 maps to 0-100%
+  const dotClr = z.clr;
+  const barClr = zone === 'overbought' ? 'rgba(230,126,34,.5)'
+               : zone === 'bullish'    ? 'rgba(46,204,113,.5)'
+               : zone === 'oversold'   ? 'rgba(230,126,34,.5)'
+               :                         'rgba(231,76,60,.5)';
+  const borderClr = isBullish ? 'rgba(46,204,113,.2)' : 'rgba(231,76,60,.15)';
+  return `
+  <div class="rsi-card" style="border-color:${borderClr}">
+    <div class="ind-label">${label}<span class="ind-tf">${rsiObj.timeframe}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:16px;font-weight:700;color:#fff">${v}</span>
+      <span class="rsi-zone-badge" style="color:${z.clr};background:${z.bg}">${z.txt}</span>
+    </div>
+    <div class="rsi-bar-wrap">
+      <div class="rsi-bar-fill" style="width:${pct}%;background:${barClr}"></div>
+      <div class="rsi-bar-mid"></div>
+      <div class="rsi-bar-dot" style="left:${pct}%;background:${dotClr}"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+      <span>0 oversold</span><span>50</span><span>70 overbought</span>
+    </div>
+  </div>`;
+}
+
 function _modalContent(row, d) {
   const sign   = row.pct_change >= 0 ? '+' : '';
   const chgClr = row.pct_change >= 0 ? 'var(--green)' : 'var(--red)';
@@ -515,6 +564,10 @@ function _modalContent(row, d) {
     _indCard('Supertrend', ind.supertrend.timeframe,   ind.supertrend.value,  ind.supertrend.dist_pct,  false, true, ind.supertrend.direction),
   ].join('');
 
+  const rsiCards =
+    _rsiCard(ind.rsi_5m, 'RSI 14', checks.rsi_5m_bullish) +
+    _rsiCard(ind.rsi_1d, 'RSI 14', checks.rsi_1d_bullish);
+
   const checkRows = [
     {k:'above_vwap',       l:'Above VWAP (Today)'},
     {k:'above_ema9',       l:'Above EMA 9  (5-min)'},
@@ -523,6 +576,8 @@ function _modalContent(row, d) {
     {k:'above_ema50',      l:'Above EMA 50 (Daily)'},
     {k:'above_ema200',     l:'Above EMA 200 (Daily)'},
     {k:'supertrend_up',    l:'Supertrend Bullish (5-min)'},
+    {k:'rsi_5m_bullish',   l:'RSI 14 > 50  (5-min)'},
+    {k:'rsi_1d_bullish',   l:'RSI 14 > 50  (Daily)'},
   ].map(c => `
     <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">
       <span style="font-size:13px;line-height:1">${checks[c.k] ? '✅' : '❌'}</span>
@@ -559,14 +614,17 @@ function _modalContent(row, d) {
 
     <div class="ind-grid">${cards}</div>
 
-    <div style="margin-top:16px;padding:14px 16px;background:rgba(255,255,255,.03);
+    <div style="font-size:10px;letter-spacing:.8px;color:var(--muted);margin:14px 0 6px">RSI 14 — MOMENTUM</div>
+    <div class="rsi-row">${rsiCards}</div>
+
+    <div style="margin-top:14px;padding:12px 16px;background:rgba(255,255,255,.03);
                 border:1px solid rgba(255,255,255,.07);border-radius:10px">
       <div style="font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:8px">SIGNAL CHECKLIST</div>
       ${checkRows}
     </div>
 
     <div style="margin-top:12px;font-size:10px;color:var(--muted);text-align:center">
-      5-min intraday • Daily EMA • data cached 3 min
+      5-min intraday • Daily • RSI 14 • cached 3 min
     </div>
   </div>
   ${_closeBtn()}`;
