@@ -2614,42 +2614,59 @@ async def options_chain(symbol: str = "NIFTY", expiry: str = "", spot_price: flo
 
 
 def _compute_candle_data(symbol: str) -> dict | None:
-    """Fetch today's 5m intraday bars and compute EMA9/21, VWAP, RSI, Volume for signal scoring."""
+    """Fetch today's 5-min bars and compute EMA9/21, VWAP, RSI, Volume for signal scoring."""
     import yfinance as yf
     import datetime as _dt
+    import pandas as pd
     try:
-        IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
-        yf_sym = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}.get(symbol.upper(), f"{symbol.upper()}.NS")
-        df = yf.Ticker(yf_sym).history(period="2d", interval="5m")
-        if df.empty:
-            return None
-        df.index = df.index.tz_convert(IST)
-        today = _dt.datetime.now(IST).date()
-        df = df[df.index.date == today]
-        if len(df) < 5:
+        IST    = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+        yf_sym = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK", "FINNIFTY": "^CNXFIN"}.get(
+                    symbol.upper(), f"{symbol.upper()}.NS")
+        today  = _dt.datetime.now(IST).date()
+
+        # Try "1d" first (faster); fall back to "5d" if today's data is thin
+        df = None
+        for period in ("1d", "5d"):
+            try:
+                raw = yf.Ticker(yf_sym).history(period=period, interval="5m", auto_adjust=True)
+                if raw.empty:
+                    continue
+                raw.index = pd.DatetimeIndex(raw.index).tz_convert(IST)
+                raw = raw[raw.index.date == today]
+                if len(raw) >= 5:
+                    df = raw
+                    break
+            except Exception as _fe:
+                log.debug(f"_compute_candle_data {yf_sym} period={period}: {_fe}")
+                continue
+
+        if df is None or df.empty:
+            log.warning(f"_compute_candle_data({symbol}): no intraday data for today")
             return None
 
         closes  = df["Close"]
         volumes = df["Volume"]
 
-        ema9  = float(closes.ewm(span=9,  adjust=False).mean().iloc[-1])
-        ema21 = float(closes.ewm(span=21, adjust=False).mean().iloc[-1])
-        close = float(closes.iloc[-1])
-        volume    = float(volumes.iloc[-1])
+        ema9       = float(closes.ewm(span=9,  adjust=False).mean().iloc[-1])
+        ema21      = float(closes.ewm(span=21, adjust=False).mean().iloc[-1])
+        close      = float(closes.iloc[-1])
+        volume     = float(volumes.iloc[-1])
         avg_volume = float(volumes.mean())
 
-        # VWAP — cumulative (typical price × volume) / cumulative volume
+        # VWAP
         typical = (df["High"] + df["Low"] + df["Close"]) / 3
-        cum_vol = volumes.cumsum().iloc[-1]
-        vwap = float((typical * volumes).cumsum().iloc[-1] / cum_vol) if cum_vol else close
+        cum_vol  = volumes.replace(0, float("nan")).cumsum().iloc[-1]
+        vwap     = float((typical * volumes).cumsum().iloc[-1] / cum_vol) if cum_vol and cum_vol > 0 else close
 
-        # RSI(14) via Wilder EWM
-        delta = closes.diff()
-        gain  = delta.where(delta > 0, 0.0).ewm(com=13, adjust=False).mean()
-        loss  = (-delta.where(delta < 0, 0.0)).ewm(com=13, adjust=False).mean()
-        last_loss = loss.iloc[-1]
-        rsi = float(100 - 100 / (1 + gain.iloc[-1] / last_loss)) if last_loss else 100.0
+        # RSI(14) Wilder EWM
+        delta     = closes.diff()
+        gain      = delta.where(delta > 0, 0.0).ewm(com=13, adjust=False).mean()
+        loss      = (-delta.where(delta < 0, 0.0)).ewm(com=13, adjust=False).mean()
+        last_loss = float(loss.iloc[-1])
+        last_gain = float(gain.iloc[-1])
+        rsi = float(100 - 100 / (1 + last_gain / last_loss)) if last_loss > 0 else (100.0 if last_gain > 0 else 50.0)
 
+        log.info(f"_compute_candle_data({symbol}): close={close:.1f} ema9={ema9:.1f} ema21={ema21:.1f} vwap={vwap:.1f} rsi={rsi:.1f} bars={len(df)}")
         return {
             "close": close, "vwap": vwap,
             "volume": volume, "avg_volume": avg_volume,

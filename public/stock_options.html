@@ -692,17 +692,37 @@ function renderContext(ctx) {
 // ── Score ────────────────────────────────────────────────────────────────────
 function renderScore(s) {
   if (s.error) return;
-  const circ = 2 * Math.PI * 42;
-  const filled = (s.score / s.max_score) * circ;
-  const arcColors = {STRONG:"var(--green)",MODERATE:"var(--yellow)",WEAK:"var(--orange)",SKIP:"var(--red)"};
+  const circ   = 2 * Math.PI * 42;
+  // Arc uses effective max so ring fills relative to reachable score
+  const effMax = s.eff_max || s.max_score;
+  const filled = (s.score / effMax) * circ;
+  const arcColors = {STRONG:"var(--green)",MODERATE:"var(--yellow)",WEAK:"var(--orange)",SKIP:"var(--red)","NO DATA":"var(--muted)"};
   const arc = document.getElementById("scoreArc");
   arc.setAttribute("stroke", arcColors[s.label]||"var(--accent)");
   arc.setAttribute("stroke-dasharray",`${filled.toFixed(1)} ${circ.toFixed(1)}`);
-  document.getElementById("scoreNum").textContent   = s.score;
+
+  // Show score as "earned / effective_max" when data is missing
+  const missing = s.missing_count || 0;
+  document.getElementById("scoreNum").textContent = s.score;
   document.getElementById("scoreLabel").textContent = s.label;
   document.getElementById("scoreLabel").className   = `score-label sl-${s.label}`;
-  const hints = {STRONG:"High conviction — full size OK",MODERATE:"Good setup — normal size",WEAK:"Below threshold — half size",SKIP:"No edge — skip trade"};
-  document.getElementById("scoreHint").textContent = hints[s.label]||"";
+
+  const hints = {
+    STRONG:"High conviction — full size OK",
+    MODERATE:"Good setup — normal size",
+    WEAK:"Below threshold — half size or skip",
+    SKIP:"No edge — skip trade",
+    "NO DATA":"Score unreliable — data feeds down",
+  };
+  // Show data-quality warning in hint if many signals are missing
+  let hint = hints[s.label] || "";
+  if (missing >= 4) {
+    hint = `⚠ ${missing} signals missing data — score ${s.score}/${effMax} of available`;
+  } else if (missing > 0) {
+    hint = `${hint} (${missing} signal${missing>1?'s':''} data unavailable)`;
+  }
+  document.getElementById("scoreHint").textContent = hint;
+
   const sigNames = {
     vix_normal:"VIX Normal",iv_not_spiked:"IV Not Spiked",pcr_aligned:"PCR Aligned",
     oi_wall_clear:"OI Wall Clear",oi_change_confirms:"OI Change",ema_trend:"EMA Trend",
@@ -711,14 +731,15 @@ function renderScore(s) {
   };
   if (s.signals) {
     document.getElementById("sigList").innerHTML = Object.entries(s.signals).map(([k,v])=>{
-      const on = v.earned > 0;
-      const na = v.reason && v.reason.toLowerCase().includes("unavailable");
-      const dotCls = na?"na":on?"on":"off";
-      const ptsCls = na?"na":on?"on":"off";
+      const on  = v.earned > 0;
+      const na  = v.no_data || (v.reason && v.reason.toLowerCase().includes("unavailable"));
+      const dotCls = na ? "na" : on ? "on" : "off";
+      const ptsCls = na ? "na" : on ? "on" : "off";
+      const label  = na ? `<span style="font-size:9px;color:var(--muted)">NO DATA</span>` : `<span class="sig-pts ${ptsCls}">${v.earned}/${v.max}</span>`;
       return `<div class="sig-item" title="${v.reason||''}">
         <div class="sig-dot ${dotCls}"></div>
         <span class="sig-name">${sigNames[k]||k}</span>
-        <span class="sig-pts ${ptsCls}">${v.earned}/${v.max}</span>
+        ${label}
       </div>`;
     }).join("");
   }
