@@ -2877,6 +2877,47 @@ def stocks_live_prices(index: str = "nifty50"):
         return {"error": str(e)}
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Swing Trading (S4 framework) endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/swing/analyse")
+def swing_analyse(symbol: str, capital: float = 75000, risk_pct: float = 2):
+    """Full S4 5-pillar swing analysis for a single NSE stock."""
+    from core.swing_analyzer import analyse_stock
+    try:
+        return analyse_stock(symbol.upper().strip(), capital, risk_pct)
+    except Exception as e:
+        log.error(f"swing/analyse error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/swing/scan")
+def swing_scan(capital: float = 75000, risk_pct: float = 2, universe: str = "nifty100"):
+    """Batch scan Nifty 50 + Next 50 stocks via S4 quick-filter. Returns top 3 + rejected."""
+    from core.swing_analyzer import scan_stocks, NIFTY50, NIFTY_NEXT50
+    try:
+        symbols = NIFTY50 + NIFTY_NEXT50 if universe == "nifty100" else NIFTY50
+        return scan_stocks(symbols, capital, risk_pct)
+    except Exception as e:
+        log.error(f"swing/scan error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/swing/prices")
+def swing_prices(symbols: str):
+    """Current LTPs for comma-separated NSE symbols (used by portfolio review tab)."""
+    from core.swing_analyzer import fetch_swing_prices
+    try:
+        sym_list = [s.strip().upper() for s in symbols.split(",") if s.strip()]
+        if not sym_list:
+            return {"prices": {}}
+        return fetch_swing_prices(sym_list)
+    except Exception as e:
+        log.error(f"swing/prices error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/options/past-expiries")
 def options_past_expiries(symbol: str = "NIFTY"):
     """

@@ -84,6 +84,36 @@ router.get("/stock-data", async (req, res) => {
   }
 });
 
+// ─── GET /api/swing/analyse?symbol=INFY&capital=75000&risk_pct=2 ─────────────
+// Full S4 5-pillar swing analysis for a single stock
+router.get("/swing/analyse", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/swing/analyse?${params}`, 30000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── GET /api/swing/scan?capital=75000&risk_pct=2 ────────────────────────────
+// Batch S4 scan of Nifty 100 — may take 30–60 s
+router.get("/swing/scan", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/swing/scan?${params}`, 120000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── GET /api/swing/prices?symbols=INFY,TCS,RELIANCE ─────────────────────────
+// Live LTPs for portfolio review tab
+router.get("/swing/prices", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/swing/prices?${params}`, 15000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── GET /api/expiries ───────────────────────────────────────────────────────
 // Returns upcoming NIFTY expiry dates for the dropdown
 router.get("/expiries", async (req, res) => {
