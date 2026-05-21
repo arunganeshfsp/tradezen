@@ -9,6 +9,9 @@ import logging
 import time
 import datetime as _dt
 import pandas as pd
+from .indicators.ema import calculate_ema
+from .indicators.rsi import calculate_rsi
+from .indicators.macd import calculate_macd
 
 log = logging.getLogger(__name__)
 
@@ -178,28 +181,6 @@ _CACHE_TTL_MARKET = 600   # 10 min for Nifty / VIX / sector data
 
 # ── Indicator helpers ──────────────────────────────────────────────────────────
 
-def _ema(series: pd.Series, period: int) -> pd.Series:
-    return series.ewm(span=period, adjust=False).mean()
-
-
-def _rsi14(series: pd.Series) -> pd.Series:
-    delta = series.diff()
-    gain  = delta.clip(lower=0)
-    loss  = -delta.clip(upper=0)
-    ag    = gain.ewm(com=13, adjust=False).mean()
-    al    = loss.ewm(com=13, adjust=False).mean()
-    rs    = ag / al.replace(0, pd.NA)
-    return (100 - 100 / (1 + rs)).clip(0, 100).fillna(100)
-
-
-def _macd(series: pd.Series) -> tuple:
-    ema12  = _ema(series, 12)
-    ema26  = _ema(series, 26)
-    macd   = ema12 - ema26
-    signal = _ema(macd, 9)
-    return float(macd.iloc[-1]), float(signal.iloc[-1])
-
-
 def _atr14(df: pd.DataFrame) -> float:
     hi, lo, cl = df["High"], df["Low"], df["Close"]
     prev_close = cl.shift(1)
@@ -228,7 +209,7 @@ def _fetch_nifty_data() -> tuple:
         raise ValueError("Failed to fetch Nifty data")
 
     nifty_close  = float(daily["Close"].iloc[-1])
-    ema50_weekly = float(_ema(weekly["Close"], 50).iloc[-1])
+    ema50_weekly = float(calculate_ema(weekly["Close"], 50).iloc[-1])
     ref_idx      = -22 if len(daily) >= 22 else 0
     nifty_1m_chg = round((nifty_close - float(daily["Close"].iloc[ref_idx])) /
                           float(daily["Close"].iloc[ref_idx]) * 100, 2)
@@ -313,8 +294,8 @@ def _setup_a(df: pd.DataFrame) -> tuple[bool, str]:
     """EMA Pullback: uptrend + pullback to EMA21 + volume dry + bounce."""
     close  = df["Close"]
     volume = df["Volume"]
-    ema21  = _ema(close, 21)
-    ema50  = _ema(close, 50)
+    ema21  = calculate_ema(close, 21)
+    ema50  = calculate_ema(close, 50)
 
     if not (float(close.iloc[-1]) > float(ema21.iloc[-1]) > float(ema50.iloc[-1])):
         return False, "Not in EMA21 > EMA50 uptrend"
@@ -429,8 +410,8 @@ def _trade_plan(df: pd.DataFrame, setup_id: str | None) -> dict:
     close  = df["Close"]
     high   = df["High"]
     low    = df["Low"]
-    ema21  = _ema(close, 21)
-    ema50  = _ema(close, 50)
+    ema21  = calculate_ema(close, 21)
+    ema50  = calculate_ema(close, 50)
 
     current   = round(float(close.iloc[-1]), 2)
     ema21_val = round(float(ema21.iloc[-1]), 2)
@@ -527,10 +508,12 @@ def analyse_stock(symbol: str, capital: float = 75000, risk_pct: float = 2) -> d
         sector = info["sector"]
 
         # Indicators
-        ema21_s   = _ema(close, 21)
-        ema50_s   = _ema(close, 50)
-        rsi_s     = _rsi14(close)
-        macd_v, sig_v = _macd(close)
+        ema21_s   = calculate_ema(close, 21)
+        ema50_s   = calculate_ema(close, 50)
+        rsi_s     = calculate_rsi(close, 14)
+        _macd_out = calculate_macd(close)
+        macd_v    = float(_macd_out["macd_line"].iloc[-1])
+        sig_v     = float(_macd_out["signal_line"].iloc[-1])
 
         ltp       = round(float(close.iloc[-1]), 2)
         ema21_val = round(float(ema21_s.iloc[-1]), 2)
@@ -797,8 +780,8 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
                 continue
 
             ltp       = float(close.iloc[-1])
-            ema50_val = float(_ema(close, 50).iloc[-1])
-            rsi_val   = float(_rsi14(close).iloc[-1])
+            ema50_val = float(calculate_ema(close, 50).iloc[-1])
+            rsi_val   = float(calculate_rsi(close, 14).iloc[-1])
             vol_avg20 = max(1, int(volume.iloc[-21:].mean()))
             vol_today = int(volume.iloc[-1])
 

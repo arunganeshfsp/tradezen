@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swing Trading Tutorial — தமிழ் | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
+<style>
+:root {
+  --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
+  --border:#252a44; --border2:#323868;
+  --accent:#7c6af7; --blue:#5b8af5;
+  --green:#2ecc71; --red:#e74c3c; --yellow:#f5a623; --orange:#f39c12;
+  --cyan:#00d4ff; --teal:#1abc9c; --purple:#a78bfa;
+  --text:#e8ecf4; --dim:#9ba3bf; --muted:#4a5070;
+
+  /* Aliases for inline styles in content */
+  --gold:#f5a623;
+  --ink:#e8ecf4; --ink2:#9ba3bf; --ink3:#6b7496; --ink4:#4a5070; --ink5:#333655;
+  --paper:#0A0C18; --paper2:#0e1020; --paper3:#1a1e35;
+  --rule-line:#252a44; --shadow:rgba(0,0,0,.35);
+
+  /* Card tint backgrounds */
+  --red-l:rgba(231,76,60,.08); --green-l:rgba(46,204,113,.08);
+  --blue-l:rgba(91,138,245,.08); --gold-l:rgba(245,166,35,.08);
+  --purple-l:rgba(167,139,250,.08); --teal-l:rgba(26,188,156,.08);
+  --orange-l:rgba(243,156,18,.08);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Noto Sans Tamil',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── Nav ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;flex-shrink:0}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:6px;font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+#themeToggle{background:none;border:1px solid var(--border);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:15px;padding:0;flex-shrink:0}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;
+             background:rgba(10,12,24,.98);border-bottom:1px solid var(--border);
+             padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+  .nav-r{display:none}
+}
+
+/* ── Page ── */
+.page{max-width:900px;margin:0 auto;padding:0 24px 80px}
+
+/* ── Cover ── */
+.cover{text-align:center;padding:52px 20px 44px;border-bottom:1px solid var(--border);
+       background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(46,204,113,.1) 0%,transparent 65%)}
+.cover-stamp{display:inline-block;border:1px solid rgba(245,166,35,.4);border-radius:20px;
+             padding:4px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;
+             color:var(--yellow);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.cover h1{font-family:'Syne',sans-serif;font-size:clamp(22px,4vw,36px);color:#fff;line-height:1.25;margin-bottom:10px}
+.cover h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));
+             -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cover .subtitle{font-family:'Noto Sans Tamil',sans-serif;font-size:14px;color:var(--dim);margin-bottom:24px}
+.cover-info{display:flex;justify-content:center;gap:28px;flex-wrap:wrap}
+.cover-info-item{text-align:center}
+.ci-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--cyan);display:block}
+.ci-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* ── Chapter ── */
+.chapter{padding:48px 0 0;margin-bottom:28px;animation:fadeSlide .5s ease both}
+.chapter-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+             letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;
+             display:flex;align-items:center;gap:12px}
+.chapter-num::after{content:'';flex:1;height:1px;background:var(--border)}
+.chapter h2{font-family:'Syne',sans-serif;font-size:clamp(18px,3vw,26px);color:var(--text);line-height:1.35;margin-bottom:8px}
+.chapter p{font-size:14px;color:var(--dim);line-height:1.75;font-family:'Noto Sans Tamil',sans-serif}
+
+/* ── Note ── */
+.note{font-family:'Noto Sans Tamil',sans-serif;font-size:14px;color:var(--dim);line-height:1.7;
+      padding:14px 18px;border-left:3px solid var(--yellow);
+      background:rgba(245,166,35,.06);border-radius:0 8px 8px 0;margin:16px 0}
+.note .note-label{font-size:10px;color:var(--yellow);letter-spacing:1.5px;text-transform:uppercase;
+                  margin-bottom:6px;font-family:'JetBrains Mono',monospace;font-weight:700}
+
+/* ── Cards ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin:16px 0}
+.card-red    {border-left:4px solid var(--red);    background:var(--red-l)}
+.card-green  {border-left:4px solid var(--green);  background:var(--green-l)}
+.card-blue   {border-left:4px solid var(--blue);   background:var(--blue-l)}
+.card-gold   {border-left:4px solid var(--yellow); background:var(--gold-l)}
+.card-purple {border-left:4px solid var(--purple); background:var(--purple-l)}
+.card-teal   {border-left:4px solid var(--teal);   background:var(--teal-l)}
+.card-orange {border-left:4px solid var(--orange); background:var(--orange-l)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-red .card-title    {color:var(--red)}
+.card-green .card-title  {color:var(--green)}
+.card-blue .card-title   {color:var(--blue)}
+.card-gold .card-title   {color:var(--yellow)}
+.card-purple .card-title {color:var(--purple)}
+.card-teal .card-title   {color:var(--teal)}
+.card-orange .card-title {color:var(--orange)}
+
+/* ── Grid ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:650px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;
+     border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tbl th{background:var(--bg3);color:var(--muted);padding:10px 14px;text-align:left;
+        font-weight:700;font-size:11px;letter-spacing:.8px;text-transform:uppercase;
+        border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--dim);
+        vertical-align:top;line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── Tags ── */
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.tag-red    {background:rgba(231,76,60,.15);  color:var(--red);    border:1px solid rgba(231,76,60,.3)}
+.tag-green  {background:rgba(46,204,113,.15); color:var(--green);  border:1px solid rgba(46,204,113,.3)}
+.tag-blue   {background:rgba(91,138,245,.15); color:var(--blue);   border:1px solid rgba(91,138,245,.3)}
+.tag-gold   {background:rgba(245,166,35,.15); color:var(--yellow); border:1px solid rgba(245,166,35,.3)}
+.tag-purple {background:rgba(167,139,250,.15);color:var(--purple); border:1px solid rgba(167,139,250,.3)}
+.tag-teal   {background:rgba(26,188,156,.15); color:var(--teal);   border:1px solid rgba(26,188,156,.3)}
+.tag-orange {background:rgba(243,156,18,.15); color:var(--orange); border:1px solid rgba(243,156,18,.3)}
+
+/* ── Pillar ── */
+.pillar{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0}
+.pillar-head{padding:14px 18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
+.pillar-num{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+            font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;flex-shrink:0}
+.pillar-head h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);line-height:1.3}
+.pillar-head p{font-size:12px;color:var(--muted);margin:2px 0 0;font-family:'Noto Sans Tamil',sans-serif}
+.pillar-body{padding:18px 20px}
+.pillar-body p{font-size:13px;color:var(--dim);line-height:1.75;margin-bottom:10px;font-family:'Noto Sans Tamil',sans-serif}
+.pillar-body ul{padding-left:18px}
+.pillar-body li{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:5px;font-family:'Noto Sans Tamil',sans-serif}
+.pillar-body li strong{color:var(--text)}
+
+/* ── Setup box ── */
+.setup-box{background:var(--bg1);border:1px solid var(--border);border-radius:10px;
+           padding:16px 20px;margin:14px 0;font-family:'JetBrains Mono',monospace;
+           font-size:12px;color:var(--dim);line-height:1.9;white-space:pre-wrap}
+.setup-box .sb-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+                     color:var(--yellow);letter-spacing:1px;text-transform:uppercase;
+                     margin-bottom:10px;display:block;font-style:normal}
+
+/* ── Timeline ── */
+.timeline{position:relative;padding-left:32px;margin:16px 0}
+.timeline::before{content:'';position:absolute;left:10px;top:4px;bottom:4px;width:2px;
+                  background:linear-gradient(to bottom,var(--yellow),var(--teal));border-radius:2px}
+.tl-item{position:relative;margin-bottom:20px}
+.tl-dot{position:absolute;left:-27px;top:4px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bg)}
+.tl-step{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.tl-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--dim);line-height:1.7;font-family:'Noto Sans Tamil',sans-serif}
+
+/* ── Checklist section ── */
+.checklist-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+                   padding:24px;margin:24px 0;position:relative}
+.checklist-section::before{content:'✓';position:absolute;top:-14px;left:24px;
+                            background:var(--yellow);color:var(--bg);
+                            width:28px;height:28px;border-radius:50%;
+                            text-align:center;line-height:28px;font-size:14px;font-weight:700}
+.cl-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px;padding-top:4px}
+.cl-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.cl-item:last-child{border-bottom:none}
+.cl-box{width:20px;height:20px;border:1.5px solid var(--border2);border-radius:4px;background:var(--bg1);flex-shrink:0;margin-top:1px}
+.cl-content{flex:1}
+.cl-content .cl-q{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.5;font-family:'Noto Sans Tamil',sans-serif}
+.cl-content .cl-hint{font-size:12px;color:var(--muted);line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.cl-badge{flex-shrink:0}
+
+/* ── Price ladder ── */
+.price-ladder{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin:14px 0;font-size:13px}
+.pl-row{display:flex;align-items:center;padding:11px 16px;gap:12px;border-bottom:1px solid var(--border)}
+.pl-row:last-child{border-bottom:none}
+.pl-icon{font-size:16px;width:26px;text-align:center;flex-shrink:0}
+.pl-label{flex:1;font-weight:600;color:var(--dim);font-family:'Noto Sans Tamil',sans-serif}
+.pl-value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px}
+.pl-note{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Noto Sans Tamil',sans-serif}
+.pl-sl    {background:rgba(231,76,60,.06)}
+.pl-entry {background:rgba(245,166,35,.06)}
+.pl-t1    {background:rgba(46,204,113,.04)}
+.pl-t2    {background:rgba(46,204,113,.09)}
+
+/* ── Scan filter ── */
+.scan-filter{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+             padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px}
+.sf-num{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);
+        display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;
+        font-size:12px;font-weight:700;color:var(--dim);flex-shrink:0}
+.sf-body{flex:1}
+.sf-body .sf-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;font-family:'Noto Sans Tamil',sans-serif}
+.sf-body .sf-val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan)}
+.sf-body .sf-why{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Noto Sans Tamil',sans-serif}
+
+/* ── VIX table ── */
+.vix-table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;
+           border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.vix-table th{background:var(--bg3);padding:10px 14px;text-align:left;font-weight:700;
+              font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);
+              border-bottom:1px solid var(--border)}
+.vix-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;
+              line-height:1.6;color:var(--dim);font-family:'Noto Sans Tamil',sans-serif}
+.vix-table tr:last-child td{border-bottom:none}
+.vix-table tr:hover td{background:rgba(255,255,255,.02)}
+.vix-zone{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:middle}
+
+/* ── Trade card ── */
+.trade-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0}
+.tc-header{background:var(--bg3);padding:14px 20px;border-bottom:1px solid var(--border);
+           display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tc-header h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.tc-body{padding:20px 22px}
+
+/* ── Week strip ── */
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:16px 0}
+@media(max-width:600px){.week-strip{grid-template-columns:repeat(4,1fr)}}
+.ws-day{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center}
+.ws-day .wsd-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;color:var(--muted)}
+.ws-day .wsd-task{font-size:11px;color:var(--dim);line-height:1.7;font-family:'Noto Sans Tamil',sans-serif}
+.ws-day.active{border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.06)}
+.ws-day.active .wsd-name{color:var(--yellow)}
+
+/* ── Mistake card ── */
+.mistake-card{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);
+              border-radius:12px;padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start}
+.mistake-icon{font-size:20px;flex-shrink:0}
+.mistake-body h4{font-size:13px;font-weight:700;color:var(--red);margin-bottom:5px}
+.mistake-body p{font-size:13px;color:var(--dim);line-height:1.65;margin:0;font-family:'Noto Sans Tamil',sans-serif}
+
+/* ── Income row ── */
+.income-row{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);
+            border-radius:10px;padding:14px 18px;margin-bottom:10px;gap:16px}
+.ir-icon{font-size:22px;flex-shrink:0}
+.ir-body{flex:1}
+.ir-body h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.ir-body p{font-size:12px;color:var(--muted);margin:0;font-family:'Noto Sans Tamil',sans-serif}
+.ir-amount{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--green);flex-shrink:0}
+
+/* ── Print checklist ── */
+.print-checklist{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:24px 0}
+.pc-header{background:var(--bg3);color:var(--text);padding:18px 24px;display:flex;align-items:center;
+           justify-content:space-between;gap:14px;border-bottom:1px solid var(--border)}
+.pc-header h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.pc-header p{font-size:12px;color:var(--dim);margin-top:2px;font-family:'Noto Sans Tamil',sans-serif}
+.pc-section{padding:18px 24px;border-bottom:1px solid var(--border)}
+.pc-section:last-child{border-bottom:none}
+.pc-section-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+                  margin-bottom:14px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace}
+.pc-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.pc-row{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px dotted var(--border)}
+.pc-row:last-child{border-bottom:none}
+.pc-check{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:3px;background:var(--bg1);flex-shrink:0;margin-top:2px}
+.pc-text{flex:1;font-size:13px;color:var(--dim);line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.pc-text strong{color:var(--text)}
+.pc-result{width:80px;border-bottom:1px solid var(--muted);height:20px;flex-shrink:0}
+
+/* ── Dividers ── */
+.divider{height:1px;background:var(--border);margin:24px 0}
+.divider-dashed{border:none;border-top:1px dashed var(--border);margin:24px 0}
+
+/* ── Typography ── */
+p{color:var(--dim);font-size:14px;line-height:1.75;margin-bottom:10px;font-family:'Noto Sans Tamil',sans-serif}
+ul,ol{padding-left:20px;color:var(--dim);font-size:14px;font-family:'Noto Sans Tamil',sans-serif}
+li{margin-bottom:6px;line-height:1.7}
+li strong{color:var(--text)}
+h4{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin:18px 0 10px}
+code{font-family:'JetBrains Mono',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:12px;color:var(--cyan)}
+
+/* ── Color utilities ── */
+.c-red    {color:var(--red);   font-weight:700}
+.c-green  {color:var(--green); font-weight:700}
+.c-blue   {color:var(--blue);  font-weight:700}
+.c-gold   {color:var(--yellow);font-weight:700}
+.c-purple {color:var(--purple);font-weight:700}
+.c-teal   {color:var(--teal);  font-weight:700}
+.c-orange {color:var(--orange);font-weight:700}
+
+/* ── Page break ── */
+.page-break{border-top:1px solid var(--border);padding-top:40px;margin-top:40px}
+.page-break::before{display:none}
+
+/* ── Footer ── */
+.footer{background:var(--bg1);border-top:1px solid var(--border);padding:28px 24px;
+        font-size:12px;color:var(--muted);line-height:1.8;text-align:center;font-family:'Noto Sans Tamil',sans-serif}
+.footer strong{color:var(--dim)}
+
+/* ── Animation ── */
+@keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Print ── */
+@media print{
+  nav{display:none}
+  .page{padding:20px}
+  .chapter{page-break-inside:avoid}
+  .print-checklist{page-break-before:always}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="/" class="brand">
+    <img src="/favicon.png" class="logo" width="28" height="28" alt="TZ">
+    TradeZen
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/swing_trading.html">← Swing S4</a>
+    <a class="nl on" href="#">வழிகாட்டி</a>
+    <a class="nl" href="/market_psychology.html">TradeFun</a>
+    <a class="nl" href="/learn_dashboard.html">Learn</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme"></button>
+  </div>
+  <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-stamp">Strategy #4 — Tutorial &amp; Checklist</div>
+  <h1>Stocks <em>Swing Trading</em><br>கற்றல் புத்தகம்</h1>
+  <div class="subtitle">வெள்ளி மாலை 30 நிமிடம் — அடுத்த வாரத்திற்கான Stock தேர்வு</div>
+  <div class="cover-info">
+    <div class="cover-info-item">
+      <span class="ci-val">5</span>
+      <span class="ci-lbl">Pillars</span>
+    </div>
+    <div class="cover-info-item">
+      <span class="ci-val">₹75K</span>
+      <span class="ci-lbl">Swing Capital</span>
+    </div>
+    <div class="cover-info-item">
+      <span class="ci-val">3</span>
+      <span class="ci-lbl">Setups</span>
+    </div>
+    <div class="cover-info-item">
+      <span class="ci-val">₹6K+</span>
+      <span class="ci-lbl">மாத வருமானம்</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- CHAPTER 1 -->
+<div class="chapter">
+  <div class="chapter-num">அத்தியாயம் 1</div>
+  <h2>Swing Trading என்றால் என்ன?</h2>
+  <p>5–20 நாட்களில் ஒரு stock-ன் ஒரு "swing" (அலை) பிடிக்கும் வர்த்தக முறை. Intraday-ல் ஒரே நாளில் வாங்கி விற்கிறோம். Swing-ல் சில நாட்கள் வைத்திருந்து விற்கிறோம்.</p>
+</div>
+
+<div class="g3">
+  <div class="card card-blue">
+    <div class="card-title">📊 Intraday</div>
+    <ul style="font-size:13px;color:var(--dim);padding-left:16px;">
+      <li>Same day buy &amp; sell</li>
+      <li>Screen-ல் நேரடி கவனம்</li>
+      <li>Daily income possible</li>
+      <li>High stress</li>
+    </ul>
+  </div>
+  <div class="card card-gold" style="transform:translateY(-3px);">
+    <div class="card-title">🎯 Swing (நம் S4)</div>
+    <ul style="font-size:13px;color:var(--dim);padding-left:16px;">
+      <li>5–20 நாட்கள் hold</li>
+      <li>மாலை 30 நிமிடம் மட்டும்</li>
+      <li>Weekly income possible</li>
+      <li>Low stress ✅</li>
+    </ul>
+  </div>
+  <div class="card card-teal">
+    <div class="card-title">📈 Positional</div>
+    <ul style="font-size:13px;color:var(--dim);padding-left:16px;">
+      <li>1–6 மாதம் hold</li>
+      <li>Monthly check மட்டும்</li>
+      <li>Slow but steady</li>
+      <li>Very low stress</li>
+    </ul>
+  </div>
+</div>
+
+<div class="note">
+  <div class="note-label">💡 முக்கிய உண்மை</div>
+  Swing Trading-ல் நாம் market-ஐ predict செய்யவில்லை. ஒரு strong stock-ல் probability நம் பக்கம் இருக்கும்போது மட்டும் trade செய்கிறோம். அவ்வளவுதான்!
+</div>
+
+<div class="setup-box">
+<span class="sb-title">எளிமையான Swing Trade உதாரணம்</span>
+வெள்ளி மாலை scan    → INFY interesting ஆக தெரிகிறது
+திங்கள் காலை        → Entry ₹1,870 (20 shares = ₹37,400)
+Stop Loss           → ₹1,795 (4% கீழே)
+Target 1            → ₹1,980 (6% மேலே) — 50% sell
+Target 2            → ₹2,050 (10% மேலே) — மீதி sell
+அடுத்த வியாழன்       → T1 hit → ₹1,100 profit book
+அடுத்த செவ்வாய்      → T2 hit → ₹1,600 more
+──────────────────────────────────────
+மொத்த Profit: ~₹2,700 | நாட்கள்: 8 | Stress: Zero ✅</div>
+
+
+<!-- CHAPTER 2 -->
+<div class="chapter page-break">
+  <div class="chapter-num">அத்தியாயம் 2</div>
+  <h2>Stock தேர்வின் 5 Pillars</h2>
+  <p>ஒரு stock swing trade-க்கு தகுதியானதா என்பதை இந்த 5 filters மூலம் கண்டுபிடிக்கிறோம். <strong>எல்லா 5-ம் pass ஆனால் மட்டுமே trade செய்யுங்கள்.</strong></p>
+</div>
+
+<!-- Pillar 1 -->
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(91,138,245,.06);">
+    <div class="pillar-num" style="background:var(--blue-l);color:var(--blue);">1</div>
+    <div>
+      <h3>சந்தை திசை (Market Direction)</h3>
+      <p>முதல் கேள்வி — Nifty எங்கே போகிறது?</p>
+    </div>
+    <span class="tag tag-blue" style="margin-left:auto;">Top Down</span>
+  </div>
+  <div class="pillar-body">
+    <p>எந்த stock-ஐயும் பார்ப்பதற்கு முன்பு Nifty-ன் திசை தெரிந்துக்கொள்ளுங்கள். Nifty down-ல் இருக்கும்போது நல்ல stocks-கூட விழுந்துவிடும்.</p>
+    <div class="g2" style="gap:12px;">
+      <div class="card card-green" style="margin:0;padding:14px 16px;">
+        <div class="card-title" style="font-size:13px;">✅ Uptrend — Buy செய்யலாம்</div>
+        <p style="font-size:12px;margin:0;color:var(--dim);">Nifty Weekly Chart-ல் EMA 50-க்கு மேலே இருந்தால் → Uptrend. Long trades மட்டும்.</p>
+      </div>
+      <div class="card card-red" style="margin:0;padding:14px 16px;">
+        <div class="card-title" style="font-size:13px;">❌ Downtrend — Avoid</div>
+        <p style="font-size:12px;margin:0;color:var(--dim);">Nifty EMA 50-க்கு கீழே → Downtrend. Swing buying வேண்டாம். Cash-ல் இருங்கள்.</p>
+      </div>
+    </div>
+    <p style="margin-top:12px;font-size:13px;"><strong style="color:var(--text);">எப்படி check செய்வது:</strong> Angel One → Nifty 50 → Weekly Chart → EMA 50 add செய்யுங்கள். Price above EMA 50 = ✅</p>
+  </div>
+</div>
+
+<!-- Pillar 2 -->
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(26,188,156,.06);">
+    <div class="pillar-num" style="background:var(--teal-l);color:var(--teal);">2</div>
+    <div>
+      <h3>Sector வலிமை (Sector Strength)</h3>
+      <p>Strong stocks எப்போதும் Strong sectors-லிருந்து வருகின்றன</p>
+    </div>
+    <span class="tag tag-teal" style="margin-left:auto;">Sectoral</span>
+  </div>
+  <div class="pillar-body">
+    <p>இந்த மாதம் எந்த sector top-ல் இருக்கிறது என்று பாருங்கள். அந்த sector-ல் மட்டும் stocks தேடுங்கள்.</p>
+    <table class="tbl">
+      <tr><th>NSE Sector Index</th><th>என்ன பாருங்கள்</th><th>எப்படி check</th></tr>
+      <tr><td>Nifty IT</td><td>மாதம் +5% மேல் இருந்தால் → Strong</td><td>NSE India → Indices</td></tr>
+      <tr><td>Nifty Bank</td><td>Nifty-ஐ விட அதிகம் ஏறினால் → Lead</td><td>Angel One → Market</td></tr>
+      <tr><td>Nifty Pharma</td><td>Positive trend, good volume</td><td>Moneycontrol App</td></tr>
+      <tr><td>Nifty Auto</td><td>EMA 50-க்கு மேல் இருந்தால் ✅</td><td>TradingView</td></tr>
+      <tr><td>Nifty FMCG</td><td>Defensive sector — Stable</td><td>NSE India</td></tr>
+    </table>
+    <div class="note" style="margin-top:12px;">
+      <div class="note-label">Rule</div>
+      Top 2–3 performing sectors மட்டும் தேர்வு செய்யுங்கள். Weak sectors-ல் என்ன setup இருந்தாலும் ignore செய்யுங்கள்.
+    </div>
+  </div>
+</div>
+
+<!-- Pillar 3 -->
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(245,166,35,.06);">
+    <div class="pillar-num" style="background:var(--gold-l);color:var(--yellow);">3</div>
+    <div>
+      <h3>Stock தகுதி Checklist (Stock Filter)</h3>
+      <p>ஒவ்வொரு stock-ம் இந்த 7 tests pass ஆக வேண்டும்</p>
+    </div>
+    <span class="tag tag-gold" style="margin-left:auto;">7 Filters</span>
+  </div>
+  <div class="pillar-body">
+    <div class="scan-filter">
+      <div class="sf-num">1</div>
+      <div class="sf-body">
+        <div class="sf-title">Trend — EMA 50-க்கு மேல் உள்ளதா?</div>
+        <div class="sf-val">Daily Chart: Price > EMA 50</div>
+        <div class="sf-why">Momentum உங்கள் பக்கம் இருக்கும்</div>
+      </div>
+      <span class="tag tag-green">கட்டாயம்</span>
+    </div>
+    <div class="scan-filter">
+      <div class="sf-num">2</div>
+      <div class="sf-body">
+        <div class="sf-title">Volume — சராசரியை விட அதிகமா?</div>
+        <div class="sf-val">Today Volume > 20-day Avg Volume</div>
+        <div class="sf-why">Institutions இந்த stock-ல் interested</div>
+      </div>
+      <span class="tag tag-green">கட்டாயம்</span>
+    </div>
+    <div class="scan-filter">
+      <div class="sf-num">3</div>
+      <div class="sf-body">
+        <div class="sf-title">RSI — 50 மற்றும் 70 இடையே உள்ளதா?</div>
+        <div class="sf-val">RSI (14): 50 &lt; RSI &lt; 70</div>
+        <div class="sf-why">Momentum இருக்கிறது, overbought இல்லை</div>
+      </div>
+      <span class="tag tag-green">கட்டாயம்</span>
+    </div>
+    <div class="scan-filter">
+      <div class="sf-num">4</div>
+      <div class="sf-body">
+        <div class="sf-title">Relative Strength — Nifty-ஐ விட அதிகம் ஏறியதா?</div>
+        <div class="sf-val">Stock % gain > Nifty % gain (last month)</div>
+        <div class="sf-why">Leader stock — laggard வேண்டாம்</div>
+      </div>
+      <span class="tag tag-green">கட்டாயம்</span>
+    </div>
+    <div class="scan-filter">
+      <div class="sf-num">5</div>
+      <div class="sf-body">
+        <div class="sf-title">Market Cap — ₹5,000 crore மேல் உள்ளதா?</div>
+        <div class="sf-val">Market Cap > ₹5,000 Crore</div>
+        <div class="sf-why">Penny stocks மற்றும் manipulation தவிர்க்கலாம்</div>
+      </div>
+      <span class="tag tag-gold">Important</span>
+    </div>
+    <div class="scan-filter">
+      <div class="sf-num">6</div>
+      <div class="sf-body">
+        <div class="sf-title">Liquidity — தினமும் போதுமான volume உள்ளதா?</div>
+        <div class="sf-val">Daily Volume > 5 Lakh shares</div>
+        <div class="sf-why">Exit கஷ்டம் இல்லாமல் இருக்கும்</div>
+      </div>
+      <span class="tag tag-gold">Important</span>
+    </div>
+    <div class="scan-filter">
+      <div class="sf-num">7</div>
+      <div class="sf-body">
+        <div class="sf-title">52-Week Position — Low-கு அருகில் இல்லையா?</div>
+        <div class="sf-val">Price > 52W Low + 15%</div>
+        <div class="sf-why">Falling knife பிடிக்காதீர்கள்</div>
+      </div>
+      <span class="tag tag-gold">Important</span>
+    </div>
+  </div>
+</div>
+
+<!-- Pillar 4 -->
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(167,139,250,.06);">
+    <div class="pillar-num" style="background:var(--purple-l);color:var(--purple);">4</div>
+    <div>
+      <h3>Entry Setup (Trade Trigger)</h3>
+      <p>இந்த 3 patterns-ல் ஒன்று தெரிந்தால் மட்டும் enter செய்யுங்கள்</p>
+    </div>
+    <span class="tag tag-purple" style="margin-left:auto;">3 Setups</span>
+  </div>
+  <div class="pillar-body">
+    <h4 style="color:var(--green);">Setup A — EMA Pullback (Beginners-க்கு சிறந்தது ⭐)</h4>
+    <div class="setup-box">
+<span class="sb-title">என்ன நடக்கிறது?</span>
+Stock uptrend-ல் உள்ளது (EMA 21 மேலே)
+↓ திடீரென்று 3–5 நாட்கள் கீழே வருகிறது (Pullback)
+↓ EMA 21 அல்லது EMA 50-ல் "touch" செய்கிறது
+↓ Volume குறைகிறது (Sellers exhausted)
+↓ ஒரு Bounce candle form ஆகிறது
+→ இதுவே உங்கள் Entry Signal! ✅
+
+Entry  : Bounce candle-ன் high break ஆனவுடன்
+SL     : EMA-க்கு 2–3% கீழே
+Target : Previous high அளவு</div>
+
+    <h4 style="color:var(--blue);">Setup B — Consolidation Breakout</h4>
+    <div class="setup-box">
+<span class="sb-title">என்ன நடக்கிறது?</span>
+Stock 2–4 வாரங்கள் tight range-ல் (சேமிப்பு)
+Volume மிகவும் குறைவாக இருக்கும்
+↓ திடீரென்று HIGH volume-உடன் மேலே break
+→ இது Breakout Entry! ✅
+
+Entry  : Breakout candle close-க்கு மேலே
+SL     : Consolidation range-ன் Low
+Target : Range height × 2 (மேலே project)</div>
+
+    <h4 style="color:var(--orange);">Setup C — Cup and Handle</h4>
+    <div class="setup-box">
+<span class="sb-title">என்ன நடக்கிறது?</span>
+Stock கீழே போய் மீண்டும் same level வருகிறது (U shape = Cup)
+Small pullback மேலே (= Handle)
+↓ Handle-ஐ break செய்கிறது
+→ Cup &amp; Handle Breakout Entry ✅
+
+Entry  : Handle top break ஆனவுடன்
+SL     : Handle-ன் Low
+Target : Cup depth அளவு மேலே</div>
+
+    <div class="note">
+      <div class="note-label">ஆரம்பகாலம்</div>
+      முதல் 2 மாதம் Setup A மட்டும் practice செய்யுங்கள். மிகவும் frequent, easy to identify, lowest risk.
+    </div>
+  </div>
+</div>
+
+<!-- Pillar 5 -->
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(231,76,60,.06);">
+    <div class="pillar-num" style="background:var(--red-l);color:var(--red);">5</div>
+    <div>
+      <h3>Risk Management (Position Sizing)</h3>
+      <p>எவ்வளவு வாங்குவது? — இது மிக முக்கியம்!</p>
+    </div>
+    <span class="tag tag-red" style="margin-left:auto;">கட்டாயம்</span>
+  </div>
+  <div class="pillar-body">
+    <div class="setup-box">
+<span class="sb-title">Position Size கணக்கீடு — Formula</span>
+உங்கள் Swing Capital   : ₹75,000
+ஒரு trade-க்கு max risk : 2% = ₹1,500
+
+Stock: INFY @ ₹1,870
+SL: ₹1,795 (₹75 per share)
+
+Position Size = Max Risk ÷ SL Distance
+             = ₹1,500 ÷ ₹75
+             = 20 shares
+
+Investment = 20 × ₹1,870 = ₹37,400 ✅
+
+Max open positions : 3 stocks
+Max per stock      : ₹25,000–₹30,000
+Total deployed     : 70% மட்டும் (₹52,500)</div>
+
+    <h4>SL hit ஆனால் என்ன நடக்கும்?</h4>
+    <div class="g2" style="gap:12px;margin-top:8px;">
+      <div class="card card-red" style="margin:0;padding:14px 16px;">
+        <div class="card-title" style="font-size:13px;">❌ SL hit scenario</div>
+        <p style="font-size:12px;margin:0;color:var(--dim);">20 shares × ₹75 loss = <strong style="color:var(--text);">₹1,500 நஷ்டம்</strong><br>Capital: ₹75,000 → ₹73,500<br>Percentage: 2% மட்டும் ✅</p>
+      </div>
+      <div class="card card-green" style="margin:0;padding:14px 16px;">
+        <div class="card-title" style="font-size:13px;">✅ Target hit scenario</div>
+        <p style="font-size:12px;margin:0;color:var(--dim);">20 shares × ₹110 gain = <strong style="color:var(--text);">₹2,200 profit</strong><br>RR Ratio: 1:1.5<br>Month: 3 trades → ₹6,600 ✅</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- CHAPTER 3 -->
+<div class="chapter page-break">
+  <div class="chapter-num">அத்தியாயம் 3</div>
+  <h2>Indicators &amp; Tools — Swing Trading Toolkit</h2>
+  <p>Angel One-ல் இந்த indicators add செய்யுங்கள். எல்லாம் built-in, இலவசம்.</p>
+</div>
+
+<table class="tbl">
+  <tr>
+    <th>Indicator</th><th>Timeframe</th><th>Settings</th><th>என்ன பாருங்கள்</th><th>Signal</th>
+  </tr>
+  <tr><td><strong style="color:var(--text);">EMA 21</strong></td><td>Daily Chart</td><td>Period: 21</td><td>Price EMA-ல் bounce ஆகுமா?</td><td><span class="tag tag-green">Entry Zone</span></td></tr>
+  <tr><td><strong style="color:var(--text);">EMA 50</strong></td><td>Daily Chart</td><td>Period: 50</td><td>Price EMA 50-க்கு மேலே உள்ளதா?</td><td><span class="tag tag-green">Trend Filter</span></td></tr>
+  <tr><td><strong style="color:var(--text);">RSI (14)</strong></td><td>Daily Chart</td><td>Period: 14</td><td>50–70 இடையே இருக்கிறதா?</td><td><span class="tag tag-blue">Momentum</span></td></tr>
+  <tr><td><strong style="color:var(--text);">Volume</strong></td><td>Daily Chart</td><td>Default</td><td>Breakout-ல் volume spike உள்ளதா?</td><td><span class="tag tag-purple">Confirmation</span></td></tr>
+  <tr><td><strong style="color:var(--text);">MACD</strong></td><td>Weekly Chart</td><td>12,26,9</td><td>MACD line signal-க்கு மேலே உள்ளதா?</td><td><span class="tag tag-teal">Trend Confirm</span></td></tr>
+  <tr><td><strong style="color:var(--text);">ATR (14)</strong></td><td>Daily Chart</td><td>Period: 14</td><td>SL distance set செய்ய (1–2× ATR)</td><td><span class="tag tag-gold">SL Setting</span></td></tr>
+  <tr><td><strong style="color:var(--text);">Bollinger Bands</strong></td><td>Daily Chart</td><td>20, 2</td><td>Lower band-ல் இருந்தால் oversold</td><td><span class="tag tag-orange">Optional</span></td></tr>
+</table>
+
+<div class="note">
+  <div class="note-label">Angel One-ல் எப்படி add செய்வது</div>
+  Stock chart திறக்கவும் → மேலே "Indicators" button → Search பண்ணி add செய்யுங்கள். EMA-க்கு "Exponential Moving Average" என்று search செய்யுங்கள். Period-ஐ 21 மற்றும் 50 என்று மாறுங்கள்.
+</div>
+
+
+<!-- CHAPTER 4 -->
+<div class="chapter page-break">
+  <div class="chapter-num">அத்தியாயம் 4</div>
+  <h2>முழு உதாரண Trade — Step by Step</h2>
+  <p>வெள்ளி மாலை scan முதல் profit book வரை ஒரு complete trade.</p>
+</div>
+
+<div class="trade-card">
+  <div class="tc-header">
+    <div>
+      <h3>📊 Trade: Infosys (INFY) — EMA Pullback Setup</h3>
+      <p style="font-size:12px;color:var(--muted);margin:4px 0 0;">IT Sector Strong | Nifty Uptrend | Setup A</p>
+    </div>
+    <span class="tag tag-green">✅ Profitable Trade</span>
+  </div>
+  <div class="tc-body">
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--yellow);"></div>
+        <div class="tl-step" style="color:var(--yellow);">வெள்ளி மாலை 5 PM</div>
+        <div class="tl-title">Friday Scan — INFY கண்டுபிடித்தோம்</div>
+        <div class="tl-desc">
+          Nifty EMA 50 மேலே ✅ | IT Sector இந்த மாதம் +7% ✅<br>
+          INFY Daily: EMA 50 மேலே ✅ | RSI: 56 ✅ | Volume OK ✅<br>
+          <strong style="color:var(--text);">Setup:</strong> 5 நாள் pullback → EMA 21 (~₹1,855) touch செய்தது
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--blue);"></div>
+        <div class="tl-step" style="color:var(--blue);">திங்கள் காலை 9:45 AM</div>
+        <div class="tl-title">Entry — Bounce Confirm ஆனது</div>
+        <div class="tl-desc">
+          INFY ₹1,870-ல் open. Bounce candle confirm ✅<br>
+          <strong style="color:var(--text);">Entry:</strong> ₹1,870 | <strong style="color:var(--text);">Qty:</strong> 20 shares | <strong style="color:var(--text);">Amount:</strong> ₹37,400<br>
+          உடனே GTT Order: SL ₹1,795 set செய்தோம்
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--teal);"></div>
+        <div class="tl-step" style="color:var(--teal);">அடுத்த வியாழன் 11 AM</div>
+        <div class="tl-title">Target 1 Hit — ₹1,980</div>
+        <div class="tl-desc">
+          8 நாட்களில் ₹1,980 ஆனது (6% gain) ✅<br>
+          10 shares விற்றோம் → Profit: 10 × ₹110 = <strong class="c-green">₹1,100</strong><br>
+          மீதி 10 shares-க்கு SL → Entry price ₹1,870-க்கு நகர்த்தினோம்
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--green);"></div>
+        <div class="tl-step" style="color:var(--green);">அடுத்த செவ்வாய் 2 PM</div>
+        <div class="tl-title">Target 2 Hit — ₹2,060</div>
+        <div class="tl-desc">
+          13 நாட்களில் ₹2,060 ஆனது (10.2% gain) ✅<br>
+          மீதி 10 shares விற்றோம் → Profit: 10 × ₹190 = <strong class="c-green">₹1,900</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="price-ladder">
+      <div class="pl-row pl-sl">
+        <div class="pl-icon">🔴</div>
+        <div>
+          <div class="pl-label">Stop Loss</div>
+          <div class="pl-note">EMA 21-க்கு 2% கீழே</div>
+        </div>
+        <div>
+          <div class="pl-value c-red">₹1,795</div>
+          <div class="pl-note">Max Loss: ₹1,500</div>
+        </div>
+      </div>
+      <div class="pl-row pl-entry">
+        <div class="pl-icon">📍</div>
+        <div>
+          <div class="pl-label">Entry</div>
+          <div class="pl-note">EMA 21 Bounce Confirm</div>
+        </div>
+        <div>
+          <div class="pl-value c-gold">₹1,870</div>
+          <div class="pl-note">20 shares = ₹37,400</div>
+        </div>
+      </div>
+      <div class="pl-row pl-t1">
+        <div class="pl-icon">🎯</div>
+        <div>
+          <div class="pl-label">Target 1 — 50% Booking</div>
+          <div class="pl-note">Previous High</div>
+        </div>
+        <div>
+          <div class="pl-value c-green">₹1,980</div>
+          <div class="pl-note">Profit: ₹1,100 (10 shares)</div>
+        </div>
+      </div>
+      <div class="pl-row pl-t2">
+        <div class="pl-icon">🏆</div>
+        <div>
+          <div class="pl-label">Target 2 — Full Exit</div>
+          <div class="pl-note">Trail SL-ல் இருந்து exit</div>
+        </div>
+        <div>
+          <div class="pl-value c-green">₹2,060</div>
+          <div class="pl-note">Profit: ₹1,900 (10 shares)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-green" style="margin-top:16px;">
+      <div class="card-title">🏆 Trade Summary</div>
+      <div class="g2" style="gap:16px;">
+        <div>
+          <p style="font-size:13px;margin:0;">மொத்த Profit: <strong class="c-green">₹3,000</strong><br>
+          Trade Duration: 13 நாட்கள்<br>
+          Investment: ₹37,400<br>
+          Return: 8% on investment</p>
+        </div>
+        <div>
+          <p style="font-size:13px;margin:0;">Screen time: <strong style="color:var(--text);">வெள்ளி 30 min + மாலை 5 min/day</strong><br>
+          Stress level: மிகவும் குறைவு ✅<br>
+          Rules followed: எல்லாம் ✅</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- CHAPTER 5 -->
+<div class="chapter page-break">
+  <div class="chapter-num">அத்தியாயம் 5</div>
+  <h2>Exit Rules — எப்போது விற்பது?</h2>
+  <p>Entry-ஐ விட Exit-ஐ சரியாக செய்வது மிகவும் முக்கியம். இந்த table-ஐ follow செய்யுங்கள்.</p>
+</div>
+
+<table class="tbl">
+  <tr><th>சூழ்நிலை</th><th>என்ன செய்வது</th><th>ஏன்?</th></tr>
+  <tr><td>✅ Target 1 Hit (6–8%)</td><td>50% Qty விற்கவும். SL → Entry price-க்கு நகர்த்தவும்</td><td>Profit lock. Risk free trade ஆகிவிடும்</td></tr>
+  <tr><td>✅ Target 2 Hit (10–15%)</td><td>மீதி Qty முழுவதும் விற்கவும்</td><td>Profit book. Trade close</td></tr>
+  <tr><td>❌ SL Hit</td><td>உடனே exit. No averaging. No waiting.</td><td>Capital protect. Small loss = Business cost</td></tr>
+  <tr><td>⏰ 10 நாட்கள் flat</td><td>Exit. Capital free செய்யுங்கள்</td><td>Idle capital = Opportunity cost</td></tr>
+  <tr><td>📅 Earnings 2 நாட்கள் முன்பு</td><td>கட்டாயமாக Exit</td><td>Results gap 10–15% any direction</td></tr>
+  <tr><td>📉 Nifty 2%+ ஒரே நாளில் விழுந்தால்</td><td>SL Tighten அல்லது exit</td><td>Market crash-ல் stocks-ம் விழும்</td></tr>
+  <tr><td>🌊 VIX 20+ ஆனால்</td><td>Open positions review. New trades வேண்டாம்</td><td>High volatility = Unpredictable moves</td></tr>
+  <tr><td>⏰ 20 நாட்கள் ஆனது</td><td>Profit-ல் இருந்தாலும் exit</td><td>Swing trade = time-bound. நீட்டிக்காதீர்கள்</td></tr>
+</table>
+
+<div class="card card-gold" style="margin-top:16px;">
+  <div class="card-title">⭐ GTT Order — Angel One-ல் Auto Exit</div>
+  <p style="font-size:13px;color:var(--dim);margin:0;">Angel One → Holdings → Stock select → GTT Order → SL price மற்றும் Target price set செய்யுங்கள். இப்படி செய்தால் தானாகவே execute ஆகும் — நீங்கள் screen பார்க்க வேண்டாம். Swing trade-க்கு இது மிகவும் உதவியாக இருக்கும்.</p>
+</div>
+
+
+<!-- CHAPTER 6 -->
+<div class="chapter page-break">
+  <div class="chapter-num">அத்தியாயம் 6</div>
+  <h2>3 பெரிய தவறுகள் — தவிர்க்க வேண்டியவை</h2>
+</div>
+
+<div class="mistake-card">
+  <div class="mistake-icon">📅</div>
+  <div class="mistake-body">
+    <h4>தவறு 1 — Earnings-ல் hold செய்வது</h4>
+    <p>Quarterly results வரும் முன்பு exit செய்யாவிட்டால் stock ஒரே இரவில் 10–15% gap down ஆகலாம். உங்கள் SL-கூட வேலை செய்யாது. Earnings calendar எப்போதும் check செய்யுங்கள்.</p>
+  </div>
+</div>
+
+<div class="mistake-card">
+  <div class="mistake-icon">🔢</div>
+  <div class="mistake-body">
+    <h4>தவறு 2 — ஒரே நேரத்தில் 5+ stocks வாங்குவது</h4>
+    <p>3 stocks maximum. அதிகம் ஆனால் ஒவ்வொன்றையும் properly track செய்ய முடியாது. Quality over quantity. 3 நல்ல trades > 8 mediocre trades.</p>
+  </div>
+</div>
+
+<div class="mistake-card">
+  <div class="mistake-icon">📉</div>
+  <div class="mistake-body">
+    <h4>தவறு 3 — Nifty down-ல் buy செய்வது</h4>
+    <p>"இந்த stock மிகவும் strong" என்று நம்பி Nifty crash-ல் buy செய்வது மிகவும் ஆபத்தானது. Market direction எப்போதும் Step 1. Skip செய்யாதீர்கள்.</p>
+  </div>
+</div>
+
+
+<!-- CHAPTER 7 -->
+<div class="chapter page-break">
+  <div class="chapter-num">அத்தியாயம் 7</div>
+  <h2>வாராந்திர Swing Trading Routine</h2>
+  <p>Intraday trading-ஐ பாதிக்காமல் இந்த routine follow செய்யுங்கள்.</p>
+</div>
+
+<div class="week-strip">
+  <div class="ws-day">
+    <div class="wsd-name">திங்கள்</div>
+    <div class="wsd-task">📋 Watchlist confirm<br>🎯 Entry orders set<br>⏰ 15 நிமிடம்</div>
+  </div>
+  <div class="ws-day">
+    <div class="wsd-name">செவ்வாய்</div>
+    <div class="wsd-task">👀 Open positions check<br>📊 SL adjust?<br>⏰ 10 நிமிடம்</div>
+  </div>
+  <div class="ws-day">
+    <div class="wsd-name">புதன்</div>
+    <div class="wsd-task">👀 Position monitor<br>🎯 T1 near?<br>⏰ 10 நிமிடம்</div>
+  </div>
+  <div class="ws-day">
+    <div class="wsd-name">வியாழன்</div>
+    <div class="wsd-task">👀 Position monitor<br>📅 Earnings check<br>⏰ 10 நிமிடம்</div>
+  </div>
+  <div class="ws-day active">
+    <div class="wsd-name">வெள்ளி ⭐</div>
+    <div class="wsd-task">🔍 New Stock Scan<br>📋 Watchlist update<br>⏰ 30 நிமிடம்</div>
+  </div>
+  <div class="ws-day">
+    <div class="wsd-name">சனி</div>
+    <div class="wsd-task">📒 Week review<br>📚 Chart study<br>⏰ 20 நிமிடம்</div>
+  </div>
+  <div class="ws-day">
+    <div class="wsd-name">ஞாயிறு</div>
+    <div class="wsd-task">🌸 Rest day<br>No trading<br>Family time</div>
+  </div>
+</div>
+
+<div class="note">
+  <div class="note-label">Key Point</div>
+  வெள்ளி மாலை 30 நிமிடம் — இதுவே Swing Trading-ன் மிகவும் முக்கியமான நேரம். இந்த ஒரு session-ல் அடுத்த வாரத்திற்கான எல்லாவற்றையும் plan செய்கிறீர்கள்.
+</div>
+
+
+<!-- CHAPTER 8 -->
+<div class="chapter page-break">
+  <div class="chapter-num">அத்தியாயம் 8</div>
+  <h2>India VIX — Swing Trading Filter</h2>
+  <p>VIX உங்கள் swing trade-ல் எவ்வளவு aggressive ஆக இருக்கலாம் என்பதை தீர்மானிக்கிறது.</p>
+</div>
+
+<table class="vix-table">
+  <tr><th>VIX Level</th><th>Market Mood</th><th>Swing Trading Action</th><th>Position Size</th></tr>
+  <tr>
+    <td><span class="vix-zone" style="background:#2ecc71;"></span><strong style="color:var(--green);">VIX &lt; 13</strong></td>
+    <td>மிகவும் calm. Low fear.</td>
+    <td>✅ Full swing trading. All 3 setups.</td>
+    <td>Full size (₹25K/stock)</td>
+  </tr>
+  <tr>
+    <td><span class="vix-zone" style="background:#1abc9c;"></span><strong style="color:var(--teal);">VIX 13–16</strong></td>
+    <td>Normal. Healthy.</td>
+    <td>✅ Normal trading. Best time for swing.</td>
+    <td>Full size</td>
+  </tr>
+  <tr>
+    <td><span class="vix-zone" style="background:#f5a623;"></span><strong style="color:var(--yellow);">VIX 16–20</strong></td>
+    <td>Caution. Some fear.</td>
+    <td>⚠️ Large caps only. Setup A only. Wider SL.</td>
+    <td>50% size (₹12K/stock)</td>
+  </tr>
+  <tr>
+    <td><span class="vix-zone" style="background:#e74c3c;"></span><strong style="color:var(--red);">VIX 20–25</strong></td>
+    <td>High fear. Volatile.</td>
+    <td>❌ No new swing trades. Monitor existing.</td>
+    <td>Exit open trades</td>
+  </tr>
+  <tr>
+    <td><span class="vix-zone" style="background:#7c0a0a;"></span><strong style="color:#c0392b;">VIX &gt; 25</strong></td>
+    <td>Panic. Crisis mode.</td>
+    <td>🚫 Cash only. Wait for calm.</td>
+    <td>0% — All cash</td>
+  </tr>
+</table>
+
+
+<!-- CHAPTER 9 -->
+<div class="chapter">
+  <div class="chapter-num">அத்தியாயம் 9</div>
+  <h2>மாதாந்திர வருமான எதிர்பார்ப்பு</h2>
+  <p>₹75,000 Swing Capital-ல் realistic expectations — 55–60% win rate அடிப்படையில்.</p>
+</div>
+
+<div class="setup-box">
+<span class="sb-title">மாத உதாரண Scenario</span>
+மாதம் 4 trades எடுக்கிறோம்:
+
+Trade 1 (INFY)  : +₹3,000 ✅ (T1+T2 hit)
+Trade 2 (HDFC)  : -₹1,500 ❌ (SL hit — normal!)
+Trade 3 (TCS)   : +₹2,200 ✅ (T1 only)
+Trade 4 (WIPRO) : +₹1,800 ✅ (T1 hit, T2 pending)
+──────────────────────────────────────────────
+நிகர Profit: +₹5,500/மாதம்
+Win Rate: 75% (சாதாரணமாக 55–60%)</div>
+
+<div class="income-row">
+  <div class="ir-icon">📉</div>
+  <div class="ir-body">
+    <h4>Conservative (55% win rate)</h4>
+    <p>3–4 trades/month | Small targets | Tight risk management</p>
+  </div>
+  <div class="ir-amount">₹4,000</div>
+</div>
+<div class="income-row">
+  <div class="ir-icon">📊</div>
+  <div class="ir-body">
+    <h4>Moderate (60% win rate) ✅ நம் இலக்கு</h4>
+    <p>4–5 trades/month | Mix of T1+T2 | Good setups only</p>
+  </div>
+  <div class="ir-amount">₹6,000</div>
+</div>
+<div class="income-row">
+  <div class="ir-icon">📈</div>
+  <div class="ir-body">
+    <h4>Stretch (65%+ win rate)</h4>
+    <p>5–6 trades/month | Multiple T2 hits | Experienced</p>
+  </div>
+  <div class="ir-amount">₹9,000</div>
+</div>
+
+
+<!-- FRIDAY CHECKLIST -->
+<div class="page-break">
+  <div class="print-checklist">
+    <div class="pc-header">
+      <div>
+        <h3>📋 வெள்ளி மாலை Stock Scan Checklist</h3>
+        <p>ஒவ்வொரு வெள்ளியும் இதை fill செய்யுங்கள் — 30 நிமிடம்</p>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim);">
+        Date: _______________
+      </div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title" style="color:var(--blue);">படி 1 — சந்தை திசை (2 நிமிடம்)</div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text"><strong>Nifty Weekly Chart:</strong> EMA 50-க்கு மேலே உள்ளதா?</div>
+        <div class="pc-result"></div>
+      </div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text"><strong>India VIX இன்று:</strong> என்ன level? (வரையுங்கள்)</div>
+        <div class="pc-result"></div>
+      </div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text"><strong>VIX Filter Pass?</strong> 20-க்கு கீழே இருந்தால் மட்டும் proceed</div>
+        <div class="pc-result"></div>
+      </div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text"><strong>அடுத்த வாரம் major events?</strong> RBI, Budget, Fed Meeting?</div>
+        <div class="pc-result"></div>
+      </div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title" style="color:var(--teal);">படி 2 — Sector தேர்வு (5 நிமிடம்)</div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text">NSE India-ல் top performing sectors பாருங்கள்</div>
+        <div class="pc-result"></div>
+      </div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text"><strong>Sector 1 (Best):</strong> _________________ % this month</div>
+        <div class="pc-result"></div>
+      </div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text"><strong>Sector 2:</strong> _________________ % this month</div>
+        <div class="pc-result"></div>
+      </div>
+      <div class="pc-row">
+        <div class="pc-check"></div>
+        <div class="pc-text">இந்த sectors Nifty-ஐ விட அதிகம் ஏறியதா?</div>
+        <div class="pc-result"></div>
+      </div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title" style="color:var(--yellow);">படி 3 — Stock தேர்வு (15 நிமிடம்)</div>
+
+      <div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yellow);margin-bottom:10px;">Stock #1 Name: _______________________</div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">EMA 50-க்கு மேலே உள்ளதா? (Daily Chart)</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">RSI 50–70 இடையே உள்ளதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Volume > 20-day average?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Nifty-ஐ விட அதிகம் ஏறியதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Market Cap > ₹5,000 Crore?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;border-bottom:none;"><div class="pc-check"></div><div class="pc-text">Setup தெரிகிறதா? (A / B / C)</div><div class="pc-result"></div></div>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;">Entry: ₹_______ | SL: ₹_______ | T1: ₹_______ | T2: ₹_______ | Qty: _______</div>
+      </div>
+
+      <div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--teal);margin-bottom:10px;">Stock #2 Name: _______________________</div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">EMA 50-க்கு மேலே உள்ளதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">RSI 50–70 இடையே உள்ளதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Volume > 20-day average?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Nifty-ஐ விட அதிகம் ஏறியதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Market Cap > ₹5,000 Crore?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;border-bottom:none;"><div class="pc-check"></div><div class="pc-text">Setup தெரிகிறதா? (A / B / C)</div><div class="pc-result"></div></div>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;">Entry: ₹_______ | SL: ₹_______ | T1: ₹_______ | T2: ₹_______ | Qty: _______</div>
+      </div>
+
+      <div style="background:var(--bg3);border-radius:10px;padding:14px 16px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--purple);margin-bottom:10px;">Stock #3 Name: _______________________</div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">EMA 50-க்கு மேலே உள்ளதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">RSI 50–70 இடையே உள்ளதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Volume > 20-day average?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Nifty-ஐ விட அதிகம் ஏறியதா?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;"><div class="pc-check"></div><div class="pc-text">Market Cap > ₹5,000 Crore?</div><div class="pc-result"></div></div>
+        <div class="pc-row" style="border:none;padding:6px 0;border-bottom:none;"><div class="pc-check"></div><div class="pc-text">Setup தெரிகிறதா? (A / B / C)</div><div class="pc-result"></div></div>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;">Entry: ₹_______ | SL: ₹_______ | T1: ₹_______ | T2: ₹_______ | Qty: _______</div>
+      </div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title" style="color:var(--green);">படி 4 — Risk Check (3 நிமிடம்)</div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">மொத்த invested amount ₹52,500-க்கு (70%) உள்ளே உள்ளதா?</div><div class="pc-result"></div></div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">ஒவ்வொரு trade-லும் max loss ₹1,500-க்கு உள்ளே உள்ளதா?</div><div class="pc-result"></div></div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">அடுத்த 2 வாரத்தில் Earnings announcement உள்ளதா? → Exit plan</div><div class="pc-result"></div></div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">GTT Order / SL Order set செய்ய plan இருக்கிறதா?</div><div class="pc-result"></div></div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title" style="color:var(--purple);">படி 5 — இந்த வார Trade Review (5 நிமிடம்)</div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">இந்த வாரம் open positions-ல் என்ன நடந்தது?</div><div class="pc-result"></div></div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">SL hit ஆனதா? Rules follow ஆனதா?</div><div class="pc-result"></div></div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">Target hit ஆனதா? Partial booking சரியாக செய்தேனா?</div><div class="pc-result"></div></div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">இந்த வார Swing P&amp;L: ₹_______</div><div class="pc-result"></div></div>
+      <div class="pc-row"><div class="pc-check"></div><div class="pc-text">என்ன கற்றுக்கொண்டேன்? ___________________________</div><div style="width:120px;border-bottom:1px solid var(--muted);height:20px;flex-shrink:0;"></div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- QUICK REFERENCE -->
+<div class="chapter page-break">
+  <div class="chapter-num">Quick Reference</div>
+  <h2>ஒரே பக்கம் Summary — Wall-ல் ஒட்டுங்கள்!</h2>
+</div>
+
+<div class="card card-gold">
+  <div class="card-title" style="font-size:16px;">⭐ S4 Swing Trading — Golden Rules</div>
+  <div class="g2" style="gap:16px;">
+    <ul style="font-size:13px;color:var(--dim);padding-left:16px;">
+      <li><strong style="color:var(--text);">Step 1:</strong> Nifty direction check — always!</li>
+      <li><strong style="color:var(--text);">Step 2:</strong> Strong sector மட்டும்</li>
+      <li><strong style="color:var(--text);">Step 3:</strong> 7 filters pass ஆனால் மட்டும்</li>
+      <li><strong style="color:var(--text);">Step 4:</strong> Setup A/B/C confirm ஆனால் enter</li>
+      <li><strong style="color:var(--text);">Step 5:</strong> Max ₹1,500 risk per trade</li>
+      <li><strong style="color:var(--text);">Step 6:</strong> GTT Order உடனே set</li>
+    </ul>
+    <ul style="font-size:13px;color:var(--dim);padding-left:16px;">
+      <li>Max 3 stocks at a time</li>
+      <li>Earnings முன்பு exit</li>
+      <li>10 நாட்கள் flat → exit</li>
+      <li>20 நாட்கள் max hold</li>
+      <li>VIX > 20 → No new trades</li>
+      <li>Averaging — ஒருபோதும் வேண்டாம்</li>
+    </ul>
+  </div>
+</div>
+
+<div class="setup-box" style="margin-top:16px;">
+<span class="sb-title">Position Size Formula — மனதில் வையுங்கள்</span>
+Qty = Max Risk (₹1,500) ÷ SL distance per share
+
+Example: SL = ₹50 per share → Qty = 1500 ÷ 50 = 30 shares
+         SL = ₹75 per share → Qty = 1500 ÷ 75 = 20 shares
+         SL = ₹100 per share → Qty = 1500 ÷ 100 = 15 shares</div>
+
+</div><!-- end .page -->
+
+<div class="footer">
+  <strong>S4 Swing Trading Tutorial — தமிழ் வழிகாட்டி</strong><br>
+  இந்த tutorial கல்வி நோக்கத்திற்காக மட்டுமே. உண்மையான பணம் invest செய்வதற்கு முன்பு paper trading practice செய்யுங்கள்.<br>
+  SEBI பதிவு பெற்ற ஆலோசகரை அணுகுவது எப்போதும் நல்லது. © 2026
+</div>
+
+</body>
+</html>

@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeZen — Swing Trading (S4)</title>
-<link rel="stylesheet" href="tradezen.css">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Swing Trading (S4) — TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
 <style>
@@ -23,7 +22,49 @@
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── Nav ──────────────────────────────────────────────────────────────────── */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;
+       font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;flex-shrink:0}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:6px;font-size:13px;font-weight:500;color:var(--dim);
+    text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;
+           padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
+#themeToggle{background:none;border:1px solid var(--border);border-radius:6px;
+             width:32px;height:32px;cursor:pointer;font-size:15px;padding:0;flex-shrink:0}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;
+             background:rgba(10,12,24,.98);border-bottom:1px solid var(--border);
+             padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+  .nav-r{display:none}
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.hero{padding:32px 24px 24px;border-bottom:1px solid var(--border);
+      background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(46,204,113,.1) 0%,transparent 65%),var(--bg)}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;
+      font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);
+      background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);
+      padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(20px,3vw,32px);font-weight:800;
+         color:#fff;line-height:1.1;letter-spacing:-.5px;margin-bottom:6px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
 .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
 
 /* ── Capital Config ───────────────────────────────────────────────────────── */
@@ -212,44 +253,38 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;ma
 </style>
 </head>
 <body>
-<div class="tz-bg-orb tz-orb1"></div>
-<div class="tz-bg-orb tz-orb2"></div>
-<div class="tz-grid"></div>
 
 <!-- Nav -->
-<nav class="tz-nav">
-  <div class="tz-nav-inner">
-    <a href="index.html" class="tz-logo">
-      <div class="tz-logo-mark">TZ</div>
-      <span class="tz-logo-text">Trade<span>Zen</span></span>
-    </a>
-    <span class="tz-nav-slash">/</span>
-    <span class="tz-nav-chip">SWING S4</span>
-    <div class="tz-nav-links">
-      <a href="stock_movers.html">📊 Movers</a>
-      <a href="stock_options.html">🎯 Options</a>
-      <a href="swing_trading.html" class="tz-active">📈 Swing</a>
-      <a href="fno_signal.html">🤖 F&O AI</a>
-      <a href="index.html">🏠 Home</a>
-    </div>
-    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme"
-      style="background:none;border:1px solid var(--border,#333);border-radius:6px;
-             width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim,#9ba3bf);
-             transition:border-color .15s;padding:0;flex-shrink:0;margin-left:auto"></button>
+<nav>
+  <a href="/" class="brand">
+    <img src="/favicon.png" class="logo" width="28" height="28" alt="TZ">
+    TradeZen
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/stock_movers.html">Movers</a>
+    <a class="nl" href="/stock_options.html">Options</a>
+    <a class="nl on" href="/swing_trading.html">Swing S4</a>
+    <a class="nl" href="/fno_signal.html">AI Signal</a>
+    <a class="nl" href="/market_psychology.html">TradeFun</a>
   </div>
+  <div class="nav-r">
+    <a href="/swing_trading_tutorial_tamil.html" target="_blank" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;text-decoration:none">📖 How it works?</a>
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme"></button>
+  </div>
+  <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
-<div class="wrap">
-
-<!-- Page heading -->
-<div style="margin-bottom:18px">
-  <h1 style="margin:0 0 4px;font-size:22px;font-weight:800">
-    📈 Swing Trading — S4 Framework
-  </h1>
-  <p style="margin:0;color:var(--dim);font-size:13px">
-    5-Pillar analysis: Market Direction · Sector Strength · Stock Quality · Entry Setup · Risk/Reward
-  </p>
+<!-- Hero -->
+<div class="hero">
+  <div class="htag">📈 S4 SWING FRAMEWORK</div>
+  <h1>Swing Trading — <em>5-Pillar Analysis</em></h1>
+  <p class="hero-sub">Market Direction · Sector Strength · Stock Quality · Entry Setup · Risk/Reward</p>
+  <a href="/swing_trading_tutorial_tamil.html" target="_blank" style="display:inline-block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);padding:3px 12px;border-radius:20px;text-decoration:none;letter-spacing:0.5px">📖 S4 Framework எப்படி பயன்படுத்துவது? (தமிழ் வழிகாட்டி)</a>
 </div>
+
+<div class="wrap">
 
 <!-- Capital Config -->
 <div class="cfg-bar">
