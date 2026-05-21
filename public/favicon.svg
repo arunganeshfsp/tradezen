@@ -1,24 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <!-- Bright vibrant gradient: Purple to Blue -->
-    <linearGradient id="brightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#7c6af7;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#5b8af5;stop-opacity:1" />
-    </linearGradient>
-    <!-- Accent gradient: Cyan to Green for top stripe -->
-    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#2ecc71;stop-opacity:1" />
-    </linearGradient>
+    
+    <clipPath id="c"><rect width="64" height="64" rx="22"></rect></clipPath>
   </defs>
-
-  <!-- Main background: Bold rounded square with bright vibrant gradient -->
-  <rect x="2" y="2" width="60" height="60" rx="10" fill="url(#brightGrad)" />
-
-  <!-- Accent stripe at top for extra impact and vibrancy -->
-  <rect x="2" y="2" width="60" height="5" rx="10" fill="url(#accentGrad)" />
-
-  <!-- TZ Text: Bold white, very visible at any size -->
-  <text x="32" y="44" font-family="'Arial Black', Arial, sans-serif" font-size="28" font-weight="900"
-        text-anchor="middle" fill="#ffffff" letter-spacing="1">TZ</text>
+  <g clip-path="url(#c)">
+    <rect width="64" height="64" fill="#0E0E0C"></rect>
+    <polygon points="64,0 64,28 36,0" fill="#F5A524"></polygon>
+  </g>
+  <text x="32" y="42" text-anchor="middle" font-size="34" font-family="Inter, &#39;Helvetica Neue&#39;, Arial, sans-serif" font-weight="900" fill="#F5A524" letter-spacing="-3">tz</text>
 </svg>
