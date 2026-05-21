@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>S1 Intraday Monitor | TradeZen</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{
   --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
@@ -125,6 +126,16 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── CHART ── */
+.chart-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;grid-column:1/-1}
+.chart-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap;padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px}
+.chart-leg-item{display:flex;align-items:center;gap:4px}
+.chart-leg-dot{width:12px;height:2px;border-radius:1px;flex-shrink:0}
+#s1_chart{width:100%;height:350px;background:var(--bg1)}
+.chart-empty{display:flex;align-items:center;justify-content:center;height:350px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px}
+
 /* ── FOOTER ── */
 footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
 </style>
@@ -171,6 +182,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
 </div>
 
 <div class="page">
+  <!-- CHART PANEL (FULL WIDTH) -->
+  <div class="chart-panel">
+    <div class="chart-head">
+      <span class="chart-title">📊 Today's 5-Min Chart — NIFTY Spot</span>
+    </div>
+    <div id="s1_chart_legend" class="chart-legend"></div>
+    <div id="s1_chart" class="chart-empty">Loading chart…</div>
+  </div>
+
   <!-- LEFT: CONDITIONS -->
   <div>
     <div class="conditions-panel">
@@ -310,6 +330,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
 
 const logs = [];
 let lastSignal = null;
+let s1Chart = null;
+let s1CandleSeries = null;
+let s1Ema9Series = null;
+let s1Ema21Series = null;
+let s1RsiSeries = null;
 
 function updateTime() {
   const now = new Date();
@@ -431,8 +456,124 @@ async function fetchS1Data() {
     updateConditions(data);
     updateSignalCard(data);
 
+    // Update chart if candles are available
+    if (data.chart_data) {
+      updateS1Chart(data.chart_data);
+    }
+
   } catch (err) {
     console.error('[S1] Fetch failed:', err);
+  }
+}
+
+function initS1Chart() {
+  const container = document.getElementById('s1_chart');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  s1Chart = LightweightCharts.createChart(container, {
+    layout: { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid: { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#252a44' },
+    timeScale: { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    width: container.clientWidth,
+    height: 350,
+  });
+
+  // Candlestick series
+  s1CandleSeries = s1Chart.addCandlestickSeries({
+    upColor: '#2ecc71',
+    downColor: '#e74c3c',
+    borderUpColor: '#2ecc71',
+    borderDownColor: '#e74c3c',
+    wickUpColor: '#2ecc71',
+    wickDownColor: '#e74c3c',
+  });
+
+  // EMA 9 line
+  s1Ema9Series = s1Chart.addLineSeries({
+    color: '#00d4ff',
+    lineWidth: 2,
+    title: 'EMA 9',
+  });
+
+  // EMA 21 line
+  s1Ema21Series = s1Chart.addLineSeries({
+    color: '#f5a623',
+    lineWidth: 2,
+    title: 'EMA 21',
+  });
+
+  // RSI line (on right scale, 0-100)
+  s1RsiSeries = s1Chart.addLineSeries({
+    color: '#a78bfa',
+    lineWidth: 1.5,
+    title: 'RSI 14',
+  });
+
+  // Create right scale for RSI (0-100)
+  s1RsiSeries.applyOptions({
+    priceScaleId: 'right-rsi',
+  });
+
+  s1Chart.priceScale('right-rsi').applyOptions({
+    scaleMargins: { top: 0.7, bottom: 0.1 },
+  });
+
+  window.addEventListener('resize', resizeS1Chart);
+}
+
+function resizeS1Chart() {
+  if (s1Chart) {
+    const container = document.getElementById('s1_chart');
+    if (container) s1Chart.applyOptions({ width: container.clientWidth });
+  }
+}
+
+function updateS1Chart(chartData) {
+  if (!s1Chart) initS1Chart();
+
+  try {
+    if (chartData.candles && chartData.candles.length > 0) {
+      s1CandleSeries.setData(chartData.candles);
+    }
+
+    if (chartData.ema9 && chartData.ema9.length > 0) {
+      s1Ema9Series.setData(chartData.ema9);
+    }
+
+    if (chartData.ema21 && chartData.ema21.length > 0) {
+      s1Ema21Series.setData(chartData.ema21);
+    }
+
+    if (chartData.rsi && chartData.rsi.length > 0) {
+      s1RsiSeries.setData(chartData.rsi);
+    }
+
+    s1Chart.timeScale().fitContent();
+
+    // Update legend
+    const legend = document.getElementById('s1_chart_legend');
+    if (legend) {
+      legend.innerHTML = `
+        <div class="chart-leg-item">
+          <span class="chart-leg-dot" style="background:#00d4ff"></span>
+          <span>EMA 9: ${chartData.latest_ema9?.toFixed(2) || '—'}</span>
+        </div>
+        <div class="chart-leg-item">
+          <span class="chart-leg-dot" style="background:#f5a623"></span>
+          <span>EMA 21: ${chartData.latest_ema21?.toFixed(2) || '—'}</span>
+        </div>
+        <div class="chart-leg-item">
+          <span class="chart-leg-dot" style="background:#a78bfa"></span>
+          <span>RSI 14: ${chartData.latest_rsi?.toFixed(0) || '—'}</span>
+        </div>
+      `;
+    }
+  } catch (err) {
+    console.error('[Chart] Update failed:', err);
   }
 }
 
@@ -470,6 +611,7 @@ function saveLog() {
 
 // Initialize
 updateTime();
+initS1Chart();
 setInterval(updateTime, 1000);
 setInterval(fetchS1Data, 5000);
 fetchS1Data();

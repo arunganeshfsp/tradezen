@@ -1241,6 +1241,64 @@ def _s1_monitor_state() -> dict:
         result['timestamp'] = datetime.now().isoformat()
         result['candles_count'] = len(df_5m)
 
+        # ────────────────────────────────────────────────────────────────────
+        # Generate chart data (candles + indicators for lightweight-charts)
+        # ────────────────────────────────────────────────────────────────────
+        try:
+            from core.indicators.ema import calculate_ema
+            from core.indicators.rsi import calculate_rsi
+
+            close = df_5m['close']
+            ema9_series = calculate_ema(close, 9)
+            ema21_series = calculate_ema(close, 21)
+            rsi_series = calculate_rsi(close, 14)
+
+            # Convert candles to lightweight-charts format
+            chart_candles = []
+            chart_ema9 = []
+            chart_ema21 = []
+            chart_rsi = []
+
+            for idx, (ts, row) in enumerate(df_5m.iterrows()):
+                # Unix timestamp in seconds
+                time = int(ts.timestamp())
+
+                # Candlestick
+                chart_candles.append({
+                    'time': time,
+                    'open': round(float(row['open']), 2),
+                    'high': round(float(row['high']), 2),
+                    'low': round(float(row['low']), 2),
+                    'close': round(float(row['close']), 2),
+                })
+
+                # EMA lines
+                if idx < len(ema9_series):
+                    ema9_val = float(ema9_series.iloc[idx])
+                    chart_ema9.append({'time': time, 'value': round(ema9_val, 2)})
+
+                if idx < len(ema21_series):
+                    ema21_val = float(ema21_series.iloc[idx])
+                    chart_ema21.append({'time': time, 'value': round(ema21_val, 2)})
+
+                if idx < len(rsi_series):
+                    rsi_val = float(rsi_series.iloc[idx])
+                    chart_rsi.append({'time': time, 'value': round(rsi_val, 2)})
+
+            result['chart_data'] = {
+                'candles': chart_candles,
+                'ema9': chart_ema9,
+                'ema21': chart_ema21,
+                'rsi': chart_rsi,
+                'latest_ema9': round(float(ema9_series.iloc[-1]), 2) if len(ema9_series) > 0 else None,
+                'latest_ema21': round(float(ema21_series.iloc[-1]), 2) if len(ema21_series) > 0 else None,
+                'latest_rsi': round(float(rsi_series.iloc[-1]), 2) if len(rsi_series) > 0 else None,
+            }
+
+        except Exception as e:
+            print(f"[S1 Monitor] Chart data error: {e}")
+            result['chart_data'] = None
+
         return result
 
     except Exception as e:
