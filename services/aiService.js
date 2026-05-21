@@ -173,6 +173,19 @@ class AIService {
         }
     }
 
+    async getStockMonitor(symbol = "RELIANCE") {
+        try {
+            const res = await axios.get(`${AI_ENGINE_URL}/stock-monitor`, {
+                params: { symbol },
+                timeout: 10000
+            });
+            return res.data;
+        } catch (err) {
+            console.error("Stock monitor error:", err.message);
+            return { status: "error", error: "Python engine unreachable" };
+        }
+    }
+
     // EMA backtest — bulk yfinance fetch over last N trading days
     async getEmaBacktest(days = 20) {
         try {

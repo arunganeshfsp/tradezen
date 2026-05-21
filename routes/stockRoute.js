@@ -125,6 +125,18 @@ router.get("/s1-monitor", async (req, res) => {
   }
 });
 
+// ─── GET /api/stock-monitor ─────────────────────────────────────────────────
+// Stock options monitor — S1 strategy for individual F&O stocks
+router.get("/stock-monitor", async (req, res) => {
+  try {
+    const symbol = req.query.symbol || "RELIANCE";
+    const data = await aiService.getStockMonitor(symbol);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/expiries ───────────────────────────────────────────────────────
 // Returns upcoming NIFTY expiry dates for the dropdown
 router.get("/expiries", async (req, res) => {

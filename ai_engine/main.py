@@ -1314,6 +1314,85 @@ def get_s1_monitor():
     return _s1_monitor_state()
 
 
+@app.get("/stock-monitor")
+def get_stock_monitor(symbol: str = "RELIANCE"):
+    """Stock options monitor — S1 strategy adapted for individual F&O stocks"""
+    from core.stock_monitor import StockOptionsMonitor
+    import yfinance as yf
+
+    symbol = symbol.upper().strip()
+
+    try:
+        ticker = yf.Ticker(f"{symbol}.NS")
+        df_5m = ticker.history(period="1d", interval="5m")
+        if df_5m.empty:
+            return {"error": f"No data for {symbol}", "status": "offline"}
+
+        df_5m.index = df_5m.index.tz_convert("Asia/Kolkata")
+        df_5m = df_5m[["Open", "High", "Low", "Close", "Volume"]].dropna()
+        df_5m = df_5m.between_time("09:15", "15:30")
+        df_5m.columns = ['open', 'high', 'low', 'close', 'volume']
+
+        if df_5m.empty:
+            return {"error": "Market hours data not available", "status": "offline"}
+
+        # Live price
+        info = ticker.fast_info
+        price = float(info.last_price) if hasattr(info, 'last_price') and info.last_price else float(df_5m['close'].iloc[-1])
+
+        monitor = StockOptionsMonitor(symbol)
+        result = monitor.check_setup(price=price, candles=df_5m, current_time=datetime.now())
+
+        result['status'] = 'online'
+        result['price'] = round(price, 2)
+        result['symbol'] = symbol
+        result['timestamp'] = datetime.now().isoformat()
+        result['candles_count'] = len(df_5m)
+
+        # Chart data
+        try:
+            from core.indicators.ema import calculate_ema
+            from core.indicators.rsi import calculate_rsi
+
+            close = df_5m['close']
+            ema9_s = calculate_ema(close, 9)
+            ema21_s = calculate_ema(close, 21)
+            rsi_s = calculate_rsi(close, 14)
+
+            IST_OFFSET = 19800
+            chart_candles, chart_ema9, chart_ema21, chart_rsi = [], [], [], []
+
+            for idx, (ts, row) in enumerate(df_5m.iterrows()):
+                t = int(ts.timestamp()) + IST_OFFSET
+                chart_candles.append({'time': t, 'open': round(float(row['open']), 2),
+                                       'high': round(float(row['high']), 2),
+                                       'low': round(float(row['low']), 2),
+                                       'close': round(float(row['close']), 2)})
+                if idx < len(ema9_s):
+                    chart_ema9.append({'time': t, 'value': round(float(ema9_s.iloc[idx]), 2)})
+                if idx < len(ema21_s):
+                    chart_ema21.append({'time': t, 'value': round(float(ema21_s.iloc[idx]), 2)})
+                if idx < len(rsi_s):
+                    chart_rsi.append({'time': t, 'value': round(float(rsi_s.iloc[idx]), 2)})
+
+            result['chart_data'] = {
+                'candles': chart_candles, 'ema9': chart_ema9,
+                'ema21': chart_ema21, 'rsi': chart_rsi,
+                'latest_ema9': round(float(ema9_s.iloc[-1]), 2) if len(ema9_s) > 0 else None,
+                'latest_ema21': round(float(ema21_s.iloc[-1]), 2) if len(ema21_s) > 0 else None,
+                'latest_rsi': round(float(rsi_s.iloc[-1]), 2) if len(rsi_s) > 0 else None,
+            }
+        except Exception as e:
+            print(f"[StockMonitor] Chart error: {e}")
+            result['chart_data'] = None
+
+        return result
+
+    except Exception as e:
+        print(f"[StockMonitor] Error: {e}")
+        return {"error": str(e), "status": "error"}
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # EMA + MACD + VWAP Scenario Endpoint
 # ══════════════════════════════════════════════════════════════════════════════

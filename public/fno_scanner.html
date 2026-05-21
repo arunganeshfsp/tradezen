@@ -339,10 +339,11 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
           <th>Buy Vol</th>
           <th>Sell Vol</th>
           <th>Trade</th>
+          <th>Monitor</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr class="empty-row"><td colspan="10"><span class="spinner"></span>Loading…</td></tr>
+        <tr class="empty-row"><td colspan="11"><span class="spinner"></span>Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -539,6 +540,12 @@ async function fetchScanner() {
               <button class="act-btn act-buy"  disabled title="Coming Soon">Buy ▲</button>
               <button class="act-btn act-sell" disabled title="Coming Soon">Sell ▼</button>
             </div>
+          </td>
+          <td onclick="event.stopPropagation()">
+            <a href="/stock_s1_monitor.html?symbol=${s.symbol}" target="_blank"
+               style="display:inline-block;padding:5px 12px;border-radius:6px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-decoration:none;transition:all .15s;white-space:nowrap"
+               onmouseover="this.style.background='rgba(0,212,255,0.22)'"
+               onmouseout="this.style.background='rgba(0,212,255,0.12)'">Monitor →</a>
           </td>
         </tr>`;
     }).join('');

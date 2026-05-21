@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Monitor | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{
+  --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
+  --border:#252a44; --border2:#323868;
+  --accent:#7c6af7; --blue:#5b8af5;
+  --green:#2ecc71; --green2:#27ae60; --green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c; --red2:#c0392b; --red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623; --yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;
+  --text:#e8ecf4; --dim:#9ba3bf; --muted:#4a5070;
+  --r:10px; --r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
+.logo{width:36px;height:36px;border-radius:50%;background:var(--cyan);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#000}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:var(--text);background:var(--bg3)}
+.nav-r{margin-left:auto}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--cyan);background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);padding:3px 10px;border-radius:20px}
+
+.hero{padding:40px 28px 32px;border-bottom:1px solid var(--border);background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.15) 0%,transparent 65%),var(--bg)}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:16px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,40px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
+.status-bar{max-width:1100px;margin:0 auto;padding:20px 28px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;align-items:center}
+.status-chip{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg2)}
+.sc-price{background:rgba(46,204,113,0.08);color:var(--green);border-color:rgba(46,204,113,0.25)}
+.sc-sym{background:rgba(124,106,247,0.08);color:var(--accent);border-color:rgba(124,106,247,0.25)}
+.sc-time{background:rgba(0,212,255,0.08);color:var(--cyan);border-color:rgba(0,212,255,0.25)}
+.pulse{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse-anim 1.4s infinite}
+@keyframes pulse-anim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(0.7)}}
+
+.page{max-width:1100px;margin:0 auto;padding:28px 28px 80px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media(max-width:900px){.page{grid-template-columns:1fr}}
+
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.panel-head{background:var(--bg3);padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.panel-body{padding:16px}
+
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(37,42,69,0.5)}
+.row:last-child{border-bottom:none}
+.check{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.check.pass{background:var(--green-bg);color:var(--green)}
+.check.fail{background:var(--red-bg);color:var(--red)}
+.row-label{flex:1;font-size:13px;color:var(--text)}
+.row-value{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);text-align:right;white-space:nowrap}
+
+.chart-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px;grid-column:1/-1}
+.chart-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
+.chart-legend{display:flex;gap:20px;flex-wrap:wrap;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;align-items:center}
+.leg-dot{width:16px;height:3px;border-radius:2px;flex-shrink:0}
+#stockChart{width:100%;height:350px;background:var(--bg1)}
+
+.signal-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.sc-head{background:var(--bg3);padding:16px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.sc-signal{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;flex:1}
+.sc-signal.ce{color:var(--green)} .sc-signal.pe{color:var(--red)} .sc-signal.none{color:var(--yellow)}
+.sc-body{padding:16px;font-size:12px}
+
+.log-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.log-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.log-head:hover{background:var(--bg2)}
+.log-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);flex:1}
+.log-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:2px 10px;border-radius:20px}
+.log-list{max-height:280px;overflow-y:auto;scrollbar-width:thin}
+.log-item{padding:8px 12px;border-bottom:1px solid rgba(37,42,69,0.5);font-family:'JetBrains Mono',monospace;font-size:11px;display:grid;grid-template-columns:60px auto 1fr;gap:8px;align-items:center}
+.log-item.ce{background:rgba(46,204,113,0.04);border-left:2px solid var(--green)}
+.log-item.pe{background:rgba(231,76,60,0.04);border-left:2px solid var(--red)}
+.log-empty{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+.log-controls{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--bg2)}
+.log-btn{flex:1;padding:8px 12px;border-radius:var(--r2);border:1px solid var(--border);background:transparent;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+.log-btn:hover{border-color:var(--accent);color:var(--text)}
+.log-btn.save{border-color:var(--green);color:var(--green)}
+.log-btn.save:hover{background:rgba(46,204,113,0.08)}
+
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="brand"><div class="logo">TZ</div>TradeZen</a>
+  <div class="nav-links">
+    <a class="nl" href="/fno_scanner.html">F&O Scanner</a>
+    <a class="nl on" href="#">Stock Monitor</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);padding:0;flex-shrink:0;margin-left:auto"></button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="htag">📈 STOCK OPTIONS MONITOR</div>
+  <h1 id="heroTitle">Stock — <em>Options Monitor</em></h1>
+  <p class="hero-sub">OR Breakout + EMA 9/21 Cross + RSI + Volume Spike — Real-time entry signals</p>
+</div>
+
+<div class="status-bar">
+  <div class="status-chip sc-sym">
+    <span id="symVal">—</span>
+  </div>
+  <div class="status-chip sc-price">
+    <span class="pulse"></span>
+    <span>LTP: <strong id="priceVal">—</strong></span>
+  </div>
+  <div class="status-chip sc-time">
+    <span id="timeVal">—:—</span>
+  </div>
+</div>
+
+<!-- SESSION STATE -->
+<div style="max-width:1100px;margin:0 auto;padding:0 28px 16px;display:flex;justify-content:center">
+  <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="sessionDot" style="width:12px;height:12px;border-radius:50%;background:var(--yellow)"></div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px">SESSION</div>
+        <div style="font-size:14px;color:var(--text);font-weight:700;font-family:'Syne',sans-serif" id="sessionStatus">—</div>
+      </div>
+    </div>
+    <div style="width:1px;height:30px;background:var(--border)"></div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:4px">COUNTDOWN</div>
+      <div style="font-size:14px;color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace" id="sessionCountdown">—</div>
+    </div>
+    <div style="width:1px;height:30px;background:var(--border)"></div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:4px">LOT SIZE</div>
+      <div style="font-size:14px;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace" id="lotSizeVal">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <!-- CHART (FULL WIDTH) -->
+  <div class="chart-panel">
+    <div class="chart-head">
+      <span class="chart-title" id="chartTitle">📊 5-Min Chart</span>
+    </div>
+    <div id="stockChartLegend" class="chart-legend"></div>
+    <div id="stockChart" style="width:100%;height:350px;background:var(--bg1)">Loading chart…</div>
+  </div>
+
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- READINESS SCORE -->
+    <div class="panel" style="margin-bottom:20px;border:2px solid var(--border2)">
+      <div class="panel-head"><span>📊</span> Setup Readiness Score</div>
+      <div class="panel-body">
+        <div style="display:flex;align-items:center;gap:16px;padding:12px;background:var(--bg2);border-radius:var(--r2)">
+          <div style="flex:1">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Score</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--cyan)" id="scoreValue">0/5</div>
+          </div>
+          <div style="width:2px;height:50px;background:var(--border)"></div>
+          <div style="flex:2">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+                <div id="scoreProgress" style="width:0%;height:100%;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));transition:width .3s"></div>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="scorePercent">0%</div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)" id="scoreStatus">Waiting...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONDITIONS -->
+    <div class="panel" style="margin-bottom:20px">
+      <div class="panel-head"><span>⚙️</span> Setup Conditions</div>
+      <div class="panel-body">
+        <div class="row"><div class="check" id="checkOr">—</div><div class="row-label">OR Formed (9:15 candle)</div><div class="row-value" id="valOr">—</div></div>
+        <div class="row"><div class="check" id="checkBreak">—</div><div class="row-label">Price Breakout</div><div class="row-value" id="valBreak">—</div></div>
+        <div class="row"><div class="check" id="checkEma">—</div><div class="row-label">EMA 9 > 21 (or 9 < 21)</div><div class="row-value" id="valEma">—</div></div>
+        <div class="row"><div class="check" id="checkRsi">—</div><div class="row-label">RSI Confirm (>55 or <45)</div><div class="row-value" id="valRsi">—</div></div>
+        <div class="row"><div class="check" id="checkVol">—</div><div class="row-label">Volume Spike</div><div class="row-value" id="valVol">—</div></div>
+      </div>
+    </div>
+
+    <!-- OR TRACKER -->
+    <div class="panel" style="margin-bottom:20px">
+      <div class="panel-head"><span>📊</span> Opening Range (9:15 candle)</div>
+      <div class="panel-body">
+        <div class="row"><div class="row-label" style="color:var(--muted)">OR Status</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text)" id="orStatus">—</div></div>
+        <div class="row"><div class="row-label" style="color:var(--muted)">OR High</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--green)" id="orHigh">—</div></div>
+        <div class="row"><div class="row-label" style="color:var(--muted)">OR Low</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--red)" id="orLow">—</div></div>
+        <div class="row"><div class="row-label" style="color:var(--muted)">OR Range</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cyan)" id="orRange">—</div></div>
+        <div class="row"><div class="row-label" style="color:var(--muted)">Breakout Watch</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent)" id="orWatch">—</div></div>
+      </div>
+    </div>
+
+    <!-- EMA/RSI STATUS -->
+    <div class="panel">
+      <div class="panel-head"><span>📈</span> EMA & RSI Status</div>
+      <div class="panel-body">
+        <div style="padding:12px;background:var(--bg2);border-radius:var(--r2);border-left:3px solid var(--cyan);margin-bottom:12px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);font-weight:700;text-transform:uppercase;margin-bottom:8px">EMA Analysis</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-bottom:8px">
+            <div><div style="color:var(--muted);font-size:9px;margin-bottom:2px">EMA 9</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="ema9Val">—</div></div>
+            <div><div style="color:var(--muted);font-size:9px;margin-bottom:2px">EMA 21</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="ema21Val">—</div></div>
+          </div>
+          <div style="padding:6px;background:var(--bg3);border-radius:4px">
+            <div style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px" id="emaStatusTxt">—</div>
+          </div>
+        </div>
+        <div style="padding:12px;background:var(--bg2);border-radius:var(--r2);border-left:3px solid var(--yellow)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);font-weight:700;text-transform:uppercase;margin-bottom:8px">RSI Analysis</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+            <div><div style="color:var(--muted);font-size:9px;margin-bottom:2px">RSI 14</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="rsiValDisp">—</div></div>
+            <div><div style="color:var(--muted);font-size:9px;margin-bottom:2px">Status</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="rsiStatusTxt">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <!-- SIGNAL CARD -->
+    <div class="signal-card" id="signalCard" style="display:none">
+      <div class="sc-head">
+        <div class="sc-signal" id="signalName">—</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="sigTime">—</div>
+      </div>
+      <div class="sc-body">
+        <!-- Entry Details -->
+        <div style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--r2);border-left:3px solid var(--cyan)">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--cyan);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">📋 Entry Details</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Instrument</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px" id="sigInstrument">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Entry Premium</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigPremium">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Entry Time</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigEntryTime">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Lot Size</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigLotSize">—</div></div>
+          </div>
+        </div>
+        <!-- Risk Management -->
+        <div style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--r2);border-left:3px solid var(--red)">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--red);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">⚠️ Risk Management</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Stop Loss</div><div style="color:var(--red);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigSl">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Target 1</div><div style="color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigT1">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Max Loss</div><div style="color:var(--red);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigMaxLoss">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Potential Profit</div><div style="color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigProfit">—</div></div>
+          </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1)">
+            <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Risk:Reward Ratio</div>
+            <div style="color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigRR">—</div>
+          </div>
+        </div>
+        <!-- Capital -->
+        <div style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--r2);border-left:3px solid var(--yellow)">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--yellow);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">💰 Capital Required</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Per Lot</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigCapital">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;margin-bottom:3px">Lot Size</div><div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="sigCapLot">—</div></div>
+          </div>
+        </div>
+        <!-- Action Buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <button onclick="actionBtn('take',this)" style="padding:10px;border:1px solid var(--green);background:rgba(46,204,113,0.1);color:var(--green);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">✓ TAKE</button>
+          <button onclick="actionBtn('hold',this)" style="padding:10px;border:1px solid var(--yellow);background:rgba(245,166,35,0.1);color:var(--yellow);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">⏸ HOLD</button>
+          <button onclick="actionBtn('skip',this)" style="padding:10px;border:1px solid var(--red);background:rgba(231,76,60,0.1);color:var(--red);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">✕ SKIP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WAITING STATE (when no signal) -->
+    <div id="waitingCard" style="background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--r);padding:28px;text-align:center;margin-bottom:20px">
+      <div style="font-size:28px;margin-bottom:10px">⏳</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text);margin-bottom:6px">Monitoring Setup</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">Waiting for all 5 conditions to align...</div>
+    </div>
+
+    <!-- LOG PANEL -->
+    <div class="log-panel">
+      <div class="log-head" onclick="toggleLog()">
+        <span class="log-title">Alert Log</span>
+        <span class="log-count" id="logCount">0</span>
+        <span id="logToggle" style="font-size:11px;color:var(--muted);transition:transform .2s">▼</span>
+      </div>
+      <div id="logBody">
+        <div class="log-list" id="logList">
+          <div class="log-empty">No alerts yet. Monitoring...</div>
+        </div>
+        <div class="log-controls">
+          <button class="log-btn" onclick="clearLog()">Clear</button>
+          <button class="log-btn save" onclick="saveLog()">💾 Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Refreshing every 5 seconds · Last update: <span id="lastUpdate">—</span></footer>
+
+<script>
+const symbol = new URLSearchParams(location.search).get('symbol') || 'RELIANCE';
+const logs = [];
+let lastSignal = null;
+let stockChart = null, candleSeries = null, ema9Series = null, ema21Series = null, rsiSeries = null;
+
+// Set symbol in hero
+document.getElementById('heroTitle').innerHTML = `${symbol} — <em>Options Monitor</em>`;
+document.getElementById('symVal').textContent = symbol;
+document.title = `${symbol} Monitor | TradeZen`;
+
+// Session state
+function getSession() {
+  const now = new Date();
+  const h = (now.getUTCHours() + 5) % 24;
+  const m = (now.getUTCMinutes() + 30) % 60;
+  const mins = h * 60 + m;
+  if (mins < 9 * 60) return { status: 'MARKET CLOSED', color: '#4a5070', cd: countdown(9 * 60, mins), event: 'to Pre-Market' };
+  if (mins < 9 * 60 + 15) return { status: 'PRE-MARKET', color: '#f5a623', cd: countdown(9 * 60 + 15, mins), event: 'to Market Open' };
+  if (mins < 15 * 60 + 30) return { status: 'LIVE TRADING', color: '#2ecc71', cd: countdown(15 * 60 + 30, mins), event: 'to Market Close' };
+  return { status: 'POST-MARKET', color: '#e74c3c', cd: '—', event: '' };
+}
+
+function countdown(target, current) {
+  let d = target - current;
+  if (d < 0) d += 1440;
+  return `${String(Math.floor(d/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}:00`;
+}
+
+function updateTime() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-IN').slice(0,5);
+  const day = now.toLocaleDateString('en-IN', { weekday: 'short' });
+  document.getElementById('timeVal').textContent = `${time} ${day}`;
+  document.getElementById('lastUpdate').textContent = time;
+  const s = getSession();
+  document.getElementById('sessionStatus').textContent = s.status;
+  document.getElementById('sessionCountdown').textContent = `${s.cd} ${s.event}`;
+  document.getElementById('sessionDot').style.background = s.color;
+}
+
+function setCheck(id, pass) {
+  const el = document.getElementById(id);
+  el.textContent = pass ? '✓' : '✕';
+  el.className = `check ${pass ? 'pass' : 'fail'}`;
+}
+
+function updateAll(data) {
+  const c = data.conditions || {};
+  const ind = data.indicators || {};
+  const cd = data.chart_data || {};
+  const price = data.price || 0;
+
+  document.getElementById('priceVal').textContent = price.toFixed(2);
+  if (data.lot_size) {
+    document.getElementById('lotSizeVal').textContent = data.lot_size;
+    document.getElementById('sigLotSize').textContent = data.lot_size;
+    document.getElementById('sigCapLot').textContent = data.lot_size;
+  }
+
+  // Conditions
+  setCheck('checkOr', c.or_formed);
+  setCheck('checkBreak', c.price_breakout);
+  setCheck('checkEma', c.ema_confirmed);
+  setCheck('checkRsi', c.rsi_confirmed);
+  setCheck('checkVol', c.volume_spike);
+
+  document.getElementById('valOr').textContent = c.or_formed && ind.or_high ? `${ind.or_high?.toFixed(2)} / ${ind.or_low?.toFixed(2)}` : '—';
+  document.getElementById('valBreak').textContent = price.toFixed(2);
+  document.getElementById('valEma').textContent = ind.ema9 && ind.ema21 ? `${ind.ema9.toFixed(0)} / ${ind.ema21.toFixed(0)}` : '—';
+  document.getElementById('valRsi').textContent = ind.rsi ? ind.rsi.toFixed(0) : '—';
+  document.getElementById('valVol').textContent = ind.vol_spike ? 'SPIKE ✓' : (ind.current_volume ? `${(ind.current_volume/1000).toFixed(0)}K` : '—');
+
+  // OR Tracker
+  if (c.or_formed && ind.or_high) {
+    document.getElementById('orStatus').textContent = '✓ FORMED';
+    document.getElementById('orHigh').textContent = ind.or_high.toFixed(2);
+    document.getElementById('orLow').textContent = ind.or_low.toFixed(2);
+    document.getElementById('orRange').textContent = `${(ind.or_high - ind.or_low).toFixed(2)} pts`;
+    document.getElementById('orWatch').textContent = price > ind.or_high ? 'DOWNSIDE' : price < ind.or_low ? 'UPSIDE' : 'BOTH';
+  } else {
+    ['orStatus','orHigh','orLow','orRange','orWatch'].forEach(id => document.getElementById(id).textContent = '—');
+  }
+
+  // EMA/RSI
+  const e9 = cd.latest_ema9 || ind.ema9 || 0;
+  const e21 = cd.latest_ema21 || ind.ema21 || 0;
+  const rsi = cd.latest_rsi || ind.rsi || 0;
+  document.getElementById('ema9Val').textContent = e9 ? e9.toFixed(2) : '—';
+  document.getElementById('ema21Val').textContent = e21 ? e21.toFixed(2) : '—';
+  document.getElementById('emaStatusTxt').textContent = e9 > e21 ? '🟢 BULLISH (9 > 21)' : e9 < e21 ? '🔴 BEARISH (9 < 21)' : '⚪ NEUTRAL';
+  document.getElementById('rsiValDisp').textContent = rsi ? rsi.toFixed(0) : '—';
+  document.getElementById('rsiStatusTxt').textContent = rsi > 55 ? '🟢 BULLISH' : rsi < 45 ? '🔴 BEARISH' : '⚪ NEUTRAL';
+
+  // Readiness Score
+  const score = [c.or_formed, c.price_breakout, c.ema_confirmed, c.rsi_confirmed, c.volume_spike].filter(Boolean).length;
+  const pct = Math.round(score / 5 * 100);
+  document.getElementById('scoreValue').textContent = `${score}/5`;
+  document.getElementById('scorePercent').textContent = `${pct}%`;
+  document.getElementById('scoreProgress').style.width = `${pct}%`;
+  document.getElementById('scoreStatus').textContent = score === 5 ? '🟢 TRADE READY! All conditions met' :
+    score >= 3 ? `🟡 ${5-score} more condition(s) needed` : `🔴 Forming — ${score}/5 ready`;
+
+  // Signal
+  updateSignalCard(data);
+
+  // Chart
+  if (data.chart_data) updateChart(data.chart_data);
+}
+
+function updateSignalCard(data) {
+  const card = document.getElementById('signalCard');
+  const wait = document.getElementById('waitingCard');
+  if (!data.signal) {
+    card.style.display = 'none';
+    wait.style.display = 'block';
+    lastSignal = null;
+    return;
+  }
+  if (data.signal !== lastSignal) {
+    addLog(new Date().toLocaleTimeString('en-IN').slice(0,5), data.signal, data.strike, data.entry_premium, data.indicators);
+    lastSignal = data.signal;
+  }
+  card.style.display = 'block';
+  wait.style.display = 'none';
+  const isCE = data.signal === 'CE';
+  document.getElementById('signalName').textContent = isCE ? '🟢 CALL ENTRY (CE)' : '🔴 PUT ENTRY (PE)';
+  document.getElementById('signalName').className = `sc-signal ${isCE ? 'ce' : 'pe'}`;
+  document.getElementById('sigTime').textContent = new Date().toLocaleTimeString('en-IN').slice(0,5);
+
+  const p = data.entry_premium || 0;
+  const sl = data.sl || p * 0.65;
+  const t1 = data.t1 || p * 1.45;
+  const lot = data.lot_size || 500;
+  const maxLoss = (p - sl) * lot;
+  const profit = (t1 - p) * lot;
+
+  document.getElementById('sigInstrument').textContent = `${symbol} ${data.strike} ${isCE ? 'CE' : 'PE'}`;
+  document.getElementById('sigPremium').textContent = `₹${p}`;
+  document.getElementById('sigEntryTime').textContent = new Date().toLocaleTimeString('en-IN').slice(0,5);
+  document.getElementById('sigSl').textContent = `₹${sl.toFixed(2)}`;
+  document.getElementById('sigT1').textContent = `₹${t1.toFixed(2)}`;
+  document.getElementById('sigMaxLoss').textContent = `₹${Math.abs(maxLoss).toFixed(0)}`;
+  document.getElementById('sigProfit').textContent = `₹${Math.abs(profit).toFixed(0)}`;
+  document.getElementById('sigRR').textContent = maxLoss > 0 ? `1:${(profit/maxLoss).toFixed(2)}` : '—';
+  document.getElementById('sigCapital').textContent = `₹${(p * lot).toFixed(0)}`;
+}
+
+function addLog(time, signal, strike, premium, ind) {
+  const entry = { time, signal, strike, premium, ema9: ind?.ema9, ema21: ind?.ema21, rsi: ind?.rsi };
+  logs.unshift(entry);
+  if (logs.length > 50) logs.pop();
+  const list = document.getElementById('logList');
+  if (logs.length === 1) list.innerHTML = '';
+  const li = document.createElement('div');
+  li.className = `log-item ${signal.toLowerCase()}`;
+  li.innerHTML = `<span style="color:var(--muted)">${time}</span><span style="font-weight:700;color:${signal==='CE'?'var(--green)':'var(--red)'}">${signal}</span><span style="color:var(--dim);font-size:10px">${strike || '—'} · ₹${premium || '—'}</span>`;
+  list.insertBefore(li, list.firstChild);
+  document.getElementById('logCount').textContent = logs.length;
+}
+
+function initChart() {
+  const el = document.getElementById('stockChart');
+  el.innerHTML = '';
+  stockChart = LightweightCharts.createChart(el, {
+    layout: { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid: { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#252a44' },
+    timeScale: { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    width: el.clientWidth, height: 350,
+  });
+  candleSeries = stockChart.addCandlestickSeries({ upColor:'#2ecc71', downColor:'#e74c3c', borderUpColor:'#2ecc71', borderDownColor:'#e74c3c', wickUpColor:'#2ecc71', wickDownColor:'#e74c3c' });
+  ema9Series = stockChart.addLineSeries({ color:'#00d4ff', lineWidth:2, title:'EMA 9' });
+  ema21Series = stockChart.addLineSeries({ color:'#f5a623', lineWidth:2, title:'EMA 21' });
+  rsiSeries = stockChart.addLineSeries({ color:'#a78bfa', lineWidth:1.5, title:'RSI 14', priceScaleId:'rsi' });
+  stockChart.priceScale('rsi').applyOptions({ scaleMargins: { top:0.7, bottom:0.1 } });
+  window.addEventListener('resize', () => { if(stockChart) stockChart.applyOptions({ width: el.clientWidth }); });
+}
+
+function updateChart(cd) {
+  if (!stockChart) initChart();
+  try {
+    if (cd.candles?.length) candleSeries.setData(cd.candles);
+    if (cd.ema9?.length) ema9Series.setData(cd.ema9);
+    if (cd.ema21?.length) ema21Series.setData(cd.ema21);
+    if (cd.rsi?.length) rsiSeries.setData(cd.rsi);
+    stockChart.timeScale().fitContent();
+    const leg = document.getElementById('stockChartLegend');
+    leg.innerHTML = `
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:16px;height:3px;background:#00d4ff;border-radius:2px"></div><span style="color:#e8ecf4">EMA 9: <span style="color:#00d4ff;font-weight:800">${cd.latest_ema9?.toFixed(2)||'—'}</span></span></div>
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:16px;height:3px;background:#f5a623;border-radius:2px"></div><span style="color:#e8ecf4">EMA 21: <span style="color:#f5a623;font-weight:800">${cd.latest_ema21?.toFixed(2)||'—'}</span></span></div>
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:16px;height:3px;background:#a78bfa;border-radius:2px"></div><span style="color:#e8ecf4">RSI: <span style="color:#a78bfa;font-weight:800">${cd.latest_rsi?.toFixed(0)||'—'}</span></span></div>
+      <div style="margin-left:auto"><span style="color:#9ba3bf">${cd.candles?.length||0} candles</span></div>`;
+    document.getElementById('chartTitle').textContent = `📊 5-Min Chart — ${symbol}`;
+  } catch(e) { console.error('[Chart]', e); }
+}
+
+async function fetchData() {
+  try {
+    const res = await fetch(`/api/stock-monitor?symbol=${symbol}`);
+    const data = await res.json();
+    if (data.error) { console.warn('[Monitor]', data.error); return; }
+    updateAll(data);
+  } catch(e) { console.error('[Monitor]', e); }
+}
+
+function toggleLog() {
+  const body = document.getElementById('logBody');
+  const tog = document.getElementById('logToggle');
+  body.classList.toggle('closed');
+  if (body.classList.contains('closed')) body.style.display = 'none'; else body.style.display = 'block';
+  tog.style.transform = body.style.display === 'none' ? 'rotate(-90deg)' : '';
+}
+
+function clearLog() {
+  logs.length = 0;
+  document.getElementById('logList').innerHTML = '<div class="log-empty">No alerts yet. Monitoring...</div>';
+  document.getElementById('logCount').textContent = '0';
+}
+
+function saveLog() {
+  if (!logs.length) { alert('No logs to save'); return; }
+  const csv = ['Time,Signal,Strike,Premium,EMA9,EMA21,RSI']
+    .concat(logs.map(l => `${l.time},${l.signal},${l.strike||'—'},${l.premium||'—'},${l.ema9?.toFixed(2)||'—'},${l.ema21?.toFixed(2)||'—'},${l.rsi?.toFixed(2)||'—'}`)).join('\n');
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download: `${symbol}_alerts_${new Date().toISOString().slice(0,10)}.csv` });
+  a.click();
+}
+
+function actionBtn(action, btn) {
+  const labels = { take: '✓ TAKEN', hold: '⏸ HOLDING', skip: '✕ SKIPPED' };
+  btn.textContent = labels[action];
+  setTimeout(() => btn.textContent = { take:'✓ TAKE', hold:'⏸ HOLD', skip:'✕ SKIP' }[action], 3000);
+}
+
+// Init
+updateTime();
+initChart();
+setInterval(updateTime, 1000);
+setInterval(fetchData, 5000);
+fetchData();
+</script>
+</body>
+</html>
