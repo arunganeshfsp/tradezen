@@ -5,12 +5,12 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* ── Logo: replace TZ text with actual brand icon ── */
+/* ── Logo: cyan circular badge ── */
 .logo {
-  background: url('/favicon.png') center / cover no-repeat;
-  font-size: 0;
-  color: transparent;
-  border-radius: 7px;
+  background: var(--cyan) !important;
+  border-radius: 50% !important;
+  font-size: 14px !important;
+  color: #000 !important;
 }
 
 /* ── Light theme overrides ── */
