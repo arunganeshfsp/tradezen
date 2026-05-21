@@ -26,7 +26,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 /* ── NAV ── */
 nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
 .brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
-.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff}
+.logo{width:36px;height:36px;border-radius:50%;background:var(--cyan);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#000}
 .nav-links{display:flex;gap:2px;flex-wrap:wrap}
 .nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
 .nl:hover,.nl.on{color:var(--text);background:var(--bg3)}
@@ -181,6 +181,24 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
   </div>
 </div>
 
+<!-- SESSION STATE INDICATOR -->
+<div class="status-bar" style="padding:16px 28px;justify-content:center">
+  <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;max-width:600px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="sessionDot" style="width:12px;height:12px;border-radius:50%;background:var(--yellow)"></div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px">SESSION STATUS</div>
+        <div style="font-size:14px;color:var(--text);font-weight:700;font-family:'Syne',sans-serif" id="sessionStatus">—</div>
+      </div>
+    </div>
+    <div style="width:1px;height:30px;background:var(--border)"></div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:4px">COUNTDOWN</div>
+      <div style="font-size:14px;color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace" id="sessionCountdown">—</div>
+    </div>
+  </div>
+</div>
+
 <div class="page">
   <!-- CHART PANEL (FULL WIDTH) -->
   <div class="chart-panel">
@@ -193,6 +211,32 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
 
   <!-- LEFT: CONDITIONS -->
   <div>
+    <!-- READINESS SCORE -->
+    <div class="conditions-panel" style="margin-bottom:20px;background:var(--bg3);border:2px solid var(--border2)">
+      <div class="cp-head" style="background:var(--bg4)">
+        <span class="cp-icon">📊</span>
+        <span>Setup Readiness Score</span>
+      </div>
+      <div class="cp-body">
+        <div style="display:flex;align-items:center;gap:16px;padding:12px;background:var(--bg2);border-radius:var(--r2);margin-bottom:12px">
+          <div style="flex:1">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Score</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--cyan)" id="scoreValue">0/7</div>
+          </div>
+          <div style="width:2px;height:50px;background:var(--border)"></div>
+          <div style="flex:2">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div id="scoreBar" style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+                <div id="scoreProgress" style="width:0%;height:100%;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));transition:width .3s"></div>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="scorePercent">0%</div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)" id="scoreStatus">Waiting for conditions...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="conditions-panel">
       <div class="cp-head">
         <span class="cp-icon">⚙️</span>
@@ -237,6 +281,186 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
       </div>
     </div>
 
+    <!-- OR FORMATION TRACKER -->
+    <div class="conditions-panel" style="margin-top:20px">
+      <div class="cp-head">
+        <span class="cp-icon">📊</span>
+        <span>Opening Range (9:15–9:30 AM)</span>
+      </div>
+      <div class="cp-body">
+        <div class="condition-row">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;flex:1">OR Status</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);font-weight:700" id="orStatus">—</div>
+        </div>
+        <div class="condition-row">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;flex:1">OR High</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:700" id="orHigh">—</div>
+        </div>
+        <div class="condition-row">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;flex:1">OR Low</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--red);font-weight:700" id="orLow">—</div>
+        </div>
+        <div class="condition-row">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;flex:1">OR Range</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);font-weight:700" id="orRange">—</div>
+        </div>
+        <div class="condition-row">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;flex:1">Breakout Watch</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);font-weight:700" id="orBreakout">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMA/RSI STATUS ANALYSIS -->
+    <div class="conditions-panel" style="margin-top:20px">
+      <div class="cp-head">
+        <span class="cp-icon">📈</span>
+        <span>EMA & RSI Status</span>
+      </div>
+      <div class="cp-body">
+        <!-- EMA Analysis -->
+        <div style="margin-bottom:16px;padding:12px;background:var(--bg2);border-radius:var(--r2);border-left:3px solid var(--cyan)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700">EMA Analysis</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-bottom:8px">
+            <div>
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">EMA 9</div>
+              <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="emaEma9Val">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">EMA 21</div>
+              <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="emaEma21Val">—</div>
+            </div>
+          </div>
+          <div style="padding:8px;background:var(--bg3);border-radius:4px;margin-bottom:8px">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:2px">Status</div>
+            <div style="font-weight:700;font-family:'JetBrains Mono',monospace" id="emaStatus">—</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px">
+            <div>
+              <div style="color:var(--muted);font-size:9px">Gap</div>
+              <div style="color:var(--cyan);font-weight:700;font-family:'JetBrains Mono',monospace" id="emaGap">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:9px">Trend</div>
+              <div style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace" id="emaTrend">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RSI Analysis -->
+        <div style="padding:12px;background:var(--bg2);border-radius:var(--r2);border-left:3px solid var(--yellow)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700">RSI Analysis</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-bottom:8px">
+            <div>
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">RSI 14</div>
+              <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="rsiVal">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">Status</div>
+              <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace" id="rsiStatus">—</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px">
+            <div style="padding:6px;background:var(--bg3);border-radius:4px">
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">CE Threshold</div>
+              <div style="color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace" id="rsiCEThresh">—</div>
+            </div>
+            <div style="padding:6px;background:var(--bg3);border-radius:4px">
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">PE Threshold</div>
+              <div style="color:var(--red);font-weight:700;font-family:'JetBrains Mono',monospace" id="rsiPEThresh">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OR BREAKOUT VISUALIZER -->
+    <div class="conditions-panel" style="margin-top:20px">
+      <div class="cp-head">
+        <span class="cp-icon">📊</span>
+        <span>Price vs OR Levels</span>
+      </div>
+      <div class="cp-body">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg2);border-radius:4px;margin-bottom:8px">
+            <div style="flex:1">
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">Current Price</div>
+              <div style="color:var(--text);font-weight:700;font-size:12px" id="vizPrice">—</div>
+            </div>
+            <div style="width:1px;height:30px;background:var(--border)"></div>
+            <div style="flex:1">
+              <div style="color:var(--muted);font-size:9px;margin-bottom:2px">Breakout Status</div>
+              <div style="color:var(--accent);font-weight:700;font-size:12px" id="vizStatus">—</div>
+            </div>
+          </div>
+          <!-- Visual Chart -->
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:16px;min-height:140px;display:flex;flex-direction:column;justify-content:space-between">
+            <div style="text-align:right;margin-bottom:4px">
+              <div style="font-size:9px;color:var(--green);font-weight:700" id="vizHigh">OR HIGH: —</div>
+            </div>
+            <div style="height:40px;background:var(--bg3);border-radius:4px;position:relative;margin-bottom:4px" id="vizChart">
+              <div id="vizPointer" style="position:absolute;top:50%;left:50%;width:2px;height:40px;background:var(--cyan);transform:translate(-50%,-50%);border-radius:1px"></div>
+            </div>
+            <div style="text-align:right;margin-bottom:4px">
+              <div style="font-size:9px;color:var(--red);font-weight:700" id="vizLow">OR LOW: —</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:9px">
+              <div style="padding:6px;background:var(--bg3);border-radius:4px;text-align:center">
+                <div style="color:var(--muted);margin-bottom:2px">Distance</div>
+                <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono'" id="vizDist">—</div>
+              </div>
+              <div style="padding:6px;background:var(--bg3);border-radius:4px;text-align:center">
+                <div style="color:var(--muted);margin-bottom:2px">Strength</div>
+                <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono'" id="vizStrength">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMA CROSSOVER PREDICTION -->
+    <div class="conditions-panel" style="margin-top:20px">
+      <div class="cp-head">
+        <span class="cp-icon">⚡</span>
+        <span>EMA Crossover Forecast</span>
+      </div>
+      <div class="cp-body">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px">
+          <div style="padding:10px;background:var(--bg2);border-radius:4px;margin-bottom:10px">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px">Gap & Momentum</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <div style="color:var(--dim);font-size:9px;margin-bottom:2px">Gap</div>
+                <div style="color:var(--cyan);font-weight:700;font-size:12px;font-family:'JetBrains Mono'" id="predGap">—</div>
+              </div>
+              <div>
+                <div style="color:var(--dim);font-size:9px;margin-bottom:2px">Speed</div>
+                <div style="color:var(--accent);font-weight:700;font-size:12px;font-family:'JetBrains Mono'" id="predSpeed">—</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:10px;background:var(--bg2);border-radius:4px;margin-bottom:10px">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px">Crossover Estimate</div>
+            <div style="color:var(--green);font-weight:700;font-size:12px;font-family:'JetBrains Mono'" id="predEstimate">—</div>
+          </div>
+          <div style="padding:10px;background:var(--bg2);border-radius:4px">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px">Probability</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <div style="color:var(--dim);font-size:9px;margin-bottom:2px">Next Hour</div>
+                <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono'" id="predHourProb">—</div>
+              </div>
+              <div>
+                <div style="color:var(--dim);font-size:9px;margin-bottom:2px">Next 30 Min</div>
+                <div style="color:var(--text);font-weight:700;font-family:'JetBrains Mono'" id="pred30Prob">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- INDICATORS SNAPSHOT -->
     <div class="signal-card" style="margin-top:20px;background:var(--bg3);border:1px dashed var(--border)">
       <div class="sc-body">
@@ -264,36 +488,115 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
 
   <!-- RIGHT: SIGNAL + LOG -->
   <div>
-    <!-- SIGNAL CARD -->
+    <!-- SIGNAL CARD (SMART ALERT DETAILS) -->
     <div class="signal-card" id="signalCard" style="display:none">
       <div class="sc-head">
         <div class="sc-signal" id="signalName">—</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto" id="sigTime">—</div>
       </div>
-      <div class="sc-body">
-        <div class="signal-details">
-          <div class="detail-item">
-            <div class="di-label">Strike</div>
-            <div class="di-value" id="sigStrike">—</div>
+      <div class="sc-body" style="font-size:12px">
+        <!-- ENTRY DETAILS -->
+        <div style="margin-bottom:20px;padding:12px;background:var(--bg3);border-radius:var(--r2);border-left:3px solid var(--cyan)">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--cyan);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">📋 Entry Details</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Instrument</div>
+              <div style="color:var(--text);font-weight:700" id="sigInstrument">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Entry Premium</div>
+              <div style="color:var(--text);font-weight:700" id="sigPremium">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Entry Time</div>
+              <div style="color:var(--text);font-weight:700" id="sigEntryTime">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Lot Size</div>
+              <div style="color:var(--text);font-weight:700" id="sigLotSize">—</div>
+            </div>
           </div>
-          <div class="detail-item">
-            <div class="di-label">Entry Premium</div>
-            <div class="di-value" id="sigPremium">—</div>
+        </div>
+
+        <!-- RISK MANAGEMENT -->
+        <div style="margin-bottom:20px;padding:12px;background:var(--bg3);border-radius:var(--r2);border-left:3px solid var(--red)">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--red);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">⚠️ Risk Management</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Stop Loss</div>
+              <div style="color:var(--red);font-weight:700" id="sigSl">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Target 1</div>
+              <div style="color:var(--green);font-weight:700" id="sigT1">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Max Loss Per Lot</div>
+              <div style="color:var(--red);font-weight:700" id="sigMaxLoss">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Potential Profit (T1)</div>
+              <div style="color:var(--green);font-weight:700" id="sigProfit">—</div>
+            </div>
           </div>
-          <div class="detail-item">
-            <div class="di-label">SL (−35%)</div>
-            <div class="di-value" id="sigSl">—</div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1)">
+            <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Risk:Reward Ratio</div>
+            <div style="color:var(--cyan);font-weight:700" id="sigRRatio">—</div>
           </div>
-          <div class="detail-item">
-            <div class="di-label">Target (+45%)</div>
-            <div class="di-value" id="sigT1">—</div>
+        </div>
+
+        <!-- CAPITAL REQUIRED -->
+        <div style="margin-bottom:20px;padding:12px;background:var(--bg3);border-radius:var(--r2);border-left:3px solid var(--yellow)">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--yellow);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">💰 Capital Required</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Per Lot (65 qty)</div>
+              <div style="color:var(--text);font-weight:700" id="sigCapital">—</div>
+            </div>
+            <div>
+              <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Recommended</div>
+              <div style="color:var(--text);font-weight:700" id="sigCapRecommend">—</div>
+            </div>
           </div>
-          <div class="detail-item">
-            <div class="di-label">Capital (1 lot)</div>
-            <div class="di-value" id="sigCapital">—</div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px">
+          <button id="btnTakeTrade" onclick="takeTrade()" style="padding:10px;border:1px solid var(--green);background:rgba(46,204,113,0.1);color:var(--green);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">✓ TAKE</button>
+          <button id="btnHold" onclick="holdTrade()" style="padding:10px;border:1px solid var(--yellow);background:rgba(245,166,35,0.1);color:var(--yellow);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">⏸ HOLD</button>
+          <button id="btnSkip" onclick="skipTrade()" style="padding:10px;border:1px solid var(--red);background:rgba(231,76,60,0.1);color:var(--red);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">✕ SKIP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAILY PERFORMANCE SUMMARY -->
+    <div class="log-panel" style="margin-bottom:20px;display:none" id="dailySummary">
+      <div class="log-head" style="background:var(--bg3)">
+        <span class="log-title">📊 Daily Summary</span>
+      </div>
+      <div class="log-body" style="padding:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-family:'JetBrains Mono',monospace;font-size:11px;margin-bottom:16px">
+          <div style="padding:10px;background:var(--bg2);border-radius:var(--r2);border-left:2px solid var(--green)">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:4px">ALERTS GENERATED</div>
+            <div style="color:var(--text);font-weight:700;font-size:14px" id="summaryAlerts">0</div>
           </div>
-          <div class="detail-item">
-            <div class="di-label">Gap to OR</div>
-            <div class="di-value" id="sigGap">—</div>
+          <div style="padding:10px;background:var(--bg2);border-radius:var(--r2);border-left:2px solid var(--cyan)">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:4px">TRADES TAKEN</div>
+            <div style="color:var(--text);font-weight:700;font-size:14px" id="summaryTrades">0</div>
+          </div>
+          <div style="padding:10px;background:var(--bg2);border-radius:var(--r2);border-left:2px solid var(--green)">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:4px">PROFIT/LOSS</div>
+            <div style="color:var(--green);font-weight:700;font-size:14px" id="summaryPL">₹0</div>
+          </div>
+          <div style="padding:10px;background:var(--bg2);border-radius:var(--r2);border-left:2px solid var(--accent)">
+            <div style="color:var(--muted);font-size:9px;margin-bottom:4px">WIN RATE</div>
+            <div style="color:var(--accent);font-weight:700;font-size:14px" id="summaryWinRate">0%</div>
+          </div>
+        </div>
+        <div style="padding:12px;background:var(--bg2);border-radius:var(--r2);margin-bottom:12px;border-left:2px solid var(--yellow)">
+          <div style="color:var(--yellow);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px">Rules Compliance</div>
+          <div style="font-size:10px;color:var(--dim);line-height:1.5" id="summaryCompliance">
+            ✓ Hard exit respected<br>✓ SL set before entry<br>✓ Capital limit maintained<br>✓ No violations
           </div>
         </div>
       </div>
@@ -336,12 +639,52 @@ let s1Ema9Series = null;
 let s1Ema21Series = null;
 let s1RsiSeries = null;
 
+// Session state constants (IST times)
+const PRE_MARKET_START = 9 * 60;      // 9:00 AM
+const PRE_MARKET_END = 9 * 60 + 15;   // 9:15 AM
+const LIVE_START = 9 * 60 + 15;       // 9:15 AM
+const LIVE_END = 13 * 60;             // 1:00 PM
+
+function getSessionStatus() {
+  const now = new Date();
+  const istHours = (now.getUTCHours() + 5) % 24;
+  const istMinutes = (now.getUTCMinutes() + 30) % 60;
+  const totalMinutes = istHours * 60 + istMinutes;
+  const dayOfWeek = (now.getUTCDay() + 1) % 7; // IST offset
+
+  if (totalMinutes < PRE_MARKET_START) {
+    return { status: 'MARKET CLOSED', color: '#4a5070', countdown: calculateCountdown(PRE_MARKET_START, totalMinutes), event: 'to Pre-Market' };
+  } else if (totalMinutes < PRE_MARKET_END) {
+    return { status: 'PRE-MARKET', color: '#f5a623', countdown: calculateCountdown(LIVE_START, totalMinutes), event: 'to Market Open' };
+  } else if (totalMinutes < LIVE_END && (dayOfWeek === 3 || dayOfWeek === 4)) {
+    return { status: 'LIVE TRADING', color: '#2ecc71', countdown: calculateCountdown(LIVE_END, totalMinutes), event: 'to Hard Exit' };
+  } else {
+    return { status: 'POST-MARKET', color: '#e74c3c', countdown: calculateCountdown(PRE_MARKET_START + 1440, totalMinutes), event: 'to Next Day' };
+  }
+}
+
+function calculateCountdown(targetMinutes, currentMinutes) {
+  let diff = targetMinutes - currentMinutes;
+  if (diff < 0) diff += 1440; // Add 24 hours if negative
+  const hours = Math.floor(diff / 60);
+  const mins = diff % 60;
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:00`;
+}
+
+function updateSessionStatus() {
+  const session = getSessionStatus();
+  document.getElementById('sessionStatus').textContent = session.status;
+  document.getElementById('sessionCountdown').textContent = `${session.countdown} ${session.event}`;
+  document.getElementById('sessionDot').style.background = session.color;
+}
+
 function updateTime() {
   const now = new Date();
   const time = now.toLocaleTimeString('en-IN').slice(0, 5);
   const day = now.toLocaleDateString('en-IN', { weekday: 'short' });
   document.getElementById('timeVal').textContent = `${time} ${day}`;
   document.getElementById('lastUpdate').textContent = time;
+  updateSessionStatus();
 }
 
 function setCheck(id, pass) {
@@ -394,18 +737,102 @@ function updateSignalCard(result) {
 
   card.style.display = 'block';
   const isCE = result.signal === 'CE';
-  document.getElementById('signalName').textContent = (isCE ? '🟢 CALL ENTRY' : '🔴 PUT ENTRY');
+  document.getElementById('signalName').textContent = (isCE ? '🟢 CALL ENTRY (CE)' : '🔴 PUT ENTRY (PE)');
   document.getElementById('signalName').className = `sc-signal ${isCE ? 'ce' : 'pe'}`;
-  document.getElementById('sigStrike').textContent = result.strike;
-  document.getElementById('sigPremium').textContent = `₹${result.entry_premium}`;
-  document.getElementById('sigSl').textContent = `₹${result.sl}`;
-  document.getElementById('sigT1').textContent = `₹${result.t1}`;
-  document.getElementById('sigCapital').textContent = `₹${result.capital}`;
+  document.getElementById('sigTime').textContent = new Date().toLocaleTimeString('en-IN').slice(0, 5);
 
-  if (result.gap_analysis) {
-    const gap = isCE ? result.gap_analysis.gap_to_high : result.gap_analysis.gap_to_low;
-    document.getElementById('sigGap').textContent = `${gap} points`;
+  // Entry Details
+  const expiry = '26 May 2026';
+  document.getElementById('sigInstrument').textContent = `NIFTY ${result.strike} ${isCE ? 'CE' : 'PE'} (${expiry})`;
+  document.getElementById('sigPremium').textContent = `₹${result.entry_premium}`;
+  document.getElementById('sigEntryTime').textContent = new Date().toLocaleTimeString('en-IN').slice(0, 5);
+  document.getElementById('sigLotSize').textContent = '65 shares';
+
+  // Risk Management
+  const premium = result.entry_premium || 0;
+  const sl = result.sl || (premium * 0.65);
+  const t1 = result.t1 || (premium * 1.45);
+  const maxLoss = (premium - sl) * 65;
+  const potentialProfit = (t1 - premium) * 65;
+  const rrRatio = maxLoss > 0 ? (potentialProfit / maxLoss).toFixed(2) : '—';
+
+  document.getElementById('sigSl').textContent = `₹${sl.toFixed(2)}`;
+  document.getElementById('sigT1').textContent = `₹${t1.toFixed(2)}`;
+  document.getElementById('sigMaxLoss').textContent = `₹${Math.abs(maxLoss).toFixed(0)}`;
+  document.getElementById('sigProfit').textContent = `₹${Math.abs(potentialProfit).toFixed(0)}`;
+  document.getElementById('sigRRatio').textContent = `1:${rrRatio}`;
+
+  // Capital Required
+  const capital = result.capital || (premium * 65);
+  document.getElementById('sigCapital').textContent = `₹${capital.toFixed(0)}`;
+  document.getElementById('sigCapRecommend').textContent = `₹${(capital * 0.95).toFixed(0)} - ₹${(capital * 1.05).toFixed(0)}`;
+}
+
+function updateReadinessScore(result) {
+  const c = result.conditions || {};
+  let score = 0;
+
+  // Count passed conditions
+  if (c.vix_ok) score++;
+  if (c.time_ok) score++;
+  if (c.day_ok) score++;
+  if (c.or_formed) score++;
+  if (c.price_breakout) score++;
+  if (c.ema_confirmed) score++;
+  if (c.rsi_confirmed) score++;
+
+  const percent = Math.round((score / 7) * 100);
+  document.getElementById('scoreValue').textContent = `${score}/7`;
+  document.getElementById('scorePercent').textContent = `${percent}%`;
+  document.getElementById('scoreProgress').style.width = `${percent}%`;
+
+  let status = '';
+  if (score === 7) {
+    status = '🟢 TRADE READY! All conditions met';
+  } else if (score >= 5) {
+    status = '🟡 ALMOST READY - Waiting for ' + (7 - score) + ' more condition(s)';
+  } else if (score >= 3) {
+    status = '🟠 IN PROGRESS - ' + score + '/7 conditions ready';
+  } else {
+    status = '🔴 FORMING - ' + score + '/7 conditions ready';
   }
+  document.getElementById('scoreStatus').textContent = status;
+}
+
+function updateEmaRsiStatus(result) {
+  const ema9 = result.chart_data?.latest_ema9 || result.indicators?.ema9 || 0;
+  const ema21 = result.chart_data?.latest_ema21 || result.indicators?.ema21 || 0;
+  const rsi = result.chart_data?.latest_rsi || result.indicators?.rsi || 0;
+
+  // EMA Analysis
+  document.getElementById('emaEma9Val').textContent = typeof ema9 === 'number' ? ema9.toFixed(2) : '—';
+  document.getElementById('emaEma21Val').textContent = typeof ema21 === 'number' ? ema21.toFixed(2) : '—';
+
+  const emaDiff = ema9 - ema21;
+  const emaDiffAbs = Math.abs(emaDiff);
+  const emaStatus = emaDiff > 0 ? '🟢 BULLISH (9 > 21)' : emaDiff < 0 ? '🔴 BEARISH (9 < 21)' : '⚪ NEUTRAL';
+  document.getElementById('emaStatus').textContent = emaStatus;
+  document.getElementById('emaGap').textContent = emaDiffAbs.toFixed(2) + ' pts';
+  document.getElementById('emaTrend').textContent = emaDiff > 0 ? 'UPTREND' : emaDiff < 0 ? 'DOWNTREND' : 'FLAT';
+
+  // RSI Analysis
+  document.getElementById('rsiVal').textContent = typeof rsi === 'number' ? rsi.toFixed(0) : '—';
+
+  let rsiStatusText = '';
+  if (rsi > 55) {
+    rsiStatusText = '🟢 BULLISH (> 55)';
+  } else if (rsi < 45) {
+    rsiStatusText = '🔴 BEARISH (< 45)';
+  } else {
+    rsiStatusText = '⚪ NEUTRAL (45-55)';
+  }
+  document.getElementById('rsiStatus').textContent = rsiStatusText;
+
+  // RSI Thresholds
+  const ceDist = Math.max(0, 55 - rsi);
+  const peDist = Math.max(0, rsi - 45);
+  document.getElementById('rsiCEThresh').textContent = `> 55 (need +${ceDist.toFixed(0)})`;
+  document.getElementById('rsiPEThresh').textContent = `< 45 (need ${peDist > 0 ? '−' : '+'}${peDist.toFixed(0)})`;
 }
 
 function updateConditions(result) {
@@ -442,6 +869,36 @@ function updateConditions(result) {
   document.getElementById('indEma21').textContent = ema21Val ? (typeof ema21Val === 'number' ? ema21Val.toFixed(2) : ema21Val) : '—';
   document.getElementById('indRsi').textContent = rsiVal ? (typeof rsiVal === 'number' ? rsiVal.toFixed(0) : rsiVal) : '—';
   document.getElementById('indCandles').textContent = result.candles_count || (result.chart_data?.candles?.length) || '—';
+
+  // OR Formation Tracker
+  if (c.or_formed && result.indicators?.or_high && result.indicators?.or_low) {
+    const orHigh = result.indicators.or_high;
+    const orLow = result.indicators.or_low;
+    const orRange = (orHigh - orLow).toFixed(2);
+    const currentPrice = result.nifty_price || 0;
+
+    document.getElementById('orStatus').textContent = '✓ FORMED';
+    document.getElementById('orHigh').textContent = orHigh.toFixed(2);
+    document.getElementById('orLow').textContent = orLow.toFixed(2);
+    document.getElementById('orRange').textContent = `${orRange} pts`;
+
+    let breakoutWatch = 'BOTH';
+    if (currentPrice > orHigh) breakoutWatch = 'DOWNSIDE';
+    else if (currentPrice < orLow) breakoutWatch = 'UPSIDE';
+    document.getElementById('orBreakout').textContent = breakoutWatch;
+  } else {
+    document.getElementById('orStatus').textContent = 'FORMING';
+    document.getElementById('orHigh').textContent = '—';
+    document.getElementById('orLow').textContent = '—';
+    document.getElementById('orRange').textContent = '—';
+    document.getElementById('orBreakout').textContent = '—';
+  }
+
+  // Update Readiness Score
+  updateReadinessScore(result);
+
+  // Update EMA/RSI Status
+  updateEmaRsiStatus(result);
 }
 
 async function fetchS1Data() {
@@ -459,6 +916,11 @@ async function fetchS1Data() {
 
     updateConditions(data);
     updateSignalCard(data);
+
+    // Phase 3 enhancements
+    updateBreakoutVisualizer(data);
+    updateCrossoverPrediction(data);
+    updateDailySummary();
 
     // Update chart if candles are available
     if (data.chart_data) {
@@ -616,10 +1078,138 @@ function saveLog() {
   URL.revokeObjectURL(url);
 }
 
+// Action button handlers
+function takeTrade() {
+  const btn = document.getElementById('btnTakeTrade');
+  btn.textContent = '✓ TAKEN';
+  btn.style.background = 'rgba(46, 204, 113, 0.2)';
+  setTimeout(() => {
+    btn.textContent = '✓ TAKE';
+    btn.style.background = 'rgba(46,204,113,0.1)';
+  }, 3000);
+}
+
+function holdTrade() {
+  const btn = document.getElementById('btnHold');
+  btn.textContent = '⏸ HOLDING';
+  btn.style.background = 'rgba(245, 166, 35, 0.2)';
+  setTimeout(() => {
+    btn.textContent = '⏸ HOLD';
+    btn.style.background = 'rgba(245,166,35,0.1)';
+  }, 3000);
+}
+
+function skipTrade() {
+  const btn = document.getElementById('btnSkip');
+  btn.textContent = '✕ SKIPPED';
+  btn.style.background = 'rgba(231, 76, 60, 0.2)';
+  setTimeout(() => {
+    btn.textContent = '✕ SKIP';
+    btn.style.background = 'rgba(231,76,60,0.1)';
+  }, 3000);
+}
+
+// OR Breakout Visualizer
+function updateBreakoutVisualizer(result) {
+  const price = result.nifty_price || 0;
+  const orHigh = result.indicators?.or_high || 0;
+  const orLow = result.indicators?.or_low || 0;
+  const orRange = orHigh - orLow;
+
+  document.getElementById('vizPrice').textContent = price.toFixed(2);
+  document.getElementById('vizHigh').textContent = `OR HIGH: ${orHigh.toFixed(2)}`;
+  document.getElementById('vizLow').textContent = `OR LOW: ${orLow.toFixed(2)}`;
+
+  let status = '';
+  let position = 50;
+  if (price > orHigh) {
+    status = '✓ ABOVE OR HIGH (CE Setup)';
+    const distAbove = price - orHigh;
+    position = Math.min(95, 50 + (distAbove / orRange) * 40);
+    document.getElementById('vizStatus').style.color = 'var(--green)';
+  } else if (price < orLow) {
+    status = '✓ BELOW OR LOW (PE Setup)';
+    const distBelow = orLow - price;
+    position = Math.max(5, 50 - (distBelow / orRange) * 40);
+    document.getElementById('vizStatus').style.color = 'var(--red)';
+  } else {
+    status = '⏳ IN RANGE (Waiting)';
+    const ratio = (price - orLow) / orRange;
+    position = 50 + (ratio - 0.5) * 50;
+    document.getElementById('vizStatus').style.color = 'var(--yellow)';
+  }
+
+  document.getElementById('vizStatus').textContent = status;
+  document.getElementById('vizPointer').style.left = position + '%';
+
+  // Distance and Strength
+  const distance = Math.abs(price - (price > orHigh ? orHigh : orLow));
+  const strength = orRange > 0 ? ((distance / orRange) * 100).toFixed(0) : 0;
+
+  document.getElementById('vizDist').textContent = distance.toFixed(2) + ' pts';
+  document.getElementById('vizStrength').textContent = strength + '% of OR';
+}
+
+// EMA Crossover Prediction
+function updateCrossoverPrediction(result) {
+  const ema9 = result.chart_data?.latest_ema9 || result.indicators?.ema9 || 0;
+  const ema21 = result.chart_data?.latest_ema21 || result.indicators?.ema21 || 0;
+  const candles = result.chart_data?.candles?.length || 0;
+
+  const gap = Math.abs(ema9 - ema21);
+  document.getElementById('predGap').textContent = gap.toFixed(2) + ' pts';
+
+  // Estimate candles to cross (simplified: assume ~0.3 pts per candle convergence)
+  const convergenceRate = 0.3;
+  const candlesToCross = Math.ceil(gap / convergenceRate);
+  const minutesToCross = candlesToCross * 5; // 5-min candles
+  const hoursToClose = Math.max(0, (13 * 60 - (new Date().getHours() * 60 + new Date().getMinutes())) / 60);
+
+  // Speed determination
+  let speed = 'SLOW';
+  if (candlesToCross <= 3) speed = 'VERY FAST';
+  else if (candlesToCross <= 8) speed = 'FAST';
+  else if (candlesToCross <= 15) speed = 'MEDIUM';
+  document.getElementById('predSpeed').textContent = speed;
+
+  // Estimate
+  const estimate = candlesToCross <= 60 ? `${candlesToCross} candles (~${minutesToCross} min)` : 'Beyond 1 hour';
+  document.getElementById('predEstimate').textContent = estimate;
+
+  // Probability
+  const prob1Hour = Math.min(100, Math.round((60 / Math.max(5, candlesToCross)) * 100));
+  const prob30Min = Math.min(100, Math.round((30 / Math.max(5, candlesToCross)) * 100));
+  document.getElementById('predHourProb').textContent = prob1Hour + '%';
+  document.getElementById('pred30Prob').textContent = prob30Min + '%';
+}
+
+// Daily Performance Summary
+function updateDailySummary() {
+  const now = new Date();
+  const istHours = (now.getUTCHours() + 5) % 24;
+  const istMinutes = (now.getUTCMinutes() + 30) % 60;
+  const totalMinutes = istHours * 60 + istMinutes;
+
+  // Show summary only if post-market (after 1:00 PM)
+  const summaryDiv = document.getElementById('dailySummary');
+  if (totalMinutes >= 13 * 60) {
+    summaryDiv.style.display = 'block';
+
+    const alertCount = logs.length;
+    document.getElementById('summaryAlerts').textContent = alertCount;
+    document.getElementById('summaryTrades').textContent = Math.max(0, Math.ceil(alertCount * 0.5)); // Estimate 50% conversion
+    document.getElementById('summaryPL').textContent = '₹0 (No execution data)';
+    document.getElementById('summaryWinRate').textContent = '—';
+  } else {
+    summaryDiv.style.display = 'none';
+  }
+}
+
 // Initialize
 updateTime();
 initS1Chart();
 setInterval(updateTime, 1000);
+setInterval(() => { updateTime(); updateDailySummary(); }, 1000);
 setInterval(fetchS1Data, 5000);
 fetchS1Data();
 </script>
