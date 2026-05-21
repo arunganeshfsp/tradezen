@@ -130,9 +130,9 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .chart-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;grid-column:1/-1}
 .chart-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
 .chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
-.chart-legend{display:flex;gap:16px;flex-wrap:wrap;padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px}
-.chart-leg-item{display:flex;align-items:center;gap:4px}
-.chart-leg-dot{width:12px;height:2px;border-radius:1px;flex-shrink:0}
+.chart-legend{display:flex;gap:20px;flex-wrap:wrap;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.chart-leg-item{display:flex;align-items:center;gap:6px}
+.chart-leg-dot{width:14px;height:2px;border-radius:1px;flex-shrink:0}
 #s1_chart{width:100%;height:350px;background:var(--bg1)}
 .chart-empty{display:flex;align-items:center;justify-content:center;height:350px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px}
 
@@ -433,11 +433,15 @@ function updateConditions(result) {
   setCheck('checkRsi', c.rsi_confirmed);
   document.getElementById('valRsi').textContent = result.indicators?.rsi ? result.indicators.rsi.toFixed(0) : '—';
 
-  // Indicators snapshot
-  document.getElementById('indEma9').textContent = result.indicators?.ema9 ? result.indicators.ema9.toFixed(2) : '—';
-  document.getElementById('indEma21').textContent = result.indicators?.ema21 ? result.indicators.ema21.toFixed(2) : '—';
-  document.getElementById('indRsi').textContent = result.indicators?.rsi ? result.indicators.rsi.toFixed(0) : '—';
-  document.getElementById('indCandles').textContent = result.candles_count || '—';
+  // Indicators snapshot (prefer chart_data if available)
+  const ema9Val = result.chart_data?.latest_ema9 || result.indicators?.ema9;
+  const ema21Val = result.chart_data?.latest_ema21 || result.indicators?.ema21;
+  const rsiVal = result.chart_data?.latest_rsi || result.indicators?.rsi;
+
+  document.getElementById('indEma9').textContent = ema9Val ? (typeof ema9Val === 'number' ? ema9Val.toFixed(2) : ema9Val) : '—';
+  document.getElementById('indEma21').textContent = ema21Val ? (typeof ema21Val === 'number' ? ema21Val.toFixed(2) : ema21Val) : '—';
+  document.getElementById('indRsi').textContent = rsiVal ? (typeof rsiVal === 'number' ? rsiVal.toFixed(0) : rsiVal) : '—';
+  document.getElementById('indCandles').textContent = result.candles_count || (result.chart_data?.candles?.length) || '—';
 }
 
 async function fetchS1Data() {
@@ -554,21 +558,24 @@ function updateS1Chart(chartData) {
 
     s1Chart.timeScale().fitContent();
 
-    // Update legend
+    // Update legend with colored text for visibility
     const legend = document.getElementById('s1_chart_legend');
     if (legend) {
       legend.innerHTML = `
         <div class="chart-leg-item">
           <span class="chart-leg-dot" style="background:#00d4ff"></span>
-          <span>EMA 9: ${chartData.latest_ema9?.toFixed(2) || '—'}</span>
+          <span style="color:#00d4ff">EMA 9: <strong>${chartData.latest_ema9?.toFixed(2) || '—'}</strong></span>
         </div>
         <div class="chart-leg-item">
           <span class="chart-leg-dot" style="background:#f5a623"></span>
-          <span>EMA 21: ${chartData.latest_ema21?.toFixed(2) || '—'}</span>
+          <span style="color:#f5a623">EMA 21: <strong>${chartData.latest_ema21?.toFixed(2) || '—'}</strong></span>
         </div>
         <div class="chart-leg-item">
           <span class="chart-leg-dot" style="background:#a78bfa"></span>
-          <span>RSI 14: ${chartData.latest_rsi?.toFixed(0) || '—'}</span>
+          <span style="color:#a78bfa">RSI 14: <strong>${chartData.latest_rsi?.toFixed(0) || '—'}</strong></span>
+        </div>
+        <div class="chart-leg-item" style="margin-left:auto;color:var(--muted)">
+          📊 <span>${chartData.candles?.length || 0} candles</span>
         </div>
       `;
     }
