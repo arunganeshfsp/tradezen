@@ -1259,9 +1259,11 @@ def _s1_monitor_state() -> dict:
             chart_ema21 = []
             chart_rsi = []
 
+            IST_OFFSET = 19800  # +5h30m in seconds — shifts UTC timestamps to IST for chart display
+
             for idx, (ts, row) in enumerate(df_5m.iterrows()):
-                # Unix timestamp in seconds
-                time = int(ts.timestamp())
+                # Unix timestamp in seconds + IST offset for correct chart time display
+                time = int(ts.timestamp()) + IST_OFFSET
 
                 # Candlestick
                 chart_candles.append({
