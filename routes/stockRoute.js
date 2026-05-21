@@ -114,6 +114,17 @@ router.get("/swing/prices", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/s1-monitor ────────────────────────────────────────────────────────
+// Real-time S1 intraday strategy monitor (OR breakout + EMA cross + RSI confirmation)
+router.get("/s1-monitor", async (req, res) => {
+  try {
+    const data = await aiService.getS1Monitor();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/expiries ───────────────────────────────────────────────────────
 // Returns upcoming NIFTY expiry dates for the dropdown
 router.get("/expiries", async (req, res) => {

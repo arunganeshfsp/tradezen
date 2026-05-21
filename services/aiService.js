@@ -162,6 +162,17 @@ class AIService {
         }
     }
 
+    // S1 intraday strategy monitor
+    async getS1Monitor() {
+        try {
+            const res = await axios.get(`${AI_ENGINE_URL}/s1-monitor`, { timeout: 8000 });
+            return res.data;
+        } catch (err) {
+            console.error("S1 monitor error:", err.message);
+            return { status: "error", error: "Python engine unreachable" };
+        }
+    }
+
     // EMA backtest — bulk yfinance fetch over last N trading days
     async getEmaBacktest(days = 20) {
         try {

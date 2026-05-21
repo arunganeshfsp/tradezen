@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S1 Intraday Monitor | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
+  --border:#252a44; --border2:#323868;
+  --accent:#7c6af7; --blue:#5b8af5;
+  --green:#2ecc71; --green2:#27ae60; --green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c; --red2:#c0392b; --red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623; --yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;
+  --text:#e8ecf4; --dim:#9ba3bf; --muted:#4a5070;
+  --r:10px; --r2:6px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
+.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:var(--text);background:var(--bg3)}
+.nav-r{margin-left:auto}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--cyan);background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);padding:3px 10px;border-radius:20px}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:rgba(10,12,24,0.98);border-bottom:1px solid var(--border);padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+  .nav-r{display:none}
+}
+
+/* ── HERO ── */
+.hero{padding:40px 28px 32px;border-bottom:1px solid var(--border);background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.15) 0%,transparent 65%),var(--bg)}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:16px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,40px);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
+/* ── STATUS BAR ── */
+.status-bar{max-width:1100px;margin:0 auto;padding:20px 28px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;align-items:center}
+.status-chip{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg2)}
+.sc-price{background:rgba(46,204,113,0.08);color:var(--green);border-color:rgba(46,204,113,0.25)}
+.sc-vix{background:rgba(245,166,35,0.1);color:var(--yellow);border-color:rgba(245,166,35,0.25)}
+.sc-time{background:rgba(0,212,255,0.08);color:var(--cyan);border-color:rgba(0,212,255,0.25)}
+.pulse{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse-anim 1.4s infinite}
+@keyframes pulse-anim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(0.7)}}
+
+/* ── MAIN LAYOUT ── */
+.page{max-width:1100px;margin:0 auto;padding:28px 28px 80px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media(max-width:900px){.page{grid-template-columns:1fr}}
+
+/* ── CONDITIONS PANEL ── */
+.conditions-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.cp-head{background:var(--bg3);padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.cp-icon{font-size:16px}
+.cp-body{padding:16px}
+
+.condition-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(37,42,69,0.5)}
+.condition-row:last-child{border-bottom:none}
+.cond-check{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.cond-check.pass{background:var(--green-bg);color:var(--green)}
+.cond-check.fail{background:var(--red-bg);color:var(--red)}
+.cond-label{flex:1;font-size:13px;color:var(--text)}
+.cond-value{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);text-align:right;white-space:nowrap}
+
+/* ── SIGNAL CARD ── */
+.signal-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.sc-head{background:var(--bg3);padding:16px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.sc-signal{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;flex:1}
+.sc-signal.ce{color:var(--green)}
+.sc-signal.pe{color:var(--red)}
+.sc-signal.none{color:var(--yellow)}
+.sc-body{padding:16px}
+
+.signal-details{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.detail-item{background:var(--bg3);padding:12px;border-radius:var(--r2);border-left:2px solid var(--border)}
+.detail-item.ce{border-left-color:var(--green)}
+.detail-item.pe{border-left-color:var(--red)}
+.di-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.di-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--text)}
+.di-value.green{color:var(--green)}
+.di-value.red{color:var(--red)}
+
+/* ── LOG PANEL ── */
+.log-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.log-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.log-head:hover{background:var(--bg2)}
+.log-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);flex:1}
+.log-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:2px 10px;border-radius:20px}
+.log-toggle{font-size:11px;color:var(--muted);transition:transform .2s}
+.log-toggle.open{transform:rotate(180deg)}
+.log-body{display:block}
+.log-body.closed{display:none}
+.log-list{max-height:300px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
+.log-item{display:grid;grid-template-columns:70px auto auto 1fr;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(37,42,69,0.5);font-family:'JetBrains Mono',monospace;font-size:11px}
+.log-item:last-child{border-bottom:none}
+.log-item.ce{background:rgba(46,204,113,0.04);border-left:2px solid var(--green)}
+.log-item.pe{background:rgba(231,76,60,0.04);border-left:2px solid var(--red)}
+.log-time{color:var(--muted);white-space:nowrap}
+.log-signal{font-weight:700;white-space:nowrap}
+.log-signal.ce{color:var(--green)}
+.log-signal.pe{color:var(--red)}
+.log-details{color:var(--dim);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-empty{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+
+.log-controls{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--bg2)}
+.log-btn{flex:1;padding:8px 12px;border-radius:var(--r2);border:1px solid var(--border);background:transparent;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+.log-btn:hover{border-color:var(--accent);color:var(--text)}
+.log-btn.save{border-color:var(--green);color:var(--green)}
+.log-btn.save:hover{background:rgba(46,204,113,0.08)}
+
+/* ── LOADING ── */
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── FOOTER ── */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="brand">
+    <div class="logo">TZ</div>
+    TradeZen
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/stock_movers.html">Movers</a>
+    <a class="nl" href="/swing_trading.html">Swing</a>
+    <a class="nl on" href="/s1_monitor.html">S1 Intraday</a>
+    <a class="nl" href="/fno_signal.html">F&O</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);padding:0;flex-shrink:0;margin-left:auto"></button>
+  </div>
+  <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="hero">
+  <div class="htag">📊 INTRADAY SETUP</div>
+  <h1>S1 Strategy — <em>OR Breakout Monitor</em></h1>
+  <p class="hero-sub">Real-time Opening Range breakdown with EMA cross & RSI confirmation</p>
+</div>
+
+<div class="status-bar">
+  <div class="status-chip sc-price">
+    <span class="pulse"></span>
+    <span>NIFTY: <strong id="priceVal">—</strong></span>
+  </div>
+  <div class="status-chip sc-vix">
+    <span>VIX: <strong id="vixVal">—</strong></span>
+  </div>
+  <div class="status-chip sc-time">
+    <span id="timeVal">—:—</span>
+  </div>
+</div>
+
+<div class="page">
+  <!-- LEFT: CONDITIONS -->
+  <div>
+    <div class="conditions-panel">
+      <div class="cp-head">
+        <span class="cp-icon">⚙️</span>
+        <span>Setup Conditions</span>
+      </div>
+      <div class="cp-body">
+        <div class="condition-row">
+          <div class="cond-check" id="checkVix">—</div>
+          <div class="cond-label">VIX < 20</div>
+          <div class="cond-value" id="valVix">—</div>
+        </div>
+        <div class="condition-row">
+          <div class="cond-check" id="checkTime">—</div>
+          <div class="cond-label">Time 9:30 AM–1:00 PM</div>
+          <div class="cond-value" id="valTime">—</div>
+        </div>
+        <div class="condition-row">
+          <div class="cond-check" id="checkDay">—</div>
+          <div class="cond-label">Wed / Thu only</div>
+          <div class="cond-value" id="valDay">—</div>
+        </div>
+        <div class="condition-row">
+          <div class="cond-check" id="checkOr">—</div>
+          <div class="cond-label">OR Formed</div>
+          <div class="cond-value" id="valOr">—</div>
+        </div>
+        <div class="condition-row">
+          <div class="cond-check" id="checkBreak">—</div>
+          <div class="cond-label">Price Breakout</div>
+          <div class="cond-value" id="valBreak">—</div>
+        </div>
+        <div class="condition-row">
+          <div class="cond-check" id="checkEma">—</div>
+          <div class="cond-label">EMA 9 > 21</div>
+          <div class="cond-value" id="valEma">—</div>
+        </div>
+        <div class="condition-row">
+          <div class="cond-check" id="checkRsi">—</div>
+          <div class="cond-label">RSI Confirm</div>
+          <div class="cond-value" id="valRsi">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INDICATORS SNAPSHOT -->
+    <div class="signal-card" style="margin-top:20px;background:var(--bg3);border:1px dashed var(--border)">
+      <div class="sc-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-family:'JetBrains Mono',monospace;font-size:12px">
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:3px">EMA 9</div>
+            <div style="color:var(--text);font-weight:700" id="indEma9">—</div>
+          </div>
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:3px">EMA 21</div>
+            <div style="color:var(--text);font-weight:700" id="indEma21">—</div>
+          </div>
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:3px">RSI 14</div>
+            <div style="color:var(--text);font-weight:700" id="indRsi">—</div>
+          </div>
+          <div>
+            <div style="color:var(--muted);font-size:10px;margin-bottom:3px">Candles</div>
+            <div style="color:var(--text);font-weight:700" id="indCandles">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: SIGNAL + LOG -->
+  <div>
+    <!-- SIGNAL CARD -->
+    <div class="signal-card" id="signalCard" style="display:none">
+      <div class="sc-head">
+        <div class="sc-signal" id="signalName">—</div>
+      </div>
+      <div class="sc-body">
+        <div class="signal-details">
+          <div class="detail-item">
+            <div class="di-label">Strike</div>
+            <div class="di-value" id="sigStrike">—</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">Entry Premium</div>
+            <div class="di-value" id="sigPremium">—</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">SL (−35%)</div>
+            <div class="di-value" id="sigSl">—</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">Target (+45%)</div>
+            <div class="di-value" id="sigT1">—</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">Capital (1 lot)</div>
+            <div class="di-value" id="sigCapital">—</div>
+          </div>
+          <div class="detail-item">
+            <div class="di-label">Gap to OR</div>
+            <div class="di-value" id="sigGap">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG PANEL -->
+    <div class="log-panel">
+      <div class="log-head" onclick="toggleLog()">
+        <span class="log-title">Alert Log</span>
+        <span class="log-count" id="logCount">0</span>
+        <span class="log-toggle" id="logToggle">▼</span>
+      </div>
+      <div class="log-body" id="logBody">
+        <div class="log-list" id="logList">
+          <div class="log-empty">No alerts yet. Waiting for S1 setup...</div>
+        </div>
+        <div class="log-controls">
+          <button class="log-btn" onclick="clearLog()">Clear</button>
+          <button class="log-btn save" onclick="saveLog()">💾 Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Refreshing every 5 seconds · Last update: <span id="lastUpdate">—</span>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// S1 Monitor Controller
+// ══════════════════════════════════════════════════════════════════════════════
+
+const logs = [];
+let lastSignal = null;
+
+function updateTime() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-IN').slice(0, 5);
+  const day = now.toLocaleDateString('en-IN', { weekday: 'short' });
+  document.getElementById('timeVal').textContent = `${time} ${day}`;
+  document.getElementById('lastUpdate').textContent = time;
+}
+
+function setCheck(id, pass) {
+  const el = document.getElementById(id);
+  el.textContent = pass ? '✓' : '✕';
+  el.className = `cond-check ${pass ? 'pass' : 'fail'}`;
+}
+
+function addLog(time, signal, strike, premium, ema9, ema21, rsi) {
+  const entry = { time, signal, strike, premium, ema9, ema21, rsi };
+  logs.unshift(entry);
+  if (logs.length > 50) logs.pop();
+
+  const list = document.getElementById('logList');
+  if (logs.length === 1) list.innerHTML = '';
+
+  const li = document.createElement('div');
+  li.className = `log-item ${signal ? signal.toLowerCase() : 'wait'}`;
+  li.innerHTML = `
+    <span class="log-time">${time}</span>
+    <span class="log-signal ${signal ? signal.toLowerCase() : ''}">${signal || 'WAIT'}</span>
+    <span style="color:var(--muted);font-size:10px">${strike || '—'}</span>
+    <span class="log-details">₹${premium || '—'} · EMA: ${ema9?.toFixed(0) || '—'}/${ema21?.toFixed(0) || '—'} · RSI: ${rsi?.toFixed(0) || '—'}</span>
+  `;
+  list.insertBefore(li, list.firstChild);
+
+  document.getElementById('logCount').textContent = logs.length;
+}
+
+function updateSignalCard(result) {
+  const card = document.getElementById('signalCard');
+  if (!result.signal) {
+    card.style.display = 'none';
+    lastSignal = null;
+    return;
+  }
+
+  if (result.signal !== lastSignal) {
+    addLog(
+      new Date().toLocaleTimeString('en-IN').slice(0, 5),
+      result.signal,
+      result.strike,
+      result.entry_premium,
+      result.indicators?.ema9,
+      result.indicators?.ema21,
+      result.indicators?.rsi
+    );
+    lastSignal = result.signal;
+  }
+
+  card.style.display = 'block';
+  const isCE = result.signal === 'CE';
+  document.getElementById('signalName').textContent = (isCE ? '🟢 CALL ENTRY' : '🔴 PUT ENTRY');
+  document.getElementById('signalName').className = `sc-signal ${isCE ? 'ce' : 'pe'}`;
+  document.getElementById('sigStrike').textContent = result.strike;
+  document.getElementById('sigPremium').textContent = `₹${result.entry_premium}`;
+  document.getElementById('sigSl').textContent = `₹${result.sl}`;
+  document.getElementById('sigT1').textContent = `₹${result.t1}`;
+  document.getElementById('sigCapital').textContent = `₹${result.capital}`;
+
+  if (result.gap_analysis) {
+    const gap = isCE ? result.gap_analysis.gap_to_high : result.gap_analysis.gap_to_low;
+    document.getElementById('sigGap').textContent = `${gap} points`;
+  }
+}
+
+function updateConditions(result) {
+  const c = result.conditions || {};
+  setCheck('checkVix', c.vix_ok);
+  document.getElementById('valVix').textContent = result.india_vix ? result.india_vix.toFixed(2) : '—';
+
+  setCheck('checkTime', c.time_ok);
+  document.getElementById('valTime').textContent = c.time_ok ? '✓' : '—';
+
+  setCheck('checkDay', c.day_ok);
+  document.getElementById('valDay').textContent = c.day_ok ? '✓' : '—';
+
+  setCheck('checkOr', c.or_formed);
+  const orVal = c.or_formed && result.indicators?.or_high ? `${result.indicators.or_high.toFixed(2)} / ${result.indicators.or_low.toFixed(2)}` : '—';
+  document.getElementById('valOr').textContent = orVal;
+
+  setCheck('checkBreak', c.price_breakout);
+  document.getElementById('valBreak').textContent = result.nifty_price ? result.nifty_price.toFixed(2) : '—';
+
+  setCheck('checkEma', c.ema_confirmed);
+  const emaVal = result.indicators?.ema9 && result.indicators?.ema21 ? `${result.indicators.ema9.toFixed(0)} > ${result.indicators.ema21.toFixed(0)}` : '—';
+  document.getElementById('valEma').textContent = emaVal;
+
+  setCheck('checkRsi', c.rsi_confirmed);
+  document.getElementById('valRsi').textContent = result.indicators?.rsi ? result.indicators.rsi.toFixed(0) : '—';
+
+  // Indicators snapshot
+  document.getElementById('indEma9').textContent = result.indicators?.ema9 ? result.indicators.ema9.toFixed(2) : '—';
+  document.getElementById('indEma21').textContent = result.indicators?.ema21 ? result.indicators.ema21.toFixed(2) : '—';
+  document.getElementById('indRsi').textContent = result.indicators?.rsi ? result.indicators.rsi.toFixed(0) : '—';
+  document.getElementById('indCandles').textContent = result.candles_count || '—';
+}
+
+async function fetchS1Data() {
+  try {
+    const res = await fetch('/api/s1-monitor');
+    const data = await res.json();
+
+    if (data.status === 'error' || data.error) {
+      console.warn('[S1] Error:', data.error);
+      return;
+    }
+
+    document.getElementById('priceVal').textContent = data.nifty_price ? data.nifty_price.toFixed(2) : '—';
+    document.getElementById('vixVal').textContent = data.india_vix ? data.india_vix.toFixed(2) : '—';
+
+    updateConditions(data);
+    updateSignalCard(data);
+
+  } catch (err) {
+    console.error('[S1] Fetch failed:', err);
+  }
+}
+
+function toggleLog() {
+  const body = document.getElementById('logBody');
+  const toggle = document.getElementById('logToggle');
+  body.classList.toggle('closed');
+  toggle.classList.toggle('open');
+}
+
+function clearLog() {
+  logs.length = 0;
+  document.getElementById('logList').innerHTML = '<div class="log-empty">No alerts yet. Waiting for S1 setup...</div>';
+  document.getElementById('logCount').textContent = '0';
+}
+
+function saveLog() {
+  if (logs.length === 0) {
+    alert('No logs to save');
+    return;
+  }
+
+  const csv = ['Time,Signal,Strike,Premium,EMA9,EMA21,RSI']
+    .concat(logs.map(l => `${l.time},${l.signal || 'WAIT'},${l.strike || '—'},${l.premium || '—'},${l.ema9?.toFixed(2) || '—'},${l.ema21?.toFixed(2) || '—'},${l.rsi?.toFixed(2) || '—'}`))
+    .join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `s1_alerts_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Initialize
+updateTime();
+setInterval(updateTime, 1000);
+setInterval(fetchS1Data, 5000);
+fetchS1Data();
+</script>
+
+</body>
+</html>

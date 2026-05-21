@@ -1180,6 +1180,81 @@ def get_live_price():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# S1 Intraday Strategy Monitor
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _s1_monitor_state() -> dict:
+    """
+    Real-time S1 intraday setup monitor
+    Returns current conditions for NIFTY OR breakout + EMA cross + RSI confirmation
+    """
+    from core.s1_monitor import S1StrategyMonitor
+    import yfinance as yf
+
+    try:
+        # Fetch 5-min candles for the current day (from 9:15 AM)
+        ticker = yf.Ticker("^NSEI")
+        df_5m = ticker.history(period="1d", interval="5m")
+        if df_5m.empty:
+            return {"error": "No 5-min data available", "status": "offline"}
+
+        # Convert to IST
+        df_5m.index = df_5m.index.tz_convert("Asia/Kolkata")
+        df_5m = df_5m[["Open", "High", "Low", "Close", "Volume"]].dropna()
+
+        # Filter for today's trading hours (9:15 AM - 3:30 PM)
+        df_5m = df_5m.between_time("09:15", "15:30")
+
+        if df_5m.empty:
+            return {"error": "Market hours data not available", "status": "offline"}
+
+        # Normalize column names for S1 monitor
+        df_5m.columns = ['open', 'high', 'low', 'close', 'volume']
+
+        # Get live price
+        spot = market_state.get(SPOT_TOKEN)
+        nifty_price = spot.get("price") if spot else None
+
+        if nifty_price is None:
+            return {"error": "NIFTY price unavailable", "status": "offline"}
+
+        # Fetch India VIX
+        try:
+            vix_ticker = yf.Ticker("^INDIAVIX")
+            vix_hist = vix_ticker.history(period="1d", interval="1m")
+            india_vix = float(vix_hist['Close'].iloc[-1]) if not vix_hist.empty else None
+        except:
+            india_vix = None
+
+        # Run S1 monitor
+        s1_monitor = S1StrategyMonitor()
+        result = s1_monitor.check_s1_setup(
+            nifty_price=nifty_price,
+            candles=df_5m,
+            vix=india_vix or 20,
+            current_time=datetime.now()
+        )
+
+        result['status'] = 'online'
+        result['nifty_price'] = round(nifty_price, 2)
+        result['india_vix'] = round(india_vix, 2) if india_vix else None
+        result['timestamp'] = datetime.now().isoformat()
+        result['candles_count'] = len(df_5m)
+
+        return result
+
+    except Exception as e:
+        print(f"[S1 Monitor] Error: {e}")
+        return {"error": str(e), "status": "error"}
+
+
+@app.get("/s1-monitor")
+def get_s1_monitor():
+    """S1 intraday strategy monitor — real-time setup conditions"""
+    return _s1_monitor_state()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # EMA + MACD + VWAP Scenario Endpoint
 # ══════════════════════════════════════════════════════════════════════════════
 
