@@ -7,8 +7,8 @@ Reuses existing indicators from core/indicators/
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any
-from indicators.ema import calculate_ema
-from indicators.rsi import calculate_rsi
+from .indicators.ema import calculate_ema
+from .indicators.rsi import calculate_rsi
 
 
 class S1StrategyMonitor:
