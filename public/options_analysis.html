@@ -55,6 +55,8 @@ select:focus,input:focus{border-color:var(--accent)}
 
 .main{display:grid;grid-template-columns:360px 1fr;gap:0;min-height:calc(100vh - 180px)}
 @media(max-width:900px){.main{grid-template-columns:1fr}}
+@media(max-width:900px){.sidebar{position:static;max-height:360px;overflow-y:auto;border-right:none;border-bottom:1px solid var(--border)}}
+@media(max-width:600px){.sc-grid{grid-template-columns:1fr 1fr}}
 
 .sidebar{border-right:1px solid var(--border);padding:16px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:calc(100vh - 56px);position:sticky;top:56px}
 .sb-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}

@@ -963,6 +963,7 @@ function renderScan(d) {
           ❌ REJECTED STOCKS (${d.rejected.length}) — click to expand
         </summary>
         <div class="card" style="padding:12px">
+          <div style="overflow-x:auto">
           <table class="rej-table">
             <thead><tr>
               <th>Symbol</th><th>LTP</th><th>RSI</th><th>Reason</th>
@@ -977,6 +978,7 @@ function renderScan(d) {
                 </tr>`).join("")}
             </tbody>
           </table>
+          </div>
         </div>
       </details>
     </div>`;

@@ -345,6 +345,7 @@ function _renderPanel(rows, isGainer) {
       <span class="panel-title">${title}</span>
       <span class="panel-count">${rows.length} stocks</span>
     </div>
+    <div style="overflow-x:auto">
     <table class="mv-table">
       <thead>
         <tr>
@@ -360,6 +361,7 @@ function _renderPanel(rows, isGainer) {
       </thead>
       <tbody>${_renderRows(rows, isGainer)}</tbody>
     </table>
+    </div>
   </div>`;
 }
 
