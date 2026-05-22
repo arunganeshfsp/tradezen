@@ -196,6 +196,13 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
 .rec-row   {display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .rec-chip  {background:var(--bg3);border-radius:6px;padding:5px 10px;
             font-size:11px;font-family:var(--mono)}
+.score-breakdown{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)}
+.sb-item{display:flex;align-items:center;gap:5px;font-size:10.5px;font-family:var(--mono);
+         padding:3px 9px;border-radius:20px;white-space:nowrap}
+.sb-pass{background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.2);color:var(--green)}
+.sb-fail{background:rgba(231,76,60,0.07);border:1px solid rgba(231,76,60,0.15);color:var(--muted)}
+.sb-warn{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);color:var(--yellow)}
+.sb-pts{font-weight:700;min-width:18px;text-align:right}
 
 /* ── Rejected table ───────────────────────────────────────────────────────── */
 .rej-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -1091,7 +1098,7 @@ function renderScan(d) {
           </div>
           <div style="text-align:right">
             <div class="rec-setup">Setup ${s.setup}</div>
-            <div style="font-size:11px;color:var(--dim)">Score ${s.rank_score}/13</div>
+            <div style="font-size:11px;color:var(--dim)" title="RSI ideal(3) · Volume surge(2) · Setup A(2) · Sector strength(2) · R:R≥2x(2) = 11 max">Score ${s.rank_score}/${s.rank_max || 11}</div>
           </div>
         </div>
         <div class="rec-row">
@@ -1105,7 +1112,17 @@ function renderScan(d) {
           <div class="rec-chip">${s.position.qty} shares · ${fmtRs(s.position.investment)}</div>
         </div>
         <div style="margin-top:8px;font-size:11px;color:var(--dim)">${s.setup_desc}</div>
-        ${s.caution_market ? `<div style="margin-top:6px;font-size:11px;color:var(--yellow);background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:6px;padding:4px 10px">⚠ Nifty below EMA50 — position reduced to 50%, tighten SL</div>` : ''}
+        ${(s.score_items || []).length ? `
+        <div class="score-breakdown">
+          ${(s.score_items || []).map(item => {
+            const cls = item.pts < 0 ? 'sb-warn' : item.pass ? 'sb-pass' : 'sb-fail';
+            const sign = item.pts > 0 ? '+' : '';
+            return `<span class="sb-item ${cls}">
+              <span class="sb-pts">${sign}${item.pts}</span>
+              <span>${item.label}</span>
+            </span>`;
+          }).join('')}
+        </div>` : ''}
       </div>`;
     });
   }

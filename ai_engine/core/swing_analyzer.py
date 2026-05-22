@@ -836,14 +836,43 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
                                  "ltp": round(ltp, 2), "rsi": round(rsi_val, 1)})
                 continue
 
-            # Ranking score
+            # Ranking score (max 11 pts) — build breakdown simultaneously
             rank = 0
-            if 55 <= rsi_val <= 62:          rank += 3
-            elif 50 <= rsi_val <= 70:        rank += 1
-            if vol_today >= vol_avg20 * 1.5: rank += 2
-            if setup_id == "A":              rank += 2
-            if sector_1m - nifty_1m_chg > 3: rank += 2
-            if plan["rr"] >= 2.0:            rank += 2
+            score_items = []
+
+            if 55 <= rsi_val <= 62:
+                rank += 3
+                score_items.append({"label": f"RSI {rsi_val:.1f} — ideal zone (55–62)", "pts": 3, "pass": True})
+            elif 50 <= rsi_val <= 70:
+                rank += 1
+                score_items.append({"label": f"RSI {rsi_val:.1f} — acceptable (50–70)", "pts": 1, "pass": True})
+            else:
+                score_items.append({"label": f"RSI {rsi_val:.1f} — out of range", "pts": 0, "pass": False})
+
+            if vol_today >= vol_avg20 * 1.5:
+                rank += 2
+                score_items.append({"label": f"Volume {vol_today/vol_avg20:.1f}× avg — surge", "pts": 2, "pass": True})
+            else:
+                score_items.append({"label": f"Volume {vol_today/vol_avg20:.1f}× avg — no surge", "pts": 0, "pass": False})
+
+            if setup_id == "A":
+                rank += 2
+                score_items.append({"label": "Setup A — strongest pattern", "pts": 2, "pass": True})
+            else:
+                score_items.append({"label": f"Setup {setup_id} — not Setup A", "pts": 0, "pass": True})
+
+            sec_diff = round(sector_1m - nifty_1m_chg, 1)
+            if sec_diff > 3:
+                rank += 2
+                score_items.append({"label": f"Sector +{sec_diff}% vs Nifty — strong", "pts": 2, "pass": True})
+            else:
+                score_items.append({"label": f"Sector {sec_diff:+}% vs Nifty — weak", "pts": 0, "pass": False})
+
+            if plan["rr"] >= 2.0:
+                rank += 2
+                score_items.append({"label": f"R:R {plan['rr']:.2f}× — excellent", "pts": 2, "pass": True})
+            else:
+                score_items.append({"label": f"R:R {plan['rr']:.2f}× — below 2×", "pts": 0, "pass": False})
 
             pos = _position_size(plan["entry"], plan["sl"], capital, risk_pct)
 
@@ -853,13 +882,16 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
                 pos["qty"]        = max(1, pos["qty"] // 2)
                 pos["investment"] = round(pos["qty"] * plan["entry"], 2)
                 rank = max(0, rank - 2)
+                score_items.append({"label": "Nifty below EMA50 — market penalty", "pts": -2, "pass": False})
 
             results.append({
                 "symbol":     sym,
                 "name":       info["name"],
                 "sector":     sector,
                 "rejected":   False,
-                "rank_score": rank,
+                "rank_score":  rank,
+                "rank_max":    9 if caution_market else 11,
+                "score_items": score_items,
                 "caution_market": caution_market,
                 "ltp":        round(ltp, 2),
                 "rsi":        round(rsi_val, 1),
