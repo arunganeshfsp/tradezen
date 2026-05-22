@@ -255,8 +255,37 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .cp-hint-wrap{background:var(--bg3);border-radius:6px;padding:8px 10px;display:flex;gap:8px;align-items:flex-start}
 .cp-hint-icon{font-size:13px;flex-shrink:0;margin-top:1px}
 .cp-hint-txt{font-size:11px;color:var(--muted);line-height:1.55}
+.cp-with-candle{display:flex;gap:12px;align-items:flex-start}
+.cp-candle-svg{flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 6px;min-width:56px}
+.cp-info{flex:1;min-width:0}
 @keyframes cpPop{0%{transform:scale(0.95);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
 .cp-pop{animation:cpPop .35s ease}
+
+/* ── DAY STORY ── */
+.story-section{padding:0}
+@media(max-width:600px){.story-section{padding:0}}
+.story-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.story-card-hdr{padding:13px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.story-book{font-size:20px;flex-shrink:0}
+.story-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)}
+.story-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
+.story-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);padding:8px 18px;background:rgba(124,106,247,0.05);border-bottom:1px solid var(--border)}
+.story-timeline{padding:6px 0 4px}
+.act-divider{display:flex;align-items:center;gap:12px;padding:12px 18px 8px}
+.act-line{flex:1;height:1px;background:var(--border)}
+.act-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap;background:var(--bg1);padding:0 2px}
+.story-entry{display:flex;align-items:flex-start;gap:12px;padding:8px 18px;transition:background .2s,opacity .3s}
+.story-entry:hover{background:var(--bg2)}
+.story-entry+.story-entry{border-top:1px solid rgba(255,255,255,0.035)}
+.story-entry.se-future{opacity:0.18;pointer-events:none}
+.story-entry.se-active{background:rgba(124,106,247,0.07);border-top:1px solid rgba(124,106,247,0.18)!important;border-bottom:1px solid rgba(124,106,247,0.18)}
+.st-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);width:38px;flex-shrink:0;padding-top:3px}
+.st-emoji{font-size:17px;flex-shrink:0;width:24px;text-align:center;line-height:1.6}
+.st-text{font-size:13px;line-height:1.65;color:var(--dim)}
+.st-text.tone-bull{color:var(--text)}
+.st-text.tone-bear{color:var(--text)}
+@keyframes stIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.se-new{animation:stIn .4s ease}
 
 /* ── CLOSED-HOURS HUB ── */
 #psych-chart.closed-hub{height:auto !important}
@@ -465,6 +494,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="hist-title">Recent Candles</div>
     <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
   </div>
+
+  <!-- DAY STORY (inside left column, balances sidebar height) -->
+  <div class="story-section" id="story-section" style="display:none"></div>
 
   </div><!-- /chart-col -->
 
@@ -706,10 +738,11 @@ async function reload() {
     _candles = data.candles;
     _lastCandleTime = _candles.length ? _candles[_candles.length - 1].time : 0;
     buildChart(data.candles);
-    fetchAndDrawLevels();
+    fetchAndDrawLevels();  // also calls tryBuildStory() once CPR loads
     fetchAndDrawOrb();
     updatePanel(_candles[_candles.length - 1]);
     updateHistStrip(_candles);
+    tryBuildStory();  // may be partial until CPR loads; fetchAndDrawLevels fills the rest
     document.getElementById('chart-asof').textContent =
       `${data.count} candles · last: ${data.as_of} IST`;
     document.getElementById('ctrl-asof').textContent = data.as_of + ' IST';
@@ -730,6 +763,7 @@ function setChartLoading() {
   _chart = null; _candleSeries = null; _vwapSeries = null;
   _stUpSeries = null; _stDownSeries = null; _volumeSeries = null;
   _priceLines = []; clearFloatingLabels();
+  clearStory();
 }
 
 function buildChart(candles) {
@@ -848,6 +882,7 @@ async function fetchAndDrawLevels() {
     if (!d.cpr || !d.camarilla) return;
     _cprData = { cpr: d.cpr, cam: d.camarilla };
     if (_levelsVisible) drawLevels();
+    tryBuildStory();  // CPR data now available — rebuild story with full context
   } catch(e) {}
 }
 
@@ -1164,7 +1199,7 @@ const PATTERNS = {
   long_legged_doji: { id:'long_legged_doji', emoji:'🕯',  name:'Long-Legged Doji',   dir:'neutral', color:'var(--dim)',
     desc:"Wild ride! Price swung massively in both directions but came back to where it started. Pure market confusion.",
     hint:"This price level is a battlefield. A strong candle in either direction will resolve the fight." },
-  gravestone_doji:  { id:'gravestone_doji',  emoji:'🪦', name:'Gravestone Doji',     dir:'bear',    color:'var(--red)',
+  gravestone_doji:  { id:'gravestone_doji',  emoji:'⛔', name:'Gravestone Doji',     dir:'bear',    color:'var(--red)',
     desc:"Graveyard for bulls! Price shot up but sellers crushed it all the way back to the open. The rally was completely rejected.",
     hint:"Bearish warning — especially at a resistance level. A red candle next confirms the rejection." },
   dragonfly_doji:   { id:'dragonfly_doji',   emoji:'🐉', name:'Dragonfly Doji',      dir:'bull',    color:'var(--green)',
@@ -1179,16 +1214,16 @@ const PATTERNS = {
   hammer:           { id:'hammer',           emoji:'🔨', name:'Hammer',               dir:'bull',    color:'var(--green)',
     desc:"The Comeback Kid! Sellers pushed price way down during the candle, but buyers punched back hard and closed near the top. A floor may be forming!",
     hint:"Bullish reversal signal. If next candle closes above this hammer's high — that's your entry!" },
-  hanging_man:      { id:'hanging_man',      emoji:'🪢', name:'Hanging Man',          dir:'bear',    color:'var(--red)',
+  hanging_man:      { id:'hanging_man',      emoji:'⚠️', name:'Hanging Man',          dir:'bear',    color:'var(--red)',
     desc:"Same shape as a hammer but appearing at a HIGH is a RED FLAG! Sellers are testing the bulls. Something's about to give.",
     hint:"Bearish warning at resistance. Watch for a red candle next to confirm the reversal. If it closes red — exit longs." },
-  inverted_hammer:  { id:'inverted_hammer',  emoji:'🪃', name:'Inverted Hammer',      dir:'bull',    color:'var(--yellow)',
+  inverted_hammer:  { id:'inverted_hammer',  emoji:'🔼', name:'Inverted Hammer',      dir:'bull',    color:'var(--yellow)',
     desc:"Buyers tested the ceiling above — they got pushed back, but they're showing up! There's buying interest here.",
     hint:"Needs confirmation. A bullish candle closing above this candle's high confirms the potential reversal." },
   shooting_star:    { id:'shooting_star',    emoji:'💫', name:'Shooting Star',        dir:'bear',    color:'var(--red)',
     desc:"Shot down from above! Price tried to rally to new highs but got SLAPPED back hard. Sellers mean serious business.",
     hint:"Bearish reversal signal at a top. If the next candle closes below this candle's low — watch out below!" },
-  spinning_top:     { id:'spinning_top',     emoji:'🌀', name:'Spinning Top',         dir:'neutral', color:'var(--yellow)',
+  spinning_top:     { id:'spinning_top',     emoji:'🔄', name:'Spinning Top',         dir:'neutral', color:'var(--yellow)',
     desc:"The market is dizzy! Wicks on both sides with a small body — nobody could dominate this period. Indecision in the air.",
     hint:"Wait for the next candle to give direction. Spinning tops near key levels with high volume are extra significant." },
   bull_engulfing:   { id:'bull_engulfing',   emoji:'🦁', name:'Bullish Engulfing',    dir:'bull',    color:'var(--green)',
@@ -1200,7 +1235,7 @@ const PATTERNS = {
   bull_harami:      { id:'bull_harami',      emoji:'🐣', name:'Bullish Harami',       dir:'bull',    color:'var(--green)',
     desc:"Baby bull hiding inside the bear! A small green candle formed entirely inside the previous red body. Selling is pausing.",
     hint:"The bears may be exhausted. A green candle closing above this high suggests a potential trend shift." },
-  bear_harami:      { id:'bear_harami',      emoji:'🫙', name:'Bearish Harami',       dir:'bear',    color:'var(--red)',
+  bear_harami:      { id:'bear_harami',      emoji:'📦', name:'Bearish Harami',       dir:'bear',    color:'var(--red)',
     desc:"Tiny bear hiding inside the bull! A small red candle appeared inside the previous large green body. Bulls are losing steam.",
     hint:"Buying momentum may be fading. Watch if the next candle confirms with a bearish close below this low." },
   strong_bull:      { id:'strong_bull',      emoji:'📈', name:'Strong Bull',          dir:'bull',    color:'var(--green)',
@@ -1283,15 +1318,24 @@ function renderPatternCard(pattern, isLive) {
   badge.className   = 'cp-badge ' + (isLive ? 'live' : 'done');
 
   if (body.dataset.lastPattern !== pattern.id) {
-    body.innerHTML = `<div class="cp-pop">
-      <span class="cp-emoji">${pattern.emoji}</span>
-      <div class="cp-name" style="color:${pattern.color}">${pattern.name}</div>
+    const candleData = PATTERN_CANDLES[pattern.id];
+    const svgHtml    = candleData ? drawCandleSVG(candleData.c, 96) : '';
+    const infoHtml = `
+      <div class="cp-name" style="color:${pattern.color}">${pattern.emoji} ${pattern.name}</div>
       <div class="cp-desc">${pattern.desc}</div>
       <div class="cp-hint-wrap">
         <span class="cp-hint-icon">👀</span>
         <span class="cp-hint-txt">${pattern.hint}</span>
-      </div>
-    </div>`;
+      </div>`;
+    body.innerHTML = svgHtml
+      ? `<div class="cp-pop cp-with-candle">
+           <div class="cp-candle-svg">${svgHtml}</div>
+           <div class="cp-info">${infoHtml}</div>
+         </div>`
+      : `<div class="cp-pop">
+           <span class="cp-emoji">${pattern.emoji}</span>
+           ${infoHtml}
+         </div>`;
     body.dataset.lastPattern = pattern.id;
   }
 }
@@ -1488,6 +1532,7 @@ async function pollTick() {
       _lastCandleTime = candle.time;
       _candles.push(candle);
       updateHistStrip(_candles);
+      tryBuildStory();  // regenerate story with the new completed candle
     }
 
     chartUpdateLast(candle);
@@ -1520,6 +1565,7 @@ function rpRender() {
   }
 
   updatePanel(_candles[_rpIdx]);
+  updateStoryReplayState(_rpIdx);
 
   document.getElementById('rp-slider').value = _rpIdx;
   document.getElementById('rp-pos').textContent = _rpIdx + 1;
@@ -1567,6 +1613,249 @@ function rpSpeed(btn) {
   btn.classList.add('active');
   _rpMs = parseInt(btn.dataset.ms, 10);
   if (_rpPlaying) { rpStop(); rpPlay(); }
+}
+
+// ─── Day Story ────────────────────────────────────────────────────────────────
+
+let _storyEntries = [];
+
+function _stFmt(ts) {
+  const d = new Date(ts * 1000);
+  return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+}
+
+function _stAct(ts) {
+  const m = new Date(ts * 1000).getUTCHours() * 60 + new Date(ts * 1000).getUTCMinutes();
+  if (m < 300) return 1;   // before 05:00 UTC = before 10:30 IST
+  if (m < 510) return 2;   // before 08:30 UTC = before 14:00 IST
+  return 3;
+}
+
+function generateDayStory(candles, cprData) {
+  if (!candles.length || !cprData) return [];
+  const { cpr, cam } = cprData;
+  const entries = [];
+  const near = (price, level) => level && Math.abs(price - level) / level < 0.0015;
+
+  const keyLevels = [
+    { name:'TC', price:cpr.tc, side:'res' },
+    { name:'PP', price:cpr.pp, side:'neu' },
+    { name:'BC', price:cpr.bc, side:'sup' },
+    { name:'R1', price:cpr.r1, side:'res' },
+    { name:'R2', price:cpr.r2, side:'res' },
+    { name:'S1', price:cpr.s1, side:'sup' },
+    { name:'S2', price:cpr.s2, side:'sup' },
+    { name:'H4', price:cam.h4, side:'res' },
+    { name:'L4', price:cam.l4, side:'sup' },
+  ].filter(l => l.price);
+
+  const brokenLevels = new Set();
+  let prevVwapSign = null, prevStDir = null;
+  let lastEntryIdx = -99, quietSince = 0, currentAct = 0;
+
+  const push = (e, i) => {
+    entries.push({ ...e, idx:i, time:_stFmt(candles[i].time), act:_stAct(candles[i].time) });
+    lastEntryIdx = i;
+    quietSince = 0;
+  };
+
+  candles.forEach((c, i) => {
+    const bullish = c.close >= c.open;
+    const act = _stAct(c.time);
+
+    // Act divider
+    if (act !== currentAct) {
+      currentAct = act;
+      const labels = {
+        1: 'ACT 1 · Opening Gambit  (09:15 – 10:30)',
+        2: 'ACT 2 · Mid-day Trend   (10:30 – 14:00)',
+        3: 'ACT 3 · Power Hour      (14:00 – 15:30)',
+      };
+      entries.push({ isDiv:true, act, label:labels[act] });
+    }
+
+    // ── Opening candle ───────────────────────────────────────────────────────
+    if (i === 0) {
+      let ctx, tone;
+      if (c.open > cpr.tc) {
+        ctx = `above TC (${cpr.tc.toFixed(0)}) — bulls set the tone immediately. TC becomes the first support to defend.`;
+        tone = 'bull';
+      } else if (c.open < cpr.bc) {
+        ctx = `below BC (${cpr.bc.toFixed(0)}) — bears have the early edge. BC is now overhead resistance.`;
+        tone = 'bear';
+      } else {
+        ctx = `inside the CPR zone (${cpr.bc.toFixed(0)}–${cpr.tc.toFixed(0)}) — no clear bias yet. Wait for a decisive break of TC or BC.`;
+        tone = 'neutral';
+      }
+      push({ emoji:'🌅', tone, text:`Market opened at ${c.open.toFixed(0)}, ${ctx}` }, 0);
+      prevVwapSign = c.vwap ? (c.close >= c.vwap ? 1 : -1) : 0;
+      prevStDir = c.supertrend_dir || null;
+      return;
+    }
+
+    // ── Closing candle ───────────────────────────────────────────────────────
+    if (i === candles.length - 1) {
+      const aboveV = c.vwap && c.close >= c.vwap;
+      const aboveC = c.close > cpr.tc, belowC = c.close < cpr.bc;
+      let verdict, tone;
+      if (aboveC && aboveV)    { verdict='Bulls dominated. Strong uptrend day.'; tone='bull'; }
+      else if (aboveV)         { verdict='Buyers held the edge at close. Mild bullish day.'; tone='bull'; }
+      else if (belowC && !aboveV){ verdict='Bears in full control. Classic downtrend session.'; tone='bear'; }
+      else                     { verdict='Choppy day — neither side convincingly won.'; tone='neutral'; }
+      push({ emoji:'🏁', tone, text:`Day closed at ${c.close.toFixed(0)}. ${verdict}` }, i);
+      return;
+    }
+
+    let added = false;
+
+    // ── Supertrend flip ──────────────────────────────────────────────────────
+    if (c.supertrend_dir && c.supertrend_dir !== prevStDir && prevStDir !== null) {
+      const up = c.supertrend_dir === 'up';
+      push({ emoji: up ? '🟢' : '🔴', tone: up ? 'bull' : 'bear',
+        text: `Supertrend flipped ${up ? 'GREEN' : 'RED'} at ${c.close.toFixed(0)}. Trend officially ${up ? 'bullish' : 'bearish'}. ${up ? 'Momentum traders enter long here — use the green ST line as your trailing stop.' : 'Avoid new longs. The red ST line is now dynamic resistance.'}` }, i);
+      added = true;
+    }
+    if (c.supertrend_dir) prevStDir = c.supertrend_dir;
+
+    // ── VWAP cross ───────────────────────────────────────────────────────────
+    if (c.vwap) {
+      const vs = c.close >= c.vwap ? 1 : -1;
+      if (prevVwapSign !== null && vs !== prevVwapSign && i - lastEntryIdx >= 2) {
+        push({ emoji: vs > 0 ? '📈' : '📉', tone: vs > 0 ? 'bull' : 'bear',
+          text: `Price crossed ${vs > 0 ? 'above' : 'below'} VWAP (${c.vwap.toFixed(0)}). Intraday sentiment ${vs > 0 ? 'turned bullish — buyers now own the session average cost. This is where intraday bias shifts.' : 'turned bearish — sellers are now below average. Short-side has the edge until VWAP is reclaimed.'}` }, i);
+        added = true;
+      }
+      prevVwapSign = vs;
+    }
+
+    // ── Named pattern at a key level ─────────────────────────────────────────
+    const pat = detectCandlePattern(c, i > 0 ? candles[i - 1] : null);
+    const named = pat && !['mild_bull','mild_bear','strong_bull','strong_bear'].includes(pat.id);
+    if (!added && named) {
+      const lv = keyLevels.find(l =>
+        near(c.close, l.price) || near(c.low, l.price) || near(c.high, l.price)
+      );
+      if (lv && i - lastEntryIdx >= 1) {
+        let action, tone;
+        if (pat.dir === 'bull' && lv.side === 'sup')
+          [action, tone] = [`buyers defended ${lv.name} (${lv.price.toFixed(0)}) — textbook reversal setup at support. Confirmation: next candle closes above this candle's high.`, 'bull'];
+        else if (pat.dir === 'bear' && lv.side === 'res')
+          [action, tone] = [`sellers rejected ${lv.name} (${lv.price.toFixed(0)}) — classic reversal at resistance. Confirmation: next candle closes below this candle's low.`, 'bear'];
+        else if (pat.dir === 'bull' && lv.side === 'res')
+          [action, tone] = [`bulls testing ${lv.name} (${lv.price.toFixed(0)}) resistance — breakout attempt. A strong close above needs volume to be trusted.`, 'bull'];
+        else if (pat.dir === 'bear' && lv.side === 'sup')
+          [action, tone] = [`bears attacking ${lv.name} (${lv.price.toFixed(0)}) support — breakdown watch. Protect your stops.`, 'bear'];
+        else
+          [action, tone] = [`total indecision at ${lv.name} (${lv.price.toFixed(0)}) — this is a high-stakes moment. The very next candle decides the direction.`, 'neutral'];
+
+        push({ emoji:pat.emoji, tone, text:`${pat.emoji} ${pat.name} at ${lv.name} — ${action}` }, i);
+        added = true;
+      }
+    }
+
+    // ── Level break (first confirmed close beyond R/S levels) ────────────────
+    if (!added && i > 0) {
+      const bkLevels = [
+        { name:'R1', price:cpr.r1, dir:1 },{ name:'R2', price:cpr.r2, dir:1 },
+        { name:'H4', price:cam.h4, dir:1 },{ name:'S1', price:cpr.s1, dir:-1 },
+        { name:'S2', price:cpr.s2, dir:-1 },{ name:'L4', price:cam.l4, dir:-1 },
+      ].filter(l => l.price);
+      for (const lv of bkLevels) {
+        if (brokenLevels.has(lv.name)) continue;
+        const prev = candles[i - 1];
+        if (lv.dir > 0 && c.close > lv.price && prev.close <= lv.price) {
+          brokenLevels.add(lv.name);
+          push({ emoji:'💥', tone:'bull',
+            text:`Breakout! Price closed above ${lv.name} (${lv.price.toFixed(0)}) for the first time today. This former resistance could act as support on any pullback. Watch for a retest.` }, i);
+          added = true; break;
+        }
+        if (lv.dir < 0 && c.close < lv.price && prev.close >= lv.price) {
+          brokenLevels.add(lv.name);
+          push({ emoji:'💔', tone:'bear',
+            text:`Breakdown! Price closed below ${lv.name} (${lv.price.toFixed(0)}) for the first time today. Former support now flips to resistance. Expect sellers to defend any bounce to this level.` }, i);
+          added = true; break;
+        }
+      }
+    }
+
+    // ── High-volume candle with conviction ───────────────────────────────────
+    if (!added && named && c.dominance && c.dominance.components.rel_volume >= 1.8 && i - lastEntryIdx >= 3) {
+      const vol = c.dominance.components.rel_volume.toFixed(1);
+      push({ emoji:'⚡', tone: bullish ? 'bull' : 'bear',
+        text:`${pat.emoji} ${pat.name} with ${vol}× average volume — ${bullish ? 'strong institutional buying interest' : 'heavy institutional selling pressure'}. High-conviction candle. Respect this move.` }, i);
+      added = true;
+    }
+
+    // ── Quiet zone (mid-day only) ─────────────────────────────────────────────
+    if (!added) {
+      quietSince++;
+      if (quietSince >= 6 && act === 2) {
+        push({ emoji:'😴', tone:'neutral',
+          text:`Quiet zone — no significant moves for 30+ minutes. Market is consolidating with low volume. This often precedes a sharp breakout. Wait for a decisive candle with above-average volume before acting.` }, i);
+        quietSince = 0;
+      }
+    } else quietSince = 0;
+  });
+
+  return entries;
+}
+
+function tryBuildStory() {
+  if (!_candles.length || !_cprData) return;
+  _storyEntries = generateDayStory(_candles, _cprData);
+  renderStorySection(_storyEntries);
+}
+
+function renderStorySection(entries) {
+  const sec = document.getElementById('story-section');
+  if (!sec) return;
+  if (!entries.length) { sec.style.display = 'none'; return; }
+
+  const realEntries = entries.filter(e => !e.isDiv);
+  let html = `<div class="story-card">
+    <div class="story-card-hdr">
+      <span class="story-book">📖</span>
+      <span class="story-title">Today's Market Story</span>
+      <span class="story-meta">${_sym} · ${_tf} · ${realEntries.length} key moments</span>
+    </div>
+    <div class="story-hint">💡 In Replay mode, step through candles to watch the story unfold in sequence</div>
+    <div class="story-timeline" id="story-timeline">`;
+
+  entries.forEach(e => {
+    if (e.isDiv) {
+      html += `<div class="act-divider"><div class="act-line"></div><span class="act-label">${e.label}</span><div class="act-line"></div></div>`;
+    } else {
+      html += `<div class="story-entry" id="se-${e.idx}">
+        <span class="st-time">${e.time}</span>
+        <span class="st-emoji">${e.emoji}</span>
+        <span class="st-text tone-${e.tone}">${e.text}</span>
+      </div>`;
+    }
+  });
+
+  html += `</div></div>`;
+  sec.innerHTML = html;
+  sec.style.display = '';
+}
+
+function updateStoryReplayState(currentIdx) {
+  if (!_storyEntries.length || _mode !== 'replay') return;
+  _storyEntries.filter(e => !e.isDiv).forEach(e => {
+    const el = document.getElementById(`se-${e.idx}`);
+    if (!el) return;
+    if (e.idx > currentIdx)      el.className = 'story-entry se-future';
+    else if (e.idx === currentIdx) el.className = 'story-entry se-active';
+    else                          el.className = 'story-entry';
+  });
+  // Scroll active entry into view
+  const activeEl = document.querySelector('.se-active');
+  if (activeEl) activeEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function clearStory() {
+  _storyEntries = [];
+  const sec = document.getElementById('story-section');
+  if (sec) sec.style.display = 'none';
 }
 
 // ─── Closed-Hours Hub ─────────────────────────────────────────────────────────
@@ -1670,6 +1959,7 @@ function showClosedHub(extraMsg) {
   document.getElementById('state-desc').textContent  = 'Market closed — quiz active';
   document.getElementById('insight-txt').textContent = 'Perfect time to drill candle patterns! Can you get 10 right in a row? 🎯';
 
+  clearStory();
   // Reset quiz scores on new session
   _quizScore = 0; _quizStreak = 0;
   updateQuizScore();
