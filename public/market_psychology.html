@@ -261,31 +261,36 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 @keyframes cpPop{0%{transform:scale(0.95);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
 .cp-pop{animation:cpPop .35s ease}
 
-/* ── DAY STORY ── */
-.story-section{padding:0}
-@media(max-width:600px){.story-section{padding:0}}
-.story-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.story-card-hdr{padding:13px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
-.story-book{font-size:20px;flex-shrink:0}
-.story-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)}
-.story-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
-.story-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);padding:8px 18px;background:rgba(124,106,247,0.05);border-bottom:1px solid var(--border)}
-.story-timeline{padding:6px 0 4px}
-.act-divider{display:flex;align-items:center;gap:12px;padding:12px 18px 8px}
-.act-line{flex:1;height:1px;background:var(--border)}
-.act-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap;background:var(--bg1);padding:0 2px}
-.story-entry{display:flex;align-items:flex-start;gap:12px;padding:8px 18px;transition:background .2s,opacity .3s}
-.story-entry:hover{background:var(--bg2)}
-.story-entry+.story-entry{border-top:1px solid rgba(255,255,255,0.035)}
-.story-entry.se-future{opacity:0.18;pointer-events:none}
-.story-entry.se-active{background:rgba(124,106,247,0.07);border-top:1px solid rgba(124,106,247,0.18)!important;border-bottom:1px solid rgba(124,106,247,0.18)}
-.st-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);width:38px;flex-shrink:0;padding-top:3px}
-.st-emoji{font-size:17px;flex-shrink:0;width:24px;text-align:center;line-height:1.6}
-.st-text{font-size:13px;line-height:1.65;color:var(--dim)}
-.st-text.tone-bull{color:var(--text)}
-.st-text.tone-bear{color:var(--text)}
-@keyframes stIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
-.se-new{animation:stIn .4s ease}
+/* ── DAY STORY VIEWER ── */
+.story-viewer-wrap{max-width:1240px;margin:0 auto;padding:0 28px 24px}
+@media(max-width:600px){.story-viewer-wrap{padding:0 16px 16px}}
+.story-viewer{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.sv-header{padding:10px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.sv-header-icon{font-size:16px;flex-shrink:0}
+.sv-header-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.sv-header-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
+.sv-body{display:flex;align-items:stretch;min-height:168px}
+.sv-nav{width:52px;background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-right:1px solid var(--border)}
+.sv-nav:last-child{border-right:none;border-left:1px solid var(--border)}
+.sv-nav:hover:not(:disabled){background:var(--bg2);color:var(--text)}
+.sv-nav:disabled{opacity:0.18;cursor:default}
+@media(max-width:600px){.sv-nav{width:40px;font-size:16px}}
+.sv-main{flex:1;padding:18px 24px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.sv-act{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);padding:3px 12px;border-radius:20px;margin-bottom:4px}
+@keyframes svIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sv-entry{width:100%}
+.sv-anim{animation:svIn .3s ease}
+.sv-entry-top{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:9px}
+.sv-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.sv-emoji{font-size:28px;line-height:1}
+.sv-text{font-size:14px;line-height:1.75;color:var(--dim);max-width:600px;margin:0 auto}
+.sv-text.tone-bull,.sv-text.tone-bear{color:var(--text)}
+.sv-footer{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:7px}
+.sv-counter{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.sv-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:260px}
+.sv-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);transition:all .25s}
+.sv-dot.past{background:var(--muted)}
+.sv-dot.active{background:var(--accent);transform:scale(1.4);box-shadow:0 0 6px rgba(124,106,247,0.5)}
 
 /* ── CLOSED-HOURS HUB ── */
 #psych-chart.closed-hub{height:auto !important}
@@ -495,9 +500,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
   </div>
 
-  <!-- DAY STORY (inside left column, balances sidebar height) -->
-  <div class="story-section" id="story-section" style="display:none"></div>
-
   </div><!-- /chart-col -->
 
   <!-- Indicator info tooltip -->
@@ -599,6 +601,35 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
   </div><!-- /psych-sidebar -->
 </div><!-- /main-wrap -->
+
+<!-- STORY VIEWER (full-width, below main grid) -->
+<div class="story-viewer-wrap" id="story-viewer-wrap" style="display:none">
+  <div class="story-viewer">
+    <div class="sv-header">
+      <span class="sv-header-icon">📖</span>
+      <span class="sv-header-title">Today's Market Story</span>
+      <span class="sv-header-meta" id="sv-meta"></span>
+    </div>
+    <div class="sv-body">
+      <button class="sv-nav" id="sv-prev" onclick="storyPrev()">&#8592;</button>
+      <div class="sv-main">
+        <div class="sv-act" id="sv-act"></div>
+        <div class="sv-entry" id="sv-entry">
+          <div class="sv-entry-top">
+            <span class="sv-time" id="sv-time"></span>
+            <span class="sv-emoji" id="sv-emoji"></span>
+          </div>
+          <div class="sv-text" id="sv-text"></div>
+        </div>
+        <div class="sv-footer">
+          <span class="sv-counter" id="sv-counter"></span>
+          <div class="sv-dots" id="sv-dots"></div>
+        </div>
+      </div>
+      <button class="sv-nav" id="sv-next" onclick="storyNext()">&#8594;</button>
+    </div>
+  </div>
+</div>
 
 <!-- REPLAY CONTROLS -->
 <div class="replay-bar" id="replay-bar" style="display:none">
@@ -1618,6 +1649,66 @@ function rpSpeed(btn) {
 // ─── Day Story ────────────────────────────────────────────────────────────────
 
 let _storyEntries = [];
+let _storyViewIdx  = 0;
+
+function _storyReals() {
+  return _storyEntries.filter(e => !e.isDiv);
+}
+
+function _storyActFor(realIdx) {
+  const reals = _storyReals();
+  const target = reals[realIdx];
+  if (!target) return '';
+  let act = '';
+  for (const e of _storyEntries) {
+    if (e.isDiv) act = e.label;
+    else if (e.idx === target.idx) break;
+  }
+  return act;
+}
+
+function _renderStoryViewer() {
+  const reals = _storyReals();
+  if (!reals.length) return;
+  const i = Math.max(0, Math.min(_storyViewIdx, reals.length - 1));
+  const e = reals[i];
+
+  document.getElementById('sv-act').textContent     = _storyActFor(i);
+  document.getElementById('sv-time').textContent    = e.time;
+  document.getElementById('sv-emoji').textContent   = e.emoji;
+  const txtEl = document.getElementById('sv-text');
+  txtEl.textContent  = e.text;
+  txtEl.className    = `sv-text tone-${e.tone}`;
+  document.getElementById('sv-counter').textContent = `${i + 1} / ${reals.length}`;
+
+  const prev = document.getElementById('sv-prev');
+  const next = document.getElementById('sv-next');
+  if (prev) prev.disabled = i === 0;
+  if (next) next.disabled = i === reals.length - 1;
+
+  // Progress dots (up to 16)
+  const dotsEl = document.getElementById('sv-dots');
+  if (dotsEl) {
+    dotsEl.innerHTML = reals.length <= 16
+      ? reals.map((_, di) =>
+          `<span class="sv-dot ${di < i ? 'past' : di === i ? 'active' : ''}"></span>`
+        ).join('')
+      : '';
+  }
+
+  // Slide-in animation
+  const entryEl = document.getElementById('sv-entry');
+  if (entryEl) { entryEl.classList.remove('sv-anim'); void entryEl.offsetWidth; entryEl.classList.add('sv-anim'); }
+}
+
+function storyPrev() {
+  if (_storyViewIdx > 0) { _storyViewIdx--; _renderStoryViewer(); }
+}
+
+function storyNext() {
+  const reals = _storyReals();
+  if (_storyViewIdx < reals.length - 1) { _storyViewIdx++; _renderStoryViewer(); }
+}
 
 function _stFmt(ts) {
   const d = new Date(ts * 1000);
@@ -1807,55 +1898,40 @@ function tryBuildStory() {
 }
 
 function renderStorySection(entries) {
-  const sec = document.getElementById('story-section');
-  if (!sec) return;
-  if (!entries.length) { sec.style.display = 'none'; return; }
+  const wrap = document.getElementById('story-viewer-wrap');
+  if (!wrap) return;
+  const reals = entries.filter(e => !e.isDiv);
+  if (!reals.length) { wrap.style.display = 'none'; return; }
 
-  const realEntries = entries.filter(e => !e.isDiv);
-  let html = `<div class="story-card">
-    <div class="story-card-hdr">
-      <span class="story-book">📖</span>
-      <span class="story-title">Today's Market Story</span>
-      <span class="story-meta">${_sym} · ${_tf} · ${realEntries.length} key moments</span>
-    </div>
-    <div class="story-hint">💡 In Replay mode, step through candles to watch the story unfold in sequence</div>
-    <div class="story-timeline" id="story-timeline">`;
+  // Always jump to latest entry on rebuild
+  _storyViewIdx = reals.length - 1;
 
-  entries.forEach(e => {
-    if (e.isDiv) {
-      html += `<div class="act-divider"><div class="act-line"></div><span class="act-label">${e.label}</span><div class="act-line"></div></div>`;
-    } else {
-      html += `<div class="story-entry" id="se-${e.idx}">
-        <span class="st-time">${e.time}</span>
-        <span class="st-emoji">${e.emoji}</span>
-        <span class="st-text tone-${e.tone}">${e.text}</span>
-      </div>`;
-    }
-  });
+  const meta = document.getElementById('sv-meta');
+  if (meta) meta.textContent = `${_sym} · ${_tf} · ${reals.length} moments`;
 
-  html += `</div></div>`;
-  sec.innerHTML = html;
-  sec.style.display = '';
+  wrap.style.display = '';
+  _renderStoryViewer();
 }
 
 function updateStoryReplayState(currentIdx) {
   if (!_storyEntries.length || _mode !== 'replay') return;
-  _storyEntries.filter(e => !e.isDiv).forEach(e => {
-    const el = document.getElementById(`se-${e.idx}`);
-    if (!el) return;
-    if (e.idx > currentIdx)      el.className = 'story-entry se-future';
-    else if (e.idx === currentIdx) el.className = 'story-entry se-active';
-    else                          el.className = 'story-entry';
-  });
-  // Scroll active entry into view
-  const activeEl = document.querySelector('.se-active');
-  if (activeEl) activeEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  const reals = _storyReals();
+  // Find the last real entry whose candle idx <= currentIdx
+  let target = -1;
+  for (let i = 0; i < reals.length; i++) {
+    if (reals[i].idx <= currentIdx) target = i;
+  }
+  if (target >= 0 && target !== _storyViewIdx) {
+    _storyViewIdx = target;
+    _renderStoryViewer();
+  }
 }
 
 function clearStory() {
   _storyEntries = [];
-  const sec = document.getElementById('story-section');
-  if (sec) sec.style.display = 'none';
+  _storyViewIdx = 0;
+  const wrap = document.getElementById('story-viewer-wrap');
+  if (wrap) wrap.style.display = 'none';
 }
 
 // ─── Closed-Hours Hub ─────────────────────────────────────────────────────────

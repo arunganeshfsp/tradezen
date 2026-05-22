@@ -374,7 +374,8 @@ function _renderData(d) {
   document.getElementById('chipTime').textContent  = `Updated ${_fmtTime(d.fetched_at)}`;
   document.getElementById('chipSourceTxt').textContent = d.source;
   document.getElementById('liveDot').style.display = d.source === 'NSE Live' ? 'inline-block' : 'none';
-  document.getElementById('lastUpdateBadge').textContent = d.index;
+  const lastBadge = document.getElementById('lastUpdateBadge');
+  if (lastBadge) lastBadge.textContent = d.index;
 
   // A/D ratio colour
   const ratio = d.advancing / (d.declining || 1);
