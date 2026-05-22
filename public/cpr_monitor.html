@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -186,29 +186,40 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .no-data{text-align:center;padding:60px 20px;color:var(--muted)}
 .no-data h3{font-family:'Syne',sans-serif;font-size:18px;color:var(--dim);margin-bottom:8px}
 </style>
-<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+<link rel="icon" type="image/png" href="/favicon.png" />
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a class="brand" href="index.html"><div class="logo">TZ</div>TradeZen</a>
-  <div class="nav-links" id="navLinks">
-    <a class="nl" href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
-    <a class="nl" href="options_entry_tool_tamil.html">🎯 Buying</a>
-    <a class="nl" href="options_selling_tool_tamil.html">💰 Selling</a>
-    <a class="nl" href="fno_signal.html">🤖 F&amp;O</a>
-    <a class="nl" href="trade_flow.html">🧭 Flow</a>
-    <a class="nl on" href="cpr_monitor.html">📐 CPR</a>
-    <a class="nl" href="reports.html">📋 Reports</a>
-    <a class="nl" href="index.html">⌂ Home</a>
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="tz-grad-nav" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c6af7"/><stop offset="100%" stop-color="#5b8af5"/></linearGradient></defs><rect width="40" height="40" rx="10" fill="url(#tz-grad-nav)"/><path d="M10 12h9M14.5 12v15M21 12h9M21 21h9M30 12l-9 9" stroke="#0a0c18" stroke-width="2.2" stroke-linecap="round" fill="none"/><polyline points="21 20 24 16.5 27 18.5 30 13.5" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="13.5" r="1.6" fill="#5b8af5"/></svg>
+      <span>TradeZen</span>
+    </a>
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="/trade_flow.html">Trade Flow</a></li>
+      <li class="nav-item"><a class="nav-link" href="/options_analysis.html">Options</a></li>
+      <li class="nav-item"><a class="nav-link is-active" href="/cpr_monitor.html">CPR</a></li>
+      <li class="nav-item"><a class="nav-link" href="/fno_scanner.html">F&amp;O</a></li>
+      <li class="nav-item"><a class="nav-link" href="/stock_movers.html">Movers</a></li>
+      <li class="nav-item"><a class="nav-link" href="/market_psychology.html">TradeFun</a></li>
+      <li class="nav-item"><a class="nav-link" href="/swing_trading.html">Swing</a></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/></svg>
+        <svg data-icon="light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
+    </div>
   </div>
-  <div class="nav-r" style="display:flex;align-items:center;gap:10px">
-    <a href="cpr_monitor_tutorial_tamil.html" target="_blank" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25);padding:3px 10px;border-radius:20px;text-decoration:none">📖 எப்படி பயன்படுத்துவது?</a>
-    <span class="nav-badge" id="lastUpdateBadge">CPR MONITOR</span>
-  </div>
-  <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
-  <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 
 <!-- HERO -->
@@ -1281,5 +1292,7 @@ async function init() {
 
 init();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="halo-aurora.js"></script>
 </body>
 </html>
