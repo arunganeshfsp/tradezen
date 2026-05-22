@@ -2043,7 +2043,7 @@ async def market_summary_endpoint():
 # Breakout Screener — on-demand Nifty-500 scan
 # ══════════════════════════════════════════════════════════════════════════════
 try:
-    from screener import run_screener as _run_screener
+    from screener import run_screener as _run_screener, screener_cache_stats as _screener_cache_stats
     _screener_ok = True
 except ImportError as _se:
     log.warning(f"screener module not available: {_se}")
@@ -2060,6 +2060,64 @@ async def screener_breakouts(category: str = "breakout_1y"):
     except Exception as e:
         log.error(f"[SCREENER] error: {e}")
         return {"error": str(e), "stocks": []}
+
+
+# ── Cache diagnostics endpoint ─────────────────────────────────────────────────
+@app.get("/debug/cache")
+async def debug_cache():
+    """
+    Returns a snapshot of all in-process caches and the yfinance disk cache size.
+    Use this to monitor memory usage and detect runaway growth.
+    """
+    import os, sys
+
+    # Swing analyzer cache
+    swing_stats: dict = {}
+    try:
+        from core.swing_analyzer import cache_stats as _swing_cache_stats, _CACHE
+        swing_stats = _swing_cache_stats()
+        swing_stats["estimated_ram_kb"] = round(
+            sum(
+                v["data"][0].memory_usage(deep=True).sum()  # true DataFrame footprint
+                for k, v in _CACHE.items()
+                if k.startswith("__s_") and isinstance(v.get("data"), tuple)
+                and hasattr(v["data"][0], "memory_usage")
+            ) / 1024, 1
+        )
+    except Exception as e:
+        swing_stats = {"error": str(e)}
+
+    # Screener result cache
+    screener_stats: dict = {}
+    try:
+        screener_stats = _screener_cache_stats() if _screener_ok else {"error": "screener not loaded"}
+    except Exception as e:
+        screener_stats = {"error": str(e)}
+
+    # yfinance disk cache
+    yf_disk: dict = {}
+    try:
+        import yfinance as yf
+        cache_dir = getattr(yf, "cache_path", None) or os.path.join(
+            os.environ.get("APPDATA", os.path.expanduser("~")), "py-yfinance"
+        )
+        if os.path.isdir(cache_dir):
+            total = sum(
+                os.path.getsize(os.path.join(dp, f))
+                for dp, _, files in os.walk(cache_dir)
+                for f in files
+            )
+            yf_disk = {"path": cache_dir, "size_mb": round(total / 1024 / 1024, 2)}
+        else:
+            yf_disk = {"path": cache_dir, "size_mb": 0, "note": "directory not found"}
+    except Exception as e:
+        yf_disk = {"error": str(e)}
+
+    return {
+        "swing_analyzer": swing_stats,
+        "screener":        screener_stats,
+        "yfinance_disk":   yf_disk,
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -16,6 +16,19 @@ import yfinance as yf
 
 log = logging.getLogger(__name__)
 
+# ── Result cache (avoids re-downloading 120 stocks on repeated clicks) ────────
+_RESULT_CACHE: Dict[str, Any] = {}   # key = f"{category}:{period}"
+_RESULT_CACHE_TTL = 600              # 10 minutes
+
+
+def screener_cache_stats() -> dict:
+    now = datetime.datetime.now().timestamp()
+    entries = []
+    for k, v in _RESULT_CACHE.items():
+        age = round(now - v["ts"], 0)
+        entries.append({"key": k, "age_s": age, "expires_in_s": max(0, _RESULT_CACHE_TTL - age)})
+    return {"entries": entries, "ttl_s": _RESULT_CACHE_TTL}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ~120-stock representative Nifty-500 universe  (NSE symbols, no ".NS" suffix)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -230,15 +243,29 @@ def run_screener(category: str) -> Dict[str, Any]:
     """
     Run the screener for the given category.
     Blocking — call via asyncio.run_in_executor from FastAPI.
+    Results are cached for 10 minutes to avoid redundant downloads.
     """
     if category not in VALID_CATEGORIES:
         return {"error": f"Unknown category '{category}'", "stocks": [], "screened": 0}
 
-    period  = _PERIOD_MAP[category]
+    period    = _PERIOD_MAP[category]
+    cache_key = f"{category}:{period}"
+    now_ts    = datetime.datetime.now().timestamp()
+
+    # Return cached result if still fresh
+    cached = _RESULT_CACHE.get(cache_key)
+    if cached and (now_ts - cached["ts"]) < _RESULT_CACHE_TTL:
+        age = round(now_ts - cached["ts"])
+        log.info("[Screener] cache hit  category=%s  age=%ds", category, age)
+        result = dict(cached["data"])
+        result["cached"] = True
+        result["cache_age_s"] = age
+        return result
+
     yf_syms = [f"{s}.NS" for s in UNIVERSE]
     as_of   = datetime.datetime.now().strftime("%d %b %Y  %H:%M IST")
 
-    log.info("[Screener] category=%s  period=%s  universe=%d stocks", category, period, len(yf_syms))
+    log.info("[Screener] cache miss  category=%s  period=%s  universe=%d stocks", category, period, len(yf_syms))
 
     try:
         raw = yf.download(
@@ -287,11 +314,14 @@ def run_screener(category: str) -> Dict[str, Any]:
         "[Screener] done — qualified=%d  failed=%d  returning=%d",
         len(results), failed, len(top10),
     )
-    return {
+    payload = {
         "category":  category,
         "label":     _CATEGORY_LABELS.get(category, category),
         "stocks":    top10,
         "screened":  len(UNIVERSE),
         "qualified": len(results),
         "as_of":     as_of,
+        "cached":    False,
     }
+    _RESULT_CACHE[cache_key] = {"ts": now_ts, "data": payload}
+    return payload

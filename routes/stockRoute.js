@@ -704,4 +704,11 @@ router.get("/screener/breakouts", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+router.get("/debug/cache", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/debug/cache", 10000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

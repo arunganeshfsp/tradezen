@@ -175,8 +175,52 @@ SECTOR_INDICES: dict[str, str] = {
 }
 
 _CACHE: dict = {}
-_CACHE_TTL_STOCK = 300    # 5 min per stock
+_CACHE_TTL_STOCK  = 300   # 5 min per stock
 _CACHE_TTL_MARKET = 600   # 10 min for Nifty / VIX / sector data
+_CACHE_MAX_STOCKS = 120   # hard cap: evict oldest stock DFs beyond this
+
+
+def _evict_stale() -> int:
+    """Remove expired entries from _CACHE. Returns count evicted."""
+    now   = time.time()
+    stale = []
+    for k, v in _CACHE.items():
+        ttl = _CACHE_TTL_STOCK if k.startswith("__s_") else _CACHE_TTL_MARKET
+        if now - v["ts"] > ttl:
+            stale.append(k)
+    for k in stale:
+        del _CACHE[k]
+
+    # Hard cap: if stock entries still exceed limit, drop oldest first
+    stock_keys = sorted(
+        [k for k in _CACHE if k.startswith("__s_")],
+        key=lambda k: _CACHE[k]["ts"],
+    )
+    if len(stock_keys) > _CACHE_MAX_STOCKS:
+        for k in stock_keys[: len(stock_keys) - _CACHE_MAX_STOCKS]:
+            del _CACHE[k]
+            stale.append(k)
+
+    if stale:
+        log.debug("[Cache] evicted %d stale/excess entries", len(stale))
+    return len(stale)
+
+
+def cache_stats() -> dict:
+    """Return a snapshot of current cache state for monitoring."""
+    now         = time.time()
+    stock_keys  = [k for k in _CACHE if k.startswith("__s_")]
+    market_keys = [k for k in _CACHE if not k.startswith("__s_")]
+    return {
+        "total_entries":  len(_CACHE),
+        "stock_entries":  len(stock_keys),
+        "market_entries": len(market_keys),
+        "oldest_stock_age_s":  round(now - min((v["ts"] for k, v in _CACHE.items() if k.startswith("__s_")), default=now), 0),
+        "newest_stock_age_s":  round(now - max((v["ts"] for k, v in _CACHE.items() if k.startswith("__s_")), default=now), 0),
+        "ttl_stock_s":    _CACHE_TTL_STOCK,
+        "ttl_market_s":   _CACHE_TTL_MARKET,
+        "cap_stocks":     _CACHE_MAX_STOCKS,
+    }
 
 
 # ── Indicator helpers ──────────────────────────────────────────────────────────
@@ -497,6 +541,7 @@ def _vix_zone(vix: float) -> tuple[str, str]:
 
 def analyse_stock(symbol: str, capital: float = 75000, risk_pct: float = 2) -> dict:
     """Full S4 5-pillar analysis for one NSE stock."""
+    _evict_stale()
     try:
         nifty_close, nifty_ema50_w, nifty_1m_chg = _fetch_nifty_data()
         vix   = _fetch_vix() or 15.0
@@ -543,17 +588,20 @@ def analyse_stock(symbol: str, capital: float = 75000, risk_pct: float = 2) -> d
         nifty_vs_ema50 = "ABOVE" if nifty_close > nifty_ema50_w else "BELOW"
 
         if vix >= 25:
-            p1_verdict, p1_reason = "FAIL", f"VIX {vix:.1f} ≥ 25 — All cash, no trades"
-        elif vix >= 20:
-            p1_verdict, p1_reason = "FAIL", f"VIX {vix:.1f} ≥ 20 — No new swing trades"
-        elif nifty_close < nifty_ema50_w:
             p1_verdict, p1_reason = "FAIL", (
-                f"Nifty ({nifty_close:.0f}) below weekly EMA50 ({nifty_ema50_w:.0f}) — Downtrend")
+                f"VIX {vix:.1f} ≥ 25 — Extreme fear. Stay fully in cash, no new trades.")
+        elif vix >= 20:
+            p1_verdict, p1_reason = "FAIL", (
+                f"VIX {vix:.1f} ≥ 20 — High volatility. Avoid new swing positions.")
+        elif nifty_close < nifty_ema50_w:
+            p1_verdict, p1_reason = "CAUTION", (
+                f"Nifty ({nifty_close:.0f}) below weekly EMA50 ({nifty_ema50_w:.0f}) — "
+                f"broader market in downtrend. Trade at 50% position size only.")
         else:
             diff_pct = abs(nifty_close - nifty_ema50_w) / nifty_ema50_w * 100
             if diff_pct < 1:
                 p1_verdict, p1_reason = "CAUTION", (
-                    f"Nifty within 1% of weekly EMA50 — Sideways, trade half size only")
+                    f"Nifty within 1% of weekly EMA50 — sideways market. Trade half size only.")
             else:
                 p1_verdict, p1_reason = "PASS", (
                     f"Nifty {nifty_close:.0f} above weekly EMA50 {nifty_ema50_w:.0f} ✓")
@@ -642,7 +690,12 @@ def analyse_stock(symbol: str, capital: float = 75000, risk_pct: float = 2) -> d
             ])
             if half_size:
                 verdict, confidence = "TRADE_HALF", "MEDIUM"
-                reason = "Sideways market — enter at 50% position size"
+                reason = (
+                    f"Nifty below weekly EMA50 — market in downtrend. "
+                    f"Setup is valid but enter at 50% position size and tighten your stop loss."
+                ) if nifty_close < nifty_ema50_w else (
+                    "Nifty near weekly EMA50 — sideways market. Enter at 50% position size."
+                )
             elif borderline >= 2:
                 verdict, confidence = "TRADE_HALF", "MEDIUM"
                 reason = "Setup valid but borderline signals — reduced size recommended"
@@ -727,7 +780,7 @@ def analyse_stock(symbol: str, capital: float = 75000, risk_pct: float = 2) -> d
 def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2) -> dict:
     """Quick-filter 100 stocks via S4 and rank the best opportunities."""
     import yfinance as yf
-
+    _evict_stale()
     try:
         nifty_close, nifty_ema50_w, nifty_1m_chg = _fetch_nifty_data()
         vix = _fetch_vix() or 15.0

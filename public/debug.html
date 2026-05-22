@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Debug | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/favicon.png" />
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--red:#e74c3c;--yellow:#f5a623;--cyan:#00d4ff;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+.hero{padding:28px 28px 20px;border-bottom:1px solid var(--border)}
+.hero h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.hero p{font-size:13px;color:var(--dim);margin-top:4px}
+
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px 60px;display:flex;flex-direction:column;gap:20px}
+
+.section{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.sec-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sec-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
+.sec-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:2px 10px;border-radius:20px}
+.badge-ok{background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:var(--green)}
+.badge-warn{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);color:var(--yellow)}
+.badge-err{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--red)}
+
+.kv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border)}
+.kv-cell{background:var(--bg1);padding:12px 16px}
+.kv-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.kv-value{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--text)}
+.kv-value.green{color:var(--green)}
+.kv-value.yellow{color:var(--yellow)}
+.kv-value.red{color:var(--red)}
+.kv-value.cyan{color:var(--cyan)}
+
+.cache-table{width:100%;border-collapse:collapse;font-size:12px}
+.cache-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:8px 16px;text-align:left;border-bottom:1px solid var(--border)}
+.cache-table td{padding:8px 16px;border-bottom:1px solid var(--bg3);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.cache-table tr:last-child td{border-bottom:none}
+.cache-table td:first-child{color:var(--text)}
+
+.bar-wrap{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+
+.ctrl-bar{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.ctrl-btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;padding:5px 16px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--dim);cursor:pointer;transition:all .15s}
+.ctrl-btn:hover{background:var(--bg4,#20253e);color:var(--text)}
+.ctrl-btn.active{background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.3);color:var(--cyan)}
+.last-updated{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
+.pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="tz-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c6af7"/><stop offset="100%" stop-color="#5b8af5"/></linearGradient></defs><rect width="40" height="40" rx="10" fill="url(#tz-g)"/><path d="M10 12h9M14.5 12v15M21 12h9M21 21h9M30 12l-9 9" stroke="#0a0c18" stroke-width="2.2" stroke-linecap="round" fill="none"/><polyline points="21 20 24 16.5 27 18.5 30 13.5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="13.5" r="1.6" fill="#5b8af5"/></svg>
+      <span>TradeZen</span>
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/></svg>
+        <svg data-icon="light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>🛠 System Debug</h1>
+  <p>In-process cache usage · yfinance disk size · Live monitoring</p>
+</div>
+
+<div class="wrap">
+
+  <!-- Controls -->
+  <div class="section">
+    <div class="ctrl-bar">
+      <button class="ctrl-btn active" onclick="fetchStats()">↺ Refresh Now</button>
+      <button class="ctrl-btn" id="autoBtn" onclick="toggleAuto()">▶ Auto-refresh (30s)</button>
+      <span class="last-updated" id="lastUpdated">—</span>
+    </div>
+  </div>
+
+  <!-- Swing Analyzer Cache -->
+  <div class="section" id="swingSection">
+    <div class="sec-head">
+      <span class="sec-title">⚙ Swing Analyzer Cache <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">(in-process RAM)</span></span>
+      <span class="sec-badge badge-ok" id="swingBadge">—</span>
+    </div>
+    <div id="swingBody"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- Screener Cache -->
+  <div class="section" id="screenerSection">
+    <div class="sec-head">
+      <span class="sec-title">📡 Screener Result Cache <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">(per-category, 10 min TTL)</span></span>
+      <span class="sec-badge badge-ok" id="screenerBadge">—</span>
+    </div>
+    <div id="screenerBody"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- yfinance Disk -->
+  <div class="section" id="diskSection">
+    <div class="sec-head">
+      <span class="sec-title">💾 yfinance Disk Cache</span>
+      <span class="sec-badge badge-ok" id="diskBadge">—</span>
+    </div>
+    <div id="diskBody"><div class="empty">Loading…</div></div>
+  </div>
+
+</div><!-- wrap -->
+
+<script>
+let _autoTimer = null;
+const API = '/api/debug/cache';
+
+async function fetchStats() {
+  try {
+    const r = await fetch(API);
+    const d = await r.json();
+    renderSwing(d.swing_analyzer || {});
+    renderScreener(d.screener || {});
+    renderDisk(d.yfinance_disk || {});
+    document.getElementById('lastUpdated').innerHTML =
+      `<span class="pulse"></span>Updated ${new Date().toLocaleTimeString('en-IN', {timeZone:'Asia/Kolkata'})}`;
+  } catch(e) {
+    document.getElementById('lastUpdated').textContent = 'Error: ' + e.message;
+  }
+}
+
+function renderSwing(s) {
+  const badge = document.getElementById('swingBadge');
+  if (s.error) {
+    badge.textContent = 'ERROR'; badge.className = 'sec-badge badge-err';
+    document.getElementById('swingBody').innerHTML = `<div class="empty" style="color:var(--red)">${s.error}</div>`;
+    return;
+  }
+
+  const stockPct = Math.round((s.stock_entries / s.cap_stocks) * 100);
+  const fillColor = stockPct > 80 ? 'var(--red)' : stockPct > 50 ? 'var(--yellow)' : 'var(--green)';
+  badge.textContent = `${s.stock_entries} stocks`;
+  badge.className = 'sec-badge ' + (stockPct > 80 ? 'badge-warn' : 'badge-ok');
+
+  document.getElementById('swingBody').innerHTML = `
+    <div class="kv-grid">
+      <div class="kv-cell">
+        <div class="kv-label">Stock DataFrames</div>
+        <div class="kv-value ${stockPct > 80 ? 'yellow' : 'green'}">${s.stock_entries} / ${s.cap_stocks}</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${stockPct}%;background:${fillColor}"></div></div>
+      </div>
+      <div class="kv-cell">
+        <div class="kv-label">Market/VIX/Sector entries</div>
+        <div class="kv-value cyan">${s.market_entries}</div>
+      </div>
+      <div class="kv-cell">
+        <div class="kv-label">Estimated RAM</div>
+        <div class="kv-value ${(s.estimated_ram_kb||0) > 5000 ? 'yellow' : 'green'}">${s.estimated_ram_kb ?? '—'} KB</div>
+      </div>
+      <div class="kv-cell">
+        <div class="kv-label">Oldest stock age</div>
+        <div class="kv-value">${fmtAge(s.oldest_stock_age_s)}</div>
+      </div>
+      <div class="kv-cell">
+        <div class="kv-label">Stock TTL</div>
+        <div class="kv-value">${s.ttl_stock_s}s</div>
+      </div>
+      <div class="kv-cell">
+        <div class="kv-label">Market TTL</div>
+        <div class="kv-value">${s.ttl_market_s}s</div>
+      </div>
+    </div>
+    <div style="padding:10px 16px;font-size:11px;color:var(--muted)">
+      Each stock entry = 1 year of daily OHLCV (~12 KB). Eviction runs automatically before every scan/analyse. Hard cap: ${s.cap_stocks} stocks.
+    </div>`;
+}
+
+function renderScreener(s) {
+  const badge = document.getElementById('screenerBadge');
+  if (s.error) {
+    badge.textContent = 'ERROR'; badge.className = 'sec-badge badge-err';
+    document.getElementById('screenerBody').innerHTML = `<div class="empty" style="color:var(--red)">${s.error}</div>`;
+    return;
+  }
+  const entries = s.entries || [];
+  badge.textContent = `${entries.length} cached`;
+  badge.className = 'sec-badge ' + (entries.length > 0 ? 'badge-ok' : 'badge-warn');
+
+  if (!entries.length) {
+    document.getElementById('screenerBody').innerHTML = `<div class="empty">No screener results cached yet. Run a scan first.</div>`;
+    return;
+  }
+
+  const rows = entries.map(e => {
+    const freshPct = Math.round((1 - e.age_s / s.ttl_s) * 100);
+    const color = freshPct > 50 ? 'var(--green)' : freshPct > 20 ? 'var(--yellow)' : 'var(--red)';
+    return `<tr>
+      <td>${e.key}</td>
+      <td>${fmtAge(e.age_s)}</td>
+      <td>${fmtAge(e.expires_in_s)} left</td>
+      <td><div class="bar-wrap" style="width:80px"><div class="bar-fill" style="width:${freshPct}%;background:${color}"></div></div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('screenerBody').innerHTML = `
+    <table class="cache-table">
+      <thead><tr><th>Category</th><th>Age</th><th>Expires</th><th>Freshness</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="padding:10px 16px;font-size:11px;color:var(--muted)">
+      TTL: ${s.ttl_s}s (${s.ttl_s/60} min). Cached result serves instantly — no yfinance download until TTL expires.
+    </div>`;
+}
+
+function renderDisk(s) {
+  const badge = document.getElementById('diskBadge');
+  if (s.error) {
+    badge.textContent = 'ERROR'; badge.className = 'sec-badge badge-err';
+    document.getElementById('diskBody').innerHTML = `<div class="empty" style="color:var(--red)">${s.error}</div>`;
+    return;
+  }
+  const mb = s.size_mb || 0;
+  badge.textContent = `${mb} MB`;
+  badge.className = 'sec-badge ' + (mb > 200 ? 'badge-warn' : 'badge-ok');
+
+  document.getElementById('diskBody').innerHTML = `
+    <div class="kv-grid">
+      <div class="kv-cell">
+        <div class="kv-label">Cache size</div>
+        <div class="kv-value ${mb > 200 ? 'yellow' : mb > 100 ? 'cyan' : 'green'}">${mb} MB</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(100, mb/5)}%;background:${mb > 200 ? 'var(--yellow)' : 'var(--green)'}"></div></div>
+      </div>
+      <div class="kv-cell">
+        <div class="kv-label">Location</div>
+        <div class="kv-value" style="font-size:10px;word-break:break-all;color:var(--dim)">${s.path || '—'}</div>
+      </div>
+    </div>
+    <div style="padding:10px 16px;font-size:11px;color:var(--muted)">
+      yfinance writes downloaded price data here as a SQLite database. It speeds up repeated requests but never auto-cleans.
+      ${mb > 200 ? '<strong style="color:var(--yellow)"> ⚠ Over 200 MB — consider clearing it.</strong>' : ' Under 200 MB — healthy.'}
+    </div>`;
+}
+
+function fmtAge(s) {
+  if (s == null || s < 0) return '—';
+  s = Math.floor(s);
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}m ${s%60}s`;
+  return `${Math.floor(s/3600)}h ${Math.floor((s%3600)/60)}m`;
+}
+
+function toggleAuto() {
+  const btn = document.getElementById('autoBtn');
+  if (_autoTimer) {
+    clearInterval(_autoTimer);
+    _autoTimer = null;
+    btn.textContent = '▶ Auto-refresh (30s)';
+    btn.classList.remove('active');
+  } else {
+    _autoTimer = setInterval(fetchStats, 30000);
+    btn.textContent = '⏸ Auto-refresh ON';
+    btn.classList.add('active');
+  }
+}
+
+fetchStats();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="halo-aurora.js"></script>
+</body>
+</html>
