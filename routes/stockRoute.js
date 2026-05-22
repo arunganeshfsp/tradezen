@@ -149,6 +149,17 @@ router.get("/cpr-levels", async (req, res) => {
   }
 });
 
+// ─── GET /api/candles ────────────────────────────────────────────────────────
+// Live 5-min intraday candles for NIFTY 50 (today's session)
+router.get("/candles", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/candles", 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/candles-for-cpr?symbol=NIFTY&timeframe=daily ───────────────────
 // 5-min candles (daily) or daily candles (weekly/monthly) for CPR chart
 router.get("/candles-for-cpr", async (req, res) => {
