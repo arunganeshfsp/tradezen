@@ -836,43 +836,94 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
                                  "ltp": round(ltp, 2), "rsi": round(rsi_val, 1)})
                 continue
 
-            # Ranking score (max 11 pts) — build breakdown simultaneously
+            # Ranking score (max 11 pts) — build breakdown with educational notes
             rank = 0
             score_items = []
 
             if 55 <= rsi_val <= 62:
                 rank += 3
-                score_items.append({"label": f"RSI {rsi_val:.1f} — ideal zone (55–62)", "pts": 3, "pass": True})
+                score_items.append({
+                    "label": f"RSI {rsi_val:.1f} — ideal zone",
+                    "pts": 3, "pass": True,
+                    "note": "RSI (Relative Strength Index) measures momentum. 55–62 is the sweet spot: stock is gaining strength but not yet overbought. Think of it as a runner in full stride — not slow, not exhausted."
+                })
             elif 50 <= rsi_val <= 70:
                 rank += 1
-                score_items.append({"label": f"RSI {rsi_val:.1f} — acceptable (50–70)", "pts": 1, "pass": True})
+                score_items.append({
+                    "label": f"RSI {rsi_val:.1f} — acceptable",
+                    "pts": 1, "pass": True,
+                    "note": "RSI above 50 means buyers are in control. It qualifies, but 55–62 is the ideal entry range. Above 70 the stock is overbought — too expensive to chase."
+                })
             else:
-                score_items.append({"label": f"RSI {rsi_val:.1f} — out of range", "pts": 0, "pass": False})
+                score_items.append({
+                    "label": f"RSI {rsi_val:.1f} — out of range",
+                    "pts": 0, "pass": False,
+                    "note": f"RSI {'below 50 means sellers dominate — the stock is in a weak phase. Wait for momentum to build above 50.' if rsi_val < 50 else 'above 70 means the stock is overbought — most of the easy gains are already priced in. High risk of a pullback.'}"
+                })
 
+            vol_ratio_x = vol_today / vol_avg20
             if vol_today >= vol_avg20 * 1.5:
                 rank += 2
-                score_items.append({"label": f"Volume {vol_today/vol_avg20:.1f}× avg — surge", "pts": 2, "pass": True})
+                score_items.append({
+                    "label": f"Volume {vol_ratio_x:.1f}× avg — surge confirmed",
+                    "pts": 2, "pass": True,
+                    "note": "Today's trading volume is 1.5× higher than the 20-day average. High volume means more traders are participating in the move — it validates the breakout and reduces the chance of a false move."
+                })
             else:
-                score_items.append({"label": f"Volume {vol_today/vol_avg20:.1f}× avg — no surge", "pts": 0, "pass": False})
+                score_items.append({
+                    "label": f"Volume {vol_ratio_x:.1f}× avg — no surge",
+                    "pts": 0, "pass": False,
+                    "note": "Volume is below 1.5× the average. A setup without volume confirmation is like a crowd cheering but no one buying — the move may not have enough conviction behind it."
+                })
 
             if setup_id == "A":
                 rank += 2
-                score_items.append({"label": "Setup A — strongest pattern", "pts": 2, "pass": True})
+                score_items.append({
+                    "label": "Setup A — EMA pullback (best)",
+                    "pts": 2, "pass": True,
+                    "note": "Setup A: the stock was in an uptrend, pulled back to its 21-day moving average (a common support level), and is now bouncing. This is the highest-probability swing entry — buying near support with the trend."
+                })
+            elif setup_id == "B":
+                score_items.append({
+                    "label": "Setup B — consolidation breakout",
+                    "pts": 0, "pass": True,
+                    "note": "Setup B: the stock traded in a tight price range for weeks, then broke out above resistance. Good setup, but earns fewer ranking points than Setup A."
+                })
             else:
-                score_items.append({"label": f"Setup {setup_id} — not Setup A", "pts": 0, "pass": True})
+                score_items.append({
+                    "label": f"Setup {setup_id or '?'} — not Setup A",
+                    "pts": 0, "pass": True,
+                    "note": "Setup C (Cup & Handle): a U-shaped recovery pattern followed by a shallow consolidation near the high. Valid pattern, but Setup A scores higher in ranking."
+                })
 
             sec_diff = round(sector_1m - nifty_1m_chg, 1)
             if sec_diff > 3:
                 rank += 2
-                score_items.append({"label": f"Sector +{sec_diff}% vs Nifty — strong", "pts": 2, "pass": True})
+                score_items.append({
+                    "label": f"Sector +{sec_diff}% vs Nifty — strong",
+                    "pts": 2, "pass": True,
+                    "note": f"The {sector} sector gained {sec_diff}% more than Nifty this month. When an entire sector is rising, individual stocks ride that wave. It is much easier to make gains when the wind is at your back."
+                })
             else:
-                score_items.append({"label": f"Sector {sec_diff:+}% vs Nifty — weak", "pts": 0, "pass": False})
+                score_items.append({
+                    "label": f"Sector {sec_diff:+}% vs Nifty — lagging",
+                    "pts": 0, "pass": False,
+                    "note": f"The {sector} sector is not clearly outperforming Nifty (+{sec_diff}% difference). Even a strong stock can struggle if its sector is weak — like swimming against the current."
+                })
 
             if plan["rr"] >= 2.0:
                 rank += 2
-                score_items.append({"label": f"R:R {plan['rr']:.2f}× — excellent", "pts": 2, "pass": True})
+                score_items.append({
+                    "label": f"R:R {plan['rr']:.2f}× — excellent",
+                    "pts": 2, "pass": True,
+                    "note": f"Risk:Reward ratio = how much you can gain vs how much you risk. At {plan['rr']:.2f}×, if your stop loss is ₹{round(plan['entry']-plan['sl'])}, your target profit is ₹{round(plan['t1']-plan['entry'])}+. Always aim for 2× minimum so winners cover losers."
+                })
             else:
-                score_items.append({"label": f"R:R {plan['rr']:.2f}× — below 2×", "pts": 0, "pass": False})
+                score_items.append({
+                    "label": f"R:R {plan['rr']:.2f}× — below 2×",
+                    "pts": 0, "pass": False,
+                    "note": f"Risk:Reward of {plan['rr']:.2f}× means your target is less than 2× your risk. The trade is still valid (minimum 1.5× is required), but there is less room for error. Prefer trades with R:R of 2× or higher."
+                })
 
             pos = _position_size(plan["entry"], plan["sl"], capital, risk_pct)
 
@@ -882,7 +933,11 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
                 pos["qty"]        = max(1, pos["qty"] // 2)
                 pos["investment"] = round(pos["qty"] * plan["entry"], 2)
                 rank = max(0, rank - 2)
-                score_items.append({"label": "Nifty below EMA50 — market penalty", "pts": -2, "pass": False})
+                score_items.append({
+                    "label": "Market caution penalty",
+                    "pts": -2, "pass": False,
+                    "note": f"Nifty ({nifty_close:.0f}) is below its 50-week moving average ({nifty_ema50_w:.0f}), meaning the broader market is in a downtrend. Even strong stocks face headwinds. Position size is automatically halved to protect your capital until the market recovers."
+                })
 
             results.append({
                 "symbol":     sym,

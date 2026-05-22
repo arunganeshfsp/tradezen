@@ -196,13 +196,15 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
 .rec-row   {display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .rec-chip  {background:var(--bg3);border-radius:6px;padding:5px 10px;
             font-size:11px;font-family:var(--mono)}
-.score-breakdown{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)}
-.sb-item{display:flex;align-items:center;gap:5px;font-size:10.5px;font-family:var(--mono);
-         padding:3px 9px;border-radius:20px;white-space:nowrap}
-.sb-pass{background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.2);color:var(--green)}
-.sb-fail{background:rgba(231,76,60,0.07);border:1px solid rgba(231,76,60,0.15);color:var(--muted)}
-.sb-warn{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);color:var(--yellow)}
-.sb-pts{font-weight:700;min-width:18px;text-align:right}
+.score-breakdown{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:6px}
+.sb-row{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:start}
+.sb-badge{display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.sb-pass{background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.25);color:var(--green)}
+.sb-fail{background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.18);color:#e74c3c}
+.sb-warn{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);color:var(--yellow)}
+.sb-text{}
+.sb-label{font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:2px}
+.sb-note{font-size:11px;color:var(--dim);line-height:1.5}
 
 /* ── Rejected table ───────────────────────────────────────────────────────── */
 .rej-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -1115,12 +1117,16 @@ function renderScan(d) {
         ${(s.score_items || []).length ? `
         <div class="score-breakdown">
           ${(s.score_items || []).map(item => {
-            const cls = item.pts < 0 ? 'sb-warn' : item.pass ? 'sb-pass' : 'sb-fail';
+            const cls  = item.pts < 0 ? 'sb-warn' : item.pass ? 'sb-pass' : 'sb-fail';
             const sign = item.pts > 0 ? '+' : '';
-            return `<span class="sb-item ${cls}">
-              <span class="sb-pts">${sign}${item.pts}</span>
-              <span>${item.label}</span>
-            </span>`;
+            const icon = item.pts < 0 ? '⚠' : item.pass ? '✅' : '❌';
+            return `<div class="sb-row">
+              <span class="sb-badge ${cls}">${icon} ${sign}${item.pts} pt${Math.abs(item.pts) !== 1 ? 's' : ''}</span>
+              <div class="sb-text">
+                <div class="sb-label">${item.label}</div>
+                ${item.note ? `<div class="sb-note">${item.note}</div>` : ''}
+              </div>
+            </div>`;
           }).join('')}
         </div>` : ''}
       </div>`;
