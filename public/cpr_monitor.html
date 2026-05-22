@@ -185,6 +185,27 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 /* NO DATA */
 .no-data{text-align:center;padding:60px 20px;color:var(--muted)}
 .no-data h3{font-family:'Syne',sans-serif;font-size:18px;color:var(--dim);margin-bottom:8px}
+
+/* TRADE PLAN */
+.tp-bias{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.tp-bias-arrow{font-size:18px;font-weight:700;line-height:1}
+.tp-bias-text{flex:1}
+.tp-bias-label{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:.5px}
+.tp-bias-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.tp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.tp-cell{background:var(--bg1);padding:10px 14px}
+.tp-cell-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.tp-cell-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text)}
+.tp-cell-note{font-size:11px;color:var(--dim);margin-top:2px}
+.tp-targets{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
+.tp-tgt{background:var(--bg1);padding:10px 14px}
+.tp-tgt-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.tp-tgt-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.tp-tgt-rr{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:4px;padding:2px 8px;border-radius:4px;display:inline-block}
+.tp-rr-good{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.tp-rr-ok{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+.tp-context{padding:10px 14px;font-size:11px;color:var(--dim);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg2)}
+.tp-context-icon{font-size:14px;flex-shrink:0}
 </style>
 <link rel="icon" type="image/png" href="/favicon.png" />
 <link rel="stylesheet" href="css/halo-tokens.css" />
@@ -360,6 +381,17 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
       </div>
     </div>
 
+    <!-- TRADE PLAN -->
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">🗺 Trade Plan</span>
+        <span class="panel-sub" id="tpContext">—</span>
+      </div>
+      <div id="tradePlanBody">
+        <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Waiting for data…</div>
+      </div>
+    </div>
+
   </div>
 
   <!-- RIGHT: ALERT FEED -->
@@ -518,6 +550,7 @@ async function fetchLevels() {
     renderLadder(d.ltp);
     renderCamLadder(d.ltp);
     renderSignals(d.ltp);
+    renderTradePlan(d.ltp);
     if (_chart) drawChartLines();
 
     // Virgin CPR detection
@@ -560,6 +593,7 @@ async function fetchCandles() {
       renderLadder(last.close);
       renderCamLadder(last.close);
       renderSignals(last.close);
+      renderTradePlan(last.close);
 
       // Init chart on first load; update candle data on refresh
       if (!_chart) {
@@ -1187,6 +1221,103 @@ function updateChartMarkers() {
 }
 
 // ─────────────────────────────────────────────
+// Render: Trade Plan
+// ─────────────────────────────────────────────
+function renderTradePlan(ltp) {
+  if (!_levels || !ltp) return;
+  const { tc, bc, r1, r2, s1, s2, width } = _levels;
+
+  const above = ltp > tc;
+  const below = ltp < bc;
+
+  // Market context from CPR width
+  let ctxIcon, ctxText;
+  if (width < 40)       { ctxIcon = '⚡'; ctxText = 'Narrow CPR → Trending day expected'; }
+  else if (width <= 80) { ctxIcon = '⚖'; ctxText = 'Moderate CPR → Mixed session'; }
+  else                  { ctxIcon = '📊'; ctxText = 'Wide CPR → Range-bound day expected'; }
+
+  const tpCtxEl = document.getElementById('tpContext');
+  if (tpCtxEl) tpCtxEl.textContent = width < 40 ? 'TRENDING' : width > 80 ? 'RANGE-BOUND' : 'MIXED';
+
+  let biasColor, biasArrow, biasLabel, biasSub;
+  let entryVal, entryNote, invalidVal, invalidNote;
+  let t1Val = '—', t1RR = '—', t2Val = '—', t2RR = '—';
+  let t1Color = 'var(--text)', t2Color = 'var(--text)';
+
+  if (above) {
+    biasColor = 'var(--green)'; biasArrow = '▲'; biasLabel = 'BULLISH';
+    biasSub = 'Price above TC — upside momentum';
+    entryVal = fmt(tc); entryNote = 'TC retest / pullback entry';
+    invalidVal = fmt(bc); invalidNote = 'Close below BC';
+    const risk = tc - bc;
+    if (risk > 0 && r1 && r2) {
+      t1Val = fmt(r1); t1RR = ((r1 - tc) / risk).toFixed(1) + '×';
+      t2Val = fmt(r2); t2RR = ((r2 - tc) / risk).toFixed(1) + '×';
+      t1Color = 'var(--green)'; t2Color = 'var(--green)';
+    }
+  } else if (below) {
+    biasColor = 'var(--red)'; biasArrow = '▼'; biasLabel = 'BEARISH';
+    biasSub = 'Price below BC — downside momentum';
+    entryVal = fmt(bc); entryNote = 'BC retest / bounce entry';
+    invalidVal = fmt(tc); invalidNote = 'Close above TC';
+    const risk = tc - bc;
+    if (risk > 0 && s1 && s2) {
+      t1Val = fmt(s1); t1RR = ((bc - s1) / risk).toFixed(1) + '×';
+      t2Val = fmt(s2); t2RR = ((bc - s2) / risk).toFixed(1) + '×';
+      t1Color = 'var(--red)'; t2Color = 'var(--red)';
+    }
+  } else {
+    biasColor = 'var(--yellow)'; biasArrow = '◆'; biasLabel = 'NEUTRAL / WAIT';
+    biasSub = 'Price inside CPR — no directional edge yet';
+    entryVal = '—'; entryNote = 'Wait for breakout confirmation';
+    invalidVal = '—'; invalidNote = 'No active setup';
+    t1Val = fmt(tc); t1RR = '—'; t2Val = fmt(bc); t2RR = '—';
+  }
+
+  const rrCls = (rr) => {
+    const v = parseFloat(rr);
+    return (!isNaN(v) && v >= 2) ? 'tp-rr-good' : 'tp-rr-ok';
+  };
+
+  document.getElementById('tradePlanBody').innerHTML = `
+    <div class="tp-bias" style="border-left:3px solid ${biasColor}">
+      <span class="tp-bias-arrow" style="color:${biasColor}">${biasArrow}</span>
+      <div class="tp-bias-text">
+        <div class="tp-bias-label" style="color:${biasColor}">${biasLabel}</div>
+        <div class="tp-bias-sub">${biasSub}</div>
+      </div>
+    </div>
+    <div class="tp-grid">
+      <div class="tp-cell">
+        <div class="tp-cell-label">Entry Zone</div>
+        <div class="tp-cell-val">${entryVal}</div>
+        <div class="tp-cell-note">${entryNote}</div>
+      </div>
+      <div class="tp-cell">
+        <div class="tp-cell-label">Invalidation</div>
+        <div class="tp-cell-val" style="color:var(--red)">${invalidVal}</div>
+        <div class="tp-cell-note">${invalidNote}</div>
+      </div>
+    </div>
+    <div class="tp-targets">
+      <div class="tp-tgt">
+        <div class="tp-tgt-label">Target 1</div>
+        <div class="tp-tgt-val" style="color:${t1Color}">${t1Val}</div>
+        <div class="tp-tgt-rr ${rrCls(t1RR)}">${t1RR !== '—' ? 'R/R&nbsp;' + t1RR : '—'}</div>
+      </div>
+      <div class="tp-tgt">
+        <div class="tp-tgt-label">Target 2</div>
+        <div class="tp-tgt-val" style="color:${t2Color}">${t2Val}</div>
+        <div class="tp-tgt-rr ${rrCls(t2RR)}">${t2RR !== '—' ? 'R/R&nbsp;' + t2RR : '—'}</div>
+      </div>
+    </div>
+    <div class="tp-context">
+      <span class="tp-context-icon">${ctxIcon}</span>
+      <span>${ctxText}</span>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
 // Instrument & Timeframe selectors
 // ─────────────────────────────────────────────
 function setInstrument(sym) {
@@ -1255,6 +1386,8 @@ function resetAndReload() {
   document.getElementById('ladder').innerHTML          = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Fetching levels…</div>';
   document.getElementById('camLadder').innerHTML       = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Calculating…</div>';
   document.getElementById('signalsPanel').innerHTML    = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Waiting for data…</div>';
+  document.getElementById('tradePlanBody').innerHTML   = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Waiting for data…</div>';
+  document.getElementById('tpContext').textContent     = '—';
   document.getElementById('alertFeed').innerHTML       = '<div class="empty-feed"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Loading new instrument…</div>';
   document.getElementById('feedCount').textContent    = '0 events';
 
