@@ -137,6 +137,30 @@ router.get("/stock-monitor", async (req, res) => {
   }
 });
 
+// ─── GET /api/cpr-levels?symbol=NIFTY&timeframe=daily ────────────────────────
+// Multi-timeframe CPR levels for NIFTY or any F&O stock
+router.get("/cpr-levels", async (req, res) => {
+  try {
+    const qs = new URLSearchParams(req.query).toString();
+    const data = await aiService.proxy("GET", `/cpr-levels?${qs}`, 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/candles-for-cpr?symbol=NIFTY&timeframe=daily ───────────────────
+// 5-min candles (daily) or daily candles (weekly/monthly) for CPR chart
+router.get("/candles-for-cpr", async (req, res) => {
+  try {
+    const qs = new URLSearchParams(req.query).toString();
+    const data = await aiService.proxy("GET", `/candles-for-cpr?${qs}`, 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/expiries ───────────────────────────────────────────────────────
 // Returns upcoming NIFTY expiry dates for the dropdown
 router.get("/expiries", async (req, res) => {

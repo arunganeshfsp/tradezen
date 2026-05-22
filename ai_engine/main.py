@@ -3380,6 +3380,205 @@ def report_delete(date: str):
     return {"deleted": ok, "date": date}
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# CPR Levels — multi-timeframe, multi-symbol CPR for the CPR Monitor page
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _calc_cpr(H: float, L: float, C: float) -> dict:
+    PP    = round((H + L + C) / 3, 2)
+    _bc   = round((H + L) / 2, 2)
+    _tc   = round(2 * PP - _bc, 2)
+    TC    = round(max(_tc, _bc), 2)
+    BC    = round(min(_tc, _bc), 2)
+    return {
+        "pp":    PP,
+        "tc":    TC,
+        "bc":    BC,
+        "r1":    round(2 * PP - L, 2),
+        "r2":    round(PP + (H - L), 2),
+        "r3":    round(H + 2 * (PP - L), 2),
+        "s1":    round(2 * PP - H, 2),
+        "s2":    round(PP - (H - L), 2),
+        "s3":    round(L - 2 * (H - PP), 2),
+        "width": round(TC - BC, 2),
+    }
+
+
+def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
+    import yfinance as yf
+    import datetime as _dt
+
+    IST     = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    now_ist = _dt.datetime.now(IST)
+    today   = now_ist.date()
+
+    is_nifty = symbol.upper() in ("NIFTY", "^NSEI", "NIFTY50")
+    yf_sym   = "^NSEI" if is_nifty else f"{symbol.upper()}.NS"
+
+    try:
+        if timeframe == "daily":
+            if is_nifty and trade_flow_data.get("prev_ohlc"):
+                ohlc_src   = trade_flow_data["prev_ohlc"]
+                H, L, C    = ohlc_src["high"], ohlc_src["low"], ohlc_src["close"]
+                date_label = ohlc_src.get("date", "")
+            else:
+                df = yf.Ticker(yf_sym).history(period="5d", interval="1d")
+                df.index = df.index.normalize()
+                past = df[df.index.date < today]
+                if past.empty:
+                    return {"error": "No previous day data available"}
+                row  = past.iloc[-1]
+                H, L, C    = float(row.High), float(row.Low), float(row.Close)
+                date_label = past.index[-1].strftime("%Y-%m-%d")
+
+        elif timeframe == "weekly":
+            df = yf.Ticker(yf_sym).history(period="3mo", interval="1wk")
+            if len(df) < 2:
+                return {"error": "Not enough weekly data"}
+            df.index    = df.index.normalize()
+            week_start  = today - _dt.timedelta(days=today.weekday())
+            past_weeks  = df[df.index.date < week_start]
+            if past_weeks.empty:
+                past_weeks = df.iloc[:-1]
+            row  = past_weeks.iloc[-1]
+            H, L, C    = float(row.High), float(row.Low), float(row.Close)
+            date_label = "W/E " + past_weeks.index[-1].strftime("%d %b %Y")
+
+        elif timeframe == "monthly":
+            df = yf.Ticker(yf_sym).history(period="6mo", interval="1mo")
+            if len(df) < 2:
+                return {"error": "Not enough monthly data"}
+            df.index    = df.index.normalize()
+            month_start = today.replace(day=1)
+            past_months = df[df.index.date < month_start]
+            if past_months.empty:
+                past_months = df.iloc[:-1]
+            row  = past_months.iloc[-1]
+            H, L, C    = float(row.High), float(row.Low), float(row.Close)
+            date_label = past_months.index[-1].strftime("%b %Y")
+
+        else:
+            return {"error": f"Unknown timeframe: {timeframe}"}
+
+        cpr = _calc_cpr(H, L, C)
+
+        ltp = None
+        if is_nifty:
+            spot = market_state.get(SPOT_TOKEN)
+            if spot and spot.get("price"):
+                ltp = round(float(spot["price"]), 2)
+        if ltp is None:
+            try:
+                intra = yf.Ticker(yf_sym).history(period="1d", interval="1m")
+                if not intra.empty:
+                    ltp = round(float(intra["Close"].iloc[-1]), 2)
+            except Exception:
+                pass
+
+        return {
+            "symbol":    symbol.upper(),
+            "timeframe": timeframe,
+            "ohlc":      {"high": round(H, 2), "low": round(L, 2), "close": round(C, 2), "date": date_label},
+            "cpr":       cpr,
+            "ltp":       ltp,
+        }
+
+    except Exception as e:
+        log.error(f"[CPR-LEVELS] {symbol}/{timeframe}: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/cpr-levels")
+async def cpr_levels(symbol: str = "NIFTY", timeframe: str = "daily"):
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _cpr_levels_sync, symbol, timeframe)
+    except Exception as e:
+        log.error(f"[CPR-LEVELS] endpoint error: {e}")
+        return {"error": str(e)}
+
+
+def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
+    import yfinance as yf
+    import datetime as _dt
+    import pandas as pd
+
+    IST     = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    now_ist = _dt.datetime.now(IST)
+    today   = now_ist.date()
+    _IST_OFF = 19800  # +5h30m in seconds for chart display
+
+    is_nifty = symbol.upper() in ("NIFTY", "^NSEI", "NIFTY50")
+    yf_sym   = "^NSEI" if is_nifty else f"{symbol.upper()}.NS"
+
+    try:
+        if timeframe == "daily":
+            df = yf.Ticker(yf_sym).history(period="1d", interval="5m")
+            df = df.dropna()
+            if df.empty:
+                return {"candles": [], "interval": "5m", "count": 0}
+            try:
+                df.index = df.index.tz_convert("Asia/Kolkata")
+                df = df.between_time("09:15", "15:30")
+            except Exception:
+                pass
+            candles = []
+            for ts, row in df.iterrows():
+                candles.append({
+                    "time":  int(ts.timestamp()) + _IST_OFF,
+                    "open":  round(float(row["Open"]),  2),
+                    "high":  round(float(row["High"]),  2),
+                    "low":   round(float(row["Low"]),   2),
+                    "close": round(float(row["Close"]), 2),
+                })
+            return {"candles": candles, "interval": "5m", "count": len(candles)}
+
+        else:
+            period = "3mo" if timeframe == "monthly" else "1mo"
+            df = yf.Ticker(yf_sym).history(period=period, interval="1d")
+            df = df.dropna()
+            if df.empty:
+                return {"candles": [], "interval": "1d", "count": 0}
+            try:
+                df.index = df.index.normalize()
+            except Exception:
+                pass
+            if timeframe == "weekly":
+                week_start = today - _dt.timedelta(days=today.weekday())
+                df = df[df.index.date >= week_start]
+            elif timeframe == "monthly":
+                month_start = today.replace(day=1)
+                df = df[df.index.date >= month_start]
+            candles = []
+            for ts, row in df.iterrows():
+                try:
+                    day_ts = int(pd.Timestamp(str(ts.date())).timestamp())
+                    candles.append({
+                        "time":  day_ts,
+                        "open":  round(float(row["Open"]),  2),
+                        "high":  round(float(row["High"]),  2),
+                        "low":   round(float(row["Low"]),   2),
+                        "close": round(float(row["Close"]), 2),
+                    })
+                except Exception:
+                    pass
+            return {"candles": candles, "interval": "1d", "count": len(candles)}
+
+    except Exception as e:
+        log.error(f"[CANDLES-FOR-CPR] {symbol}/{timeframe}: {e}")
+        return {"candles": [], "interval": "5m", "count": 0, "error": str(e)}
+
+
+@app.get("/candles-for-cpr")
+async def candles_for_cpr(symbol: str = "NIFTY", timeframe: str = "daily"):
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _candles_for_cpr_sync, symbol, timeframe)
+    except Exception as e:
+        log.error(f"[CANDLES-FOR-CPR] endpoint error: {e}")
+        return {"candles": [], "interval": "5m", "count": 0, "error": str(e)}
+
+
 # ── Node management (called by launcher when Node is offline) ──────────────────
 # These live on Python so they work even when the Node server is stopped.
 # Browser hits /api/mgmt/... → nginx strips /api/ → Python receives /mgmt/...

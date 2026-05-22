@@ -57,6 +57,19 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .zone-below{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.4s infinite;margin-right:4px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* SELECTOR BAR */
+.sel-bar{display:flex;align-items:center;gap:24px;padding:12px 28px;background:var(--bg1);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.sel-group{display:flex;align-items:center;gap:10px}
+.sel-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.sel-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.sel-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;padding:4px 12px;border-radius:var(--r2);border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.sel-btn:hover{background:var(--bg3);color:var(--text)}
+.sel-btn.active{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.35);color:var(--cyan)}
+.sel-stock{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 8px;border-radius:var(--r2);border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;outline:none;transition:border-color .15s}
+.sel-stock:focus,.sel-stock:hover{border-color:rgba(0,212,255,0.35);color:var(--text)}
+.sel-info{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--cyan);background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);padding:3px 10px;border-radius:20px;white-space:nowrap}
+@media(max-width:768px){.sel-bar{padding:10px 16px;gap:12px}.sel-info{display:none}}
 .bias-chip{font-size:12px;padding:4px 10px;border-radius:var(--r2);font-weight:600}
 .bias-bull{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
 .bias-bear{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
@@ -203,7 +216,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
   <div class="hero-top">
     <div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span class="hero-title">CPR Monitor</span>
+        <span class="hero-title" id="heroTitle">CPR Monitor</span>
         <span id="cprTypeBadge" class="cpr-type-badge badge-moderate">LOADING…</span>
         <span id="virginBadge" class="cpr-type-badge badge-virgin" style="display:none">🔮 VIRGIN CPR</span>
       </div>
@@ -211,6 +224,37 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
       <a href="/cpr_monitor_tutorial_tamil.html" target="_blank" style="display:inline-block;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);padding:3px 12px;border-radius:20px;text-decoration:none;letter-spacing:0.5px">📖 இந்த கருவியை எப்படி பயன்படுத்துவது? (தமிழ் வழிகாட்டி)</a>
     </div>
   </div>
+</div>
+
+<!-- SELECTOR BAR -->
+<div class="sel-bar">
+  <div class="sel-group">
+    <span class="sel-label">Instrument</span>
+    <div class="sel-row">
+      <button class="sel-btn active" id="btnNifty" onclick="setInstrument('NIFTY')">NIFTY</button>
+      <select id="stockSel" class="sel-stock" onchange="if(this.value)setInstrument(this.value)">
+        <option value="">Stock ▾</option>
+        <option>RELIANCE</option><option>TCS</option><option>INFY</option><option>HDFCBANK</option>
+        <option>ICICIBANK</option><option>SBIN</option><option>WIPRO</option><option>BAJFINANCE</option>
+        <option>KOTAKBANK</option><option>AXISBANK</option><option>TATAMOTORS</option><option>TATASTEEL</option>
+        <option>HINDUNILVR</option><option>ITC</option><option>BHARTIARTL</option><option>SUNPHARMA</option>
+        <option>DRREDDY</option><option>CIPLA</option><option>LT</option><option>ADANIENT</option>
+        <option>ADANIPORTS</option><option>BAJAJFINSV</option><option>GRASIM</option><option>HEROMOTOCO</option>
+        <option>HINDALCO</option><option>JSWSTEEL</option><option>MARUTI</option><option>M&amp;M</option>
+        <option>NTPC</option><option>ONGC</option><option>POWERGRID</option><option>TITAN</option>
+        <option>ULTRACEMCO</option><option>HDFCLIFE</option><option>SBILIFE</option><option>ZOMATO</option>
+      </select>
+    </div>
+  </div>
+  <div class="sel-group">
+    <span class="sel-label">CPR Timeframe</span>
+    <div class="sel-row" id="tfBtns">
+      <button class="sel-btn active" data-tf="daily" onclick="setTimeframe('daily',this)">Daily</button>
+      <button class="sel-btn" data-tf="weekly" onclick="setTimeframe('weekly',this)">Weekly</button>
+      <button class="sel-btn" data-tf="monthly" onclick="setTimeframe('monthly',this)">Monthly</button>
+    </div>
+  </div>
+  <span id="selInfo" class="sel-info">NIFTY • DAILY CPR</span>
 </div>
 
 <!-- LIVE BAR -->
@@ -247,7 +291,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 <div class="chart-section">
   <div class="chart-card">
     <div class="chart-head">
-      <span class="chart-title">📈 5-Min Chart with CPR Levels & Alert Markers</span>
+      <span class="chart-title" id="chartTitle">📈 5-Min Chart with CPR Levels & Alert Markers</span>
       <div class="chart-legend" id="chartLegend">
         <span style="color:var(--muted)">Loading…</span>
       </div>
@@ -346,9 +390,11 @@ let _candleSerie = null;
 // State
 // ─────────────────────────────────────────────
 const API = '/api';
+let _symbol     = 'NIFTY';   // current instrument
+let _timeframe  = 'daily';   // 'daily' | 'weekly' | 'monthly'
 let _levels     = null;   // { tc, bc, pp, r1..r3, s1..s3, width, cam: {h3,h4,l3,l4} }
 let _prevDay    = null;   // { high, low, close, date }
-let _candles    = [];     // latest 5m candles
+let _candles    = [];     // latest candles (5m for daily, daily for weekly/monthly)
 let _processed  = new Set();
 let _allAlerts  = [];
 let _filterType = 'all';
@@ -357,7 +403,7 @@ let _breakoutDir    = null;   // 'bull' | 'bear'
 let _breakoutIdx    = null;
 let _running    = true;
 let _pollTimer  = null;
-let _scenario   = null;
+let _levelInterval = null;
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -400,14 +446,13 @@ function round2(v) { return Math.round(v * 100) / 100; }
 // ─────────────────────────────────────────────
 async function fetchLevels() {
   try {
-    const r = await fetch(`${API}/trade-flow`);
+    const r = await fetch(`${API}/cpr-levels?symbol=${_symbol}&timeframe=${_timeframe}`);
     const d = await r.json();
-    if (!d.cpr || !d.prev_day) return;
+    if (!d.cpr || !d.ohlc) return;
 
-    _prevDay  = d.prev_day;
-    _scenario = d.scenario;
+    _prevDay = d.ohlc;
 
-    const c = d.cpr;
+    const c   = d.cpr;
     const cam = calcCamarilla(_prevDay.high, _prevDay.low, _prevDay.close);
 
     _levels = {
@@ -418,12 +463,12 @@ async function fetchLevels() {
       cam,
     };
 
-    // CPR type
+    // CPR type badge
     const w = c.width;
     let typeLabel, typeCls;
-    if (w < 40)       { typeLabel = 'NARROW CPR';   typeCls = 'badge-narrow'; }
-    else if (w <= 80) { typeLabel = 'MODERATE CPR';  typeCls = 'badge-moderate'; }
-    else              { typeLabel = 'WIDE CPR';      typeCls = 'badge-wide'; }
+    if (w < 40)       { typeLabel = 'NARROW CPR';  typeCls = 'badge-narrow'; }
+    else if (w <= 80) { typeLabel = 'MODERATE CPR'; typeCls = 'badge-moderate'; }
+    else              { typeLabel = 'WIDE CPR';     typeCls = 'badge-wide'; }
 
     const ppVsClose = c.pp - _prevDay.close;
     const biasLabel = ppVsClose > 20 ? 'HIGHER VALUE' : ppVsClose < -20 ? 'LOWER VALUE' : typeLabel;
@@ -432,8 +477,17 @@ async function fetchLevels() {
     badge.textContent = biasLabel;
     badge.className   = `cpr-type-badge ${typeCls}`;
 
+    // Dynamic hero title and subtitle
+    const ht = document.getElementById('heroTitle');
+    if (ht) ht.textContent = _symbol === 'NIFTY' ? 'CPR Monitor' : `${_symbol} CPR`;
+
+    const tfLabels = {daily: 'Prev Day', weekly: 'Prev Week', monthly: 'Prev Month'};
+    const tfLabel  = tfLabels[_timeframe] || 'Prev Period';
     document.getElementById('heroSub').textContent =
-      `Prev Day: H ${fmt(_prevDay.high)} · L ${fmt(_prevDay.low)} · C ${fmt(_prevDay.close)} · CPR Width ${fmt(w)} pts`;
+      `${tfLabel}: H ${fmt(_prevDay.high)} · L ${fmt(_prevDay.low)} · C ${fmt(_prevDay.close)} [${d.ohlc.date}] · CPR Width ${fmt(w)} pts`;
+
+    const tlMap = {daily: 'Prev Day OHLC', weekly: 'Prev Week OHLC', monthly: 'Prev Month OHLC'};
+    document.getElementById('prevDayLabel').textContent = tlMap[_timeframe] || 'OHLC';
 
     document.getElementById('statPP').textContent    = fmt(c.pp);
     document.getElementById('statTC').textContent    = fmt(c.tc);
@@ -441,16 +495,17 @@ async function fetchLevels() {
     document.getElementById('statWidth').textContent = fmt(c.width) + ' pts';
     document.getElementById('statDate').textContent  = _prevDay.date || '—';
 
-    // Bias pill from scenario
+    // Update LTP display if available (for weekly/monthly mode the candles won't have fresh LTP)
+    if (d.ltp) updateLiveDisplay(d.ltp);
+
     updateBiasPill();
-    renderLadder(d.nifty_ltp);
-    renderCamLadder(d.nifty_ltp);
-    renderSignals(d.nifty_ltp);
+    renderLadder(d.ltp);
+    renderCamLadder(d.ltp);
+    renderSignals(d.ltp);
     if (_chart) drawChartLines();
 
-    // Virgin CPR detection — check if prev day range overlapped CPR
-    // Simple heuristic: if prev day close was well outside CPR, mark virgin
-    const prevClose = _prevDay.close;
+    // Virgin CPR detection
+    const prevClose  = _prevDay.close;
     const outsideCPR = prevClose > c.tc + 10 || prevClose < c.bc - 10;
     if (outsideCPR && _virginCPR) {
       document.getElementById('virginBadge').style.display = '';
@@ -462,7 +517,7 @@ async function fetchLevels() {
 
 async function fetchCandles() {
   try {
-    const r = await fetch(`${API}/candles`);
+    const r = await fetch(`${API}/candles-for-cpr?symbol=${_symbol}&timeframe=${_timeframe}`);
     const d = await r.json();
     if (!d.candles || !d.candles.length) return;
     _candles = d.candles;
@@ -691,14 +746,7 @@ function updateLiveDisplay(price) {
 
 function updateBiasPill() {
   const pill = document.getElementById('biasPill');
-  if (_scenario === 'bull' || _scenario === 'conditional_bull') {
-    pill.textContent = '▲ BULL BIAS'; pill.className = 'bias-chip bias-bull';
-  } else if (_scenario === 'bear' || _scenario === 'conditional_bear') {
-    pill.textContent = '▼ BEAR BIAS'; pill.className = 'bias-chip bias-bear';
-  } else {
-    pill.textContent = 'NEUTRAL'; pill.className = 'bias-chip bias-neutral';
-  }
-  // Override with CPR value bias
+  pill.textContent = 'NEUTRAL'; pill.className = 'bias-chip bias-neutral';
   if (_levels && _prevDay) {
     const ppVsClose = _levels.pp - _prevDay.close;
     if (ppVsClose > 20)       { pill.textContent = '▲ HIGHER VALUE'; pill.className = 'bias-chip bias-bull'; }
@@ -989,7 +1037,10 @@ function toggleMonitor() {
 function startPoll() {
   if (!_running) return;
   fetchCandles();
-  _pollTimer = setTimeout(startPoll, 30000);  // every 30s
+  // For weekly/monthly daily-candle views, also refresh LTP via levels endpoint
+  if (_timeframe !== 'daily') fetchLevels();
+  const interval = _timeframe === 'daily' ? 30000 : 300000;
+  _pollTimer = setTimeout(startPoll, interval);
 }
 
 // ─────────────────────────────────────────────
@@ -1117,14 +1168,107 @@ function updateChartMarkers() {
 }
 
 // ─────────────────────────────────────────────
+// Instrument & Timeframe selectors
+// ─────────────────────────────────────────────
+function setInstrument(sym) {
+  _symbol = sym.toUpperCase();
+  const niftyBtn = document.getElementById('btnNifty');
+  const stockSel = document.getElementById('stockSel');
+  if (_symbol === 'NIFTY') {
+    niftyBtn.classList.add('active');
+    stockSel.value = '';
+  } else {
+    niftyBtn.classList.remove('active');
+  }
+  updateSelInfo();
+  resetAndReload();
+}
+
+function setTimeframe(tf, btn) {
+  _timeframe = tf;
+  document.querySelectorAll('#tfBtns .sel-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tf === tf);
+  });
+  updateSelInfo();
+  resetAndReload();
+}
+
+function updateSelInfo() {
+  const el = document.getElementById('selInfo');
+  if (el) el.textContent = `${_symbol} • ${_timeframe.toUpperCase()} CPR`;
+}
+
+function resetAndReload() {
+  clearTimeout(_pollTimer);
+  clearInterval(_levelInterval);
+  _pollTimer     = null;
+  _levelInterval = null;
+
+  _levels      = null;
+  _prevDay     = null;
+  _candles     = [];
+  _processed   = new Set();
+  _allAlerts   = [];
+  _virginCPR   = true;
+  _breakoutDir = null;
+  _breakoutIdx = null;
+  _filterType  = 'all';
+
+  // Reset UI elements
+  document.getElementById('ltpDisplay').textContent    = '—';
+  document.getElementById('zonePill').textContent      = 'LOADING';
+  document.getElementById('zonePill').className        = 'zone-pill zone-inside';
+  document.getElementById('biasPill').textContent      = 'NEUTRAL';
+  document.getElementById('biasPill').className        = 'bias-chip bias-neutral';
+  document.getElementById('alertCount').textContent    = '0 alerts';
+  document.getElementById('cprTypeBadge').textContent  = 'LOADING…';
+  document.getElementById('heroSub').textContent       = 'Fetching CPR levels…';
+  document.getElementById('virginBadge').style.display = 'none';
+  document.getElementById('virginBanner').classList.remove('hidden');
+  document.getElementById('virginBanner').style.display = 'none';
+  document.getElementById('statPP').textContent        = '—';
+  document.getElementById('statTC').textContent        = '—';
+  document.getElementById('statBC').textContent        = '—';
+  document.getElementById('statWidth').textContent     = '—';
+  document.getElementById('statCandles').textContent   = '—';
+  document.getElementById('statLastCandle').textContent= '—';
+  document.getElementById('statDate').textContent      = '—';
+  document.getElementById('ladder').innerHTML          = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Fetching levels…</div>';
+  document.getElementById('camLadder').innerHTML       = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Calculating…</div>';
+  document.getElementById('signalsPanel').innerHTML    = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Waiting for data…</div>';
+  document.getElementById('alertFeed').innerHTML       = '<div class="empty-feed"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Loading new instrument…</div>';
+  document.getElementById('feedCount').textContent    = '0 events';
+
+  // Reset filter buttons
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  const allBtn = document.querySelector('.filter-btn[data-f="all"]');
+  if (allBtn) allBtn.classList.add('on');
+
+  // Update chart title
+  const tfTitles = {daily: '5-Min Chart with CPR Levels & Alert Markers', weekly: 'Daily Chart — Weekly CPR Levels', monthly: 'Daily Chart — Monthly CPR Levels'};
+  const ctEl = document.getElementById('chartTitle');
+  if (ctEl) ctEl.textContent = `📈 ${tfTitles[_timeframe] || '5-Min Chart with CPR Levels'}`;
+
+  // Destroy chart
+  if (_chart) { _chart.remove(); _chart = null; _candleSerie = null; }
+
+  // Ensure monitor is running
+  _running = true;
+  document.getElementById('toggleBtn').textContent = '⏸ PAUSE';
+  document.getElementById('toggleBtn').className   = 'scan-btn active';
+
+  init();
+}
+
+// ─────────────────────────────────────────────
 // Init
 // ─────────────────────────────────────────────
 async function init() {
   await fetchLevels();
   await fetchCandles();
   startPoll();
-  // Refresh levels every 5 min (CPR doesn't change but gets scenario/LTP update)
-  setInterval(fetchLevels, 300000);
+  if (_levelInterval) clearInterval(_levelInterval);
+  _levelInterval = setInterval(fetchLevels, 300000);
 }
 
 init();
