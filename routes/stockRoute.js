@@ -694,4 +694,14 @@ router.delete("/reports/:date", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/screener/breakouts?category=multibagger ────────────────────────
+// On-demand Nifty-500 breakout screener — may take 30–60 s
+router.get("/screener/breakouts", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query).toString();
+    const data = await aiService.proxy("GET", `/screener/breakouts?${params}`, 120000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

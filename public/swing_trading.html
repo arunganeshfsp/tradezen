@@ -252,6 +252,59 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
   .plan-grid{grid-template-columns:1fr 1fr}
   .pos-form{grid-template-columns:1fr 1fr}
 }
+
+/* ── Screener ─────────────────────────────────────────────────────────────── */
+.sc-section-head{margin-bottom:14px}
+.sc-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.sc-cat-btn{display:flex;flex-direction:column;align-items:center;gap:4px;
+            padding:14px 10px;border-radius:12px;border:1px solid var(--border2);
+            background:var(--bg2);cursor:pointer;transition:all .18s;text-align:center}
+.sc-cat-btn:hover{border-color:var(--accent);background:var(--bg3);transform:translateY(-1px)}
+.sc-cat-btn.sc-active{border-color:var(--accent);background:rgba(124,106,247,.12);
+                       box-shadow:0 0 0 1px var(--accent)}
+.sc-cat-icon{font-size:22px;line-height:1}
+.sc-cat-label{font-size:12px;font-weight:700;color:var(--text)}
+.sc-cat-sub{font-size:10px;color:var(--muted)}
+.sc-disclaimer{background:rgba(241,196,15,.07);border:1px solid rgba(241,196,15,.22);
+               border-radius:10px;padding:10px 16px;font-size:11px;color:var(--dim);
+               margin-bottom:16px;line-height:1.6}
+.sc-loading-wrap{display:flex;align-items:center;gap:16px;padding:24px 20px 14px;
+                 background:var(--bg2);border-radius:10px;border:1px solid var(--border)}
+.sc-loading-msg{font-size:13px;color:var(--text);font-weight:500}
+.sc-elapsed{font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.sc-progress-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.sc-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));
+                  border-radius:2px;transition:width .5s ease;width:0}
+.sc-results-head{display:flex;align-items:flex-start;justify-content:space-between;
+                 gap:10px;margin-bottom:14px}
+.sc-results-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)}
+.sc-results-meta{font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.sc-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:680px){.sc-cards{grid-template-columns:1fr}}
+.sc-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+         padding:14px 16px;display:flex;gap:12px;align-items:flex-start;
+         transition:border-color .15s}
+.sc-card:hover{border-color:var(--border2)}
+.sc-rank{width:24px;height:24px;border-radius:50%;background:var(--bg4);
+         display:flex;align-items:center;justify-content:center;
+         font-family:var(--mono);font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0}
+.sc-card-main{flex:1;min-width:0}
+.sc-sym-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:3px}
+.sc-sym{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text)}
+.sc-ltp{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--cyan)}
+.sc-label{font-size:12px;font-weight:600;color:var(--green);margin-bottom:5px}
+.sc-sub-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
+.sc-sub{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.sc-tags{display:flex;gap:4px;flex-wrap:wrap}
+.sc-tag{font-size:9px;font-weight:700;letter-spacing:.4px;padding:2px 7px;
+        border-radius:20px;border:1px solid;white-space:nowrap}
+.sc-score-wrap{display:flex;align-items:center;gap:8px}
+.sc-score-bar{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.sc-score-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.sc-score-val{font-family:var(--mono);font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.sc-empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:32px}
+.sc-err{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);
+        border-radius:10px;padding:12px 16px;font-size:12px;color:var(--red);margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -316,6 +369,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
   <button class="tab-btn active" onclick="switchTab('analyse',this)">🔍 Analyse Stock</button>
   <button class="tab-btn" onclick="switchTab('scan',this)">📊 Friday Scan</button>
   <button class="tab-btn" onclick="switchTab('review',this)">📋 Portfolio Review</button>
+  <button class="tab-btn" onclick="switchTab('screener',this)">📡 Screener</button>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
@@ -440,6 +494,97 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
   <div id="pos-list"></div>
 
 </div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 4: SCREENER
+══════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="pane-screener">
+
+  <div class="sc-section-head">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Select Breakout Category</div>
+    <div style="font-size:11px;color:var(--muted)">Scans ~120 Nifty-500 stocks in real time · top 10 ranked by breakout score</div>
+  </div>
+
+  <div class="sc-cats" id="scCats">
+    <button class="sc-cat-btn" data-cat="multibagger" onclick="runScreener('multibagger',this)">
+      <span class="sc-cat-icon">🚀</span>
+      <span class="sc-cat-label">Multibagger</span>
+      <span class="sc-cat-sub">&gt;100% from 52W low</span>
+    </button>
+    <button class="sc-cat-btn" data-cat="breakout_1y" onclick="runScreener('breakout_1y',this)">
+      <span class="sc-cat-icon">📈</span>
+      <span class="sc-cat-label">1Y Breakout</span>
+      <span class="sc-cat-sub">Above 1-year high</span>
+    </button>
+    <button class="sc-cat-btn" data-cat="breakout_3y" onclick="runScreener('breakout_3y',this)">
+      <span class="sc-cat-icon">🏔️</span>
+      <span class="sc-cat-label">3Y Breakout</span>
+      <span class="sc-cat-sub">Above 3-year high</span>
+    </button>
+    <button class="sc-cat-btn" data-cat="breakout_5y" onclick="runScreener('breakout_5y',this)">
+      <span class="sc-cat-icon">⛰️</span>
+      <span class="sc-cat-label">5Y Breakout</span>
+      <span class="sc-cat-sub">Above 5-year high</span>
+    </button>
+    <button class="sc-cat-btn" data-cat="breakout_ath" onclick="runScreener('breakout_ath',this)">
+      <span class="sc-cat-icon">🌟</span>
+      <span class="sc-cat-label">All-Time High</span>
+      <span class="sc-cat-sub">All-time breakout</span>
+    </button>
+    <button class="sc-cat-btn" data-cat="yearly" onclick="runScreener('yearly',this)">
+      <span class="sc-cat-icon">📅</span>
+      <span class="sc-cat-label">Yearly</span>
+      <span class="sc-cat-sub">YTD new high</span>
+    </button>
+    <button class="sc-cat-btn" data-cat="monthly" onclick="runScreener('monthly',this)">
+      <span class="sc-cat-icon">📆</span>
+      <span class="sc-cat-label">Monthly</span>
+      <span class="sc-cat-sub">MTD new high</span>
+    </button>
+  </div>
+
+  <div class="sc-disclaimer">
+    ⚠️ <strong>On-demand scan</strong> — fetches live daily OHLCV from Yahoo Finance for ~120 stocks.
+    Typically takes <strong>20–60 seconds</strong> depending on market hours and data availability.
+    Results are as of scan time. <strong>Not investment advice.</strong>
+  </div>
+
+  <!-- Loading state -->
+  <div id="sc-loading" style="display:none">
+    <div class="sc-loading-wrap">
+      <div class="spinner"></div>
+      <div>
+        <div class="sc-loading-msg" id="sc-loading-msg">Initialising screener…</div>
+        <div class="sc-elapsed" id="sc-elapsed">0s elapsed</div>
+      </div>
+    </div>
+    <div class="sc-progress-bar"><div class="sc-progress-fill" id="sc-progress-fill"></div></div>
+  </div>
+
+  <!-- Error -->
+  <div id="sc-error" class="sc-err" style="display:none"></div>
+
+  <!-- Results -->
+  <div id="sc-results" style="display:none">
+    <div class="sc-results-head">
+      <div>
+        <div class="sc-results-title" id="sc-results-title">Top 10 Results</div>
+        <div class="sc-results-meta" id="sc-results-meta"></div>
+      </div>
+      <button class="btn-outline" onclick="clearScreener()" style="font-size:11px;padding:5px 14px">✕ Clear</button>
+    </div>
+    <div class="sc-cards" id="sc-cards"></div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="sc-empty" style="display:none" class="sc-empty">
+    <div style="font-size:32px;margin-bottom:8px">🔍</div>
+    <div style="font-size:14px;font-weight:700;color:var(--dim);margin-bottom:4px">No stocks found</div>
+    <div style="font-size:12px;color:var(--muted)">No stocks matched the criteria. Try a different category or check back when markets are active.</div>
+  </div>
+
+</div>
+
 </div><!-- .wrap -->
 
 <footer class="tz-footer">
@@ -1172,6 +1317,133 @@ function renderPositions() {
 // Init review tab
 document.getElementById("p_date").value = new Date().toISOString().slice(0, 10);
 renderPositions();
+
+// ─── Screener ────────────────────────────────────────────────────────────────
+let _scTimer = null;
+
+const _SC_MSGS = [
+  'Connecting to market data…',
+  'Downloading historical OHLCV for ~120 stocks…',
+  'Analysing price structure and volume…',
+  'Computing breakout scores…',
+  'Ranking and filtering top results…',
+];
+
+const _SC_LABELS = {
+  multibagger:  '🚀 Multibagger Stocks',
+  breakout_1y:  '📈 1-Year Breakout',
+  breakout_3y:  '🏔️ 3-Year Breakout',
+  breakout_5y:  '⛰️ 5-Year Breakout',
+  breakout_ath: '🌟 All-Time High Breakout',
+  yearly:       '📅 Yearly Breakout',
+  monthly:      '📆 Monthly Breakout',
+};
+
+function runScreener(category, btn) {
+  // Highlight active button
+  document.querySelectorAll('.sc-cat-btn').forEach(b => b.classList.remove('sc-active'));
+  if (btn) btn.classList.add('sc-active');
+
+  // Reset state
+  ['sc-results', 'sc-empty', 'sc-error'].forEach(id =>
+    document.getElementById(id).style.display = 'none'
+  );
+  const loadEl = document.getElementById('sc-loading');
+  loadEl.style.display = '';
+  document.getElementById('sc-progress-fill').style.width = '0';
+
+  // Elapsed timer + animated progress
+  let elapsed = 0;
+  if (_scTimer) clearInterval(_scTimer);
+  _scTimer = setInterval(() => {
+    elapsed++;
+    document.getElementById('sc-elapsed').textContent = `${elapsed}s elapsed`;
+    const msgIdx = Math.min(Math.floor(elapsed / 10), _SC_MSGS.length - 1);
+    document.getElementById('sc-loading-msg').textContent = _SC_MSGS[msgIdx];
+    document.getElementById('sc-progress-fill').style.width =
+      Math.min(90, elapsed * 1.5) + '%';
+  }, 1000);
+
+  fetch(`/api/screener/breakouts?category=${category}`)
+    .then(r => r.json())
+    .then(data => {
+      clearInterval(_scTimer);
+      document.getElementById('sc-progress-fill').style.width = '100%';
+      setTimeout(() => {
+        loadEl.style.display = 'none';
+        if (data.error) {
+          const errEl = document.getElementById('sc-error');
+          errEl.textContent = '⚠️ ' + data.error;
+          errEl.style.display = '';
+          return;
+        }
+        if (!data.stocks || data.stocks.length === 0) {
+          document.getElementById('sc-empty').style.display = '';
+          return;
+        }
+        _renderScreener(data);
+      }, 250);
+    })
+    .catch(err => {
+      clearInterval(_scTimer);
+      loadEl.style.display = 'none';
+      const errEl = document.getElementById('sc-error');
+      errEl.textContent = '⚠️ Screener request failed: ' + err.message;
+      errEl.style.display = '';
+    });
+}
+
+function clearScreener() {
+  ['sc-results', 'sc-empty', 'sc-error'].forEach(id =>
+    document.getElementById(id).style.display = 'none'
+  );
+  document.querySelectorAll('.sc-cat-btn').forEach(b => b.classList.remove('sc-active'));
+}
+
+function _renderScreener(data) {
+  document.getElementById('sc-results-title').textContent =
+    _SC_LABELS[data.category] || data.category;
+  document.getElementById('sc-results-meta').textContent =
+    `${data.qualified} qualified out of ${data.screened} scanned  ·  ${data.as_of}`;
+
+  const cards = data.stocks.map((s, i) => {
+    const scoreColor = s.score >= 70 ? 'var(--green)' : s.score >= 45 ? 'var(--yellow)' : 'var(--cyan)';
+    const volColor   = s.vol_ratio >= 3 ? 'var(--green)' : s.vol_ratio >= 2 ? 'var(--yellow)' : 'var(--blue)';
+    const smaTag     = s.above_200sma
+      ? `<span class="sc-tag" style="color:var(--green);border-color:rgba(46,204,113,.35)">▲ 200d SMA</span>`
+      : `<span class="sc-tag" style="color:var(--red);border-color:rgba(231,76,60,.35)">▼ 200d SMA</span>`;
+    const ltp = typeof s.ltp === 'number'
+      ? '₹' + s.ltp.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 2})
+      : '—';
+
+    return `<div class="sc-card">
+      <div class="sc-rank">${i + 1}</div>
+      <div class="sc-card-main">
+        <div class="sc-sym-row">
+          <span class="sc-sym">${s.symbol}</span>
+          <span class="sc-ltp">${ltp}</span>
+        </div>
+        <div class="sc-label">${s.label}</div>
+        <div class="sc-sub-row">
+          <span class="sc-sub">${s.sub}</span>
+          <div class="sc-tags">
+            <span class="sc-tag" style="color:${volColor};border-color:${volColor}50">${s.vol_ratio}× vol</span>
+            ${smaTag}
+          </div>
+        </div>
+        <div class="sc-score-wrap">
+          <div class="sc-score-bar">
+            <div class="sc-score-fill" style="width:${s.score}%;background:${scoreColor}"></div>
+          </div>
+          <span class="sc-score-val" style="color:${scoreColor}">${s.score}<span style="font-size:9px;opacity:.7">/100</span></span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('sc-cards').innerHTML = cards;
+  document.getElementById('sc-results').style.display = '';
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>

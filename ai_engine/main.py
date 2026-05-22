@@ -2040,6 +2040,29 @@ async def market_summary_endpoint():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Breakout Screener — on-demand Nifty-500 scan
+# ══════════════════════════════════════════════════════════════════════════════
+try:
+    from screener import run_screener as _run_screener
+    _screener_ok = True
+except ImportError as _se:
+    log.warning(f"screener module not available: {_se}")
+    _screener_ok = False
+
+
+@app.get("/screener/breakouts")
+async def screener_breakouts(category: str = "breakout_1y"):
+    if not _screener_ok:
+        return {"error": "Screener module unavailable", "stocks": []}
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _run_screener, category)
+    except Exception as e:
+        log.error(f"[SCREENER] error: {e}")
+        return {"error": str(e), "stocks": []}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Market Psychology Engine — dominance scoring + Supertrend + VWAP per candle
 # ══════════════════════════════════════════════════════════════════════════════
 
