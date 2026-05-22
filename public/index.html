@@ -1,295 +1,847 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeZen — Nifty Options Trading Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
-  --border:#252a44;--border2:#323868;
-  --accent:#7c6af7;--blue:#5b8af5;
-  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);
-  --red:#e74c3c;
-  --yellow:#f5a623;
-  --cyan:#00d4ff;
-  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
-  --r:12px;--r2:8px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradeZen — Trade smarter with AI-powered signals</title>
+  <meta name="description" content="Intraday trade-flow analysis, options intelligence, and market structure — all in one place. Built for Nifty weekly expiries on NSE. Learn in English or தமிழ்." />
 
-/* NAV */
-nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
-.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none}
-.logo{width:36px;height:36px;border-radius:50%;background:var(--cyan);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#000}
-.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
-.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);padding:3px 10px;border-radius:20px}
+  <link rel="icon" type="image/png" href="/favicon.png" />
 
-/* HERO */
-.hero{padding:64px 28px 52px;text-align:center;border-bottom:1px solid var(--border);
-  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.15) 0%,transparent 65%),var(--bg)}
-.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:20px}
-.hero h1{font-family:'Syne',sans-serif;font-size:clamp(30px,5vw,56px);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1.5px;margin-bottom:12px}
-.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{font-size:15px;color:var(--dim);max-width:520px;margin:0 auto;line-height:1.7}
+  <!-- 1. Design tokens -->
+  <link rel="stylesheet" href="css/halo-tokens.css" />
+  <!-- 2. Bootstrap 5.3 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <!-- 3. Halo Aurora overrides -->
+  <link rel="stylesheet" href="css/halo-aurora.css" />
 
-/* SECTIONS */
-.wrap{max-width:1100px;margin:0 auto;padding:48px 28px 80px;display:flex;flex-direction:column;gap:52px}
-.section-title{display:flex;align-items:center;gap:12px;margin-bottom:24px}
-.section-title h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff}
-.section-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:12px}
-.tag-tools{color:var(--green);background:var(--green-bg);border:1px solid rgba(46,204,113,0.25)}
-.tag-tutorials{color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25)}
-.tag-tamil{color:var(--yellow);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25)}
-.section-line{flex:1;height:1px;background:var(--border)}
+  <style>
+    /* py-md-6 spacing utility */
+    @media (min-width: 768px) { .py-md-6 { padding-top: 5rem !important; padding-bottom: 5rem !important; } }
 
-/* TOOL CARDS */
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
-.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:28px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:16px;transition:all .2s;cursor:pointer}
-.tool-card:hover{border-color:var(--border2);background:var(--bg3);transform:translateY(-2px)}
-.tool-card:hover .tool-arrow{opacity:1;transform:translateX(4px)}
-.tool-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.icon-flow{background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.25)}
-.icon-options{background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.25)}
-.tool-card h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:4px}
-.tool-card p{font-size:13px;color:var(--dim);line-height:1.6}
-.tool-footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
-.tool-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
-.label-green{color:var(--green)}
-.label-accent{color:var(--accent)}
-.tool-arrow{font-size:16px;opacity:0.4;transition:all .2s;color:var(--dim)}
-
-/* TUTORIAL CARDS */
-.tutorials-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.tut-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;text-decoration:none;color:inherit;display:flex;align-items:center;gap:14px;transition:all .2s}
-.tut-card:hover{border-color:var(--border2);background:var(--bg3)}
-.tut-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);width:20px;flex-shrink:0}
-.tut-body{flex:1;min-width:0}
-.tut-body h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tut-body span{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
-.tut-arrow{font-size:14px;color:var(--muted);opacity:0.5;flex-shrink:0}
-
-.sub-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-
-/* FOOTER */
-footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
-</style>
-<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+    /* Tutorials compact row items */
+    .tut-item {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--tz-surface); border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-md); padding: 14px 16px;
+      text-decoration: none; color: var(--tz-fg-1);
+      transition: border-color var(--tz-duration-fast) var(--tz-ease-out),
+                  background var(--tz-duration-fast) var(--tz-ease-out);
+      height: 100%;
+    }
+    .tut-item:hover { border-color: var(--tz-border-strong); background: var(--tz-surface-2); color: var(--tz-fg-1); }
+    .tut-num { font-family: var(--tz-font-mono); font-size: 11px; color: var(--tz-fg-3); width: 22px; flex-shrink: 0; }
+    .tut-body { flex: 1; min-width: 0; }
+    .tut-body h4 { font-size: 13px; font-weight: 600; color: var(--tz-fg-1); margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tut-body span { font-family: var(--tz-font-mono); font-size: 10px; color: var(--tz-fg-3); letter-spacing: 0.08em; }
+    .tut-arrow { color: var(--tz-fg-3); display: inline-flex; flex-shrink: 0; }
+    .tut-sublabel {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--tz-font-mono); font-size: 10.5px;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--tz-fg-3);
+      margin-bottom: 14px;
+    }
+    .tag-ta {
+      font-family: var(--tz-font-tamil); font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: var(--tz-radius-full);
+      background: var(--tz-grad); color: #fff;
+      letter-spacing: 0;
+    }
+  </style>
 </head>
+
 <body>
 
-<nav>
-  <a class="brand" href="/">
-    <div class="logo">TZ</div>
-    &nbsp;TradeZen
-  </a>
-  <div class="nav-r">
-    <span class="nav-badge">NIFTY · BANKNIFTY</span>
-    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);transition:border-color .15s;padding:0;flex-shrink:0"></button>
+<!-- ============================================================
+     NAVBAR
+     ============================================================ -->
+<nav class="halo-navbar">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a class="navbar-brand" href="/">
+      <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden="true">
+        <defs>
+          <linearGradient id="tz-grad-nav" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#7c6af7" />
+            <stop offset="100%" stop-color="#5b8af5" />
+          </linearGradient>
+        </defs>
+        <rect width="40" height="40" rx="10" fill="url(#tz-grad-nav)" />
+        <path d="M10 12h9M14.5 12v15M21 12h9M21 21h9M30 12l-9 9" stroke="#0a0c18" stroke-width="2.2" stroke-linecap="round" fill="none" />
+        <polyline points="21 20 24 16.5 27 18.5 30 13.5" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="30" cy="13.5" r="1.6" fill="#5b8af5" />
+      </svg>
+      <span>TradeZen</span>
+    </a>
+
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="#tools" data-en="Tools" data-ta="கருவிகள்">Tools</a></li>
+      <li class="nav-item"><a class="nav-link" href="#learn" data-en="Learn" data-ta="கற்க">Learn</a></li>
+      <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
+    </ul>
+
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/>
+          <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+          <line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/>
+        </svg>
+        <svg data-icon="light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <a href="/contact.html" class="btn btn-aurora btn-sm text-decoration-none">
+        <span data-en="Get access" data-ta="அணுகல் பெறுங்கள்">Get access</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
   </div>
 </nav>
 
-<div class="hero">
-  <div class="hero-tag">&#9679; Nifty Options Dashboard</div>
-  <h1>Trade Smarter with<br><em>AI-Powered Signals</em></h1>
-  <p class="hero-sub">Intraday trade flow analysis, options intelligence, and market structure — all in one place.</p>
-</div>
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="halo-hero">
+  <div class="halo-bg"></div>
+  <div class="halo-grid"></div>
 
-<div class="wrap">
+  <div class="container hero-content">
+    <span class="eyebrow-hero">
+      <span class="badge-new">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        LIVE
+      </span>
+      <span data-en="7 tools for Nifty weekly expiries · NSE" data-ta="நிஃப்டி வாரம் · 7 கருவிகள் · NSE">7 tools for Nifty weekly expiries · NSE</span>
+    </span>
 
-  <!-- TOOLS -->
-  <section>
-    <div class="section-title">
-      <h2>Tools</h2>
-      <span class="section-tag tag-tools">LIVE</span>
-      <div class="section-line"></div>
-    </div>
-    <div class="tools-grid">
+    <h1 class="hero-title">
+      <span data-en="Trade smarter with " data-ta="AI சக்தியுடன் ">Trade smarter with </span>
+      <span class="hl-italic" data-en="AI-powered" data-ta="நிதானமான">AI-powered</span>
+      <span data-en=" signals." data-ta=" வர்த்தகம்."> signals.</span>
+    </h1>
 
-      <a class="tool-card" href="/trade_flow.html">
-        <div class="tool-icon icon-flow">📈</div>
-        <div>
-          <h3>Trade Flow</h3>
-          <p>Intraday decision engine — CPR levels, ORB breakout, bull/bear scenario classification, and exit signals in real time.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label label-green">CPR · ORB · Scenarios</span>
-          <span class="tool-arrow">→</span>
-        </div>
+    <p class="hero-sub"
+       data-en="Intraday trade-flow analysis, options intelligence, and market structure — all in one place. Built for Nifty weekly expiries on NSE. Learn in English or தமிழ்."
+       data-ta="ஒரே இடத்தில் — இன்ட்ராடே ஓட்ட பகுப்பாய்வு, ஆப்ஷன்ஸ் நுண்ணறிவு, மற்றும் சந்தை அமைப்பு. நிஃப்டி வாராந்திர முடிவுகளுக்காக.">
+      Intraday trade-flow analysis, options intelligence, and market structure — all in one place. Built for Nifty weekly expiries on NSE. Learn in English or தமிழ்.
+    </p>
+
+    <div class="hero-cta">
+      <a href="/contact.html" class="btn btn-aurora text-decoration-none">
+        <span data-en="Open the dashboard" data-ta="டாஷ்போர்டு திற">Open the dashboard</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
-
-      <a class="tool-card" href="/options_analysis.html">
-        <div class="tool-icon icon-options">⚡</div>
-        <div>
-          <h3>Options Analysis</h3>
-          <p>Full options suite — chain OI, signal score, Greeks, max pain, strike selector, and position risk calculator.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label label-accent">Greeks · Score · Risk</span>
-          <span class="tool-arrow">→</span>
-        </div>
-      </a>
-
-      <a class="tool-card" href="/fno_scanner.html">
-        <div class="tool-icon" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25)">📊</div>
-        <div>
-          <h3>F&amp;O Scanner</h3>
-          <p>Real-time buyer vs seller dominance for F&amp;O stocks in ₹1000–₹2000 range. Refreshes every 2–5 seconds. Order buttons ready for Phase 2.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label" style="color:var(--cyan)">Dominance · Live · Depth</span>
-          <span class="tool-arrow">→</span>
-        </div>
-      </a>
-
-      <a class="tool-card" href="/market_psychology.html">
-        <div class="tool-icon" style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.25)">🧠</div>
-        <div>
-          <h3>TradeFun</h3>
-          <p>Visual market psychology engine — buyer vs seller domination, VWAP reactions, Supertrend, absorption detection, and candle replay mode.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label" style="color:var(--green)">Psychology · VWAP · Replay</span>
-          <span class="tool-arrow">→</span>
-        </div>
-      </a>
-
-      <a class="tool-card" href="/stock_movers.html">
-        <div class="tool-icon" style="background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.25)">🚀</div>
-        <div>
-          <h3>Market Movers</h3>
-          <p>Top &amp; bottom 10 stocks of the day across Nifty 50, 500, Bank Nifty, IT, Midcap and Smallcap. Tap any stock for EMA, VWAP, and Supertrend entry signals.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label" style="color:#f39c12">Gainers · Losers · Entry</span>
-          <span class="tool-arrow">→</span>
-        </div>
-      </a>
-
-      <a class="tool-card" href="/swing_trading.html">
-        <div class="tool-icon" style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.25)">📈</div>
-        <div>
-          <h3>Swing Trading (S4)</h3>
-          <p>5-Pillar S4 framework for Nifty 100 swing trades. Analyse any stock, run Friday batch scan, track portfolio with live P&amp;L and HOLD/EXIT signals.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label" style="color:#2ecc71">Analyse · Scan · Review</span>
-          <span class="tool-arrow">→</span>
-        </div>
-      </a>
-
-      <a class="tool-card" href="/s1_monitor.html">
-        <div class="tool-icon" style="background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.25)">⚡</div>
-        <div>
-          <h3>S1 Intraday Monitor</h3>
-          <p>Real-time intraday options entry setup — Opening Range breakout + EMA crossover + RSI confirmation. Live conditions, instant alerts, and trade calculations.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label label-accent">OR · EMA · RSI · Live</span>
-          <span class="tool-arrow">→</span>
-        </div>
-      </a>
-
-    </div>
-  </section>
-
-  <!-- LEARNING HUB -->
-  <section>
-    <div class="section-title">
-      <h2>Learning Hub</h2>
-      <span class="section-tag" style="color:var(--accent);background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.25)">NEW</span>
-      <div class="section-line"></div>
-    </div>
-    <div class="tools-grid" style="margin-bottom:0">
-      <a class="tool-card" href="/learn_dashboard.html">
-        <div class="tool-icon" style="background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.25)">📚</div>
-        <div>
-          <h3>Learning Dashboard</h3>
-          <p>Structured courses for Indian traders — Technical Analysis, Fundamentals, and more. Track XP, earn badges, and take chapter quizzes.</p>
-        </div>
-        <div class="tool-footer">
-          <span class="tool-label" style="color:var(--accent)">TA Course · Quizzes · XP</span>
-          <span class="tool-arrow">→</span>
-        </div>
-      </a>
-    </div>
-  </section>
-
-  <!-- TUTORIALS -->
-  <section>
-    <div class="section-title">
-      <h2>Tutorials</h2>
-      <span class="section-tag tag-tutorials">LEARN</span>
-      <div class="section-line"></div>
-    </div>
-
-    <div class="sub-label" style="margin-bottom:12px">English</div>
-    <div class="tutorials-grid" style="margin-bottom:28px">
-      <a class="tut-card" href="/trade_flow_tutorial.html">
-        <span class="tut-num">01</span>
-        <div class="tut-body"><h4>Trade Flow — How to Use</h4><span>CPR · ORB · Exit Signals</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/options_tutorial.html">
-        <span class="tut-num">02</span>
-        <div class="tut-body"><h4>Options Intelligence Guide</h4><span>Chain · Score · Greeks</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/fno_guide.html">
-        <span class="tut-num">03</span>
-        <div class="tut-body"><h4>F&amp;O Trading Guide</h4><span>Basics · Strategy · Risk</span></div>
-        <span class="tut-arrow">›</span>
+      <a href="#tutorials" class="btn btn-ghost text-decoration-none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span data-en="View tutorials" data-ta="பயிற்சிகள்">View tutorials</span>
       </a>
     </div>
 
-    <div class="sub-label" style="margin-bottom:12px;display:flex;align-items:center;gap:8px">
-      Tamil Tutorials <span class="section-tag tag-tamil" style="margin-left:4px">தமிழ்</span>
+    <div class="hero-trust">
+      <span>● NSE LIVE</span>
+      <span>● WEEKLY EXPIRY</span>
+      <span>● INTRADAY SIGNALS</span>
+      <span>● ENGLISH + தமிழ்</span>
     </div>
-    <div class="tutorials-grid">
-      <a class="tut-card" href="/options_tool_tutorial_tamil.html">
-        <span class="tut-num">01</span>
-        <div class="tut-body"><h4>Options Tool Tutorial</h4><span>options_tool_tutorial_tamil</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/options_entry_tool_tamil.html">
-        <span class="tut-num">02</span>
-        <div class="tut-body"><h4>Options Entry Tool</h4><span>options_entry_tool_tamil</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/options_selling_tool_tamil.html">
-        <span class="tut-num">03</span>
-        <div class="tut-body"><h4>Options Selling Tool</h4><span>options_selling_tool_tamil</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/butterfly_straddle_tamil.html">
-        <span class="tut-num">04</span>
-        <div class="tut-body"><h4>Butterfly &amp; Straddle</h4><span>butterfly_straddle_tamil</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/theta_decay_tamil.html">
-        <span class="tut-num">05</span>
-        <div class="tut-body"><h4>Theta Decay</h4><span>theta_decay_tamil</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/swing_trading_tool_tamil.html">
-        <span class="tut-num">06</span>
-        <div class="tut-body"><h4>Swing Trading Tool</h4><span>swing_trading_tool_tamil</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
-      <a class="tut-card" href="/market_profile_tamil.html">
-        <span class="tut-num">07</span>
-        <div class="tut-body"><h4>Market Profile</h4><span>market_profile_tamil</span></div>
-        <span class="tut-arrow">›</span>
-      </a>
+  </div>
+</section>
+
+<!-- ============================================================
+     TOOLS
+     ============================================================ -->
+<section id="tools" class="py-5 py-md-6">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 section-header">
+      <div>
+        <span class="eyebrow">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          TOOLS · LIVE
+        </span>
+        <h2>
+          <span data-en="Seven engines." data-ta="ஏழு இயந்திரங்கள்.">Seven engines.</span>
+          <span class="text-gradient fst-italic" data-en=" One workspace." data-ta=" ஒரு வேலை இடம்."> One workspace.</span>
+        </h2>
+      </div>
+      <div class="filter-bar">
+        <button class="is-active" data-en="All" data-ta="அனைத்தும்">All</button>
+        <button data-en="Intraday" data-ta="இன்ட்ராடே">Intraday</button>
+        <button data-en="Options" data-ta="ஆப்ஷன்ஸ்">Options</button>
+        <button data-en="Swing" data-ta="ஸ்விங்">Swing</button>
+      </div>
     </div>
-  </section>
 
-</div>
+    <div class="row g-3">
 
-<footer>TradeZen &nbsp;·&nbsp; NSE · IST &nbsp;·&nbsp; For personal use only</footer>
+      <!-- 01 · Trade Flow (featured) -->
+      <div class="col-lg-4 col-md-6">
+        <a href="/trade_flow.html" class="tool-card is-featured">
+          <div class="tool-head">
+            <div class="tool-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <span class="tool-num">01</span>
+          </div>
+          <h3 data-en="Trade Flow" data-ta="வர்த்தக ஓட்டம்">Trade Flow</h3>
+          <p data-en="Intraday decision engine — CPR levels, ORB breakout, bull/bear scenario classification, and exit signals in real time."
+             data-ta="CPR நிலைகள், ORB திருப்பம், காளை/கரடி காட்சி வகைப்பாடு, மற்றும் வெளியேற்றும் சமிக்ஞைகள்.">
+            Intraday decision engine — CPR levels, ORB breakout, bull/bear scenario classification, and exit signals in real time.
+          </p>
+          <div class="tool-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">CPR</span>
+              <span class="tool-tag">ORB</span>
+              <span class="tool-tag">Scenarios</span>
+            </div>
+            <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 02 · Options Analysis -->
+      <div class="col-lg-4 col-md-6">
+        <a href="/options_analysis.html" class="tool-card">
+          <div class="tool-head">
+            <div class="tool-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+            <span class="tool-num">02</span>
+          </div>
+          <h3 data-en="Options Analysis" data-ta="ஆப்ஷன்ஸ் பகுப்பாய்வு">Options Analysis</h3>
+          <p data-en="Full options suite — chain OI, signal score, Greeks, max pain, strike selector, and position risk calculator."
+             data-ta="சங்கிலி OI, கிரீக்ஸ், மாக்ஸ் பெயின், ஸ்ட்ரைக் தேர்வு, மற்றும் இடர் கணிப்பான்.">
+            Full options suite — chain OI, signal score, Greeks, max pain, strike selector, and position risk calculator.
+          </p>
+          <div class="tool-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">Greeks</span>
+              <span class="tool-tag">Score</span>
+              <span class="tool-tag">Risk</span>
+            </div>
+            <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 03 · F&O Scanner -->
+      <div class="col-lg-4 col-md-6">
+        <a href="/fno_scanner.html" class="tool-card">
+          <div class="tool-head">
+            <div class="tool-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <span class="tool-num">03</span>
+          </div>
+          <h3 data-en="F&amp;O Scanner" data-ta="F&amp;O ஸ்கேனர்">F&amp;O Scanner</h3>
+          <p data-en="Real-time buyer vs seller dominance for F&amp;O stocks in ₹1,000–₹2,000 range. Refreshes every 2–5 seconds."
+             data-ta="வாங்குபவர் vs விற்பவர் ஆதிக்கத்தைக் கண்காணியுங்கள், ஒவ்வொரு 2–5 விநாடிகளுக்கும்.">
+            Real-time buyer vs seller dominance for F&amp;O stocks in ₹1,000–₹2,000 range. Refreshes every 2–5 seconds.
+          </p>
+          <div class="tool-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">Dominance</span>
+              <span class="tool-tag">Live</span>
+              <span class="tool-tag">Depth</span>
+            </div>
+            <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 04 · TradeFun -->
+      <div class="col-lg-4 col-md-6">
+        <a href="/market_psychology.html" class="tool-card">
+          <div class="tool-head">
+            <div class="tool-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <span class="tool-num">04</span>
+          </div>
+          <h3 data-en="TradeFun" data-ta="டிரேட்ஃபன்">TradeFun</h3>
+          <p data-en="Visual market psychology engine — buyer vs seller domination, VWAP reactions, Supertrend and candle replay."
+             data-ta="காட்சிபூர்வ சந்தை உளவியல் — VWAP எதிர்வினைகள், சூப்பர் டிரெண்ட், மற்றும் கேண்டில் ரீப்ளே.">
+            Visual market psychology engine — buyer vs seller domination, VWAP reactions, Supertrend and candle replay.
+          </p>
+          <div class="tool-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">VWAP</span>
+              <span class="tool-tag">Supertrend</span>
+              <span class="tool-tag">Replay</span>
+            </div>
+            <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 05 · Market Movers -->
+      <div class="col-lg-4 col-md-6">
+        <a href="/stock_movers.html" class="tool-card">
+          <div class="tool-head">
+            <div class="tool-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <span class="tool-num">05</span>
+          </div>
+          <h3 data-en="Market Movers" data-ta="சந்தை நகர்த்துபவர்கள்">Market Movers</h3>
+          <p data-en="Top &amp; bottom 10 stocks across Nifty 50, 500, Bank Nifty, IT, Midcap and Smallcap. Tap any stock for entry signals."
+             data-ta="நிஃப்டி 50, 500, பேங்க் நிஃப்டி, IT, மிட்கேப்-ல் தினசரி டாப் &amp; பாட்டம் 10 பங்குகள்.">
+            Top &amp; bottom 10 stocks across Nifty 50, 500, Bank Nifty, IT, Midcap and Smallcap. Tap any stock for entry signals.
+          </p>
+          <div class="tool-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">EMA</span>
+              <span class="tool-tag">VWAP</span>
+              <span class="tool-tag">Signals</span>
+            </div>
+            <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 06 · Swing Trading S4 -->
+      <div class="col-lg-4 col-md-6">
+        <a href="/swing_trading.html" class="tool-card">
+          <div class="tool-head">
+            <div class="tool-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+            </div>
+            <span class="tool-num">06</span>
+          </div>
+          <h3 data-en="Swing Trading · S4" data-ta="ஸ்விங் டிரேடிங் · S4">Swing Trading · S4</h3>
+          <p data-en="5-pillar S4 framework for Nifty 100 swing trades. Run Friday batch scans, track live P&amp;L, get HOLD/EXIT signals."
+             data-ta="நிஃப்டி 100 ஸ்விங் வர்த்தகங்களுக்கான 5-தூண் S4 கட்டமைப்பு, லைவ் P&amp;L கண்காணிப்பு.">
+            5-pillar S4 framework for Nifty 100 swing trades. Run Friday batch scans, track live P&amp;L, get HOLD/EXIT signals.
+          </p>
+          <div class="tool-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">Scan</span>
+              <span class="tool-tag">P&amp;L</span>
+              <span class="tool-tag">Hold/Exit</span>
+            </div>
+            <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 07 · S1 Intraday Monitor -->
+      <div class="col-lg-4 col-md-6">
+        <a href="/s1_monitor.html" class="tool-card">
+          <div class="tool-head">
+            <div class="tool-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <span class="tool-num">07</span>
+          </div>
+          <h3 data-en="S1 Intraday Monitor" data-ta="S1 இன்ட்ராடே மானிட்டர்">S1 Intraday Monitor</h3>
+          <p data-en="Real-time options entry setup — Opening Range breakout + EMA crossover + RSI confirmation. Live conditions, instant alerts and trade calculations."
+             data-ta="Opening Range + EMA + RSI உறுதிப்படுத்தல். நேரடி நிலைமைகள், உடனடி எச்சரிக்கைகள்.">
+            Real-time options entry setup — Opening Range breakout + EMA crossover + RSI confirmation. Live conditions, instant alerts and trade calculations.
+          </p>
+          <div class="tool-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">OR</span>
+              <span class="tool-tag">EMA</span>
+              <span class="tool-tag">RSI</span>
+            </div>
+            <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     DASHBOARD GLIMPSE
+     ============================================================ -->
+<section id="inside" class="py-5 py-md-6">
+  <div class="container">
+    <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 section-header">
+      <div>
+        <span class="eyebrow">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          A LOOK INSIDE
+        </span>
+        <h2>
+          <span data-en="Your " data-ta="உங்கள் ">Your </span>
+          <span class="fst-italic" data-en="command deck" data-ta="கட்டுப்பாட்டு டெக்">command deck</span>
+          <span data-en=" for the day." data-ta=" தினத்திற்காக."> for the day.</span>
+        </h2>
+      </div>
+      <p class="text-fg-2 m-0 small" style="max-width:380px"
+         data-en="Indices, CPR levels, AI read, and the option chain — refreshed every 2–5s during market hours."
+         data-ta="குறியீடுகள், CPR நிலைகள், AI கருத்து, மற்றும் ஆப்ஷன் சங்கிலி — சந்தை நேரத்தில் ஒவ்வொரு 2-5 விநாடிகளுக்கும் புதுப்பிக்கப்படும்.">
+        Indices, CPR levels, AI read, and the option chain — refreshed every 2–5s during market hours.
+      </p>
+    </div>
+
+    <div class="dashboard-frame">
+      <div class="dashboard-halo"></div>
+      <div class="dashboard-wrap">
+
+        <!-- Browser chrome bar -->
+        <div class="dash-topbar">
+          <div class="dash-traffic"><span></span><span></span><span></span></div>
+          <span class="dash-url">tradezen.app / dashboard</span>
+          <span class="flex-grow-1"></span>
+          <span class="dash-live-chip"><span class="dot"></span>NSE OPEN</span>
+        </div>
+
+        <div class="dash-grid">
+
+          <!-- Sidebar -->
+          <aside class="dash-sidebar">
+            <div class="dash-sidebar-brand">
+              <svg width="28" height="28" viewBox="0 0 40 40" aria-hidden="true">
+                <rect width="40" height="40" rx="10" fill="url(#tz-grad-nav)"/>
+                <path d="M10 12h9M14.5 12v15M21 12h9M21 21h9M30 12l-9 9" stroke="#0a0c18" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                <polyline points="21 20 24 16.5 27 18.5 30 13.5" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="30" cy="13.5" r="1.6" fill="#5b8af5"/>
+              </svg>
+              <div class="brand-meta">
+                <div class="brand-name">TradeZen</div>
+                <div class="brand-version">v3.2 · LIVE</div>
+              </div>
+            </div>
+            <a class="dash-nav-item is-active" href="/trade_flow.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span class="label">Trade Flow</span>
+            </a>
+            <a class="dash-nav-item" href="/options_analysis.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              <span class="label">Options</span>
+              <span class="badge-mini">OI</span>
+            </a>
+            <a class="dash-nav-item" href="/fno_scanner.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span class="label">F&amp;O Scanner</span>
+              <span class="badge-mini">NEW</span>
+            </a>
+            <a class="dash-nav-item" href="/market_psychology.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span class="label">TradeFun</span>
+            </a>
+            <a class="dash-nav-item" href="/stock_movers.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              <span class="label">Movers</span>
+            </a>
+            <a class="dash-nav-item" href="/swing_trading.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              <span class="label">Swing · S4</span>
+            </a>
+            <a class="dash-nav-item" href="/s1_monitor.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span class="label">S1 Monitor</span>
+              <span class="badge-mini">NEW</span>
+            </a>
+            <a class="dash-nav-item" href="/learn_dashboard.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              <span class="label">Learn</span>
+            </a>
+          </aside>
+
+          <!-- Main panel -->
+          <main class="dash-main">
+            <!-- Index cards -->
+            <div class="row g-2">
+              <div class="col-md-4">
+                <div class="index-card is-featured">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <span class="label">NIFTY 50</span>
+                    <span class="chip-gain">+1.40%</span>
+                  </div>
+                  <div class="value">22,847.40</div>
+                  <svg class="spark" data-points="0.42,0.40,0.48,0.45,0.52,0.50,0.55,0.58,0.54,0.60,0.62,0.59,0.65,0.68,0.64,0.70,0.72,0.69,0.75,0.78,0.74,0.80,0.82,0.79,0.85,0.83,0.88,0.86,0.90,0.92,0.89,0.95" data-color="#34d399"></svg>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="index-card">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <span class="label">BANKNIFTY</span>
+                    <span class="chip-gain">+0.92%</span>
+                  </div>
+                  <div class="value">48,440.20</div>
+                  <svg class="spark" data-points="0.42,0.45,0.52,0.50,0.55,0.58,0.54,0.60,0.62,0.59,0.65,0.68,0.64,0.70,0.72,0.69,0.75,0.78,0.74,0.80,0.82,0.79,0.85,0.83,0.88,0.86,0.90,0.92,0.89,0.95,0.93,0.97" data-color="#34d399"></svg>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="index-card">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <span class="label">INDIA VIX</span>
+                    <span class="chip-loss">−2.10%</span>
+                  </div>
+                  <div class="value">13.42</div>
+                  <svg class="spark" data-points="0.85,0.82,0.78,0.80,0.75,0.72,0.74,0.68,0.65,0.66,0.62,0.58,0.60,0.55,0.52,0.54,0.48,0.45,0.50,0.42,0.40,0.38,0.42,0.35,0.32,0.30,0.34,0.28,0.25,0.22,0.26,0.20" data-color="#f87171"></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- CPR card -->
+            <div class="cpr-card">
+              <div class="d-flex justify-content-between align-items-baseline mb-2">
+                <div>
+                  <div class="font-mono text-fg-3" style="font-size:10px;letter-spacing:0.14em">NIFTY · CPR · DAILY</div>
+                  <div class="fw-bold text-fg-1 mt-1" style="font-size:15px">Bull scenario · above pivot</div>
+                </div>
+                <div class="cpr-tf">
+                  <span class="is-active">1D</span>
+                  <span>1W</span>
+                  <span>1M</span>
+                </div>
+              </div>
+              <div class="cpr-canvas">
+                <svg class="spark" data-points="0.50,0.52,0.48,0.55,0.58,0.54,0.60,0.62,0.59,0.55,0.50,0.45,0.42,0.48,0.52,0.55,0.50,0.58,0.62,0.66,0.64,0.68,0.70,0.66,0.72,0.74,0.70,0.76,0.72,0.78,0.75,0.80" data-color="#7c6af7" style="height:130px"></svg>
+                <div class="level" style="top:22%"><span class="label">R1 22,921</span></div>
+                <div class="level is-cpr" style="top:42%"><span class="label">TC 22,867</span></div>
+                <div class="level is-pivot" style="top:55%"><span class="label">P 22,834</span></div>
+                <div class="level is-cpr" style="top:70%"><span class="label">BC 22,802</span></div>
+                <div class="level" style="top:88%"><span class="label">S1 22,748</span></div>
+              </div>
+            </div>
+          </main>
+
+          <!-- AI rail -->
+          <aside class="dash-rail">
+            <div class="rail-header">
+              <div class="rail-avatar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M19 13l.7 2.1 2.1.7-2.1.7L19 18.6l-.7-2.1-2.1-.7 2.1-.7L19 13z"/></svg>
+              </div>
+              <div>
+                <div class="rail-name">Zen Assistant</div>
+                <div class="rail-status">● THINKING · 14:32</div>
+              </div>
+            </div>
+            <div class="rail-bubble">
+              Nifty's holding above the daily pivot. I'm watching <span class="font-mono text-accent fw-bold">22,866</span> — a clean break opens 22,975. Volume is participating, not panicking.
+            </div>
+            <div class="rail-stats">
+              <div class="rail-stat"><div class="k">Bias</div><div class="v text-gain">Bullish</div></div>
+              <div class="rail-stat"><div class="k">Conviction</div><div class="v">78%</div></div>
+              <div class="rail-stat"><div class="k">R:R</div><div class="v">1 : 2.4</div></div>
+              <div class="rail-stat"><div class="k">Strike</div><div class="v text-accent">22850 CE</div></div>
+            </div>
+            <div class="rail-action">
+              <div class="k">SUGGESTED ACTION</div>
+              <button class="btn btn-aurora btn-sm w-100 d-flex justify-content-between">
+                <span>Buy 22850 CE · 50 lots</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+              <div class="footnote">SL ₹62 · TGT ₹148 · R:R 1:2.4</div>
+            </div>
+          </aside>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     LEARN
+     ============================================================ -->
+<section id="learn" class="py-5 py-md-6">
+  <div class="container">
+    <div class="section-header">
+      <span class="eyebrow">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        LEARN
+      </span>
+      <h2>
+        <span data-en="Master the markets, " data-ta="சந்தைகளை தேர்ச்சி செய்க, ">Master the markets, </span>
+        <span class="text-gradient fst-italic" data-en="at your pace." data-ta="உங்கள் வேகத்தில்.">at your pace.</span>
+      </h2>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6">
+        <a href="/learn_dashboard.html" class="learn-card from-tl">
+          <div class="d-flex justify-content-between align-items-start">
+            <span class="learn-tag">EN · English</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--tz-fg-3)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <h3 data-en="Structured courses for Indian traders" data-ta="இந்திய வர்த்தகர்களுக்கான பாடங்கள்">Structured courses for Indian traders</h3>
+          <p data-en="Technical Analysis, CPR, ORB playbook and more. Track XP, earn badges, and take chapter quizzes."
+             data-ta="தொழில்நுட்ப பகுப்பாய்வு, CPR, ORB — NSE-first உதாரணங்களுடன் தெளிவான ஆங்கிலத்தில்.">
+            Technical Analysis, CPR, ORB playbook and more. Track XP, earn badges, and take chapter quizzes.
+          </p>
+          <div class="learn-foot">
+            <span class="learn-meta">TA · Options · Fundamentals</span>
+            <span class="learn-cta">
+              <span data-en="Start learning" data-ta="கற்கத் தொடங்கு">Start learning</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-6">
+        <a href="/learn_dashboard.html" class="learn-card from-br">
+          <div class="d-flex justify-content-between align-items-start">
+            <span class="learn-tag ta">தமிழ் · Tamil</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--tz-fg-3)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <h3 lang="ta">CPR-ஐ பயன்படுத்தி தினசரி வர்த்தகம்</h3>
+          <p lang="ta">பிவோட் நிலைகள், காளை/கரடி காட்சிகள், சூழல் வாசிப்பு — நிஃப்டி, பேங்க்நிஃப்டி உதாரணங்களுடன்.</p>
+          <div class="learn-foot">
+            <span class="learn-meta" lang="ta">14 பாடங்கள் · 2 மணி</span>
+            <span class="learn-cta" lang="ta">பாடம் தொடங்கு
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TUTORIALS
+     ============================================================ -->
+<section id="tutorials" class="py-5 py-md-6">
+  <div class="container">
+    <div class="section-header">
+      <span class="eyebrow">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        TUTORIALS
+      </span>
+      <h2>
+        <span data-en="Guides for every " data-ta="ஒவ்வொரு ">Guides for every </span>
+        <span class="text-gradient fst-italic" data-en="tool &amp; strategy." data-ta="கருவி &amp; மூலோபாயம்.">tool &amp; strategy.</span>
+      </h2>
+    </div>
+
+    <div class="tut-sublabel">English</div>
+    <div class="row g-2 mb-4">
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/trade_flow_tutorial.html">
+          <span class="tut-num">01</span>
+          <div class="tut-body"><h4>Trade Flow — How to Use</h4><span>CPR · ORB · Exit Signals</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/options_tutorial.html">
+          <span class="tut-num">02</span>
+          <div class="tut-body"><h4>Options Intelligence Guide</h4><span>Chain · Score · Greeks</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/fno_guide.html">
+          <span class="tut-num">03</span>
+          <div class="tut-body"><h4>F&amp;O Trading Guide</h4><span>Basics · Strategy · Risk</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="tut-sublabel">
+      Tamil Tutorials <span class="tag-ta">தமிழ்</span>
+    </div>
+    <div class="row g-2">
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/options_tool_tutorial_tamil.html">
+          <span class="tut-num">01</span>
+          <div class="tut-body"><h4>Options Tool Tutorial</h4><span>Options · Chain · Strategy</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/options_entry_tool_tamil.html">
+          <span class="tut-num">02</span>
+          <div class="tut-body"><h4>Options Entry Tool</h4><span>Entry · Timing · Signals</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/options_selling_tool_tamil.html">
+          <span class="tut-num">03</span>
+          <div class="tut-body"><h4>Options Selling Tool</h4><span>Selling · Premium · Risk</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/butterfly_straddle_tamil.html">
+          <span class="tut-num">04</span>
+          <div class="tut-body"><h4>Butterfly &amp; Straddle</h4><span>Spreads · Hedging</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/theta_decay_tamil.html">
+          <span class="tut-num">05</span>
+          <div class="tut-body"><h4>Theta Decay</h4><span>Greeks · Time Decay</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/swing_trading_tool_tamil.html">
+          <span class="tut-num">06</span>
+          <div class="tut-body"><h4>Swing Trading Tool</h4><span>S4 · Swing · Portfolio</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <a class="tut-item" href="/market_profile_tamil.html">
+          <span class="tut-num">07</span>
+          <div class="tut-body"><h4>Market Profile</h4><span>Profile · Value Area</span></div>
+          <span class="tut-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     FAQ
+     ============================================================ -->
+<section id="faq" class="halo-faq py-5 py-md-6">
+  <div class="container" style="max-width:980px">
+    <div class="text-center section-header">
+      <span class="eyebrow">FAQ</span>
+      <h2>
+        Frequently asked,
+        <span class="fst-italic text-gradient">calmly answered.</span>
+      </h2>
+    </div>
+
+    <div class="accordion" id="haloFaq">
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+            Is TradeZen a broker?
+          </button>
+        </h3>
+        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#haloFaq">
+          <div class="accordion-body">
+            No. TradeZen is an analysis layer that sits on top of your existing broker. We provide signals, structure and frameworks — orders are placed via your broker of choice.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+            How fresh is the data?
+          </button>
+        </h3>
+        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#haloFaq">
+          <div class="accordion-body">
+            F&amp;O dominance refreshes every 2–5 seconds during market hours. CPR levels are computed once per session — daily, weekly and monthly.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+            Is the Tamil version a translation?
+          </button>
+        </h3>
+        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#haloFaq">
+          <div class="accordion-body">
+            No — the curriculum is taught natively in Tamil with Indian market context. The UI is fully bilingual; numbers and Greek symbols stay universal.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+            Do I get alerts on my phone?
+          </button>
+        </h3>
+        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#haloFaq">
+          <div class="accordion-body">
+            Only when you ask. The default is a calm dashboard. Push, email and webhook alerts are opt-in per signal type. The S1 Monitor shows browser toast alerts by default during market hours.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="halo-footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-12">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="10" fill="url(#tz-grad-nav)"/>
+            <path d="M10 12h9M14.5 12v15M21 12h9M21 21h9M30 12l-9 9" stroke="#0a0c18" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <polyline points="21 20 24 16.5 27 18.5 30 13.5" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="30" cy="13.5" r="1.6" fill="#5b8af5"/>
+          </svg>
+          <span style="font-weight:700;font-size:18px">TradeZen</span>
+        </div>
+        <h3 class="footer-lead">Trade with <span class="text-gradient fst-italic">clarity.</span></h3>
+        <div class="d-flex gap-2 mt-3">
+          <a href="/contact.html" class="btn btn-aurora btn-sm text-decoration-none">Get access</a>
+          <a href="#tools" class="btn btn-quiet text-decoration-none">Explore tools</a>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-6">
+        <div class="footer-col-title">Tools</div>
+        <ul class="footer-list">
+          <li><a href="/trade_flow.html">Trade Flow</a></li>
+          <li><a href="/options_analysis.html">Options Analysis</a></li>
+          <li><a href="/fno_scanner.html">F&amp;O Scanner</a></li>
+          <li><a href="/market_psychology.html">TradeFun</a></li>
+          <li><a href="/stock_movers.html">Market Movers</a></li>
+          <li><a href="/swing_trading.html">Swing · S4</a></li>
+          <li><a href="/s1_monitor.html">S1 Monitor</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-6">
+        <div class="footer-col-title">Learn</div>
+        <ul class="footer-list">
+          <li><a href="/learn_dashboard.html">Dashboard</a></li>
+          <li><a href="/trade_flow_tutorial.html">CPR essentials</a></li>
+          <li><a href="/trade_flow_tutorial.html">ORB playbook</a></li>
+          <li><a href="/options_tutorial.html">Options 101</a></li>
+          <li><a href="/options_tool_tutorial_tamil.html">Tamil course (தமிழ்)</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-6">
+        <div class="footer-col-title">Company</div>
+        <ul class="footer-list">
+          <li><a href="/contact.html">Contact</a></li>
+          <li><a href="/contact.html">About</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-6">
+        <div class="footer-col-title">Legal</div>
+        <ul class="footer-list">
+          <li><a href="#">Disclaimer</a></li>
+          <li><a href="#">Risk policy</a></li>
+          <li><a href="#">Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 TradeZen · NSE · IST · For personal use only</span>
+      <span class="status"><span class="dot"></span>All systems calm · v3.2</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Bootstrap JS bundle (needed for accordion + collapse) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- TradeZen unified interactions -->
+<script src="halo-aurora.js"></script>
 
 </body>
 </html>
