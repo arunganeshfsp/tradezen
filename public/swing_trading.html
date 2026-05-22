@@ -1105,6 +1105,7 @@ function renderScan(d) {
           <div class="rec-chip">${s.position.qty} shares · ${fmtRs(s.position.investment)}</div>
         </div>
         <div style="margin-top:8px;font-size:11px;color:var(--dim)">${s.setup_desc}</div>
+        ${s.caution_market ? `<div style="margin-top:6px;font-size:11px;color:var(--yellow);background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:6px;padding:4px 10px">⚠ Nifty below EMA50 — position reduced to 50%, tighten SL</div>` : ''}
       </div>`;
     });
   }

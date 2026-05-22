@@ -796,17 +796,17 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
 
             # Quick-filter checks
             rejects: list[str] = []
-            if not (nifty_close > nifty_ema50_w and vix < 20):
-                rejects.append("Market downtrend or high VIX")
+            if vix >= 20:
+                rejects.append(f"VIX {vix:.1f} ≥ 20 — avoid new swing positions")
             if ltp <= ema50_val:
                 rejects.append(f"Price ₹{ltp:.0f} below EMA50 ₹{ema50_val:.0f}")
             if rsi_val < 50:
                 rejects.append(f"RSI {rsi_val:.0f} < 50 (weak momentum)")
             elif rsi_val > 70:
                 rejects.append(f"RSI {rsi_val:.0f} > 70 (overbought)")
-            if stock_1m_chg <= nifty_1m_chg:
+            if stock_1m_chg < nifty_1m_chg - 0.5:
                 rejects.append(f"Stock {stock_1m_chg:+.1f}% underperforms Nifty {nifty_1m_chg:+.1f}%")
-            if sector_1m <= nifty_1m_chg:
+            if sector_1m < nifty_1m_chg - 0.5:
                 rejects.append(f"Sector {sector} weak ({sector_1m:+.1f}%)")
             if vol_avg20 < 500_000:
                 rejects.append(f"Low liquidity ({vol_avg20:,}/day)")
@@ -847,12 +847,20 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
 
             pos = _position_size(plan["entry"], plan["sl"], capital, risk_pct)
 
+            # In CAUTION market (Nifty below EMA50) halve position size
+            caution_market = nifty_close <= nifty_ema50_w
+            if caution_market:
+                pos["qty"]        = max(1, pos["qty"] // 2)
+                pos["investment"] = round(pos["qty"] * plan["entry"], 2)
+                rank = max(0, rank - 2)
+
             results.append({
                 "symbol":     sym,
                 "name":       info["name"],
                 "sector":     sector,
                 "rejected":   False,
                 "rank_score": rank,
+                "caution_market": caution_market,
                 "ltp":        round(ltp, 2),
                 "rsi":        round(rsi_val, 1),
                 "ema50":      round(ema50_val, 2),
