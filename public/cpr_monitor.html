@@ -273,8 +273,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
   <div class="stat-item"><div class="stat-label">TC</div><div class="stat-val" id="statTC" style="color:var(--green)">—</div></div>
   <div class="stat-item"><div class="stat-label">BC</div><div class="stat-val" id="statBC" style="color:var(--red)">—</div></div>
   <div class="stat-item"><div class="stat-label">Width</div><div class="stat-val" id="statWidth">—</div></div>
-  <div class="stat-item"><div class="stat-label">Candles</div><div class="stat-val" id="statCandles">—</div></div>
-  <div class="stat-item"><div class="stat-label">Last Candle</div><div class="stat-val" id="statLastCandle">—</div></div>
+  <div class="stat-item"><div class="stat-label" id="statCandlesLabel">Candles</div><div class="stat-val" id="statCandles">—</div></div>
+  <div class="stat-item"><div class="stat-label" id="statLastLabel">Last Candle</div><div class="stat-val" id="statLastCandle">—</div></div>
   <div class="stat-item"><div class="stat-label">Date</div><div class="stat-val" id="statDate">—</div></div>
 </div>
 
@@ -413,7 +413,12 @@ const fmtP = v => v != null ? (v >= 0 ? '+' : '') + v.toFixed(2) : '';
 
 function formatTime(epochSec) {
   const d = new Date(epochSec * 1000);
-  // Server already adds IST_OFFSET (+5:30) to timestamps — use UTC methods to avoid double-counting
+  if (_timeframe !== 'daily') {
+    // Daily candles (weekly/monthly mode) — show date like "1 May" or "21 May"
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${d.getUTCDate()} ${months[d.getUTCMonth()]}`;
+  }
+  // 5-min candles — Server already adds IST_OFFSET to timestamps, use UTC methods
   const h = String(d.getUTCHours()).padStart(2,'0');
   const m = String(d.getUTCMinutes()).padStart(2,'0');
   return `${h}:${m}`;
@@ -523,9 +528,12 @@ async function fetchCandles() {
     _candles = d.candles;
 
     const last = _candles[_candles.length - 1];
-    document.getElementById('statCandles').textContent  = d.count;
-    document.getElementById('statLastCandle').textContent = formatTime(last.time);
-    document.getElementById('lastUpdateBadge').textContent = 'UPDATED ' + fmtIST();
+    const isDaily = _timeframe === 'daily';
+    document.getElementById('statCandlesLabel').textContent = isDaily ? 'Candles' : 'Days';
+    document.getElementById('statLastLabel').textContent    = isDaily ? 'Last Candle' : 'Latest';
+    document.getElementById('statCandles').textContent      = d.count;
+    document.getElementById('statLastCandle').textContent   = formatTime(last.time);
+    document.getElementById('lastUpdateBadge').textContent  = 'UPDATED ' + fmtIST();
 
     // Update live LTP and zone
     updateLiveDisplay(last.close);
