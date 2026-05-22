@@ -577,7 +577,8 @@ async function fetchCandles() {
     document.getElementById('statLastLabel').textContent    = isDaily ? 'Last Candle' : 'Latest';
     document.getElementById('statCandles').textContent      = d.count;
     document.getElementById('statLastCandle').textContent   = formatTime(last.time);
-    document.getElementById('lastUpdateBadge').textContent  = 'UPDATED ' + fmtIST();
+    const _updBadge = document.getElementById('lastUpdateBadge');
+    if (_updBadge) _updBadge.textContent = 'UPDATED ' + fmtIST();
 
     // Update live LTP and zone
     updateLiveDisplay(last.close);
