@@ -77,6 +77,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .main-wrap{max-width:1240px;margin:0 auto;padding:24px 28px 80px;display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
 @media(max-width:1000px){.main-wrap{grid-template-columns:1fr}}
 @media(max-width:600px){.main-wrap{padding:16px 16px 80px}}
+.chart-col{display:flex;flex-direction:column;gap:16px;min-width:0}
 
 /* ── CHART PANEL ── */
 .chart-panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:box-shadow .6s ease}
@@ -187,8 +188,8 @@ body.fs-lock{overflow:hidden}
 .ci-vol-bar{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
 
 /* ── CANDLE HISTORY STRIP ── */
-.hist-section{max-width:1240px;margin:0 auto;padding:0 28px 28px}
-@media(max-width:600px){.hist-section{padding:0 16px 24px}}
+.hist-section{padding:0}
+@media(max-width:600px){.hist-section{padding:0}}
 .hist-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
 .hist-strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
 .hist-strip::-webkit-scrollbar{height:3px}
@@ -374,8 +375,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="ctrl-grp">
     <div class="ctrl-lbl">MODE</div>
     <div class="btn-grp">
-      <button class="tog live-active" id="btn-live" onclick="setMode('live')">⚡ LIVE</button>
-      <button class="tog" id="btn-replay" onclick="setMode('replay')">▶ REPLAY</button>
+      <button class="tog live-active" id="btn-live"     onclick="setMode('live')">⚡ LIVE</button>
+      <button class="tog"             id="btn-replay"   onclick="setMode('replay')">▶ REPLAY</button>
+      <button class="tog"             id="btn-practice" onclick="setMode('practice')">🎮 PRACTICE</button>
     </div>
   </div>
   <div class="ctrl-status">
@@ -390,7 +392,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- MAIN LAYOUT -->
 <div class="main-wrap">
 
-  <!-- CHART -->
+  <!-- LEFT COLUMN: chart + history -->
+  <div class="chart-col">
   <div class="chart-panel" id="chart-panel">
     <div class="chart-hdr">
       <span class="chart-hdr-title" id="chart-title">NIFTY · 5m</span>
@@ -455,7 +458,15 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
 
     <div class="chart-asof" id="chart-asof"></div>
+  </div><!-- /chart-panel -->
+
+  <!-- CANDLE HISTORY (inside left column, fills gap below chart) -->
+  <div class="hist-section">
+    <div class="hist-title">Recent Candles</div>
+    <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
   </div>
+
+  </div><!-- /chart-col -->
 
   <!-- Indicator info tooltip -->
   <div id="ind-tooltip" class="ind-tooltip"></div>
@@ -557,12 +568,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div><!-- /psych-sidebar -->
 </div><!-- /main-wrap -->
 
-<!-- CANDLE HISTORY -->
-<div class="hist-section">
-  <div class="hist-title">Recent Candles</div>
-  <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
-</div>
-
 <!-- REPLAY CONTROLS -->
 <div class="replay-bar" id="replay-bar" style="display:none">
   <div class="replay-inner">
@@ -651,20 +656,28 @@ function setTf(tf, btn) {
 }
 
 function setMode(mode) {
+  const prevMode = _mode;
   _mode = mode;
   document.getElementById('btn-live').classList.toggle('live-active', mode === 'live');
   document.getElementById('btn-live').classList.toggle('active',      mode === 'live');
   document.getElementById('btn-replay').classList.toggle('active',    mode === 'replay');
+  document.getElementById('btn-practice').classList.toggle('active',  mode === 'practice');
   document.getElementById('replay-bar').style.display = mode === 'replay' ? 'block' : 'none';
-  document.getElementById('pulse-dot').classList.toggle('paused', mode === 'replay');
+  document.getElementById('pulse-dot').classList.toggle('paused', mode !== 'live');
 
-  if (mode === 'live') {
+  if (mode === 'practice') {
+    stopLivePoll();
+    rpStop();
+    showClosedHub();
+  } else if (prevMode === 'practice') {
+    // Returning from practice — full reload to restore chart
+    reload();
+  } else if (mode === 'live') {
     rpStop();
     startLivePoll();
   } else {
     stopLivePoll();
     rpStop();
-    // Enter replay from last candle
     if (_candles.length) { _rpIdx = _candles.length - 1; rpRender(); }
   }
 }
@@ -712,6 +725,7 @@ async function reload() {
 // ─── Chart ────────────────────────────────────────────────────────────────────
 function setChartLoading() {
   const el = document.getElementById('psych-chart');
+  el.className = '';  // clear closed-hub class if set
   el.innerHTML = '<div class="loading-state"><div class="spin"></div>Loading candles…</div>';
   _chart = null; _candleSeries = null; _vwapSeries = null;
   _stUpSeries = null; _stDownSeries = null; _volumeSeries = null;
