@@ -1048,3 +1048,43 @@ body { overflow-x: hidden; }
   .dash-sidebar .badge-mini { display: none; }
   .dash-sidebar-brand .brand-meta { display: none; }
 }
+
+/* ============================================================
+   15 · Light-mode overrides for legacy page CSS variables
+   Pages migrated from theme.css define --bg / --text / etc.
+   in :root with hardcoded dark values. halo-aurora.css loads
+   after those <style> blocks, so equal-specificity rules here
+   win when [data-bs-theme="light"] is active on <html>.
+   ============================================================ */
+[data-bs-theme="light"] {
+  /* backgrounds */
+  --bg:      #f4f5fb;
+  --bg1:     #eceef8;
+  --bg2:     #e3e5f5;
+  --bg3:     #d8dbf0;
+  --bg4:     #cdd2eb;
+  /* borders */
+  --border:  #c2c8e0;
+  --border2: #adb5d4;
+  /* text */
+  --text:    #1a1d32;
+  --dim:     #3d4268;
+  --muted:   #6b709a;
+  /* signal tints — lighten for readability on pale bg */
+  --green-bg:   rgba(46, 204, 113, 0.14);
+  --green-glow: rgba(46, 204, 113, 0.22);
+  --red-bg:     rgba(231,  76,  60, 0.11);
+  --red-glow:   rgba(231,  76,  60, 0.18);
+  --yellow-bg:  rgba(245, 166,  35, 0.12);
+  --purple-bg:  rgba(139,  92, 246, 0.12);
+}
+
+/* Hero h1 hardcoded color:#fff becomes invisible on light bg */
+[data-bs-theme="light"] .hero h1 { color: var(--text); }
+[data-bs-theme="light"] .hero h1 em { color: transparent; }
+
+/* Nav type-selector rule in page <style> can force dark bg */
+[data-bs-theme="light"] nav:not(.navbar):not([class*="halo"]) {
+  background: rgba(244, 245, 251, 0.97) !important;
+  border-bottom-color: var(--border) !important;
+}
