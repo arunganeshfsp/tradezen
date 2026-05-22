@@ -96,7 +96,7 @@
         </svg>
       </button>
       <a href="/contact.html" class="btn btn-aurora btn-sm text-decoration-none">
-        <span data-en="Get access" data-ta="அணுகல் பெறுங்கள்">Get access</span>
+        <span data-en="Contact" data-ta="தொடர்பு கொள்ள">Contact</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
     </div>
@@ -133,7 +133,7 @@
 
     <div class="hero-cta">
       <a href="/contact.html" class="btn btn-aurora text-decoration-none">
-        <span data-en="Open the dashboard" data-ta="டாஷ்போர்டு திற">Open the dashboard</span>
+        <span data-en="Contact us" data-ta="தொடர்பு கொள்ளுங்கள்">Contact us</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
       <a href="#tutorials" class="btn btn-ghost text-decoration-none">
@@ -481,26 +481,25 @@
               </div>
             </div>
 
-            <!-- CPR card -->
-            <div class="cpr-card">
-              <div class="d-flex justify-content-between align-items-baseline mb-2">
+            <!-- Live chart card -->
+            <div class="cpr-card" style="padding:0;overflow:hidden">
+              <div class="d-flex justify-content-between align-items-baseline" style="padding:12px 14px 6px">
                 <div>
-                  <div class="font-mono text-fg-3" style="font-size:10px;letter-spacing:0.14em">NIFTY · CPR · DAILY</div>
-                  <div class="fw-bold text-fg-1 mt-1" style="font-size:15px">Bull scenario · above pivot</div>
+                  <div class="font-mono text-fg-3" style="font-size:10px;letter-spacing:0.14em">NIFTY 50 · 15 MIN · INTRADAY</div>
+                  <div class="fw-bold text-fg-1 mt-1" style="font-size:15px">22,864 &nbsp;<span class="chip-gain">+1.23%</span></div>
                 </div>
                 <div class="cpr-tf">
-                  <span class="is-active">1D</span>
-                  <span>1W</span>
-                  <span>1M</span>
+                  <span class="is-active">15m</span>
+                  <span>1h</span>
+                  <span>1D</span>
                 </div>
               </div>
-              <div class="cpr-canvas">
-                <svg class="spark" data-points="0.50,0.52,0.48,0.55,0.58,0.54,0.60,0.62,0.59,0.55,0.50,0.45,0.42,0.48,0.52,0.55,0.50,0.58,0.62,0.66,0.64,0.68,0.70,0.66,0.72,0.74,0.70,0.76,0.72,0.78,0.75,0.80" data-color="#7c6af7" style="height:130px"></svg>
-                <div class="level" style="top:22%"><span class="label">R1 22,921</span></div>
-                <div class="level is-cpr" style="top:42%"><span class="label">TC 22,867</span></div>
-                <div class="level is-pivot" style="top:55%"><span class="label">P 22,834</span></div>
-                <div class="level is-cpr" style="top:70%"><span class="label">BC 22,802</span></div>
-                <div class="level" style="top:88%"><span class="label">S1 22,748</span></div>
+              <canvas id="dash-chart" style="display:block;width:100%;height:175px"></canvas>
+              <div class="font-mono d-flex gap-3" style="padding:5px 14px 10px;font-size:9px;color:var(--tz-fg-3)">
+                <span style="color:#fbbf24">─ EMA9</span>
+                <span style="color:var(--tz-accent-1);opacity:0.75">╌ TC 22,867</span>
+                <span style="color:var(--tz-accent-2)">─ P 22,834</span>
+                <span style="color:var(--tz-accent-2);opacity:0.75">╌ BC 22,802</span>
               </div>
             </div>
           </main>
@@ -517,21 +516,21 @@
               </div>
             </div>
             <div class="rail-bubble">
-              Nifty's holding above the daily pivot. I'm watching <span class="font-mono text-accent fw-bold">22,866</span> — a clean break opens 22,975. Volume is participating, not panicking.
+              Bounced off BC <span class="font-mono text-accent fw-bold">22,802</span>, broke Pivot <span class="font-mono text-accent fw-bold">22,834</span> on strong volume at 10:30. Now testing TC at <span class="font-mono text-accent fw-bold">22,867</span> — clean break targets 22,960. Hold above P is non-negotiable.
             </div>
             <div class="rail-stats">
               <div class="rail-stat"><div class="k">Bias</div><div class="v text-gain">Bullish</div></div>
-              <div class="rail-stat"><div class="k">Conviction</div><div class="v">78%</div></div>
-              <div class="rail-stat"><div class="k">R:R</div><div class="v">1 : 2.4</div></div>
-              <div class="rail-stat"><div class="k">Strike</div><div class="v text-accent">22850 CE</div></div>
+              <div class="rail-stat"><div class="k">Conviction</div><div class="v">72%</div></div>
+              <div class="rail-stat"><div class="k">R:R</div><div class="v">1 : 2.1</div></div>
+              <div class="rail-stat"><div class="k">Strike</div><div class="v text-accent">22900 CE</div></div>
             </div>
             <div class="rail-action">
               <div class="k">SUGGESTED ACTION</div>
               <button class="btn btn-aurora btn-sm w-100 d-flex justify-content-between">
-                <span>Buy 22850 CE · 50 lots</span>
+                <span>Buy 22900 CE on TC break</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
-              <div class="footnote">SL ₹62 · TGT ₹148 · R:R 1:2.4</div>
+              <div class="footnote">Entry 22,867 break · SL 22,800 · TGT 22,960</div>
             </div>
           </aside>
 
@@ -784,7 +783,7 @@
         </div>
         <h3 class="footer-lead">Trade with <span class="text-gradient fst-italic">clarity.</span></h3>
         <div class="d-flex gap-2 mt-3">
-          <a href="/contact.html" class="btn btn-aurora btn-sm text-decoration-none">Get access</a>
+          <a href="/contact.html" class="btn btn-aurora btn-sm text-decoration-none">Contact</a>
           <a href="#tools" class="btn btn-quiet text-decoration-none">Explore tools</a>
         </div>
       </div>
@@ -842,6 +841,168 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- TradeZen unified interactions -->
 <script src="halo-aurora.js"></script>
+
+<script>
+(function () {
+  // Intraday candlestick chart for Dashboard Glimpse
+  // [label, Open, High, Low, Close]
+  var CANDLES = [
+    ['9:15',  22790, 22812, 22778, 22806],
+    ['9:30',  22806, 22832, 22798, 22824],
+    ['9:45',  22824, 22838, 22812, 22819],
+    ['10:00', 22819, 22822, 22798, 22804],
+    ['10:15', 22804, 22817, 22796, 22812],
+    ['10:30', 22812, 22858, 22806, 22850],
+    ['10:45', 22850, 22868, 22842, 22863],
+    ['11:00', 22863, 22878, 22855, 22873],
+    ['11:15', 22873, 22887, 22865, 22881],
+    ['11:30', 22881, 22894, 22873, 22889],
+    ['11:45', 22889, 22904, 22882, 22898],
+    ['12:00', 22898, 22914, 22890, 22908],
+    ['12:15', 22908, 22922, 22900, 22918],
+    ['12:30', 22918, 22928, 22910, 22922],
+    ['12:45', 22922, 22932, 22914, 22924],
+    ['13:00', 22924, 22938, 22918, 22846],
+    ['13:15', 22846, 22862, 22838, 22855],
+    ['13:30', 22855, 22870, 22847, 22864],
+  ];
+
+  var CPR = { BC: 22802, P: 22834, TC: 22867 };
+  var PRICE_MIN = 22760, PRICE_MAX = 22950;
+
+  function drawChart() {
+    var canvas = document.getElementById('dash-chart');
+    if (!canvas || !canvas.getContext) return;
+
+    var dpr  = window.devicePixelRatio || 1;
+    var W    = canvas.offsetWidth;
+    var H    = canvas.offsetHeight;
+    if (!W || !H) return;
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    var dark = document.documentElement.getAttribute('data-bs-theme') !== 'light';
+    var BG      = dark ? '#0e1124'                   : '#f8f7ff';
+    var GRID    = dark ? 'rgba(255,255,255,0.04)'    : 'rgba(0,0,0,0.06)';
+    var FG3     = dark ? '#585d7e'                   : '#9ea3be';
+    var GREEN   = dark ? '#34d399' : '#0e9966';
+    var RED     = dark ? '#f87171' : '#c43d3d';
+    var ACCENT  = '#7c6af7';
+    var ACCENT2 = '#5b8af5';
+    var EMA_C   = '#fbbf24';
+
+    var padL = 44, padR = 12, padT = 10, padB = 20;
+    var cW   = W - padL - padR;
+    var cH   = H - padT - padB;
+    var rng  = PRICE_MAX - PRICE_MIN;
+
+    function py(p) { return padT + cH * (1 - (p - PRICE_MIN) / rng); }
+
+    // Background
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, W, H);
+
+    // Horizontal grid
+    ctx.strokeStyle = GRID;
+    ctx.lineWidth = 1;
+    [22780, 22800, 22820, 22840, 22860, 22880, 22900, 22920, 22940].forEach(function (p) {
+      var y = py(p);
+      if (y < padT || y > padT + cH) return;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    });
+
+    // CPR lines (drawn before candles so candles sit on top)
+    var cprDefs = [
+      { p: CPR.BC, c: ACCENT2, dash: [3, 3] },
+      { p: CPR.P,  c: ACCENT2, dash: [] },
+      { p: CPR.TC, c: ACCENT,  dash: [3, 3] },
+    ];
+    cprDefs.forEach(function (d) {
+      var y = py(d.p);
+      ctx.save();
+      ctx.strokeStyle = d.c;
+      ctx.lineWidth   = d.dash.length ? 1 : 1.5;
+      ctx.setLineDash(d.dash);
+      ctx.globalAlpha = 0.65;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.restore();
+    });
+
+    // EMA9
+    var closes = CANDLES.map(function (c) { return c[4]; });
+    var k = 2 / 10, e = closes[0], ema = [];
+    closes.forEach(function (c) { e = c * k + e * (1 - k); ema.push(e); });
+
+    var sp = cW / CANDLES.length;
+    ctx.save();
+    ctx.strokeStyle = EMA_C; ctx.lineWidth = 1.3; ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    CANDLES.forEach(function (c, i) {
+      var x = padL + sp * i + sp * 0.5;
+      i === 0 ? ctx.moveTo(x, py(ema[i])) : ctx.lineTo(x, py(ema[i]));
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // Candlesticks
+    var bw = Math.min(sp * 0.55, 9);
+    CANDLES.forEach(function (c, i) {
+      var O = c[1], Hi = c[2], Lo = c[3], C = c[4];
+      var x   = padL + sp * i + sp * 0.5;
+      var col = C >= O ? GREEN : RED;
+
+      ctx.strokeStyle = col; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, py(Hi)); ctx.lineTo(x, py(Lo)); ctx.stroke();
+
+      ctx.fillStyle = col;
+      var by = py(Math.max(O, C));
+      var bh = Math.max(Math.abs(py(O) - py(C)), 1.5);
+      ctx.fillRect(x - bw / 2, by, bw, bh);
+    });
+
+    // Y-axis labels
+    ctx.fillStyle = FG3; ctx.font = '9px JetBrains Mono,monospace'; ctx.textAlign = 'right';
+    [22780, 22820, 22860, 22900, 22940].forEach(function (p) {
+      var y = py(p);
+      if (y >= padT && y <= padT + cH) ctx.fillText((p / 1000).toFixed(1) + 'K', padL - 4, y + 3);
+    });
+
+    // X-axis labels
+    ctx.fillStyle = FG3; ctx.font = '9px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+    CANDLES.forEach(function (c, i) {
+      if (i % 3 === 0) ctx.fillText(c[0], padL + sp * i + sp * 0.5, H - 5);
+    });
+
+    // Current-price dashed line
+    var last = CANDLES[CANDLES.length - 1][4];
+    ctx.save();
+    ctx.strokeStyle = ACCENT; ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]); ctx.globalAlpha = 0.45;
+    ctx.beginPath(); ctx.moveTo(padL, py(last)); ctx.lineTo(W - padR, py(last)); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Init
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(drawChart, 80); });
+  } else {
+    setTimeout(drawChart, 80);
+  }
+
+  // Resize
+  window.addEventListener('resize', function () {
+    clearTimeout(window.__chartTO);
+    window.__chartTO = setTimeout(drawChart, 150);
+  });
+
+  // Redraw when theme switches
+  new MutationObserver(function (m) {
+    m.forEach(function (r) { if (r.attributeName === 'data-bs-theme') setTimeout(drawChart, 40); });
+  }).observe(document.documentElement, { attributes: true });
+})();
+</script>
 
 </body>
 </html>
