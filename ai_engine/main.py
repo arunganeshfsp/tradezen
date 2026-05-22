@@ -1989,6 +1989,57 @@ async def nifty_candles():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Market Summary — live quotes for landing-page index cards
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _market_summary_sync() -> dict:
+    import yfinance as yf
+    import datetime as _dt
+    IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    now_ist = _dt.datetime.now(IST)
+
+    _SYMS = {"nifty": "^NSEI", "banknifty": "^NSEBANK", "vix": "^INDIAVIX"}
+    result: dict = {"as_of": now_ist.strftime("%H:%M")}
+
+    for key, sym in _SYMS.items():
+        try:
+            hist_d  = yf.Ticker(sym).history(period="5d",  interval="1d").dropna()
+            hist_5m = yf.Ticker(sym).history(period="1d",  interval="5m").dropna()
+
+            ltp        = round(float(hist_5m["Close"].iloc[-1])  if not hist_5m.empty else float(hist_d["Close"].iloc[-1]), 2)
+            prev_close = round(float(hist_d["Close"].iloc[-2])   if len(hist_d) >= 2   else float(hist_d["Close"].iloc[-1]), 2)
+            pct        = round((ltp - prev_close) / prev_close * 100, 2)
+
+            spark: list = []
+            if not hist_5m.empty:
+                closes = hist_5m["Close"].tolist()[-32:]
+                lo, hi = min(closes), max(closes)
+                rng = hi - lo or 1
+                spark = [round((c - lo) / rng, 3) for c in closes]
+
+            result[key] = {"ltp": ltp, "prev": prev_close, "pct": pct, "spark": spark}
+        except Exception as ex:
+            result[key] = {"error": str(ex)}
+
+    # Market session: weekday 09:15–15:30 IST
+    t = now_ist.time()
+    import datetime as _dt2
+    result["is_open"] = (now_ist.weekday() < 5
+                         and _dt2.time(9, 15) <= t <= _dt2.time(15, 30))
+    return result
+
+
+@app.get("/market-summary")
+async def market_summary_endpoint():
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _market_summary_sync)
+    except Exception as e:
+        log.error(f"[MARKET-SUMMARY] error: {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Market Psychology Engine — dominance scoring + Supertrend + VWAP per candle
 # ══════════════════════════════════════════════════════════════════════════════
 

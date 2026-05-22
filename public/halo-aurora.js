@@ -150,6 +150,8 @@
   }
 
   renderSparks();
+  window.renderSparks = renderSparks;   // allow pages to retrigger after data-points update
+
   window.addEventListener('resize', function () {
     clearTimeout(window.__sparkTO);
     window.__sparkTO = setTimeout(renderSparks, 120);

@@ -149,6 +149,17 @@ router.get("/cpr-levels", async (req, res) => {
   }
 });
 
+// ─── GET /api/market-summary ─────────────────────────────────────────────────
+// Live NIFTY / BANKNIFTY / India VIX quotes + sparkline + session status
+router.get("/market-summary", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/market-summary", 20000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/candles ────────────────────────────────────────────────────────
 // Live 5-min intraday candles for NIFTY 50 (today's session)
 router.get("/candles", async (req, res) => {
