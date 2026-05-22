@@ -269,11 +269,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .sv-header-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
 .sv-header-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
 .sv-body{display:flex;align-items:stretch;min-height:168px}
-.sv-nav{width:52px;background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-right:1px solid var(--border)}
-.sv-nav:last-child{border-right:none;border-left:1px solid var(--border)}
+.sv-nav-group{display:flex;flex-direction:column;align-items:stretch;flex-shrink:0;border-right:1px solid var(--border)}
+.sv-nav-group.sv-nav-right{border-right:none;border-left:1px solid var(--border)}
+.sv-nav{flex:1;width:48px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--dim);font-size:19px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.sv-nav:last-child{border-bottom:none}
+.sv-nav.sv-skip{font-size:13px}
 .sv-nav:hover:not(:disabled){background:var(--bg2);color:var(--text)}
 .sv-nav:disabled{opacity:0.18;cursor:default}
-@media(max-width:600px){.sv-nav{width:40px;font-size:16px}}
+@media(max-width:600px){.sv-nav{width:36px;font-size:15px}.sv-nav.sv-skip{font-size:11px}}
 .sv-main{flex:1;padding:18px 24px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
 .sv-act{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);padding:3px 12px;border-radius:20px;margin-bottom:4px}
 @keyframes svIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -508,7 +511,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <span class="sv-header-meta" id="sv-meta"></span>
       </div>
       <div class="sv-body">
-        <button class="sv-nav" id="sv-prev" onclick="storyPrev()">&#8592;</button>
+        <div class="sv-nav-group">
+          <button class="sv-nav sv-skip" id="sv-first" onclick="storyFirst()" title="First moment">&#x23EE;</button>
+          <button class="sv-nav" id="sv-prev" onclick="storyPrev()" title="Previous">&#8592;</button>
+        </div>
         <div class="sv-main">
           <div class="sv-act" id="sv-act"></div>
           <div class="sv-entry" id="sv-entry">
@@ -523,7 +529,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
             <div class="sv-dots" id="sv-dots"></div>
           </div>
         </div>
-        <button class="sv-nav" id="sv-next" onclick="storyNext()">&#8594;</button>
+        <div class="sv-nav-group sv-nav-right">
+          <button class="sv-nav" id="sv-next" onclick="storyNext()" title="Next">&#8594;</button>
+          <button class="sv-nav sv-skip" id="sv-last" onclick="storyLast()" title="Last moment">&#x23ED;</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1650,20 +1659,14 @@ function rpSpeed(btn) {
 let _storyEntries = [];
 let _storyViewIdx  = 0;
 
+const _SV_ACT_LABELS = {
+  1: 'ACT 1 · OPENING GAMBIT',
+  2: 'ACT 2 · MID-DAY TREND',
+  3: 'ACT 3 · POWER HOUR',
+};
+
 function _storyReals() {
   return _storyEntries.filter(e => !e.isDiv);
-}
-
-function _storyActFor(realIdx) {
-  const reals = _storyReals();
-  const target = reals[realIdx];
-  if (!target) return '';
-  let act = '';
-  for (const e of _storyEntries) {
-    if (e.isDiv) act = e.label;
-    else if (e.idx === target.idx) break;
-  }
-  return act;
 }
 
 function _renderStoryViewer() {
@@ -1672,21 +1675,22 @@ function _renderStoryViewer() {
   const i = Math.max(0, Math.min(_storyViewIdx, reals.length - 1));
   const e = reals[i];
 
-  document.getElementById('sv-act').textContent     = _storyActFor(i);
+  document.getElementById('sv-act').textContent     = _SV_ACT_LABELS[e.act] || '';
   document.getElementById('sv-time').textContent    = e.time;
   document.getElementById('sv-emoji').textContent   = e.emoji;
   const txtEl = document.getElementById('sv-text');
-  txtEl.textContent  = e.text;
-  txtEl.className    = `sv-text tone-${e.tone}`;
+  txtEl.textContent = e.text;
+  txtEl.className   = `sv-text tone-${e.tone}`;
   document.getElementById('sv-counter').textContent = `${i + 1} / ${reals.length}`;
 
-  const prev = document.getElementById('sv-prev');
-  const next = document.getElementById('sv-next');
-  if (prev) prev.disabled = i === 0;
-  if (next) next.disabled = i === reals.length - 1;
+  const atFirst = i === 0, atLast = i === reals.length - 1;
+  const el = id => document.getElementById(id);
+  if (el('sv-first')) el('sv-first').disabled = atFirst;
+  if (el('sv-prev'))  el('sv-prev').disabled  = atFirst;
+  if (el('sv-next'))  el('sv-next').disabled  = atLast;
+  if (el('sv-last'))  el('sv-last').disabled  = atLast;
 
-  // Progress dots (up to 16)
-  const dotsEl = document.getElementById('sv-dots');
+  const dotsEl = el('sv-dots');
   if (dotsEl) {
     dotsEl.innerHTML = reals.length <= 16
       ? reals.map((_, di) =>
@@ -1695,19 +1699,14 @@ function _renderStoryViewer() {
       : '';
   }
 
-  // Slide-in animation
-  const entryEl = document.getElementById('sv-entry');
+  const entryEl = el('sv-entry');
   if (entryEl) { entryEl.classList.remove('sv-anim'); void entryEl.offsetWidth; entryEl.classList.add('sv-anim'); }
 }
 
-function storyPrev() {
-  if (_storyViewIdx > 0) { _storyViewIdx--; _renderStoryViewer(); }
-}
-
-function storyNext() {
-  const reals = _storyReals();
-  if (_storyViewIdx < reals.length - 1) { _storyViewIdx++; _renderStoryViewer(); }
-}
+function storyFirst() { _storyViewIdx = 0; _renderStoryViewer(); }
+function storyLast()  { _storyViewIdx = _storyReals().length - 1; _renderStoryViewer(); }
+function storyPrev()  { if (_storyViewIdx > 0) { _storyViewIdx--; _renderStoryViewer(); } }
+function storyNext()  { const r = _storyReals(); if (_storyViewIdx < r.length - 1) { _storyViewIdx++; _renderStoryViewer(); } }
 
 function _stFmt(ts) {
   const d = new Date(ts * 1000);
