@@ -10,11 +10,11 @@
   
   <style>
     :root {
-      --bg: #0f0a00;
-      --bg2: #1a1100;
-      --bg3: #231700;
-      --bg4: #2e1f00;
-      --bg5: #3a2800;
+      --bg: #06070f;
+      --bg2: #0e1124;
+      --bg3: #161a32;
+      --bg4: #1c2040;
+      --bg5: #1c2040;
       --border: rgba(255, 200, 50, 0.07);
       --border2: rgba(255, 200, 50, 0.14);
       --text: #f5e8c8;
@@ -1374,20 +1374,20 @@
       </div>
 
       <!-- Any Indian stock free-text search -->
-      <div class="setup-card" style="grid-column: span 2; border-color: rgba(245,192,48,0.25); background: rgba(245,192,48,0.03);">
+      <div class="setup-card" style="grid-column: span 2; border-color: rgba(124,106,247,0.25); background: rgba(124,106,247,0.03);">
         <label style="color:var(--gold);">🇮🇳 எந்த NSE பங்கும் — Symbol தட்டச்சு செய்யவும்
           <span style="font-size:9px;color:var(--muted);margin-left:6px;">Nifty50 list-ல் இல்லாத பங்குக்கும் பயன்படுத்துங்கள்</span>
         </label>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="customSymbolInput"
             placeholder="உதா: ZOMATO, IRFC, DMART, TATACHEM..."
-            style="flex:1;background:var(--bg3);border:1px solid rgba(245,192,48,0.3);border-radius:var(--rs);color:var(--text);padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s;text-transform:uppercase;"
+            style="flex:1;background:var(--bg3);border:1px solid rgba(124,106,247,0.3);border-radius:var(--rs);color:var(--text);padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s;text-transform:uppercase;"
             oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9\-&]/g,'')"
             onkeydown="if(event.key==='Enter')fetchCustomStock()"
-            onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(245,192,48,0.3)'">
+            onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(124,106,247,0.3)'">
           <button onclick="fetchCustomStock()" id="customFetchBtn"
-            style="padding:8px 18px;border-radius:var(--rs);border:1px solid rgba(245,192,48,0.45);background:var(--gold-bg);color:var(--gold);font-family:'Noto Sans Tamil',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;white-space:nowrap;"
-            onmouseover="this.style.background='rgba(245,192,48,0.18)'" onmouseout="this.style.background='var(--gold-bg)'">
+            style="padding:8px 18px;border-radius:var(--rs);border:1px solid rgba(124,106,247,0.45);background:var(--gold-bg);color:var(--gold);font-family:'Noto Sans Tamil',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;white-space:nowrap;"
+            onmouseover="this.style.background='rgba(124,106,247,0.18)'" onmouseout="this.style.background='var(--gold-bg)'">
             📡 தேடு
           </button>
         </div>
@@ -1790,7 +1790,7 @@
             style="color:var(--green)">+6.01%</span>
           <div class="ex-stat-lbl">Return on Capital</div>
         </div>
-        <div class="ex-stat" style="background:rgba(45,212,191,0.06);"><span class="ex-stat-val"
+        <div class="ex-stat" style="background:rgba(124,106,247,0.06);"><span class="ex-stat-val"
             style="color:var(--teal)">1.9:1</span>
           <div class="ex-stat-lbl">Actual R:R</div>
         </div>

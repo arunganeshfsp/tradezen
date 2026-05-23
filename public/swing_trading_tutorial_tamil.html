@@ -9,8 +9,8 @@
 <script src="theme.js"></script>
 <style>
 :root {
-  --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
-  --border:#252a44; --border2:#323868;
+  --bg:#06070f; --bg1:#0e1124; --bg2:#161a32; --bg3:#1c2040; --bg4:#1c2040;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.14);
   --accent:#7c6af7; --blue:#5b8af5;
   --green:#2ecc71; --red:#e74c3c; --yellow:#f5a623; --orange:#f39c12;
   --cyan:#00d4ff; --teal:#1abc9c; --purple:#a78bfa;
@@ -19,8 +19,8 @@
   /* Aliases for inline styles in content */
   --gold:#f5a623;
   --ink:#e8ecf4; --ink2:#9ba3bf; --ink3:#6b7496; --ink4:#4a5070; --ink5:#333655;
-  --paper:#0A0C18; --paper2:#0e1020; --paper3:#1a1e35;
-  --rule-line:#252a44; --shadow:rgba(0,0,0,.35);
+  --paper:#06070f; --paper2:#0e1124; --paper3:#1c2040;
+  --rule-line:rgba(255,255,255,0.07); --shadow:rgba(0,0,0,.35);
 
   /* Card tint backgrounds */
   --red-l:rgba(231,76,60,.08); --green-l:rgba(46,204,113,.08);
@@ -34,7 +34,7 @@ html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans','Noto Sans Tamil',sans-serif;min-height:100vh;overflow-x:hidden}
 
 /* ── Nav ── */
-nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-filter:blur(16px);
+nav{position:sticky;top:0;z-index:200;background:rgba(6,7,15,.95);backdrop-filter:blur(16px);
     border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
 .brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
 .logo{width:28px;height:28px;border-radius:6px;flex-shrink:0}
@@ -49,7 +49,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
   nav{padding:0 16px}
   .hamburger{display:flex}
   .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;
-             background:rgba(10,12,24,.98);border-bottom:1px solid var(--border);
+             background:rgba(6,7,15,.98);border-bottom:1px solid var(--border);
              padding:8px 12px 12px;gap:2px;z-index:199}
   .nav-links.open{display:flex}
   .nav-r{display:none}

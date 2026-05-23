@@ -9,23 +9,23 @@
 
 <style>
 :root{
-  --bg:       #0f0a00;
-  --bg2:      #1a1100;
-  --bg3:      #231700;
-  --bg4:      #2e1f00;
-  --bg5:      #3a2800;
-  --border:   rgba(255,200,50,0.07);
-  --border2:  rgba(255,200,50,0.14);
+  --bg:       #06070f;
+  --bg2:      #0e1124;
+  --bg3:      #161a32;
+  --bg4:      #1c2040;
+  --bg5:      #1c2040;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.14);
   --text:     #f5e8c8;
   --muted:    #9a8060;
   --faint:    #4a3820;
   --gold:     #f5c030;
   --gold2:    #e8a820;
   --gold3:    #c88010;
-  --gold-bg:  rgba(245,192,48,0.08);
-  --gold-glow:rgba(245,192,48,0.15);
+  --gold-bg:  rgba(124,106,247,0.08);
+  --gold-glow:rgba(124,106,247,0.15);
   --teal:     #2dd4bf;
-  --teal-bg:  rgba(45,212,191,0.08);
+  --teal-bg:  rgba(124,106,247,0.08);
   --green:    #4ade80;
   --green-bg: rgba(74,222,128,0.08);
   --green2:   #16a34a;
@@ -34,7 +34,7 @@
   --red2:     #b91c1c;
   --amber:    #fb923c;
   --amber-bg: rgba(251,146,60,0.08);
-  --neutral:  rgba(245,192,48,0.12);
+  --neutral:  rgba(124,106,247,0.12);
   --r:        12px;
   --rs:       8px;
 }
@@ -56,10 +56,10 @@ body{
 body::before{
   content:'';position:fixed;inset:0;
   background:
-    radial-gradient(ellipse 60% 50% at 15% 10%, rgba(245,192,48,0.05) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 15% 10%, rgba(124,106,247,0.05) 0%,transparent 60%),
     radial-gradient(ellipse 50% 40% at 85% 90%, rgba(251,146,60,0.04) 0%,transparent 60%),
-    repeating-linear-gradient(0deg,transparent,transparent 44px,rgba(245,192,48,0.018) 44px,rgba(245,192,48,0.018) 45px),
-    repeating-linear-gradient(90deg,transparent,transparent 44px,rgba(245,192,48,0.018) 44px,rgba(245,192,48,0.018) 45px);
+    repeating-linear-gradient(0deg,transparent,transparent 44px,rgba(124,106,247,0.018) 44px,rgba(124,106,247,0.018) 45px),
+    repeating-linear-gradient(90deg,transparent,transparent 44px,rgba(124,106,247,0.018) 44px,rgba(124,106,247,0.018) 45px);
   pointer-events:none;z-index:0;
 }
 
@@ -88,7 +88,7 @@ body::before{
 .header-badge{
   display:inline-flex;align-items:center;gap:7px;
   background:var(--gold-bg);
-  border:1px solid rgba(245,192,48,0.25);
+  border:1px solid rgba(124,106,247,0.25);
   border-radius:20px;
   padding:5px 16px;
   font-family:'JetBrains Mono',monospace;
@@ -111,8 +111,8 @@ body::before{
 .compare-side{
   border-radius:var(--r);padding:0.9rem 1rem;font-size:12px;
 }
-.compare-buy{background:rgba(77,166,255,0.07);border:1px solid rgba(77,166,255,0.2);}
-.compare-sell{background:var(--gold-bg);border:1px solid rgba(245,192,48,0.2);}
+.compare-buy{background:rgba(77,166,255,0.07);border:1px solid rgba(91,138,245,0.2);}
+.compare-sell{background:var(--gold-bg);border:1px solid rgba(124,106,247,0.2);}
 .compare-side h4{font-size:12px;font-weight:700;margin-bottom:5px;}
 .compare-buy h4{color:#4da6ff;}
 .compare-sell h4{color:var(--gold);}
@@ -179,7 +179,7 @@ body::before{
 .strat-btn:hover{border-color:var(--border2);background:var(--bg3);}
 .strat-btn.active{
   background:var(--gold-bg);
-  border-color:rgba(245,192,48,0.4);
+  border-color:rgba(124,106,247,0.4);
 }
 .strat-btn .sb-icon{font-size:1.5rem;display:block;margin-bottom:6px;}
 .strat-btn .sb-name{font-size:12px;font-weight:600;color:#fff;display:block;margin-bottom:3px;}
@@ -206,7 +206,7 @@ body::before{
 .ind-card.s-yes::before{background:var(--green);}
 .ind-card.s-no{border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.04);}
 .ind-card.s-no::before{background:var(--red);}
-.ind-card.s-na{border-color:rgba(245,192,48,0.3);background:rgba(245,192,48,0.04);}
+.ind-card.s-na{border-color:rgba(124,106,247,0.3);background:rgba(124,106,247,0.04);}
 .ind-card.s-na::before{background:var(--gold);}
 
 .ind-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;gap:8px;}
@@ -255,7 +255,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .sig-btn:hover{background:var(--bg4);}
 .sig-btn.ay{background:var(--green-bg);border-color:rgba(74,222,128,0.4);color:var(--green);font-weight:600;}
 .sig-btn.an{background:var(--red-bg);border-color:rgba(248,113,113,0.4);color:var(--red);font-weight:600;}
-.sig-btn.aa{background:var(--gold-bg);border-color:rgba(245,192,48,0.4);color:var(--gold);font-weight:600;}
+.sig-btn.aa{background:var(--gold-bg);border-color:rgba(124,106,247,0.4);color:var(--gold);font-weight:600;}
 
 /* RANGE ANALYSER */
 .range-section{
@@ -314,7 +314,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   font-size:12px;cursor:pointer;transition:all 0.18s;text-align:center;
 }
 .range-sig-btn.rs-safe{background:var(--green-bg);border-color:rgba(74,222,128,0.4);color:var(--green);font-weight:600;}
-.range-sig-btn.rs-warn{background:var(--gold-bg);border-color:rgba(245,192,48,0.4);color:var(--gold);font-weight:600;}
+.range-sig-btn.rs-warn{background:var(--gold-bg);border-color:rgba(124,106,247,0.4);color:var(--gold);font-weight:600;}
 .range-sig-btn.rs-danger{background:var(--red-bg);border-color:rgba(248,113,113,0.4);color:var(--red);font-weight:600;}
 
 /* PREMIUM CALC */
@@ -345,12 +345,12 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .pcr-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
 .calc-btn{
   width:100%;padding:10px;border-radius:var(--rs);
-  border:1px solid rgba(245,192,48,0.3);
+  border:1px solid rgba(124,106,247,0.3);
   background:var(--gold-bg);color:var(--gold);
   font-family:'Noto Sans Tamil',sans-serif;font-weight:600;font-size:13px;
   cursor:pointer;transition:all 0.2s;margin-top:0.75rem;
 }
-.calc-btn:hover{background:rgba(245,192,48,0.15);}
+.calc-btn:hover{background:rgba(124,106,247,0.15);}
 
 /* VERDICT */
 .verdict-panel{

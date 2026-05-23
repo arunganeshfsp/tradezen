@@ -354,9 +354,23 @@ body{
 [style*="rgba(139,26,26"] {  border-color:rgba(248,113,113,0.2) !important; }
 [style*="rgba(200,134,10"]{  border-color:rgba(124,106,247,0.2) !important; }
 
-/* ── Nav logo: white text on aurora-purple mark ── */
+/* ── Aurora orbs: override tradezen.css hardcoded teal ── */
+.tz-orb1{ background: radial-gradient(circle,#7c6af7,transparent 70%); }
+.tz-orb2{ background: radial-gradient(circle,#5b8af5,transparent 70%); }
+.tz-grid{
+  background-image:
+    linear-gradient(rgba(124,106,247,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,106,247,0.025) 1px, transparent 1px);
+}
+
+/* ── Nav/chip: override tradezen.css hardcoded teal borders ── */
 .tz-logo-mark{ color: #fff; }
-.tz-nav-chip{ background:rgba(124,106,247,0.15); color:#7c6af7; border-color:rgba(124,106,247,0.3); }
+.tz-nav-chip{ background:rgba(124,106,247,0.12); color:#7c6af7; border-color:rgba(124,106,247,0.25); }
+.tz-nav-cta.teal{ background:var(--teal); color:#fff; }
+.tz-nav-links a.tz-active{ color:var(--teal); background:var(--teal-bg); }
+.tz-badge.teal{ border-color:rgba(124,106,247,0.25); }
+.tz-pill.teal{ border-color:rgba(124,106,247,0.2); }
+.tz-alert.teal{ border-color:rgba(124,106,247,0.25); }
 
 /* ── OLD FOOTER suppressed — using tz-footer ── */
 .footer{ display:none; }

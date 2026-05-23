@@ -8,20 +8,20 @@
 <title>மார்கெட் புரொஃபைல் - Market Profile கற்றுக்கொள்வோம்</title>
 <style>
   :root {
-    --bg: #0D1B2A;
-    --bg2: #142233;
-    --bg3: #1C2F44;
-    --gold: #F5C04A;
+    --bg: #06070f;
+    --bg2: #0e1124;
+    --bg3: #161a32;
+    --gold: #7c6af7;
     --gold-pale: #FDF0D0;
-    --teal: #4DD6C5;
+    --teal: #5b8af5;
     --red: #E84040;
     --red-light: #FF6B6B;
     --green: #2ECC71;
     --green-light: #55E08A;
     --text: #F0EEE8;
     --muted: #9BA8B5;
-    --border: rgba(232,161,23,0.2);
-    --card: rgba(28,47,68,0.7);
+    --border: rgba(124,106,247,0.2);
+    --card: rgba(22,26,50,0.7);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,7 +39,7 @@
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(77,214,197,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(91,138,245,0.05) 0%, transparent 60%),
       radial-gradient(ellipse 50% 50% at 80% 80%, rgba(232,161,23,0.04) 0%, transparent 60%);
     pointer-events: none;
     z-index: 0;
@@ -54,9 +54,9 @@
   }
   .hero-badge {
     display: inline-block;
-    background: rgba(77,214,197,0.12);
+    background: rgba(91,138,245,0.12);
     color: var(--teal);
-    border: 1px solid rgba(77,214,197,0.3);
+    border: 1px solid rgba(91,138,245,0.3);
     border-radius: 20px;
     padding: 4px 16px;
     font-size: 12px;
@@ -107,8 +107,8 @@
   .concept-card .cc-body { font-size: 13px; color: var(--muted); line-height: 1.7; }
 
   .formula-box {
-    background: rgba(77,214,197,0.07);
-    border: 1px solid rgba(77,214,197,0.25);
+    background: rgba(91,138,245,0.07);
+    border: 1px solid rgba(124,106,247,0.25);
     border-radius: 10px;
     padding: 1rem 1.25rem;
     font-family: 'JetBrains Mono', monospace;
@@ -174,12 +174,12 @@
   }
   .eg-card.positive { background: rgba(46,204,113,0.06); border-color: rgba(46,204,113,0.25); }
   .eg-card.negative { background: rgba(232,64,64,0.06); border-color: rgba(232,64,64,0.25); }
-  .eg-card.neutral  { background: rgba(77,214,197,0.06); border-color: rgba(77,214,197,0.25); }
+  .eg-card.neutral  { background: rgba(91,138,245,0.06); border-color: rgba(124,106,247,0.25); }
   .eg-card .eg-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
   .eg-badge { font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
   .positive .eg-badge { background: rgba(46,204,113,0.2); color: var(--green-light); }
   .negative .eg-badge { background: rgba(232,64,64,0.2); color: var(--red-light); }
-  .neutral  .eg-badge { background: rgba(77,214,197,0.15); color: var(--teal); }
+  .neutral  .eg-badge { background: rgba(124,106,247,0.15); color: var(--teal); }
   .eg-title { font-size: 15px; font-weight: 600; }
   .positive .eg-title { color: var(--green-light); }
   .negative .eg-title { color: var(--red-light); }
@@ -216,8 +216,8 @@
 
   /* SUMMARY */
   .summary-card {
-    background: linear-gradient(135deg, rgba(77,214,197,0.1) 0%, rgba(232,161,23,0.08) 100%);
-    border: 1px solid rgba(77,214,197,0.3);
+    background: linear-gradient(135deg, rgba(91,138,245,0.1) 0%, rgba(232,161,23,0.08) 100%);
+    border: 1px solid rgba(91,138,245,0.3);
     border-radius: 14px;
     padding: 1.5rem;
     text-align: center;
@@ -248,7 +248,7 @@
     min-width: 280px;
     background: #0a1520;
     border-radius: 10px;
-    border: 1px solid rgba(77,214,197,0.2);
+    border: 1px solid rgba(91,138,245,0.2);
     overflow: hidden;
   }
   .tpo-legend {
@@ -325,7 +325,7 @@
       <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border,#333);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim,#9ba3bf);transition:border-color .15s;padding:0;flex-shrink:0;margin-left:auto"></button>
   </div>
 </nav>
-<style>.tz-nav{position:sticky;top:0;z-index:9999;background:rgba(7,16,29,0.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:sans-serif;}.tz-nav-inner{max-width:1100px;margin:0 auto;height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:8px;}.tz-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}.tz-logo-mark{width:30px;height:30px;background:#7c6af7;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;font-family:monospace;}.tz-logo-text{font-family:monospace;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px;}.tz-logo-text span{color:#7c6af7;}.tz-nav-slash{color:#3a5068;}.tz-nav-chip{background:rgba(124,106,247,0.15);color:#7c6af7;border:1px solid rgba(124,106,247,0.3);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600;letter-spacing:0.06em;white-space:nowrap;}.tz-nav-links{display:flex;gap:2px;margin-left:auto;}.tz-nav-links a{text-decoration:none;color:#6e87a2;font-size:12px;padding:5px 10px;border-radius:8px;transition:all 0.18s;white-space:nowrap;}.tz-nav-links a:hover{color:#f0f1f8;background:rgba(255,255,255,0.07);}.tz-active{color:#7c6af7!important;background:rgba(124,106,247,0.1)!important;}.tz-nav-cta{margin-left:8px;padding:6px 14px;background:rgba(124,106,247,0.15);border:1px solid rgba(124,106,247,0.4);border-radius:8px;color:#7c6af7;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;}.tz-nav-cta:hover{background:rgba(124,106,247,0.25);}@media(max-width:720px){.tz-nav-links{display:none;}}</style>
+<style>.tz-nav{position:sticky;top:0;z-index:9999;background:rgba(6,7,15,0.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:sans-serif;}.tz-nav-inner{max-width:1100px;margin:0 auto;height:52px;padding:0 1.25rem;display:flex;align-items:center;gap:8px;}.tz-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}.tz-logo-mark{width:30px;height:30px;background:#7c6af7;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;font-family:monospace;}.tz-logo-text{font-family:monospace;font-weight:700;font-size:14px;color:#fff;letter-spacing:1px;}.tz-logo-text span{color:#7c6af7;}.tz-nav-slash{color:#3a5068;}.tz-nav-chip{background:rgba(124,106,247,0.15);color:#7c6af7;border:1px solid rgba(124,106,247,0.3);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600;letter-spacing:0.06em;white-space:nowrap;}.tz-nav-links{display:flex;gap:2px;margin-left:auto;}.tz-nav-links a{text-decoration:none;color:#6e87a2;font-size:12px;padding:5px 10px;border-radius:8px;transition:all 0.18s;white-space:nowrap;}.tz-nav-links a:hover{color:#f0f1f8;background:rgba(255,255,255,0.07);}.tz-active{color:#7c6af7!important;background:rgba(124,106,247,0.1)!important;}.tz-nav-cta{margin-left:8px;padding:6px 14px;background:rgba(124,106,247,0.15);border:1px solid rgba(124,106,247,0.4);border-radius:8px;color:#7c6af7;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;}.tz-nav-cta:hover{background:rgba(124,106,247,0.25);}@media(max-width:720px){.tz-nav-links{display:none;}}</style>
 
 <div class="container">
 
@@ -399,7 +399,7 @@
         </div>
       </div>
       <div class="level-card">
-        <div class="level-dot" style="background:#F5C04A;"></div>
+        <div class="level-dot" style="background:#7c6af7;"></div>
         <div>
           <div class="lc-label">IB High / IB Low</div>
           <div class="lc-body">முதல் 60 நிமிட வரம்பு. IB-ஐ உடைக்க முயலும்போது momentum trade.</div>
@@ -437,17 +437,17 @@
           <div style="font-size:11px; color:var(--muted); margin-bottom:4px; letter-spacing:0.05em;">LEGEND</div>
           <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#FF4444;"></div>POC = 24,180</div>
           <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#3366CC;"></div>Value Area (VAL–VAH)</div>
-          <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#F5C04A; opacity:0.6;"></div>Initial Balance</div>
+          <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#7c6af7; opacity:0.6;"></div>Initial Balance</div>
           <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#FF8C00;"></div>Single Print</div>
           <div class="tpo-leg"><div class="tpo-leg-sq" style="background:#4a5e72;"></div>Outside VA</div>
           <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px;">
             <div style="font-size:11px; color:var(--muted); margin-bottom:6px; letter-spacing:0.05em;">KEY LEVELS</div>
             <div style="font-size:12px; line-height:2; font-family:'JetBrains Mono',monospace;">
-              <div><span style="color:#F5C04A;">IB H</span> <span style="color:#F0EEE8;">24,288</span></div>
+              <div><span style="color:#7c6af7;">IB H</span> <span style="color:#F0EEE8;">24,288</span></div>
               <div><span style="color:#3399FF;">VAH</span>  <span style="color:#F0EEE8;"> 24,215</span></div>
               <div><span style="color:#FF4444;">POC</span>  <span style="color:#F0EEE8;"> 24,180</span></div>
               <div><span style="color:#3399FF;">VAL</span>  <span style="color:#F0EEE8;"> 24,155</span></div>
-              <div><span style="color:#F5C04A;">IB L</span> <span style="color:#F0EEE8;"> 24,125</span></div>
+              <div><span style="color:#7c6af7;">IB L</span> <span style="color:#F0EEE8;"> 24,125</span></div>
               <div style="margin-top:8px;font-size:11px;color:var(--muted);">VA Width: 60 pts</div>
               <div style="font-size:11px;color:var(--muted);">IB Width: 163 pts</div>
               <div style="font-size:11px;color:#CC44CC;">⚠️ Poor High: 24,285</div>
@@ -581,7 +581,7 @@
             <tr><td>POC-ஐ தாண்டினால்</td><td class="tag-teal">Continuation</td><td class="tag-profit">அடுத்த level (VAH/VAL) target</td></tr>
           </tbody>
         </table>
-        <div style="background:rgba(77,214,197,0.08); border:1px solid rgba(77,214,197,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
+        <div style="background:rgba(91,138,245,0.08); border:1px solid rgba(124,106,247,0.25); border-radius:10px; padding:12px; margin-top:10px; font-size:13px; color:var(--muted);">
           <strong style="color:var(--teal);">💡 Partial Profit உத்தி:</strong> எந்த long/short trade-ல் இருந்தாலும் — POC-க்கு வந்தவுடன் 50% position close செய்யுங்கள். Rest-ஐ trail stop-ல் விடுங்கள்.
         </div>
       </div>
@@ -599,7 +599,7 @@
         <div class="cc-title" style="color:var(--green-light);">Trend Day</div>
         <div class="cc-body">IB Narrow. விலை ஒரே திசையில் போகும். ஒவ்வொரு period-லும் புதிய High அல்லது Low. Value Area expand ஆகும். <strong style="color:var(--text);">IB breakout = trend follow.</strong></div>
       </div>
-      <div class="concept-card" style="border-color:rgba(77,214,197,0.3);">
+      <div class="concept-card" style="border-color:rgba(91,138,245,0.3);">
         <div class="cc-icon">↔️</div>
         <div class="cc-title" style="color:var(--teal);">Balance / Range Day</div>
         <div class="cc-body">IB Wide. Value Area compact. POC நடுவில். சந்தை VA-க்குள்ளேயே நகரும். <strong style="color:var(--text);">VAL buy, VAH sell, POC skip.</strong></div>
