@@ -19,6 +19,40 @@
     /* py-md-6 spacing utility */
     @media (min-width: 768px) { .py-md-6 { padding-top: 5rem !important; padding-bottom: 5rem !important; } }
 
+    /* ── Strategy hero cards ───────────────────────────────────── */
+    .strategy-card {
+      display: block; position: relative; height: 100%;
+      border-radius: var(--tz-radius-lg); border: 1px solid var(--tz-border);
+      background: var(--tz-surface); padding: 32px 32px 28px;
+      text-decoration: none; color: var(--tz-fg-1); overflow: hidden;
+      transition: border-color .18s var(--tz-ease-out), background .18s var(--tz-ease-out), transform .18s var(--tz-ease-out);
+    }
+    .strategy-card::before {
+      content: ''; position: absolute; inset: 0; opacity: 0;
+      transition: opacity .22s var(--tz-ease-out); pointer-events: none;
+    }
+    .strategy-card.kf-card::before { background: radial-gradient(ellipse at top left, rgba(124,106,247,.14) 0%, transparent 65%); }
+    .strategy-card.orca-card::before { background: radial-gradient(ellipse at top right, rgba(91,138,245,.14) 0%, transparent 65%); }
+    .strategy-card:hover { border-color: var(--tz-border-strong); background: var(--tz-surface-2); transform: translateY(-3px); color: var(--tz-fg-1); }
+    .strategy-card:hover::before { opacity: 1; }
+    .strategy-icon {
+      width: 52px; height: 52px; border-radius: var(--tz-radius-md);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 22px;
+    }
+    .strategy-icon.kf { background: linear-gradient(135deg, rgba(124,106,247,.2), rgba(91,138,245,.12)); color: var(--tz-accent-1); }
+    .strategy-icon.oc { background: linear-gradient(135deg, rgba(91,138,245,.2), rgba(52,211,153,.12)); color: var(--tz-accent-2); }
+    .strategy-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px;
+      font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: var(--tz-radius-full);
+      background: var(--tz-surface-2); border: 1px solid var(--tz-border); color: var(--tz-fg-3);
+    }
+    .strategy-card h3 { font-size: 24px; font-weight: 700; margin: 0 0 6px; line-height: 1.2; }
+    .strategy-sub { font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: .12em; color: var(--tz-fg-3); text-transform: uppercase; margin-bottom: 16px; }
+    .strategy-card p { font-size: 14px; color: var(--tz-fg-2); line-height: 1.7; margin: 0 0 24px; }
+    .strategy-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .strategy-cta { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--tz-accent-1); white-space: nowrap; flex-shrink: 0; }
+
     /* Tutorials compact row items */
     .tut-item {
       display: flex; align-items: center; gap: 14px;
@@ -75,6 +109,7 @@
 
     <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
       <li class="nav-item"><a class="nav-link" href="#tools" data-en="Tools" data-ta="கருவிகள்">Tools</a></li>
+      <li class="nav-item"><a class="nav-link" href="#strategies" data-en="Strategies" data-ta="மூலோபாயங்கள்">Strategies</a></li>
       <li class="nav-item"><a class="nav-link" href="#learn" data-en="Learn" data-ta="கற்க">Learn</a></li>
       <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
     </ul>
@@ -302,7 +337,7 @@
         </a>
       </div>
 
-      <!-- 06 · Swing Trading S4 -->
+      <!-- 06 · Orca Strategy (S4) -->
       <div class="col-lg-4 col-md-6">
         <a href="/swing_trading.html" class="tool-card">
           <div class="tool-head">
@@ -311,9 +346,9 @@
             </div>
             <span class="tool-num">06</span>
           </div>
-          <h3 data-en="Swing Trading · S4" data-ta="ஸ்விங் டிரேடிங் · S4">Swing Trading · S4</h3>
+          <h3 data-en="Orca Strategy" data-ta="ஓர்கா மூலோபாயம்">Orca Strategy</h3>
           <p data-en="5-pillar S4 framework for Nifty 100 swing trades. Run Friday batch scans, track live P&amp;L, get HOLD/EXIT signals."
-             data-ta="நிஃப்டி 100 ஸ்விங் வர்த்தகங்களுக்கான 5-தூண் S4 கட்டமைப்பு, லைவ் P&amp;L கண்காணிப்பு.">
+             data-ta="நிஃப்டி 100 ஸ்விங் வர்த்தகங்களுக்கான 5-தூண் கட்டமைப்பு, லைவ் P&amp;L கண்காணிப்பு.">
             5-pillar S4 framework for Nifty 100 swing trades. Run Friday batch scans, track live P&amp;L, get HOLD/EXIT signals.
           </p>
           <div class="tool-foot">
@@ -327,7 +362,7 @@
         </a>
       </div>
 
-      <!-- 07 · S1 Intraday Monitor -->
+      <!-- 07 · King Fisher Strategy (S1) -->
       <div class="col-lg-4 col-md-6">
         <a href="/s1_monitor.html" class="tool-card">
           <div class="tool-head">
@@ -336,18 +371,103 @@
             </div>
             <span class="tool-num">07</span>
           </div>
-          <h3 data-en="S1 Intraday Monitor" data-ta="S1 இன்ட்ராடே மானிட்டர்">S1 Intraday Monitor</h3>
+          <h3 data-en="King Fisher Strategy" data-ta="கிங் ஃபிஷர் மூலோபாயம்">King Fisher Strategy</h3>
           <p data-en="Real-time options entry setup — Opening Range breakout + EMA crossover + RSI confirmation. Live conditions, instant alerts and trade calculations."
              data-ta="Opening Range + EMA + RSI உறுதிப்படுத்தல். நேரடி நிலைமைகள், உடனடி எச்சரிக்கைகள்.">
             Real-time options entry setup — Opening Range breakout + EMA crossover + RSI confirmation. Live conditions, instant alerts and trade calculations.
           </p>
           <div class="tool-foot">
             <div class="tool-tags">
-              <span class="tool-tag">OR</span>
+              <span class="tool-tag">S1 Level</span>
               <span class="tool-tag">EMA</span>
               <span class="tool-tag">RSI</span>
             </div>
             <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     STRATEGIES
+     ============================================================ -->
+<section id="strategies" class="py-5 py-md-6">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 section-header">
+      <div>
+        <span class="eyebrow">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          STRATEGIES
+        </span>
+        <h2>
+          <span data-en="Battle-tested " data-ta="சோதிக்கப்பட்ட ">Battle-tested </span>
+          <span class="text-gradient fst-italic" data-en="precision systems." data-ta="துல்லிய அமைப்புகள்.">precision systems.</span>
+        </h2>
+      </div>
+      <p class="text-fg-2 m-0 small" style="max-width:380px"
+         data-en="Two named strategies — one built for intraday options, one for multi-day swing positions."
+         data-ta="இரண்டு மூலோபாயங்கள் — ஒன்று இன்ட்ராடே ஆப்ஷன்ஸ், மற்றொன்று ஸ்விங் நிலைகளுக்காக.">
+        Two named strategies — one built for intraday options, one for multi-day swing positions.
+      </p>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- King Fisher Strategy -->
+      <div class="col-md-6">
+        <a href="/s1_monitor.html" class="strategy-card kf-card">
+          <div class="strategy-icon kf">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="strategy-eyebrow">S1 &nbsp;·&nbsp; INTRADAY OPTIONS</div>
+          <h3 data-en="King Fisher Strategy" data-ta="கிங் ஃபிஷர் மூலோபாயம்">King Fisher Strategy</h3>
+          <p class="strategy-sub">Camarilla S1 · EMA Crossover · RSI Confirmation</p>
+          <p data-en="Waits for price to pierce the Camarilla S1 level, then confirms a reversal with EMA 9/21 crossover and RSI momentum. Fires a CE or PE entry signal with exact strike, premium, stop-loss and target — all in real time during the 9:15–13:00 window."
+             data-ta="Camarilla S1 நிலையை மீறிய பிறகு EMA மற்றும் RSI மூலம் திரும்பும் சமிக்ஞையை உறுதிப்படுத்தி, CE அல்லது PE நுழைவு சமிக்ஞையை வழங்குகிறது.">
+            Waits for price to pierce the Camarilla S1 level, then confirms a reversal with EMA 9/21 crossover and RSI momentum. Fires a CE or PE entry signal with exact strike, premium, stop-loss and target — all in real time during the 9:15–13:00 window.
+          </p>
+          <div class="strategy-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">S1 Level</span>
+              <span class="tool-tag">EMA 9/21</span>
+              <span class="tool-tag">RSI</span>
+              <span class="tool-tag">Live Alerts</span>
+            </div>
+            <span class="strategy-cta">
+              <span data-en="Launch" data-ta="தொடங்கு">Launch</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Orca Strategy -->
+      <div class="col-md-6">
+        <a href="/swing_trading.html" class="strategy-card orca-card">
+          <div class="strategy-icon oc">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </div>
+          <div class="strategy-eyebrow">S4 &nbsp;·&nbsp; SWING POSITIONS</div>
+          <h3 data-en="Orca Strategy" data-ta="ஓர்கா மூலோபாயம்">Orca Strategy</h3>
+          <p class="strategy-sub">5-Pillar Framework · Nifty 100 · Weekly Scans</p>
+          <p data-en="A disciplined 5-pillar framework designed for Nifty 100 swing trades. Run batch scans every Friday, track open positions with live P&amp;L, and receive HOLD or EXIT signals as market conditions evolve over days to weeks."
+             data-ta="நிஃப்டி 100 ஸ்விங் வர்த்தகங்களுக்கான 5-தூண் கட்டமைப்பு. வெள்ளிக்கிழமை ஸ்கேன் இயக்கி, லைவ் P&amp;L கண்காணிக்கவும்.">
+            A disciplined 5-pillar framework designed for Nifty 100 swing trades. Run batch scans every Friday, track open positions with live P&amp;L, and receive HOLD or EXIT signals as market conditions evolve over days to weeks.
+          </p>
+          <div class="strategy-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">5 Pillars</span>
+              <span class="tool-tag">Nifty 100</span>
+              <span class="tool-tag">P&amp;L Tracker</span>
+              <span class="tool-tag">Hold/Exit</span>
+            </div>
+            <span class="strategy-cta">
+              <span data-en="Launch" data-ta="தொடங்கு">Launch</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
           </div>
         </a>
       </div>
@@ -432,12 +552,11 @@
             </a>
             <a class="dash-nav-item" href="/swing_trading.html">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-              <span class="label">Swing · S4</span>
+              <span class="label">Orca</span>
             </a>
             <a class="dash-nav-item" href="/s1_monitor.html">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              <span class="label">S1 Monitor</span>
-              <span class="badge-mini">NEW</span>
+              <span class="label">King Fisher</span>
             </a>
             <a class="dash-nav-item" href="/learn_dashboard.html">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -823,8 +942,8 @@
           <li><a href="/fno_scanner.html">F&amp;O Scanner</a></li>
           <li><a href="/market_psychology.html">TradeFun</a></li>
           <li><a href="/stock_movers.html">Market Movers</a></li>
-          <li><a href="/swing_trading.html">Swing · S4</a></li>
-          <li><a href="/s1_monitor.html">S1 Monitor</a></li>
+          <li><a href="/swing_trading.html">Orca Strategy</a></li>
+          <li><a href="/s1_monitor.html">King Fisher Strategy</a></li>
         </ul>
       </div>
 
