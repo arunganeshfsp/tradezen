@@ -9,16 +9,16 @@
 
 <style>
 :root{
-  --bg:#07101d;--bg2:#0b1929;--bg3:#0f2035;--bg4:#152843;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
-  --text:#dce8f5;--muted:#6e87a2;--faint:#2e4259;
-  --teal:#2dd4bf;--teal2:#0d9488;--teal-bg:rgba(45,212,191,0.08);
-  --gold:#f5c842;--gold-bg:rgba(245,200,66,0.08);
-  --amber:#f5a623;--r:12px;
+  --bg:#06070f;--bg2:#0e1124;--bg3:#161a32;--bg4:#1c2040;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.15);
+  --text:#f0f1f8;--muted:#585d7e;--faint:#3a3d5a;
+  --teal:#7c6af7;--teal2:#5b8af5;--teal-bg:rgba(124,106,247,0.08);
+  --gold:#7c6af7;--gold-bg:rgba(124,106,247,0.08);
+  --amber:#f5a524;--r:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-serif;font-size:14px;line-height:1.8;min-height:100vh;display:flex;flex-direction:column;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(45,212,191,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(45,212,191,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(124,106,247,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(124,106,247,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
 
 nav{position:sticky;top:0;z-index:200;background:rgba(7,16,29,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
 .nav-wrap{max-width:1100px;margin:0 auto;height:58px;padding:0 1.5rem;display:flex;align-items:center;gap:1rem;}
@@ -110,22 +110,23 @@ main{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-
 .progress-section{margin-bottom:2rem;}
 .progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:6px;}
 .progress-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
-.progress-bar{height:100%;background:var(--teal);border-radius:3px;width:0;animation:fill 1.5s 0.5s ease forwards;}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:3px;width:0;animation:fill 1.5s 0.5s ease forwards;}
 @keyframes fill{to{width:30%;}}
 
 .back-btn{
   display:inline-flex;align-items:center;gap:8px;
-  background:var(--teal);color:#07101d;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;
   font-family:'Noto Sans Tamil',sans-serif;
   font-weight:700;font-size:13px;
   padding:11px 24px;border-radius:var(--r);
   text-decoration:none;transition:all 0.2s;
 }
-.back-btn:hover{background:#5eead4;transform:translateY(-1px);}
+.back-btn:hover{opacity:0.88;transform:translateY(-1px);}
 
 footer{position:relative;z-index:1;text-align:center;padding:1.5rem;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);}
 </style>
 <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+<link rel="stylesheet" href="tutorial-halo.css">
 </head>
 <body>
 <div class="tz-bg-orb tz-orb1"></div>
