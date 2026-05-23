@@ -30,6 +30,9 @@
       });
       btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light' : 'Switch to dark');
     });
+    document.querySelectorAll('[data-app-logo]').forEach(function (img) {
+      img.src = mode === 'light' ? '/app-icon-light.svg' : '/app-icon.svg';
+    });
   }
 
   var savedTheme = (function () {
