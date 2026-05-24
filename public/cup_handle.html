@@ -563,9 +563,13 @@ function drawCupChart(d) {
     },
   ];
 
-  // Breakout level — horizontal dashed green line
+  // Breakout level — horizontal dashed green line with endpoint dot
   const breakoutPx = targets ? targets.entry : (rri != null ? closes[rri] : null);
   if (breakoutPx != null) {
+    const boPtRadius = new Array(n).fill(0);
+    const boPtColor  = new Array(n).fill('transparent');
+    boPtRadius[n - 1] = 5;
+    boPtColor[n - 1]  = '#34d399';
     datasets.push({
       label: 'Breakout Level',
       data: new Array(n).fill(breakoutPx),
@@ -573,7 +577,10 @@ function drawCupChart(d) {
       backgroundColor: 'transparent',
       borderWidth: 1.5,
       borderDash: [8, 4],
-      pointRadius: 0,
+      pointRadius: boPtRadius,
+      pointBackgroundColor: boPtColor,
+      pointBorderColor: boPtColor,
+      pointHoverRadius: 7,
       order: 2,
     });
   }
