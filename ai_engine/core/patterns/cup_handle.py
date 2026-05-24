@@ -33,15 +33,20 @@ MIN_PATTERN_SCORE = 25.0   # minimum score to report a detection
 # Data fetching
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _fetch_daily(symbol: str) -> pd.DataFrame:
-    """1-year daily OHLCV from yfinance with in-memory TTL cache."""
-    key = f"__ch_{symbol}__"
+_VALID_PERIODS = {"3mo", "6mo", "1y", "2y"}
+
+
+def _fetch_daily(symbol: str, period: str = "1y") -> pd.DataFrame:
+    """Daily OHLCV from yfinance with in-memory TTL cache. Period: 3mo|6mo|1y|2y."""
+    if period not in _VALID_PERIODS:
+        period = "1y"
+    key = f"__ch_{symbol}_{period}__"
     cached = _CACHE.get(key)
     if cached and time.time() - cached["ts"] < _TTL:
         return cached["data"]
 
     import yfinance as yf
-    df = yf.Ticker(symbol + ".NS").history(period="1y", interval="1d", auto_adjust=True)
+    df = yf.Ticker(symbol + ".NS").history(period=period, interval="1d", auto_adjust=True)
     if df.empty or len(df) < 50:
         raise ValueError(f"Insufficient history for {symbol} ({len(df)} candles)")
     _CACHE[key] = {"ts": time.time(), "data": df}
@@ -257,26 +262,27 @@ def _detect_early(close: pd.Series, n: int) -> dict:
 _STAGE_ORDER = {"complete": 0, "handle_forming": 1, "cup_complete": 2, "early_cup": 3}
 
 
-def analyse(symbol: str) -> dict:
+def analyse(symbol: str, period: str = "1y") -> dict:
     """Analyse a single stock for Cup & Handle.  Returns result dict."""
     try:
-        df = _fetch_daily(symbol)
+        df = _fetch_daily(symbol, period)
         result = _detect(df)
         result["symbol"] = symbol.upper()
+        result["period"] = period
         return result
     except Exception as exc:
         log.warning("[CupHandle] %s: %s", symbol, exc)
         return {"symbol": symbol.upper(), "stage": None, "reason": str(exc)}
 
 
-def scan(symbols: list[str]) -> list[dict]:
+def scan(symbols: list[str], period: str = "1y") -> list[dict]:
     """
     Scan a list of NSE symbols.
     Returns only detected patterns, sorted by stage then score (desc).
     """
     results = []
     for sym in symbols:
-        r = analyse(sym)
+        r = analyse(sym, period)
         if r.get("stage"):
             results.append(r)
 

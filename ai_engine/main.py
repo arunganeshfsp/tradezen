@@ -3269,12 +3269,13 @@ def swing_prices(symbols: str):
 # ══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/patterns/cup-handle/analyse")
-async def ch_analyse(symbol: str):
-    """Analyse a single NSE stock for Cup & Handle pattern (3-stage detection)."""
+async def ch_analyse(symbol: str, period: str = "1y"):
+    """Analyse a single NSE stock for Cup & Handle pattern (3-stage detection).
+    period: 3mo | 6mo | 1y | 2y"""
     from core.patterns.cup_handle import analyse as _ch_analyse
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, _ch_analyse, symbol.upper().strip())
+        result = await loop.run_in_executor(None, _ch_analyse, symbol.upper().strip(), period)
         return result
     except Exception as e:
         log.error(f"patterns/cup-handle/analyse error: {e}")
@@ -3282,18 +3283,20 @@ async def ch_analyse(symbol: str):
 
 
 @app.get("/patterns/cup-handle/scan")
-async def ch_scan(universe: str = "nifty100"):
-    """Scan Nifty50 or Nifty100 for Cup & Handle patterns. Sorted by stage then score."""
+async def ch_scan(universe: str = "nifty100", period: str = "1y"):
+    """Scan Nifty50 or Nifty100 for Cup & Handle patterns. Sorted by stage then score.
+    period: 3mo | 6mo | 1y | 2y"""
     from core.patterns.cup_handle import scan as _ch_scan
     from core.swing_analyzer import NIFTY50, NIFTY_NEXT50
     loop = asyncio.get_event_loop()
     symbols = NIFTY50 + NIFTY_NEXT50 if universe == "nifty100" else NIFTY50
     try:
-        results = await loop.run_in_executor(None, _ch_scan, symbols)
+        results = await loop.run_in_executor(None, _ch_scan, symbols, period)
         return {
             "count":    len(results),
             "scanned":  len(symbols),
             "universe": universe,
+            "period":   period,
             "results":  results,
         }
     except Exception as e:

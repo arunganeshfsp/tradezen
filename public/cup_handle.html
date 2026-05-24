@@ -113,10 +113,17 @@ select.inp{cursor:pointer;}
 .detail-val{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff;}
 .detail-sub{font-size:11px;color:var(--dim);margin-top:2px;}
 
-.score-breakdown{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;}
-.sb-item{background:var(--bg3);border-radius:7px;padding:8px 12px;text-align:center;flex:1;min-width:70px;}
+.score-breakdown{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0.5rem;}
+.sb-item{background:var(--bg3);border-radius:7px;padding:8px 12px;text-align:center;flex:1;min-width:70px;cursor:pointer;border:1px solid transparent;transition:border-color .15s;}
+.sb-item:hover,.sb-item.active{border-color:rgba(124,106,247,0.35);}
 .sb-val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);}
 .sb-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ── score reason panel ── */
+.score-reasons{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1.25rem;display:none;}
+.score-reasons.visible{display:block;}
+.sr-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.8px;margin-bottom:8px;}
+.sr-body{font-size:12px;color:var(--dim);line-height:1.75;}
 
 /* ── empty / loading states ── */
 .empty{text-align:center;padding:4rem 2rem;color:var(--muted);}
@@ -185,6 +192,12 @@ canvas.cup-mini{width:100%;height:60px;border-radius:7px;background:var(--bg4);}
   <!-- ── Controls ── -->
   <div class="controls">
     <input id="symInput" class="inp inp-sym" placeholder="Symbol (e.g. INFY)" maxlength="20">
+    <select id="periodSelect" class="inp" title="Chart lookback duration">
+      <option value="3mo">3 Months</option>
+      <option value="6mo">6 Months</option>
+      <option value="1y" selected>1 Year</option>
+      <option value="2y">Multi-Year (2Y)</option>
+    </select>
     <button class="btn btn-primary" onclick="analyseOne()">
       <span>🔍</span> Analyse
     </button>
@@ -258,6 +271,13 @@ const API = "/api";
 
 let _allResults = [];
 let _activeStage = "all";
+let _activeReason = null;   // which pillar reason is expanded
+
+function getPeriod() {
+  return document.getElementById("periodSelect").value;
+}
+
+const PERIOD_LABEL = { "3mo": "3 Months", "6mo": "6 Months", "1y": "1 Year", "2y": "2 Years" };
 
 function setStatus(state, text) {
   const bar = document.getElementById("statusBar");
@@ -316,11 +336,12 @@ async function analyseOne() {
   if (!sym) return;
 
   clearAll();
-  setStatus("scanning", `Analysing ${sym}…`);
+  const period = getPeriod();
+  setStatus("scanning", `Analysing ${sym} (${PERIOD_LABEL[period]})…`);
   document.getElementById("emptyState").style.display = "none";
 
   try {
-    const resp = await fetch(`${API}/patterns/cup-handle/analyse?symbol=${sym}`);
+    const resp = await fetch(`${API}/patterns/cup-handle/analyse?symbol=${sym}&period=${period}`);
     const data = await resp.json();
 
     if (data.error) throw new Error(data.error);
@@ -345,12 +366,16 @@ function renderSingle(d) {
   const handle = d.handle || {};
   const targets = d.targets;
   const vol = d.volume || {};
+  const period = d.period || "1y";
 
   el.innerHTML = `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;gap:1rem;flex-wrap:wrap;">
       <div>
-        <div style="font-size:22px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;">${d.symbol}</div>
-        <span class="stage-badge ${d.stage}">${stageLabel(d.stage)}</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:22px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;">${d.symbol}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--accent-bg);border:1px solid rgba(124,106,247,0.2);border-radius:5px;padding:2px 8px;color:var(--accent);">${PERIOD_LABEL[period] || period}</span>
+        </div>
+        <span class="stage-badge ${d.stage}" style="margin-top:6px;">${stageLabel(d.stage)}</span>
         <div style="font-size:12px;color:var(--muted);margin-top:4px;">${d.stage_desc || ""}</div>
       </div>
       <div style="text-align:center;">
@@ -360,8 +385,13 @@ function renderSingle(d) {
       </div>
     </div>
 
-    <div class="score-breakdown">
+    <div class="score-breakdown" id="sbGrid">
       ${scoreBreakdownHtml(d.score)}
+    </div>
+
+    <div class="score-reasons" id="scoreReasonPanel">
+      <div class="sr-title" id="srTitle"></div>
+      <div class="sr-body" id="srBody"></div>
     </div>
 
     <div class="detail-grid">
@@ -427,21 +457,52 @@ function renderSingle(d) {
   el.className = "single-result visible";
 }
 
+const MAX_PTS = { shape: 40, handle: 25, volume: 20, trend: 10, recovery: 5 };
+let _scoreReasons = {};
+
 function scoreBreakdownHtml(sc) {
   if (!sc) return "";
+  _scoreReasons = sc.reasons || {};
   const items = [
-    { lbl: "Shape", val: sc.shape },
-    { lbl: "Handle", val: sc.handle },
-    { lbl: "Volume", val: sc.volume },
-    { lbl: "Trend", val: sc.trend },
-    { lbl: "Recovery", val: sc.recovery },
+    { key: "shape",    lbl: "Shape",    val: sc.shape,    max: 40 },
+    { key: "handle",   lbl: "Handle",   val: sc.handle,   max: 25 },
+    { key: "volume",   lbl: "Volume",   val: sc.volume,   max: 20 },
+    { key: "trend",    lbl: "Trend",    val: sc.trend,    max: 10 },
+    { key: "recovery", lbl: "Recovery", val: sc.recovery, max:  5 },
   ];
   return items.map(i => `
-    <div class="sb-item">
-      <div class="sb-val">${fmt(i.val, 1)}</div>
+    <div class="sb-item" onclick="showReason('${i.key}')" title="Click for explanation">
+      <div class="sb-val" style="color:${scoreColor(i.val / i.max * 100)};">${fmt(i.val, 1)}<span style="font-size:9px;color:var(--faint);">/${i.max}</span></div>
       <div class="sb-lbl">${i.lbl}</div>
     </div>
   `).join("");
+}
+
+function showReason(key) {
+  const panel = document.getElementById("scoreReasonPanel");
+  const title = document.getElementById("srTitle");
+  const body  = document.getElementById("srBody");
+  if (!panel) return;
+
+  const labels = { shape: "SHAPE SCORE", handle: "HANDLE SCORE", volume: "VOLUME SCORE", trend: "PRIOR TREND", recovery: "RECOVERY" };
+
+  if (_activeReason === key) {
+    // toggle off
+    panel.classList.remove("visible");
+    document.querySelectorAll(".sb-item").forEach(el => el.classList.remove("active"));
+    _activeReason = null;
+    return;
+  }
+
+  _activeReason = key;
+  document.querySelectorAll(".sb-item").forEach((el, i) => {
+    const keys = ["shape","handle","volume","trend","recovery"];
+    el.classList.toggle("active", keys[i] === key);
+  });
+
+  title.textContent = labels[key] || key.toUpperCase();
+  body.textContent  = _scoreReasons[key] || "No explanation available.";
+  panel.classList.add("visible");
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -454,8 +515,9 @@ async function startScan() {
   scanBtn.disabled = true;
   document.getElementById("emptyState").style.display = "none";
 
+  const period = getPeriod();
   const label = universe === "nifty100" ? "Nifty 100" : "Nifty 50";
-  setStatus("scanning", `Scanning ${label}… this may take 2–3 minutes`);
+  setStatus("scanning", `Scanning ${label} · ${PERIOD_LABEL[period]}… may take 2–3 minutes`);
 
   // Show loading card
   document.getElementById("scanSection").style.display = "block";
@@ -466,7 +528,7 @@ async function startScan() {
     </div>`;
 
   try {
-    const resp = await fetch(`${API}/patterns/cup-handle/scan?universe=${universe}`, {
+    const resp = await fetch(`${API}/patterns/cup-handle/scan?universe=${universe}&period=${period}`, {
       signal: AbortSignal.timeout(200000),
     });
     const data = await resp.json();
