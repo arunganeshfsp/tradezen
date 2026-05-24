@@ -257,31 +257,32 @@ select.inp{cursor:pointer;}
       <span class="results-count" id="resultsCount">0 found</span>
     </div>
     <div class="cards" id="cardsGrid"></div>
+  </div>
 
-    <div class="table-wrap" id="tableWrap">
-      <div class="table-title">ALL RESULTS — TABLE VIEW</div>
-      <table class="scan-table">
-        <thead>
-          <tr>
-            <th>SYMBOL</th>
-            <th>STAGE</th>
-            <th>SCORE</th>
-            <th>DEPTH</th>
-            <th>RECOVERY</th>
-            <th>DURATION</th>
-            <th>LEFT RIM</th>
-            <th>BOTTOM</th>
-            <th>RIGHT RIM</th>
-            <th>ENTRY</th>
-            <th>STOP</th>
-            <th>T1</th>
-            <th>R:R</th>
-            <th>CURRENT</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
+  <!-- ── Results Table (single + scan) ── -->
+  <div class="table-wrap" id="tableWrap" style="display:none;">
+    <div class="table-title" id="tableTitle">PATTERN SUMMARY</div>
+    <table class="scan-table">
+      <thead>
+        <tr>
+          <th>SYMBOL</th>
+          <th>STAGE</th>
+          <th>SCORE</th>
+          <th>DEPTH</th>
+          <th>RECOVERY</th>
+          <th>DURATION</th>
+          <th>LEFT RIM</th>
+          <th>BOTTOM</th>
+          <th>RIGHT RIM</th>
+          <th>ENTRY</th>
+          <th>STOP</th>
+          <th>T1</th>
+          <th>R:R</th>
+          <th>CURRENT</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
   </div>
 
   <!-- ── Empty placeholder ── -->
@@ -356,6 +357,8 @@ function clearAll() {
   document.getElementById("emptyState").style.display = "block";
   document.getElementById("statusBar").style.display = "none";
   document.getElementById("cardsGrid").innerHTML = "";
+  document.getElementById("tableWrap").style.display = "none";
+  document.getElementById("tableBody").innerHTML = "";
   _allResults = [];
 }
 
@@ -527,11 +530,10 @@ function renderSingle(d) {
     </span>` : ""}
   `;
   el.className = "single-result visible";
-  // Auto-expand the shape explanation so the user sees it immediately
   _activeReason = null;
   showReason("shape");
-  // Draw chart after DOM renders the canvas
   setTimeout(() => drawCupChart(d), 30);
+  renderTable([d], "PATTERN SUMMARY");
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -787,17 +789,22 @@ function renderCards(results) {
 
   if (results.length === 0) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);">No patterns in this category.</div>`;
-    renderTable([]);
+    renderTable([], "ALL RESULTS — TABLE VIEW");
     return;
   }
 
   grid.innerHTML = results.map(d => cardHtml(d)).join("");
-  renderTable(results);
+  renderTable(results, "ALL RESULTS — TABLE VIEW");
 }
 
-function renderTable(results) {
+function renderTable(results, title) {
+  const wrap  = document.getElementById("tableWrap");
   const tbody = document.getElementById("tableBody");
+  const titleEl = document.getElementById("tableTitle");
   if (!tbody) return;
+
+  if (title && titleEl) titleEl.textContent = title;
+  wrap.style.display = "block";
 
   if (results.length === 0) {
     tbody.innerHTML = `<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:1.5rem;">No patterns in this category.</td></tr>`;
