@@ -187,7 +187,7 @@
     .stage-bottom .btn-next:hover { opacity: 0.92; color: #fff; }
     .stage-bottom .btn-next:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
-    .spacer { flex: 1; min-height: 8px; }
+    .spacer { flex: 1; min-height: 8px; max-height: 56px; }
   </style>
 </head>
 
@@ -471,24 +471,24 @@
             <span class="qkind">MULTIPLE CHOICE</span>
             <span>+10 XP</span>
           </div>
-          <h3 data-en="Which is one way a company can raise money?"
-              data-ta="ஒரு நிறுவனம் பணம் பெறும் வழி எது?">
-            Which is one way a company can raise money?
+          <h3 data-en="A company needs ₹500 crore to expand. Which approach does NOT require repayment?"
+              data-ta="ஒரு நிறுவனம் ₹500 கோடி தேவைப்படுகிறது. எந்த வழியில் பணம் திரும்ப செலுத்த வேண்டியதில்லை?">
+            A company needs ₹500 crore to expand. Which approach does NOT require repayment?
           </h3>
           <div class="q-options">
             <button class="q-option">
               <span class="key">A</span>
-              <span class="label" data-en="Saving electricity" data-ta="மின்சாரம் சேமித்தல்">Saving electricity</span>
+              <span class="label" data-en="Taking a bank loan at 12% interest" data-ta="12% வட்டியில் வங்கி கடன் வாங்குவது">Taking a bank loan at 12% interest</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
             <button class="q-option" data-correct="1">
               <span class="key">B</span>
-              <span class="label" data-en="Selling shares to investors" data-ta="முதலீட்டாளர்களுக்கு Shares விற்பனை">Selling shares to investors</span>
+              <span class="label" data-en="Selling shares through an IPO" data-ta="IPO மூலம் Shares விற்பனை செய்வது">Selling shares through an IPO</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </button>
             <button class="q-option">
               <span class="key">C</span>
-              <span class="label" data-en="Closing the business" data-ta="கடையை மூடுதல்">Closing the business</span>
+              <span class="label" data-en="Taking credit from suppliers" data-ta="சப்ளையர்களிடம் கடன் வாங்குவது">Taking credit from suppliers</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
           </div>
@@ -496,9 +496,15 @@
             <span style="font-size:16px;line-height:1;">✨</span>
             <div>
               <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
-              <span data-en="Yes — selling shares lets companies raise money without borrowing. Investors get ownership; the company gets the cash it needs."
-                    data-ta="ஆம் — கடன் இல்லாமல் பணம் பெறும் வழி shares விற்பனை. முதலீட்டாளர்களுக்கு ownership, நிறுவனத்திற்கு தேவையான பணம்.">
-                Yes — selling shares lets companies raise money without borrowing. Investors get ownership; the company gets the cash it needs.
+              <span class="fb-ok"
+                    data-en="An IPO gives the company permanent capital — investors get ownership, the company gets cash. No EMI, no interest, no repayment schedule."
+                    data-ta="IPO மூலம் நிரந்தர மூலதனம் கிடைக்கும் — முதலீட்டாளர்களுக்கு ownership, நிறுவனத்திற்கு பணம். EMI இல்லை, வட்டி இல்லை, திரும்ப செலுத்துவதில்லை.">
+                An IPO gives the company permanent capital — investors get ownership, the company gets cash. No EMI, no interest, no repayment schedule.
+              </span>
+              <span class="fb-no"
+                    data-en="Both loans and supplier credit create debt — they must be repaid. Selling shares through an IPO is the only option here where investors take ownership instead of receiving repayment."
+                    data-ta="வங்கி கடனும் சப்ளையர் கடனும் திரும்ப செலுத்த வேண்டியவை. IPO மட்டும் வேறு — முதலீட்டாளர்கள் ownership பெறுகிறார்கள், நிறுவனம் பணம் திரும்ப செலுத்துவதில்லை.">
+                Both loans and supplier credit create debt — they must be repaid. Selling shares through an IPO is the only option here where investors take ownership instead of receiving repayment.
               </span>
             </div>
           </div>
@@ -568,12 +574,12 @@
             </button>
             <button class="q-option">
               <span class="key">B</span>
-              <span class="label" data-en="To check the weather" data-ta="வானிலை பார்க்க">To check the weather</span>
+              <span class="label" data-en="To earn a fixed monthly salary from the company" data-ta="நிறுவனத்திடம் நிலையான மாத சம்பளம் பெற">To earn a fixed monthly salary from the company</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
             <button class="q-option">
               <span class="key">C</span>
-              <span class="label" data-en="To pay electricity bill" data-ta="மின்சார பில் கட்ட">To pay electricity bill</span>
+              <span class="label" data-en="To lend money that gets repaid with interest" data-ta="வட்டியுடன் திரும்பப் பெற பணம் கடனாக கொடுக்க">To lend money that gets repaid with interest</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
           </div>
@@ -581,9 +587,15 @@
             <span style="font-size:16px;line-height:1;">✨</span>
             <div>
               <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
-              <span data-en="Right — investors back companies they believe in. If the company grows, their share value may rise too. That is the core idea of investing."
-                    data-ta="சரி — முதலீட்டாளர்கள் நம்பிக்கையுள்ள நிறுவனங்களை தேர்ந்தெடுக்கிறார்கள். நிறுவனம் வளர்ந்தால் பங்கின் மதிப்பும் உயரலாம். அதுவே முதலீட்டின் சாரம்.">
-                Right — investors back companies they believe in. If the company grows, their share value may rise too. That is the core idea of investing.
+              <span class="fb-ok"
+                    data-en="Shareholders back companies they believe in. If the company grows — revenue up, profit up — the share value may rise. That is the core logic of equity investing."
+                    data-ta="முதலீட்டாளர்கள் நம்பிக்கையுள்ள நிறுவனங்களை தேர்ந்தெடுக்கிறார்கள். நிறுவனம் வளர்ந்தால் — வருமானம் அதிகரித்தால், லாபம் உயர்ந்தால் — பங்கின் மதிப்பும் உயரலாம். அதுவே equity முதலீட்டின் அடிப்படை.">
+                Shareholders back companies they believe in. If the company grows — revenue up, profit up — the share value may rise. That is the core logic of equity investing.
+              </span>
+              <span class="fb-no"
+                    data-en="Shareholders are not employees — there is no fixed salary. And shares are not loans — there is no guaranteed repayment or interest. Your return depends on how the company performs."
+                    data-ta="பங்குதாரர்கள் ஊழியர்கள் இல்லை — நிலையான சம்பளம் இல்லை. Shares கடன் இல்லை — திரும்ப செலுத்துவதற்கு உத்தரவாதமில்லை. நிறுவனத்தின் செயல்திறனே உங்கள் வருமானத்தை தீர்மானிக்கும்.">
+                Shareholders are not employees — there is no fixed salary. And shares are not loans — there is no guaranteed repayment or interest. Your return depends on how the company performs.
               </span>
             </div>
           </div>

@@ -43,7 +43,7 @@
 
     // Swap text on any element that carries both translations
     document.querySelectorAll('[data-en]').forEach(el => {
-      const text = lang === 'ta' && el.dataset.ta ? el.dataset.ta : el.dataset.en;
+      const text = lang === 'ta' && el.dataset.ta !== undefined ? el.dataset.ta : el.dataset.en;
       // preserve children with data-keep
       const keepers = Array.from(el.querySelectorAll('[data-keep]'));
       el.textContent = text;

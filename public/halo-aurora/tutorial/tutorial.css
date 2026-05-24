@@ -198,6 +198,11 @@
 .q-feedback.is-correct .head { color: var(--tz-gain); }
 .q-feedback.is-wrong   .head { color: var(--tz-loss); }
 
+.q-feedback .fb-ok,
+.q-feedback .fb-no { display: none; }
+.q-feedback.is-correct .fb-ok { display: inline; }
+.q-feedback.is-wrong   .fb-no { display: inline; }
+
 /* Tap-the-image interaction ────────────────────────────── */
 .tap-target {
   position: relative;

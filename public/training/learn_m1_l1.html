@@ -181,7 +181,7 @@
     .stage-bottom .btn-next:hover { opacity: 0.92; color: #fff; }
     .stage-bottom .btn-next:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
-    .spacer { flex: 1; min-height: 8px; }
+    .spacer { flex: 1; min-height: 8px; max-height: 56px; }
   </style>
 </head>
 
@@ -467,17 +467,17 @@
           <div class="q-options">
             <button class="q-option" data-correct="1">
               <span class="key">A</span>
-              <span class="label" data-en="Price may go UP 📈" data-ta="விலை மேலே போகலாம் 📈">Price may go UP 📈</span>
+              <span class="label" data-en="Price may go UP" data-ta="விலை மேலே போகலாம்">Price may go UP</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </button>
             <button class="q-option">
               <span class="key">B</span>
-              <span class="label" data-en="The market will stop" data-ta="சந்தை மூடப்படும்">The market will stop</span>
+              <span class="label" data-en="Price stays the same" data-ta="விலை மாறாமல் இருக்கும்">Price stays the same</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
             <button class="q-option">
               <span class="key">C</span>
-              <span class="label" data-en="The company will disappear" data-ta="நிறுவனம் மறைந்து விடும்">The company will disappear</span>
+              <span class="label" data-en="Price may go DOWN" data-ta="விலை கீழே வரலாம்">Price may go DOWN</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
           </div>
@@ -485,9 +485,15 @@
             <span style="font-size:16px;line-height:1;">✨</span>
             <div>
               <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
-              <span data-en="More demand, higher price — same as a vegetable market. When everyone wants the same tomato, the price rises."
-                    data-ta="அதிக தேவை, அதிக விலை — காய்கறி சந்தையும் இதே தான். எல்லோரும் ஒரே தக்காளியை வேண்டினால் விலை ஏறும்.">
-                More demand, higher price — same as a vegetable market. When everyone wants the same tomato, the price rises.
+              <span class="fb-ok"
+                    data-en="More buyers competing for the same shares pushes the price up — same as the vegetable market: when everyone wants tomatoes, the vendor raises the price."
+                    data-ta="அதே பங்கை அதிகம் பேர் வேண்டும்போது விலை ஏறும் — காய்கறி சந்தையைப் போலவே: எல்லோரும் தக்காளி வேண்டும்போது கடைக்காரர் விலை உயர்த்துவார்.">
+                More buyers competing for the same shares pushes the price up — same as the vegetable market: when everyone wants tomatoes, the vendor raises the price.
+              </span>
+              <span class="fb-no"
+                    data-en="Price goes DOWN when sellers outnumber buyers — not when buyers increase. More buyers means more demand for the same shares, which drives the price higher."
+                    data-ta="விற்பவர்கள் அதிகமாகும்போது விலை கீழே வரும் — வாங்குபவர்கள் அதிகரிக்கும்போது இல்லை. அதிக வாங்குபவர்கள் = அதிக தேவை = விலை ஏறும்.">
+                Price goes DOWN when sellers outnumber buyers — not when buyers increase. More buyers means more demand for the same shares, which drives the price higher.
               </span>
             </div>
           </div>
@@ -545,24 +551,24 @@
             <span class="qkind">MULTIPLE CHOICE</span>
             <span>+10 XP</span>
           </div>
-          <h3 data-en="Stock Market is a place to:"
-              data-ta="பங்குச்சந்தை என்பது:">
-            Stock Market is a place to:
+          <h3 data-en="India's two main stock exchanges are:"
+              data-ta="இந்தியாவின் இரண்டு முக்கிய பங்குச்சந்தைகள் எவை?">
+            India's two main stock exchanges are:
           </h3>
           <div class="q-options">
             <button class="q-option">
               <span class="key">A</span>
-              <span class="label" data-en="Buy vegetables" data-ta="காய்கறி வாங்கும் இடம்">Buy vegetables</span>
+              <span class="label" data-en="MCX and CDSL" data-ta="MCX மற்றும் CDSL">MCX and CDSL</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
             <button class="q-option" data-correct="1">
               <span class="key">B</span>
-              <span class="label" data-en="Buy and sell shares of companies" data-ta="நிறுவன பங்குகள் வாங்கி விற்கும் இடம்">Buy and sell shares of companies</span>
+              <span class="label" data-en="NSE and BSE" data-ta="NSE மற்றும் BSE">NSE and BSE</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </button>
             <button class="q-option">
               <span class="key">C</span>
-              <span class="label" data-en="Pay electricity bill" data-ta="EB பில் கட்டும் இடம்">Pay electricity bill</span>
+              <span class="label" data-en="SEBI and RBI" data-ta="SEBI மற்றும் RBI">SEBI and RBI</span>
               <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
           </div>
@@ -570,9 +576,15 @@
             <span style="font-size:16px;line-height:1;">✨</span>
             <div>
               <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
-              <span data-en="NSE and BSE are India's stock exchanges — that is where shares of thousands of Indian companies are bought and sold every weekday."
-                    data-ta="NSE மற்றும் BSE — இந்தியாவின் பங்குச்சந்தைகள். ஆயிரக்கணக்கான நிறுவனங்களின் பங்குகள் இங்கே வாரநாட்தோறும் வர்த்தகமாகின்றன.">
-                NSE and BSE are India's stock exchanges — that is where shares of thousands of Indian companies are bought and sold every weekday.
+              <span class="fb-ok"
+                    data-en="NSE (National Stock Exchange) and BSE (Bombay Stock Exchange) — both open Monday to Friday, 9:15 AM to 3:30 PM. Thousands of Indian companies are listed on them."
+                    data-ta="NSE (தேசிய பங்கு சந்தை) மற்றும் BSE (பம்பாய் பங்கு சந்தை) — திங்கள் முதல் வெள்ளி வரை காலை 9:15 - மாலை 3:30. ஆயிரக்கணக்கான நிறுவனங்கள் இங்கே பட்டியலிடப்பட்டுள்ளன.">
+                NSE (National Stock Exchange) and BSE (Bombay Stock Exchange) — both open Monday to Friday, 9:15 AM to 3:30 PM. Thousands of Indian companies are listed on them.
+              </span>
+              <span class="fb-no"
+                    data-en="MCX trades commodities like gold and crude oil — not company shares. CDSL stores shares electronically. SEBI is the regulator (makes the rules). RBI manages the currency. NSE and BSE are the actual trading venues."
+                    data-ta="MCX என்பது தங்கம், கச்சா எண்ணெய் வர்த்தகம் செய்யும் இடம். CDSL பங்குகளை பத்திரமாக சேமிக்கும். SEBI விதிகளை உருவாக்கும். RBI நாணயத்தை நிர்வகிக்கும். NSE மற்றும் BSE மட்டுமே நிறுவன பங்குகள் வாங்கி விற்கும் உண்மையான சந்தை.">
+                MCX trades commodities like gold and crude oil — not company shares. CDSL stores shares electronically. SEBI is the regulator (makes the rules). RBI manages the currency. NSE and BSE are the actual trading venues.
               </span>
             </div>
           </div>
@@ -608,8 +620,8 @@
             <div style="font-family:var(--tz-font-mono);font-size:9.5px;letter-spacing:0.16em;color:var(--tz-fg-3);"
                  data-en="UP NEXT · 1.2" data-ta="அடுத்தது · 1.2">UP NEXT · 1.2</div>
             <div style="font-family:var(--tz-font-display);font-size:18px;line-height:1.2;color:var(--tz-fg-1);margin-top:2px;letter-spacing:-0.01em;"
-                 data-en="Why Do Prices Move?" data-ta="விலைகள் ஏன் மாறுகின்றன?">
-              Why Do Prices Move?
+                 data-en="Why Do Companies Need Money?" data-ta="நிறுவனங்களுக்கு ஏன் பணம் தேவை?">
+              Why Do Companies Need Money?
             </div>
           </div>
         </div>
