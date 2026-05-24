@@ -28,6 +28,14 @@ _TTL = 3600          # 1-hour cache
 
 MIN_PATTERN_SCORE = 25.0   # minimum score to report a detection
 
+# Per-period tuning: shorter windows need a tighter pivot search and smaller cup limits
+_PERIOD_PARAMS: dict[str, dict] = {
+    "3mo": {"pivot_window": 4,  "min_cup": 8,  "max_cup": 45,  "max_handle": 20},
+    "6mo": {"pivot_window": 7,  "min_cup": 15, "max_cup": 100, "max_handle": 30},
+    "1y":  {"pivot_window": 10, "min_cup": 20, "max_cup": 180, "max_handle": 35},
+    "2y":  {"pivot_window": 10, "min_cup": 20, "max_cup": 180, "max_handle": 35},
+}
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Data fetching
@@ -57,21 +65,28 @@ def _fetch_daily(symbol: str, period: str = "1y") -> pd.DataFrame:
 # Core detector
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _detect(df: pd.DataFrame) -> dict:
+def _detect(df: pd.DataFrame, period: str = "1y") -> dict:
     close  = df["Close"].reset_index(drop=True)
     volume = df["Volume"].reset_index(drop=True)
     n      = len(close)
 
-    if n < 50:
-        return {"stage": None, "reason": "Insufficient data (< 50 candles)"}
+    params     = _PERIOD_PARAMS.get(period, _PERIOD_PARAMS["1y"])
+    pw         = params["pivot_window"]
+    min_cup    = params["min_cup"]
+    max_cup    = params["max_cup"]
+    max_handle = params["max_handle"]
 
-    # Pivot highs (window=10) as right-rim candidates
-    pivot_highs = find_pivot_highs(close, window=10)
+    min_candles = pw * 2 + min_cup + 3   # absolute floor for this period
+    if n < min_candles:
+        return {"stage": None, "reason": f"Not enough data ({n} candles, need ≥{min_candles} for {period})"}
+
+    # Pivot highs as right-rim candidates
+    pivot_highs = find_pivot_highs(close, window=pw)
     if len(pivot_highs) < 2:
         return {"stage": None, "reason": "Not enough pivot highs for cup detection"}
 
-    # Most recent pivots (up to 10) where the handle can still fit (≤35 candles remain)
-    candidates = [p for p in pivot_highs if n - 1 - p <= 35 and n - 1 - p >= 0]
+    # Most recent pivots where the handle can still fit
+    candidates = [p for p in pivot_highs if 0 <= n - 1 - p <= max_handle]
     candidates = sorted(candidates, reverse=True)[:10]
 
     best_result = None
@@ -79,13 +94,13 @@ def _detect(df: pd.DataFrame) -> dict:
 
     for right_idx in candidates:
         right_val  = float(close.iloc[right_idx])
-        handle_len = (n - 1) - right_idx     # candles between right rim and today
+        handle_len = (n - 1) - right_idx
 
-        # ── Cup search: 20-180 candles before right rim ────────────────────
-        cup_range_lo = 20
-        cup_range_hi = min(180, right_idx)
+        # ── Cup search: min_cup..max_cup candles before right rim ──────────
+        cup_range_hi = min(max_cup, right_idx)
+        step = max(1, min_cup // 4)   # finer steps for short periods
 
-        for cup_span in range(cup_range_lo, cup_range_hi + 1, 5):
+        for cup_span in range(min_cup, cup_range_hi + 1, step):
             left_boundary = right_idx - cup_span
             if left_boundary < 0:
                 break
@@ -101,14 +116,15 @@ def _detect(df: pd.DataFrame) -> dict:
             bot_idx   = bot_start + bot_rel
             bot_val   = float(close.iloc[bot_idx])
 
-            # Left rim: max in [left_boundary, bot_idx - 5]
-            lr_end    = max(left_boundary + 1, bot_idx - 5)
+            # Left rim: max in [left_boundary, bot_idx - 3]
+            lr_end    = max(left_boundary + 1, bot_idx - 3)
             lr_rel    = int(close.iloc[left_boundary:lr_end].values.argmax())
             left_idx  = left_boundary + lr_rel
             left_val  = float(close.iloc[left_idx])
 
-            # Validate cup geometry
-            cup_res = validate_cup(close, left_idx, bot_idx, right_idx)
+            # Validate cup geometry with period-adaptive day limits
+            cup_res = validate_cup(close, left_idx, bot_idx, right_idx,
+                                   min_days=min_cup, max_days=max_cup)
             if not cup_res["valid"]:
                 continue
 
@@ -193,20 +209,23 @@ def _detect(df: pd.DataFrame) -> dict:
     if best_result and best_total >= MIN_PATTERN_SCORE:
         return best_result
 
-    return _detect_early(close, n)
+    return _detect_early(close, n, period)
 
 
-def _detect_early(close: pd.Series, n: int) -> dict:
+def _detect_early(close: pd.Series, n: int, period: str = "1y") -> dict:
     """
     Fallback: detect early cup formation.
     Requires: a prior high, ≥10% drop from it, ≥40% recovery of that drop.
     """
-    if n < 40:
-        return {"stage": None, "reason": "Insufficient data"}
+    params = _PERIOD_PARAMS.get(period, _PERIOD_PARAMS["1y"])
+    min_candles = params["pivot_window"] * 2 + params["min_cup"] + 3
+    if n < min_candles:
+        return {"stage": None, "reason": f"Not enough data for {period} period ({n} candles)"}
 
-    # Look for a left high in candles [n-120 .. n-30]
-    search_s = max(0, n - 120)
-    search_e = max(search_s + 1, n - 30)
+    # Scale the lookback window to the chosen period
+    lookback = min(n - 10, params["max_cup"] + 30)
+    search_s = max(0, n - lookback)
+    search_e = max(search_s + 1, n - max(5, lookback // 4))
     left_zone_e = search_s + max(1, (search_e - search_s) // 3)
 
     left_val = float(close.iloc[search_s:left_zone_e].max())
@@ -231,8 +250,38 @@ def _detect_early(close: pd.Series, n: int) -> dict:
     return {
         "stage":      "early_cup",
         "stage_desc": f"Early cup: {drop_pct:.1f}% drop, {rec_of_drop:.0f}% recovered",
-        "score":      {"total": 15.0, "shape": 10.0, "handle": 0.0,
-                       "volume": 5.0,  "trend": 0.0,  "recovery": 0.0},
+        "score": {
+            "total": 15.0, "shape": 10.0, "handle": 0.0,
+            "volume": 5.0, "trend": 0.0,  "recovery": 0.0,
+            "reasons": {
+                "shape": (
+                    f"A left-side high has formed at ₹{round(left_val, 2)} and the stock "
+                    f"has declined {drop_pct:.1f}% to a potential cup bottom. "
+                    f"The base is still rounding out — the cup shape is not yet confirmed. "
+                    f"Partial shape credit is awarded for the decline magnitude and recovery direction."
+                ),
+                "handle": (
+                    "No handle has formed yet — this is expected at the early cup stage. "
+                    "The handle typically develops after the right rim of the cup is established. "
+                    "Watch for the stock to recover to the left rim level and then pull back 3–15% on lower volume."
+                ),
+                "volume": (
+                    f"The stock has recovered {rec_of_drop:.0f}% of its {drop_pct:.1f}% decline, "
+                    "showing early buying interest. "
+                    "Volume analysis requires a complete cup formation — no volume scoring is applied at this stage."
+                ),
+                "trend": (
+                    "Prior trend scoring requires a fully formed cup to identify the left rim date. "
+                    "Once the cup completes, the trend in the 60 days before the left rim will be evaluated. "
+                    "A prior uptrend of 20%+ before the cup significantly improves pattern reliability."
+                ),
+                "recovery": (
+                    f"Right rim recovery cannot be scored — the right rim has not yet formed. "
+                    f"Currently {rec_of_drop:.0f}% of the {drop_pct:.1f}% drop has been recovered. "
+                    "Full recovery scoring applies once the price returns to ≥80% of the left rim level."
+                ),
+            },
+        },
         "cup": {
             "left_rim_idx":  int(left_idx),
             "left_rim":      round(left_val, 2),
@@ -266,7 +315,7 @@ def analyse(symbol: str, period: str = "1y") -> dict:
     """Analyse a single stock for Cup & Handle.  Returns result dict."""
     try:
         df = _fetch_daily(symbol, period)
-        result = _detect(df)
+        result = _detect(df, period)
         result["symbol"] = symbol.upper()
         result["period"] = period
         return result

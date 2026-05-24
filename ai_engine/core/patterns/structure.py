@@ -20,6 +20,8 @@ def validate_cup(
     left_idx: int,
     bottom_idx: int,
     right_idx: int,
+    min_days: int = MIN_CUP_DAYS,
+    max_days: int = MAX_CUP_DAYS,
 ) -> dict:
     """
     Validate geometric properties of a potential cup.
@@ -32,10 +34,10 @@ def validate_cup(
     right_val  = float(close.iloc[right_idx])
     cup_len    = right_idx - left_idx
 
-    if cup_len < MIN_CUP_DAYS:
-        return {"valid": False, "reason": f"Cup too short ({cup_len}d, min {MIN_CUP_DAYS})"}
-    if cup_len > MAX_CUP_DAYS:
-        return {"valid": False, "reason": f"Cup too long ({cup_len}d, max {MAX_CUP_DAYS})"}
+    if cup_len < min_days:
+        return {"valid": False, "reason": f"Cup too short ({cup_len}d, min {min_days})"}
+    if cup_len > max_days:
+        return {"valid": False, "reason": f"Cup too long ({cup_len}d, max {max_days})"}
 
     depth_pct = pct(left_val, bottom_val) * -1          # positive = drop
     if not (MIN_DEPTH <= depth_pct <= MAX_DEPTH):

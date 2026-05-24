@@ -185,3 +185,71 @@ body {
 :root[data-theme="light"] * {
   scrollbar-color: var(--bg3) var(--bg2);
 }
+
+/* ── Tool pages using tutorial-halo.css (cup_handle, swing, etc.) ── */
+/* Variables handle most colours; these cover elements with hardcoded rgba backgrounds */
+:root[data-theme="light"] .single-result,
+:root[data-theme="light"] .card {
+  background: var(--bg2);
+  border-color: var(--border2);
+}
+:root[data-theme="light"] .detail-card,
+:root[data-theme="light"] .met,
+:root[data-theme="light"] .sb-item,
+:root[data-theme="light"] .score-reasons,
+:root[data-theme="light"] .results-count {
+  background: var(--bg3);
+  border-color: var(--border);
+}
+:root[data-theme="light"] .targets {
+  background: var(--bg4);
+}
+:root[data-theme="light"] .period-hint,
+:root[data-theme="light"] #periodHint {
+  background: var(--bg3);
+  border-left-color: var(--accent);
+}
+:root[data-theme="light"] .inp {
+  background: var(--bg3);
+  border-color: var(--border2);
+  color: var(--text);
+}
+:root[data-theme="light"] .btn-secondary {
+  background: var(--bg3);
+  border-color: var(--border2);
+  color: var(--dim);
+}
+:root[data-theme="light"] .tab {
+  border-color: var(--border);
+  color: var(--muted);
+}
+:root[data-theme="light"] .tab.active {
+  background: rgba(91,79,212,0.08);
+  border-color: rgba(91,79,212,0.3);
+  color: var(--accent);
+}
+:root[data-theme="light"] .ph-badge {
+  background: rgba(91,79,212,0.08);
+  border-color: rgba(91,79,212,0.25);
+}
+:root[data-theme="light"] .stage-badge.complete    { background: rgba(22,163,74,0.08); }
+:root[data-theme="light"] .stage-badge.handle_forming { background: rgba(217,119,6,0.08); }
+:root[data-theme="light"] .stage-badge.cup_complete { background: rgba(91,79,212,0.08); }
+:root[data-theme="light"] .stage-badge.early_cup   { background: rgba(100,116,139,0.08); color: var(--muted); }
+
+/* ── tz-footer light theme ── */
+:root[data-theme="light"] .tz-footer {
+  background: var(--bg2);
+  border-top-color: var(--border);
+}
+:root[data-theme="light"] .tz-footer-desc,
+:root[data-theme="light"] .tz-footer-copy { color: var(--muted); }
+:root[data-theme="light"] .tz-footer-links a { color: var(--dim); }
+:root[data-theme="light"] .tz-footer-links a:hover { color: var(--text); }
+:root[data-theme="light"] .tz-logo-text { color: var(--text); }
+:root[data-theme="light"] .tz-logo-text span { color: var(--accent); }
+:root[data-theme="light"] .tz-logo-mark { background: var(--accent); color: #fff; }
+
+/* ── orbs / grid: reduce opacity in light mode instead of hiding ── */
+:root[data-theme="light"] .tz-bg-orb { opacity: 0.08; }
+:root[data-theme="light"] .tz-grid   { opacity: 0.4; }
