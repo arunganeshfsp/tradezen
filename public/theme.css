@@ -250,6 +250,11 @@ body {
 :root[data-theme="light"] .tz-logo-text span { color: var(--accent); }
 :root[data-theme="light"] .tz-logo-mark { background: var(--accent); color: #fff; }
 
+/* ── Cup & Handle scan table ── */
+:root[data-theme="light"] .scan-table th { background: var(--bg3); }
+:root[data-theme="light"] .scan-table tbody tr:hover td { background: var(--bg2); }
+:root[data-theme="light"] .table-title { color: var(--muted); }
+
 /* ── orbs / grid: reduce opacity in light mode instead of hiding ── */
 :root[data-theme="light"] .tz-bg-orb { opacity: 0.08; }
 :root[data-theme="light"] .tz-grid   { opacity: 0.4; }
