@@ -1,0 +1,121 @@
+/* ============================================================
+   HALO AURORA · Design tokens
+   Drop in BEFORE Bootstrap so Bootstrap variables can consume these.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Brand accents (dark mode defaults) ─────────────────── */
+  --tz-accent-1:        #7c6af7;
+  --tz-accent-2:        #5b8af5;
+  --tz-accent-rgb:      124, 106, 247;
+  --tz-grad:            linear-gradient(135deg, #7c6af7 0%, #5b8af5 100%);
+  --tz-grad-h:          linear-gradient(90deg,  #7c6af7 0%, #5b8af5 100%);
+  --tz-glow:            0 12px 36px rgba(124,106,247,0.4);
+  --tz-glow-soft:       0 6px 18px rgba(124,106,247,0.28);
+
+  /* ── Dark surfaces ─────────────────────────────────────── */
+  --tz-bg:              #06070f;
+  --tz-bg-elev:         #0a0c1e;
+  --tz-surface:         #0e1124;
+  --tz-surface-2:       #161a32;
+  --tz-border:          rgba(255,255,255,0.07);
+  --tz-border-strong:   rgba(255,255,255,0.15);
+  --tz-border-accent:   rgba(124,106,247,0.35);
+
+  /* ── Dark foregrounds ──────────────────────────────────── */
+  --tz-fg-1:            #f0f1f8;
+  --tz-fg-2:            #9ea3c0;
+  --tz-fg-3:            #585d7e;
+
+  /* ── Aurora gradients for halo bg layers ──────────────── */
+  --tz-halo-a:          radial-gradient(60% 60% at 20% 0%,  rgba(124,106,247,0.28) 0%, rgba(124,106,247,0) 60%);
+  --tz-halo-b:          radial-gradient(50% 50% at 80% 10%, rgba(91,138,245,0.22) 0%,  rgba(91,138,245,0) 60%);
+  --tz-halo-footer:     radial-gradient(40% 60% at 50% 100%, rgba(124,106,247,0.18) 0%, transparent 70%);
+
+  /* ── Elevation / shadow ───────────────────────────────── */
+  --tz-shadow-sm:    0 1px 3px rgba(0,0,0,0.4);
+  --tz-shadow-md:    0 4px 16px rgba(0,0,0,0.5);
+  --tz-shadow-lg:    0 8px 40px rgba(0,0,0,0.6);
+  --tz-shadow-soft:  0 20px 60px rgba(0,0,0,0.35);
+
+  /* ── Semantic ──────────────────────────────────────────── */
+  --tz-gain:            #34d399;
+  --tz-gain-dim:        rgba(52,211,153,0.15);
+  --tz-loss:            #f87171;
+  --tz-loss-dim:        rgba(248,113,113,0.15);
+  --tz-warning:         #fbbf24;
+  --tz-info:            #60a5fa;
+
+  /* ── Typography ────────────────────────────────────────── */
+  --tz-font-display:    'DM Serif Display', Georgia, serif;
+  --tz-font-ui:         'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --tz-font-mono:       'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --tz-font-tamil:      'Noto Sans Tamil', 'DM Sans', system-ui, sans-serif;
+
+  --tz-tracking-tight:  -0.03em;
+  --tz-tracking-snug:   -0.015em;
+  --tz-tracking-wide:    0.08em;
+  --tz-tracking-wider:   0.16em;
+
+  /* ── Radii ─────────────────────────────────────────────── */
+  --tz-radius-sm:       6px;
+  --tz-radius-md:       8px;
+  --tz-radius-lg:       12px;
+  --tz-radius-xl:       16px;
+  --tz-radius-2xl:      18px;
+  --tz-radius-full:     9999px;
+
+  /* ── Spacing (8pt grid) ───────────────────────────────── */
+  --tz-space-1:  4px;
+  --tz-space-2:  8px;
+  --tz-space-3:  12px;
+  --tz-space-4:  16px;
+  --tz-space-5:  24px;
+  --tz-space-6:  32px;
+  --tz-space-7:  48px;
+  --tz-space-8:  64px;
+  --tz-space-9:  96px;
+
+  /* ── Motion ────────────────────────────────────────────── */
+  --tz-ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --tz-duration-fast:   180ms;
+  --tz-duration-normal: 280ms;
+  --tz-duration-slow:   400ms;
+}
+
+/* ============================================================
+   LIGHT MODE OVERRIDES
+   Triggered via Bootstrap's data-bs-theme="light" on <html>
+   ============================================================ */
+[data-bs-theme="light"] {
+  --tz-accent-1:        #6451dc;
+  --tz-accent-2:        #4373db;
+  --tz-accent-rgb:      100, 81, 220;
+  --tz-grad:            linear-gradient(135deg, #6451dc 0%, #4373db 100%);
+  --tz-grad-h:          linear-gradient(90deg,  #6451dc 0%, #4373db 100%);
+  --tz-glow:            0 12px 36px rgba(100,81,220,0.28);
+  --tz-glow-soft:       0 6px 18px rgba(100,81,220,0.18);
+
+  --tz-bg:              #f6f4ff;
+  --tz-bg-elev:         #ffffff;
+  --tz-surface:         #ffffff;
+  --tz-surface-2:       #f0eefb;
+  --tz-border:          rgba(15,16,32,0.08);
+  --tz-border-strong:   rgba(15,16,32,0.16);
+  --tz-border-accent:   rgba(100,81,220,0.32);
+
+  --tz-fg-1:            #0f1020;
+  --tz-fg-2:            #4a4f6e;
+  --tz-fg-3:            #9ea3be;
+
+  --tz-halo-a:          radial-gradient(60% 60% at 20% 0%,  rgba(124,106,247,0.18) 0%, rgba(124,106,247,0) 60%);
+  --tz-halo-b:          radial-gradient(50% 50% at 80% 10%, rgba(91,138,245,0.16) 0%, rgba(91,138,245,0) 60%);
+  --tz-halo-footer:     radial-gradient(40% 60% at 50% 100%, rgba(124,106,247,0.12) 0%, transparent 70%);
+
+  --tz-gain:            #0e9966;
+  --tz-gain-dim:        rgba(14,153,102,0.12);
+  --tz-loss:            #c43d3d;
+  --tz-loss-dim:        rgba(196,61,61,0.10);
+}

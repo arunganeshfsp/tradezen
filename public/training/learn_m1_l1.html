@@ -1,0 +1,844 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradeZen Learn · M1 · L1.1 — What is the Stock Market?</title>
+
+  <link rel="stylesheet" href="/halo-aurora/css/halo-tokens.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/halo-aurora/css/halo-aurora.css" />
+  <link rel="stylesheet" href="/halo-aurora/tutorial/tutorial.css" />
+
+  <style>
+    body {
+      min-height: 100vh;
+      padding: 0;
+      background: var(--tz-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(50% 40% at 20% 20%, rgba(124,106,247,0.16) 0%, transparent 60%),
+        radial-gradient(50% 40% at 80% 80%, rgba(91,138,245,0.14) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .workspace {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 1280px; padding: 24px;
+      display: grid; gap: 24px; align-items: center;
+      grid-template-columns: 280px minmax(0, 460px) 280px;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    @media (max-width: 1199.98px) { .workspace { grid-template-columns: 240px minmax(0, 440px) 240px; gap: 18px; padding: 18px; } }
+    @media (max-width: 991.98px)  { .workspace { grid-template-columns: 1fr; max-width: 460px; padding: 24px 12px; } .rail { display: none !important; } }
+    @media (max-width: 575.98px)  { .workspace { padding: 0; align-items: stretch; max-width: none; min-height: 100vh; gap: 0; } }
+
+    .stage {
+      position: relative; width: 100%; aspect-ratio: 9 / 16;
+      max-height: calc(100vh - 48px);
+      background: var(--tz-bg-elev);
+      border: 1px solid var(--tz-border);
+      border-radius: 32px; overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--tz-border);
+      display: flex; flex-direction: column;
+      justify-self: center;
+    }
+    @media (max-width: 575.98px) {
+      .stage { aspect-ratio: auto; height: 100vh; max-height: none; border-radius: 0; border: none; box-shadow: none; }
+    }
+
+    .rail {
+      align-self: stretch; display: flex; flex-direction: column;
+      gap: 14px; max-height: calc(100vh - 48px);
+      overflow-y: auto; scrollbar-width: none; padding: 4px;
+    }
+    .rail::-webkit-scrollbar { display: none; }
+    .rail-card {
+      background: var(--tz-surface); border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-xl); padding: 18px;
+      position: relative; overflow: hidden;
+    }
+    .rail-card .head {
+      font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.16em;
+      color: var(--tz-fg-3); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .rail-card h3 {
+      font-family: var(--tz-font-display); font-size: 22px; line-height: 1.15;
+      letter-spacing: -0.02em; color: var(--tz-fg-1); font-weight: 400; margin: 0 0 4px;
+    }
+    .rail-card h3 em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+
+    .outline { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 2px; }
+    .outline li { display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-radius: var(--tz-radius-md); font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-3); cursor: pointer; transition: background 180ms var(--tz-ease-out); }
+    .outline li:hover { background: var(--tz-surface-2); }
+    .outline li .marker { width: 20px; height: 20px; border-radius: 999px; background: var(--tz-surface-2); border: 1px solid var(--tz-border); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-family: var(--tz-font-mono); font-size: 10px; font-weight: 700; color: var(--tz-fg-3); }
+    .outline li .label { flex: 1; min-width: 0; }
+    .outline li.is-done { color: var(--tz-fg-2); }
+    .outline li.is-done .marker { background: var(--tz-gain-dim); border-color: rgba(52,211,153,0.35); color: var(--tz-gain); }
+    .outline li.is-done .marker::before { content: '✓'; }
+    .outline li.is-done .marker .num { display: none; }
+    .outline li.is-active { background: rgba(var(--tz-accent-rgb), 0.10); color: var(--tz-fg-1); font-weight: 600; }
+    .outline li.is-active .marker { background: var(--tz-grad); border-color: transparent; color: #fff; box-shadow: var(--tz-glow-soft); }
+    .outline li.is-active .marker .num { display: inline; }
+    .outline .sep { height: 1px; background: var(--tz-border); margin: 8px 4px; padding: 0; cursor: default; }
+    .outline .sep:hover { background: var(--tz-border); }
+
+    .module-crumb { display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--tz-border); margin-bottom: 14px; }
+    .module-crumb .back { width: 30px; height: 30px; border-radius: 999px; background: var(--tz-surface-2); border: 1px solid var(--tz-border); color: var(--tz-fg-1); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+    .module-crumb .back:hover { background: var(--tz-surface); }
+    .module-crumb .meta .k { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .module-crumb .meta .v { font-family: var(--tz-font-ui); font-size: 13.5px; font-weight: 600; color: var(--tz-fg-1); margin-top: 1px; }
+
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    .stat-grid .stat { padding: 12px; background: var(--tz-bg-elev); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-md); text-align: center; }
+    .stat-grid .stat .k { font-family: var(--tz-font-mono); font-size: 9px; letter-spacing: 0.18em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .stat-grid .stat .v { font-family: var(--tz-font-mono); font-size: 20px; font-weight: 700; color: var(--tz-fg-1); margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .stat-grid .stat .v.accent { color: var(--tz-accent-1); }
+    .stat-grid .stat .v.gain   { color: var(--tz-gain); }
+
+    .nextup-mini { display: flex; gap: 12px; align-items: center; padding: 14px; background: var(--tz-bg-elev); border: 1px solid var(--tz-border-accent); border-radius: var(--tz-radius-lg); text-decoration: none; color: var(--tz-fg-1); margin-top: 12px; transition: border-color 180ms; }
+    .nextup-mini:hover { border-color: rgba(var(--tz-accent-rgb), 0.6); color: var(--tz-fg-1); }
+    .nextup-mini .icon { width: 38px; height: 38px; border-radius: 10px; background: var(--tz-grad); display: inline-flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; box-shadow: var(--tz-glow-soft); }
+    .nextup-mini .meta .k { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .nextup-mini .meta .v { font-family: var(--tz-font-display); font-size: 15px; line-height: 1.2; color: var(--tz-fg-1); margin-top: 2px; letter-spacing: -0.01em; }
+
+    .streak-ring { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--tz-bg-elev); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); margin-top: 12px; }
+    .streak-ring .flame { font-size: 28px; line-height: 1; }
+    .streak-ring .meta .k { font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .streak-ring .meta .v { font-family: var(--tz-font-ui); font-size: 15px; font-weight: 700; color: var(--tz-fg-1); margin-top: 1px; }
+
+    .rail-tip { padding: 14px; background: rgba(var(--tz-accent-rgb), 0.06); border: 1px solid var(--tz-border-accent); border-radius: var(--tz-radius-lg); display: flex; gap: 10px; align-items: flex-start; }
+    .rail-tip .glyph { font-size: 18px; line-height: 1.2; flex-shrink: 0; }
+    .rail-tip .body { font-family: var(--tz-font-ui); font-size: 12.5px; line-height: 1.5; color: var(--tz-fg-1); }
+    .rail-tip .body .k { display: block; font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--tz-accent-1); text-transform: uppercase; margin-bottom: 3px; }
+
+    .stage-top { padding: 14px 18px 0; flex-shrink: 0; }
+    .dots { display: flex; gap: 4px; margin-bottom: 12px; }
+    .dots .seg { flex: 1; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.10); overflow: hidden; position: relative; }
+    .dots .seg .fill { position: absolute; inset: 0; width: 0; background: var(--tz-grad-h); border-radius: 999px; transition: width 280ms var(--tz-ease-out); }
+    .dots .seg.is-done .fill  { width: 100%; }
+    .dots .seg.is-active .fill { width: 100%; }
+    .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .top-row .close { width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,0.06); border: none; color: var(--tz-fg-1); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; }
+    .top-row .meta { flex: 1; text-align: center; font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .top-row .meta .now { color: var(--tz-fg-1); }
+    .stage .lang-toggle { transform: scale(0.85); transform-origin: right center; }
+
+    .deck { flex: 1; position: relative; overflow: hidden; }
+    .card-slide { position: absolute; inset: 0; padding: 28px 24px 100px; display: flex; flex-direction: column; opacity: 0; transform: translateX(40px); pointer-events: none; transition: transform 320ms var(--tz-ease-out), opacity 240ms; overflow-y: auto; scrollbar-width: none; }
+    .card-slide::-webkit-scrollbar { display: none; }
+    .card-slide.is-active { opacity: 1; transform: none; pointer-events: auto; }
+    .card-slide.is-prev   { transform: translateX(-40px); }
+
+    .card-level { align-self: flex-start; margin-bottom: 20px; }
+    .card-emoji { font-size: 64px; line-height: 1; display: block; margin-bottom: 14px; }
+    .card-title { font-family: var(--tz-font-display); font-size: clamp(26px, 7vw, 34px); line-height: 1.1; letter-spacing: -0.025em; color: var(--tz-fg-1); font-weight: 400; margin: 0 0 14px; }
+    .card-title em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+    .card-body { font-family: var(--tz-font-ui); font-size: 16px; line-height: 1.6; color: var(--tz-fg-1); margin: 0 0 12px; }
+    .card-body.muted { color: var(--tz-fg-2); }
+    .card-pill { display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--tz-surface); border: 1px solid var(--tz-border); font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--tz-fg-2); text-transform: uppercase; margin-bottom: 18px; }
+    .big-emoji-row { display: flex; justify-content: center; gap: 22px; margin: 8px 0 22px; font-size: 44px; }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+    .stat-cell { padding: 14px 12px; border-radius: var(--tz-radius-lg); text-align: center; }
+    .stat-cell .emoji { font-size: 28px; display: block; margin-bottom: 6px; }
+    .stat-cell h4 { font-family: var(--tz-font-ui); font-size: 13px; font-weight: 700; margin: 0 0 2px; }
+    .stat-cell p  { font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.12em; margin: 0; text-transform: uppercase; }
+    .stat-cell.up { background: var(--tz-gain-dim); color: var(--tz-gain); }
+    .stat-cell.dn { background: var(--tz-loss-dim); color: var(--tz-loss); }
+    .stat-cell.up h4, .stat-cell.dn h4 { color: inherit; }
+
+    .card-slide .result-card { padding: 24px 18px; border-radius: var(--tz-radius-xl); }
+    .card-slide .result-card .trophy { width: 60px; height: 60px; }
+    .card-slide .result-card .score  { font-size: 52px; }
+
+    .card-slide .quiz-q { background: transparent; border: none; padding: 0; }
+    .card-slide .quiz-q h3 { font-family: var(--tz-font-display); font-size: 22px; line-height: 1.2; font-weight: 400; letter-spacing: -0.02em; }
+    .card-slide .qhead { margin-bottom: 8px; }
+
+    .stage-bottom { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 10px; z-index: 4; }
+    .stage-bottom .btn-prev,
+    .stage-bottom .btn-next { flex: 1; padding: 14px 18px; border-radius: 16px; font-family: var(--tz-font-ui); font-size: 14.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 180ms var(--tz-ease-out); }
+    .stage-bottom .btn-prev { background: rgba(255,255,255,0.06); color: var(--tz-fg-1); border: 1px solid var(--tz-border); flex: 0 0 96px; }
+    .stage-bottom .btn-prev:hover { background: rgba(255,255,255,0.10); }
+    .stage-bottom .btn-prev:disabled { opacity: 0.4; cursor: not-allowed; }
+    .stage-bottom .btn-next { background: var(--tz-grad); color: #fff; border: none; box-shadow: var(--tz-glow); }
+    .stage-bottom .btn-next:hover { opacity: 0.92; color: #fff; }
+    .stage-bottom .btn-next:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+    .spacer { flex: 1; min-height: 8px; }
+  </style>
+</head>
+
+<body>
+
+<div class="workspace">
+
+  <!-- ── LEFT RAIL · LESSON OUTLINE (desktop only) ──────────── -->
+  <aside class="rail rail-left">
+    <div class="rail-card">
+      <div class="module-crumb">
+        <a class="back" href="/training/learn_home.html" aria-label="Back to modules">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </a>
+        <div class="meta">
+          <div class="k">MODULE 1</div>
+          <div class="v" data-en="Stock Market Basics" data-ta="பங்கு சந்தை அடிப்படைகள்">Stock Market Basics</div>
+        </div>
+      </div>
+
+      <div class="head" data-en="LESSON 1.1 · 10 CARDS" data-ta="பாடம் 1.1 · 10 கார்டுகள்">LESSON 1.1 · 10 CARDS</div>
+      <h3>
+        <span data-en="What is the " data-ta="">What is the </span>
+        <em data-en="stock market" data-ta="பங்கு சந்தை">stock market</em>
+        <span data-en="?" data-ta=" என்றால் என்ன?">?</span>
+      </h3>
+
+      <ul class="outline" id="outline">
+        <li data-jump="1"><span class="marker"><span class="num">1</span></span><span class="label" data-en="Welcome"             data-ta="வரவேற்பு">Welcome</span></li>
+        <li data-jump="2"><span class="marker"><span class="num">2</span></span><span class="label" data-en="Tea-shop story"      data-ta="தேநீர் கடை கதை">Tea-shop story</span></li>
+        <li data-jump="3"><span class="marker"><span class="num">3</span></span><span class="label" data-en="What is a share"     data-ta="பங்கு என்றால்">What is a share</span></li>
+        <li data-jump="4"><span class="marker"><span class="num">4</span></span><span class="label" data-en="Check · share"       data-ta="சோதனை · பங்கு">Check · share</span></li>
+        <li class="sep"></li>
+        <li data-jump="5"><span class="marker"><span class="num">5</span></span><span class="label" data-en="Market = market"     data-ta="சந்தை = சந்தை">Market = market</span></li>
+        <li data-jump="6"><span class="marker"><span class="num">6</span></span><span class="label" data-en="Buyers vs sellers"   data-ta="வாங்க vs விற்க">Buyers vs sellers</span></li>
+        <li data-jump="7"><span class="marker"><span class="num">7</span></span><span class="label" data-en="Check · buyers"      data-ta="சோதனை · வாங்குபவர்">Check · buyers</span></li>
+        <li data-jump="8"><span class="marker"><span class="num">8</span></span><span class="label" data-en="Check · sellers"     data-ta="சோதனை · விற்பவர்">Check · sellers</span></li>
+        <li class="sep"></li>
+        <li data-jump="9"><span class="marker"><span class="num">9</span></span><span class="label" data-en="Check · the market"  data-ta="சோதனை · சந்தை">Check · the market</span></li>
+        <li data-jump="10"><span class="marker"><span class="num">10</span></span><span class="label" data-en="Result"            data-ta="முடிவு">Result</span></li>
+      </ul>
+    </div>
+
+    <div class="rail-tip">
+      <span class="glyph">💡</span>
+      <div class="body">
+        <span class="k" data-en="TIP" data-ta="குறிப்பு">TIP</span>
+        <span data-en="Use ← → arrow keys to move between cards."
+              data-ta="← → விசைகள் கொண்டு கார்டுகளுக்கிடையே நகரவும்.">
+          Use ← → arrow keys to move between cards.
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── CENTRE · THE STAGE ─────────────────────────────────── -->
+  <div class="stage" id="stage">
+
+    <!-- TOP -->
+    <header class="stage-top">
+      <div class="dots" id="dots"></div>
+      <div class="top-row">
+        <a class="close" href="/training/learn_home.html" aria-label="Back to lessons">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </a>
+        <div class="meta">
+          <span class="now">M1 · 1.1</span> &nbsp;·&nbsp;
+          <span id="cardNum">1</span> / <span id="cardTotal">10</span>
+        </div>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" data-lang="en" class="is-active">EN</button>
+          <button type="button" data-lang="ta">த</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- DECK -->
+    <div class="deck" id="deck">
+
+      <!-- CARD 1 · COVER -->
+      <article class="card-slide is-active" data-card="1">
+        <span class="level-badge card-level" data-level="beginner">
+          <span class="dots"><i></i><i></i><i></i><i></i></span>
+          <span data-en="Beginner" data-ta="தொடக்கம்">Beginner</span>
+        </span>
+        <span class="card-emoji">📈</span>
+        <h2 class="card-title">
+          <span data-en="What is the " data-ta="">What is the </span>
+          <em data-en="stock market" data-ta="பங்குச்சந்தை">stock market</em>
+          <span data-en="?" data-ta=" என்றால் என்ன?">?</span>
+        </h2>
+        <p class="card-body muted"
+           data-en="A 4-minute story. No jargon. By the end you will know what a share is, why prices move, and where to find the market in India."
+           data-ta="4 நிமிட கதை. கடினமான வார்த்தைகள் இல்லை. முடிவில் பங்கு என்றால் என்ன, விலை ஏன் நகர்கிறது, இந்தியாவில் சந்தை எங்கே என்று தெரியும்.">
+          A 4-minute story. No jargon. By the end you will know what a share is, why prices move, and where to find the market in India.
+        </p>
+        <div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-family:var(--tz-font-mono);font-size:11.5px;color:var(--tz-fg-3);letter-spacing:0.12em;text-transform:uppercase;">
+          <span>📖 4 MIN</span>
+          <span>🧠 4 CHECKS</span>
+          <span style="color:var(--tz-accent-1);">+40 XP</span>
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 2 · STORY -->
+      <article class="card-slide" data-card="2">
+        <div class="card-pill" data-en="§ 01 · THE STORY" data-ta="§ 01 · கதை">§ 01 · THE STORY</div>
+        <span class="card-emoji">🍵</span>
+        <h2 class="card-title">
+          <span data-en="The " data-ta="">The </span>
+          <em data-en="tea-shop" data-ta="தேநீர் கடை">tea-shop</em>
+          <span data-en=" story" data-ta=" கதை"> story</span>
+        </h2>
+        <p class="card-body"
+           data-en="Your friend starts a tea shop. Business is going well. Now he wants to expand — a bigger shop, more chairs, better machines."
+           data-ta="உங்கள் நண்பர் ஒரு தேநீர் கடை ஆரம்பிக்கிறார். வியாபாரம் நன்றாக நடக்கிறது. இப்போது அவருக்கு பெரிய கடை, அதிக நாற்காலிகள், புதிய மெஷின்கள் வேண்டும்.">
+          Your friend starts a tea shop. Business is going well. Now he wants to expand — a bigger shop, more chairs, better machines.
+        </p>
+        <p class="card-body muted"
+           data-en="But he doesn't have enough money. So he asks you…"
+           data-ta="ஆனால் அவரிடம் போதுமான பணம் இல்லை. அதனால் உங்களிடம் கேட்கிறார்…">
+          But he doesn't have enough money. So he asks you…
+        </p>
+        <div style="margin-top:14px;padding:18px 20px;background:rgba(var(--tz-accent-rgb),0.08);border-left:3px solid var(--tz-accent-1);border-radius:0 12px 12px 0;">
+          <p style="font-family:var(--tz-font-display);font-style:italic;font-size:20px;line-height:1.4;margin:0;color:var(--tz-fg-1);"
+             data-en='"Will you become a small partner in my business?"'
+             data-ta='"என் வியாபாரத்தில் சிறு பங்காளியாக சேருகிறீர்களா?"'>
+            "Will you become a small partner in my business?"
+          </p>
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 3 · SHARES -->
+      <article class="card-slide" data-card="3">
+        <div class="card-pill" data-en="§ 01 · THE STORY" data-ta="§ 01 · கதை">§ 01 · THE STORY</div>
+        <span class="card-emoji">🤝</span>
+        <h2 class="card-title">
+          <span data-en="You become a " data-ta="">You become a </span>
+          <em data-en="small owner" data-ta="சிறு உரிமையாளர்">small owner</em>
+        </h2>
+        <p class="card-body"
+           data-en="You give him money. Now you own a small piece of the shop. That small piece of ownership has a name."
+           data-ta="நீங்கள் பணம் கொடுக்கிறீர்கள். இப்போது அந்த கடையின் சிறு பகுதி உங்களுடையது. அந்த சிறு உரிமை பகுதிக்கு ஒரு பெயர் உண்டு.">
+          You give him money. Now you own a small piece of the shop. That small piece of ownership has a name.
+        </p>
+        <div style="margin-top:18px;text-align:center;">
+          <span style="display:inline-block;padding:14px 30px;border-radius:16px;background:var(--tz-grad);color:#fff;font-family:var(--tz-font-display);font-size:32px;font-weight:400;letter-spacing:-0.01em;box-shadow:var(--tz-glow);">
+            <span data-en="Share" data-ta="பங்கு">Share</span>
+          </span>
+          <div style="margin-top:12px;font-family:var(--tz-font-mono);font-size:11px;letter-spacing:0.16em;color:var(--tz-fg-3);text-transform:uppercase;"
+               data-en="A piece of a company"
+               data-ta="நிறுவனத்தின் ஒரு பகுதி">
+            A piece of a company
+          </div>
+        </div>
+        <p class="card-body muted" style="margin-top:18px;font-size:14px;"
+           data-en="Big companies like Tata Motors and Infosys did the same thing — they sold shares to lakhs of people and grew into giants."
+           data-ta="டாட்டா மோட்டார்ஸ் மற்றும் இன்ஃபோசிஸ் போன்ற பெரிய நிறுவனங்களும் இதையே செய்தன — லட்சக்கணக்கான மக்களிடம் பங்குகளை விற்று பெரிதாயின.">
+          Big companies like Tata Motors and Infosys did the same thing — they sold shares to lakhs of people and grew into giants.
+        </p>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 4 · CHECK 1 (True/False) — GATED -->
+      <article class="card-slide" data-card="4" data-needs-answer>
+        <div class="card-pill" style="color:var(--tz-accent-1);border-color:var(--tz-border-accent);">
+          💡 <span data-en="QUICK CHECK · 1 of 4" data-ta="விரைவு சோதனை · 1 / 4">QUICK CHECK · 1 of 4</span>
+        </div>
+        <div class="quiz-q" data-q="m1l1-q1">
+          <div class="qhead">
+            <span class="qkind">TRUE / FALSE</span>
+            <span>+10 XP</span>
+          </div>
+          <h3 data-en="When you buy a share, you become a small owner of that company."
+              data-ta="நீங்கள் ஒரு பங்கு வாங்கும்போது, அந்த நிறுவனத்தின் சிறு உரிமையாளர் ஆகிறீர்கள்.">
+            When you buy a share, you become a small owner of that company.
+          </h3>
+          <div class="q-options">
+            <button class="q-option" data-correct="1">
+              <span class="key">T</span>
+              <span class="label" data-en="True" data-ta="சரி">True</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </button>
+            <button class="q-option">
+              <span class="key">F</span>
+              <span class="label" data-en="False" data-ta="தவறு">False</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            </button>
+          </div>
+          <div class="q-feedback">
+            <span style="font-size:16px;line-height:1;">✨</span>
+            <div>
+              <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
+              <span data-en="Yes — even 1 share of Tata Motors makes you a tiny owner of Tata. Your share grows in value when the company grows."
+                    data-ta="ஆம் — டாட்டா மோட்டார்ஸின் 1 பங்கு வாங்கினால் நீங்கள் டாட்டாவின் சிறு உரிமையாளர். நிறுவனம் வளர்ந்தால் உங்கள் பங்கும் வளரும்.">
+                Yes — even 1 share of Tata Motors makes you a tiny owner of Tata. Your share grows in value when the company grows.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 5 · STOCK MARKET = MARKET -->
+      <article class="card-slide" data-card="5">
+        <div class="card-pill" data-en="§ 02 · THE DEFINITION" data-ta="§ 02 · வரையறை">§ 02 · THE DEFINITION</div>
+        <h2 class="card-title" style="margin-top:0;">
+          <span data-en="It's just a " data-ta="">It's just a </span>
+          <em data-en="market" data-ta="சந்தை">market</em>
+        </h2>
+        <p class="card-body"
+           data-en="A market is a place where people buy and sell things. The stock market is the same — except they trade shares of companies, not vegetables."
+           data-ta="சந்தை என்பது வாங்கி விற்கும் இடம். பங்குச்சந்தையும் அதே — காய்கறி இல்லை, நிறுவன பங்குகள்.">
+          A market is a place where people buy and sell things. The stock market is the same — except they trade shares of companies, not vegetables.
+        </p>
+        <div class="big-emoji-row"><span>🥦</span><span>💍</span><span>📈</span></div>
+        <div class="stat-row">
+          <div class="stat-cell" style="background:var(--tz-surface);border:1px solid var(--tz-border);">
+            <h4 style="color:var(--tz-fg-1);" data-en="Veg market" data-ta="காய்கறி சந்தை">Veg market</h4>
+            <p style="color:var(--tz-fg-3);" data-en="Vegetables" data-ta="காய்கறிகள்">Vegetables</p>
+          </div>
+          <div class="stat-cell" style="background:rgba(var(--tz-accent-rgb),0.10);border:1px solid var(--tz-border-accent);">
+            <h4 style="color:var(--tz-accent-1);" data-en="Stock market" data-ta="பங்குச்சந்தை">Stock market</h4>
+            <p style="color:var(--tz-fg-2);" data-en="Shares" data-ta="பங்குகள்">Shares</p>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:12px 16px;background:var(--tz-surface);border:1px solid var(--tz-border);border-radius:var(--tz-radius-lg);font-family:var(--tz-font-ui);font-size:13.5px;line-height:1.5;color:var(--tz-fg-2);"
+             data-en="In India, this market has two names: NSE (National Stock Exchange) and BSE (Bombay Stock Exchange). Both run every weekday, 9:15 AM to 3:30 PM."
+             data-ta="இந்தியாவில் இந்த சந்தை NSE (தேசிய பங்கு சந்தை) மற்றும் BSE (பம்பாய் பங்கு சந்தை) என அழைக்கப்படுகிறது. இரண்டும் வாரநாட்களில் காலை 9:15 - மாலை 3:30 வரை இயங்கும்.">
+          In India, this market has two names: NSE (National Stock Exchange) and BSE (Bombay Stock Exchange). Both run every weekday, 9:15 AM to 3:30 PM.
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 6 · BUYERS VS SELLERS -->
+      <article class="card-slide" data-card="6">
+        <div class="card-pill" data-en="§ 03 · WHY PRICES MOVE" data-ta="§ 03 · விலை ஏன் நகர்கிறது">§ 03 · WHY PRICES MOVE</div>
+        <h2 class="card-title" style="margin-top:0;">
+          <em data-en="Buyers" data-ta="வாங்குபவர்கள்">Buyers</em>
+          <span data-en=" vs " data-ta=" vs "> vs </span>
+          <em data-en="Sellers" data-ta="விற்குபவர்கள்">Sellers</em>
+        </h2>
+        <p class="card-body muted"
+           data-en="Prices move because of buyers and sellers. It's supply and demand."
+           data-ta="வாங்குபவர்களும் விற்குபவர்களும் காரணமாக விலை மாறுகிறது. இதுவே தேவை மற்றும் விநியோகம்.">
+          Prices move because of buyers and sellers. It's supply and demand.
+        </p>
+        <div class="stat-row">
+          <div class="stat-cell up">
+            <span class="emoji">🧑🧑🧑🧑</span>
+            <h4 data-en="More buyers" data-ta="அதிக வாங்குபவர்கள்">More buyers</h4>
+            <p data-en="Price may go UP 📈" data-ta="விலை மேலே போகலாம் 📈">Price may go UP 📈</p>
+          </div>
+          <div class="stat-cell dn">
+            <span class="emoji">🏃🏃🏃</span>
+            <h4 data-en="More sellers" data-ta="அதிக விற்குபவர்கள்">More sellers</h4>
+            <p data-en="Price may go DOWN 📉" data-ta="விலை கீழே வரலாம் 📉">Price may go DOWN 📉</p>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:12px 16px;background:var(--tz-loss-dim);border:1px solid rgba(248,113,113,0.25);border-radius:var(--tz-radius-lg);font-family:var(--tz-font-ui);font-size:13.5px;line-height:1.5;color:var(--tz-fg-2);"
+             data-en="Important: Prices can go UP and also come DOWN. That is the risk — and also the opportunity — of the stock market."
+             data-ta="முக்கியம்: விலை மேலேயும் போகலாம், கீழேயும் வரலாம். அதுவே பங்குச்சந்தையின் ஆபத்தும் வாய்ப்பும்.">
+          Important: Prices can go UP and also come DOWN. That is the risk — and also the opportunity — of the stock market.
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 7 · CHECK 2 (MCQ: more buyers → price) — GATED -->
+      <article class="card-slide" data-card="7" data-needs-answer>
+        <div class="card-pill" style="color:var(--tz-accent-1);border-color:var(--tz-border-accent);">
+          💡 <span data-en="QUICK CHECK · 2 of 4" data-ta="விரைவு சோதனை · 2 / 4">QUICK CHECK · 2 of 4</span>
+        </div>
+        <div class="quiz-q" data-q="m1l1-q2">
+          <div class="qhead">
+            <span class="qkind">MULTIPLE CHOICE</span>
+            <span>+10 XP</span>
+          </div>
+          <h3 data-en="If more people start buying a stock, what may happen to its price?"
+              data-ta="ஒரு பங்கை அதிக பேர் வாங்க தொடங்கினால் விலைக்கு என்ன ஆகலாம்?">
+            If more people start buying a stock, what may happen to its price?
+          </h3>
+          <div class="q-options">
+            <button class="q-option" data-correct="1">
+              <span class="key">A</span>
+              <span class="label" data-en="Price may go UP 📈" data-ta="விலை மேலே போகலாம் 📈">Price may go UP 📈</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </button>
+            <button class="q-option">
+              <span class="key">B</span>
+              <span class="label" data-en="The market will stop" data-ta="சந்தை மூடப்படும்">The market will stop</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            </button>
+            <button class="q-option">
+              <span class="key">C</span>
+              <span class="label" data-en="The company will disappear" data-ta="நிறுவனம் மறைந்து விடும்">The company will disappear</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            </button>
+          </div>
+          <div class="q-feedback">
+            <span style="font-size:16px;line-height:1;">✨</span>
+            <div>
+              <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
+              <span data-en="More demand, higher price — same as a vegetable market. When everyone wants the same tomato, the price rises."
+                    data-ta="அதிக தேவை, அதிக விலை — காய்கறி சந்தையும் இதே தான். எல்லோரும் ஒரே தக்காளியை வேண்டினால் விலை ஏறும்.">
+                More demand, higher price — same as a vegetable market. When everyone wants the same tomato, the price rises.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 8 · CHECK 3 (True/False: more sellers → price down) — GATED -->
+      <article class="card-slide" data-card="8" data-needs-answer>
+        <div class="card-pill" style="color:var(--tz-accent-1);border-color:var(--tz-border-accent);">
+          💡 <span data-en="QUICK CHECK · 3 of 4" data-ta="விரைவு சோதனை · 3 / 4">QUICK CHECK · 3 of 4</span>
+        </div>
+        <div class="quiz-q" data-q="m1l1-q3">
+          <div class="qhead">
+            <span class="qkind">TRUE / FALSE</span>
+            <span>+10 XP</span>
+          </div>
+          <h3 data-en="If more people sell a stock, its price is likely to go down."
+              data-ta="அதிக பேர் ஒரு பங்கை விற்றால், அதன் விலை கீழே வரும்.">
+            If more people sell a stock, its price is likely to go down.
+          </h3>
+          <div class="q-options">
+            <button class="q-option" data-correct="1">
+              <span class="key">T</span>
+              <span class="label" data-en="True" data-ta="சரி">True</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </button>
+            <button class="q-option">
+              <span class="key">F</span>
+              <span class="label" data-en="False" data-ta="தவறு">False</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            </button>
+          </div>
+          <div class="q-feedback">
+            <span style="font-size:16px;line-height:1;">✨</span>
+            <div>
+              <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
+              <span data-en="Yes — more supply, less demand means the price falls. Think of a sale: too many sellers competing means buyers get a better deal."
+                    data-ta="ஆம் — அதிக விநியோகம், குறைந்த தேவை = விலை குறையும். விற்பனையில் அதிக விற்பவர்கள் போட்டி போடும்போது வாங்குபவர்களுக்கு நல்ல விலை கிடைக்கும்.">
+                Yes — more supply, less demand means the price falls. Think of a sale: too many sellers competing means buyers get a better deal.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 9 · CHECK 4 (MCQ: stock market is...) — GATED -->
+      <article class="card-slide" data-card="9" data-needs-answer>
+        <div class="card-pill" style="color:var(--tz-accent-1);border-color:var(--tz-border-accent);">
+          💡 <span data-en="QUICK CHECK · 4 of 4" data-ta="விரைவு சோதனை · 4 / 4">QUICK CHECK · 4 of 4</span>
+        </div>
+        <div class="quiz-q" data-q="m1l1-q4">
+          <div class="qhead">
+            <span class="qkind">MULTIPLE CHOICE</span>
+            <span>+10 XP</span>
+          </div>
+          <h3 data-en="Stock Market is a place to:"
+              data-ta="பங்குச்சந்தை என்பது:">
+            Stock Market is a place to:
+          </h3>
+          <div class="q-options">
+            <button class="q-option">
+              <span class="key">A</span>
+              <span class="label" data-en="Buy vegetables" data-ta="காய்கறி வாங்கும் இடம்">Buy vegetables</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            </button>
+            <button class="q-option" data-correct="1">
+              <span class="key">B</span>
+              <span class="label" data-en="Buy and sell shares of companies" data-ta="நிறுவன பங்குகள் வாங்கி விற்கும் இடம்">Buy and sell shares of companies</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </button>
+            <button class="q-option">
+              <span class="key">C</span>
+              <span class="label" data-en="Pay electricity bill" data-ta="EB பில் கட்டும் இடம்">Pay electricity bill</span>
+              <span class="tick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            </button>
+          </div>
+          <div class="q-feedback">
+            <span style="font-size:16px;line-height:1;">✨</span>
+            <div>
+              <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
+              <span data-en="NSE and BSE are India's stock exchanges — that is where shares of thousands of Indian companies are bought and sold every weekday."
+                    data-ta="NSE மற்றும் BSE — இந்தியாவின் பங்குச்சந்தைகள். ஆயிரக்கணக்கான நிறுவனங்களின் பங்குகள் இங்கே வாரநாட்தோறும் வர்த்தகமாகின்றன.">
+                NSE and BSE are India's stock exchanges — that is where shares of thousands of Indian companies are bought and sold every weekday.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+      <!-- CARD 10 · RESULT -->
+      <article class="card-slide" data-card="10">
+        <div class="card-pill" data-en="LESSON COMPLETE" data-ta="பாடம் முடிந்தது">LESSON COMPLETE</div>
+        <div class="result-card is-shown" id="resultCard">
+          <span class="trophy">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          </span>
+          <div class="score"><span data-score>0</span><span class="of"> / </span><span data-total>4</span></div>
+          <div class="blurb" data-blurb data-en="" data-ta=""></div>
+          <div class="rewards">
+            <span class="reward-chip"><span class="glyph">⚡</span><span data-xp>0 XP</span></span>
+            <span class="reward-chip"><span class="glyph">📖</span> <span data-en="Lesson 1.1 done" data-ta="பாடம் 1.1 முடிந்தது">Lesson 1.1 done</span></span>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding:14px 16px;background:var(--tz-surface);border:1px solid var(--tz-border-accent);border-radius:14px;display:flex;gap:12px;align-items:center;">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--tz-grad);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--tz-glow-soft);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:var(--tz-font-mono);font-size:9.5px;letter-spacing:0.16em;color:var(--tz-fg-3);"
+                 data-en="UP NEXT · 1.2" data-ta="அடுத்தது · 1.2">UP NEXT · 1.2</div>
+            <div style="font-family:var(--tz-font-display);font-size:18px;line-height:1.2;color:var(--tz-fg-1);margin-top:2px;letter-spacing:-0.01em;"
+                 data-en="Why Do Prices Move?" data-ta="விலைகள் ஏன் மாறுகின்றன?">
+              Why Do Prices Move?
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <a href="/training/learn_home.html" class="btn btn-ghost btn-sm w-100 justify-content-center"
+             data-en="← Back to Learn" data-ta="← கற்றலுக்கு திரும்பு">← Back to Learn</a>
+        </div>
+        <div class="spacer"></div>
+      </article>
+
+    </div><!-- /.deck -->
+
+    <!-- BOTTOM -->
+    <div class="stage-bottom">
+      <button class="btn-prev" id="prevBtn" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span data-en="Back" data-ta="பின்">Back</span>
+      </button>
+      <button class="btn-next" id="nextBtn">
+        <span data-en="Continue" data-ta="தொடரவும்">Continue</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div><!-- /.stage -->
+
+  <!-- ── RIGHT RAIL · SESSION CONTEXT (desktop only) ──────── -->
+  <aside class="rail rail-right">
+    <div class="rail-card">
+      <div class="head" data-en="THIS SESSION" data-ta="இந்த அமர்வு">THIS SESSION</div>
+      <h3>
+        <em data-en="Stay" data-ta="நிதானம்">Stay</em>
+        <span data-en=" focused." data-ta=" காப்பாற்று.">&nbsp;focused.</span>
+      </h3>
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="k" data-en="CARD" data-ta="கார்டு">CARD</div>
+          <div class="v"><span id="railCardNum">1</span> / 10</div>
+        </div>
+        <div class="stat">
+          <div class="k" data-en="XP" data-ta="XP">XP</div>
+          <div class="v accent" id="railXp">0</div>
+        </div>
+        <div class="stat">
+          <div class="k" data-en="ACCURACY" data-ta="துல்லியம்">ACCURACY</div>
+          <div class="v gain" id="railAcc">—</div>
+        </div>
+        <div class="stat">
+          <div class="k" data-en="TIME" data-ta="நேரம்">TIME</div>
+          <div class="v" id="railTime">0:00</div>
+        </div>
+      </div>
+      <div class="streak-ring">
+        <span class="flame">🔥</span>
+        <div class="meta">
+          <div class="k" data-en="STREAK" data-ta="தொடர்">STREAK</div>
+          <div class="v" id="streakVal" data-en="Keep it up!" data-ta="தொடரவும்!">Keep it up!</div>
+        </div>
+      </div>
+    </div>
+    <div class="rail-tip">
+      <span class="glyph">⚡</span>
+      <div class="body">
+        <span class="k" data-en="EARN XP" data-ta="XP பெற">EARN XP</span>
+        <span data-en="+10 XP per correct check. Get all 4 right for the full 40 XP."
+              data-ta="ஒவ்வொரு சரியான பதிலுக்கும் +10 XP. நான்கும் சரி = 40 XP.">
+          +10 XP per correct check. Get all 4 right for the full 40 XP.
+        </span>
+      </div>
+    </div>
+  </aside>
+
+</div><!-- /.workspace -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/halo-aurora/js/halo-aurora.js"></script>
+<script src="/halo-aurora/tutorial/tutorial.js"></script>
+
+<script>
+(function () {
+  const slides = document.querySelectorAll('.card-slide');
+  const total  = slides.length;
+  const dotsHost = document.getElementById('dots');
+  const cardNum  = document.getElementById('cardNum');
+  const cardTot  = document.getElementById('cardTotal');
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+
+  cardTot.textContent = total;
+
+  for (let x = 0; x < total; x++) {
+    const seg = document.createElement('span');
+    seg.className = 'seg';
+    seg.innerHTML = '<span class="fill"></span>';
+    dotsHost.appendChild(seg);
+  }
+  const segs = dotsHost.querySelectorAll('.seg');
+
+  let idx = 0;
+  const startTime = Date.now();
+
+  const outlineItems = document.querySelectorAll('#outline li[data-jump]');
+  const railCardNum  = document.getElementById('railCardNum');
+  const railXp       = document.getElementById('railXp');
+  const railAcc      = document.getElementById('railAcc');
+  const railTime     = document.getElementById('railTime');
+  const streakVal    = document.getElementById('streakVal');
+
+  (function () {
+    try {
+      const d = JSON.parse(localStorage.getItem('tz_learn') || '{}');
+      const s = d.streak || 0;
+      const lang = document.documentElement.getAttribute('lang') || 'en';
+      if (streakVal) streakVal.textContent = s > 0
+        ? (s + (lang === 'ta' ? ' நாட்கள்' : ' days'))
+        : (lang === 'ta' ? 'தொடங்குங்கள்!' : 'Day 1 — start!');
+    } catch (_) {}
+  })();
+
+  setInterval(() => {
+    const s = Math.floor((Date.now() - startTime) / 1000);
+    const mm = Math.floor(s / 60);
+    const ss = (s % 60).toString().padStart(2, '0');
+    if (railTime) railTime.textContent = mm + ':' + ss;
+  }, 1000);
+
+  outlineItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const target = parseInt(item.dataset.jump, 10) - 1;
+      if (target <= idx) { idx = target; render(); }
+    });
+  });
+
+  function updateRail() {
+    if (railCardNum) railCardNum.textContent = idx + 1;
+    const sb = window.TZTutor.scoreBook;
+    if (railXp)  railXp.textContent  = sb.correct * 10;
+    if (railAcc) railAcc.textContent = sb.answered.size
+      ? Math.round((sb.correct / sb.answered.size) * 100) + '%'
+      : '—';
+    outlineItems.forEach(item => {
+      const n = parseInt(item.dataset.jump, 10) - 1;
+      item.classList.toggle('is-done',   n < idx);
+      item.classList.toggle('is-active', n === idx);
+    });
+  }
+
+  let resultRendered = false;
+
+  function render() {
+    slides.forEach((s, n) => {
+      s.classList.toggle('is-active', n === idx);
+      s.classList.toggle('is-prev',   n === idx - 1);
+    });
+    segs.forEach((d, n) => {
+      d.classList.toggle('is-done',   n < idx);
+      d.classList.toggle('is-active', n === idx);
+    });
+    cardNum.textContent = idx + 1;
+    prev.disabled = idx === 0;
+
+    const slide = slides[idx];
+    const needs = slide.hasAttribute('data-needs-answer');
+    if (needs) {
+      const q = slide.querySelector('[data-q]');
+      const id = q && q.dataset.q;
+      next.disabled = !id || !window.TZTutor.scoreBook.answered.has(id);
+    } else {
+      next.disabled = false;
+    }
+
+    const isLast = idx === total - 1;
+    const lang = document.documentElement.getAttribute('lang') || 'en';
+    next.querySelector('span').textContent = isLast
+      ? (lang === 'ta' ? 'மீண்டும் ஆரம்பி' : 'Restart')
+      : (lang === 'ta' ? 'தொடரவும்' : 'Continue');
+
+    if (isLast && !resultRendered) {
+      resultRendered = true;
+      window.TZTutor.renderResult('#resultCard');
+      try {
+        const store = JSON.parse(localStorage.getItem('tz_learn') || '{}');
+        store.lessons_done = store.lessons_done || [];
+        if (!store.lessons_done.includes('m1l1')) {
+          store.lessons_done.push('m1l1');
+          const today = new Date().toDateString();
+          if (store.last_active !== today) {
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            store.streak = store.last_active === yesterday ? (store.streak || 0) + 1 : 1;
+            store.last_active = today;
+          }
+        }
+        localStorage.setItem('tz_learn', JSON.stringify(store));
+      } catch (_) {}
+    }
+
+    updateRail();
+  }
+
+  next.addEventListener('click', () => {
+    if (idx < total - 1) { idx++; render(); }
+    else {
+      idx = 0; resultRendered = false;
+      window.TZTutor.scoreBook.reset();
+      slides.forEach(s => {
+        s.removeAttribute('data-locked');
+        s.querySelectorAll('.q-option').forEach(o => { o.removeAttribute('data-state'); o.removeAttribute('data-locked'); });
+        const fb = s.querySelector('.q-feedback');
+        if (fb) fb.classList.remove('is-shown', 'is-correct', 'is-wrong');
+      });
+      window.TZTutor.updateProgress();
+      render();
+    }
+  });
+  prev.addEventListener('click', () => { if (idx > 0) { idx--; render(); } });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' && !next.disabled) next.click();
+    if (e.key === 'ArrowLeft'  && !prev.disabled) prev.click();
+  });
+
+  let sx = 0, sy = 0;
+  const deck = document.getElementById('deck');
+  deck.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  deck.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+      if (dx < 0 && !next.disabled) next.click();
+      if (dx > 0 && !prev.disabled) prev.click();
+    }
+  });
+
+  document.addEventListener('tz-answered', () => setTimeout(render, 300));
+
+  render();
+})();
+</script>
+
+</body>
+</html>

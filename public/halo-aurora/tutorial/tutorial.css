@@ -1,0 +1,357 @@
+/* ============================================================
+   HALO AURORA · Tutorial — shared interaction styles
+   Used across all three tutorial layouts (Reading Room,
+   Story Cards, Trading Floor). Page-specific layout lives in
+   each HTML file's own <style>.
+   ============================================================ */
+
+/* ── Level badge (Beginner/Intermediate/Hard/Expert) ─────── */
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--tz-border-accent);
+  background: rgba(var(--tz-accent-rgb), 0.06);
+  font-family: var(--tz-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tz-fg-1);
+}
+.level-badge .dots { display: inline-flex; gap: 3px; }
+.level-badge .dots i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tz-fg-3);
+  display: block;
+}
+.level-badge[data-level="beginner"]     .dots i:nth-child(-n+1) { background: var(--tz-gain); }
+.level-badge[data-level="intermediate"] .dots i:nth-child(-n+2) { background: var(--tz-accent-1); }
+.level-badge[data-level="hard"]         .dots i:nth-child(-n+3) { background: #fbbf24; }
+.level-badge[data-level="expert"]       .dots i:nth-child(-n+4) { background: var(--tz-loss); }
+
+.level-badge[data-level="beginner"]     { color: var(--tz-gain); border-color: rgba(52,211,153,0.35); background: var(--tz-gain-dim); }
+.level-badge[data-level="intermediate"] { color: var(--tz-accent-1); border-color: var(--tz-border-accent); }
+.level-badge[data-level="hard"]         { color: #fbbf24; border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.10); }
+.level-badge[data-level="expert"]       { color: var(--tz-loss); border-color: rgba(248,113,113,0.35); background: var(--tz-loss-dim); }
+
+/* ── Progress rail (top-of-page bar) ─────────────────────── */
+.progress-rail {
+  height: 4px;
+  background: var(--tz-surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-rail .fill {
+  height: 100%;
+  background: var(--tz-grad-h);
+  width: 0;
+  transition: width 280ms var(--tz-ease-out);
+  border-radius: 999px;
+}
+
+/* ── XP / streak chips ───────────────────────────────────── */
+.chip-xp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-border);
+  font-family: var(--tz-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tz-fg-1);
+  font-variant-numeric: tabular-nums;
+}
+.chip-xp .icon { color: var(--tz-accent-1); display: inline-flex; }
+
+/* ── Quiz primitives ─────────────────────────────────────── */
+.quiz-q {
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-border);
+  border-radius: var(--tz-radius-xl);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.quiz-q h3 {
+  font-family: var(--tz-font-ui);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tz-fg-1);
+  letter-spacing: -0.015em;
+  margin: 0 0 18px;
+}
+.quiz-q .qhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-family: var(--tz-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--tz-fg-3);
+}
+.quiz-q .qhead .qkind { color: var(--tz-accent-1); }
+
+/* MCQ + True/False options */
+.q-options { display: flex; flex-direction: column; gap: 10px; }
+.q-option {
+  width: 100%;
+  text-align: left;
+  background: var(--tz-bg-elev);
+  border: 1px solid var(--tz-border);
+  border-radius: var(--tz-radius-lg);
+  padding: 14px 16px;
+  font-family: var(--tz-font-ui);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--tz-fg-1);
+  cursor: pointer;
+  transition: all 180ms var(--tz-ease-out);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.q-option:hover { border-color: var(--tz-border-strong); background: var(--tz-surface-2); }
+.q-option .key {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  background: var(--tz-surface-2);
+  border: 1px solid var(--tz-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--tz-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tz-fg-2);
+  flex-shrink: 0;
+}
+.q-option .label { flex: 1; }
+.q-option .tick {
+  width: 22px; height: 22px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.q-option[data-state="correct"] {
+  background: var(--tz-gain-dim);
+  border-color: rgba(52,211,153,0.45);
+  color: var(--tz-fg-1);
+}
+.q-option[data-state="correct"] .key { background: var(--tz-gain); border-color: var(--tz-gain); color: #06070f; }
+.q-option[data-state="correct"] .tick { display: inline-flex; color: var(--tz-gain); }
+
+.q-option[data-state="wrong"] {
+  background: var(--tz-loss-dim);
+  border-color: rgba(248,113,113,0.45);
+}
+.q-option[data-state="wrong"] .key { background: var(--tz-loss); border-color: var(--tz-loss); color: #06070f; }
+.q-option[data-state="wrong"] .tick { display: inline-flex; color: var(--tz-loss); }
+
+.q-option[data-locked]:not([data-state]) {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Feedback panel that slides in below a question after answering */
+.q-feedback {
+  display: none;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--tz-radius-lg);
+  font-family: var(--tz-font-ui);
+  font-size: 13.5px;
+  line-height: 1.55;
+  border: 1px solid;
+  align-items: flex-start;
+  gap: 10px;
+}
+.q-feedback.is-shown { display: flex; }
+.q-feedback.is-correct {
+  background: var(--tz-gain-dim);
+  border-color: rgba(52,211,153,0.35);
+  color: var(--tz-fg-1);
+}
+.q-feedback.is-wrong {
+  background: var(--tz-loss-dim);
+  border-color: rgba(248,113,113,0.35);
+  color: var(--tz-fg-1);
+}
+.q-feedback .head {
+  font-family: var(--tz-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.q-feedback.is-correct .head { color: var(--tz-gain); }
+.q-feedback.is-wrong   .head { color: var(--tz-loss); }
+
+/* Tap-the-image interaction ────────────────────────────── */
+.tap-target {
+  position: relative;
+  border-radius: var(--tz-radius-lg);
+  overflow: hidden;
+  background: var(--tz-bg-elev);
+  border: 1px solid var(--tz-border);
+  cursor: pointer;
+  user-select: none;
+}
+.tap-hotspot {
+  position: absolute;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+.tap-marker {
+  position: absolute;
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  background: var(--tz-grad);
+  box-shadow: 0 0 0 6px rgba(var(--tz-accent-rgb), 0.20), var(--tz-glow);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 280ms var(--tz-ease-out), opacity 180ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--tz-font-mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+.tap-marker.is-shown { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+.tap-marker.is-wrong { background: var(--tz-loss); box-shadow: 0 0 0 6px rgba(248,113,113,0.25); }
+
+/* ── Result / success card ──────────────────────────────── */
+.result-card {
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-border-accent);
+  border-radius: var(--tz-radius-2xl);
+  padding: 36px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.result-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(60% 60% at 50% 0%, rgba(var(--tz-accent-rgb), 0.20) 0%, transparent 70%);
+  pointer-events: none;
+}
+.result-card > * { position: relative; }
+.result-card .trophy {
+  width: 76px; height: 76px;
+  border-radius: 999px;
+  background: var(--tz-grad);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 60px rgba(var(--tz-accent-rgb), 0.5);
+  margin-bottom: 16px;
+}
+.result-card .score {
+  font-family: var(--tz-font-display);
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  margin: 8px 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.result-card .score .of {
+  font-style: italic;
+  color: var(--tz-fg-3);
+  font-size: 0.5em;
+}
+.result-card .blurb {
+  font-family: var(--tz-font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--tz-fg-2);
+  margin: 4px 0 24px;
+}
+.result-card .rewards {
+  display: inline-flex;
+  gap: 12px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.result-card .reward-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--tz-bg-elev);
+  border: 1px solid var(--tz-border);
+  border-radius: 999px;
+  font-family: var(--tz-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tz-fg-1);
+}
+.result-card .reward-chip .glyph {
+  color: var(--tz-accent-1);
+  font-size: 16px;
+}
+
+/* ── Confetti container ──────────────────────────────────── */
+.confetti {
+  position: fixed;
+  pointer-events: none;
+  inset: 0;
+  z-index: 2000;
+  overflow: hidden;
+}
+.confetti span {
+  position: absolute;
+  display: block;
+  width: 8px; height: 14px;
+  top: -20px;
+  animation: confetti-fall 2.4s linear forwards;
+  will-change: transform, opacity;
+}
+@keyframes confetti-fall {
+  to { transform: translate3d(var(--dx, 0), 110vh, 0) rotate(720deg); opacity: 0; }
+}
+
+/* ── Mini "check yourself" inline widget (Option A) ──────── */
+.inline-check {
+  margin-top: 24px;
+  background: var(--tz-bg-elev);
+  border: 1px dashed var(--tz-border-accent);
+  border-radius: var(--tz-radius-lg);
+  padding: 18px;
+}
+.inline-check .head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--tz-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--tz-accent-1);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ── Reduce motion ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .confetti span { animation: none; display: none; }
+  .tap-marker { transition: none; }
+  .progress-rail .fill { transition: none; }
+}

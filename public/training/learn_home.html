@@ -1,0 +1,686 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learn — TradeZen</title>
+
+  <link rel="stylesheet" href="/halo-aurora/css/halo-tokens.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/halo-aurora/css/halo-aurora.css" />
+
+  <style>
+    /* ── Page-level extras ───────────────────────────────── */
+    .learn-hero {
+      position: relative;
+      padding: 72px 0 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .learn-hero .halo-bg {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+    .learn-hero .halo-bg::before,
+    .learn-hero .halo-bg::after {
+      content: ''; position: absolute; inset: 0;
+    }
+    .learn-hero .halo-bg::before { background: var(--tz-halo-a); }
+    .learn-hero .halo-bg::after  { background: var(--tz-halo-b); }
+    .learn-hero .halo-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(var(--tz-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--tz-border) 1px, transparent 1px);
+      background-size: 56px 56px;
+      -webkit-mask-image: radial-gradient(55% 55% at 50% 30%, black 0%, transparent 70%);
+              mask-image: radial-gradient(55% 55% at 50% 30%, black 0%, transparent 70%);
+      opacity: 0.7;
+    }
+    .learn-hero .inner { position: relative; z-index: 1; }
+
+    .hero-title {
+      font-family: var(--tz-font-display);
+      font-size: clamp(38px, 6vw, 72px);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--tz-fg-1);
+      margin: 16px auto 0;
+      max-width: 720px;
+      text-wrap: balance;
+    }
+    .hero-title em {
+      font-style: italic;
+      padding: 0 0.1em 0.16em 0;
+      background-image: var(--tz-grad-h);
+      background-repeat: no-repeat;
+      background-position: 0 100%;
+      background-size: 100% 0.1em;
+      -webkit-box-decoration-break: clone;
+              box-decoration-break: clone;
+    }
+    .hero-sub {
+      font-size: 17px;
+      color: var(--tz-fg-2);
+      max-width: 520px;
+      margin: 20px auto 0;
+      line-height: 1.6;
+    }
+
+    /* ── XP stats strip ──────────────────────────────────── */
+    .xp-strip {
+      display: flex;
+      gap: var(--tz-space-3);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: var(--tz-space-6);
+    }
+    .xp-pill {
+      display: flex;
+      align-items: center;
+      gap: var(--tz-space-2);
+      background: var(--tz-surface);
+      border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-full);
+      padding: 8px 16px;
+    }
+    .xp-pill .icon { font-size: 16px; }
+    .xp-pill .val {
+      font-family: var(--tz-font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tz-fg-1);
+      font-variant-numeric: tabular-nums;
+    }
+    .xp-pill .lbl {
+      font-size: 12px;
+      color: var(--tz-fg-3);
+    }
+
+    /* ── Level badge strip ───────────────────────────────── */
+    .level-strip {
+      margin-top: var(--tz-space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--tz-space-3);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .level-name {
+      font-family: var(--tz-font-mono);
+      font-size: 11px;
+      color: var(--tz-accent-1);
+      background: rgba(var(--tz-accent-rgb), 0.08);
+      border: 1px solid var(--tz-border-accent);
+      padding: 4px 14px;
+      border-radius: var(--tz-radius-full);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .xp-bar-wrap {
+      width: min(320px, 90vw);
+    }
+    .xp-bar-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-fg-3);
+      margin-bottom: var(--tz-space-1);
+    }
+    .xp-track {
+      height: 6px;
+      background: var(--tz-surface-2);
+      border-radius: var(--tz-radius-full);
+      overflow: hidden;
+    }
+    .xp-fill {
+      height: 100%;
+      background: var(--tz-grad-h);
+      border-radius: var(--tz-radius-full);
+      transition: width 0.7s var(--tz-ease-out);
+    }
+
+    /* ── Section heading ─────────────────────────────────── */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      gap: var(--tz-space-3);
+      margin-bottom: var(--tz-space-5);
+    }
+    .sec-head h2 {
+      font-family: var(--tz-font-display);
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--tz-fg-1);
+      letter-spacing: -0.025em;
+      margin: 0;
+    }
+    .sec-line { flex: 1; height: 1px; background: var(--tz-border); }
+
+    /* ── Module card ─────────────────────────────────────── */
+    .module-card {
+      background: var(--tz-surface);
+      border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-xl);
+      padding: var(--tz-space-6);
+      position: relative;
+      overflow: hidden;
+      transition: border-color var(--tz-duration-fast) var(--tz-ease-out);
+    }
+    .module-card.is-active {
+      border-color: var(--tz-border-accent);
+    }
+    .module-card.is-active::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(70% 70% at 0% 0%, rgba(var(--tz-accent-rgb), 0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .module-card > * { position: relative; }
+    .module-card.is-locked { opacity: 0.55; }
+
+    .module-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--tz-space-3);
+      margin-bottom: var(--tz-space-4);
+    }
+    .module-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--tz-radius-lg);
+      background: rgba(var(--tz-accent-rgb), 0.10);
+      border: 1px solid var(--tz-border-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .module-card.is-active .module-icon { background: var(--tz-grad); border: none; }
+
+    .module-num {
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-fg-3);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .module-title {
+      font-family: var(--tz-font-ui);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--tz-fg-1);
+      letter-spacing: -0.015em;
+      margin: 4px 0 8px;
+    }
+    .module-desc {
+      font-size: 13.5px;
+      color: var(--tz-fg-2);
+      line-height: 1.6;
+      margin-bottom: var(--tz-space-4);
+    }
+    .module-meta {
+      display: flex;
+      gap: var(--tz-space-4);
+      flex-wrap: wrap;
+      margin-bottom: var(--tz-space-4);
+    }
+    .module-meta span {
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-fg-3);
+      letter-spacing: 0.1em;
+    }
+
+    /* Lesson list inside module card */
+    .lesson-list {
+      list-style: none;
+      padding: 0; margin: 0 0 var(--tz-space-4);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .lesson-item {
+      display: flex;
+      align-items: center;
+      gap: var(--tz-space-2);
+      padding: 10px var(--tz-space-2);
+      border-radius: var(--tz-radius-md);
+      text-decoration: none;
+      color: var(--tz-fg-2);
+      font-size: 13px;
+      transition: background var(--tz-duration-fast) var(--tz-ease-out);
+    }
+    .lesson-item:hover { background: var(--tz-surface-2); color: var(--tz-fg-1); }
+    .lesson-item.is-available { color: var(--tz-fg-1); }
+    .lesson-item.is-locked { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    .lesson-dot {
+      width: 20px; height: 20px;
+      border-radius: var(--tz-radius-full);
+      border: 2px solid var(--tz-border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--tz-font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--tz-fg-3);
+      flex-shrink: 0;
+    }
+    .lesson-item.is-available .lesson-dot {
+      border-color: var(--tz-border-accent);
+      color: var(--tz-accent-1);
+    }
+    .lesson-item.is-done .lesson-dot {
+      background: var(--tz-gain-dim);
+      border-color: rgba(52,211,153,0.4);
+      color: var(--tz-gain);
+    }
+    .lesson-label { flex: 1; }
+    .lesson-xp {
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-fg-3);
+    }
+
+    /* Progress row */
+    .prog-row { margin-bottom: var(--tz-space-4); }
+    .prog-nums {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-fg-3);
+      margin-bottom: var(--tz-space-1);
+    }
+    .prog-track { height: 4px; background: var(--tz-surface-2); border-radius: var(--tz-radius-full); overflow: hidden; }
+    .prog-fill  { height: 100%; background: var(--tz-grad-h); border-radius: var(--tz-radius-full); transition: width 0.6s var(--tz-ease-out); }
+
+    /* Coming soon badge */
+    .badge-soon {
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: var(--tz-radius-full);
+      background: var(--tz-surface-2);
+      border: 1px solid var(--tz-border);
+      color: var(--tz-fg-3);
+    }
+    .badge-active {
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: var(--tz-radius-full);
+      background: var(--tz-gain-dim);
+      border: 1px solid rgba(52,211,153,0.3);
+      color: var(--tz-gain);
+    }
+
+    /* ── TZ-branded logo mark ─────────────────────────────── */
+    .tz-logo {
+      width: 32px; height: 32px;
+      border-radius: var(--tz-radius-md);
+      background: var(--tz-grad);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--tz-font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    .page-footer {
+      border-top: 1px solid var(--tz-border);
+      padding: var(--tz-space-5) 0;
+      text-align: center;
+      font-family: var(--tz-font-mono);
+      font-size: 11px;
+      color: var(--tz-fg-3);
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ── Navbar ───────────────────────────────────────────────── -->
+<nav class="halo-navbar navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="/index.html">
+      <div class="tz-logo">TZ</div>
+      TradeZen
+    </a>
+
+    <button class="halo-burger navbar-toggler border-0" type="button"
+            data-bs-toggle="offcanvas" data-bs-target="#haloMenu"
+            aria-label="Open menu">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M3 5h14M3 10h14M3 15h14"/>
+      </svg>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" data-en="Home" data-ta="முகப்பு" href="/index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" data-en="Learn" data-ta="கற்க" href="/training/learn_home.html">Learn</a></li>
+        <li class="nav-item"><a class="nav-link" data-en="Flow" data-ta="ஓட்டம்" href="/trade_flow.html">Flow</a></li>
+        <li class="nav-item"><a class="nav-link" data-en="Options" data-ta="ஆப்ஷன்ஸ்" href="/options_analysis.html">Options</a></li>
+        <li class="nav-item"><a class="nav-link" data-en="Scanner" data-ta="ஸ்கேனர்" href="/fno_scanner.html">Scanner</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <div class="lang-toggle">
+          <button data-lang="en">EN</button>
+          <button data-lang="ta">தமிழ்</button>
+        </div>
+        <button class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+          <span data-icon="dark">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 0 10 6 6 0 0 1 0-10z"/>
+            </svg>
+          </span>
+          <span data-icon="light">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Mobile offcanvas ──────────────────────────────────────── -->
+<aside class="offcanvas offcanvas-end halo-offcanvas" id="haloMenu" tabindex="-1">
+  <div class="offcanvas-header">
+    <div class="d-flex align-items-center gap-2">
+      <div class="tz-logo">TZ</div>
+      <span style="font-weight:700;color:var(--tz-fg-1)">TradeZen</span>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <a class="nav-link" href="/index.html" data-bs-dismiss="offcanvas" data-en="Home" data-ta="முகப்பு">Home</a>
+    <a class="nav-link" href="/training/learn_home.html" data-bs-dismiss="offcanvas" data-en="Learn" data-ta="கற்க">Learn</a>
+    <a class="nav-link" href="/trade_flow.html" data-bs-dismiss="offcanvas" data-en="Flow" data-ta="ஓட்டம்">Flow</a>
+    <a class="nav-link" href="/options_analysis.html" data-bs-dismiss="offcanvas" data-en="Options" data-ta="ஆப்ஷன்ஸ்">Options</a>
+    <a class="nav-link" href="/fno_scanner.html" data-bs-dismiss="offcanvas" data-en="Scanner" data-ta="ஸ்கேனர்">Scanner</a>
+    <div class="offcanvas-divider"></div>
+    <div class="lang-toggle mt-2">
+      <button data-lang="en">EN</button>
+      <button data-lang="ta">தமிழ்</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Hero ─────────────────────────────────────────────────── -->
+<section class="learn-hero">
+  <div class="halo-bg"></div>
+  <div class="halo-grid"></div>
+  <div class="inner container">
+    <span class="eyebrow">
+      <span class="dot"></span>
+      <span data-en="LEARNING CENTRE · OPEN" data-ta="கற்றல் மையம் · திறந்துள்ளது">LEARNING CENTRE · OPEN</span>
+    </span>
+    <h1 class="hero-title">
+      <span data-en="Learn the market." data-ta="சந்தையை கற்றுக்கொள்.">Learn the market.</span>
+      <br><em data-en="Your way." data-ta="உங்கள் வழியில்.">Your way.</em>
+    </h1>
+    <p class="hero-sub" data-en="Simple, visual lessons for anyone curious about the Indian stock market — beginners, homemakers, students, first-time investors." data-ta="இந்திய பங்கு சந்தையில் ஆர்வமுள்ள யாருக்கும் — எளிமையான, காட்சி அடிப்படையிலான பாடங்கள்.">
+      Simple, visual lessons for anyone curious about the Indian stock market — beginners, homemakers, students, first-time investors.
+    </p>
+
+    <!-- XP stats -->
+    <div class="xp-strip" id="xpStrip">
+      <div class="xp-pill">
+        <span class="icon">⚡</span>
+        <span class="val" id="statXp">0</span>
+        <span class="lbl" data-en="XP" data-ta="XP">XP</span>
+      </div>
+      <div class="xp-pill">
+        <span class="icon">✅</span>
+        <span class="val" id="statLessons">0</span>
+        <span class="lbl" data-en="Lessons done" data-ta="பாடங்கள் முடிந்தன">Lessons done</span>
+      </div>
+      <div class="xp-pill">
+        <span class="icon">🔥</span>
+        <span class="val" id="statStreak">0</span>
+        <span class="lbl" data-en="Day streak" data-ta="தொடர் நாட்கள்">Day streak</span>
+      </div>
+    </div>
+
+    <!-- Level + XP bar -->
+    <div class="level-strip">
+      <span class="level-name" id="levelName">LEVEL 1 — BEGINNER</span>
+      <div class="xp-bar-wrap">
+        <div class="xp-bar-row">
+          <span id="xpBarLabel">0 / 200 XP to next level</span>
+          <span id="xpBarPct">0%</span>
+        </div>
+        <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Courses ───────────────────────────────────────────────── -->
+<main class="container py-5">
+
+  <!-- Active module -->
+  <div class="sec-head">
+    <h2 data-en="Your Courses" data-ta="உங்கள் பாடங்கள்">Your Courses</h2>
+    <span class="badge-active" data-en="ENROLLED" data-ta="பதிவு செய்யப்பட்டது">ENROLLED</span>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="row g-4 mb-5">
+
+    <!-- Module 1 -->
+    <div class="col-lg-6">
+      <div class="module-card is-active">
+        <div class="module-head">
+          <div class="d-flex align-items-start gap-3">
+            <div class="module-icon">📊</div>
+            <div>
+              <div class="module-num" data-en="MODULE 01" data-ta="தொகுதி 01">MODULE 01</div>
+              <div class="module-title" data-en="Stock Market Basics" data-ta="பங்கு சந்தை அடிப்படைகள்">Stock Market Basics</div>
+            </div>
+          </div>
+          <span class="badge-active" data-en="ACTIVE" data-ta="செயல்பாட்டில்">ACTIVE</span>
+        </div>
+
+        <p class="module-desc" data-en="Everything you need to understand before your first trade. What is a share? Why do prices move? Who controls the market? No jargon, just clarity." data-ta="உங்கள் முதல் வர்த்தகத்திற்கு முன் புரிந்துகொள்ள வேண்டிய அனைத்தும். கடினமான வார்த்தைகள் இல்லாமல், தெளிவாக.">
+          Everything you need to understand before your first trade. What is a share? Why do prices move? Who controls the market? No jargon, just clarity.
+        </p>
+
+        <div class="module-meta">
+          <span data-en="4 lessons" data-ta="4 பாடங்கள்">4 lessons</span>
+          <span data-en="~25 min" data-ta="~25 நிமிடம்">~25 min</span>
+          <span data-en="100 XP total" data-ta="மொத்தம் 100 XP">100 XP total</span>
+        </div>
+
+        <div class="prog-row">
+          <div class="prog-nums">
+            <span id="m1ProgLabel" data-en="0 of 4 lessons complete" data-ta="4 இல் 0 பாடங்கள் முடிந்தன">0 of 4 lessons complete</span>
+            <span id="m1ProgPct">0%</span>
+          </div>
+          <div class="prog-track"><div class="prog-fill" id="m1ProgFill" style="width:0"></div></div>
+        </div>
+
+        <ul class="lesson-list">
+          <li>
+            <a class="lesson-item is-available" href="/training/learn_m1_l1.html">
+              <span class="lesson-dot">1</span>
+              <span class="lesson-label" data-en="What is the Stock Market?" data-ta="பங்கு சந்தை என்றால் என்ன?">What is the Stock Market?</span>
+              <span class="lesson-xp">+25 XP</span>
+            </a>
+          </li>
+          <li>
+            <span class="lesson-item is-locked">
+              <span class="lesson-dot">2</span>
+              <span class="lesson-label" data-en="Why Do Prices Move?" data-ta="விலைகள் ஏன் மாறுகின்றன?">Why Do Prices Move?</span>
+              <span class="lesson-xp">+25 XP</span>
+            </span>
+          </li>
+          <li>
+            <span class="lesson-item is-locked">
+              <span class="lesson-dot">3</span>
+              <span class="lesson-label" data-en="Who Are the Players?" data-ta="சந்தையில் யார் யார்?">Who Are the Players?</span>
+              <span class="lesson-xp">+25 XP</span>
+            </span>
+          </li>
+          <li>
+            <span class="lesson-item is-locked">
+              <span class="lesson-dot">4</span>
+              <span class="lesson-label" data-en="How to Buy Your First Share" data-ta="முதல் பங்கை எப்படி வாங்குவது?">How to Buy Your First Share</span>
+              <span class="lesson-xp">+25 XP</span>
+            </span>
+          </li>
+        </ul>
+
+        <a href="/training/learn_m1_l1.html" class="btn btn-aurora btn-sm w-100 justify-content-center"
+           data-en="Start Lesson 1.1 →" data-ta="பாடம் 1.1 தொடங்கு →">
+          Start Lesson 1.1 →
+        </a>
+      </div>
+    </div>
+
+    <!-- Module 2 coming soon -->
+    <div class="col-lg-6">
+      <div class="module-card is-locked">
+        <div class="module-head">
+          <div class="d-flex align-items-start gap-3">
+            <div class="module-icon">📈</div>
+            <div>
+              <div class="module-num" data-en="MODULE 02" data-ta="தொகுதி 02">MODULE 02</div>
+              <div class="module-title" data-en="Reading Price Charts" data-ta="விலை வரைபடங்களை படிக்கும் முறை">Reading Price Charts</div>
+            </div>
+          </div>
+          <span class="badge-soon" data-en="COMING SOON" data-ta="விரைவில்">COMING SOON</span>
+        </div>
+        <p class="module-desc" data-en="Candlesticks, support, resistance, trends — how to read what the market is telling you from a simple chart." data-ta="மெழுகுவர்த்தி, ஆதரவு, தடை, போக்கு — சந்தை என்ன சொல்கிறது என்பதை வரைபடத்திலிருந்து எவ்வாறு படிக்கலாம்.">
+          Candlesticks, support, resistance, trends — how to read what the market is telling you from a simple chart.
+        </p>
+        <div class="module-meta">
+          <span data-en="5 lessons" data-ta="5 பாடங்கள்">5 lessons</span>
+          <span data-en="~30 min" data-ta="~30 நிமிடம்">~30 min</span>
+          <span data-en="125 XP total" data-ta="மொத்தம் 125 XP">125 XP total</span>
+        </div>
+        <button class="btn btn-ghost btn-sm w-100 justify-content-center" disabled
+                data-en="Unlocking soon" data-ta="விரைவில் திறக்கப்படும்">Unlocking soon</button>
+      </div>
+    </div>
+
+    <!-- Module 3 coming soon -->
+    <div class="col-lg-6">
+      <div class="module-card is-locked">
+        <div class="module-head">
+          <div class="d-flex align-items-start gap-3">
+            <div class="module-icon">🧭</div>
+            <div>
+              <div class="module-num" data-en="MODULE 03" data-ta="தொகுதி 03">MODULE 03</div>
+              <div class="module-title" data-en="Options Made Simple" data-ta="ஆப்ஷன்ஸ் எளிமையாக">Options Made Simple</div>
+            </div>
+          </div>
+          <span class="badge-soon" data-en="COMING SOON" data-ta="விரைவில்">COMING SOON</span>
+        </div>
+        <p class="module-desc" data-en="What is an option? Calls, puts, strike price, expiry — the basics before you touch the options chain." data-ta="ஆப்ஷன் என்றால் என்ன? கால், புட், ஸ்ட்ரைக் விலை, எக்ஸ்பைரி — ஆப்ஷன்ஸ் சங்கிலியைத் தொடுவதற்கு முன் அடிப்படைகள்.">
+          What is an option? Calls, puts, strike price, expiry — the basics before you touch the options chain.
+        </p>
+        <div class="module-meta">
+          <span data-en="5 lessons" data-ta="5 பாடங்கள்">5 lessons</span>
+          <span data-en="~35 min" data-ta="~35 நிமிடம்">~35 min</span>
+          <span data-en="125 XP total" data-ta="மொத்தம் 125 XP">125 XP total</span>
+        </div>
+        <button class="btn btn-ghost btn-sm w-100 justify-content-center" disabled
+                data-en="Unlocking soon" data-ta="விரைவில் திறக்கப்படும்">Unlocking soon</button>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer class="page-footer">
+  TradeZen &nbsp;·&nbsp; <span data-en="Learning Centre" data-ta="கற்றல் மையம்">Learning Centre</span> &nbsp;·&nbsp; NSE · IST
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/halo-aurora/js/halo-aurora.js"></script>
+
+<script>
+/* ── XP / level display ──────────────────────────────────── */
+(function () {
+  const LEVELS = [
+    { min: 0,    max: 199,  name: 'LEVEL 1 — BEGINNER',   nameTA: 'நிலை 1 — புதியவர்' },
+    { min: 200,  max: 499,  name: 'LEVEL 2 — LEARNER',    nameTA: 'நிலை 2 — கற்பவர்' },
+    { min: 500,  max: 899,  name: 'LEVEL 3 — STUDENT',    nameTA: 'நிலை 3 — மாணவர்' },
+    { min: 900,  max: 1399, name: 'LEVEL 4 — ANALYST',    nameTA: 'நிலை 4 — பகுப்பாய்வாளர்' },
+    { min: 1400, max: 1999, name: 'LEVEL 5 — TRADER',     nameTA: 'நிலை 5 — வர்த்தகர்' },
+    { min: 2000, max: 99999,name: 'LEVEL 6 — EXPERT',     nameTA: 'நிலை 6 — நிபுணர்' },
+  ];
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem('tz_learn') || '{}'); } catch { return {}; }
+  }
+
+  function render() {
+    const d = load();
+    const xp = d.xp || 0;
+    const lessonsArr = d.lessons_done || [];
+    const streak = d.streak || 0;
+    const lang = document.documentElement.getAttribute('lang') || 'en';
+
+    document.getElementById('statXp').textContent = xp.toLocaleString('en-IN');
+    document.getElementById('statLessons').textContent = lessonsArr.length;
+    document.getElementById('statStreak').textContent = streak;
+
+    const lvl = LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0];
+    const lvlIdx = LEVELS.indexOf(lvl);
+    const nextLvl = LEVELS[lvlIdx + 1];
+    document.getElementById('levelName').textContent = lang === 'ta' ? lvl.nameTA : lvl.name;
+
+    if (nextLvl) {
+      const progress = xp - lvl.min;
+      const range = nextLvl.min - lvl.min;
+      const pct = Math.min(100, Math.round((progress / range) * 100));
+      document.getElementById('xpFill').style.width = pct + '%';
+      document.getElementById('xpBarPct').textContent = pct + '%';
+      document.getElementById('xpBarLabel').textContent =
+        xp + ' / ' + nextLvl.min + ' XP ' + (lang === 'ta' ? 'அடுத்த நிலைக்கு' : 'to next level');
+    } else {
+      document.getElementById('xpFill').style.width = '100%';
+      document.getElementById('xpBarLabel').textContent = lang === 'ta' ? 'உச்ச நிலை!' : 'Max level!';
+    }
+
+    // Module 1 progress (lesson 1 done if it's in lessons_done array)
+    const m1Done = lessonsArr.filter(l => l.startsWith('m1')).length;
+    const m1Total = 4;
+    const m1Pct = Math.round((m1Done / m1Total) * 100);
+    document.getElementById('m1ProgFill').style.width = m1Pct + '%';
+    document.getElementById('m1ProgPct').textContent = m1Pct + '%';
+    document.getElementById('m1ProgLabel').textContent =
+      lang === 'ta'
+        ? m1Total + ' இல் ' + m1Done + ' பாடங்கள் முடிந்தன'
+        : m1Done + ' of ' + m1Total + ' lessons complete';
+
+    // Mark lesson 1 done if completed
+    if (lessonsArr.includes('m1l1')) {
+      const firstLesson = document.querySelector('.lesson-item[href="/training/learn_m1_l1.html"]');
+      if (firstLesson) {
+        firstLesson.classList.remove('is-available');
+        firstLesson.classList.add('is-done');
+        firstLesson.querySelector('.lesson-dot').textContent = '✓';
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', render);
+  // Re-render when language changes
+  document.addEventListener('click', () => setTimeout(render, 50));
+})();
+</script>
+
+</body>
+</html>
