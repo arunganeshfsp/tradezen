@@ -3264,6 +3264,43 @@ def swing_prices(symbols: str):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Cup & Handle Pattern Detection endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.get("/patterns/cup-handle/analyse")
+async def ch_analyse(symbol: str):
+    """Analyse a single NSE stock for Cup & Handle pattern (3-stage detection)."""
+    from core.patterns.cup_handle import analyse as _ch_analyse
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _ch_analyse, symbol.upper().strip())
+        return result
+    except Exception as e:
+        log.error(f"patterns/cup-handle/analyse error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/patterns/cup-handle/scan")
+async def ch_scan(universe: str = "nifty100"):
+    """Scan Nifty50 or Nifty100 for Cup & Handle patterns. Sorted by stage then score."""
+    from core.patterns.cup_handle import scan as _ch_scan
+    from core.swing_analyzer import NIFTY50, NIFTY_NEXT50
+    loop = asyncio.get_event_loop()
+    symbols = NIFTY50 + NIFTY_NEXT50 if universe == "nifty100" else NIFTY50
+    try:
+        results = await loop.run_in_executor(None, _ch_scan, symbols)
+        return {
+            "count":    len(results),
+            "scanned":  len(symbols),
+            "universe": universe,
+            "results":  results,
+        }
+    except Exception as e:
+        log.error(f"patterns/cup-handle/scan error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/options/past-expiries")
 def options_past_expiries(symbol: str = "NIFTY"):
     """

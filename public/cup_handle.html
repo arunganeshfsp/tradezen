@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cup &amp; Handle Scanner — TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="tutorial-halo.css">
+<script src="theme.js"></script>
+
+<style>
+:root{
+  --bg:#06070f;--bg2:#0e1124;--bg3:#161a32;--bg4:#1c2040;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.15);
+  --text:#f0f1f8;--dim:#9ea3c0;--muted:#585d7e;--faint:#3a3d5a;
+  --accent:#7c6af7;--accent2:#5b8af5;--accent-bg:rgba(124,106,247,0.08);
+  --green:#34d399;--green-bg:rgba(52,211,153,0.08);
+  --amber:#f5a524;--amber-bg:rgba(245,165,36,0.08);
+  --red:#f87171;--red-bg:rgba(248,113,113,0.08);
+  --r:10px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-serif;font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* ── layout ── */
+.page{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+
+/* ── page header ── */
+.ph{margin-bottom:2rem;}
+.ph-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);border:1px solid rgba(124,106,247,0.25);border-radius:20px;padding:4px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:1.2px;margin-bottom:1rem;}
+.ph-title{font-size:1.8rem;font-weight:700;color:#fff;line-height:1.25;margin-bottom:0.5rem;}
+.ph-sub{font-size:13px;color:var(--muted);max-width:680px;}
+
+/* ── controls ── */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:1.75rem;}
+.inp{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:9px 14px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .15s;}
+.inp:focus{border-color:var(--accent);}
+.inp-sym{width:160px;text-transform:uppercase;}
+.inp-sym::placeholder{text-transform:none;}
+select.inp{cursor:pointer;}
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:var(--r);padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Noto Sans Tamil',sans-serif;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px);}
+.btn-secondary{background:var(--bg3);border:1px solid var(--border2);color:var(--dim);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--text);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none !important;}
+.sep{width:1px;height:28px;background:var(--border2);}
+
+/* ── status bar ── */
+.status-bar{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.status-dot.scanning{background:var(--amber);animation:pulse 1s infinite;}
+.status-dot.done{background:var(--green);}
+.status-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+
+/* ── single result (analyse) ── */
+.single-result{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:1.5rem;margin-bottom:2rem;display:none;}
+.single-result.visible{display:block;}
+
+/* ── scan results grid ── */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.results-header h2{font-size:15px;font-weight:600;color:#fff;}
+.results-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 10px;}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;}
+
+/* ── pattern card ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:border-color .2s,transform .2s;}
+.card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.card.stage-complete{border-left:3px solid var(--green);}
+.card.stage-handle_forming{border-left:3px solid var(--amber);}
+.card.stage-cup_complete{border-left:3px solid var(--accent);}
+.card.stage-early_cup{border-left:3px solid var(--dim);}
+
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.9rem;gap:8px;}
+.card-sym{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:#fff;}
+.card-name{font-size:11px;color:var(--muted);margin-top:2px;}
+.score-circle{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;flex-shrink:0;border:2px solid;}
+
+.stage-badge{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;margin-bottom:0.85rem;}
+.stage-badge.complete{background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,0.25);}
+.stage-badge.handle_forming{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,165,36,0.25);}
+.stage-badge.cup_complete{background:var(--accent-bg);color:var(--accent);border:1px solid rgba(124,106,247,0.25);}
+.stage-badge.early_cup{background:rgba(158,163,192,0.08);color:var(--dim);border:1px solid rgba(158,163,192,0.2);}
+
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:0.85rem;}
+.met{background:var(--bg3);border-radius:7px;padding:7px 10px;text-align:center;}
+.met-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text);}
+.met-lbl{font-size:10px;color:var(--muted);margin-top:1px;}
+
+.targets{background:var(--bg4);border-radius:8px;padding:10px 12px;font-size:12px;}
+.targets-row{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:3px;}
+.targets-row:last-child{margin-bottom:0;}
+.targets-row span:last-child{font-family:'JetBrains Mono',monospace;color:var(--text);}
+.t-entry{color:var(--accent) !important;}
+.t-sl{color:var(--red) !important;}
+.t-t1{color:var(--green) !important;}
+
+.vol-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'JetBrains Mono',monospace;border-radius:4px;padding:2px 7px;margin-top:8px;}
+.vol-pill.dry{background:var(--green-bg);color:var(--green);}
+.vol-pill.wet{background:var(--red-bg);color:var(--red);}
+
+.score-bar{height:3px;border-radius:2px;background:var(--bg4);margin-top:8px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease;}
+
+/* ── single-stock detail ── */
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:1.25rem;}
+.detail-card{background:var(--bg3);border-radius:var(--r);padding:12px 14px;}
+.detail-label{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:4px;letter-spacing:.5px;}
+.detail-val{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff;}
+.detail-sub{font-size:11px;color:var(--dim);margin-top:2px;}
+
+.score-breakdown{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.sb-item{background:var(--bg3);border-radius:7px;padding:8px 12px;text-align:center;flex:1;min-width:70px;}
+.sb-val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+.sb-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ── empty / loading states ── */
+.empty{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.5;}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── filter tabs ── */
+.tabs{display:flex;gap:4px;margin-bottom:1.25rem;flex-wrap:wrap;}
+.tab{border:1px solid var(--border);border-radius:7px;padding:5px 14px;font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;background:transparent;color:var(--muted);transition:all .15s;}
+.tab:hover{border-color:var(--accent);color:var(--text);}
+.tab.active{background:var(--accent-bg);border-color:rgba(124,106,247,0.3);color:var(--accent);}
+
+/* ── cup shape mini-chart ── */
+.cup-canvas-wrap{margin-bottom:0.85rem;}
+canvas.cup-mini{width:100%;height:60px;border-radius:7px;background:var(--bg4);}
+
+@media(max-width:640px){
+  .controls{flex-direction:column;align-items:stretch;}
+  .inp-sym,.btn,.inp{width:100%;}
+  .sep{display:none;}
+  .cards{grid-template-columns:1fr;}
+  .metrics{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<div class="tz-bg-orb tz-orb1"></div>
+<div class="tz-bg-orb tz-orb2"></div>
+<div class="tz-grid"></div>
+
+<nav class="tz-nav">
+  <div class="tz-nav-inner">
+    <a href="index.html" class="tz-logo">
+      <div class="tz-logo-mark">TZ</div>
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+    </a>
+    <div class="tz-nav-links">
+      <a href="butterfly_straddle_tamil.html">🦋 Butterfly</a>
+      <a href="options_entry_tool_tamil.html">🎯 Buying</a>
+      <a href="options_selling_tool_tamil.html">💰 Selling</a>
+      <a href="swing_trading_tool_tamil.html">📈 Swing</a>
+      <a href="theta_decay_tamil.html">⏳ Theta</a>
+      <a href="fno_signal.html">🤖 F&amp;O</a>
+      <a href="cup_handle.html" class="tz-active">☕ Cup &amp; Handle</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme"
+      style="background:none;border:1px solid var(--border,#333);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim,#9ba3bf);transition:border-color .15s;padding:0;flex-shrink:0;margin-left:auto"></button>
+  </div>
+</nav>
+
+<div class="page" style="position:relative;z-index:1;">
+
+  <!-- ── Page Header ── -->
+  <div class="ph">
+    <div class="ph-badge">☕ CUP &amp; HANDLE DETECTOR</div>
+    <h1 class="ph-title">Cup &amp; Handle Pattern Scanner</h1>
+    <p class="ph-sub">
+      Multi-week / multi-month pattern detection across Nifty 50 &amp; Next 50.
+      Deterministic geometric engine — no ML, no guessing.
+      3 detection stages: complete breakout setup, handle forming, early cup.
+    </p>
+  </div>
+
+  <!-- ── Controls ── -->
+  <div class="controls">
+    <input id="symInput" class="inp inp-sym" placeholder="Symbol (e.g. INFY)" maxlength="20">
+    <button class="btn btn-primary" onclick="analyseOne()">
+      <span>🔍</span> Analyse
+    </button>
+    <div class="sep"></div>
+    <select id="universeSelect" class="inp">
+      <option value="nifty50">Nifty 50</option>
+      <option value="nifty100" selected>Nifty 50 + Next 50</option>
+    </select>
+    <button id="scanBtn" class="btn btn-primary" onclick="startScan()">
+      <span>⚡</span> Scan Universe
+    </button>
+    <button class="btn btn-secondary" onclick="clearAll()">✕ Clear</button>
+  </div>
+
+  <!-- ── Status Bar ── -->
+  <div class="status-bar" id="statusBar" style="display:none;">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText"></span>
+  </div>
+
+  <!-- ── Single Stock Result ── -->
+  <div class="single-result" id="singleResult"></div>
+
+  <!-- ── Stage Filter Tabs ── -->
+  <div class="tabs" id="filterTabs" style="display:none;">
+    <button class="tab active" onclick="filterStage('all')" data-stage="all">All</button>
+    <button class="tab" onclick="filterStage('complete')" data-stage="complete">Complete ✅</button>
+    <button class="tab" onclick="filterStage('handle_forming')" data-stage="handle_forming">Handle Forming</button>
+    <button class="tab" onclick="filterStage('cup_complete')" data-stage="cup_complete">Cup Complete</button>
+    <button class="tab" onclick="filterStage('early_cup')" data-stage="early_cup">Early Cup</button>
+  </div>
+
+  <!-- ── Scan Results ── -->
+  <div id="scanSection" style="display:none;">
+    <div class="results-header">
+      <h2>Detected Patterns</h2>
+      <span class="results-count" id="resultsCount">0 found</span>
+    </div>
+    <div class="cards" id="cardsGrid"></div>
+  </div>
+
+  <!-- ── Empty placeholder ── -->
+  <div class="empty" id="emptyState">
+    <div class="empty-icon">☕</div>
+    <p style="color:var(--dim);font-size:14px;">Enter a stock symbol and click Analyse,<br>or scan the full universe to find Cup &amp; Handle setups.</p>
+  </div>
+
+</div><!-- .page -->
+
+<footer class="tz-footer">
+  <div class="tz-footer-inner">
+    <div class="tz-footer-brand">
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+      <p class="tz-footer-desc">Pattern detection is educational only. Not SEBI registered. Not investment advice.</p>
+      <p class="tz-footer-copy">© 2026 TradeZen · Educational Purpose Only</p>
+    </div>
+    <div class="tz-footer-links">
+      <a href="swing_trading_tool_tamil.html">📈 Swing Trading</a>
+      <a href="cup_handle.html">☕ Cup &amp; Handle</a>
+      <a href="fno_signal.html">🤖 F&amp;O AI</a>
+      <a href="contact.html">✉ Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Helpers                                                                     */
+/* ─────────────────────────────────────────────────────────────────────────── */
+const API = "/api";
+
+let _allResults = [];
+let _activeStage = "all";
+
+function setStatus(state, text) {
+  const bar = document.getElementById("statusBar");
+  const dot = document.getElementById("statusDot");
+  const txt = document.getElementById("statusText");
+  bar.style.display = "flex";
+  dot.className = "status-dot " + (state || "");
+  txt.textContent = text;
+}
+
+function clearAll() {
+  document.getElementById("singleResult").className = "single-result";
+  document.getElementById("singleResult").innerHTML = "";
+  document.getElementById("scanSection").style.display = "none";
+  document.getElementById("filterTabs").style.display = "none";
+  document.getElementById("emptyState").style.display = "block";
+  document.getElementById("statusBar").style.display = "none";
+  document.getElementById("cardsGrid").innerHTML = "";
+  _allResults = [];
+}
+
+function fmt(v, dec = 2) {
+  if (v == null) return "—";
+  return Number(v).toFixed(dec);
+}
+
+function stageLabel(stage) {
+  return {
+    complete: "Complete ✅",
+    handle_forming: "Handle Forming",
+    cup_complete: "Cup Complete",
+    early_cup: "Early Cup",
+  }[stage] || stage;
+}
+
+function stageBgColor(stage) {
+  return {
+    complete: "#34d399",
+    handle_forming: "#f5a524",
+    cup_complete: "#7c6af7",
+    early_cup: "#9ea3c0",
+  }[stage] || "#9ea3c0";
+}
+
+function scoreColor(s) {
+  if (s >= 70) return "#34d399";
+  if (s >= 50) return "#f5a524";
+  return "#9ea3c0";
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Single analyse                                                              */
+/* ─────────────────────────────────────────────────────────────────────────── */
+async function analyseOne() {
+  const sym = document.getElementById("symInput").value.trim().toUpperCase();
+  if (!sym) return;
+
+  clearAll();
+  setStatus("scanning", `Analysing ${sym}…`);
+  document.getElementById("emptyState").style.display = "none";
+
+  try {
+    const resp = await fetch(`${API}/patterns/cup-handle/analyse?symbol=${sym}`);
+    const data = await resp.json();
+
+    if (data.error) throw new Error(data.error);
+
+    if (!data.stage) {
+      setStatus("error", `No pattern: ${data.reason || "not detected"}`);
+      document.getElementById("emptyState").style.display = "block";
+      return;
+    }
+
+    setStatus("done", `${sym} — ${stageLabel(data.stage)}`);
+    renderSingle(data);
+  } catch (e) {
+    setStatus("error", e.message);
+  }
+}
+
+function renderSingle(d) {
+  const el = document.getElementById("singleResult");
+  const score = (d.score || {}).total || 0;
+  const cup = d.cup || {};
+  const handle = d.handle || {};
+  const targets = d.targets;
+  const vol = d.volume || {};
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:22px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;">${d.symbol}</div>
+        <span class="stage-badge ${d.stage}">${stageLabel(d.stage)}</span>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">${d.stage_desc || ""}</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${scoreColor(score)};">${fmt(score, 1)}</div>
+        <div style="font-size:10px;color:var(--muted);">CONFIDENCE</div>
+        <div class="score-bar" style="width:80px;margin:6px auto 0;"><div class="score-bar-fill" style="width:${score}%;background:${scoreColor(score)};"></div></div>
+      </div>
+    </div>
+
+    <div class="score-breakdown">
+      ${scoreBreakdownHtml(d.score)}
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-card">
+        <div class="detail-label">CURRENT PRICE</div>
+        <div class="detail-val">₹${fmt(d.current_price)}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">CUP DEPTH</div>
+        <div class="detail-val">${fmt(cup.depth_pct)}%</div>
+        <div class="detail-sub">10–40% is valid range</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">RECOVERY</div>
+        <div class="detail-val">${fmt(cup.recovery_pct)}%</div>
+        <div class="detail-sub">of left rim (≥80% needed)</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">CUP DURATION</div>
+        <div class="detail-val">${cup.len_days || "—"}d</div>
+        <div class="detail-sub">trading days</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">LEFT RIM</div>
+        <div class="detail-val">₹${fmt(cup.left_rim)}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">CUP BOTTOM</div>
+        <div class="detail-val">₹${fmt(cup.bottom)}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">RIGHT RIM</div>
+        <div class="detail-val">₹${cup.right_rim != null ? "₹"+fmt(cup.right_rim) : "—"}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">ROUNDNESS</div>
+        <div class="detail-val">${fmt(cup.roundness * 100, 0)}%</div>
+        <div class="detail-sub">quadratic fit quality</div>
+      </div>
+      ${handle && handle.high ? `
+      <div class="detail-card">
+        <div class="detail-label">HANDLE PULLBACK</div>
+        <div class="detail-val">${fmt(handle.pullback_pct)}%</div>
+        <div class="detail-sub">${handle.len_days}d handle (3–15% ok)</div>
+      </div>` : ""}
+    </div>
+
+    ${targets ? `
+    <div class="targets" style="margin-bottom:1rem;">
+      <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:8px;letter-spacing:.5px;">TRADE PLAN</div>
+      <div class="targets-row"><span>Entry (breakout)</span><span class="t-entry">₹${fmt(targets.entry)}</span></div>
+      <div class="targets-row"><span>Stop-loss</span><span class="t-sl">₹${fmt(targets.stop_loss)}</span></div>
+      <div class="targets-row"><span>Target 1 (1× depth)</span><span class="t-t1">₹${fmt(targets.target1)}</span></div>
+      <div class="targets-row"><span>Target 2 (2× depth)</span><span class="t-t1">₹${fmt(targets.target2)}</span></div>
+      <div class="targets-row"><span>R:R ratio</span><span>${fmt(targets.rr_ratio, 1)}×</span></div>
+      <div class="targets-row"><span>% to entry</span><span>${fmt(targets.pct_to_entry)}%</span></div>
+    </div>` : ""}
+
+    ${vol ? `<span class="vol-pill ${vol.is_dry ? "dry" : "wet"}">
+      ${vol.is_dry ? "▼ Volume dry-up in handle" : "▲ Volume not dry (ratio " + fmt(vol.dry_ratio) + ")"}
+    </span>` : ""}
+  `;
+  el.className = "single-result visible";
+}
+
+function scoreBreakdownHtml(sc) {
+  if (!sc) return "";
+  const items = [
+    { lbl: "Shape", val: sc.shape },
+    { lbl: "Handle", val: sc.handle },
+    { lbl: "Volume", val: sc.volume },
+    { lbl: "Trend", val: sc.trend },
+    { lbl: "Recovery", val: sc.recovery },
+  ];
+  return items.map(i => `
+    <div class="sb-item">
+      <div class="sb-val">${fmt(i.val, 1)}</div>
+      <div class="sb-lbl">${i.lbl}</div>
+    </div>
+  `).join("");
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Universe scan                                                               */
+/* ─────────────────────────────────────────────────────────────────────────── */
+async function startScan() {
+  clearAll();
+  const universe = document.getElementById("universeSelect").value;
+  const scanBtn = document.getElementById("scanBtn");
+  scanBtn.disabled = true;
+  document.getElementById("emptyState").style.display = "none";
+
+  const label = universe === "nifty100" ? "Nifty 100" : "Nifty 50";
+  setStatus("scanning", `Scanning ${label}… this may take 2–3 minutes`);
+
+  // Show loading card
+  document.getElementById("scanSection").style.display = "block";
+  document.getElementById("cardsGrid").innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:3rem;">
+      <div class="spinner"></div>
+      <p style="color:var(--muted);font-size:13px;">Fetching 1-year daily data for each stock…</p>
+    </div>`;
+
+  try {
+    const resp = await fetch(`${API}/patterns/cup-handle/scan?universe=${universe}`, {
+      signal: AbortSignal.timeout(200000),
+    });
+    const data = await resp.json();
+
+    if (data.error) throw new Error(data.error);
+
+    _allResults = data.results || [];
+    setStatus("done", `Scanned ${data.scanned} stocks — ${data.count} pattern(s) found`);
+    document.getElementById("filterTabs").style.display = "flex";
+    renderCards(_allResults);
+  } catch (e) {
+    setStatus("error", e.message);
+    document.getElementById("cardsGrid").innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--red);">${e.message}</div>`;
+  } finally {
+    scanBtn.disabled = false;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Filter & render cards                                                       */
+/* ─────────────────────────────────────────────────────────────────────────── */
+function filterStage(stage) {
+  _activeStage = stage;
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.stage === stage));
+  const filtered = stage === "all" ? _allResults : _allResults.filter(r => r.stage === stage);
+  renderCards(filtered);
+}
+
+function renderCards(results) {
+  const grid = document.getElementById("cardsGrid");
+  document.getElementById("resultsCount").textContent = `${results.length} found`;
+
+  if (results.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);">No patterns in this category.</div>`;
+    return;
+  }
+
+  grid.innerHTML = results.map(d => cardHtml(d)).join("");
+}
+
+function cardHtml(d) {
+  const score = (d.score || {}).total || 0;
+  const cup = d.cup || {};
+  const handle = d.handle || {};
+  const targets = d.targets;
+  const vol = d.volume || {};
+  const col = scoreColor(score);
+
+  return `
+  <div class="card stage-${d.stage}" onclick="showCard('${d.symbol}')">
+    <div class="card-top">
+      <div>
+        <div class="card-sym">${d.symbol}</div>
+        <span class="stage-badge ${d.stage}">${stageLabel(d.stage)}</span>
+      </div>
+      <div class="score-circle" style="border-color:${col};color:${col};">${fmt(score, 0)}</div>
+    </div>
+
+    <div class="metrics">
+      <div class="met">
+        <div class="met-val">${fmt(cup.depth_pct)}%</div>
+        <div class="met-lbl">Cup Depth</div>
+      </div>
+      <div class="met">
+        <div class="met-val">${fmt(cup.recovery_pct)}%</div>
+        <div class="met-lbl">Recovery</div>
+      </div>
+      <div class="met">
+        <div class="met-val">${cup.len_days || "—"}d</div>
+        <div class="met-lbl">Duration</div>
+      </div>
+    </div>
+
+    ${targets ? `
+    <div class="targets">
+      <div class="targets-row"><span>Entry</span><span class="t-entry">₹${fmt(targets.entry)}</span></div>
+      <div class="targets-row"><span>Stop</span><span class="t-sl">₹${fmt(targets.stop_loss)}</span></div>
+      <div class="targets-row"><span>T1 target</span><span class="t-t1">₹${fmt(targets.target1)}</span></div>
+      <div class="targets-row"><span>R:R</span><span>${fmt(targets.rr_ratio, 1)}×</span></div>
+    </div>` : `
+    <div class="targets" style="color:var(--muted);font-size:12px;">
+      ₹${fmt(cup.bottom)} → ₹${cup.right_rim != null ? fmt(cup.right_rim) : "forming"}
+      &nbsp;·&nbsp; ${cup.depth_pct}% depth
+    </div>`}
+
+    ${vol.is_dry ? `<span class="vol-pill dry">▼ Volume dry-up</span>` :
+      (handle.len_days >= 3 ? `<span class="vol-pill wet">▲ Volume expanding</span>` : "")}
+
+    <div class="score-bar" style="margin-top:10px;">
+      <div class="score-bar-fill" style="width:${score}%;background:${col};"></div>
+    </div>
+    <div style="font-size:10px;color:var(--faint);font-family:'JetBrains Mono',monospace;margin-top:4px;text-align:right;">Current ₹${fmt(d.current_price)}</div>
+  </div>`;
+}
+
+function showCard(symbol) {
+  document.getElementById("symInput").value = symbol;
+  analyseOne();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Keyboard shortcut                                                           */
+/* ─────────────────────────────────────────────────────────────────────────── */
+document.getElementById("symInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") analyseOne();
+});
+</script>
+</body>
+</html>

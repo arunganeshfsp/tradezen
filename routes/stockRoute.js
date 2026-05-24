@@ -711,4 +711,22 @@ router.get("/debug/cache", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/patterns/cup-handle/analyse?symbol=INFY ────────────────────────
+router.get("/patterns/cup-handle/analyse", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/patterns/cup-handle/analyse?${params}`, 30000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── GET /api/patterns/cup-handle/scan?universe=nifty100 ─────────────────────
+router.get("/patterns/cup-handle/scan", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/patterns/cup-handle/scan?${params}`, 180000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
