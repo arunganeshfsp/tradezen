@@ -318,6 +318,16 @@ def analyse(symbol: str, period: str = "1y") -> dict:
         result = _detect(df, period)
         result["symbol"] = symbol.upper()
         result["period"] = period
+        # Attach price series for chart rendering (dates + closes only, not full OHLCV)
+        closes = df["Close"].reset_index(drop=True)
+        try:
+            dates = [str(d.date()) for d in df.index]
+        except Exception:
+            dates = [str(i) for i in range(len(closes))]
+        result["chart"] = {
+            "dates":  dates,
+            "closes": [round(float(v), 2) for v in closes],
+        }
         return result
     except Exception as exc:
         log.warning("[CupHandle] %s: %s", symbol, exc)

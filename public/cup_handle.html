@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="tutorial-halo.css">
 <script src="theme.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <style>
 :root{
@@ -137,9 +138,13 @@ select.inp{cursor:pointer;}
 .tab:hover{border-color:var(--accent);color:var(--text);}
 .tab.active{background:var(--accent-bg);border-color:rgba(124,106,247,0.3);color:var(--accent);}
 
-/* ── cup shape mini-chart ── */
-.cup-canvas-wrap{margin-bottom:0.85rem;}
-canvas.cup-mini{width:100%;height:60px;border-radius:7px;background:var(--bg4);}
+/* ── price chart ── */
+.chart-wrap{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 12px 8px;margin-bottom:1.25rem;}
+.chart-wrap canvas{display:block;width:100% !important;height:280px !important;}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.chart-legend span{display:flex;align-items:center;gap:5px;}
+.chart-legend .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.chart-legend .line{width:16px;height:2px;flex-shrink:0;}
 
 @media(max-width:640px){
   .controls{flex-direction:column;align-items:stretch;}
@@ -275,6 +280,7 @@ const API = "/api";
 let _allResults = [];
 let _activeStage = "all";
 let _activeReason = null;   // which pillar reason is expanded
+let _cupChartInstance = null;
 
 function getPeriod() {
   return document.getElementById("periodSelect").value;
@@ -412,6 +418,17 @@ function renderSingle(d) {
       <div class="sr-body" id="srBody"></div>
     </div>
 
+    <div class="chart-wrap">
+      <canvas id="cupChart"></canvas>
+      <div class="chart-legend">
+        <span><span class="line" style="background:#7c6af7;"></span>Close Price</span>
+        <span><span class="dot" style="background:#f5a524;"></span>Left Rim</span>
+        <span><span class="dot" style="background:#34d399;"></span>Cup Bottom</span>
+        <span><span class="dot" style="background:#5b8af5;"></span>Right Rim</span>
+        ${(targets ? `<span><span class="line" style="background:#34d399;border-top:2px dashed #34d399;height:0;"></span>Breakout Level</span>` : "")}
+      </div>
+    </div>
+
     <div class="detail-grid">
       <div class="detail-card">
         <div class="detail-label">CURRENT PRICE</div>
@@ -442,7 +459,7 @@ function renderSingle(d) {
       </div>
       <div class="detail-card">
         <div class="detail-label">RIGHT RIM</div>
-        <div class="detail-val">₹${cup.right_rim != null ? "₹"+fmt(cup.right_rim) : "—"}</div>
+        <div class="detail-val">${cup.right_rim != null ? "₹"+fmt(cup.right_rim) : "—"}</div>
       </div>
       <div class="detail-card">
         <div class="detail-label">ROUNDNESS</div>
@@ -476,6 +493,147 @@ function renderSingle(d) {
   // Auto-expand the shape explanation so the user sees it immediately
   _activeReason = null;
   showReason("shape");
+  // Draw chart after DOM renders the canvas
+  setTimeout(() => drawCupChart(d), 30);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Price chart with Cup & Handle overlay                                        */
+/* ─────────────────────────────────────────────────────────────────────────── */
+function drawCupChart(d) {
+  const canvas = document.getElementById("cupChart");
+  if (!canvas) return;
+
+  if (_cupChartInstance) { _cupChartInstance.destroy(); _cupChartInstance = null; }
+
+  const chart = d.chart;
+  if (!chart || !chart.dates || !chart.closes) return;
+
+  const dates  = chart.dates;
+  const closes = chart.closes;
+  const n      = closes.length;
+  const cup    = d.cup  || {};
+  const targets = d.targets;
+
+  const lri  = cup.left_rim_idx;
+  const boti = cup.bottom_idx;
+  const rri  = cup.right_rim_idx;
+
+  // Sparse cup outline — null everywhere except the 3 key points so Chart.js
+  // draws only the connecting segments between them (spanGaps: false)
+  const cupLine = new Array(n).fill(null);
+  if (lri  != null && lri  < n) cupLine[lri]  = closes[lri];
+  if (boti != null && boti < n) cupLine[boti] = closes[boti];
+  if (rri  != null && rri  < n) cupLine[rri]  = closes[rri];
+
+  // Per-point dot colors for the cup outline dataset
+  const cupPtColor  = new Array(n).fill('transparent');
+  const cupPtRadius = new Array(n).fill(0);
+  if (lri  != null && lri  < n) { cupPtColor[lri]  = '#f5a524'; cupPtRadius[lri]  = 5; }
+  if (boti != null && boti < n) { cupPtColor[boti] = '#34d399'; cupPtRadius[boti] = 5; }
+  if (rri  != null && rri  < n) { cupPtColor[rri]  = '#5b8af5'; cupPtRadius[rri]  = 5; }
+
+  const datasets = [
+    // Close price line
+    {
+      label: 'Close Price',
+      data: closes,
+      borderColor: '#7c6af7',
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      pointRadius: 0,
+      tension: 0.2,
+      order: 3,
+    },
+    // Cup outline (dashed amber, connects 3 pattern points)
+    {
+      label: 'Cup Pattern',
+      data: cupLine,
+      borderColor: '#f5a524',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [6, 4],
+      pointRadius: cupPtRadius,
+      pointBackgroundColor: cupPtColor,
+      pointBorderColor: cupPtColor,
+      pointHoverRadius: 7,
+      spanGaps: false,
+      tension: 0,
+      order: 1,
+    },
+  ];
+
+  // Breakout level — horizontal dashed green line
+  const breakoutPx = targets ? targets.entry : (rri != null ? closes[rri] : null);
+  if (breakoutPx != null) {
+    datasets.push({
+      label: 'Breakout Level',
+      data: new Array(n).fill(breakoutPx),
+      borderColor: '#34d399',
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderDash: [8, 4],
+      pointRadius: 0,
+      order: 2,
+    });
+  }
+
+  const isDark = !document.documentElement.getAttribute('data-theme') ||
+                  document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.07)';
+  const tickColor = isDark ? '#585d7e' : '#94a3b8';
+
+  _cupChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: dates, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0e1124',
+          borderColor: 'rgba(124,106,247,0.3)',
+          borderWidth: 1,
+          titleColor: '#9ea3c0',
+          bodyColor: '#f0f1f8',
+          callbacks: {
+            label: ctx => {
+              if (ctx.parsed.y == null) return null;
+              return `${ctx.dataset.label}: ₹${ctx.parsed.y.toFixed(2)}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            maxTicksLimit: 7,
+            maxRotation: 0,
+            callback: (_, i) => {
+              // Show date as "MMM YY"
+              const raw = dates[i];
+              if (!raw) return '';
+              const d = new Date(raw);
+              return d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+            },
+          },
+          grid: { color: gridColor },
+        },
+        y: {
+          position: 'right',
+          ticks: {
+            color: tickColor,
+            callback: v => '₹' + Math.round(v).toLocaleString('en-IN'),
+          },
+          grid: { color: gridColor },
+        },
+      },
+    },
+  });
 }
 
 const MAX_PTS = { shape: 40, handle: 25, volume: 20, trend: 10, recovery: 5 };

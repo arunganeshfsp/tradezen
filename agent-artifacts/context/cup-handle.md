@@ -70,9 +70,21 @@ New module `ai_engine/core/patterns/` — 5-file package for deterministic Cup &
 - Cup search per right rim: 20-180 candles back in steps of 5 — O(36) iterations per right rim candidate, up to 10 candidates = ~360 combinations per stock
 - Early cup stage only fires if no scored cup was found (score < 25)
 
+## Frontend chart
+
+`cup_handle.html` now renders a Chart.js 4.4.3 price chart inside `.chart-wrap` after each `analyse()` call.
+
+- **`_cupChartInstance`** global — destroyed and recreated on each new analysis
+- **`drawCupChart(d)`** — called via `setTimeout(..., 30)` at end of `renderSingle()` to let the canvas DOM settle
+- Dataset 1: full close price line (purple, 1.5px, no dots)
+- Dataset 2: sparse cup outline — null array with values only at `left_rim_idx`, `bottom_idx`, `right_rim_idx`; draws dashed amber line connecting the 3 points; colored dots: orange (left rim), green (bottom), blue (right rim); `spanGaps: false` so only the pattern segment is connected
+- Dataset 3 (conditional): horizontal dashed green line at `targets.entry` (breakout level); fallback to `closes[rri]` if no targets
+- Y-axis on right side; X-axis shows `MMM YY` format via `toLocaleDateString`
+- Adapts to dark/light theme for grid and tick colors
+
 ## Known issues / deferred
 
-- No chart visualization in the frontend (price history chart with pattern overlay) — deferred
+- Chart only shows for `analyse()` — scan cards do not have mini-charts
 - No SQLite persistence for scan results — each scan re-fetches yfinance
 - Scan timeout: 180 seconds in Node proxy; large scans can hit it on slow connections
 - The "left rim" detection algorithm looks at max in first portion before cup bottom — can occasionally pick a sub-optimal left rim if the actual left rim is not the global max in that window
