@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cup &amp; Handle Tutorial — தமிழ் | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
+<style>
+:root {
+  --bg:#06070f; --bg1:#0e1124; --bg2:#161a32; --bg3:#1c2040; --bg4:#1c2040;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.14);
+  --accent:#7c6af7; --blue:#5b8af5;
+  --green:#2ecc71; --red:#e74c3c; --yellow:#f5a623; --orange:#f39c12;
+  --cyan:#00d4ff; --teal:#1abc9c; --purple:#a78bfa;
+  --text:#e8ecf4; --dim:#9ba3bf; --muted:#4a5070;
+  --gold:#f5a623;
+  --ink:#e8ecf4; --ink2:#9ba3bf; --ink3:#6b7496; --ink4:#4a5070;
+  --paper:#06070f; --paper2:#0e1124; --paper3:#1c2040;
+  --rule-line:rgba(255,255,255,0.07);
+  --red-l:rgba(231,76,60,.08); --green-l:rgba(46,204,113,.08);
+  --blue-l:rgba(91,138,245,.08); --gold-l:rgba(245,166,35,.08);
+  --purple-l:rgba(167,139,250,.08); --teal-l:rgba(26,188,156,.08);
+  --orange-l:rgba(243,156,18,.08);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Noto Sans Tamil',sans-serif;min-height:100vh;overflow-x:hidden}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(6,7,15,.95);backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
+.logo{width:28px;height:28px;border-radius:6px;flex-shrink:0}
+.nav-links{display:flex;gap:2px}
+.nl{padding:5px 12px;border-radius:6px;font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:#fff;background:var(--bg3)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+#themeToggle{background:none;border:1px solid var(--border);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:15px;padding:0;flex-shrink:0}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;margin-left:auto;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .hamburger{display:flex}
+  .nav-links{display:none;position:absolute;top:56px;left:0;right:0;flex-direction:column;
+             background:rgba(6,7,15,.98);border-bottom:1px solid var(--border);
+             padding:8px 12px 12px;gap:2px;z-index:199}
+  .nav-links.open{display:flex}
+  .nav-r{display:none}
+}
+
+.page{max-width:900px;margin:0 auto;padding:0 24px 80px}
+
+/* Cover */
+.cover{text-align:center;padding:52px 20px 44px;border-bottom:1px solid var(--border);
+       background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,.12) 0%,transparent 65%)}
+.cover-stamp{display:inline-block;border:1px solid rgba(124,106,247,.4);border-radius:20px;
+             padding:4px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;
+             color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.cover h1{font-family:'Syne',sans-serif;font-size:clamp(22px,4vw,36px);color:#fff;line-height:1.25;margin-bottom:10px}
+.cover h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));
+             -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cover .subtitle{font-family:'Noto Sans Tamil',sans-serif;font-size:14px;color:var(--dim);margin-bottom:24px}
+.cover-info{display:flex;justify-content:center;gap:28px;flex-wrap:wrap}
+.cover-info-item{text-align:center}
+.ci-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--cyan);display:block}
+.ci-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* Chapter */
+.chapter{padding:48px 0 0;margin-bottom:28px;animation:fadeSlide .5s ease both}
+.chapter-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+             letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;
+             display:flex;align-items:center;gap:12px}
+.chapter-num::after{content:'';flex:1;height:1px;background:var(--border)}
+.chapter h2{font-family:'Syne',sans-serif;font-size:clamp(18px,3vw,26px);color:var(--text);line-height:1.35;margin-bottom:8px}
+.chapter p{font-size:14px;color:var(--dim);line-height:1.75;font-family:'Noto Sans Tamil',sans-serif}
+
+/* Note */
+.note{font-family:'Noto Sans Tamil',sans-serif;font-size:14px;color:var(--dim);line-height:1.7;
+      padding:14px 18px;border-left:3px solid var(--yellow);
+      background:rgba(245,166,35,.06);border-radius:0 8px 8px 0;margin:16px 0}
+.note .note-label{font-size:10px;color:var(--yellow);letter-spacing:1.5px;text-transform:uppercase;
+                  margin-bottom:6px;font-family:'JetBrains Mono',monospace;font-weight:700}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin:16px 0}
+.card-red    {border-left:4px solid var(--red);    background:var(--red-l)}
+.card-green  {border-left:4px solid var(--green);  background:var(--green-l)}
+.card-blue   {border-left:4px solid var(--blue);   background:var(--blue-l)}
+.card-gold   {border-left:4px solid var(--yellow); background:var(--gold-l)}
+.card-purple {border-left:4px solid var(--purple); background:var(--purple-l)}
+.card-teal   {border-left:4px solid var(--teal);   background:var(--teal-l)}
+.card-orange {border-left:4px solid var(--orange); background:var(--orange-l)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-red .card-title    {color:var(--red)}
+.card-green .card-title  {color:var(--green)}
+.card-blue .card-title   {color:var(--blue)}
+.card-gold .card-title   {color:var(--yellow)}
+.card-purple .card-title {color:var(--purple)}
+.card-teal .card-title   {color:var(--teal)}
+.card-orange .card-title {color:var(--orange)}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:650px){.g2,.g3{grid-template-columns:1fr}}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;
+     border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tbl th{background:var(--bg3);color:var(--muted);padding:10px 14px;text-align:left;
+        font-weight:700;font-size:11px;letter-spacing:.8px;text-transform:uppercase;
+        border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--dim);
+        vertical-align:top;line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.tag-red    {background:rgba(231,76,60,.15);  color:var(--red);    border:1px solid rgba(231,76,60,.3)}
+.tag-green  {background:rgba(46,204,113,.15); color:var(--green);  border:1px solid rgba(46,204,113,.3)}
+.tag-blue   {background:rgba(91,138,245,.15); color:var(--blue);   border:1px solid rgba(91,138,245,.3)}
+.tag-gold   {background:rgba(245,166,35,.15); color:var(--yellow); border:1px solid rgba(245,166,35,.3)}
+.tag-purple {background:rgba(167,139,250,.15);color:var(--purple); border:1px solid rgba(167,139,250,.3)}
+.tag-teal   {background:rgba(26,188,156,.15); color:var(--teal);   border:1px solid rgba(26,188,156,.3)}
+.tag-orange {background:rgba(243,156,18,.15); color:var(--orange); border:1px solid rgba(243,156,18,.3)}
+
+/* Pillar */
+.pillar{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0}
+.pillar-head{padding:14px 18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
+.pillar-num{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+            font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;flex-shrink:0}
+.pillar-head h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);line-height:1.3}
+.pillar-head p{font-size:12px;color:var(--muted);margin:2px 0 0;font-family:'Noto Sans Tamil',sans-serif}
+.pillar-body{padding:18px 20px}
+.pillar-body p{font-size:13px;color:var(--dim);line-height:1.75;margin-bottom:10px;font-family:'Noto Sans Tamil',sans-serif}
+.pillar-body ul{padding-left:18px}
+.pillar-body li{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:5px;font-family:'Noto Sans Tamil',sans-serif}
+.pillar-body li strong{color:var(--text)}
+
+/* Setup box */
+.setup-box{background:var(--bg1);border:1px solid var(--border);border-radius:10px;
+           padding:16px 20px;margin:14px 0;font-family:'JetBrains Mono',monospace;
+           font-size:12px;color:var(--dim);line-height:1.9;white-space:pre-wrap}
+.setup-box .sb-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+                     color:var(--yellow);letter-spacing:1px;text-transform:uppercase;
+                     margin-bottom:10px;display:block;font-style:normal}
+
+/* Timeline */
+.timeline{position:relative;padding-left:32px;margin:16px 0}
+.timeline::before{content:'';position:absolute;left:10px;top:4px;bottom:4px;width:2px;
+                  background:linear-gradient(to bottom,var(--accent),var(--teal));border-radius:2px}
+.tl-item{position:relative;margin-bottom:20px}
+.tl-dot{position:absolute;left:-27px;top:4px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bg)}
+.tl-step{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.tl-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--dim);line-height:1.7;font-family:'Noto Sans Tamil',sans-serif}
+
+/* Cup diagram */
+.cup-diagram{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0;text-align:center}
+.cup-svg{max-width:100%;overflow:visible}
+
+/* Score pillar */
+.score-pillar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:10px 0}
+.sp-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.sp-pts{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;min-width:48px;text-align:right}
+.sp-body{padding:12px 16px;font-size:13px;color:var(--dim);line-height:1.7;font-family:'Noto Sans Tamil',sans-serif}
+
+/* Price ladder */
+.price-ladder{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin:14px 0;font-size:13px}
+.pl-row{display:flex;align-items:center;padding:11px 16px;gap:12px;border-bottom:1px solid var(--border)}
+.pl-row:last-child{border-bottom:none}
+.pl-icon{font-size:16px;width:26px;text-align:center;flex-shrink:0}
+.pl-label{flex:1;font-weight:600;color:var(--dim);font-family:'Noto Sans Tamil',sans-serif}
+.pl-value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px}
+.pl-note{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Noto Sans Tamil',sans-serif}
+.pl-sl    {background:rgba(231,76,60,.06)}
+.pl-entry {background:rgba(245,166,35,.06)}
+.pl-t1    {background:rgba(46,204,113,.04)}
+.pl-t2    {background:rgba(46,204,113,.09)}
+
+/* Trade card */
+.trade-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0}
+.tc-header{background:var(--bg3);padding:14px 20px;border-bottom:1px solid var(--border);
+           display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tc-header h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.tc-body{padding:20px 22px}
+
+/* Mistake card */
+.mistake-card{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);
+              border-radius:12px;padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start}
+.mistake-icon{font-size:20px;flex-shrink:0}
+.mistake-body h4{font-size:13px;font-weight:700;color:var(--red);margin-bottom:5px}
+.mistake-body p{font-size:13px;color:var(--dim);line-height:1.65;margin:0;font-family:'Noto Sans Tamil',sans-serif}
+
+/* Checklist */
+.checklist-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+                   padding:24px;margin:24px 0;position:relative}
+.checklist-section::before{content:'✓';position:absolute;top:-14px;left:24px;
+                            background:var(--accent);color:#fff;
+                            width:28px;height:28px;border-radius:50%;
+                            text-align:center;line-height:28px;font-size:14px;font-weight:700}
+.cl-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px;padding-top:4px}
+.cl-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.cl-item:last-child{border-bottom:none}
+.cl-box{width:20px;height:20px;border:1.5px solid var(--border2);border-radius:4px;background:var(--bg1);flex-shrink:0;margin-top:1px}
+.cl-content{flex:1}
+.cl-content .cl-q{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.5;font-family:'Noto Sans Tamil',sans-serif}
+.cl-content .cl-hint{font-size:12px;color:var(--muted);line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.cl-badge{flex-shrink:0}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:24px 0}
+.page-break{border-top:1px solid var(--border);padding-top:40px;margin-top:40px}
+
+/* Typography */
+p{color:var(--dim);font-size:14px;line-height:1.75;margin-bottom:10px;font-family:'Noto Sans Tamil',sans-serif}
+ul,ol{padding-left:20px;color:var(--dim);font-size:14px;font-family:'Noto Sans Tamil',sans-serif}
+li{margin-bottom:6px;line-height:1.7}
+li strong{color:var(--text)}
+h4{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin:18px 0 10px}
+code{font-family:'JetBrains Mono',monospace;background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:12px;color:var(--cyan)}
+
+/* Color utilities */
+.c-red    {color:var(--red);   font-weight:700}
+.c-green  {color:var(--green); font-weight:700}
+.c-blue   {color:var(--blue);  font-weight:700}
+.c-gold   {color:var(--yellow);font-weight:700}
+.c-purple {color:var(--purple);font-weight:700}
+.c-teal   {color:var(--teal);  font-weight:700}
+.c-accent {color:var(--accent);font-weight:700}
+
+/* Footer */
+.footer{background:var(--bg1);border-top:1px solid var(--border);padding:28px 24px;
+        font-size:12px;color:var(--muted);line-height:1.8;text-align:center;font-family:'Noto Sans Tamil',sans-serif}
+.footer strong{color:var(--dim)}
+
+/* Language toggle */
+#langToggle{background:none;border:1px solid var(--border);border-radius:6px;height:30px;min-width:50px;
+            padding:0 8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--dim);
+            font-family:'Noto Sans Tamil','DM Sans',sans-serif;transition:border-color .15s,color .15s}
+#langToggle:hover{border-color:var(--accent);color:var(--accent)}
+
+@keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media print{nav{display:none}.page{padding:20px}.chapter{page-break-inside:avoid}}
+</style>
+<link rel="stylesheet" href="tutorial-halo.css">
+</head>
+<body>
+
+<nav>
+  <a href="/" class="brand">
+    <img src="/favicon.png" class="logo" width="28" height="28" alt="TZ">
+    TradeZen
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a class="nl" href="/cup_handle.html">← Cup &amp; Handle Tool</a>
+    <a class="nl on" href="#">
+      <span data-en="Guide" data-ta="வழிகாட்டி">வழிகாட்டி</span>
+    </a>
+    <a class="nl" href="/swing_trading_tutorial_tamil.html">Swing Guide</a>
+    <a class="nl" href="/learn_dashboard.html">Learn</a>
+  </div>
+  <div class="nav-r">
+    <button id="langToggle" onclick="toggleLang()">EN</button>
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme"></button>
+  </div>
+  <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-stamp">☕ Cup &amp; Handle — Tutorial &amp; Checklist</div>
+  <h1><em>Cup &amp; Handle</em><br>
+    <span data-en="Pattern Trading Guide" data-ta="Pattern வர்த்தக கற்றல் புத்தகம்">Pattern வர்த்தக கற்றல் புத்தகம்</span>
+  </h1>
+  <div class="subtitle">
+    <span data-en="Nifty 50 + Next 50 · Positional Breakout · Geometric Engine" data-ta="Nifty 50 + Next 50 · நீண்ட கால Breakout · Geometric Engine">Nifty 50 + Next 50 · நீண்ட கால Breakout · Geometric Engine</span>
+  </div>
+  <div class="cover-info">
+    <div class="cover-info-item">
+      <span class="ci-val">4</span>
+      <span class="ci-lbl" data-en="Stages" data-ta="நிலைகள்">நிலைகள்</span>
+    </div>
+    <div class="cover-info-item">
+      <span class="ci-val">5</span>
+      <span class="ci-lbl" data-en="Score Pillars" data-ta="Score Pillars">Score Pillars</span>
+    </div>
+    <div class="cover-info-item">
+      <span class="ci-val">100</span>
+      <span class="ci-lbl" data-en="Max Score" data-ta="அதிகபட்ச Score">அதிகபட்ச Score</span>
+    </div>
+    <div class="cover-info-item">
+      <span class="ci-val">Nifty 100</span>
+      <span class="ci-lbl" data-en="Universe" data-ta="பங்குகள் வட்டம்">பங்குகள் வட்டம்</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- CHAPTER 1 -->
+<div class="chapter">
+  <div class="chapter-num">
+    <span data-en="Chapter 1" data-ta="அத்தியாயம் 1">அத்தியாயம் 1</span>
+  </div>
+  <h2 data-en="What is a Cup &amp; Handle Pattern?" data-ta="Cup &amp; Handle Pattern என்றால் என்ன?">Cup &amp; Handle Pattern என்றால் என்ன?</h2>
+  <p data-en="A stock rises to a high, falls and forms a rounded base (the Cup), then rises back near the original high, pulls back slightly (the Handle), and then breaks out upward. This whole shape looks like a tea cup when drawn on a chart." data-ta="ஒரு பங்கு உயர்ந்த ஒரு நிலைக்கு வந்து, கீழே போய் வளைவான ஒரு தளம் (Cup) உருவாகி, மீண்டும் அதே உயர்வுக்கு திரும்பி, சிறிது கீழே இறங்கி (Handle), பின்னர் மேலே break out ஆகிறது. இந்த வடிவம் ஒரு தேனீர் கோப்பை போல் chart-ல் தெரியும்.">ஒரு பங்கு உயர்ந்த ஒரு நிலைக்கு வந்து, கீழே போய் வளைவான ஒரு தளம் (Cup) உருவாகி, மீண்டும் அதே உயர்வுக்கு திரும்பி, சிறிது கீழே இறங்கி (Handle), பின்னர் மேலே break out ஆகிறது. இந்த வடிவம் ஒரு தேனீர் கோப்பை போல் chart-ல் தெரியும்.</p>
+</div>
+
+<!-- Cup Diagram (SVG) -->
+<div class="cup-diagram">
+  <svg class="cup-svg" viewBox="0 0 600 200" width="580" height="200" font-family="JetBrains Mono,monospace">
+    <!-- price line -->
+    <polyline points="30,60 100,60 140,80 180,120 230,150 280,155 330,140 370,100 410,70 440,65 460,80 490,90 510,80 530,75" fill="none" stroke="#7c6af7" stroke-width="2.5"/>
+    <!-- breakout dashed line -->
+    <line x1="30" y1="62" x2="600" y2="62" stroke="#2ecc71" stroke-width="1.5" stroke-dasharray="8,5"/>
+    <!-- left rim dot -->
+    <circle cx="100" cy="60" r="5" fill="#f5a524"/>
+    <!-- bottom dot -->
+    <circle cx="280" cy="155" r="5" fill="#2ecc71"/>
+    <!-- right rim dot -->
+    <circle cx="440" cy="65" r="5" fill="#5b8af5"/>
+    <!-- cup arc label -->
+    <text x="270" y="185" fill="#9ba3bf" font-size="11" text-anchor="middle">← Cup (U shape) →</text>
+    <!-- handle label -->
+    <text x="490" y="55" fill="#9ba3bf" font-size="11" text-anchor="middle">Handle</text>
+    <!-- breakout label -->
+    <text x="565" y="57" fill="#2ecc71" font-size="10">Breakout</text>
+    <!-- left rim label -->
+    <text x="85" y="50" fill="#f5a524" font-size="10">Left Rim</text>
+    <!-- right rim label -->
+    <text x="430" y="55" fill="#5b8af5" font-size="10" text-anchor="end">Right Rim</text>
+    <!-- bottom label -->
+    <text x="280" y="173" fill="#2ecc71" font-size="10" text-anchor="middle">Bottom</text>
+  </svg>
+</div>
+
+<div class="g3">
+  <div class="card card-blue" style="margin:0;">
+    <div class="card-title">☕ Cup</div>
+    <p style="font-size:13px;color:var(--dim);margin:0;" data-en="Left rim → rounded base → right rim. Duration: 3 weeks to 6 months. Depth: 10–40% from left rim." data-ta="Left rim → வளைவான தளம் → right rim. காலம்: 3 வாரம் முதல் 6 மாதம். ஆழம்: 10–40%.">Left rim → வளைவான தளம் → right rim. காலம்: 3 வாரம் முதல் 6 மாதம். ஆழம்: 10–40%.</p>
+  </div>
+  <div class="card card-gold" style="margin:0;">
+    <div class="card-title">🪝 Handle</div>
+    <p style="font-size:13px;color:var(--dim);margin:0;" data-en="Small pullback of 3–15% after the right rim. Duration 1–7 weeks. Volume should dry up during handle." data-ta="Right rim பிறகு 3–15% சிறிய இறக்கம். காலம் 1–7 வாரங்கள். Handle-ல் volume குறைய வேண்டும்.">Right rim பிறகு 3–15% சிறிய இறக்கம். காலம் 1–7 வாரங்கள். Handle-ல் volume குறைய வேண்டும்.</p>
+  </div>
+  <div class="card card-green" style="margin:0;">
+    <div class="card-title">🚀 Breakout</div>
+    <p style="font-size:13px;color:var(--dim);margin:0;" data-en="Price closes above handle high with increased volume. This is the buy signal. Target = cup depth added above breakout." data-ta="Handle-ன் உயர்வை அதிக volume-உடன் break செய்கிறது. இதுவே buy signal. Target = cup ஆழம் மேலே.">Handle-ன் உயர்வை அதிக volume-உடன் break செய்கிறது. இதுவே buy signal. Target = cup ஆழம் மேலே.</p>
+  </div>
+</div>
+
+<div class="note">
+  <div class="note-label" data-en="Why it works" data-ta="ஏன் வேலை செய்கிறது">ஏன் வேலை செய்கிறது</div>
+  <span data-en="The cup represents distribution (weak holders selling) followed by accumulation (strong buyers absorbing). The handle is the last shakeout before the real breakout. Once all weak hands are gone, the stock surges." data-ta="Cup என்பது பலவீனமான investors விற்று வெளியேறும் நேரம், பின்னர் வலுவான buyers சேகரிக்கும் நேரம். Handle என்பது உண்மையான breakout-க்கு முன்பு நடக்கும் கடைசி shakeout. எல்லா பலவீனமான கைகளும் போனவுடன் stock மேலே surge ஆகிறது.">Cup என்பது பலவீனமான investors விற்று வெளியேறும் நேரம், பின்னர் வலுவான buyers சேகரிக்கும் நேரம். Handle என்பது உண்மையான breakout-க்கு முன்பு நடக்கும் கடைசி shakeout. எல்லா பலவீனமான கைகளும் போனவுடன் stock மேலே surge ஆகிறது.</span>
+</div>
+
+
+<!-- CHAPTER 2 -->
+<div class="chapter page-break">
+  <div class="chapter-num"><span data-en="Chapter 2" data-ta="அத்தியாயம் 2">அத்தியாயம் 2</span></div>
+  <h2 data-en="4 Detection Stages — What the Tool Reports" data-ta="4 நிலைகள் — Tool என்ன காட்டுகிறது">4 நிலைகள் — Tool என்ன காட்டுகிறது</h2>
+  <p data-en="The scanner does not just find complete patterns. It tells you exactly which stage the stock is in so you can prepare in advance." data-ta="Scanner முடிந்த pattern மட்டும் தேடுவதில்லை. Stock எந்த நிலையில் உள்ளது என்று சரியாக சொல்கிறது — முன்கூட்டியே தயாராக இருக்கலாம்.">Scanner முடிந்த pattern மட்டும் தேடுவதில்லை. Stock எந்த நிலையில் உள்ளது என்று சரியாக சொல்கிறது — முன்கூட்டியே தயாராக இருக்கலாம்.</p>
+</div>
+
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(46,204,113,.06);">
+    <div class="pillar-num" style="background:var(--green-l);color:var(--green);">1</div>
+    <div>
+      <h3 data-en="Complete ✅ — Ready to trade" data-ta="Complete ✅ — Trade தயார்">Complete ✅ — Trade தயார்</h3>
+      <p data-en="Cup + valid handle + price near breakout level" data-ta="Cup + சரியான handle + விலை breakout அருகில்">Cup + சரியான handle + விலை breakout அருகில்</p>
+    </div>
+    <span class="tag tag-green" style="margin-left:auto;" data-en="Buy Zone" data-ta="Buy Zone">Buy Zone</span>
+  </div>
+  <div class="pillar-body">
+    <p data-en="The full pattern is formed. Cup has a valid U-shape (10–40% depth, ≥80% recovery), a handle with 3–15% pullback, and current price is within 3% of the handle high. This is the highest-priority alert." data-ta="முழு pattern உருவாகியுள்ளது. Cup-க்கு சரியான U வடிவம் உள்ளது (10–40% ஆழம், ≥80% மீட்பு), 3–15% handle, மற்றும் தற்போதைய விலை handle high-க்கு 3% உள்ளே உள்ளது. இது மிக முக்கியமான alert.">முழு pattern உருவாகியுள்ளது. Cup-க்கு சரியான U வடிவம் உள்ளது (10–40% ஆழம், ≥80% மீட்பு), 3–15% handle, மற்றும் தற்போதைய விலை handle high-க்கு 3% உள்ளே உள்ளது. இது மிக முக்கியமான alert.</p>
+    <div class="card card-green" style="margin:8px 0;padding:12px 16px;">
+      <p style="font-size:13px;margin:0;color:var(--dim);" data-en="Action: Watch for breakout above handle high on high volume. Enter on breakout candle close." data-ta="செயல்: Handle high-ஐ அதிக volume-உடன் break செய்தால் enter செய்யுங்கள். Breakout candle close-ல் entry.">செயல்: Handle high-ஐ அதிக volume-உடன் break செய்தால் enter செய்யுங்கள். Breakout candle close-ல் entry.</p>
+    </div>
+  </div>
+</div>
+
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(245,166,35,.06);">
+    <div class="pillar-num" style="background:var(--gold-l);color:var(--yellow);">2</div>
+    <div>
+      <h3 data-en="Handle Forming — Developing" data-ta="Handle Forming — உருவாகிறது">Handle Forming — உருவாகிறது</h3>
+      <p data-en="Cup done, handle is in progress but price is not yet near the high" data-ta="Cup முடிந்தது, handle உருவாகிறது ஆனால் விலை இன்னும் high அருகில் இல்லை">Cup முடிந்தது, handle உருவாகிறது ஆனால் விலை இன்னும் high அருகில் இல்லை</p>
+    </div>
+    <span class="tag tag-gold" style="margin-left:auto;" data-en="Watchlist" data-ta="Watchlist">Watchlist</span>
+  </div>
+  <div class="pillar-body">
+    <p data-en="The cup is fully formed and the handle has started (3+ days), but the price has not yet recovered to the handle high. The pattern is setting up. Add to watchlist and check daily." data-ta="Cup முழுதாக உருவாகியுள்ளது மற்றும் handle ஆரம்பமாகியுள்ளது (3+ நாட்கள்), ஆனால் விலை இன்னும் handle high அருகில் வரவில்லை. Pattern set ஆகிறது. Watchlist-ல் சேர்த்துக்கொண்டு தினமும் check செய்யுங்கள்.">Cup முழுதாக உருவாகியுள்ளது மற்றும் handle ஆரம்பமாகியுள்ளது (3+ நாட்கள்), ஆனால் விலை இன்னும் handle high அருகில் வரவில்லை. Pattern set ஆகிறது. Watchlist-ல் சேர்த்துக்கொண்டு தினமும் check செய்யுங்கள்.</p>
+    <div class="card card-gold" style="margin:8px 0;padding:12px 16px;">
+      <p style="font-size:13px;margin:0;color:var(--dim);" data-en="Action: Add to watchlist. Set a price alert at handle high. Do not buy yet." data-ta="செயல்: Watchlist-ல் சேர்க்கவும். Handle high-ல் price alert வையுங்கள். இப்போது வாங்காதீர்கள்.">செயல்: Watchlist-ல் சேர்க்கவும். Handle high-ல் price alert வையுங்கள். இப்போது வாங்காதீர்கள்.</p>
+    </div>
+  </div>
+</div>
+
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(91,138,245,.06);">
+    <div class="pillar-num" style="background:var(--blue-l);color:var(--blue);">3</div>
+    <div>
+      <h3 data-en="Cup Complete — Handle Not Started" data-ta="Cup Complete — Handle ஆரம்பமாகவில்லை">Cup Complete — Handle ஆரம்பமாகவில்லை</h3>
+      <p data-en="Cup geometry is valid, fewer than 3 days since right rim" data-ta="Cup geometry சரியானது, right rim பிறகு 3 நாட்களுக்கும் குறைவு">Cup geometry சரியானது, right rim பிறகு 3 நாட்களுக்கும் குறைவு</p>
+    </div>
+    <span class="tag tag-blue" style="margin-left:auto;" data-en="Monitor" data-ta="Monitor">Monitor</span>
+  </div>
+  <div class="pillar-body">
+    <p data-en="The cup is complete and the stock is near the right rim level. The handle has not yet formed. The stock could break out directly or pull back to form a handle. Watch for the next 1–3 weeks." data-ta="Cup முடிந்தது மற்றும் பங்கு right rim நிலையில் உள்ளது. Handle இன்னும் ஆரம்பமாகவில்லை. Stock நேரடியாக break out ஆகலாம் அல்லது handle உருவாக கீழே இறங்கலாம். அடுத்த 1–3 வாரங்கள் கவனியுங்கள்.">Cup முடிந்தது மற்றும் பங்கு right rim நிலையில் உள்ளது. Handle இன்னும் ஆரம்பமாகவில்லை. Stock நேரடியாக break out ஆகலாம் அல்லது handle உருவாக கீழே இறங்கலாம். அடுத்த 1–3 வாரங்கள் கவனியுங்கள்.</p>
+  </div>
+</div>
+
+<div class="pillar">
+  <div class="pillar-head" style="background:rgba(158,163,192,.06);">
+    <div class="pillar-num" style="background:rgba(158,163,192,.08);color:var(--dim);">4</div>
+    <div>
+      <h3 data-en="Early Cup — Forming" data-ta="Early Cup — உருவாகிறது">Early Cup — உருவாகிறது</h3>
+      <p data-en="Left high set, ≥10% drop, ≥40% recovery — cup still rounding" data-ta="Left high அமைந்துள்ளது, ≥10% இறக்கம், ≥40% மீட்பு — cup இன்னும் round ஆகிறது">Left high அமைந்துள்ளது, ≥10% இறக்கம், ≥40% மீட்பு — cup இன்னும் round ஆகிறது</p>
+    </div>
+    <span class="tag" style="background:rgba(158,163,192,.1);color:var(--dim);border:1px solid rgba(158,163,192,.2);margin-left:auto;" data-en="Early" data-ta="Early">Early</span>
+  </div>
+  <div class="pillar-body">
+    <p data-en="The pattern is in very early stages. Score is capped at 15/100 since geometry is incomplete. Check back in a few weeks. Do not trade yet." data-ta="Pattern மிகவும் ஆரம்ப நிலையில் உள்ளது. Geometry முழுமையாக இல்லாததால் score 15/100 மட்டும். சில வாரங்களில் மீண்டும் பாருங்கள். இப்போது trade வேண்டாம்.">Pattern மிகவும் ஆரம்ப நிலையில் உள்ளது. Geometry முழுமையாக இல்லாததால் score 15/100 மட்டும். சில வாரங்களில் மீண்டும் பாருங்கள். இப்போது trade வேண்டாம்.</p>
+  </div>
+</div>
+
+
+<!-- CHAPTER 3 -->
+<div class="chapter page-break">
+  <div class="chapter-num"><span data-en="Chapter 3" data-ta="அத்தியாயம் 3">அத்தியாயம் 3</span></div>
+  <h2 data-en="The 5-Pillar Confidence Score (0–100)" data-ta="5 Pillar Confidence Score (0–100)">5 Pillar Confidence Score (0–100)</h2>
+  <p data-en="Every detected pattern gets a score out of 100. Higher score = better-quality setup. Use this to prioritise which stocks to act on." data-ta="கண்டறியப்பட்ட ஒவ்வொரு pattern-க்கும் 100-ல் ஒரு score கொடுக்கப்படுகிறது. அதிக score = சிறந்த setup. எந்த பங்கில் முதலில் செயல்படுவது என்பதை prioritise செய்ய இதை பயன்படுத்துங்கள்.">கண்டறியப்பட்ட ஒவ்வொரு pattern-க்கும் 100-ல் ஒரு score கொடுக்கப்படுகிறது. அதிக score = சிறந்த setup. எந்த பங்கில் முதலில் செயல்படுவது என்பதை prioritise செய்ய இதை பயன்படுத்துங்கள்.</p>
+</div>
+
+<div class="score-pillar">
+  <div class="sp-head" style="background:rgba(124,106,247,.06);">
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-bg,rgba(124,106,247,.08));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📐</div>
+    <div style="flex:1;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text);" data-en="Shape Score" data-ta="வடிவ Score">வடிவ Score</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'Noto Sans Tamil',sans-serif;" data-en="Depth, roundness, symmetry of the cup" data-ta="Cup-ன் ஆழம், வளைவு, சமச்சீர்மை">Cup-ன் ஆழம், வளைவு, சமச்சீர்மை</div>
+    </div>
+    <div class="sp-pts" style="color:var(--accent);" data-en="40 pts" data-ta="40 pts">40 pts</div>
+  </div>
+  <div class="sp-body">
+    <table class="tbl" style="margin:0;">
+      <tr><th data-en="Metric" data-ta="அளவு">அளவு</th><th data-en="Ideal Range" data-ta="சிறந்த வரம்பு">சிறந்த வரம்பு</th><th data-en="Points" data-ta="புள்ளிகள்">புள்ளிகள்</th></tr>
+      <tr>
+        <td data-en="Cup depth (drop from left rim to bottom)" data-ta="Cup ஆழம் (left rim முதல் bottom வரை இறக்கம்)">Cup ஆழம் (left rim முதல் bottom வரை இறக்கம்)</td>
+        <td><span style="color:var(--green);">12–30%</span> <span style="color:var(--muted);font-size:11px;">(valid: 10–40%)</span></td>
+        <td data-en="Up to 16" data-ta="16 வரை">16 வரை</td>
+      </tr>
+      <tr>
+        <td data-en="Roundness (quadratic fit quality)" data-ta="வளைவு (quadratic fit தரம்)">வளைவு (quadratic fit தரம்)</td>
+        <td data-en="R² close to 1.0 = perfect U shape" data-ta="R² = 1.0 → perfect U வடிவம்">R² = 1.0 → perfect U வடிவம்</td>
+        <td data-en="Up to 16" data-ta="16 வரை">16 வரை</td>
+      </tr>
+      <tr>
+        <td data-en="Symmetry (bottom position)" data-ta="சமச்சீர்மை (bottom இடம்)">சமச்சீர்மை (bottom இடம்)</td>
+        <td data-en="Bottom in middle 20–80% of cup" data-ta="Bottom cup-ன் நடு 20–80%-ல் உள்ளதா">Bottom cup-ன் நடு 20–80%-ல் உள்ளதா</td>
+        <td data-en="Up to 8" data-ta="8 வரை">8 வரை</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="score-pillar">
+  <div class="sp-head" style="background:rgba(245,166,35,.06);">
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-l);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🪝</div>
+    <div style="flex:1;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text);" data-en="Handle Score" data-ta="Handle Score">Handle Score</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'Noto Sans Tamil',sans-serif;" data-en="Pullback depth and proximity to breakout" data-ta="Pullback ஆழம் மற்றும் breakout அருகாமை">Pullback ஆழம் மற்றும் breakout அருகாமை</div>
+    </div>
+    <div class="sp-pts" style="color:var(--yellow);" data-en="25 pts" data-ta="25 pts">25 pts</div>
+  </div>
+  <div class="sp-body">
+    <ul>
+      <li data-en="Handle pullback 5–10%: full marks. 3–5% or 10–15%: partial." data-ta="Handle pullback 5–10%: முழு marks. 3–5% அல்லது 10–15%: பகுதி marks.">Handle pullback 5–10%: முழு marks. 3–5% அல்லது 10–15%: பகுதி marks.</li>
+      <li data-en="Near breakout (price within 3% of handle high): +5 bonus points." data-ta="Breakout அருகில் (handle high-க்கு 3% உள்ளே): +5 bonus புள்ளிகள்.">Breakout அருகில் (handle high-க்கு 3% உள்ளே): +5 bonus புள்ளிகள்.</li>
+      <li data-en="No handle yet (cup complete stage): 12.5 pts by default." data-ta="Handle இல்லாவிட்டால் (cup complete நிலை): default ஆக 12.5 pts.">Handle இல்லாவிட்டால் (cup complete நிலை): default ஆக 12.5 pts.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="score-pillar">
+  <div class="sp-head" style="background:rgba(26,188,156,.06);">
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--teal-l);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
+    <div style="flex:1;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text);" data-en="Volume Score" data-ta="Volume Score">Volume Score</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'Noto Sans Tamil',sans-serif;" data-en="Handle volume vs cup volume (dry-up signal)" data-ta="Handle volume vs cup volume (குறைவு சமிக்ஞை)">Handle volume vs cup volume (குறைவு சமிக்ஞை)</div>
+    </div>
+    <div class="sp-pts" style="color:var(--teal);" data-en="20 pts" data-ta="20 pts">20 pts</div>
+  </div>
+  <div class="sp-body">
+    <p data-en="The ratio of average handle volume to average cup volume is measured. Lower ratio = bigger dry-up = more points. Ideal: handle volume less than 50% of cup volume." data-ta="Handle volume சராசரி ÷ Cup volume சராசரி என்று அளவிடப்படுகிறது. குறைந்த ratio = அதிக dry-up = அதிக புள்ளிகள். சிறந்தது: handle volume, cup volume-ன் 50%-ஐ விட குறைவாக இருக்க வேண்டும்.">Handle volume சராசரி ÷ Cup volume சராசரி என்று அளவிடப்படுகிறது. குறைந்த ratio = அதிக dry-up = அதிக புள்ளிகள். சிறந்தது: handle volume, cup volume-ன் 50%-ஐ விட குறைவாக இருக்க வேண்டும்.</p>
+    <div class="card card-teal" style="margin:8px 0;padding:10px 14px;">
+      <p style="font-size:12px;margin:0;" data-en="▼ Volume dry-up badge: handle avg volume is less than 85% of cup avg. Good sign — weak sellers are exhausted." data-ta="▼ Volume dry-up badge: handle சராசரி volume, cup சராசரியின் 85%-ஐ விட குறைவு. நல்ல அறிகுறி — பலவீனமான விற்பவர்கள் தீர்ந்துவிட்டனர்.">▼ Volume dry-up badge: handle சராசரி volume, cup சராசரியின் 85%-ஐ விட குறைவு. நல்ல அறிகுறி — பலவீனமான விற்பவர்கள் தீர்ந்துவிட்டனர்.</p>
+    </div>
+  </div>
+</div>
+
+<div class="score-pillar">
+  <div class="sp-head" style="background:rgba(91,138,245,.06);">
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📈</div>
+    <div style="flex:1;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text);" data-en="Prior Trend Score" data-ta="முந்தைய Trend Score">முந்தைய Trend Score</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'Noto Sans Tamil',sans-serif;" data-en="% rise in 60 days before the left rim" data-ta="Left rim-க்கு முன்பு 60 நாட்களில் % உயர்வு">Left rim-க்கு முன்பு 60 நாட்களில் % உயர்வு</div>
+    </div>
+    <div class="sp-pts" style="color:var(--blue);" data-en="10 pts" data-ta="10 pts">10 pts</div>
+  </div>
+  <div class="sp-body">
+    <p data-en="A classic Cup & Handle forms after an uptrend, not during a downtrend. The score checks if the stock was rising for 60 days before the left rim formed. A 30%+ prior rise earns full 10 pts." data-ta="Classic Cup & Handle ஒரு uptrend பிறகு உருவாகிறது, downtrend-ல் அல்ல. Score, left rim உருவாவதற்கு 60 நாட்கள் முன்பு stock ஏறியதா என்று சரிபார்க்கிறது. 30%+ prior rise = முழு 10 pts.">Classic Cup & Handle ஒரு uptrend பிறகு உருவாகிறது, downtrend-ல் அல்ல. Score, left rim உருவாவதற்கு 60 நாட்கள் முன்பு stock ஏறியதா என்று சரிபார்க்கிறது. 30%+ prior rise = முழு 10 pts.</p>
+    <div class="note" style="margin:8px 0;">
+      <div class="note-label" data-en="Important" data-ta="முக்கியம்">முக்கியம்</div>
+      <span data-en="If Trend Score is 0.0/10, the cup formed within a downtrend. The geometry may be valid but the context is weak — treat with caution." data-ta="Trend Score 0.0/10 ஆக இருந்தால், cup ஒரு downtrend-ல் உருவானது. Geometry சரியாக இருந்தாலும் context பலவீனமாக உள்ளது — கவனமாக இருங்கள்.">Trend Score 0.0/10 ஆக இருந்தால், cup ஒரு downtrend-ல் உருவானது. Geometry சரியாக இருந்தாலும் context பலவீனமாக உள்ளது — கவனமாக இருங்கள்.</span>
+    </div>
+  </div>
+</div>
+
+<div class="score-pillar">
+  <div class="sp-head" style="background:rgba(46,204,113,.06);">
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🔄</div>
+    <div style="flex:1;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text);" data-en="Recovery Score" data-ta="மீட்பு Score">மீட்பு Score</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'Noto Sans Tamil',sans-serif;" data-en="Right rim height vs left rim height" data-ta="Right rim விலை vs Left rim விலை">Right rim விலை vs Left rim விலை</div>
+    </div>
+    <div class="sp-pts" style="color:var(--green);" data-en="5 pts" data-ta="5 pts">5 pts</div>
+  </div>
+  <div class="sp-body">
+    <p data-en="Right rim must be 80–112% of left rim to be valid at all. The best score is given when right rim is 95–105% of left rim — near-equal rims mean perfect cup symmetry." data-ta="Right rim, left rim-ன் 80–112% இருக்க வேண்டும். Right rim 95–105% இருக்கும்போது சிறந்த score — சம உயரம் = சரியான cup வடிவம்.">Right rim, left rim-ன் 80–112% இருக்க வேண்டும். Right rim 95–105% இருக்கும்போது சிறந்த score — சம உயரம் = சரியான cup வடிவம்.</p>
+  </div>
+</div>
+
+<div class="card card-purple" style="margin-top:16px;">
+  <div class="card-title">🎯 <span data-en="Score Interpretation" data-ta="Score அர்த்தம்">Score அர்த்தம்</span></div>
+  <table class="tbl" style="margin:0;">
+    <tr><th data-en="Score Range" data-ta="Score வரம்பு">Score வரம்பு</th><th data-en="Quality" data-ta="தரம்">தரம்</th><th data-en="What to do" data-ta="என்ன செய்வது">என்ன செய்வது</th></tr>
+    <tr><td><strong style="color:var(--green);">75–100</strong></td><td data-en="Excellent setup" data-ta="சிறந்த setup">சிறந்த setup</td><td data-en="High priority. Trade with full size." data-ta="High priority. Full size-ல் trade.">High priority. Full size-ல் trade.</td></tr>
+    <tr><td><strong style="color:var(--teal);">60–75</strong></td><td data-en="Good setup" data-ta="நல்ல setup">நல்ல setup</td><td data-en="Worth trading. Use normal position size." data-ta="Trade செய்யலாம். Normal position size.">Trade செய்யலாம். Normal position size.</td></tr>
+    <tr><td><strong style="color:var(--yellow);">40–60</strong></td><td data-en="Moderate setup" data-ta="சாதாரண setup">சாதாரண setup</td><td data-en="Proceed with caution. Check reason panel." data-ta="கவனமாக செயல்படுங்கள். Reason panel பாருங்கள்.">கவனமாக செயல்படுங்கள். Reason panel பாருங்கள்.</td></tr>
+    <tr><td><strong style="color:var(--dim);">25–40</strong></td><td data-en="Weak setup" data-ta="பலவீனமான setup">பலவீனமான setup</td><td data-en="Monitor only. Do not trade." data-ta="Monitor மட்டும். Trade வேண்டாம்.">Monitor மட்டும். Trade வேண்டாம்.</td></tr>
+  </table>
+</div>
+
+
+<!-- CHAPTER 4 -->
+<div class="chapter page-break">
+  <div class="chapter-num"><span data-en="Chapter 4" data-ta="அத்தியாயம் 4">அத்தியாயம் 4</span></div>
+  <h2 data-en="Trade Plan — Entry, Stop-Loss, Targets" data-ta="Trade Plan — Entry, Stop-Loss, Targets">Trade Plan — Entry, Stop-Loss, Targets</h2>
+  <p data-en="The tool auto-calculates the trade plan for you. Here is how to read and use it." data-ta="Tool தானாகவே trade plan கணக்கிடுகிறது. அதை எப்படி படிப்பது மற்றும் பயன்படுத்துவது என்று இங்கே காண்போம்.">Tool தானாகவே trade plan கணக்கிடுகிறது. அதை எப்படி படிப்பது மற்றும் பயன்படுத்துவது என்று இங்கே காண்போம்.</p>
+</div>
+
+<div class="setup-box">
+<span class="sb-title" data-en="Example: ITC Cup &amp; Handle — Trade Plan" data-ta="உதாரணம்: ITC Cup &amp; Handle — Trade Plan">உதாரணம்: ITC Cup &amp; Handle — Trade Plan</span>
+<span data-en="Left Rim" data-ta="Left Rim">Left Rim</span>    : ₹332.45   (<span data-en="prior high before cup" data-ta="cup-க்கு முன் உச்சம்">cup-க்கு முன் உச்சம்</span>)
+<span data-en="Cup Bottom" data-ta="Cup Bottom">Cup Bottom</span>  : ₹287.70   (<span data-en="lowest point of the cup" data-ta="cup-ன் மிகக் கீழ் விலை">cup-ன் மிகக் கீழ் விலை</span>)
+<span data-en="Right Rim" data-ta="Right Rim">Right Rim</span>   : ₹316.25   (<span data-en="recovered to 95% of left rim" data-ta="left rim-ன் 95% மீட்பு">left rim-ன் 95% மீட்பு</span>)
+<span data-en="Cup Depth" data-ta="Cup Depth">Cup Depth</span>   : ₹44.55    (332.45 − 287.70)
+──────────────────────────────────────
+<span data-en="Entry" data-ta="Entry">Entry</span>       : ₹317.20   (<span data-en="handle high × 1.003" data-ta="handle high × 1.003">handle high × 1.003</span>)
+<span data-en="Stop-Loss" data-ta="Stop-Loss">Stop-Loss</span>   : ₹298.29   (<span data-en="handle low × 0.992" data-ta="handle low × 0.992">handle low × 0.992</span>)
+<span data-en="Target 1" data-ta="Target 1">Target 1</span>    : ₹361.95   (<span data-en="entry + cup depth" data-ta="entry + cup ஆழம்">entry + cup ஆழம்</span>)
+<span data-en="Target 2" data-ta="Target 2">Target 2</span>    : ₹406.70   (<span data-en="entry + cup depth × 2" data-ta="entry + cup ஆழம் × 2">entry + cup ஆழம் × 2</span>)
+<span data-en="R:R Ratio" data-ta="R:R Ratio">R:R Ratio</span>   : 2.4×      (<span data-en="risk ₹18.91 : reward ₹44.75" data-ta="risk ₹18.91 : reward ₹44.75">risk ₹18.91 : reward ₹44.75</span>)
+</div>
+
+<div class="price-ladder">
+  <div class="pl-row pl-sl">
+    <div class="pl-icon">🔴</div>
+    <div>
+      <div class="pl-label" data-en="Stop-Loss — Handle Low" data-ta="Stop-Loss — Handle Low">Stop-Loss — Handle Low</div>
+      <div class="pl-note" data-en="Exit immediately if this breaks. No averaging." data-ta="இது break ஆனால் உடனே exit. Averaging வேண்டாம்.">இது break ஆனால் உடனே exit. Averaging வேண்டாம்.</div>
+    </div>
+    <div><div class="pl-value c-red">₹298</div></div>
+  </div>
+  <div class="pl-row pl-entry">
+    <div class="pl-icon">📍</div>
+    <div>
+      <div class="pl-label" data-en="Entry — Handle High Breakout" data-ta="Entry — Handle High Breakout">Entry — Handle High Breakout</div>
+      <div class="pl-note" data-en="Buy on high-volume close above handle high." data-ta="Handle high-க்கு மேல் அதிக volume-உடன் close ஆனால் buy.">Handle high-க்கு மேல் அதிக volume-உடன் close ஆனால் buy.</div>
+    </div>
+    <div><div class="pl-value c-gold">₹317</div></div>
+  </div>
+  <div class="pl-row pl-t1">
+    <div class="pl-icon">🎯</div>
+    <div>
+      <div class="pl-label" data-en="Target 1 — 1× Cup Depth" data-ta="Target 1 — 1× Cup Depth">Target 1 — 1× Cup Depth</div>
+      <div class="pl-note" data-en="Book 50–60% of position here. Move SL to entry." data-ta="இங்கே 50–60% position sell செய்யுங்கள். SL-ஐ entry-க்கு நகர்த்துங்கள்.">இங்கே 50–60% position sell செய்யுங்கள். SL-ஐ entry-க்கு நகர்த்துங்கள்.</div>
+    </div>
+    <div><div class="pl-value c-green">₹362</div></div>
+  </div>
+  <div class="pl-row pl-t2">
+    <div class="pl-icon">🏆</div>
+    <div>
+      <div class="pl-label" data-en="Target 2 — 2× Cup Depth" data-ta="Target 2 — 2× Cup Depth">Target 2 — 2× Cup Depth</div>
+      <div class="pl-note" data-en="Exit remaining position. Trail SL as price rises." data-ta="மீதி position exit. விலை ஏறும்போது SL trail செய்யுங்கள்.">மீதி position exit. விலை ஏறும்போது SL trail செய்யுங்கள்.</div>
+    </div>
+    <div><div class="pl-value c-green">₹407</div></div>
+  </div>
+</div>
+
+<div class="note">
+  <div class="note-label" data-en="Only enter on volume confirmation" data-ta="Volume confirmation-ல் மட்டுமே enter செய்யுங்கள்">Volume confirmation-ல் மட்டுமே enter செய்யுங்கள்</div>
+  <span data-en="A breakout without a volume surge is often a false breakout. Wait for the candle that breaks the handle high to close with at least 1.5× the 20-day average volume." data-ta="Volume spike இல்லாமல் நடக்கும் breakout பலவீனமாக இருக்கும். Handle high-ஐ break செய்யும் candle, 20-day average volume-ன் 1.5× அதிகமாக close ஆக வேண்டும். அதுவரை காத்திருங்கள்.">Volume spike இல்லாமல் நடக்கும் breakout பலவீனமாக இருக்கும். Handle high-ஐ break செய்யும் candle, 20-day average volume-ன் 1.5× அதிகமாக close ஆக வேண்டும். அதுவரை காத்திருங்கள்.</span>
+</div>
+
+
+<!-- CHAPTER 5 -->
+<div class="chapter page-break">
+  <div class="chapter-num"><span data-en="Chapter 5" data-ta="அத்தியாயம் 5">அத்தியாயம் 5</span></div>
+  <h2 data-en="How to Use the Tool — Step by Step" data-ta="Tool-ஐ எப்படி பயன்படுத்துவது — படிப்படியாக">Tool-ஐ எப்படி பயன்படுத்துவது — படிப்படியாக</h2>
+</div>
+
+<div class="trade-card">
+  <div class="tc-header">
+    <div>
+      <h3 data-en="Method 1 — Analyse a specific stock" data-ta="முறை 1 — ஒரு குறிப்பிட்ட பங்கை Analyse செய்யுங்கள்">முறை 1 — ஒரு குறிப்பிட்ட பங்கை Analyse செய்யுங்கள்</h3>
+    </div>
+  </div>
+  <div class="tc-body">
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--accent);"></div>
+        <div class="tl-step" data-en="Step 1" data-ta="படி 1">படி 1</div>
+        <div class="tl-title" data-en="Enter symbol and select period" data-ta="Symbol உள்ளிட்டு period தேர்வு செய்யுங்கள்">Symbol உள்ளிட்டு period தேர்வு செய்யுங்கள்</div>
+        <div class="tl-desc" data-en="Type the NSE symbol (e.g. INFY, RELIANCE) and select a lookback period. Use 1 Year for most stocks. Use 2 Year for large caps with slower patterns." data-ta="NSE symbol தட்டச்சு செய்யுங்கள் (உதாரணம்: INFY, RELIANCE) மற்றும் lookback period தேர்வு செய்யுங்கள். பெரும்பாலான stocks-க்கு 1 Year பயன்படுத்துங்கள். மெதுவான patterns-க்கு 2 Year பயன்படுத்துங்கள்.">NSE symbol தட்டச்சு செய்யுங்கள் (உதாரணம்: INFY, RELIANCE) மற்றும் lookback period தேர்வு செய்யுங்கள். பெரும்பாலான stocks-க்கு 1 Year பயன்படுத்துங்கள். மெதுவான patterns-க்கு 2 Year பயன்படுத்துங்கள்.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--yellow);"></div>
+        <div class="tl-step" data-en="Step 2" data-ta="படி 2">படி 2</div>
+        <div class="tl-title" data-en="Click Analyse and read the chart" data-ta="Analyse click செய்து chart படியுங்கள்">Analyse click செய்து chart படியுங்கள்</div>
+        <div class="tl-desc" data-en="The chart shows the full price history with: orange dot (Left Rim), green dot (Cup Bottom), blue dot (Right Rim), dashed green line (breakout level). Verify visually that the markers are placed correctly on the U-shape." data-ta="Chart-ல் முழு விலை வரலாறு காட்டப்படுகிறது: ஆரஞ்சு dot (Left Rim), பச்சை dot (Cup Bottom), நீல dot (Right Rim), dashed பச்சை கோடு (breakout level). U வடிவத்தில் markers சரியாக உள்ளதா என்று கண்களால் சரிபாருங்கள்.">Chart-ல் முழு விலை வரலாறு காட்டப்படுகிறது: ஆரஞ்சு dot (Left Rim), பச்சை dot (Cup Bottom), நீல dot (Right Rim), dashed பச்சை கோடு (breakout level). U வடிவத்தில் markers சரியாக உள்ளதா என்று கண்களால் சரிபாருங்கள்.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--teal);"></div>
+        <div class="tl-step" data-en="Step 3" data-ta="படி 3">படி 3</div>
+        <div class="tl-title" data-en="Click each score pillar to read the explanation" data-ta="ஒவ்வொரு score pillar-ஐ click செய்து விளக்கம் படியுங்கள்">ஒவ்வொரு score pillar-ஐ click செய்து விளக்கம் படியுங்கள்</div>
+        <div class="tl-desc" data-en="Shape, Handle, Volume, Trend, Recovery pillars are clickable. Each opens a 3–4 line explanation of what the engine found and why the score is what it is." data-ta="Shape, Handle, Volume, Trend, Recovery pillars click செய்யலாம். ஒவ்வொன்றும் engine என்ன கண்டது மற்றும் score ஏன் அப்படி இருக்கிறது என்று 3–4 வரி விளக்கம் திறக்கும்.">Shape, Handle, Volume, Trend, Recovery pillars click செய்யலாம். ஒவ்வொன்றும் engine என்ன கண்டது மற்றும் score ஏன் அப்படி இருக்கிறது என்று 3–4 வரி விளக்கம் திறக்கும்.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--green);"></div>
+        <div class="tl-step" data-en="Step 4" data-ta="படி 4">படி 4</div>
+        <div class="tl-title" data-en="Check the Trade Plan and decide" data-ta="Trade Plan பாருங்கள் மற்றும் முடிவெடுங்கள்">Trade Plan பாருங்கள் மற்றும் முடிவெடுங்கள்</div>
+        <div class="tl-desc" data-en="If stage is Complete and score ≥ 60, check the trade plan below the chart. Entry, stop-loss, T1, T2, and R:R ratio are all pre-calculated. A R:R ≥ 2× is worth considering." data-ta="Stage Complete மற்றும் score ≥ 60 ஆக இருந்தால், chart-க்கு கீழே trade plan பாருங்கள். Entry, stop-loss, T1, T2, மற்றும் R:R ratio எல்லாம் தானாகவே கணக்கிடப்பட்டுள்ளன. R:R ≥ 2× ஆக இருந்தால் trade பரிசீலிக்கலாம்.">Stage Complete மற்றும் score ≥ 60 ஆக இருந்தால், chart-க்கு கீழே trade plan பாருங்கள். Entry, stop-loss, T1, T2, மற்றும் R:R ratio எல்லாம் தானாகவே கணக்கிடப்பட்டுள்ளன. R:R ≥ 2× ஆக இருந்தால் trade பரிசீலிக்கலாம்.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="trade-card" style="margin-top:16px;">
+  <div class="tc-header">
+    <div>
+      <h3 data-en="Method 2 — Scan Universe (Nifty 50 + Next 50)" data-ta="முறை 2 — Universe Scan (Nifty 50 + Next 50)">முறை 2 — Universe Scan (Nifty 50 + Next 50)</h3>
+    </div>
+    <span class="tag tag-purple" data-en="Weekly Routine" data-ta="வாராந்திர Routine">வாராந்திர Routine</span>
+  </div>
+  <div class="tc-body">
+    <p data-en="Select the universe (Nifty 50 or Nifty 100), select period, and click Scan Universe. The engine checks all stocks and returns only those with a detected pattern. Takes 2–3 minutes." data-ta="Universe தேர்வு செய்யுங்கள் (Nifty 50 அல்லது Nifty 100), period தேர்வு செய்யுங்கள், Scan Universe click செய்யுங்கள். Engine எல்லா பங்குகளையும் சரிபார்த்து pattern கண்டறிந்தவற்றை மட்டும் return செய்கிறது. 2–3 நிமிடங்கள் ஆகும்.">Universe தேர்வு செய்யுங்கள் (Nifty 50 அல்லது Nifty 100), period தேர்வு செய்யுங்கள், Scan Universe click செய்யுங்கள். Engine எல்லா பங்குகளையும் சரிபார்த்து pattern கண்டறிந்தவற்றை மட்டும் return செய்கிறது. 2–3 நிமிடங்கள் ஆகும்.</p>
+    <ul>
+      <li data-en="Results are sorted: Complete first, then Handle Forming, Cup Complete, Early Cup." data-ta="Results வரிசை: Complete முதலில், பின்னர் Handle Forming, Cup Complete, Early Cup.">Results வரிசை: Complete முதலில், பின்னர் Handle Forming, Cup Complete, Early Cup.</li>
+      <li data-en="Use the filter tabs to view only one stage at a time." data-ta="Filter tabs மூலம் ஒரு நிலையை மட்டும் பாருங்கள்.">Filter tabs மூலம் ஒரு நிலையை மட்டும் பாருங்கள்.</li>
+      <li data-en="Click any card or table row to get the full analysis and chart for that stock." data-ta="எந்த card அல்லது table row-ஐ click செய்தாலும் அந்த பங்கின் முழு analysis மற்றும் chart காட்டப்படும்.">எந்த card அல்லது table row-ஐ click செய்தாலும் அந்த பங்கின் முழு analysis மற்றும் chart காட்டப்படும்.</li>
+      <li data-en="The table at the bottom shows all results in one row per stock — useful for quick comparison." data-ta="கீழே உள்ள table எல்லா results-ஐ ஒரு வரியில் காட்டுகிறது — விரைவான ஒப்பீட்டிற்கு பயன்படுகிறது.">கீழே உள்ள table எல்லா results-ஐ ஒரு வரியில் காட்டுகிறது — விரைவான ஒப்பீட்டிற்கு பயன்படுகிறது.</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- CHAPTER 6 -->
+<div class="chapter page-break">
+  <div class="chapter-num"><span data-en="Chapter 6" data-ta="அத்தியாயம் 6">அத்தியாயம் 6</span></div>
+  <h2 data-en="Period Selection — Which to Choose?" data-ta="Period தேர்வு — எதை தேர்வு செய்வது?">Period தேர்வு — எதை தேர்வு செய்வது?</h2>
+</div>
+
+<table class="tbl">
+  <tr>
+    <th data-en="Period" data-ta="காலம்">காலம்</th>
+    <th data-en="Trading Days" data-ta="வர்த்தக நாட்கள்">வர்த்தக நாட்கள்</th>
+    <th data-en="Cup Range" data-ta="Cup வரம்பு">Cup வரம்பு</th>
+    <th data-en="Best For" data-ta="சிறந்தது யாருக்கு">சிறந்தது யாருக்கு</th>
+  </tr>
+  <tr>
+    <td><strong style="color:var(--text);" data-en="3 Months" data-ta="3 மாதங்கள்">3 மாதங்கள்</strong></td>
+    <td>~63</td>
+    <td data-en="8–45 days" data-ta="8–45 நாட்கள்">8–45 நாட்கள்</td>
+    <td data-en="Fast-moving stocks, short-term swing trades" data-ta="வேகமாக நகரும் பங்குகள், குறுகிய கால swing trades">வேகமாக நகரும் பங்குகள், குறுகிய கால swing trades</td>
+  </tr>
+  <tr>
+    <td><strong style="color:var(--text);" data-en="6 Months" data-ta="6 மாதங்கள்">6 மாதங்கள்</strong></td>
+    <td>~126</td>
+    <td data-en="15–100 days" data-ta="15–100 நாட்கள்">15–100 நாட்கள்</td>
+    <td data-en="Good balance of recency and pattern maturity" data-ta="recency மற்றும் pattern முதிர்ச்சியின் நல்ல சமநிலை">recency மற்றும் pattern முதிர்ச்சியின் நல்ல சமநிலை</td>
+  </tr>
+  <tr>
+    <td><strong style="color:var(--text);" data-en="1 Year" data-ta="1 வருடம்">1 வருடம்</strong></td>
+    <td>~252</td>
+    <td data-en="20–180 days" data-ta="20–180 நாட்கள்">20–180 நாட்கள்</td>
+    <td data-en="Classic C&amp;H range, most reliable setups" data-ta="Classic C&H வரம்பு, மிகவும் நம்பகமான setups">Classic C&H வரம்பு, மிகவும் நம்பகமான setups</td>
+  </tr>
+  <tr>
+    <td><strong style="color:var(--text);" data-en="2 Years" data-ta="2 வருடங்கள்">2 வருடங்கள்</strong></td>
+    <td>~500</td>
+    <td data-en="20–180 days" data-ta="20–180 நாட்கள்">20–180 நாட்கள்</td>
+    <td data-en="Large caps with slow multi-month base formations" data-ta="மெதுவான, பல மாத base உருவாக்கம் கொண்ட large caps">மெதுவான, பல மாத base உருவாக்கம் கொண்ட large caps</td>
+  </tr>
+</table>
+
+<div class="note">
+  <div class="note-label" data-en="Same result across periods?" data-ta="எல்லா periods-லும் ஒரே result?">எல்லா periods-லும் ஒரே result?</div>
+  <span data-en="If 6-month and 1-year return the same cup, it means the best pattern formed within the shorter window. This is normal — the algorithm always picks the highest-scoring cup, not the longest one." data-ta="6 மாதம் மற்றும் 1 வருடம் ஒரே cup return செய்தால், சிறந்த pattern குறுகிய window-க்குள் உருவானது என்று அர்த்தம். இது சாதாரணம் — algorithm எப்போதும் நீண்ட cup-ஐ அல்ல, அதிக score கொண்ட cup-ஐ தேர்வு செய்கிறது.">6 மாதம் மற்றும் 1 வருடம் ஒரே cup return செய்தால், சிறந்த pattern குறுகிய window-க்குள் உருவானது என்று அர்த்தம். இது சாதாரணம் — algorithm எப்போதும் நீண்ட cup-ஐ அல்ல, அதிக score கொண்ட cup-ஐ தேர்வு செய்கிறது.</span>
+</div>
+
+
+<!-- CHAPTER 7 -->
+<div class="chapter page-break">
+  <div class="chapter-num"><span data-en="Chapter 7" data-ta="அத்தியாயம் 7">அத்தியாயம் 7</span></div>
+  <h2 data-en="Common Mistakes to Avoid" data-ta="தவிர்க்க வேண்டிய பொதுவான தவறுகள்">தவிர்க்க வேண்டிய பொதுவான தவறுகள்</h2>
+</div>
+
+<div class="mistake-card">
+  <div class="mistake-icon">⚠️</div>
+  <div class="mistake-body">
+    <h4 data-en="Mistake 1 — Buying before the breakout" data-ta="தவறு 1 — Breakout-க்கு முன்பே வாங்குவது">தவறு 1 — Breakout-க்கு முன்பே வாங்குவது</h4>
+    <p data-en="Seeing Handle Forming and buying early. The handle could deepen further or fail. Only buy on confirmed breakout above handle high with volume." data-ta="Handle Forming பார்த்து முன்கூட்டியே வாங்கினால், handle இன்னும் கீழே போகலாம் அல்லது pattern fail ஆகலாம். Handle high-ஐ volume-உடன் break செய்த பிறகுதான் வாங்குங்கள்.">Handle Forming பார்த்து முன்கூட்டியே வாங்கினால், handle இன்னும் கீழே போகலாம் அல்லது pattern fail ஆகலாம். Handle high-ஐ volume-உடன் break செய்த பிறகுதான் வாங்குங்கள்.</p>
+  </div>
+</div>
+
+<div class="mistake-card">
+  <div class="mistake-icon">📉</div>
+  <div class="mistake-body">
+    <h4 data-en="Mistake 2 — Ignoring the Trend Score" data-ta="தவறு 2 — Trend Score-ஐ புறக்கணிப்பது">தவறு 2 — Trend Score-ஐ புறக்கணிப்பது</h4>
+    <p data-en="A cup with 0/10 trend score formed in a downtrend. Even if geometry is perfect, the stock is likely in a broader decline. The recovery rule (≥80%) may have filtered the bigger fall but the underlying weakness remains." data-ta="Trend score 0/10 கொண்ட cup ஒரு downtrend-ல் உருவானது. Geometry சரியாக இருந்தாலும், பங்கு ஒரு பெரிய இறக்கத்தில் இருக்கலாம். Recovery rule பெரிய வீழ்ச்சியை filter செய்திருக்கலாம் ஆனால் அடிப்படை பலவீனம் இருக்கும்.">Trend score 0/10 கொண்ட cup ஒரு downtrend-ல் உருவானது. Geometry சரியாக இருந்தாலும், பங்கு ஒரு பெரிய இறக்கத்தில் இருக்கலாம். Recovery rule பெரிய வீழ்ச்சியை filter செய்திருக்கலாம் ஆனால் அடிப்படை பலவீனம் இருக்கும்.</p>
+  </div>
+</div>
+
+<div class="mistake-card">
+  <div class="mistake-icon">🔊</div>
+  <div class="mistake-body">
+    <h4 data-en="Mistake 3 — Entering on low-volume breakout" data-ta="தவறு 3 — குறைந்த volume-ல் breakout-ல் enter செய்வது">தவறு 3 — குறைந்த volume-ல் breakout-ல் enter செய்வது</h4>
+    <p data-en="A price breakout without a volume expansion is a weak breakout that often reverses. Always confirm the breakout candle has significantly higher volume than the 20-day average." data-ta="Volume expansion இல்லாமல் நடக்கும் price breakout பலவீனமானது — பெரும்பாலும் திரும்பிவிடும். Breakout candle-ன் volume, 20-day average-ஐ விட அதிகமாக இருக்கிறதா என்று எப்போதும் சரிபாருங்கள்.">Volume expansion இல்லாமல் நடக்கும் price breakout பலவீனமானது — பெரும்பாலும் திரும்பிவிடும். Breakout candle-ன் volume, 20-day average-ஐ விட அதிகமாக இருக்கிறதா என்று எப்போதும் சரிபாருங்கள்.</p>
+  </div>
+</div>
+
+<div class="mistake-card">
+  <div class="mistake-icon">🎯</div>
+  <div class="mistake-body">
+    <h4 data-en="Mistake 4 — Using targets as guaranteed levels" data-ta="தவறு 4 — Targets-ஐ guaranteed levels என்று நம்புவது">தவறு 4 — Targets-ஐ guaranteed levels என்று நம்புவது</h4>
+    <p data-en="T1 and T2 are measured-move projections based on cup depth. They are probability guides, not guarantees. Always manage with a trailing stop loss after T1 is hit." data-ta="T1 மற்றும் T2 என்பது cup ஆழத்தை அடிப்படையாக கொண்ட அளவிடப்பட்ட நகர்வு திட்டங்கள். அவை probability வழிகாட்டிகள், guarantees அல்ல. T1 hit ஆனதும் trailing stop loss-ஐ பயன்படுத்துங்கள்.">T1 மற்றும் T2 என்பது cup ஆழத்தை அடிப்படையாக கொண்ட அளவிடப்பட்ட நகர்வு திட்டங்கள். அவை probability வழிகாட்டிகள், guarantees அல்ல. T1 hit ஆனதும் trailing stop loss-ஐ பயன்படுத்துங்கள்.</p>
+  </div>
+</div>
+
+
+<!-- CHAPTER 8 — Pre-Trade Checklist -->
+<div class="chapter page-break">
+  <div class="chapter-num"><span data-en="Chapter 8" data-ta="அத்தியாயம் 8">அத்தியாயம் 8</span></div>
+  <h2 data-en="Pre-Trade Checklist" data-ta="Trade முன் Checklist">Trade முன் Checklist</h2>
+  <p data-en="Before entering any Cup &amp; Handle breakout trade, run through this checklist." data-ta="எந்த Cup &amp; Handle breakout trade-க்கும் முன்பு இந்த checklist-ஐ பின்பற்றுங்கள்.">எந்த Cup &amp; Handle breakout trade-க்கும் முன்பு இந்த checklist-ஐ பின்பற்றுங்கள்.</p>
+</div>
+
+<div class="checklist-section">
+  <div class="cl-title" data-en="Cup &amp; Handle Entry Checklist" data-ta="Cup &amp; Handle Entry Checklist">Cup &amp; Handle Entry Checklist</div>
+
+  <div class="cl-item">
+    <div class="cl-box"></div>
+    <div class="cl-content">
+      <div class="cl-q" data-en="Stage is Complete ✅ (not just Handle Forming or Cup Complete)" data-ta="Stage, Complete ✅ ஆக உள்ளதா? (Handle Forming அல்லது Cup Complete மட்டும் இல்லை)">Stage, Complete ✅ ஆக உள்ளதா? (Handle Forming அல்லது Cup Complete மட்டும் இல்லை)</div>
+      <div class="cl-hint" data-en="Only trade the Complete stage. Earlier stages are for monitoring only." data-ta="Complete stage-ல் மட்டுமே trade செய்யுங்கள். முந்தைய stages monitor மட்டும்.">Complete stage-ல் மட்டுமே trade செய்யுங்கள். முந்தைய stages monitor மட்டும்.</div>
+    </div>
+    <div class="cl-badge"><span class="tag tag-red" data-en="Required" data-ta="கட்டாயம்">கட்டாயம்</span></div>
+  </div>
+
+  <div class="cl-item">
+    <div class="cl-box"></div>
+    <div class="cl-content">
+      <div class="cl-q" data-en="Confidence Score ≥ 50 (ideally ≥ 60)" data-ta="Confidence Score ≥ 50 உள்ளதா? (சிறந்தது ≥ 60)">Confidence Score ≥ 50 உள்ளதா? (சிறந்தது ≥ 60)</div>
+      <div class="cl-hint" data-en="Below 50 indicates weak geometry or context. Not worth the risk." data-ta="50-க்கு கீழே = பலவீனமான geometry அல்லது context. Risk எடுக்க வேண்டாம்.">50-க்கு கீழே = பலவீனமான geometry அல்லது context. Risk எடுக்க வேண்டாம்.</div>
+    </div>
+    <div class="cl-badge"><span class="tag tag-red" data-en="Required" data-ta="கட்டாயம்">கட்டாயம்</span></div>
+  </div>
+
+  <div class="cl-item">
+    <div class="cl-box"></div>
+    <div class="cl-content">
+      <div class="cl-q" data-en="Nifty 50 is above its 50-day EMA (uptrend)" data-ta="Nifty 50, 50-day EMA-க்கு மேல் உள்ளதா? (uptrend)">Nifty 50, 50-day EMA-க்கு மேல் உள்ளதா? (uptrend)</div>
+      <div class="cl-hint" data-en="Cup & Handle patterns work best in a broad market uptrend. Avoid during Nifty downtrend." data-ta="Cup & Handle patterns broad market uptrend-ல் சிறப்பாக வேலை செய்கின்றன. Nifty downtrend-ல் தவிர்க்கவும்.">Cup & Handle patterns broad market uptrend-ல் சிறப்பாக வேலை செய்கின்றன. Nifty downtrend-ல் தவிர்க்கவும்.</div>
+    </div>
+    <div class="cl-badge"><span class="tag tag-red" data-en="Required" data-ta="கட்டாயம்">கட்டாயம்</span></div>
+  </div>
+
+  <div class="cl-item">
+    <div class="cl-box"></div>
+    <div class="cl-content">
+      <div class="cl-q" data-en="R:R ratio ≥ 2× (risk ₹1 to make ₹2 or more)" data-ta="R:R ratio ≥ 2× உள்ளதா? (₹1 risk-க்கு ₹2 அல்லது அதிகம்)">R:R ratio ≥ 2× உள்ளதா? (₹1 risk-க்கு ₹2 அல்லது அதிகம்)</div>
+      <div class="cl-hint" data-en="If the tool shows R:R below 2×, the entry price is too high relative to the stop." data-ta="Tool 2×-க்கு கீழ் R:R காட்டினால், stop-க்கு ஒப்பிட்டு entry price அதிகமாக உள்ளது.">Tool 2×-க்கு கீழ் R:R காட்டினால், stop-க்கு ஒப்பிட்டு entry price அதிகமாக உள்ளது.</div>
+    </div>
+    <div class="cl-badge"><span class="tag tag-gold" data-en="Important" data-ta="முக்கியம்">முக்கியம்</span></div>
+  </div>
+
+  <div class="cl-item">
+    <div class="cl-box"></div>
+    <div class="cl-content">
+      <div class="cl-q" data-en="Volume dry-up badge is showing (▼)" data-ta="Volume dry-up badge காட்டப்படுகிறதா? (▼)">Volume dry-up badge காட்டப்படுகிறதா? (▼)</div>
+      <div class="cl-hint" data-en="Volume contracting in the handle means sellers are exhausted. A high-volume breakout from low-volume handle is the ideal setup." data-ta="Handle-ல் volume குறைந்தால் sellers தீர்ந்துவிட்டனர் என்று அர்த்தம். Low volume handle-லிருந்து high volume breakout — இதுவே சிறந்த setup.">Handle-ல் volume குறைந்தால் sellers தீர்ந்துவிட்டனர் என்று அர்த்தம். Low volume handle-லிருந்து high volume breakout — இதுவே சிறந்த setup.</div>
+    </div>
+    <div class="cl-badge"><span class="tag tag-gold" data-en="Important" data-ta="முக்கியம்">முக்கியம்</span></div>
+  </div>
+
+  <div class="cl-item">
+    <div class="cl-box"></div>
+    <div class="cl-content">
+      <div class="cl-q" data-en="No major earnings announcement in the next 2 weeks" data-ta="அடுத்த 2 வாரங்களில் பெரிய earnings announcement இல்லையா?">அடுத்த 2 வாரங்களில் பெரிய earnings announcement இல்லையா?</div>
+      <div class="cl-hint" data-en="Earnings can gap the stock 10–15% in any direction, invalidating the pattern and stop-loss." data-ta="Earnings results பங்கை எந்த திசையிலும் 10–15% gap செய்யலாம், pattern மற்றும் stop-loss-ஐ செல்லாமல் செய்யும்.">Earnings results பங்கை எந்த திசையிலும் 10–15% gap செய்யலாம், pattern மற்றும் stop-loss-ஐ செல்லாமல் செய்யும்.</div>
+    </div>
+    <div class="cl-badge"><span class="tag tag-gold" data-en="Important" data-ta="முக்கியம்">முக்கியம்</span></div>
+  </div>
+
+  <div class="cl-item">
+    <div class="cl-box"></div>
+    <div class="cl-content">
+      <div class="cl-q" data-en="Visual check: does the chart actually look like a cup?" data-ta="கண்களால் சரிபாருங்கள்: chart உண்மையிலேயே cup போல் தெரிகிறதா?">கண்களால் சரிபாருங்கள்: chart உண்மையிலேயே cup போல் தெரிகிறதா?</div>
+      <div class="cl-hint" data-en="The engine is geometric and deterministic, but always do a final visual sanity check on the chart overlay before entering." data-ta="Engine geometric மற்றும் deterministic, ஆனால் enter செய்வதற்கு முன்பு chart overlay-ல் கண்களால் ஒரு இறுதி சரிபார்ப்பு செய்யுங்கள்.">Engine geometric மற்றும் deterministic, ஆனால் enter செய்வதற்கு முன்பு chart overlay-ல் கண்களால் ஒரு இறுதி சரிபார்ப்பு செய்யுங்கள்.</div>
+    </div>
+    <div class="cl-badge"><span class="tag tag-blue" data-en="Sanity" data-ta="சரிபார்ப்பு">சரிபார்ப்பு</span></div>
+  </div>
+</div>
+
+
+<!-- Footer -->
+<div class="divider"></div>
+<div style="text-align:center;margin-bottom:2rem;">
+  <a href="/cup_handle.html" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;border-radius:10px;padding:10px 24px;font-weight:700;font-size:14px;text-decoration:none;">
+    ☕ <span data-en="Open Cup &amp; Handle Scanner" data-ta="Cup &amp; Handle Scanner திறக்கவும்">Cup &amp; Handle Scanner திறக்கவும்</span>
+  </a>
+</div>
+
+</div><!-- .page -->
+
+<div class="footer">
+  <strong>TradeZen</strong> — <span data-en="Educational purpose only. Not SEBI registered. Not investment advice." data-ta="கல்வி நோக்கம் மட்டும். SEBI பதிவு செய்யப்படவில்லை. முதலீட்டு ஆலோசனை அல்ல.">கல்வி நோக்கம் மட்டும். SEBI பதிவு செய்யப்படவில்லை. முதலீட்டு ஆலோசனை அல்ல.</span><br>
+  © 2026 TradeZen
+</div>
+
+<script>
+// Language toggle
+let _lang = localStorage.getItem('tz_lang') || 'ta';
+applyLang(_lang);
+
+function toggleLang() {
+  _lang = _lang === 'ta' ? 'en' : 'ta';
+  localStorage.setItem('tz_lang', _lang);
+  applyLang(_lang);
+}
+
+function applyLang(lang) {
+  document.querySelectorAll('[data-en][data-ta]').forEach(el => {
+    el.textContent = lang === 'en' ? el.dataset.en : el.dataset.ta;
+  });
+  const btn = document.getElementById('langToggle');
+  if (btn) btn.textContent = lang === 'en' ? 'தமிழ்' : 'EN';
+}
+</script>
+</body>
+</html>
