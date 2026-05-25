@@ -546,7 +546,7 @@
   function buildLeftRail(lesson) {
     const outlineItems = (lesson.outline || []).map(item => {
       if (item.sep) return `<li class="sep"></li>`;
-      return `<li data-jump="${item.card}"><span class="marker"><span class="num">${item.card}</span></span><span class="label" data-en="${esc(item.label.en)}" data-ta="${esc(item.label.ta||'')}">${esc(item.label.en)}</span></li>`;
+      return `<li data-jump="${item.card}"><span class="marker"><span class="num">${item.card}</span></span><span class="label" data-en="${esc(en(item.label))}" data-ta="${esc(ta(item.label))}">${esc(en(item.label))}</span></li>`;
     }).join('');
 
     const titleHtml = renderTitle(lesson.title);
@@ -560,7 +560,7 @@
       <div class="v" data-en="${esc(en(lesson.module_label))}" data-ta="${esc(ta(lesson.module_label))}">${esc(en(lesson.module_label))}</div>
     </div>
   </div>
-  <div class="head" data-en="${esc(lesson.lesson_label.en)}" data-ta="${esc(lesson.lesson_label.ta||'')}">${esc(lesson.lesson_label.en)}</div>
+  <div class="head" data-en="${esc(en(lesson.lesson_label))}" data-ta="${esc(ta(lesson.lesson_label))}">${esc(en(lesson.lesson_label))}</div>
   <h3>${titleHtml}</h3>
   <ul class="outline" id="outline">${outlineItems}</ul>
 </div>

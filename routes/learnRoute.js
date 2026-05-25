@@ -207,6 +207,10 @@ router.get('/lesson/:id', async (req, res) => {
       subject_id:   null,
       module_id:    ch.module_slug,
       module_label: ch.module_title,
+      lesson_label: {
+        en: `LESSON ${ch.order} · ${allCards.length} CARDS`,
+        ta: `பாடம் ${ch.order} · ${allCards.length} கார்டுகள்`,
+      },
       order:        ch.order,
       level:        ch.level || 'beginner',
       xp:           ch.xp,
