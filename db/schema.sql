@@ -2,7 +2,7 @@
 -- Engine: PostgreSQL 15+
 -- Run via db/init.js on every server start (CREATE TABLE IF NOT EXISTS = safe to repeat)
 
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- gen_random_uuid() is built-in from PostgreSQL 13+ — no extension needed
 
 -- ─── LOOKUP TABLES ─────────────────────────────────────────────────────────
 
