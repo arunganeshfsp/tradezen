@@ -13,11 +13,20 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
   height:calc(100vh - 52px);overflow-y:auto;}
 #editor{flex:1;height:calc(100vh - 52px);overflow-y:auto;padding:1.25rem 1.5rem;}
 .tree-cat{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:10px 12px 2px;}
-.tree-mod{padding:4px 12px 4px 18px;color:#c9d1d9;font-size:12px;}
-.tree-ch{padding:4px 12px 4px 30px;cursor:pointer;border-radius:4px;display:flex;align-items:center;
+.tree-mod{padding:4px 12px 4px 18px;color:#c9d1d9;font-size:12px;display:flex;
+  align-items:center;justify-content:space-between;padding-right:8px;}
+.tree-mod-add{background:none;border:none;color:var(--muted);font-size:15px;line-height:1;
+  cursor:pointer;padding:0 4px;border-radius:3px;opacity:0;transition:opacity .12s;flex-shrink:0;}
+.tree-mod:hover .tree-mod-add{opacity:1;}
+.tree-mod-add:hover{color:var(--gain);background:rgba(63,185,80,.12);}
+.tree-ch{padding:4px 8px 4px 30px;cursor:pointer;border-radius:4px;display:flex;align-items:center;
   gap:7px;color:var(--muted);transition:background .12s;}
 .tree-ch:hover{background:rgba(88,166,255,.1);color:var(--txt);}
 .tree-ch.active{background:rgba(88,166,255,.18);color:var(--accent);}
+.tree-ch-del{background:none;border:none;color:transparent;font-size:12px;cursor:pointer;
+  padding:0 3px;margin-left:auto;flex-shrink:0;transition:color .12s;line-height:1;}
+.tree-ch:hover .tree-ch-del{color:var(--muted);}
+.tree-ch-del:hover{color:var(--danger) !important;}
 .sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .s-draft{background:#555;} .s-in_review{background:var(--warn);} .s-approved{background:var(--accent);}
 .s-scheduled{background:#a371f7;} .s-published{background:var(--gain);} .s-archived{background:var(--danger);}
@@ -145,6 +154,49 @@ table.bl-tbl{width:100%;font-size:11px;} .bl-tbl th{color:var(--muted);padding-b
   </div>
 </div>
 <div id="toast-area"></div>
+
+<!-- Add Chapter Modal -->
+<div class="modal fade" id="addChModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+    <div class="modal-content" style="background:var(--surf);border:1px solid var(--bdr);">
+      <div class="modal-header" style="border-color:var(--bdr);padding:14px 18px;">
+        <span style="font-size:15px;font-weight:600;">＋ Add New Chapter</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:16px 18px;">
+        <div class="mb-3 p-2 rounded" style="background:var(--surf2);font-size:12px;">
+          Module: <strong id="nc-module-label" style="color:var(--accent);"></strong>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-7">
+            <label class="form-label">Title (English) <span style="color:var(--danger);">*</span></label>
+            <input class="form-control form-control-sm" id="nc-ten" placeholder="e.g. What is a Share?">
+          </div>
+          <div class="col-5">
+            <label class="form-label">Emoji</label>
+            <input class="form-control form-control-sm" id="nc-emoji" placeholder="📄">
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Title (Tamil)</label>
+          <input class="form-control form-control-sm" id="nc-tta" placeholder="e.g. Share என்றால் என்ன?">
+        </div>
+        <div class="mb-1">
+          <label class="form-label">Difficulty</label>
+          <select class="form-select form-select-sm" id="nc-diff"></select>
+        </div>
+        <div class="mt-2 text-muted" style="font-size:11px;">
+          Chapter is created as <strong>draft</strong>. Slug is auto-generated. Add content in the Lesson Builder tab.
+        </div>
+      </div>
+      <div class="modal-footer" style="border-color:var(--bdr);padding:12px 18px;">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="createChapter()">Create Chapter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -220,13 +272,20 @@ function renderTree(data) {
     root.appendChild(d);
     (cat.modules||[]).forEach(mod => {
       const m = document.createElement('div');
-      m.className='tree-mod'; m.textContent = mod.title?.en||mod.slug;
+      m.className='tree-mod';
+      m.innerHTML=`<span>${mod.title?.en||mod.slug}</span>
+        <button class="tree-mod-add" title="Add chapter to this module"
+          onclick="openAddChapter(event,'${mod.module_id}','${esc(mod.title?.en||mod.slug)}')">＋</button>`;
       root.appendChild(m);
       (mod.chapters||[]).forEach(ch => {
         const c = document.createElement('div');
         c.className='tree-ch'; c.dataset.slug=ch.slug;
-        c.innerHTML=`<span class="sdot ${STATUS_CLS[ch.status]||''}"></span><span>${ch.emoji||''} ${ch.title?.en||ch.slug}</span>`;
-        c.onclick=()=>selectChapter(ch.slug);
+        const safeName = (ch.title?.en||ch.slug).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        c.innerHTML=`<span class="sdot ${STATUS_CLS[ch.status]||''}"></span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ch.emoji||''} ${ch.title?.en||ch.slug}</span>
+          <button class="tree-ch-del" title="Permanently delete this chapter"
+            onclick="confirmDeleteChapter(event,'${ch.slug}','${safeName}')">🗑</button>`;
+        c.addEventListener('click', e => { if (!e.target.closest('.tree-ch-del')) selectChapter(ch.slug); });
         root.appendChild(c);
       });
     });
@@ -800,6 +859,57 @@ function textareaRow(idx,p1,v1,p2,v2) { return `<div class="col-6">
   <div class="col-6"><textarea class="form-control form-control-sm" rows="2" onchange="setLessonField(${idx},'${p2}',this.value)">${esc(v2)}</textarea></div>`; }
 function textPairField(idx,p1,p2,v1,v2,label) { return `<label class="form-label">${label||''}</label>
   <div class="row g-1">${inputRow(idx,p1,v1,p2,v2)}</div>`; }
+
+// ── Add chapter ───────────────────────────────────────────────────────────────
+let _addChModuleId = null;
+
+function openAddChapter(e, moduleId, moduleLabel) {
+  e.stopPropagation();
+  _addChModuleId = moduleId;
+  document.getElementById('nc-module-label').textContent = moduleLabel;
+  document.getElementById('nc-ten').value   = '';
+  document.getElementById('nc-tta').value   = '';
+  document.getElementById('nc-emoji').value = '';
+  const sel = document.getElementById('nc-diff');
+  sel.innerHTML = lookups.difficulties.map(d =>
+    `<option value="${d.difficulty_id}">${d.icon||''} ${d.label?.en||d.slug}</option>`).join('');
+  new bootstrap.Modal(document.getElementById('addChModal')).show();
+  setTimeout(() => document.getElementById('nc-ten').focus(), 300);
+}
+
+async function createChapter() {
+  const titleEn = document.getElementById('nc-ten').value.trim();
+  if (!titleEn) { toast('Title (English) is required', 'danger'); return; }
+  try {
+    const result = await api('POST', '/chapter', {
+      module_id:    _addChModuleId,
+      title_en:     titleEn,
+      title_ta:     document.getElementById('nc-tta').value.trim(),
+      emoji:        document.getElementById('nc-emoji').value.trim() || '📄',
+      difficulty_id: parseInt(document.getElementById('nc-diff').value) || null,
+    });
+    bootstrap.Modal.getInstance(document.getElementById('addChModal')).hide();
+    toast(`"${titleEn}" created as draft`, 'success');
+    await loadTree();
+    selectChapter(result.slug);
+  } catch(e) { toast('Create failed: ' + e.message, 'danger'); }
+}
+
+// ── Delete chapter ─────────────────────────────────────────────────────────────
+async function confirmDeleteChapter(e, slug, title) {
+  e.stopPropagation();
+  if (!confirm(`Permanently delete "${title}"?\n\nAll cards, questions, and content for this chapter will be deleted. This cannot be undone.`)) return;
+  try {
+    await api('DELETE', '/chapter/' + slug);
+    toast(`"${title}" permanently deleted`, 'success');
+    if (currentSlug === slug) {
+      currentSlug = null;
+      document.getElementById('no-sel').style.display   = '';
+      document.getElementById('ch-editor').style.display = 'none';
+    }
+    await loadTree();
+  } catch(e) { toast('Delete failed: ' + e.message, 'danger'); }
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadTree();

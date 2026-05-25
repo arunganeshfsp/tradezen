@@ -238,6 +238,69 @@ router.post('/chapter/:slug/status', async (req, res) => {
   }
 });
 
+// ── Create new chapter ───────────────────────────────────────────────────────
+router.post('/chapter', async (req, res) => {
+  const { module_id, title_en, title_ta, emoji, difficulty_id } = req.body;
+  if (!module_id || !title_en) return res.status(400).json({ error: 'module_id and title_en required' });
+  try {
+    const { rows: modRows } = await query(
+      `SELECT slug FROM modules WHERE module_id=$1 AND deleted_at IS NULL`, [module_id]
+    );
+    if (!modRows.length) return res.status(404).json({ error: 'module not found' });
+    const modSlug = modRows[0].slug;
+
+    const { rows: orderRows } = await query(
+      `SELECT COALESCE(MAX(display_order), 0) + 1 AS next_order FROM chapters WHERE module_id=$1`,
+      [module_id]
+    );
+    const nextOrder = orderRows[0].next_order;
+
+    // Find a unique slug
+    let slug = `${modSlug}c${nextOrder}`;
+    let attempt = nextOrder;
+    while (true) {
+      const { rows: clash } = await query(`SELECT 1 FROM chapters WHERE slug=$1`, [slug]);
+      if (!clash.length) break;
+      attempt++;
+      slug = `${modSlug}c${attempt}`;
+    }
+
+    const title = { en: title_en, ta: title_ta || '' };
+    const { rows } = await query(`
+      INSERT INTO chapters (module_id, slug, title, emoji, display_order, difficulty_id, status)
+      VALUES ($1,$2,$3,$4,$5,$6,'draft') RETURNING slug
+    `, [module_id, slug, title, emoji || '📄', nextOrder, difficulty_id || null]);
+
+    res.json({ ok: true, slug: rows[0].slug });
+  } catch (err) {
+    console.error('[adminLearn] create chapter:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Hard delete chapter ──────────────────────────────────────────────────────
+router.delete('/chapter/:slug', async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT chapter_id FROM chapters WHERE slug=$1`, [req.params.slug]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'not found' });
+    const chapterId = rows[0].chapter_id;
+
+    // Nullify source_chapter_id first (no CASCADE on that FK)
+    await query(`UPDATE question_bank SET source_chapter_id=NULL WHERE source_chapter_id=$1`, [chapterId]);
+
+    // Hard delete — cascades handle chapter_cards, chapter_questions, chapter_tags,
+    // chapter_prerequisites, path_chapters; glossary_terms/assets use SET NULL
+    await query(`DELETE FROM chapters WHERE chapter_id=$1`, [chapterId]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[adminLearn] delete chapter:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Lookup data (for dropdowns) ──────────────────────────────────────────────
 router.get('/lookups', async (_req, res) => {
   try {

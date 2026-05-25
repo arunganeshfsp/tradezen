@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Learn Admin — Content Editor Guide</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0d1117;
+  --surf:   #161b22;
+  --surf2:  #21262d;
+  --bdr:    #30363d;
+  --txt:    #e6edf3;
+  --muted:  #8b949e;
+  --accent: #58a6ff;
+  --gain:   #3fb950;
+  --warn:   #d29922;
+  --danger: #f85149;
+  --quiz:   #e3b341;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--txt); font-size: 14px; line-height: 1.7; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Layout */
+.layout { display: flex; gap: 0; min-height: 100vh; }
+#toc-sidebar {
+  width: 240px; min-width: 240px; background: var(--surf);
+  border-right: 1px solid var(--bdr);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  padding: 1.5rem 0;
+}
+#content { flex: 1; max-width: 860px; padding: 2rem 2.5rem; }
+
+/* TOC */
+.toc-title { font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); padding: 0 1.2rem; margin-bottom: .5rem; }
+.toc-link { display: block; padding: 5px 1.2rem; font-size: 12px; color: var(--muted);
+  border-left: 2px solid transparent; transition: all .12s; }
+.toc-link:hover { color: var(--txt); text-decoration: none; }
+.toc-link.active { color: var(--accent); border-left-color: var(--accent); background: rgba(88,166,255,.06); }
+.toc-link.sub { padding-left: 2rem; font-size: 11px; }
+
+/* Page sections */
+.section { margin-bottom: 3rem; padding-top: 0.5rem; }
+.section-title { font-size: 22px; font-weight: 700; margin-bottom: 0.3rem; }
+.section-sub { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
+h3 { font-size: 16px; font-weight: 600; margin: 1.8rem 0 0.8rem; color: var(--txt); }
+h4 { font-size: 14px; font-weight: 600; margin: 1.4rem 0 0.6rem; color: var(--accent); }
+
+/* Steps */
+.steps { list-style: none; padding: 0; margin: 0; }
+.step { display: flex; gap: 14px; margin-bottom: 1rem; align-items: flex-start; }
+.step-num { width: 26px; height: 26px; min-width: 26px; border-radius: 50%;
+  background: var(--accent); color: #0d1117; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.step-num.quiz { background: var(--quiz); }
+.step-num.green { background: var(--gain); }
+.step-body { flex: 1; }
+.step-body p { margin-bottom: 0.3rem; }
+
+/* Callout boxes */
+.callout { border-radius: 8px; padding: 12px 16px; margin: 1rem 0; font-size: 13px; }
+.callout-tip  { background: rgba(63,185,80,.1);  border-left: 3px solid var(--gain);  }
+.callout-warn { background: rgba(210,153,34,.1); border-left: 3px solid var(--warn);  }
+.callout-info { background: rgba(88,166,255,.1); border-left: 3px solid var(--accent); }
+.callout-quiz { background: rgba(227,179,65,.1); border-left: 3px solid var(--quiz);  }
+.callout strong { display: block; margin-bottom: 3px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* UI Mock elements */
+.ui-btn { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+  border-radius: 5px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.ui-btn-primary  { background: var(--accent); color: #0d1117; }
+.ui-btn-success  { background: var(--gain);   color: #0d1117; }
+.ui-btn-warning  { background: var(--warn);   color: #0d1117; }
+.ui-btn-quiz     { border: 1px solid var(--quiz); color: var(--quiz); background: transparent; }
+.ui-btn-ghost    { border: 1px solid var(--bdr); color: var(--muted); background: transparent; }
+.ui-btn-danger   { background: var(--danger); color: #fff; }
+.ui-tab  { display: inline-block; padding: 4px 12px; font-size: 12px;
+  border-bottom: 2px solid transparent; color: var(--muted); }
+.ui-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.ui-sdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 4px; }
+.ui-badge { display: inline-block; padding: 2px 8px; border-radius: 4px;
+  background: var(--surf2); border: 1px solid var(--bdr); font-size: 11px; }
+kbd { background: var(--surf2); border: 1px solid var(--bdr); border-radius: 4px;
+  padding: 1px 6px; font-size: 11px; color: var(--txt); }
+
+/* Screen mockups */
+.mock { background: var(--surf); border: 1px solid var(--bdr); border-radius: 10px;
+  padding: 14px; margin: 1rem 0; font-size: 12px; }
+.mock-nav { background: var(--surf2); border-radius: 6px; padding: 8px 12px;
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mock-tree-cat { font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .08em; padding: 6px 8px 2px; }
+.mock-tree-ch { padding: 4px 8px 4px 20px; display: flex; align-items: center;
+  gap: 6px; border-radius: 4px; color: var(--muted); font-size: 12px; }
+.mock-tree-ch.active { background: rgba(88,166,255,.15); color: var(--accent); }
+.mock-item { background: var(--surf2); border: 1px solid var(--bdr); border-radius: 7px;
+  padding: 10px 12px; margin-bottom: 6px; }
+.mock-item.card-type { border-left: 3px solid var(--accent); }
+.mock-item.quiz-type { border-left: 3px solid var(--quiz); }
+.mock-izone { display: flex; align-items: center; gap: 8px; padding: 4px 0;
+  opacity: .6; font-size: 11px; }
+.mock-izone::before, .mock-izone::after { content:''; flex:1; height:1px; background:var(--bdr); }
+.mock-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.mock-input { flex: 1; background: var(--bg); border: 1px solid var(--bdr); border-radius: 5px;
+  padding: 4px 8px; color: var(--muted); font-size: 11px; }
+.mock-label { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+
+/* Block ref table */
+.block-ref { background: var(--surf); border: 1px solid var(--bdr); border-radius: 8px;
+  overflow: hidden; margin-bottom: 8px; }
+.block-ref-hd { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--surf2); }
+.block-ref-icon { font-size: 18px; width: 28px; text-align: center; }
+.block-ref-bd { padding: 10px 14px; font-size: 12px; color: var(--muted); }
+.block-ref-ex { background: var(--bg); border-radius: 5px; padding: 6px 10px;
+  font-size: 11px; margin-top: 6px; color: var(--txt); }
+
+/* Status flow */
+.status-flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 1rem 0; }
+.sf-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.sf-arrow { color: var(--muted); font-size: 16px; }
+
+/* Hero */
+.hero { background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+  border: 1px solid var(--bdr); border-radius: 12px; padding: 2rem;
+  margin-bottom: 2.5rem; }
+.hero h1 { font-size: 28px; font-weight: 800; margin-bottom: .5rem; }
+.hero p { color: var(--muted); font-size: 14px; margin: 0; }
+
+/* Numbered section headers */
+.sec-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+.sec-num { width: 32px; height: 32px; background: var(--surf2); border: 1px solid var(--bdr);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+
+hr.section-divider { border-color: var(--bdr); margin: 2.5rem 0; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- TOC Sidebar -->
+  <nav id="toc-sidebar">
+    <div class="toc-title">Contents</div>
+    <a class="toc-link" href="#s-overview">Overview</a>
+    <a class="toc-link" href="#s-login">Logging In</a>
+    <a class="toc-link" href="#s-sidebar">The Sidebar</a>
+    <a class="toc-link" href="#s-metadata">Metadata Tab</a>
+    <a class="toc-link" href="#s-builder">Lesson Builder</a>
+    <a class="toc-link sub" href="#s-cards">Adding Cards</a>
+    <a class="toc-link sub" href="#s-blocks">Adding Blocks</a>
+    <a class="toc-link sub" href="#s-quiz">Adding Quiz Questions</a>
+    <a class="toc-link sub" href="#s-reorder">Moving &amp; Removing</a>
+    <a class="toc-link" href="#s-workflow">Workflow Tab</a>
+    <a class="toc-link" href="#s-blockref">Block Type Reference</a>
+    <a class="toc-link" href="#s-tips">Quick Tips</a>
+  </nav>
+
+  <!-- Main content -->
+  <main id="content">
+
+    <!-- Hero -->
+    <div class="hero" id="s-overview">
+      <div style="font-size:36px; margin-bottom:.75rem;">📚</div>
+      <h1>Learn Admin — Editor Guide</h1>
+      <p>A complete guide to creating and publishing lesson content on the TradeZen learn platform. No technical knowledge required.</p>
+    </div>
+
+    <div class="section" style="margin-bottom:1.5rem;">
+      <p>This page walks you through everything you need to build a lesson — from filling in chapter details to adding cards, quiz questions, and publishing to learners. Use the table of contents on the left to jump to any topic.</p>
+      <div class="callout callout-info">
+        <strong>📍 Where to find the admin page</strong>
+        Open your browser and go to: <code style="font-size:12px;">https://tradeze.in/mgmt/learn-admin.html</code>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- LOGGING IN -->
+    <div class="section" id="s-login">
+      <div class="sec-hd">
+        <div class="sec-num">1</div>
+        <div>
+          <div class="section-title">Logging In</div>
+          <div class="section-sub">The admin page requires a token to protect it from unauthorised access.</div>
+        </div>
+      </div>
+
+      <p>When you first open the page, a prompt appears asking for your <strong>Admin Token</strong>. This is a password set by your server administrator.</p>
+
+      <div class="mock" style="max-width:420px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Browser prompt</div>
+        <div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;padding:14px;">
+          <div style="font-size:13px; margin-bottom:10px;">Enter ADMIN_TOKEN:</div>
+          <div style="background:var(--bg);border:1px solid var(--accent);border-radius:5px;padding:6px 10px;
+            font-size:12px; color:var(--muted); margin-bottom:10px;">••••••••••••</div>
+          <div class="d-flex gap-2">
+            <span class="ui-btn ui-btn-primary">OK</span>
+            <span class="ui-btn ui-btn-ghost">Cancel</span>
+          </div>
+        </div>
+      </div>
+
+      <ul class="steps mt-3">
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">Type your Admin Token exactly as given to you. It is case-sensitive.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">Click <strong>OK</strong>. The token is saved for this browser session — you won't be asked again until you close the tab.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">If you need to change the token later, click the <span class="ui-btn ui-btn-ghost">🔑 Token</span> button in the top-right corner.</div>
+        </li>
+      </ul>
+
+      <div class="callout callout-warn">
+        <strong>⚠️ Wrong token?</strong>
+        The tree will fail to load and you'll see an error toast at the bottom-right. Click <span class="ui-btn ui-btn-ghost">🔑 Token</span>, re-enter the correct token, then refresh the page.
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- SIDEBAR -->
+    <div class="section" id="s-sidebar">
+      <div class="sec-hd">
+        <div class="sec-num">2</div>
+        <div>
+          <div class="section-title">The Sidebar</div>
+          <div class="section-sub">Navigate all categories, modules, and chapters from the left panel.</div>
+        </div>
+      </div>
+
+      <div class="mock" style="max-width:280px;">
+        <div style="padding:6px 8px 10px;">
+          <div class="mock-input">🔍 Search chapters…</div>
+        </div>
+        <div class="mock-tree-cat">📚 Foundation</div>
+        <div class="mock-tree-ch" style="padding-left:12px; color:var(--txt); font-size:11px; font-weight:600;">Stock Market Basics</div>
+        <div class="mock-tree-ch">
+          <span class="ui-sdot" style="background:var(--gain);"></span> 📈 What is the Stock Market?
+        </div>
+        <div class="mock-tree-ch">
+          <span class="ui-sdot" style="background:var(--gain);"></span> 💰 Why Do Companies Need Money?
+        </div>
+        <div class="mock-tree-ch active">
+          <span class="ui-sdot" style="background:#555;"></span> 🛒 How to Buy Your First Share
+        </div>
+        <div class="mock-tree-ch">
+          <span class="ui-sdot" style="background:#555;"></span> 📉 Why Price Moves?
+        </div>
+      </div>
+
+      <h3>Status Dots</h3>
+      <p>Each chapter shows a coloured dot that indicates its current publishing status:</p>
+
+      <table style="font-size:13px; width:100%; max-width:480px;" class="mb-3">
+        <tbody>
+          <tr><td style="padding:5px 0; width:140px;"><span class="ui-sdot" style="background:#555;"></span> Grey</td><td style="color:var(--muted);">Draft — content being written</td></tr>
+          <tr><td><span class="ui-sdot" style="background:var(--warn);"></span> Yellow</td><td style="color:var(--muted);">In Review — waiting for approval</td></tr>
+          <tr><td><span class="ui-sdot" style="background:var(--accent);"></span> Blue</td><td style="color:var(--muted);">Approved — ready to publish</td></tr>
+          <tr><td><span class="ui-sdot" style="background:#a371f7;"></span> Purple</td><td style="color:var(--muted);">Scheduled — set to publish later</td></tr>
+          <tr><td><span class="ui-sdot" style="background:var(--gain);"></span> Green</td><td style="color:var(--muted);">Published — live for learners</td></tr>
+          <tr><td><span class="ui-sdot" style="background:var(--danger);"></span> Red</td><td style="color:var(--muted);">Archived — retired content</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Searching</h3>
+      <p>Type any part of a chapter name in the search box to filter the list instantly. Clear the box to see all chapters again.</p>
+
+      <h3>Opening a Chapter</h3>
+      <p>Click any chapter name to load it in the editor on the right. The chapter heading, slug, and current status appear at the top.</p>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- METADATA -->
+    <div class="section" id="s-metadata">
+      <div class="sec-hd">
+        <div class="sec-num">3</div>
+        <div>
+          <div class="section-title">Metadata Tab</div>
+          <div class="section-sub">Basic chapter information visible in the catalog and lesson header.</div>
+        </div>
+      </div>
+
+      <div class="mock" style="max-width:640px;">
+        <div style="display:flex; gap:8px; border-bottom:1px solid var(--bdr); margin-bottom:12px; padding-bottom:4px;">
+          <span class="ui-tab active">Metadata</span>
+          <span class="ui-tab">Lesson Builder</span>
+          <span class="ui-tab">Workflow</span>
+        </div>
+        <div class="row g-2">
+          <div class="col-6">
+            <div class="mock-label">Title (English)</div>
+            <div class="mock-input" style="color:var(--txt);">How to Buy Your First Share</div>
+          </div>
+          <div class="col-6">
+            <div class="mock-label">Title (Tamil)</div>
+            <div class="mock-input" style="color:var(--txt);">உங்கள் முதல் பங்கை எப்படி வாங்குவது?</div>
+          </div>
+          <div class="col-6">
+            <div class="mock-label">Description (English)</div>
+            <div class="mock-input" style="height:44px;color:var(--txt);">A step-by-step guide to opening a Demat account…</div>
+          </div>
+          <div class="col-6">
+            <div class="mock-label">Description (Tamil)</div>
+            <div class="mock-input" style="height:44px;color:var(--txt);">இந்தியாவில் Demat கணக்கு திறந்து…</div>
+          </div>
+          <div class="col-1"><div class="mock-label">Emoji</div><div class="mock-input">🛒</div></div>
+          <div class="col-2"><div class="mock-label">XP</div><div class="mock-input">40</div></div>
+          <div class="col-2"><div class="mock-label">Duration</div><div class="mock-input">4 min</div></div>
+          <div class="col-3"><div class="mock-label">Difficulty</div><div class="mock-input">🟢 Beginner</div></div>
+        </div>
+        <div class="mt-3"><span class="ui-btn ui-btn-primary">Save Metadata</span></div>
+      </div>
+
+      <h3>Fields Explained</h3>
+      <table style="font-size:13px; width:100%;" class="mb-3">
+        <thead><tr>
+          <th style="padding:6px 8px 6px 0; color:var(--muted); font-weight:600; width:140px;">Field</th>
+          <th style="padding:6px 0; color:var(--muted); font-weight:600;">What it's for</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:5px 8px 5px 0;"><strong>Title EN / TA</strong></td><td style="padding:5px 0; color:var(--muted);">Chapter name shown in the catalog and lesson header</td></tr>
+          <tr><td style="padding:5px 8px 5px 0;"><strong>Description EN / TA</strong></td><td style="padding:5px 0; color:var(--muted);">Short summary shown on hover or in the chapter intro</td></tr>
+          <tr><td style="padding:5px 8px 5px 0;"><strong>Emoji</strong></td><td style="padding:5px 0; color:var(--muted);">Single emoji shown next to the chapter name in the tree</td></tr>
+          <tr><td style="padding:5px 8px 5px 0;"><strong>XP</strong></td><td style="padding:5px 0; color:var(--muted);">Experience points a learner earns for completing this chapter (e.g. 40)</td></tr>
+          <tr><td style="padding:5px 8px 5px 0;"><strong>Duration (min)</strong></td><td style="padding:5px 0; color:var(--muted);">Estimated reading time shown on the chapter card (e.g. 4)</td></tr>
+          <tr><td style="padding:5px 8px 5px 0;"><strong>Difficulty</strong></td><td style="padding:5px 0; color:var(--muted);">Beginner / Intermediate / Expert — shown as a colour label</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>💡 Remember to save</strong>
+        After filling in the fields, always click <span class="ui-btn ui-btn-primary" style="font-size:11px;">Save Metadata</span>. Changes are not auto-saved.
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- LESSON BUILDER -->
+    <div class="section" id="s-builder">
+      <div class="sec-hd">
+        <div class="sec-num">4</div>
+        <div>
+          <div class="section-title">Lesson Builder Tab</div>
+          <div class="section-sub">Build the full lesson content: cards, blocks, and quiz questions in one view.</div>
+        </div>
+      </div>
+
+      <p>The Lesson Builder shows your lesson as a <strong>vertical timeline</strong>. Each item is a card or a quiz question. You build the lesson by adding items from top to bottom, just like laying out a storyboard.</p>
+
+      <div class="mock" style="max-width:640px;">
+        <div style="display:flex; gap:8px; border-bottom:1px solid var(--bdr); margin-bottom:12px; padding-bottom:4px;">
+          <span class="ui-tab">Metadata</span>
+          <span class="ui-tab active">Lesson Builder</span>
+          <span class="ui-tab">Workflow</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:11px; color:var(--muted);">Build your lesson: add cards and insert quiz questions between them.</span>
+          <span class="ui-btn ui-btn-primary" style="font-size:11px;">💾 Save Lesson</span>
+        </div>
+        <div class="mock-izone">
+          <span class="ui-btn ui-btn-ghost" style="font-size:10px;">+ Card</span>
+          <span class="ui-btn ui-btn-quiz" style="font-size:10px;">+ Quiz</span>
+        </div>
+        <div class="mock-item card-type mb-1">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>🎬</span><span style="font-size:11px; font-weight:600;">COVER</span>
+            <span style="flex:1; color:var(--muted); font-size:10px;">How to Buy Your First Share</span>
+            <span style="color:var(--muted); font-size:12px;">↑ ↓ ✕</span>
+          </div>
+        </div>
+        <div class="mock-izone">
+          <span class="ui-btn ui-btn-ghost" style="font-size:10px;">+ Card</span>
+          <span class="ui-btn ui-btn-quiz" style="font-size:10px;">+ Quiz</span>
+        </div>
+        <div class="mock-item card-type mb-1">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>📄</span><span style="font-size:11px; font-weight:600;">CONTENT</span>
+            <span style="flex:1; color:var(--muted); font-size:10px;">3 things you need</span>
+            <span style="color:var(--muted); font-size:12px;">↑ ↓ ✕</span>
+          </div>
+        </div>
+        <div class="mock-izone">
+          <span class="ui-btn ui-btn-ghost" style="font-size:10px;">+ Card</span>
+          <span class="ui-btn ui-btn-quiz" style="font-size:10px;">+ Quiz</span>
+        </div>
+        <div class="mock-item quiz-type">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>❓</span><span style="font-size:11px; font-weight:600; color:var(--quiz);">QUIZ</span>
+            <span style="flex:1; color:var(--muted); font-size:10px;">What is a Demat account used for?</span>
+            <span style="color:var(--muted); font-size:12px;">↑ ↓ ✕</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adding Cards -->
+      <h3 id="s-cards">Adding Cards</h3>
+      <p>There are three card types. A typical lesson uses one Cover, several Content cards, and one Result card.</p>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <div class="mock">
+            <div style="font-size:20px; margin-bottom:6px;">🎬</div>
+            <div style="font-weight:600; margin-bottom:4px;">Cover Card</div>
+            <div style="color:var(--muted); font-size:12px;">The first screen learners see. Set the title, description, and emoji.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="mock">
+            <div style="font-size:20px; margin-bottom:6px;">📄</div>
+            <div style="font-weight:600; margin-bottom:4px;">Content Card</div>
+            <div style="color:var(--muted); font-size:12px;">The main teaching content. Add as many blocks as you need inside each card.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="mock">
+            <div style="font-size:20px; margin-bottom:6px;">🏆</div>
+            <div style="font-weight:600; margin-bottom:4px;">Result Card</div>
+            <div style="color:var(--muted); font-size:12px;">Auto-generated completion screen. Add it at the end — no fields to fill.</div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="steps">
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">Click <span class="ui-btn ui-btn-ghost">+ Card</span> in the gap where you want to add the card.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">A new card appears at that position. The default type is <strong>Content</strong>.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">Click the card header to expand it, then fill in the fields.</div>
+        </li>
+      </ul>
+
+      <!-- Adding Blocks -->
+      <h3 id="s-blocks">Adding Blocks Inside a Content Card</h3>
+      <p>Each Content Card holds a list of <strong>blocks</strong>. Blocks are the individual pieces of content — a paragraph of text, a tip, a table, a comparison. You can mix and match any combination.</p>
+
+      <div class="mock" style="max-width:560px;">
+        <div class="mock-item card-type">
+          <div style="font-size:12px; font-weight:600; margin-bottom:10px;">📄 CONTENT CARD — expanded</div>
+          <div class="brow mb-2" style="background:var(--bg); border:1px solid var(--bdr); border-radius:6px; padding:8px 10px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+              <span style="font-size:12px;">¶</span>
+              <span style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;">Text</span>
+              <button style="background:none;border:none;color:var(--danger);font-size:11px;margin-left:auto;">✕</button>
+            </div>
+            <div class="mock-row">
+              <div class="mock-input" style="flex:1;">Think of it like a bank locker…</div>
+              <div class="mock-input" style="flex:1;">இதை ஒரு வங்கி லாக்கர் போல்…</div>
+            </div>
+          </div>
+          <div class="brow" style="background:var(--bg); border:1px solid var(--bdr); border-radius:6px; padding:8px 10px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+              <span style="font-size:12px;">💡</span>
+              <span style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;">Tip</span>
+              <button style="background:none;border:none;color:var(--danger);font-size:11px;margin-left:auto;">✕</button>
+            </div>
+            <div class="mock-row">
+              <div class="mock-input" style="flex:1;">Popular broker apps in India…</div>
+              <div class="mock-input" style="flex:1;">இந்தியாவில் பிரபலமான broker ஆப்கள்…</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+            <div class="mock-input" style="width:180px;">¶ Text</div>
+            <span class="ui-btn ui-btn-success" style="font-size:11px;">+ Add Block</span>
+          </div>
+        </div>
+      </div>
+
+      <ul class="steps mt-3">
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">Inside an expanded Content Card, find the block type dropdown at the bottom (e.g. <span class="ui-badge">¶ Text</span>).</div>
+        </li>
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">Choose the block type from the dropdown — see the <a href="#s-blockref">Block Type Reference</a> below for guidance on which type to use.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">Click <span class="ui-btn ui-btn-success" style="font-size:11px;">+ Add Block</span>. The block appears at the bottom of the card.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">Fill in the <strong>English</strong> and <strong>Tamil</strong> fields side by side.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">To remove a block, click the <span style="color:var(--danger);">✕</span> button on the right of the block header.</div>
+        </li>
+      </ul>
+
+      <div class="callout callout-tip">
+        <strong>💡 How many blocks per card?</strong>
+        2–4 blocks per card keeps the lesson readable on mobile. If you have more content, add a second Content Card instead of cramming everything into one.
+      </div>
+
+      <!-- Adding Quiz -->
+      <h3 id="s-quiz">Inserting Quiz Questions</h3>
+      <p>Quiz questions appear <strong>between cards</strong> — like checkpoints in the lesson flow. A good lesson places a quiz after every 1–2 content cards.</p>
+
+      <div class="mock" style="max-width:580px;">
+        <div class="mock-item card-type mb-0">
+          <div style="display:flex; align-items:center; gap:6px; font-size:12px;">
+            <span>📄</span><span style="font-weight:600;">CONTENT CARD</span>
+            <span style="color:var(--muted);">— How to open a Demat account</span>
+          </div>
+        </div>
+        <div class="mock-izone" style="opacity:1;">
+          <span class="ui-btn ui-btn-ghost" style="font-size:10px;">+ Card</span>
+          <span class="ui-btn ui-btn-quiz" style="font-size:10px; font-weight:600;">+ Quiz</span>
+        </div>
+        <div class="mock-item quiz-type">
+          <div style="font-size:12px; font-weight:600; color:var(--quiz); margin-bottom:10px;">❓ QUIZ — expanded</div>
+          <div class="mock-row">
+            <div style="font-size:11px; color:var(--muted); width:90px;">Type</div>
+            <div class="mock-input" style="width:160px;">Multiple Choice</div>
+          </div>
+          <div class="mock-row" style="margin-top:6px;">
+            <div class="mock-input" style="flex:1; color:var(--txt);">What is a Demat account used for?</div>
+            <div class="mock-input" style="flex:1; color:var(--txt);">Demat கணக்கு எதற்கு பயன்படுகிறது?</div>
+          </div>
+          <div style="margin-top:8px; font-size:11px; color:var(--muted);">Options (○ = correct answer)</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:4px; font-size:11px;">
+            <input type="radio" checked readonly> <span style="color:var(--muted);">A</span>
+            <div class="mock-input" style="flex:1;">To hold shares electronically</div>
+            <div class="mock-input" style="flex:1;">பங்குகளை மின்னணு முறையில் வைத்திருக்க</div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="steps mt-3">
+        <li class="step">
+          <div class="step-num quiz">1</div>
+          <div class="step-body">Find the gap between two cards where you want the quiz. Click the gold <span class="ui-btn ui-btn-quiz" style="font-size:11px;">+ Quiz</span> button.</div>
+        </li>
+        <li class="step">
+          <div class="step-num quiz">2</div>
+          <div class="step-body">Choose the question type: <strong>Multiple Choice</strong> (2–6 options) or <strong>True / False</strong> (auto-fills two options).</div>
+        </li>
+        <li class="step">
+          <div class="step-num quiz">3</div>
+          <div class="step-body">Type the question in both English and Tamil.</div>
+        </li>
+        <li class="step">
+          <div class="step-num quiz">4</div>
+          <div class="step-body">Fill in each option in English and Tamil. Click the <strong>radio button ○</strong> next to the correct answer to mark it.</div>
+        </li>
+        <li class="step">
+          <div class="step-num quiz">5</div>
+          <div class="step-body">Fill in the Explanation — this is shown to the learner after they answer, whether right or wrong. Keep it concise and educational.</div>
+        </li>
+      </ul>
+
+      <div class="callout callout-quiz">
+        <strong>❓ True / False tip</strong>
+        When you switch the type to <em>True / False</em>, the two options are auto-filled as True / Tamil and False / Tamil. You only need to set the correct answer and write the question.
+      </div>
+
+      <!-- Moving & Removing -->
+      <h3 id="s-reorder">Moving and Removing Items</h3>
+
+      <div class="mock" style="max-width:500px;">
+        <div class="mock-item card-type">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>📄</span><span style="font-size:11px; font-weight:600;">CONTENT</span>
+            <span style="flex:1; color:var(--muted); font-size:10px;">How to open a Demat account</span>
+            <div style="display:flex; gap:4px;">
+              <span style="background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:1px 6px;font-size:12px;color:var(--muted);">↑</span>
+              <span style="background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:1px 6px;font-size:12px;color:var(--muted);">↓</span>
+              <span style="background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:1px 6px;font-size:12px;color:var(--danger);">✕</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="steps mt-3">
+        <li class="step">
+          <div class="step-num">1</div>
+          <div class="step-body"><strong>Move up:</strong> click the <span style="background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:0 5px;font-size:12px;color:var(--muted);">↑</span> button in the card header. The card swaps with the item above it.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">2</div>
+          <div class="step-body"><strong>Move down:</strong> click <span style="background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:0 5px;font-size:12px;color:var(--muted);">↓</span> to swap with the item below.</div>
+        </li>
+        <li class="step">
+          <div class="step-num">3</div>
+          <div class="step-body"><strong>Remove:</strong> click <span style="background:var(--surf2);border:1px solid var(--bdr);border-radius:3px;padding:0 5px;font-size:12px;color:var(--danger);">✕</span>. A confirmation box will appear before the item is deleted.</div>
+        </li>
+      </ul>
+
+      <div class="callout callout-warn">
+        <strong>⚠️ Save before rearranging</strong>
+        Moving items does not auto-save. Always click <span class="ui-btn ui-btn-primary" style="font-size:11px;">💾 Save Lesson</span> after you finish arranging the order.
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- WORKFLOW -->
+    <div class="section" id="s-workflow">
+      <div class="sec-hd">
+        <div class="sec-num">5</div>
+        <div>
+          <div class="section-title">Workflow Tab</div>
+          <div class="section-sub">Control who can see the chapter and track where it is in the review process.</div>
+        </div>
+      </div>
+
+      <p>Every chapter goes through a lifecycle. Use the Workflow tab to move it from one stage to the next.</p>
+
+      <div class="status-flow mb-3">
+        <span class="sf-badge" style="background:rgba(85,85,85,.3);border:1px solid #555;color:#8b949e;">draft</span>
+        <span class="sf-arrow">→</span>
+        <span class="sf-badge" style="background:rgba(210,153,34,.15);border:1px solid var(--warn);color:var(--warn);">in_review</span>
+        <span class="sf-arrow">→</span>
+        <span class="sf-badge" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);color:var(--accent);">approved</span>
+        <span class="sf-arrow">→</span>
+        <span class="sf-badge" style="background:rgba(63,185,80,.15);border:1px solid var(--gain);color:var(--gain);">published</span>
+        <span class="sf-arrow">→</span>
+        <span class="sf-badge" style="background:rgba(248,81,73,.15);border:1px solid var(--danger);color:var(--danger);">archived</span>
+      </div>
+
+      <table style="font-size:13px; width:100%;" class="mb-3">
+        <thead><tr>
+          <th style="padding:6px 8px 6px 0; color:var(--muted); font-weight:600; width:130px;">Status</th>
+          <th style="padding:6px 0; color:var(--muted); font-weight:600;">What it means</th>
+          <th style="padding:6px 0; color:var(--muted); font-weight:600; width:180px;">Visible to learners?</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:6px 8px 6px 0;"><span class="sf-badge" style="background:rgba(85,85,85,.3);border:1px solid #555;color:#8b949e;font-size:11px;">draft</span></td>
+            <td style="padding:6px 0; color:var(--muted);">Content is being written or edited</td>
+            <td style="padding:6px 0; color:var(--danger);">No</td></tr>
+          <tr><td style="padding:6px 8px 6px 0;"><span class="sf-badge" style="background:rgba(210,153,34,.15);border:1px solid var(--warn);color:var(--warn);font-size:11px;">in_review</span></td>
+            <td style="padding:6px 0; color:var(--muted);">Sent for reviewer approval</td>
+            <td style="padding:6px 0; color:var(--danger);">No</td></tr>
+          <tr><td style="padding:6px 8px 6px 0;"><span class="sf-badge" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);color:var(--accent);font-size:11px;">approved</span></td>
+            <td style="padding:6px 0; color:var(--muted);">Reviewed and ready to go live</td>
+            <td style="padding:6px 0; color:var(--danger);">No</td></tr>
+          <tr><td style="padding:6px 8px 6px 0;"><span class="sf-badge" style="background:rgba(163,113,247,.15);border:1px solid #a371f7;color:#a371f7;font-size:11px;">scheduled</span></td>
+            <td style="padding:6px 0; color:var(--muted);">Will go live at a set date/time</td>
+            <td style="padding:6px 0; color:var(--danger);">No</td></tr>
+          <tr><td style="padding:6px 8px 6px 0;"><span class="sf-badge" style="background:rgba(63,185,80,.15);border:1px solid var(--gain);color:var(--gain);font-size:11px;">published</span></td>
+            <td style="padding:6px 0; color:var(--muted);">Live and accessible to all learners</td>
+            <td style="padding:6px 0; color:var(--gain);">✓ Yes</td></tr>
+          <tr><td style="padding:6px 8px 6px 0;"><span class="sf-badge" style="background:rgba(248,81,73,.15);border:1px solid var(--danger);color:var(--danger);font-size:11px;">archived</span></td>
+            <td style="padding:6px 0; color:var(--muted);">Retired — hidden from learners</td>
+            <td style="padding:6px 0; color:var(--danger);">No</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="steps">
+        <li class="step">
+          <div class="step-num green">1</div>
+          <div class="step-body">Open the <strong>Workflow</strong> tab. The current status is shown as a large badge.</div>
+        </li>
+        <li class="step">
+          <div class="step-num green">2</div>
+          <div class="step-body">Click one of the transition buttons to move the chapter to the next stage (e.g. <span class="ui-btn ui-btn-warning" style="font-size:11px;">→ in_review</span>).</div>
+        </li>
+        <li class="step">
+          <div class="step-num green">3</div>
+          <div class="step-body">A confirmation dialog will appear. Confirm to proceed.</div>
+        </li>
+        <li class="step">
+          <div class="step-num green">4</div>
+          <div class="step-body">When ready to make the chapter live, transition to <span class="sf-badge" style="background:rgba(63,185,80,.15);border:1px solid var(--gain);color:var(--gain);font-size:11px;">published</span>. It will immediately appear in the learner catalog.</div>
+        </li>
+      </ul>
+
+      <div class="callout callout-warn">
+        <strong>⚠️ Can't skip stages</strong>
+        You cannot jump from <em>draft</em> directly to <em>published</em>. The chapter must go through in_review → approved first. This ensures content is checked before going live.
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- BLOCK REFERENCE -->
+    <div class="section" id="s-blockref">
+      <div class="sec-hd">
+        <div class="sec-num">6</div>
+        <div>
+          <div class="section-title">Block Type Reference</div>
+          <div class="section-sub">Choose the right block for every type of content.</div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">¶</div>
+          <div><div style="font-weight:600;">Text</div><div style="font-size:11px;color:var(--muted);">Paragraph of body copy</div></div>
+        </div>
+        <div class="block-ref-bd">
+          Use for regular explanatory paragraphs. Best for 2–4 sentences.
+          <div class="block-ref-ex">EN: Think of it like a bank locker — but for shares. When you buy shares of Tata Motors, they don't come as paper certificates.<br>TA: இதை ஒரு வங்கி லாக்கர் போல் நினைத்துக்கொள்ளுங்கள்…</div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">H₁</div>
+          <div><div style="font-weight:600;">Heading</div><div style="font-size:11px;color:var(--muted);">Section title inside a card</div></div>
+        </div>
+        <div class="block-ref-bd">
+          Use to introduce a new sub-topic within a card. Keep it short — 3–5 words.
+          <div class="block-ref-ex">EN: What is a Demat account?&nbsp;&nbsp;&nbsp;TA: Demat கணக்கு என்றால் என்ன?</div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">💡</div>
+          <div><div style="font-weight:600;">Tip</div><div style="font-size:11px;color:var(--muted);">Helpful hint or pro advice</div></div>
+        </div>
+        <div class="block-ref-bd">
+          Use for practical advice or extra context that's good to know but not essential to the main flow.
+          <div class="block-ref-ex">EN: Popular broker apps: Zerodha, Groww, Angel One, Upstox. All SEBI registered.<br>TA: பிரபலமான broker ஆப்கள்: Zerodha, Groww, Angel One, Upstox.</div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">📋</div>
+          <div><div style="font-weight:600;">Callout / Note / Warning / Quote</div><div style="font-size:11px;color:var(--muted);">Highlighted box for important content</div></div>
+        </div>
+        <div class="block-ref-bd">
+          <strong style="color:var(--txt);">Callout / Note</strong> — for key definitions or important facts.<br>
+          <strong style="color:var(--warn);">Warning</strong> — for risks or things learners must not do.<br>
+          <strong style="color:var(--accent);">Quote</strong> — for dialogue, examples, or memorable lines.
+          <div class="block-ref-ex" style="border-left:2px solid var(--danger);">Warning EN: Never invest money you cannot afford to lose. Stock prices can fall.<br>TA: நீங்கள் இழக்க முடியாத பணத்தை முதலீடு செய்யாதீர்கள்.</div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">📊</div>
+          <div><div style="font-weight:600;">Fact Table</div><div style="font-size:11px;color:var(--muted);">Key–value rows for structured facts</div></div>
+        </div>
+        <div class="block-ref-bd">
+          Use for step-by-step instructions, definitions, or any content that has a label and a value. Add rows with <strong>+ Add Row</strong>.
+          <div class="block-ref-ex">
+            Step 1 | படி 1 | Download a broker app | Broker ஆப் பதிவிறக்கம் செய்யுங்கள்<br>
+            Step 2 | படி 2 | Enter mobile number and OTP | மொபைல் எண் கொடுத்து OTP சரிபாருங்கள்
+          </div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">⚖️</div>
+          <div><div style="font-weight:600;">Comparison</div><div style="font-size:11px;color:var(--muted);">Two or three columns side by side</div></div>
+        </div>
+        <div class="block-ref-bd">
+          Use to compare two concepts. Each column has an Emoji, Title (EN/TA), and Subtitle (EN/TA).
+          <div class="block-ref-ex">
+            Col 1: ⚡ Market Order | Market ஆர்டர் | Buys instantly | உடனே வாங்கும்<br>
+            Col 2: 🎯 Limit Order | Limit ஆர்டர் | Buys at your price | உங்கள் விலையில் வாங்கும்
+          </div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">🍕</div>
+          <div><div style="font-weight:600;">Visual Comparison</div><div style="font-size:11px;color:var(--muted);">Percentage/fraction visual rows</div></div>
+        </div>
+        <div class="block-ref-bd">
+          Use to show proportions visually (e.g. what fraction of a company 1 share represents). Set <strong>Total slices</strong> and add rows with percentage, emoji, label. Tick <strong>Highlight</strong> on the most important row.
+          <div class="block-ref-ex">Total slices: 8<br>12.5% | 🍕 | 1 slice | 1 துண்டு<br>50% | 🍕🍕 | 4 slices | 4 துண்டுகள் ✓ highlight</div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">🏷</div>
+          <div><div style="font-weight:600;">Highlight Badge</div><div style="font-size:11px;color:var(--muted);">A term with its definition</div></div>
+        </div>
+        <div class="block-ref-bd">
+          Use to introduce a key term. The main text is displayed large; the subtitle is the definition.
+          <div class="block-ref-ex">Text EN: Share &nbsp;&nbsp; Text TA: பங்கு<br>Subtitle EN: A piece of a company &nbsp;&nbsp; Subtitle TA: நிறுவனத்தின் ஒரு பகுதி</div>
+        </div>
+      </div>
+
+      <div class="block-ref">
+        <div class="block-ref-hd">
+          <div class="block-ref-icon">—</div>
+          <div><div style="font-weight:600;">Divider</div><div style="font-size:11px;color:var(--muted);">Horizontal separator line</div></div>
+        </div>
+        <div class="block-ref-bd">
+          No fields needed. Just adds a visual break between two sections within a card.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- QUICK TIPS -->
+    <div class="section" id="s-tips">
+      <div class="sec-hd">
+        <div class="sec-num">7</div>
+        <div>
+          <div class="section-title">Quick Tips</div>
+          <div class="section-sub">Things to remember while building content.</div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="callout callout-tip" style="height:100%;">
+            <strong>💾 Save often</strong>
+            There is no auto-save. Click <strong>Save Metadata</strong> after editing details, and <strong>Save Lesson</strong> after editing cards. Your changes are lost if you navigate away without saving.
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="callout callout-info" style="height:100%;">
+            <strong>🌐 Always fill both EN and TA</strong>
+            Every text field has an English and a Tamil side. Filling only English means Tamil learners will see a blank. Even a rough Tamil draft is better than empty.
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="callout callout-tip" style="height:100%;">
+            <strong>❓ One quiz every 1–2 cards</strong>
+            Learners engage better when quizzes break up long content. A 10-card lesson should have 3–4 quiz questions distributed throughout — not all at the end.
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="callout callout-info" style="height:100%;">
+            <strong>🔍 Check the live preview</strong>
+            After publishing, visit the lesson URL (<code style="font-size:11px;">tradeze.in/learn/lesson.html?id=m1l4</code>) to see exactly what learners see. The admin page only shows the raw fields.
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="callout callout-warn" style="height:100%;">
+            <strong>⚠️ Don't publish incomplete chapters</strong>
+            A chapter in <em>draft</em> is never visible to learners. Only move to <em>published</em> when the title, description, all cards, and at least one quiz question are complete.
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="callout callout-tip" style="height:100%;">
+            <strong>🔄 You can always go back to draft</strong>
+            Published chapters can be moved to <em>archived</em>, and archived chapters can return to <em>draft</em>. Nothing is permanent — you can always unpublish and fix content.
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:2.5rem; padding:1.5rem; background:var(--surf); border:1px solid var(--bdr); border-radius:10px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:.5rem;">👏</div>
+        <div style="font-weight:600; margin-bottom:.4rem;">You're all set.</div>
+        <div style="color:var(--muted); font-size:13px; max-width:480px; margin:0 auto 1rem;">
+          Go back to the admin page and start building. If something looks wrong, check the status dots in the sidebar — a grey dot means the chapter is still in draft and not yet visible to learners.
+        </div>
+        <a href="learn-admin.html" class="btn btn-primary btn-sm">Open Learn Admin →</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Highlight active TOC link on scroll
+const sections = document.querySelectorAll('[id^="s-"]');
+const tocLinks  = document.querySelectorAll('.toc-link');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-link[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
