@@ -77,8 +77,12 @@ router.get('/catalog', async (_req, res) => {
 // ── GET /api/learn/lesson/:id ───────────────────────────────────────────────
 // Returns a full lesson: metadata + assembled cards (non-quiz + quiz interleaved).
 // Shape is backwards-compatible with the old lesson JSON format.
+// Pass ?preview_token=TOKEN (admin token) to bypass the published-only filter.
 router.get('/lesson/:id', async (req, res) => {
-  const slug = req.params.id.replace(/[^a-z0-9]/gi, '');
+  const slug         = req.params.id.replace(/[^a-z0-9]/gi, '');
+  const adminToken   = process.env.ADMIN_TOKEN;
+  const isPreview    = adminToken && req.query.preview_token === adminToken;
+  const statusClause = isPreview ? '' : `AND ch.status = 'published'`;
 
   try {
     // Chapter metadata
@@ -94,7 +98,7 @@ router.get('/lesson/:id', async (req, res) => {
       FROM   chapters ch
       LEFT JOIN difficulty_levels dl ON dl.difficulty_id = ch.difficulty_id
       LEFT JOIN modules m            ON m.module_id      = ch.module_id
-      WHERE  ch.slug = $1 AND ch.deleted_at IS NULL AND ch.status = 'published'
+      WHERE  ch.slug = $1 AND ch.deleted_at IS NULL ${statusClause}
     `, [slug]);
 
     if (!chRows.length) return res.status(404).json({ error: 'lesson not found' });
@@ -157,6 +161,33 @@ router.get('/lesson/:id', async (req, res) => {
     // Clean up internal field
     allCards.forEach(c => delete c._insertAt);
 
+    // Build outline (left-rail card list) from assembled cards
+    const outline = [];
+    allCards.forEach((card, idx) => {
+      if (card.type === 'quiz') {
+        if (outline.length && !outline[outline.length - 1].sep)
+          outline.push({ sep: true });
+        return;
+      }
+      let label = { en: '', ta: '' };
+      if (card.type === 'cover') {
+        const t = card.title || card.heading || {};
+        if (Array.isArray(t)) label = { en: t.map(s => s.text?.en||'').join(''), ta: t.map(s => s.text?.ta||'').join('') };
+        else                   label = { en: t.en||'', ta: t.ta||'' };
+      } else if (card.type === 'content') {
+        const pill = card.pill;
+        if (pill && (pill.en || pill.ta)) { label = { en: pill.en||'', ta: pill.ta||'' }; }
+        else {
+          const t = card.title || {};
+          if (Array.isArray(t)) label = { en: t.map(s => s.text?.en||'').join(''), ta: t.map(s => s.text?.ta||'').join('') };
+          else                   label = { en: t.en||'', ta: t.ta||'' };
+        }
+      } else if (card.type === 'result') {
+        label = { en: 'Complete', ta: 'முடிந்தது' };
+      }
+      outline.push({ card: idx + 1, label });
+    });
+
     // Next chapter (next published chapter in same module by display_order)
     const { rows: nextRows } = await query(`
       SELECT slug, title, emoji
@@ -184,6 +215,7 @@ router.get('/lesson/:id', async (req, res) => {
       title:        ch.title,
       next_lesson:  nextChapter ? { id: nextChapter.slug, title: nextChapter.title, emoji: nextChapter.emoji } : null,
       cards:        allCards,
+      outline,
     });
   } catch (err) {
     console.error('[learnRoute] lesson error:', err.message);

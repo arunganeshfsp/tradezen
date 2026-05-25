@@ -517,7 +517,7 @@
 
   /* ── Rail builders ────────────────────────────────────────── */
   function buildLeftRail(lesson) {
-    const outlineItems = lesson.outline.map(item => {
+    const outlineItems = (lesson.outline || []).map(item => {
       if (item.sep) return `<li class="sep"></li>`;
       return `<li data-jump="${item.card}"><span class="marker"><span class="num">${item.card}</span></span><span class="label" data-en="${esc(item.label.en)}" data-ta="${esc(item.label.ta||'')}">${esc(item.label.en)}</span></li>`;
     }).join('');
@@ -719,13 +719,16 @@
 
   /* ── Boot ─────────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    const id     = params.get('id');
+    const params       = new URLSearchParams(window.location.search);
+    const id           = params.get('id');
+    const previewToken = params.get('preview_token');
     if (!id) {
       $('loading').innerHTML = '<div style="font-family:var(--tz-font-ui);color:var(--tz-fg-1);text-align:center;padding:40px"><h2>No lesson ID</h2><p>Add <code>?id=m1l1</code> to the URL</p><a href="/learn/" style="color:var(--tz-accent-1)">← Browse lessons</a></div>';
       return;
     }
-    fetch('/api/learn/lesson/' + encodeURIComponent(id))
+    const apiUrl = '/api/learn/lesson/' + encodeURIComponent(id) +
+      (previewToken ? '?preview_token=' + encodeURIComponent(previewToken) : '');
+    fetch(apiUrl)
       .then(r => {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();

@@ -20,9 +20,10 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
 #preview-toolbar{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--surf);
   border-bottom:1px solid var(--bdr);flex-shrink:0;font-size:12px;}
 #preview-iframe{flex:1;border:none;width:100%;background:#fff;}
-.tree-drag-handle{color:transparent;font-size:13px;cursor:grab;flex-shrink:0;padding:0 2px;
+.tree-drag-handle{color:var(--bdr);font-size:13px;cursor:grab;flex-shrink:0;padding:0 2px;
   line-height:1;user-select:none;transition:color .12s;}
 .tree-ch:hover .tree-drag-handle{color:var(--muted);}
+.tree-ch.dragging .tree-drag-handle{cursor:grabbing;}
 .tree-ch.drag-over{outline:2px solid var(--accent);outline-offset:-1px;border-radius:4px;}
 .tree-ch.dragging{opacity:.35;}
 .tree-cat{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:10px 12px 2px;}
@@ -32,8 +33,8 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
   cursor:pointer;padding:0 4px;border-radius:3px;opacity:0;transition:opacity .12s;flex-shrink:0;}
 .tree-mod:hover .tree-mod-add{opacity:1;}
 .tree-mod-add:hover{color:var(--gain);background:rgba(63,185,80,.12);}
-.tree-ch{padding:4px 8px 4px 30px;cursor:pointer;border-radius:4px;display:flex;align-items:center;
-  gap:7px;color:var(--muted);transition:background .12s;}
+.tree-ch{padding:4px 8px 4px 14px;cursor:pointer;border-radius:4px;display:flex;align-items:center;
+  gap:7px;color:var(--muted);transition:background .12s;user-select:none;}
 .tree-ch:hover{background:rgba(88,166,255,.1);color:var(--txt);}
 .tree-ch.active{background:rgba(88,166,255,.18);color:var(--accent);}
 .tree-ch-del{background:none;border:none;color:transparent;font-size:12px;cursor:pointer;
@@ -322,6 +323,7 @@ function renderTree(data) {
             selectChapter(ch.slug);
         });
         c.addEventListener('dragstart', onChDragStart);
+        c.addEventListener('dragenter', onChDragEnter);
         c.addEventListener('dragover',  onChDragOver);
         c.addEventListener('dragleave', onChDragLeave);
         c.addEventListener('drop',      onChDrop);
@@ -1113,7 +1115,7 @@ function refreshPreview() {
   if (!_previewOpen || !currentSlug) return;
   const iframe = document.getElementById('preview-iframe');
   document.getElementById('preview-slug').textContent = currentSlug;
-  iframe.src = `/learn/lesson.html?id=${currentSlug}&_t=${Date.now()}`;
+  iframe.src = `/learn/lesson.html?id=${encodeURIComponent(currentSlug)}&preview_token=${encodeURIComponent(token)}&_t=${Date.now()}`;
 }
 
 // Resize handle drag
@@ -1148,32 +1150,48 @@ let _dragSrc = null;
 
 function onChDragStart(e) {
   _dragSrc = this;
-  this.classList.add('dragging');
+  setTimeout(() => this.classList.add('dragging'), 0);
   e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', this.dataset.slug);
 }
-function onChDragOver(e) {
+function onChDragEnter(e) {
   e.preventDefault();
   if (!_dragSrc || this === _dragSrc) return;
   if (this.dataset.moduleSlug === _dragSrc.dataset.moduleSlug)
     this.classList.add('drag-over');
 }
-function onChDragLeave() { this.classList.remove('drag-over'); }
-function onChDragEnd()   { this.classList.remove('dragging'); _dragSrc = null; }
+function onChDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+function onChDragLeave(e) {
+  if (!this.contains(e.relatedTarget)) this.classList.remove('drag-over');
+}
+function onChDragEnd() {
+  document.querySelectorAll('.tree-ch').forEach(el => {
+    el.classList.remove('dragging','drag-over');
+  });
+  _dragSrc = null;
+}
 
 async function onChDrop(e) {
   e.preventDefault();
-  this.classList.remove('drag-over');
-  if (!_dragSrc || this === _dragSrc) return;
-  if (this.dataset.moduleSlug !== _dragSrc.dataset.moduleSlug) return;
+  e.stopPropagation();
+  document.querySelectorAll('.tree-ch').forEach(el => el.classList.remove('drag-over','dragging'));
+  const src = _dragSrc;
+  _dragSrc = null;
+  if (!src || this === src) return;
+  if (this.dataset.moduleSlug !== src.dataset.moduleSlug) return;
 
   const modSlug = this.dataset.moduleSlug;
   const parent  = this.parentNode;
 
-  // Re-order in DOM
-  const srcIdx = [...parent.children].indexOf(_dragSrc);
-  const tgtIdx = [...parent.children].indexOf(this);
-  if (srcIdx < tgtIdx) parent.insertBefore(_dragSrc, this.nextSibling);
-  else                 parent.insertBefore(_dragSrc, this);
+  // Re-order in DOM: insert src before or after this depending on position
+  const allCh   = [...parent.querySelectorAll(`.tree-ch[data-module-slug="${modSlug}"]`)];
+  const srcIdx  = allCh.indexOf(src);
+  const tgtIdx  = allCh.indexOf(this);
+  if (srcIdx < tgtIdx) parent.insertBefore(src, this.nextSibling);
+  else                 parent.insertBefore(src, this);
 
   const newSlugs = [...parent.querySelectorAll(`.tree-ch[data-module-slug="${modSlug}"]`)]
     .map(el => el.dataset.slug);
