@@ -265,6 +265,10 @@
   const TROPHY_SVG = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>';
   const NAV_ICON  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
 
+  /* ── Safe multilingual text helper ───────────────────────── */
+  function en(v) { if (!v) return ''; if (typeof v === 'string') return v; if (Array.isArray(v)) return v.map(s => s.text?.en||'').join(''); return v.en || ''; }
+  function ta(v) { if (!v) return ''; if (typeof v === 'string') return v; if (Array.isArray(v)) return v.map(s => s.text?.ta||'').join(''); return v.ta || ''; }
+
   /* ── Block renderers ──────────────────────────────────────── */
   function renderTitle(titleArr) {
     if (!titleArr) return '';
@@ -284,85 +288,104 @@
   const Blocks = {
     paragraph(b) {
       const cls = b.variant === 'muted' ? 'card-body muted' : 'card-body';
-      return `<p class="${cls}" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</p>`;
+      return `<p class="${cls}" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</p>`;
+    },
+    tip(b) {
+      return `<div class="blk-tip" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</div>`;
+    },
+    headline(b) {
+      return `<h4 class="blk-headline" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</h4>`;
+    },
+    callout(b) {
+      return `<div class="blk-callout-note" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</div>`;
     },
     'callout-quote'(b) {
-      return `<div class="blk-callout-quote" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</div>`;
+      return `<div class="blk-callout-quote" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</div>`;
     },
     'callout-note'(b) {
-      return `<div class="blk-callout-note" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</div>`;
+      return `<div class="blk-callout-note" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</div>`;
     },
     'callout-warning'(b) {
-      return `<div class="blk-callout-warning" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</div>`;
+      return `<div class="blk-callout-warning" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</div>`;
     },
     'callout-example'(b) {
-      return `<div class="blk-callout-example"><div class="ce-label" data-en="${esc(b.label.en)}" data-ta="${esc(b.label.ta||'')}">${esc(b.label.en)}</div><p class="ce-text" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</p></div>`;
+      return `<div class="blk-callout-example"><div class="ce-label" data-en="${esc(en(b.label))}" data-ta="${esc(ta(b.label))}">${esc(en(b.label))}</div><p class="ce-text" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</p></div>`;
     },
     'badge-highlight'(b) {
-      return `<div class="blk-badge"><span class="badge-word" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</span><div class="badge-sub" data-en="${esc(b.subtitle.en)}" data-ta="${esc(b.subtitle.ta||'')}">${esc(b.subtitle.en)}</div></div>`;
+      return `<div class="blk-badge"><span class="badge-word" data-en="${esc(en(b.text))}" data-ta="${esc(ta(b.text))}">${esc(en(b.text))}</span><div class="badge-sub" data-en="${esc(en(b.subtitle))}" data-ta="${esc(ta(b.subtitle))}">${esc(en(b.subtitle))}</div></div>`;
+    },
+    bullet_list(b) {
+      const rows = (b.items||[]).map(it => `<li data-en="${esc(en(it))}" data-ta="${esc(ta(it))}">${esc(en(it))}</li>`).join('');
+      return `<ul class="blk-bullet-list">${rows}</ul>`;
+    },
+    divider() { return `<hr class="blk-divider">`; },
+    'key_value'(b) {
+      const rows = (b.items||[]).map(it => `<div class="kv-row"><span class="kv-k" data-en="${esc(en(it.key))}" data-ta="${esc(ta(it.key))}">${esc(en(it.key))}</span><span class="kv-v" data-en="${esc(en(it.val))}" data-ta="${esc(ta(it.val))}">${esc(en(it.val))}</span></div>`).join('');
+      return `<div class="blk-key-value">${rows}</div>`;
     },
     'emoji-row'(b) {
-      return `<div class="blk-emoji-row">${b.items.map(i => `<span>${i}</span>`).join('')}</div>`;
+      const items = b._emojiStr ? b._emojiStr.split(' ').filter(Boolean) : (b.items||[]);
+      return `<div class="blk-emoji-row">${items.map(i => `<span>${i}</span>`).join('')}</div>`;
     },
     'compare'(b) {
-      const cols = b.cols.map(c => `
+      const cols = (b.cols||[]).map(c => `
         <div class="cmp-cell ${c.variant||''}">
           ${c.emoji ? `<div class="cmp-emoji">${c.emoji}</div>` : ''}
-          <div class="cmp-title" data-en="${esc(c.title.en)}" data-ta="${esc(c.title.ta||'')}">${esc(c.title.en)}</div>
-          <div class="cmp-subtitle" data-en="${esc(c.subtitle.en)}" data-ta="${esc(c.subtitle.ta||'')}">${esc(c.subtitle.en)}</div>
+          <div class="cmp-title" data-en="${esc(en(c.title))}" data-ta="${esc(ta(c.title))}">${esc(en(c.title))}</div>
+          <div class="cmp-subtitle" data-en="${esc(en(c.subtitle))}" data-ta="${esc(ta(c.subtitle))}">${esc(en(c.subtitle))}</div>
         </div>`).join('');
       return `<div class="blk-compare">${cols}</div>`;
     },
     'money-grid'(b) {
-      const items = b.items.map(it => `
+      const items = (b.items||[]).map(it => `
         <div class="mg-item">
-          <span class="mg-emoji">${it.emoji}</span>
-          <div class="mg-title" data-en="${esc(it.title.en)}" data-ta="${esc(it.title.ta||'')}">${esc(it.title.en)}</div>
-          <div class="mg-sub" data-en="${esc(it.subtitle.en)}" data-ta="${esc(it.subtitle.ta||'')}">${esc(it.subtitle.en)}</div>
+          <span class="mg-emoji">${it.emoji||''}</span>
+          <div class="mg-title" data-en="${esc(en(it.title))}" data-ta="${esc(ta(it.title))}">${esc(en(it.title))}</div>
+          <div class="mg-sub" data-en="${esc(en(it.subtitle))}" data-ta="${esc(ta(it.subtitle))}">${esc(en(it.subtitle))}</div>
         </div>`).join('');
       return `<div class="blk-money-grid">${items}</div>`;
     },
     'growth-list'(b) {
-      const items = b.items.map(it => `
+      const items = (b.items||[]).map(it => `
         <div class="gl-item">
-          <span class="gl-icon">${it.icon}</span>
-          <span class="gl-body" data-en="${esc(it.text.en)}" data-ta="${esc(it.text.ta||'')}">${esc(it.text.en)}</span>
+          <span class="gl-icon">${it.icon||''}</span>
+          <span class="gl-body" data-en="${esc(en(it.text))}" data-ta="${esc(ta(it.text))}">${esc(en(it.text))}</span>
           <span class="gl-arrow">▲</span>
         </div>`).join('');
       return `<div class="blk-growth-list">${items}</div>`;
     },
     'pizza'(b) {
-      const cells = b.items.map(it => `
+      const cells = (b.items||[]).map(it => `
         <div class="pz-cell ${it.highlight ? 'highlight' : ''}">
-          <span class="pz-emoji">${it.emoji}</span>
-          <span class="pz-label" data-en="${esc(it.label.en)}" data-ta="${esc(it.label.ta||'')}">${esc(it.label.en)}</span>
-          <span class="pz-pct">${it.pct}</span>
+          <span class="pz-emoji">${it.emoji||''}</span>
+          <span class="pz-label" data-en="${esc(en(it.label))}" data-ta="${esc(ta(it.label))}">${esc(en(it.label))}</span>
+          <span class="pz-pct">${it.pct||''}</span>
         </div>`).join('');
       return `<div class="blk-pizza">${cells}</div>`;
     },
     'scale'(b) {
-      const items = b.items.map(it => `
+      const items = (b.items||[]).map(it => `
         <div class="sc-item ${it.major ? 'major' : ''}">
-          <span class="sc-icon">${it.icon}</span>
-          <span class="sc-label" data-en="${esc(it.label.en)}" data-ta="${esc(it.label.ta||'')}">${esc(it.label.en)}</span>
-          <span class="sc-pct">${it.pct}</span>
+          <span class="sc-icon">${it.icon||''}</span>
+          <span class="sc-label" data-en="${esc(en(it.label))}" data-ta="${esc(ta(it.label))}">${esc(en(it.label))}</span>
+          <span class="sc-pct">${it.pct||''}</span>
         </div>`).join('');
       return `<div class="blk-scale">${items}</div>`;
     },
     'chain'(b) {
-      const steps = b.steps.map((s, i) => {
+      const steps = (b.steps||[]).map((s, i) => {
         const connector = i < b.steps.length - 1 ? `<div class="ch-connector">↓</div>` : '';
-        return `<div class="ch-step ${s.highlight ? 'highlight' : ''}"><span class="ch-icon">${s.icon}</span><span class="ch-text" data-en="${esc(s.text.en)}" data-ta="${esc(s.text.ta||'')}">${esc(s.text.en)}</span><span class="ch-arrow">${s.arrow}</span></div>${connector}`;
+        return `<div class="ch-step ${s.highlight ? 'highlight' : ''}"><span class="ch-icon">${s.icon||''}</span><span class="ch-text" data-en="${esc(en(s.text))}" data-ta="${esc(ta(s.text))}">${esc(en(s.text))}</span><span class="ch-arrow">${s.arrow||''}</span></div>${connector}`;
       }).join('');
       return `<div class="blk-chain">${steps}</div>`;
     },
     'no-list'(b) {
-      const items = b.items.map(it => `
+      const items = (b.items||[]).map(it => `
         <div class="nl-item">
           <span class="nl-x">✕</span>
           <div class="nl-body">
-            <span data-en="${esc(it.title.en)}" data-ta="${esc(it.title.ta||'')}">${esc(it.title.en)}</span>
-            <small data-en="${esc(it.description.en)}" data-ta="${esc(it.description.ta||'')}">${esc(it.description.en)}</small>
+            <span data-en="${esc(en(it.title))}" data-ta="${esc(ta(it.title))}">${esc(en(it.title))}</span>
+            <small data-en="${esc(en(it.description))}" data-ta="${esc(ta(it.description))}">${esc(en(it.description))}</small>
           </div>
         </div>`).join('');
       return `<div class="blk-no-list">${items}</div>`;
@@ -393,7 +416,7 @@
   </span>
   <span class="card-emoji">${card.emoji||''}</span>
   <h2 class="card-title">${renderTitle(card.title)}</h2>
-  <p class="card-body muted" data-en="${esc(card.description.en)}" data-ta="${esc(card.description.ta||'')}">${esc(card.description.en)}</p>
+  <p class="card-body muted" data-en="${esc(en(card.description))}" data-ta="${esc(ta(card.description))}">${esc(en(card.description))}</p>
   <div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-family:var(--tz-font-mono);font-size:11.5px;color:var(--tz-fg-3);letter-spacing:0.12em;text-transform:uppercase;">${chips}</div>
   <div class="spacer"></div>
 </article>`;
@@ -403,7 +426,7 @@
     const emojiHtml = card.emoji ? `<span class="card-emoji">${card.emoji}</span>` : '';
     return `
 <article class="card-slide" data-card="${idx+1}">
-  <div class="card-pill" data-en="${esc(card.pill.en)}" data-ta="${esc(card.pill.ta||'')}">${esc(card.pill.en)}</div>
+  <div class="card-pill" data-en="${esc(en(card.pill))}" data-ta="${esc(ta(card.pill))}">${esc(en(card.pill))}</div>
   ${emojiHtml}
   <h2 class="card-title" style="margin-top:0">${renderTitle(card.title)}</h2>
   ${renderBlocks(card.blocks)}
@@ -417,17 +440,17 @@
     const opts = q.options.map(o => `
       <button class="q-option" ${o.correct ? 'data-correct="1"' : ''}>
         <span class="key">${o.key}</span>
-        <span class="label" data-en="${esc(o.text.en)}" data-ta="${esc(o.text.ta||'')}">${esc(o.text.en)}</span>
+        <span class="label" data-en="${esc(en(o.text))}" data-ta="${esc(ta(o.text))}">${esc(en(o.text))}</span>
         <span class="tick">${o.correct ? TICK_SVG : CROSS_SVG}</span>
       </button>`).join('');
 
     let fbInner;
     if (q.feedback.shared) {
-      fbInner = `<span data-en="${esc(q.feedback.text.en)}" data-ta="${esc(q.feedback.text.ta||'')}">${esc(q.feedback.text.en)}</span>`;
+      fbInner = `<span data-en="${esc(en(q.feedback.text))}" data-ta="${esc(ta(q.feedback.text))}">${esc(en(q.feedback.text))}</span>`;
     } else {
       fbInner = `
-        <span class="fb-ok" data-en="${esc(q.feedback.correct.en)}" data-ta="${esc(q.feedback.correct.ta||'')}">${esc(q.feedback.correct.en)}</span>
-        <span class="fb-no" data-en="${esc(q.feedback.wrong.en)}" data-ta="${esc(q.feedback.wrong.ta||'')}">${esc(q.feedback.wrong.en)}</span>`;
+        <span class="fb-ok" data-en="${esc(en(q.feedback.correct))}" data-ta="${esc(ta(q.feedback.correct))}">${esc(en(q.feedback.correct))}</span>
+        <span class="fb-no" data-en="${esc(en(q.feedback.wrong))}" data-ta="${esc(ta(q.feedback.wrong))}">${esc(en(q.feedback.wrong))}</span>`;
     }
 
     return `
@@ -437,7 +460,7 @@
   </div>
   <div class="quiz-q" data-q="${card.q_id}">
     <div class="qhead"><span class="qkind">${kind}</span><span>+${q.xp} XP</span></div>
-    <h3 data-en="${esc(q.text.en)}" data-ta="${esc(q.text.ta||'')}">${esc(q.text.en)}</h3>
+    <h3 data-en="${esc(en(q.text))}" data-ta="${esc(ta(q.text))}">${esc(en(q.text))}</h3>
     <div class="q-options">${opts}</div>
     <div class="q-feedback">
       <span style="font-size:16px;line-height:1;">✨</span>
@@ -458,7 +481,7 @@
         <div style="width:38px;height:38px;border-radius:10px;background:var(--tz-grad);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--tz-glow-soft);">${NAV_ICON}</div>
         <div style="flex:1;min-width:0;">
           <div style="font-family:var(--tz-font-mono);font-size:9.5px;letter-spacing:0.16em;color:var(--tz-fg-3);" data-en="UP NEXT · ${esc(next.ref)}" data-ta="அடுத்தது · ${esc(next.ref)}">UP NEXT · ${esc(next.ref)}</div>
-          <div style="font-family:var(--tz-font-display);font-size:18px;line-height:1.2;color:var(--tz-fg-1);margin-top:2px;letter-spacing:-0.01em;" data-en="${esc(next.title.en)}" data-ta="${esc(next.title.ta||'')}">${esc(next.title.en)}</div>
+          <div style="font-family:var(--tz-font-display);font-size:18px;line-height:1.2;color:var(--tz-fg-1);margin-top:2px;letter-spacing:-0.01em;" data-en="${esc(en(next.title))}" data-ta="${esc(ta(next.title))}">${esc(en(next.title))}</div>
         </div>
       </div>` : '';
     return `
@@ -470,7 +493,7 @@
     <div class="blurb" data-blurb></div>
     <div class="rewards">
       <span class="reward-chip"><span class="glyph">⚡</span><span data-xp>0 XP</span></span>
-      <span class="reward-chip"><span class="glyph">📖</span> <span data-en="${esc(card.lesson_done_label.en)}" data-ta="${esc(card.lesson_done_label.ta||'')}">${esc(card.lesson_done_label.en)}</span></span>
+      <span class="reward-chip"><span class="glyph">📖</span> <span data-en="${esc(en(card.lesson_done_label))}" data-ta="${esc(ta(card.lesson_done_label))}">${esc(en(card.lesson_done_label))}</span></span>
     </div>
   </div>
   ${nextHtml}
@@ -534,7 +557,7 @@
     <a class="back" href="/training/learn_home.html" aria-label="Back to modules">${BACK_SVG}</a>
     <div class="meta">
       <div class="k">MODULE ${lesson.module_id ? lesson.module_id.replace('m','') : '1'}</div>
-      <div class="v" data-en="${esc(lesson.module_label.en)}" data-ta="${esc(lesson.module_label.ta||'')}">${esc(lesson.module_label.en)}</div>
+      <div class="v" data-en="${esc(en(lesson.module_label))}" data-ta="${esc(ta(lesson.module_label))}">${esc(en(lesson.module_label))}</div>
     </div>
   </div>
   <div class="head" data-en="${esc(lesson.lesson_label.en)}" data-ta="${esc(lesson.lesson_label.ta||'')}">${esc(lesson.lesson_label.en)}</div>
@@ -701,12 +724,16 @@
     $('railRight').innerHTML = buildRightRail(lesson);
 
     const cardsHtml = lesson.cards.map((card, idx) => {
-      switch (card.type) {
-        case 'cover':   return renderCover(card, idx);
-        case 'content': return renderContent(card, idx);
-        case 'quiz':    return renderQuiz(card, idx);
-        case 'result':  return renderResult(card, idx, lesson);
-        default:        return `<article class="card-slide" data-card="${idx+1}"><p style="color:var(--tz-loss)">Unknown card type: ${card.type}</p></article>`;
+      try {
+        switch (card.type) {
+          case 'cover':   return renderCover(card, idx);
+          case 'content': return renderContent(card, idx);
+          case 'quiz':    return renderQuiz(card, idx);
+          case 'result':  return renderResult(card, idx, lesson);
+          default:        return `<article class="card-slide" data-card="${idx+1}"><p style="color:var(--tz-loss)">Unknown card type: ${card.type}</p></article>`;
+        }
+      } catch(e) {
+        return `<article class="card-slide" data-card="${idx+1}"><p style="color:var(--tz-loss);font-size:12px;padding:16px">[Card ${idx+1} · ${card.type}: ${esc(e.message)}]</p></article>`;
       }
     }).join('');
 
