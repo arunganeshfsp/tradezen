@@ -1,0 +1,200 @@
+{
+  "id": "m1l2",
+  "version": "1",
+  "subject_id": "fundamentals",
+  "module_id": "m1",
+  "module_label": { "en": "Stock Market Basics", "ta": "பங்கு சந்தை அடிப்படைகள்" },
+  "lesson_label": { "en": "LESSON 1.2 · 10 CARDS", "ta": "பாடம் 1.2 · 10 கார்டுகள்" },
+  "lesson_ref": "M1 · 1.2",
+  "order": 2,
+  "level": "beginner",
+  "xp": 40,
+  "duration_min": 4,
+  "emoji": "💰",
+  "title": [
+    { "text": { "en": "Why do ", "ta": "" }, "em": false },
+    { "text": { "en": "companies", "ta": "நிறுவனங்களுக்கு" }, "em": true },
+    { "text": { "en": " need money?", "ta": " ஏன் பணம் தேவை?" }, "em": false }
+  ],
+  "next_lesson": {
+    "id": "m1l3",
+    "ref": "1.3",
+    "title": { "en": "What is a Share?", "ta": "Share என்றால் என்ன?" }
+  },
+  "outline": [
+    { "card": 1, "label": { "en": "Welcome", "ta": "வரவேற்பு" } },
+    { "card": 2, "label": { "en": "Burger problem", "ta": "பர்கர் கடை பிரச்சனை" } },
+    { "card": 3, "label": { "en": "Four things", "ta": "நான்கு விஷயங்கள்" } },
+    { "card": 4, "label": { "en": "Check · money", "ta": "சோதனை · பணம்" } },
+    { "sep": true },
+    { "card": 5, "label": { "en": "Loan vs shares", "ta": "கடன் vs பங்குகள்" } },
+    { "card": 6, "label": { "en": "Company grows", "ta": "நிறுவனம் வளர்கிறது" } },
+    { "card": 7, "label": { "en": "Check · IPO", "ta": "சோதனை · IPO" } },
+    { "card": 8, "label": { "en": "Check · repayment", "ta": "சோதனை · திரும்ப செலுத்துதல்" } },
+    { "sep": true },
+    { "card": 9, "label": { "en": "Check · why invest", "ta": "சோதனை · ஏன் முதலீடு" } },
+    { "card": 10, "label": { "en": "Result", "ta": "முடிவு" } }
+  ],
+  "rail_tip": {
+    "icon": "⚡",
+    "label": { "en": "EARN XP", "ta": "XP பெற" },
+    "text": { "en": "+10 XP per correct check. Get all 4 right for the full 40 XP.", "ta": "ஒவ்வொரு சரியான பதிலுக்கும் +10 XP. நான்கும் சரி = 40 XP." }
+  },
+  "cards": [
+    {
+      "id": "c1", "type": "cover",
+      "emoji": "💰", "level": "beginner",
+      "title": [
+        { "text": { "en": "Why do ", "ta": "" }, "em": false },
+        { "text": { "en": "companies", "ta": "நிறுவனங்களுக்கு" }, "em": true },
+        { "text": { "en": " need money?", "ta": " ஏன் பணம் தேவை?" }, "em": false }
+      ],
+      "description": { "en": "A 4-minute lesson. You will learn why growing companies need money, how they get it, and why that matters to you as an investor.", "ta": "4 நிமிட பாடம். வளரும் நிறுவனங்களுக்கு பணம் ஏன் தேவை, எப்படி பெறுகின்றன, அது உங்களுக்கு முதலீட்டாளராக ஏன் முக்கியம் என்று தெரியும்." },
+      "chips": [
+        { "text": "📖 4 MIN" }, { "text": "🧠 4 CHECKS" }, { "text": "+40 XP", "accent": true }
+      ]
+    },
+    {
+      "id": "c2", "type": "content",
+      "pill": { "en": "§ 01 · THE STORY", "ta": "§ 01 · கதை" },
+      "emoji": "🍔",
+      "title": [
+        { "text": { "en": "The burger ", "ta": "" }, "em": false },
+        { "text": { "en": "problem", "ta": "பிரச்சனை" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "text": { "en": "A small burger shop becomes very popular. Customers are lining up every day.", "ta": "ஒரு சிறிய பர்கர் கடை மிகவும் பிரபலமாகிறது. தினமும் நிறைய பேர் வர ஆரம்பிக்கிறார்கள்." } },
+        { "type": "callout-warning", "text": { "en": "But the shop is too small. Not enough staff. Not enough ingredients. They cannot serve everyone.", "ta": "ஆனால் கடை சிறியது. ஊழியர்கள் குறைவு. பொருட்கள் போதவில்லை. எல்லோரையும் சேவிக்க முடியவில்லை." } },
+        { "type": "paragraph", "variant": "muted", "text": { "en": "The owner knows exactly what to do — expand. But expansion costs money.", "ta": "உரிமையாளருக்கு என்ன செய்ய வேண்டும் என்று தெரியும் — விரிவாக்கம். ஆனால் அதற்கு பணம் வேண்டும்." } }
+      ]
+    },
+    {
+      "id": "c3", "type": "content",
+      "pill": { "en": "§ 01 · THE STORY", "ta": "§ 01 · கதை" },
+      "title": [
+        { "text": { "en": "Four things ", "ta": "" }, "em": false },
+        { "text": { "en": "money buys", "ta": "பணம் தரும்" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "variant": "muted", "text": { "en": "Every growing business — from a burger shop to Zomato — needs money for the same four things.", "ta": "பர்கர் கடை முதல் Zomato வரை — வளரும் ஒவ்வொரு வியாபாரமும் இதே நான்கு விஷயங்களுக்கு பணம் தேவை." } },
+        { "type": "money-grid", "items": [
+          { "emoji": "🏬", "title": { "en": "New Branches", "ta": "புதிய கிளைகள்" }, "subtitle": { "en": "More stores, more reach", "ta": "அதிக கடைகள், அதிக வாடிக்கையாளர்" } },
+          { "emoji": "👨‍💼", "title": { "en": "Employees", "ta": "ஊழியர்கள்" }, "subtitle": { "en": "More staff to serve more", "ta": "சேவை செய்ய அதிக ஊழியர்கள்" } },
+          { "emoji": "⚙️", "title": { "en": "Machines", "ta": "மெஷின்கள்" }, "subtitle": { "en": "Better equipment", "ta": "நவீன இயந்திரங்கள்" } },
+          { "emoji": "📦", "title": { "en": "Products", "ta": "பொருட்கள்" }, "subtitle": { "en": "Produce and stock more", "ta": "அதிக பொருட்கள் தயாரிக்க" } }
+        ]}
+      ]
+    },
+    {
+      "id": "c4", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 1 of 4", "ta": "விரைவு சோதனை · 1 / 4" },
+      "q_id": "m1l2-q1",
+      "question": {
+        "kind": "true-false", "xp": 10,
+        "text": { "en": "Companies need money to grow — for branches, staff, machines and products.", "ta": "நிறுவனங்கள் வளர பணம் தேவை — கிளைகள், ஊழியர்கள், மெஷின்கள், பொருட்களுக்கு." },
+        "options": [
+          { "key": "T", "text": { "en": "True", "ta": "சரி" }, "correct": true },
+          { "key": "F", "text": { "en": "False", "ta": "தவறு" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": true,
+          "text": { "en": "Yes — money is the fuel for growth. Without it, even a popular business stays small.", "ta": "ஆம் — பணம் வளர்ச்சிக்கான எரிபொருள். இல்லாவிட்டால் பிரபலமான வியாபாரமும் சிறியதாகவே இருக்கும்." }
+        }
+      }
+    },
+    {
+      "id": "c5", "type": "content",
+      "pill": { "en": "§ 02 · TWO WAYS", "ta": "§ 02 · இரண்டு வழிகள்" },
+      "title": [
+        { "text": { "en": "How do companies ", "ta": "" }, "em": false },
+        { "text": { "en": "get money?", "ta": "பணம் பெறுகின்றன?" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "variant": "muted", "text": { "en": "Two options. One has a cost. The other gives away ownership.", "ta": "இரண்டு விருப்பங்கள். ஒன்றுக்கு கட்டணம் உண்டு. மற்றொன்று ownership கொடுக்கும்." } },
+        { "type": "compare", "cols": [
+          { "emoji": "🏦", "title": { "en": "Bank Loan", "ta": "வங்கி கடன்" }, "subtitle": { "en": "Must repay with interest every month", "ta": "வட்டியுடன் திரும்ப செலுத்த வேண்டும்" }, "variant": "bad" },
+          { "emoji": "📈", "title": { "en": "Sell Shares", "ta": "Shares விற்பனை" }, "subtitle": { "en": "No repayment — investors get ownership", "ta": "திரும்ப செலுத்த வேண்டியதில்லை — முதலீட்டாளர்களுக்கு ownership" }, "variant": "good" }
+        ]},
+        { "type": "callout-note", "text": { "en": "This is why companies like Zomato and Nykaa raised money through IPOs — they sold shares to lakhs of investors instead of taking bank loans.", "ta": "அதனால்தான் Zomato மற்றும் Nykaa போன்ற நிறுவனங்கள் IPO மூலம் பணம் திரட்டின — வங்கி கடன் இல்லாமல் லட்சக்கணக்கான முதலீட்டாளர்களிடம் shares விற்றன." } }
+      ]
+    },
+    {
+      "id": "c6", "type": "content",
+      "pill": { "en": "§ 03 · WHY INVEST", "ta": "§ 03 · ஏன் முதலீடு" },
+      "title": [
+        { "text": { "en": "When the company ", "ta": "" }, "em": false },
+        { "text": { "en": "grows", "ta": "வளர்கிறது" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "variant": "muted", "text": { "en": "That is why people invest in companies they believe in.", "ta": "அதனால்தான் மக்கள் நம்பிக்கையுள்ள நிறுவனங்களில் முதலீடு செய்கிறார்கள்." } },
+        { "type": "growth-list", "items": [
+          { "icon": "📊", "text": { "en": "Revenue may increase", "ta": "வருமானம் அதிகரிக்கலாம்" } },
+          { "icon": "💵", "text": { "en": "Profit may increase", "ta": "லாபம் அதிகரிக்கலாம்" } },
+          { "icon": "📈", "text": { "en": "Share value may go higher", "ta": "பங்கின் மதிப்பு உயரலாம்" } }
+        ]},
+        { "type": "callout-note", "text": { "en": "Note: Share prices can also fall if the company performs poorly. Investing always carries risk.", "ta": "குறிப்பு: நிறுவனம் சரியாக செயல்படாவிட்டால் பங்கு விலை குறையலாம். முதலீட்டில் எப்போதும் ஆபத்து உண்டு." } }
+      ]
+    },
+    {
+      "id": "c7", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 2 of 4", "ta": "விரைவு சோதனை · 2 / 4" },
+      "q_id": "m1l2-q2",
+      "question": {
+        "kind": "mcq", "xp": 10,
+        "text": { "en": "A company needs ₹500 crore to expand. Which approach does NOT require repayment?", "ta": "ஒரு நிறுவனம் ₹500 கோடி தேவைப்படுகிறது. எந்த வழியில் பணம் திரும்ப செலுத்த வேண்டியதில்லை?" },
+        "options": [
+          { "key": "A", "text": { "en": "Taking a bank loan at 12% interest", "ta": "12% வட்டியில் வங்கி கடன் வாங்குவது" }, "correct": false },
+          { "key": "B", "text": { "en": "Selling shares through an IPO", "ta": "IPO மூலம் Shares விற்பனை செய்வது" }, "correct": true },
+          { "key": "C", "text": { "en": "Taking credit from suppliers", "ta": "சப்ளையர்களிடம் கடன் வாங்குவது" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": false,
+          "correct": { "en": "An IPO gives the company permanent capital — investors get ownership, the company gets cash. No EMI, no interest, no repayment schedule.", "ta": "IPO மூலம் நிரந்தர மூலதனம் கிடைக்கும் — முதலீட்டாளர்களுக்கு ownership, நிறுவனத்திற்கு பணம். EMI இல்லை, வட்டி இல்லை, திரும்ப செலுத்துவதில்லை." },
+          "wrong": { "en": "Both loans and supplier credit create debt — they must be repaid. Selling shares through an IPO is the only option here where investors take ownership instead of receiving repayment.", "ta": "வங்கி கடனும் சப்ளையர் கடனும் திரும்ப செலுத்த வேண்டியவை. IPO மட்டும் வேறு — முதலீட்டாளர்கள் ownership பெறுகிறார்கள், நிறுவனம் பணம் திரும்ப செலுத்துவதில்லை." }
+        }
+      }
+    },
+    {
+      "id": "c8", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 3 of 4", "ta": "விரைவு சோதனை · 3 / 4" },
+      "q_id": "m1l2-q3",
+      "question": {
+        "kind": "true-false", "xp": 10,
+        "text": { "en": "A bank loan must be repaid with interest. Money raised by selling shares does not need to be repaid.", "ta": "வங்கி கடனை வட்டியுடன் திரும்ப செலுத்த வேண்டும். Shares விற்று பெற்ற பணம் திரும்ப செலுத்த வேண்டியதில்லை." },
+        "options": [
+          { "key": "T", "text": { "en": "True", "ta": "சரி" }, "correct": true },
+          { "key": "F", "text": { "en": "False", "ta": "தவறு" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": true,
+          "text": { "en": "Exactly — that is the key difference. A loan creates debt; shares give ownership instead. That is why many companies prefer the stock market.", "ta": "சரிதான் — இதுவே முக்கிய வித்தியாசம். கடன் என்பது கடன்; shares என்பது ownership. அதனால்தான் பல நிறுவனங்கள் பங்குச்சந்தையை விரும்புகின்றன." }
+        }
+      }
+    },
+    {
+      "id": "c9", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 4 of 4", "ta": "விரைவு சோதனை · 4 / 4" },
+      "q_id": "m1l2-q4",
+      "question": {
+        "kind": "mcq", "xp": 10,
+        "text": { "en": "Why do people buy shares of a company?", "ta": "மக்கள் ஒரு நிறுவனத்தின் shares வாங்குவது ஏன்?" },
+        "options": [
+          { "key": "A", "text": { "en": "They believe the company may grow", "ta": "நிறுவனம் வளரலாம் என்று நம்புகிறார்கள்" }, "correct": true },
+          { "key": "B", "text": { "en": "To earn a fixed monthly salary from the company", "ta": "நிறுவனத்திடம் நிலையான மாத சம்பளம் பெற" }, "correct": false },
+          { "key": "C", "text": { "en": "To lend money that gets repaid with interest", "ta": "வட்டியுடன் திரும்பப் பெற பணம் கடனாக கொடுக்க" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": false,
+          "correct": { "en": "Shareholders back companies they believe in. If the company grows — revenue up, profit up — the share value may rise. That is the core logic of equity investing.", "ta": "முதலீட்டாளர்கள் நம்பிக்கையுள்ள நிறுவனங்களை தேர்ந்தெடுக்கிறார்கள். நிறுவனம் வளர்ந்தால் — வருமானம் அதிகரித்தால், லாபம் உயர்ந்தால் — பங்கின் மதிப்பும் உயரலாம். அதுவே equity முதலீட்டின் அடிப்படை." },
+          "wrong": { "en": "Shareholders are not employees — there is no fixed salary. And shares are not loans — there is no guaranteed repayment or interest. Your return depends on how the company performs.", "ta": "பங்குதாரர்கள் ஊழியர்கள் இல்லை — நிலையான சம்பளம் இல்லை. Shares கடன் இல்லை — திரும்ப செலுத்துவதற்கு உத்தரவாதமில்லை. நிறுவனத்தின் செயல்திறனே உங்கள் வருமானத்தை தீர்மானிக்கும்." }
+        }
+      }
+    },
+    {
+      "id": "c10", "type": "result",
+      "lesson_id": "m1l2",
+      "quiz_total": 4,
+      "lesson_done_label": { "en": "Lesson 1.2 done", "ta": "பாடம் 1.2 முடிந்தது" }
+    }
+  ]
+}

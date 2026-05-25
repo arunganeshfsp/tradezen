@@ -1,0 +1,54 @@
+{
+  "version": "1",
+  "subjects": [
+    {
+      "id": "fundamentals",
+      "title": { "en": "Fundamentals", "ta": "அடிப்படைகள்" },
+      "icon": "📚",
+      "modules": [
+        {
+          "id": "m1",
+          "title": { "en": "Stock Market Basics", "ta": "பங்குச்சந்தை அடிப்படைகள்" },
+          "lessons": [
+            {
+              "id": "m1l1", "order": 1, "status": "published",
+              "level": "beginner", "xp": 40, "duration_min": 4, "quiz_count": 4,
+              "emoji": "📈",
+              "title": { "en": "What is the Stock Market?", "ta": "பங்கு சந்தை என்றால் என்ன?" }
+            },
+            {
+              "id": "m1l2", "order": 2, "status": "published",
+              "level": "beginner", "xp": 40, "duration_min": 4, "quiz_count": 4,
+              "emoji": "💰",
+              "title": { "en": "Why Do Companies Need Money?", "ta": "நிறுவனங்களுக்கு ஏன் பணம் தேவை?" }
+            },
+            {
+              "id": "m1l3", "order": 3, "status": "published",
+              "level": "beginner", "xp": 30, "duration_min": 3, "quiz_count": 3,
+              "emoji": "🧩",
+              "title": { "en": "What is a Share?", "ta": "Share என்றால் என்ன?" }
+            },
+            {
+              "id": "m1l4", "order": 4, "status": "draft",
+              "level": "beginner", "xp": 40, "duration_min": 4, "quiz_count": 4,
+              "emoji": "🛒",
+              "title": { "en": "How to Buy Your First Share", "ta": "முதல் பங்கை எப்படி வாங்குவது?" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "technicals",
+      "title": { "en": "Technical Analysis", "ta": "தொழில்நுட்ப பகுப்பாய்வு" },
+      "icon": "📊",
+      "modules": []
+    },
+    {
+      "id": "options",
+      "title": { "en": "Options & Derivatives", "ta": "Options & Derivatives" },
+      "icon": "⚡",
+      "modules": []
+    }
+  ]
+}

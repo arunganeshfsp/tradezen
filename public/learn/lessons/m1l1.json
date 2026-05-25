@@ -1,0 +1,199 @@
+{
+  "id": "m1l1",
+  "version": "1",
+  "subject_id": "fundamentals",
+  "module_id": "m1",
+  "module_label": { "en": "Stock Market Basics", "ta": "பங்கு சந்தை அடிப்படைகள்" },
+  "lesson_label": { "en": "LESSON 1.1 · 10 CARDS", "ta": "பாடம் 1.1 · 10 கார்டுகள்" },
+  "lesson_ref": "M1 · 1.1",
+  "order": 1,
+  "level": "beginner",
+  "xp": 40,
+  "duration_min": 4,
+  "emoji": "📈",
+  "title": [
+    { "text": { "en": "What is the ", "ta": "" }, "em": false },
+    { "text": { "en": "stock market", "ta": "பங்குச்சந்தை" }, "em": true },
+    { "text": { "en": "?", "ta": " என்றால் என்ன?" }, "em": false }
+  ],
+  "next_lesson": {
+    "id": "m1l2",
+    "ref": "1.2",
+    "title": { "en": "Why Do Companies Need Money?", "ta": "நிறுவனங்களுக்கு ஏன் பணம் தேவை?" }
+  },
+  "outline": [
+    { "card": 1, "label": { "en": "Welcome", "ta": "வரவேற்பு" } },
+    { "card": 2, "label": { "en": "Tea-shop story", "ta": "தேநீர் கடை கதை" } },
+    { "card": 3, "label": { "en": "What is a share", "ta": "பங்கு என்றால்" } },
+    { "card": 4, "label": { "en": "Check · share", "ta": "சோதனை · பங்கு" } },
+    { "sep": true },
+    { "card": 5, "label": { "en": "Market = market", "ta": "சந்தை = சந்தை" } },
+    { "card": 6, "label": { "en": "Buyers vs sellers", "ta": "வாங்க vs விற்க" } },
+    { "card": 7, "label": { "en": "Check · buyers", "ta": "சோதனை · வாங்குபவர்" } },
+    { "card": 8, "label": { "en": "Check · sellers", "ta": "சோதனை · விற்பவர்" } },
+    { "sep": true },
+    { "card": 9, "label": { "en": "Check · the market", "ta": "சோதனை · சந்தை" } },
+    { "card": 10, "label": { "en": "Result", "ta": "முடிவு" } }
+  ],
+  "rail_tip": {
+    "icon": "⚡",
+    "label": { "en": "EARN XP", "ta": "XP பெற" },
+    "text": { "en": "+10 XP per correct check. Get all 4 right for the full 40 XP.", "ta": "ஒவ்வொரு சரியான பதிலுக்கும் +10 XP. நான்கும் சரி = 40 XP." }
+  },
+  "cards": [
+    {
+      "id": "c1", "type": "cover",
+      "emoji": "📈", "level": "beginner",
+      "title": [
+        { "text": { "en": "What is the ", "ta": "" }, "em": false },
+        { "text": { "en": "stock market", "ta": "பங்குச்சந்தை" }, "em": true },
+        { "text": { "en": "?", "ta": " என்றால் என்ன?" }, "em": false }
+      ],
+      "description": { "en": "A 4-minute story. No jargon. By the end you will know what a share is, why prices move, and where to find the market in India.", "ta": "4 நிமிட கதை. கடினமான வார்த்தைகள் இல்லை. முடிவில் பங்கு என்றால் என்ன, விலை ஏன் நகர்கிறது, இந்தியாவில் சந்தை எங்கே என்று தெரியும்." },
+      "chips": [
+        { "text": "📖 4 MIN" }, { "text": "🧠 4 CHECKS" }, { "text": "+40 XP", "accent": true }
+      ]
+    },
+    {
+      "id": "c2", "type": "content",
+      "pill": { "en": "§ 01 · THE STORY", "ta": "§ 01 · கதை" },
+      "emoji": "🍵",
+      "title": [
+        { "text": { "en": "The ", "ta": "" }, "em": false },
+        { "text": { "en": "tea-shop", "ta": "தேநீர் கடை" }, "em": true },
+        { "text": { "en": " story", "ta": " கதை" }, "em": false }
+      ],
+      "blocks": [
+        { "type": "paragraph", "text": { "en": "Your friend starts a tea shop. Business is going well. Now he wants to expand — a bigger shop, more chairs, better machines.", "ta": "உங்கள் நண்பர் ஒரு தேநீர் கடை ஆரம்பிக்கிறார். வியாபாரம் நன்றாக நடக்கிறது. இப்போது அவருக்கு பெரிய கடை, அதிக நாற்காலிகள், புதிய மெஷின்கள் வேண்டும்." } },
+        { "type": "paragraph", "variant": "muted", "text": { "en": "But he doesn't have enough money. So he asks you…", "ta": "ஆனால் அவரிடம் போதுமான பணம் இல்லை. அதனால் உங்களிடம் கேட்கிறார்…" } },
+        { "type": "callout-quote", "text": { "en": "\"Will you become a small partner in my business?\"", "ta": "\"என் வியாபாரத்தில் சிறு பங்காளியாக சேருகிறீர்களா?\"" } }
+      ]
+    },
+    {
+      "id": "c3", "type": "content",
+      "pill": { "en": "§ 01 · THE STORY", "ta": "§ 01 · கதை" },
+      "emoji": "🤝",
+      "title": [
+        { "text": { "en": "You become a ", "ta": "" }, "em": false },
+        { "text": { "en": "small owner", "ta": "சிறு உரிமையாளர்" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "text": { "en": "You give him money. Now you own a small piece of the shop. That small piece of ownership has a name.", "ta": "நீங்கள் பணம் கொடுக்கிறீர்கள். இப்போது அந்த கடையின் சிறு பகுதி உங்களுடையது. அந்த சிறு உரிமை பகுதிக்கு ஒரு பெயர் உண்டு." } },
+        { "type": "badge-highlight", "text": { "en": "Share", "ta": "பங்கு" }, "subtitle": { "en": "A piece of a company", "ta": "நிறுவனத்தின் ஒரு பகுதி" } },
+        { "type": "paragraph", "variant": "muted", "text": { "en": "Big companies like Tata Motors and Infosys did the same thing — they sold shares to lakhs of people and grew into giants.", "ta": "டாட்டா மோட்டார்ஸ் மற்றும் இன்ஃபோசிஸ் போன்ற பெரிய நிறுவனங்களும் இதையே செய்தன — லட்சக்கணக்கான மக்களிடம் பங்குகளை விற்று பெரிதாயின." } }
+      ]
+    },
+    {
+      "id": "c4", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 1 of 4", "ta": "விரைவு சோதனை · 1 / 4" },
+      "q_id": "m1l1-q1",
+      "question": {
+        "kind": "true-false", "xp": 10,
+        "text": { "en": "When you buy a share, you become a small owner of that company.", "ta": "நீங்கள் ஒரு பங்கு வாங்கும்போது, அந்த நிறுவனத்தின் சிறு உரிமையாளர் ஆகிறீர்கள்." },
+        "options": [
+          { "key": "T", "text": { "en": "True", "ta": "சரி" }, "correct": true },
+          { "key": "F", "text": { "en": "False", "ta": "தவறு" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": true,
+          "text": { "en": "Yes — even 1 share of Tata Motors makes you a tiny owner of Tata. Your share grows in value when the company grows.", "ta": "ஆம் — டாட்டா மோட்டார்ஸின் 1 பங்கு வாங்கினால் நீங்கள் டாட்டாவின் சிறு உரிமையாளர். நிறுவனம் வளர்ந்தால் உங்கள் பங்கும் வளரும்." }
+        }
+      }
+    },
+    {
+      "id": "c5", "type": "content",
+      "pill": { "en": "§ 02 · THE DEFINITION", "ta": "§ 02 · வரையறை" },
+      "title": [
+        { "text": { "en": "It's just a ", "ta": "" }, "em": false },
+        { "text": { "en": "market", "ta": "சந்தை" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "text": { "en": "A market is a place where people buy and sell things. The stock market is the same — except they trade shares of companies, not vegetables.", "ta": "சந்தை என்பது வாங்கி விற்கும் இடம். பங்குச்சந்தையும் அதே — காய்கறி இல்லை, நிறுவன பங்குகள்." } },
+        { "type": "emoji-row", "items": ["🥦", "💍", "📈"] },
+        { "type": "compare", "cols": [
+          { "title": { "en": "Veg market", "ta": "காய்கறி சந்தை" }, "subtitle": { "en": "Vegetables", "ta": "காய்கறிகள்" }, "variant": "neutral" },
+          { "title": { "en": "Stock market", "ta": "பங்குச்சந்தை" }, "subtitle": { "en": "Shares", "ta": "பங்குகள்" }, "variant": "accent" }
+        ]},
+        { "type": "callout-note", "text": { "en": "In India, this market has two names: NSE (National Stock Exchange) and BSE (Bombay Stock Exchange). Both run every weekday, 9:15 AM to 3:30 PM.", "ta": "இந்தியாவில் இந்த சந்தை NSE (தேசிய பங்கு சந்தை) மற்றும் BSE (பம்பாய் பங்கு சந்தை) என அழைக்கப்படுகிறது. இரண்டும் வாரநாட்களில் காலை 9:15 - மாலை 3:30 வரை இயங்கும்." } }
+      ]
+    },
+    {
+      "id": "c6", "type": "content",
+      "pill": { "en": "§ 03 · WHY PRICES MOVE", "ta": "§ 03 · விலை ஏன் நகர்கிறது" },
+      "title": [
+        { "text": { "en": "Buyers", "ta": "வாங்குபவர்கள்" }, "em": true },
+        { "text": { "en": " vs ", "ta": " vs " }, "em": false },
+        { "text": { "en": "Sellers", "ta": "விற்குபவர்கள்" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "variant": "muted", "text": { "en": "Prices move because of buyers and sellers. It's supply and demand.", "ta": "வாங்குபவர்களும் விற்குபவர்களும் காரணமாக விலை மாறுகிறது. இதுவே தேவை மற்றும் விநியோகம்." } },
+        { "type": "compare", "cols": [
+          { "emoji": "🧑🧑🧑🧑", "title": { "en": "More buyers", "ta": "அதிக வாங்குபவர்கள்" }, "subtitle": { "en": "Price may go UP 📈", "ta": "விலை மேலே போகலாம் 📈" }, "variant": "gain" },
+          { "emoji": "🏃🏃🏃", "title": { "en": "More sellers", "ta": "அதிக விற்குபவர்கள்" }, "subtitle": { "en": "Price may go DOWN 📉", "ta": "விலை கீழே வரலாம் 📉" }, "variant": "loss" }
+        ]},
+        { "type": "callout-warning", "text": { "en": "Important: Prices can go UP and also come DOWN. That is the risk — and also the opportunity — of the stock market.", "ta": "முக்கியம்: விலை மேலேயும் போகலாம், கீழேயும் வரலாம். அதுவே பங்குச்சந்தையின் ஆபத்தும் வாய்ப்பும்." } }
+      ]
+    },
+    {
+      "id": "c7", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 2 of 4", "ta": "விரைவு சோதனை · 2 / 4" },
+      "q_id": "m1l1-q2",
+      "question": {
+        "kind": "mcq", "xp": 10,
+        "text": { "en": "If more people start buying a stock, what may happen to its price?", "ta": "ஒரு பங்கை அதிக பேர் வாங்க தொடங்கினால் விலைக்கு என்ன ஆகலாம்?" },
+        "options": [
+          { "key": "A", "text": { "en": "Price may go UP", "ta": "விலை மேலே போகலாம்" }, "correct": true },
+          { "key": "B", "text": { "en": "Price stays the same", "ta": "விலை மாறாமல் இருக்கும்" }, "correct": false },
+          { "key": "C", "text": { "en": "Price may go DOWN", "ta": "விலை கீழே வரலாம்" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": false,
+          "correct": { "en": "More buyers competing for the same shares pushes the price up — same as the vegetable market: when everyone wants tomatoes, the vendor raises the price.", "ta": "அதே பங்கை அதிகம் பேர் வேண்டும்போது விலை ஏறும் — காய்கறி சந்தையைப் போலவே: எல்லோரும் தக்காளி வேண்டும்போது கடைக்காரர் விலை உயர்த்துவார்." },
+          "wrong": { "en": "Price goes DOWN when sellers outnumber buyers — not when buyers increase. More buyers means more demand for the same shares, which drives the price higher.", "ta": "விற்பவர்கள் அதிகமாகும்போது விலை கீழே வரும் — வாங்குபவர்கள் அதிகரிக்கும்போது இல்லை. அதிக வாங்குபவர்கள் = அதிக தேவை = விலை ஏறும்." }
+        }
+      }
+    },
+    {
+      "id": "c8", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 3 of 4", "ta": "விரைவு சோதனை · 3 / 4" },
+      "q_id": "m1l1-q3",
+      "question": {
+        "kind": "true-false", "xp": 10,
+        "text": { "en": "If more people sell a stock, its price is likely to go down.", "ta": "அதிக பேர் ஒரு பங்கை விற்றால், அதன் விலை கீழே வரும்." },
+        "options": [
+          { "key": "T", "text": { "en": "True", "ta": "சரி" }, "correct": true },
+          { "key": "F", "text": { "en": "False", "ta": "தவறு" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": true,
+          "text": { "en": "Yes — more supply, less demand means the price falls. Think of a sale: too many sellers competing means buyers get a better deal.", "ta": "ஆம் — அதிக விநியோகம், குறைந்த தேவை = விலை குறையும். விற்பனையில் அதிக விற்பவர்கள் போட்டி போடும்போது வாங்குபவர்களுக்கு நல்ல விலை கிடைக்கும்." }
+        }
+      }
+    },
+    {
+      "id": "c9", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 4 of 4", "ta": "விரைவு சோதனை · 4 / 4" },
+      "q_id": "m1l1-q4",
+      "question": {
+        "kind": "mcq", "xp": 10,
+        "text": { "en": "India's two main stock exchanges are:", "ta": "இந்தியாவின் இரண்டு முக்கிய பங்குச்சந்தைகள் எவை?" },
+        "options": [
+          { "key": "A", "text": { "en": "MCX and CDSL", "ta": "MCX மற்றும் CDSL" }, "correct": false },
+          { "key": "B", "text": { "en": "NSE and BSE", "ta": "NSE மற்றும் BSE" }, "correct": true },
+          { "key": "C", "text": { "en": "SEBI and RBI", "ta": "SEBI மற்றும் RBI" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": false,
+          "correct": { "en": "NSE (National Stock Exchange) and BSE (Bombay Stock Exchange) — both open Monday to Friday, 9:15 AM to 3:30 PM. Thousands of Indian companies are listed on them.", "ta": "NSE (தேசிய பங்கு சந்தை) மற்றும் BSE (பம்பாய் பங்கு சந்தை) — திங்கள் முதல் வெள்ளி வரை காலை 9:15 - மாலை 3:30. ஆயிரக்கணக்கான நிறுவனங்கள் இங்கே பட்டியலிடப்பட்டுள்ளன." },
+          "wrong": { "en": "MCX trades commodities like gold and crude oil — not company shares. CDSL stores shares electronically. SEBI is the regulator (makes the rules). RBI manages the currency. NSE and BSE are the actual trading venues.", "ta": "MCX என்பது தங்கம், கச்சா எண்ணெய் வர்த்தகம் செய்யும் இடம். CDSL பங்குகளை பத்திரமாக சேமிக்கும். SEBI விதிகளை உருவாக்கும். RBI நாணயத்தை நிர்வகிக்கும். NSE மற்றும் BSE மட்டுமே நிறுவன பங்குகள் வாங்கி விற்கும் உண்மையான சந்தை." }
+        }
+      }
+    },
+    {
+      "id": "c10", "type": "result",
+      "lesson_id": "m1l1",
+      "quiz_total": 4,
+      "lesson_done_label": { "en": "Lesson 1.1 done", "ta": "பாடம் 1.1 முடிந்தது" }
+    }
+  ]
+}

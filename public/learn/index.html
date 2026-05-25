@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradeZen Learn — CMS Preview</title>
+
+  <link rel="stylesheet" href="/halo-aurora/css/halo-tokens.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/halo-aurora/css/halo-aurora.css" />
+
+  <style>
+    body { min-height: 100vh; background: var(--tz-bg); color: var(--tz-fg-1); padding: 0; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(50% 40% at 10% 10%, rgba(124,106,247,0.13) 0%, transparent 60%), radial-gradient(50% 40% at 90% 90%, rgba(91,138,245,0.11) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+
+    /* Top bar */
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(var(--tz-bg-rgb, 10,10,15), 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--tz-border); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 14px; }
+    .topbar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .topbar .brand .wordmark { font-family: var(--tz-font-display); font-size: 17px; letter-spacing: -0.02em; color: var(--tz-fg-1); font-weight: 400; }
+    .topbar .brand .wordmark em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .topbar .cms-badge { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: rgba(var(--tz-accent-rgb), 0.12); border: 1px solid var(--tz-border-accent); color: var(--tz-accent-1); }
+    .topbar .spacer { flex: 1; }
+    #themeToggle { background: none; border: 1px solid var(--tz-border); border-radius: 999px; padding: 6px 14px; font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--tz-fg-2); cursor: pointer; transition: border-color 180ms, color 180ms; }
+    #themeToggle:hover { border-color: var(--tz-accent-1); color: var(--tz-fg-1); }
+
+    /* Page layout */
+    .page-wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* Hero */
+    .hero { margin-bottom: 48px; }
+    .hero .eyebrow { font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--tz-accent-1); margin-bottom: 10px; }
+    .hero h1 { font-family: var(--tz-font-display); font-size: clamp(28px, 4vw, 40px); font-weight: 400; letter-spacing: -0.02em; color: var(--tz-fg-1); margin: 0 0 12px; line-height: 1.15; }
+    .hero h1 em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero .sub { font-family: var(--tz-font-ui); font-size: 14.5px; color: var(--tz-fg-2); max-width: 560px; line-height: 1.65; }
+    .hero .stats-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .hero .stat-chip { padding: 8px 16px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); display: flex; align-items: center; gap: 8px; }
+    .hero .stat-chip .k { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--tz-fg-3); }
+    .hero .stat-chip .v { font-family: var(--tz-font-mono); font-size: 15px; font-weight: 700; color: var(--tz-fg-1); }
+    .hero .stat-chip .v.accent { color: var(--tz-accent-1); }
+    .hero .stat-chip .v.gain { color: var(--tz-gain); }
+
+    /* Loading */
+    #loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 260px; gap: 14px; }
+    #loading-state .spinner { width: 32px; height: 32px; border: 2.5px solid var(--tz-border); border-top-color: var(--tz-accent-1); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    #loading-state .msg { font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    #error-state { display: none; padding: 28px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--tz-radius-xl); text-align: center; }
+    #error-state .icon { font-size: 32px; margin-bottom: 10px; }
+    #error-state p { font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-2); margin: 0; }
+
+    /* Subject sections */
+    .subject-section { margin-bottom: 40px; }
+    .subject-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--tz-border); }
+    .subject-header .icon { font-size: 22px; line-height: 1; }
+    .subject-header h2 { font-family: var(--tz-font-display); font-size: 20px; font-weight: 400; letter-spacing: -0.01em; color: var(--tz-fg-1); margin: 0; }
+    .subject-header h2 span.ta { display: none; }
+    .subject-header .lesson-count { margin-left: auto; font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--tz-fg-3); }
+
+    /* Empty subject */
+    .empty-subject { padding: 24px; border: 1px dashed var(--tz-border); border-radius: var(--tz-radius-xl); text-align: center; }
+    .empty-subject p { font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-3); margin: 0; }
+
+    /* Module block */
+    .module-block { background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-xl); overflow: hidden; margin-bottom: 14px; }
+    .module-header { padding: 14px 18px; border-bottom: 1px solid var(--tz-border); display: flex; align-items: center; gap: 10px; }
+    .module-header .m-label { font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--tz-fg-3); }
+    .module-header .m-title { font-family: var(--tz-font-ui); font-size: 14px; font-weight: 600; color: var(--tz-fg-1); }
+    .module-header .m-title span.ta { display: none; }
+
+    /* Lesson rows */
+    .lesson-list { padding: 8px 0; }
+    .lesson-row { display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-radius: 0; transition: background 150ms var(--tz-ease-out); position: relative; }
+    .lesson-row:hover { background: var(--tz-surface-2); }
+    .lesson-row + .lesson-row { border-top: 1px solid var(--tz-border); }
+    .lesson-row .l-num { font-family: var(--tz-font-mono); font-size: 11px; color: var(--tz-fg-3); width: 22px; text-align: center; flex-shrink: 0; }
+    .lesson-row .l-emoji { font-size: 18px; line-height: 1; flex-shrink: 0; }
+    .lesson-row .l-body { flex: 1; min-width: 0; }
+    .lesson-row .l-title { font-family: var(--tz-font-ui); font-size: 13.5px; font-weight: 600; color: var(--tz-fg-1); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lesson-row .l-title span.ta { display: none; }
+    .lesson-row .l-meta { font-family: var(--tz-font-mono); font-size: 10.5px; color: var(--tz-fg-3); margin-top: 2px; }
+    .lesson-row .l-tags { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+    /* Tags */
+    .tag { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--tz-border); color: var(--tz-fg-3); white-space: nowrap; }
+    .tag.published { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.35); color: var(--tz-gain); }
+    .tag.draft { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.3); color: #f59e0b; }
+    .tag.xp { background: rgba(var(--tz-accent-rgb), 0.1); border-color: var(--tz-border-accent); color: var(--tz-accent-1); }
+
+    /* Lesson link overlay — for published only */
+    .lesson-row.is-published { cursor: pointer; }
+    .lesson-row.is-published .l-open { font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--tz-fg-3); flex-shrink: 0; opacity: 0; transition: opacity 180ms; }
+    .lesson-row.is-published:hover .l-open { opacity: 1; }
+    .lesson-row.is-draft { opacity: 0.6; cursor: not-allowed; }
+    a.row-link { position: absolute; inset: 0; display: block; text-decoration: none; }
+
+    /* XP summary in module header */
+    .module-header .m-xp { margin-left: auto; font-family: var(--tz-font-mono); font-size: 10px; color: var(--tz-fg-3); }
+
+    /* Quick links */
+    .quick-links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
+    .quick-link { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-2); text-decoration: none; transition: border-color 180ms, color 180ms; }
+    .quick-link:hover { border-color: var(--tz-accent-1); color: var(--tz-fg-1); }
+    .quick-link .ql-icon { font-size: 16px; }
+
+    /* Responsive */
+    @media (max-width: 575px) {
+      .page-wrap { padding: 24px 14px 60px; }
+      .topbar { padding: 0 14px; }
+      .lesson-row .l-tags { display: none; }
+      .hero .stats-row { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <a href="/index.html" class="brand">
+      <span class="wordmark">Trade<em>Zen</em></span>
+    </a>
+    <span class="cms-badge">CMS Preview</span>
+    <div class="spacer"></div>
+    <button id="themeToggle">☀ Light</button>
+  </header>
+
+  <main class="page-wrap">
+
+    <!-- Hero -->
+    <section class="hero">
+      <p class="eyebrow" data-en="Learn — Content Library" data-ta="கற்றல் — உள்ளட்ட நூலகம்">Learn — Content Library</p>
+      <h1>All <em>Chapters</em> at a Glance</h1>
+      <p class="sub" data-en="CMS parallel track — testing ground for JSON-driven lessons. Published lessons open in the dynamic renderer. Draft lessons are visible but not yet playable." data-ta="CMS இணை பாதை — JSON-இயக்கப்படும் பாடங்களுக்கான சோதனை தளம். வெளியிடப்பட்ட பாடங்கள் dynamic renderer-இல் திறக்கும்.">
+        CMS parallel track — testing ground for JSON-driven lessons. Published lessons open in the dynamic renderer. Draft lessons are visible but not yet playable.
+      </p>
+      <div class="stats-row" id="stats-row">
+        <!-- populated by JS -->
+      </div>
+    </section>
+
+    <!-- Quick links -->
+    <div class="quick-links">
+      <a href="/training/learn_home.html" class="quick-link">
+        <span class="ql-icon">🏠</span>
+        <span data-en="HTML Home" data-ta="HTML முகப்பு">HTML Home</span>
+      </a>
+      <a href="/learn/lesson.html?id=m1l1" class="quick-link">
+        <span class="ql-icon">▶</span>
+        <span data-en="Open Lesson 1.1" data-ta="பாடம் 1.1 திறக்கவும்">Open Lesson 1.1</span>
+      </a>
+      <a href="/api/learn/catalog" class="quick-link" target="_blank">
+        <span class="ql-icon">{ }</span>
+        <span data-en="Raw catalog JSON" data-ta="Raw catalog JSON">Raw catalog JSON</span>
+      </a>
+      <a href="/api/learn/lesson/m1l1" class="quick-link" target="_blank">
+        <span class="ql-icon">{ }</span>
+        <span data-en="Raw lesson JSON" data-ta="Raw lesson JSON">Raw lesson JSON</span>
+      </a>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading-state">
+      <div class="spinner"></div>
+      <p class="msg">Loading catalog…</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error-state">
+      <div class="icon">⚠</div>
+      <p>Could not load catalog. Is the server running?</p>
+    </div>
+
+    <!-- Catalog tree -->
+    <div id="catalog-tree" style="display:none;"></div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/halo-aurora/js/halo-aurora.js"></script>
+  <script>
+    // ── Theme toggle ──────────────────────────────────────────────────────────
+    const themeBtn = document.getElementById('themeToggle');
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-bs-theme', t);
+      themeBtn.textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+      localStorage.setItem('tz_theme', t);
+    }
+    themeBtn.addEventListener('click', () => {
+      applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+    });
+    applyTheme(localStorage.getItem('tz_theme') || 'dark');
+
+    // ── Lang helpers ──────────────────────────────────────────────────────────
+    let currentLang = localStorage.getItem('tz_lang') || 'en';
+    function applyLang() {
+      document.querySelectorAll('[data-en]').forEach(el => {
+        el.textContent = currentLang === 'ta' ? (el.dataset.ta || el.dataset.en) : el.dataset.en;
+      });
+      document.querySelectorAll('.ta').forEach(el => {
+        el.style.display = currentLang === 'ta' ? '' : 'none';
+      });
+      document.querySelectorAll('.en-only').forEach(el => {
+        el.style.display = currentLang === 'ta' ? 'none' : '';
+      });
+    }
+
+    // ── Escape ────────────────────────────────────────────────────────────────
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function t(obj) {
+      return esc(currentLang === 'ta' && obj.ta ? obj.ta : obj.en);
+    }
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+    function buildStats(catalog) {
+      let totalPublished = 0, totalDraft = 0, totalXP = 0;
+      catalog.subjects.forEach(s => s.modules.forEach(m => m.lessons.forEach(l => {
+        if (l.status === 'published') { totalPublished++; totalXP += l.xp || 0; }
+        else totalDraft++;
+      })));
+      const lsData = JSON.parse(localStorage.getItem('tz_learn') || '{}');
+      const done = (lsData.lessons_done || []).length;
+      return `
+        <div class="stat-chip"><span class="k">Published</span><span class="v gain">${totalPublished}</span></div>
+        <div class="stat-chip"><span class="k">Draft</span><span class="v">${totalDraft}</span></div>
+        <div class="stat-chip"><span class="k">XP Pool</span><span class="v accent">${totalXP}</span></div>
+        <div class="stat-chip"><span class="k">Completed</span><span class="v">${done}</span></div>
+      `;
+    }
+
+    // ── Lesson row ────────────────────────────────────────────────────────────
+    function lessonRow(lesson, modId) {
+      const isPub = lesson.status === 'published';
+      const lsData = JSON.parse(localStorage.getItem('tz_learn') || '{}');
+      const isDone = (lsData.lessons_done || []).includes(lesson.id);
+
+      const doneIcon = isDone ? '<span style="color:var(--tz-gain);font-size:13px;">✓</span>' : '';
+
+      return `
+        <div class="lesson-row ${isPub ? 'is-published' : 'is-draft'}" data-id="${esc(lesson.id)}">
+          ${isPub ? `<a class="row-link" href="/learn/lesson.html?id=${esc(lesson.id)}"></a>` : ''}
+          <span class="l-num">${lesson.order}</span>
+          <span class="l-emoji">${lesson.emoji || '📄'}</span>
+          <div class="l-body">
+            <div class="l-title">
+              <span class="en-only">${esc(lesson.title.en)}</span>
+              <span class="ta" style="display:none;">${esc(lesson.title.ta || lesson.title.en)}</span>
+              ${doneIcon}
+            </div>
+            <div class="l-meta">${lesson.duration_min || '?'} min · ${lesson.quiz_count || 0} quizzes · ${lesson.level || 'beginner'}</div>
+          </div>
+          <div class="l-tags">
+            <span class="tag ${lesson.status}">${lesson.status}</span>
+            <span class="tag xp">+${lesson.xp} XP</span>
+            ${isPub ? '<span class="l-open">Open →</span>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Module block ──────────────────────────────────────────────────────────
+    function moduleBlock(mod) {
+      const totalXP = mod.lessons.reduce((s, l) => s + (l.xp || 0), 0);
+      return `
+        <div class="module-block">
+          <div class="module-header">
+            <span class="m-label">${esc(mod.id.toUpperCase())}</span>
+            <span class="m-title">
+              <span class="en-only">${esc(mod.title.en)}</span>
+              <span class="ta" style="display:none;">${esc(mod.title.ta || mod.title.en)}</span>
+            </span>
+            <span class="m-xp">Pool: ${totalXP} XP</span>
+          </div>
+          <div class="lesson-list">
+            ${mod.lessons.map(l => lessonRow(l, mod.id)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Subject section ───────────────────────────────────────────────────────
+    function subjectSection(subject) {
+      const total = subject.modules.reduce((s, m) => s + m.lessons.length, 0);
+      const inner = subject.modules.length === 0
+        ? `<div class="empty-subject"><p>No modules yet — coming soon.</p></div>`
+        : subject.modules.map(m => moduleBlock(m)).join('');
+
+      return `
+        <section class="subject-section">
+          <div class="subject-header">
+            <span class="icon">${subject.icon}</span>
+            <h2>
+              <span class="en-only">${esc(subject.title.en)}</span>
+              <span class="ta" style="display:none;">${esc(subject.title.ta || subject.title.en)}</span>
+            </h2>
+            ${total > 0 ? `<span class="lesson-count">${total} lesson${total !== 1 ? 's' : ''}</span>` : ''}
+          </div>
+          ${inner}
+        </section>
+      `;
+    }
+
+    // ── Render catalog ────────────────────────────────────────────────────────
+    function renderCatalog(catalog) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('stats-row').innerHTML = buildStats(catalog);
+      const tree = document.getElementById('catalog-tree');
+      tree.innerHTML = catalog.subjects.map(s => subjectSection(s)).join('');
+      tree.style.display = '';
+      applyLang();
+    }
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    fetch('/api/learn/catalog')
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(renderCatalog)
+      .catch(() => {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-state').style.display = '';
+      });
+
+    // ── Sync lang from halo-aurora.js ─────────────────────────────────────────
+    document.addEventListener('tz-lang-change', e => {
+      currentLang = e.detail?.lang || 'en';
+      applyLang();
+    });
+    setTimeout(applyLang, 0);
+  </script>
+</body>
+</html>

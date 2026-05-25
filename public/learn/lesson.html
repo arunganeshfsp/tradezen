@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradeZen Learn</title>
+
+  <link rel="stylesheet" href="/halo-aurora/css/halo-tokens.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/halo-aurora/css/halo-aurora.css" />
+  <link rel="stylesheet" href="/halo-aurora/tutorial/tutorial.css" />
+
+  <style>
+    body { min-height: 100vh; padding: 0; background: var(--tz-bg); display: flex; align-items: center; justify-content: center; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(50% 40% at 20% 20%, rgba(124,106,247,0.16) 0%, transparent 60%), radial-gradient(50% 40% at 80% 80%, rgba(91,138,245,0.14) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+
+    /* Loading */
+    #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 999; background: var(--tz-bg); }
+    #loading .spinner { width: 36px; height: 36px; border: 3px solid var(--tz-border); border-top-color: var(--tz-accent-1); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    #loading .msg { font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading.hidden { display: none; }
+
+    /* Layout */
+    .workspace { position: relative; z-index: 1; width: 100%; max-width: 1280px; padding: 24px; display: grid; gap: 24px; align-items: center; grid-template-columns: 280px minmax(0, 460px) 280px; justify-content: center; min-height: 100vh; }
+    @media (max-width: 1199.98px) { .workspace { grid-template-columns: 240px minmax(0, 440px) 240px; gap: 18px; padding: 18px; } }
+    @media (max-width: 991.98px)  { .workspace { grid-template-columns: 1fr; max-width: 460px; padding: 24px 12px; } .rail { display: none !important; } }
+    @media (max-width: 575.98px)  { .workspace { padding: 0; align-items: stretch; max-width: none; min-height: 100vh; gap: 0; } }
+
+    /* Stage */
+    .stage { position: relative; width: 100%; aspect-ratio: 9 / 16; max-height: calc(100vh - 48px); background: var(--tz-bg-elev); border: 1px solid var(--tz-border); border-radius: 32px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--tz-border); display: flex; flex-direction: column; justify-self: center; }
+    @media (max-width: 575.98px) { .stage { aspect-ratio: auto; height: 100vh; max-height: none; border-radius: 0; border: none; box-shadow: none; } }
+
+    /* Rail */
+    .rail { align-self: stretch; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 48px); overflow-y: auto; scrollbar-width: none; padding: 4px; }
+    .rail::-webkit-scrollbar { display: none; }
+    .rail-card { background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-xl); padding: 18px; }
+    .rail-card .head { font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; margin-bottom: 10px; }
+    .rail-card h3 { font-family: var(--tz-font-display); font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; color: var(--tz-fg-1); font-weight: 400; margin: 0 0 4px; }
+    .rail-card h3 em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    .stat-grid .stat { padding: 12px; background: var(--tz-bg-elev); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-md); text-align: center; }
+    .stat-grid .stat .k { font-family: var(--tz-font-mono); font-size: 9px; letter-spacing: 0.18em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .stat-grid .stat .v { font-family: var(--tz-font-mono); font-size: 20px; font-weight: 700; color: var(--tz-fg-1); margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .stat-grid .stat .v.accent { color: var(--tz-accent-1); }
+    .stat-grid .stat .v.gain   { color: var(--tz-gain); }
+    .streak-ring { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--tz-bg-elev); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); margin-top: 12px; }
+    .streak-ring .flame { font-size: 28px; line-height: 1; }
+    .streak-ring .meta .k { font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .streak-ring .meta .v { font-family: var(--tz-font-ui); font-size: 15px; font-weight: 700; color: var(--tz-fg-1); margin-top: 1px; }
+    .rail-tip { padding: 14px; background: rgba(var(--tz-accent-rgb), 0.06); border: 1px solid var(--tz-border-accent); border-radius: var(--tz-radius-lg); display: flex; gap: 10px; align-items: flex-start; }
+    .rail-tip .glyph { font-size: 18px; line-height: 1.2; flex-shrink: 0; }
+    .rail-tip .body { font-family: var(--tz-font-ui); font-size: 12.5px; line-height: 1.5; color: var(--tz-fg-1); }
+    .rail-tip .body .k { display: block; font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--tz-accent-1); text-transform: uppercase; margin-bottom: 3px; }
+    .outline { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 2px; }
+    .outline li { display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-radius: var(--tz-radius-md); font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-3); cursor: pointer; transition: background 180ms var(--tz-ease-out); }
+    .outline li:hover { background: var(--tz-surface-2); }
+    .outline li .marker { width: 20px; height: 20px; border-radius: 999px; background: var(--tz-surface-2); border: 1px solid var(--tz-border); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-family: var(--tz-font-mono); font-size: 10px; font-weight: 700; color: var(--tz-fg-3); }
+    .outline li .label { flex: 1; min-width: 0; }
+    .outline li.is-done .marker { background: var(--tz-gain-dim); border-color: rgba(52,211,153,0.35); color: var(--tz-gain); }
+    .outline li.is-done .marker::before { content: '✓'; }
+    .outline li.is-done .marker .num { display: none; }
+    .outline li.is-active { background: rgba(var(--tz-accent-rgb), 0.10); color: var(--tz-fg-1); font-weight: 600; }
+    .outline li.is-active .marker { background: var(--tz-grad); border-color: transparent; color: #fff; box-shadow: var(--tz-glow-soft); }
+    .outline li.is-active .marker .num { display: inline; }
+    .outline .sep { height: 1px; background: var(--tz-border); margin: 8px 4px; padding: 0; cursor: default; }
+    .outline .sep:hover { background: var(--tz-border); }
+    .module-crumb { display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--tz-border); margin-bottom: 14px; }
+    .module-crumb .back { width: 30px; height: 30px; border-radius: 999px; background: var(--tz-surface-2); border: 1px solid var(--tz-border); color: var(--tz-fg-1); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; text-decoration: none; }
+    .module-crumb .back:hover { background: var(--tz-surface); }
+    .module-crumb .meta .k { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .module-crumb .meta .v { font-family: var(--tz-font-ui); font-size: 13.5px; font-weight: 600; color: var(--tz-fg-1); margin-top: 1px; }
+
+    /* Stage internals */
+    .stage-top { padding: 14px 18px 0; flex-shrink: 0; }
+    .dots { display: flex; gap: 4px; margin-bottom: 12px; }
+    .dots .seg { flex: 1; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.10); overflow: hidden; position: relative; }
+    .dots .seg .fill { position: absolute; inset: 0; width: 0; background: var(--tz-grad-h); border-radius: 999px; transition: width 280ms var(--tz-ease-out); }
+    .dots .seg.is-done .fill, .dots .seg.is-active .fill { width: 100%; }
+    .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .top-row .close { width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,0.06); border: none; color: var(--tz-fg-1); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; }
+    .top-row .meta { flex: 1; text-align: center; font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    .top-row .meta .now { color: var(--tz-fg-1); }
+    .stage .lang-toggle { transform: scale(0.85); transform-origin: right center; }
+    .deck { flex: 1; position: relative; overflow: hidden; }
+    .deck::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 110px; background: linear-gradient(to bottom, transparent 0%, var(--tz-bg-elev) 100%); pointer-events: none; z-index: 3; }
+    .card-slide { position: absolute; inset: 0; padding: 28px 24px 120px; display: flex; flex-direction: column; opacity: 0; transform: translateX(40px); pointer-events: none; transition: transform 320ms var(--tz-ease-out), opacity 240ms; overflow-y: auto; scrollbar-width: none; }
+    .card-slide::-webkit-scrollbar { display: none; }
+    .card-slide.is-active { opacity: 1; transform: none; pointer-events: auto; }
+    .card-slide.is-prev   { transform: translateX(-40px); }
+    .card-level { align-self: flex-start; margin-bottom: 20px; }
+    .card-emoji { font-size: 64px; line-height: 1; display: block; margin-bottom: 14px; }
+    .card-title { font-family: var(--tz-font-display); font-size: clamp(26px, 7vw, 34px); line-height: 1.1; letter-spacing: -0.025em; color: var(--tz-fg-1); font-weight: 400; margin: 0 0 14px; }
+    .card-title em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+    .card-body { font-family: var(--tz-font-ui); font-size: 16px; line-height: 1.6; color: var(--tz-fg-1); margin: 0 0 12px; }
+    .card-body.muted { color: var(--tz-fg-2); }
+    .card-pill { display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--tz-surface); border: 1px solid var(--tz-border); font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--tz-fg-2); text-transform: uppercase; margin-bottom: 18px; }
+    .spacer { flex: 1; min-height: 8px; max-height: 56px; }
+    .stage-bottom { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 10px; z-index: 4; }
+    .stage-bottom .btn-prev, .stage-bottom .btn-next { flex: 1; padding: 14px 18px; border-radius: 16px; font-family: var(--tz-font-ui); font-size: 14.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 180ms var(--tz-ease-out); }
+    .stage-bottom .btn-prev { background: rgba(255,255,255,0.06); color: var(--tz-fg-1); border: 1px solid var(--tz-border); flex: 0 0 96px; }
+    .stage-bottom .btn-prev:hover { background: rgba(255,255,255,0.10); }
+    .stage-bottom .btn-prev:disabled { opacity: 0.4; cursor: not-allowed; }
+    .stage-bottom .btn-next { background: var(--tz-grad); color: #fff; border: none; box-shadow: var(--tz-glow); }
+    .stage-bottom .btn-next:hover { opacity: 0.92; color: #fff; }
+    .stage-bottom .btn-next:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+    /* Quiz inside card */
+    .card-slide .result-card { padding: 24px 18px; border-radius: var(--tz-radius-xl); }
+    .card-slide .result-card .trophy { width: 60px; height: 60px; }
+    .card-slide .result-card .score  { font-size: 52px; }
+    .card-slide .quiz-q { background: transparent; border: none; padding: 0; }
+    .card-slide .quiz-q h3 { font-family: var(--tz-font-display); font-size: 22px; line-height: 1.2; font-weight: 400; letter-spacing: -0.02em; }
+    .card-slide .qhead { margin-bottom: 8px; }
+
+    /* ── Block types ──────────────────────────────────────── */
+    .blk-compare { display: flex; gap: 10px; margin: 14px 0; }
+    .blk-compare .cmp-cell { flex: 1; padding: 14px 12px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); display: flex; flex-direction: column; gap: 4px; }
+    .blk-compare .cmp-cell.accent { background: rgba(var(--tz-accent-rgb),0.10); border-color: var(--tz-border-accent); }
+    .blk-compare .cmp-cell.gain   { background: var(--tz-gain-dim); border-color: rgba(52,211,153,0.35); }
+    .blk-compare .cmp-cell.loss   { background: var(--tz-loss-dim); border-color: rgba(248,113,113,0.35); }
+    .blk-compare .cmp-cell.good   { background: var(--tz-gain-dim); border-color: rgba(52,211,153,0.35); }
+    .blk-compare .cmp-cell.bad    { background: var(--tz-surface); border-color: var(--tz-border); }
+    .blk-compare .cmp-emoji { font-size: 22px; margin-bottom: 2px; }
+    .blk-compare .cmp-title { font-family: var(--tz-font-ui); font-size: 13.5px; font-weight: 700; color: var(--tz-fg-1); }
+    .blk-compare .cmp-cell.accent .cmp-title { color: var(--tz-accent-1); }
+    .blk-compare .cmp-subtitle { font-family: var(--tz-font-ui); font-size: 12px; color: var(--tz-fg-3); line-height: 1.4; }
+
+    .blk-money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    .blk-money-grid .mg-item { background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); padding: 12px; display: flex; flex-direction: column; gap: 3px; }
+    .blk-money-grid .mg-emoji { font-size: 20px; }
+    .blk-money-grid .mg-title { font-family: var(--tz-font-ui); font-size: 13px; font-weight: 700; color: var(--tz-fg-1); }
+    .blk-money-grid .mg-sub { font-family: var(--tz-font-ui); font-size: 11.5px; color: var(--tz-fg-3); }
+
+    .blk-growth-list { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+    .blk-growth-list .gl-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); }
+    .blk-growth-list .gl-icon { font-size: 18px; flex-shrink: 0; }
+    .blk-growth-list .gl-body { flex: 1; font-family: var(--tz-font-ui); font-size: 13.5px; color: var(--tz-fg-1); }
+    .blk-growth-list .gl-arrow { color: var(--tz-gain); font-size: 13px; font-weight: 700; }
+
+    .blk-emoji-row { display: flex; justify-content: center; gap: 20px; font-size: 28px; margin: 12px 0; }
+
+    .blk-badge { margin: 16px 0; text-align: center; }
+    .blk-badge .badge-word { display: inline-block; padding: 12px 28px; border-radius: 14px; background: var(--tz-grad); color: #fff; font-family: var(--tz-font-display); font-size: 30px; font-weight: 400; letter-spacing: -0.01em; box-shadow: var(--tz-glow); }
+    .blk-badge .badge-sub { margin-top: 10px; font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
+
+    .blk-callout-quote { margin: 12px 0; padding: 16px 18px; background: rgba(var(--tz-accent-rgb),0.08); border-left: 3px solid var(--tz-accent-1); border-radius: 0 12px 12px 0; font-family: var(--tz-font-display); font-style: italic; font-size: 18px; line-height: 1.45; color: var(--tz-fg-1); }
+    .blk-callout-note { margin: 12px 0; padding: 11px 14px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); font-family: var(--tz-font-ui); font-size: 13px; line-height: 1.5; color: var(--tz-fg-2); }
+    .blk-callout-warning { margin: 12px 0; padding: 11px 14px; background: var(--tz-loss-dim); border: 1px solid rgba(248,113,113,0.25); border-radius: var(--tz-radius-lg); font-family: var(--tz-font-ui); font-size: 13px; line-height: 1.5; color: var(--tz-fg-1); }
+    .blk-callout-example { margin: 14px 0; padding: 14px 16px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); }
+    .blk-callout-example .ce-label { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; margin-bottom: 6px; }
+    .blk-callout-example .ce-text { font-family: var(--tz-font-ui); font-size: 13.5px; line-height: 1.55; color: var(--tz-fg-1); margin: 0; }
+
+    .blk-pizza { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+    .blk-pizza .pz-cell { background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); padding: 12px 8px; text-align: center; }
+    .blk-pizza .pz-cell.highlight { border-color: var(--tz-border-accent); background: rgba(var(--tz-accent-rgb),0.06); }
+    .blk-pizza .pz-emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+    .blk-pizza .pz-label { font-family: var(--tz-font-mono); font-size: 11px; font-weight: 700; color: var(--tz-fg-2); display: block; margin-bottom: 2px; }
+    .blk-pizza .pz-pct { font-family: var(--tz-font-mono); font-size: 15px; font-weight: 700; color: var(--tz-accent-1); }
+    .blk-pizza .pz-cell.highlight .pz-pct { color: var(--tz-gain); }
+
+    .blk-scale { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+    .blk-scale .sc-item { background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); padding: 12px 10px; text-align: center; }
+    .blk-scale .sc-item.major { border-color: var(--tz-border-accent); background: rgba(var(--tz-accent-rgb),0.06); }
+    .blk-scale .sc-icon { font-size: 20px; display: block; margin-bottom: 5px; }
+    .blk-scale .sc-label { font-family: var(--tz-font-mono); font-size: 11px; color: var(--tz-fg-3); display: block; margin-bottom: 3px; }
+    .blk-scale .sc-pct { font-family: var(--tz-font-mono); font-size: 18px; font-weight: 700; color: var(--tz-accent-1); }
+    .blk-scale .sc-item.major .sc-pct { color: var(--tz-gain); }
+
+    .blk-chain { display: flex; flex-direction: column; gap: 4px; margin: 14px 0; }
+    .blk-chain .ch-step { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); font-family: var(--tz-font-ui); font-size: 14px; color: var(--tz-fg-1); }
+    .blk-chain .ch-step.highlight { border-color: var(--tz-border-accent); background: rgba(var(--tz-accent-rgb),0.06); }
+    .blk-chain .ch-icon { font-size: 18px; flex-shrink: 0; }
+    .blk-chain .ch-text { flex: 1; }
+    .blk-chain .ch-arrow { margin-left: auto; font-family: var(--tz-font-mono); font-size: 11px; color: var(--tz-gain); font-weight: 700; }
+    .blk-chain .ch-step.highlight .ch-arrow { color: var(--tz-accent-1); }
+    .blk-chain .ch-connector { text-align: center; font-size: 16px; color: var(--tz-fg-3); line-height: 1; }
+
+    .blk-no-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+    .blk-no-list .nl-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--tz-loss-dim); border: 1px solid rgba(248,113,113,0.2); border-radius: var(--tz-radius-lg); }
+    .blk-no-list .nl-x { font-family: var(--tz-font-mono); font-size: 13px; font-weight: 700; color: var(--tz-loss); flex-shrink: 0; margin-top: 1px; }
+    .blk-no-list .nl-body { font-family: var(--tz-font-ui); font-size: 13.5px; color: var(--tz-fg-1); line-height: 1.45; }
+    .blk-no-list .nl-body small { color: var(--tz-fg-3); font-size: 11.5px; display: block; margin-top: 2px; }
+  </style>
+</head>
+
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="msg">Loading lesson…</div>
+</div>
+
+<div class="workspace" id="workspace" style="display:none">
+
+  <aside class="rail rail-left" id="railLeft"></aside>
+
+  <div class="stage" id="stage">
+    <header class="stage-top">
+      <div class="dots" id="dots"></div>
+      <div class="top-row">
+        <a class="close" href="/training/learn_home.html" aria-label="Back to lessons">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </a>
+        <div class="meta">
+          <span class="now" id="lessonRef">—</span>&nbsp;·&nbsp;<span id="cardNum">1</span> / <span id="cardTotal">—</span>
+        </div>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" data-lang="en" class="is-active">EN</button>
+          <button type="button" data-lang="ta">த</button>
+        </div>
+      </div>
+    </header>
+    <div class="deck" id="deck"></div>
+    <div class="stage-bottom">
+      <button class="btn-prev" id="prevBtn" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span data-en="Back" data-ta="பின்">Back</span>
+      </button>
+      <button class="btn-next" id="nextBtn">
+        <span data-en="Continue" data-ta="தொடரவும்">Continue</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <aside class="rail rail-right" id="railRight"></aside>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/halo-aurora/js/halo-aurora.js"></script>
+<script src="/halo-aurora/tutorial/tutorial.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── Helpers ──────────────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function t(obj) {
+    if (!obj) return '';
+    const lang = document.documentElement.getAttribute('lang') || 'en';
+    return (lang === 'ta' && obj.ta !== undefined) ? obj.ta : (obj.en || '');
+  }
+
+  function applyLang() {
+    const lang = document.documentElement.getAttribute('lang') || 'en';
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const text = lang === 'ta' && el.dataset.ta !== undefined ? el.dataset.ta : el.dataset.en;
+      const keepers = Array.from(el.querySelectorAll('[data-keep]'));
+      el.textContent = text;
+      keepers.forEach(k => el.appendChild(k));
+    });
+  }
+
+  /* ── SVG constants ────────────────────────────────────────── */
+  const TICK_SVG  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const CROSS_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  const BACK_SVG  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>';
+  const TROPHY_SVG = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>';
+  const NAV_ICON  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+
+  /* ── Block renderers ──────────────────────────────────────── */
+  function renderTitle(titleArr) {
+    if (!titleArr) return '';
+    return titleArr.map(p => {
+      const en = esc(p.text.en || ''), ta = esc(p.text.ta || '');
+      if (!en && !ta) return '';
+      return p.em
+        ? `<em data-en="${en}" data-ta="${ta}">${en}</em>`
+        : `<span data-en="${en}" data-ta="${ta}">${en}</span>`;
+    }).join('');
+  }
+
+  const Blocks = {
+    paragraph(b) {
+      const cls = b.variant === 'muted' ? 'card-body muted' : 'card-body';
+      return `<p class="${cls}" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</p>`;
+    },
+    'callout-quote'(b) {
+      return `<div class="blk-callout-quote" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</div>`;
+    },
+    'callout-note'(b) {
+      return `<div class="blk-callout-note" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</div>`;
+    },
+    'callout-warning'(b) {
+      return `<div class="blk-callout-warning" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</div>`;
+    },
+    'callout-example'(b) {
+      return `<div class="blk-callout-example"><div class="ce-label" data-en="${esc(b.label.en)}" data-ta="${esc(b.label.ta||'')}">${esc(b.label.en)}</div><p class="ce-text" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</p></div>`;
+    },
+    'badge-highlight'(b) {
+      return `<div class="blk-badge"><span class="badge-word" data-en="${esc(b.text.en)}" data-ta="${esc(b.text.ta||'')}">${esc(b.text.en)}</span><div class="badge-sub" data-en="${esc(b.subtitle.en)}" data-ta="${esc(b.subtitle.ta||'')}">${esc(b.subtitle.en)}</div></div>`;
+    },
+    'emoji-row'(b) {
+      return `<div class="blk-emoji-row">${b.items.map(i => `<span>${i}</span>`).join('')}</div>`;
+    },
+    'compare'(b) {
+      const cols = b.cols.map(c => `
+        <div class="cmp-cell ${c.variant||''}">
+          ${c.emoji ? `<div class="cmp-emoji">${c.emoji}</div>` : ''}
+          <div class="cmp-title" data-en="${esc(c.title.en)}" data-ta="${esc(c.title.ta||'')}">${esc(c.title.en)}</div>
+          <div class="cmp-subtitle" data-en="${esc(c.subtitle.en)}" data-ta="${esc(c.subtitle.ta||'')}">${esc(c.subtitle.en)}</div>
+        </div>`).join('');
+      return `<div class="blk-compare">${cols}</div>`;
+    },
+    'money-grid'(b) {
+      const items = b.items.map(it => `
+        <div class="mg-item">
+          <span class="mg-emoji">${it.emoji}</span>
+          <div class="mg-title" data-en="${esc(it.title.en)}" data-ta="${esc(it.title.ta||'')}">${esc(it.title.en)}</div>
+          <div class="mg-sub" data-en="${esc(it.subtitle.en)}" data-ta="${esc(it.subtitle.ta||'')}">${esc(it.subtitle.en)}</div>
+        </div>`).join('');
+      return `<div class="blk-money-grid">${items}</div>`;
+    },
+    'growth-list'(b) {
+      const items = b.items.map(it => `
+        <div class="gl-item">
+          <span class="gl-icon">${it.icon}</span>
+          <span class="gl-body" data-en="${esc(it.text.en)}" data-ta="${esc(it.text.ta||'')}">${esc(it.text.en)}</span>
+          <span class="gl-arrow">▲</span>
+        </div>`).join('');
+      return `<div class="blk-growth-list">${items}</div>`;
+    },
+    'pizza'(b) {
+      const cells = b.items.map(it => `
+        <div class="pz-cell ${it.highlight ? 'highlight' : ''}">
+          <span class="pz-emoji">${it.emoji}</span>
+          <span class="pz-label" data-en="${esc(it.label.en)}" data-ta="${esc(it.label.ta||'')}">${esc(it.label.en)}</span>
+          <span class="pz-pct">${it.pct}</span>
+        </div>`).join('');
+      return `<div class="blk-pizza">${cells}</div>`;
+    },
+    'scale'(b) {
+      const items = b.items.map(it => `
+        <div class="sc-item ${it.major ? 'major' : ''}">
+          <span class="sc-icon">${it.icon}</span>
+          <span class="sc-label" data-en="${esc(it.label.en)}" data-ta="${esc(it.label.ta||'')}">${esc(it.label.en)}</span>
+          <span class="sc-pct">${it.pct}</span>
+        </div>`).join('');
+      return `<div class="blk-scale">${items}</div>`;
+    },
+    'chain'(b) {
+      const steps = b.steps.map((s, i) => {
+        const connector = i < b.steps.length - 1 ? `<div class="ch-connector">↓</div>` : '';
+        return `<div class="ch-step ${s.highlight ? 'highlight' : ''}"><span class="ch-icon">${s.icon}</span><span class="ch-text" data-en="${esc(s.text.en)}" data-ta="${esc(s.text.ta||'')}">${esc(s.text.en)}</span><span class="ch-arrow">${s.arrow}</span></div>${connector}`;
+      }).join('');
+      return `<div class="blk-chain">${steps}</div>`;
+    },
+    'no-list'(b) {
+      const items = b.items.map(it => `
+        <div class="nl-item">
+          <span class="nl-x">✕</span>
+          <div class="nl-body">
+            <span data-en="${esc(it.title.en)}" data-ta="${esc(it.title.ta||'')}">${esc(it.title.en)}</span>
+            <small data-en="${esc(it.description.en)}" data-ta="${esc(it.description.ta||'')}">${esc(it.description.en)}</small>
+          </div>
+        </div>`).join('');
+      return `<div class="blk-no-list">${items}</div>`;
+    },
+  };
+
+  function renderBlocks(blocks) {
+    if (!blocks) return '';
+    return blocks.map(b => {
+      const fn = Blocks[b.type];
+      return fn ? fn(b) : `<p style="color:var(--tz-loss);font-size:11px">[unknown block: ${b.type}]</p>`;
+    }).join('');
+  }
+
+  /* ── Card renderers ───────────────────────────────────────── */
+  function renderCover(card, idx) {
+    const lvlMap = { beginner: 'Beginner', intermediate: 'Intermediate', hard: 'Hard', expert: 'Expert' };
+    const lvlTa  = { beginner: 'தொடக்கம்', intermediate: 'இடைநிலை', hard: 'கடினம்', expert: 'நிபுணர்' };
+    const chips  = (card.chips || []).map(c => {
+      const style = c.accent ? `style="color:var(--tz-accent-1);"` : '';
+      return `<span ${style}>${c.text}</span>`;
+    }).join('');
+    return `
+<article class="card-slide${idx===0?' is-active':''}" data-card="${idx+1}">
+  <span class="level-badge card-level" data-level="${card.level}">
+    <span class="dots"><i></i><i></i><i></i><i></i></span>
+    <span data-en="${lvlMap[card.level]||card.level}" data-ta="${lvlTa[card.level]||card.level}">${lvlMap[card.level]||card.level}</span>
+  </span>
+  <span class="card-emoji">${card.emoji||''}</span>
+  <h2 class="card-title">${renderTitle(card.title)}</h2>
+  <p class="card-body muted" data-en="${esc(card.description.en)}" data-ta="${esc(card.description.ta||'')}">${esc(card.description.en)}</p>
+  <div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-family:var(--tz-font-mono);font-size:11.5px;color:var(--tz-fg-3);letter-spacing:0.12em;text-transform:uppercase;">${chips}</div>
+  <div class="spacer"></div>
+</article>`;
+  }
+
+  function renderContent(card, idx) {
+    const emojiHtml = card.emoji ? `<span class="card-emoji">${card.emoji}</span>` : '';
+    return `
+<article class="card-slide" data-card="${idx+1}">
+  <div class="card-pill" data-en="${esc(card.pill.en)}" data-ta="${esc(card.pill.ta||'')}">${esc(card.pill.en)}</div>
+  ${emojiHtml}
+  <h2 class="card-title" style="margin-top:0">${renderTitle(card.title)}</h2>
+  ${renderBlocks(card.blocks)}
+  <div class="spacer"></div>
+</article>`;
+  }
+
+  function renderQuiz(card, idx) {
+    const q   = card.question;
+    const kind = q.kind === 'true-false' ? 'TRUE / FALSE' : 'MULTIPLE CHOICE';
+    const opts = q.options.map(o => `
+      <button class="q-option" ${o.correct ? 'data-correct="1"' : ''}>
+        <span class="key">${o.key}</span>
+        <span class="label" data-en="${esc(o.text.en)}" data-ta="${esc(o.text.ta||'')}">${esc(o.text.en)}</span>
+        <span class="tick">${o.correct ? TICK_SVG : CROSS_SVG}</span>
+      </button>`).join('');
+
+    let fbInner;
+    if (q.feedback.shared) {
+      fbInner = `<span data-en="${esc(q.feedback.text.en)}" data-ta="${esc(q.feedback.text.ta||'')}">${esc(q.feedback.text.en)}</span>`;
+    } else {
+      fbInner = `
+        <span class="fb-ok" data-en="${esc(q.feedback.correct.en)}" data-ta="${esc(q.feedback.correct.ta||'')}">${esc(q.feedback.correct.en)}</span>
+        <span class="fb-no" data-en="${esc(q.feedback.wrong.en)}" data-ta="${esc(q.feedback.wrong.ta||'')}">${esc(q.feedback.wrong.en)}</span>`;
+    }
+
+    return `
+<article class="card-slide" data-card="${idx+1}" ${card.gate ? 'data-needs-answer' : ''}>
+  <div class="card-pill" style="color:var(--tz-accent-1);border-color:var(--tz-border-accent);">
+    💡 <span data-en="${esc(card.check_label.en)}" data-ta="${esc(card.check_label.ta||'')}">${esc(card.check_label.en)}</span>
+  </div>
+  <div class="quiz-q" data-q="${card.q_id}">
+    <div class="qhead"><span class="qkind">${kind}</span><span>+${q.xp} XP</span></div>
+    <h3 data-en="${esc(q.text.en)}" data-ta="${esc(q.text.ta||'')}">${esc(q.text.en)}</h3>
+    <div class="q-options">${opts}</div>
+    <div class="q-feedback">
+      <span style="font-size:16px;line-height:1;">✨</span>
+      <div>
+        <div class="head" data-ok-en="Correct" data-no-en="Not quite" data-ok-ta="சரி" data-no-ta="இல்லை"></div>
+        ${fbInner}
+      </div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</article>`;
+  }
+
+  function renderResult(card, idx, lesson) {
+    const next = lesson.next_lesson;
+    const nextHtml = next ? `
+      <div style="margin-top:16px;padding:14px 16px;background:var(--tz-surface);border:1px solid var(--tz-border-accent);border-radius:14px;display:flex;gap:12px;align-items:center;">
+        <div style="width:38px;height:38px;border-radius:10px;background:var(--tz-grad);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--tz-glow-soft);">${NAV_ICON}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--tz-font-mono);font-size:9.5px;letter-spacing:0.16em;color:var(--tz-fg-3);" data-en="UP NEXT · ${esc(next.ref)}" data-ta="அடுத்தது · ${esc(next.ref)}">UP NEXT · ${esc(next.ref)}</div>
+          <div style="font-family:var(--tz-font-display);font-size:18px;line-height:1.2;color:var(--tz-fg-1);margin-top:2px;letter-spacing:-0.01em;" data-en="${esc(next.title.en)}" data-ta="${esc(next.title.ta||'')}">${esc(next.title.en)}</div>
+        </div>
+      </div>` : '';
+    return `
+<article class="card-slide" data-card="${idx+1}">
+  <div class="card-pill" data-en="LESSON COMPLETE" data-ta="பாடம் முடிந்தது">LESSON COMPLETE</div>
+  <div class="result-card is-shown" id="resultCard">
+    <span class="trophy">${TROPHY_SVG}</span>
+    <div class="score"><span data-score>0</span><span class="of"> / </span><span data-total>${card.quiz_total}</span></div>
+    <div class="blurb" data-blurb></div>
+    <div class="rewards">
+      <span class="reward-chip"><span class="glyph">⚡</span><span data-xp>0 XP</span></span>
+      <span class="reward-chip"><span class="glyph">📖</span> <span data-en="${esc(card.lesson_done_label.en)}" data-ta="${esc(card.lesson_done_label.ta||'')}">${esc(card.lesson_done_label.en)}</span></span>
+    </div>
+  </div>
+  ${nextHtml}
+  <div style="margin-top:12px;">
+    <a href="/training/learn_home.html" class="btn btn-ghost btn-sm w-100 justify-content-center" data-en="← Back to Learn" data-ta="← கற்றலுக்கு திரும்பு">← Back to Learn</a>
+  </div>
+  <div class="spacer"></div>
+</article>`;
+  }
+
+  /* ── Quiz wiring (replicates tutorial.js setupQuestions) ──── */
+  function wireQuizzes() {
+    TZTutor.scoreBook.reset();
+    document.querySelectorAll('[data-q]').forEach(q => {
+      const id  = q.dataset.q;
+      TZTutor.scoreBook.register(id);
+      const opts = q.querySelectorAll('.q-option');
+      const fb   = q.querySelector('.q-feedback');
+      opts.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (q.dataset.locked) return;
+          q.dataset.locked = '1';
+          const correct = opt.dataset.correct === '1';
+          opts.forEach(o => {
+            o.setAttribute('data-locked', '1');
+            if (o === opt) o.setAttribute('data-state', correct ? 'correct' : 'wrong');
+            else if (o.dataset.correct === '1' && !correct) o.setAttribute('data-state', 'correct');
+          });
+          TZTutor.scoreBook.answer(id, correct);
+          if (fb) {
+            fb.classList.add('is-shown');
+            fb.classList.toggle('is-correct', correct);
+            fb.classList.toggle('is-wrong', !correct);
+            const head = fb.querySelector('.head');
+            if (head) {
+              const lang = document.documentElement.getAttribute('lang') || 'en';
+              head.textContent = correct
+                ? (lang === 'ta' ? (head.dataset.okTa||'சரி') : (head.dataset.okEn||'Correct'))
+                : (lang === 'ta' ? (head.dataset.noTa||'இல்லை') : (head.dataset.noEn||'Not quite'));
+            }
+          }
+          if (correct) TZTutor.confetti(36);
+          document.dispatchEvent(new CustomEvent('tz-answered', { detail: { id, correct } }));
+        });
+      });
+    });
+  }
+
+  /* ── Rail builders ────────────────────────────────────────── */
+  function buildLeftRail(lesson) {
+    const outlineItems = lesson.outline.map(item => {
+      if (item.sep) return `<li class="sep"></li>`;
+      return `<li data-jump="${item.card}"><span class="marker"><span class="num">${item.card}</span></span><span class="label" data-en="${esc(item.label.en)}" data-ta="${esc(item.label.ta||'')}">${esc(item.label.en)}</span></li>`;
+    }).join('');
+
+    const titleHtml = renderTitle(lesson.title);
+
+    return `
+<div class="rail-card">
+  <div class="module-crumb">
+    <a class="back" href="/training/learn_home.html" aria-label="Back to modules">${BACK_SVG}</a>
+    <div class="meta">
+      <div class="k">MODULE ${lesson.module_id ? lesson.module_id.replace('m','') : '1'}</div>
+      <div class="v" data-en="${esc(lesson.module_label.en)}" data-ta="${esc(lesson.module_label.ta||'')}">${esc(lesson.module_label.en)}</div>
+    </div>
+  </div>
+  <div class="head" data-en="${esc(lesson.lesson_label.en)}" data-ta="${esc(lesson.lesson_label.ta||'')}">${esc(lesson.lesson_label.en)}</div>
+  <h3>${titleHtml}</h3>
+  <ul class="outline" id="outline">${outlineItems}</ul>
+</div>
+<div class="rail-tip">
+  <span class="glyph">💡</span>
+  <div class="body">
+    <span class="k" data-en="TIP" data-ta="குறிப்பு">TIP</span>
+    <span data-en="Use ← → arrow keys to move between cards." data-ta="← → விசைகள் கொண்டு கார்டுகளுக்கிடையே நகரவும்.">Use ← → arrow keys to move between cards.</span>
+  </div>
+</div>`;
+  }
+
+  function buildRightRail(lesson) {
+    const rt = lesson.rail_tip;
+    return `
+<div class="rail-card">
+  <div class="head" data-en="THIS SESSION" data-ta="இந்த அமர்வு">THIS SESSION</div>
+  <h3><em data-en="Stay" data-ta="நிதானம்">Stay</em><span data-en=" focused." data-ta=" காப்பாற்று.">&nbsp;focused.</span></h3>
+  <div class="stat-grid">
+    <div class="stat"><div class="k" data-en="CARD" data-ta="கார்டு">CARD</div><div class="v"><span id="railCardNum">1</span> / ${lesson.cards.length}</div></div>
+    <div class="stat"><div class="k">XP</div><div class="v accent" id="railXp">0</div></div>
+    <div class="stat"><div class="k" data-en="ACCURACY" data-ta="துல்லியம்">ACCURACY</div><div class="v gain" id="railAcc">—</div></div>
+    <div class="stat"><div class="k" data-en="TIME" data-ta="நேரம்">TIME</div><div class="v" id="railTime">0:00</div></div>
+  </div>
+  <div class="streak-ring">
+    <span class="flame">🔥</span>
+    <div class="meta">
+      <div class="k" data-en="STREAK" data-ta="தொடர்">STREAK</div>
+      <div class="v" id="streakVal" data-en="Keep it up!" data-ta="தொடரவும்!">Keep it up!</div>
+    </div>
+  </div>
+</div>
+<div class="rail-tip">
+  <span class="glyph">${rt ? rt.icon : '⚡'}</span>
+  <div class="body">
+    <span class="k" data-en="${esc(rt ? rt.label.en : 'EARN XP')}" data-ta="${esc(rt ? (rt.label.ta||'') : 'XP பெற')}">${esc(rt ? rt.label.en : 'EARN XP')}</span>
+    <span data-en="${esc(rt ? rt.text.en : '')}" data-ta="${esc(rt ? (rt.text.ta||'') : '')}">${esc(rt ? rt.text.en : '')}</span>
+  </div>
+</div>`;
+  }
+
+  /* ── Navigation ───────────────────────────────────────────── */
+  function setupNav(lesson) {
+    const cards    = Array.from(document.querySelectorAll('.card-slide'));
+    const dotsEl   = $('dots');
+    const prevBtn  = $('prevBtn');
+    const nextBtn  = $('nextBtn');
+    const outlineEl = document.getElementById('outline');
+    const outItems  = outlineEl ? Array.from(outlineEl.querySelectorAll('li[data-jump]')) : [];
+    let current = 0;
+
+    $('cardTotal').textContent = cards.length;
+    $('lessonRef').textContent = lesson.lesson_ref || '';
+
+    cards.forEach((_, i) => {
+      const seg = document.createElement('div');
+      seg.className = 'seg' + (i === 0 ? ' is-active' : '');
+      seg.innerHTML = '<div class="fill"></div>';
+      dotsEl.appendChild(seg);
+    });
+
+    function goTo(idx) {
+      if (idx < 0 || idx >= cards.length) return;
+      const segs = dotsEl.querySelectorAll('.seg');
+      if (idx > current) {
+        const activeCard = cards[current];
+        if (activeCard.dataset.needsAnswer !== undefined) {
+          const answered = activeCard.querySelector('[data-q][data-locked]');
+          if (!answered) return;
+        }
+      }
+      cards[current].classList.remove('is-active');
+      cards[current].classList.add('is-prev');
+      segs[current].classList.remove('is-active');
+      segs[current].classList.add('is-done');
+      if (idx < current) {
+        cards[current].classList.remove('is-prev');
+        segs[current].classList.remove('is-done');
+        cards[idx].classList.remove('is-prev');
+      }
+      current = idx;
+      cards[current].classList.remove('is-prev');
+      cards[current].classList.add('is-active');
+      segs[current].classList.remove('is-done');
+      segs[current].classList.add('is-active');
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = false;
+      $('cardNum').textContent = current + 1;
+      const rcn = $('railCardNum');
+      if (rcn) rcn.textContent = current + 1;
+      outItems.forEach(li => {
+        const j = parseInt(li.dataset.jump, 10) - 1;
+        li.classList.toggle('is-active', j === current);
+        if (j < current) li.classList.add('is-done');
+      });
+      if (current === cards.length - 1) {
+        TZTutor.renderResult('#resultCard');
+        saveProgress(lesson.cards[current].lesson_id || lesson.id);
+        nextBtn.disabled = true;
+      }
+    }
+
+    prevBtn.addEventListener('click', () => goTo(current - 1));
+    nextBtn.addEventListener('click', () => goTo(current + 1));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') goTo(current + 1);
+      if (e.key === 'ArrowLeft')  goTo(current - 1);
+    });
+    outItems.forEach(li => {
+      li.addEventListener('click', () => goTo(parseInt(li.dataset.jump, 10) - 1));
+    });
+    document.addEventListener('tz-answered', () => {
+      const xp  = TZTutor.scoreBook.correct * 10;
+      const pct = TZTutor.scoreBook.answered.size
+        ? Math.round((TZTutor.scoreBook.correct / TZTutor.scoreBook.answered.size) * 100) : 0;
+      const rxp = $('railXp'), racc = $('railAcc');
+      if (rxp)  rxp.textContent  = xp;
+      if (racc) racc.textContent = TZTutor.scoreBook.answered.size ? pct + '%' : '—';
+      setTimeout(() => {
+        if (cards[current].dataset.needsAnswer !== undefined) nextBtn.disabled = false;
+      }, 300);
+    });
+
+    let secs = 0;
+    setInterval(() => {
+      secs++;
+      const m = Math.floor(secs / 60), s = secs % 60;
+      const el = $('railTime');
+      if (el) el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }, 1000);
+
+    try {
+      const store = JSON.parse(localStorage.getItem('tz_learn') || '{}');
+      const sv = $('streakVal');
+      if (sv && store.streak > 0) {
+        const lang = document.documentElement.getAttribute('lang') || 'en';
+        sv.textContent = lang === 'ta'
+          ? store.streak + ' நாட்கள் தொடர்ச்சி!'
+          : store.streak + ' day streak!';
+      }
+    } catch (_) {}
+  }
+
+  function saveProgress(lessonId) {
+    try {
+      const store = JSON.parse(localStorage.getItem('tz_learn') || '{}');
+      const done  = store.lessons_done || [];
+      if (!done.includes(lessonId)) done.push(lessonId);
+      store.lessons_done = done;
+      store.streak = (store.streak || 0) + 1;
+      store.last_active = new Date().toISOString().slice(0, 10);
+      localStorage.setItem('tz_learn', JSON.stringify(store));
+    } catch (_) {}
+  }
+
+  /* ── Main render ──────────────────────────────────────────── */
+  function renderLesson(lesson) {
+    document.title = 'TradeZen Learn · ' + (lesson.title.map ? lesson.title.map(p => p.text.en).join('') : '');
+
+    $('railLeft').innerHTML  = buildLeftRail(lesson);
+    $('railRight').innerHTML = buildRightRail(lesson);
+
+    const cardsHtml = lesson.cards.map((card, idx) => {
+      switch (card.type) {
+        case 'cover':   return renderCover(card, idx);
+        case 'content': return renderContent(card, idx);
+        case 'quiz':    return renderQuiz(card, idx);
+        case 'result':  return renderResult(card, idx, lesson);
+        default:        return `<article class="card-slide" data-card="${idx+1}"><p style="color:var(--tz-loss)">Unknown card type: ${card.type}</p></article>`;
+      }
+    }).join('');
+
+    $('deck').innerHTML = cardsHtml;
+
+    wireQuizzes();
+    setupNav(lesson);
+
+    $('loading').classList.add('hidden');
+    $('workspace').style.display = '';
+
+    setTimeout(applyLang, 0);
+  }
+
+  /* ── Boot ─────────────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const id     = params.get('id');
+    if (!id) {
+      $('loading').innerHTML = '<div style="font-family:var(--tz-font-ui);color:var(--tz-fg-1);text-align:center;padding:40px"><h2>No lesson ID</h2><p>Add <code>?id=m1l1</code> to the URL</p><a href="/learn/" style="color:var(--tz-accent-1)">← Browse lessons</a></div>';
+      return;
+    }
+    fetch('/api/learn/lesson/' + encodeURIComponent(id))
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(renderLesson)
+      .catch(err => {
+        $('loading').innerHTML = `<div style="font-family:var(--tz-font-ui);color:var(--tz-fg-1);text-align:center;padding:40px"><h2 style="color:var(--tz-loss)">Could not load lesson</h2><p style="color:var(--tz-fg-3)">${esc(err.message)}</p><a href="/learn/" style="color:var(--tz-accent-1)">← Browse lessons</a></div>`;
+      });
+
+    document.addEventListener('click', () => setTimeout(applyLang, 50));
+  });
+})();
+</script>
+</body>
+</html>

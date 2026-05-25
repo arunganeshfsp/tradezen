@@ -1,0 +1,199 @@
+{
+  "id": "m1l3",
+  "version": "1",
+  "subject_id": "fundamentals",
+  "module_id": "m1",
+  "module_label": { "en": "Stock Market Basics", "ta": "பங்கு சந்தை அடிப்படைகள்" },
+  "lesson_label": { "en": "LESSON 1.3 · 10 CARDS", "ta": "பாடம் 1.3 · 10 கார்டுகள்" },
+  "lesson_ref": "M1 · 1.3",
+  "order": 3,
+  "level": "beginner",
+  "xp": 30,
+  "duration_min": 3,
+  "emoji": "🧩",
+  "title": [
+    { "text": { "en": "What is a ", "ta": "" }, "em": false },
+    { "text": { "en": "Share?", "ta": "Share என்றால் என்ன?" }, "em": true }
+  ],
+  "next_lesson": {
+    "id": "m1l4",
+    "ref": "1.4",
+    "title": { "en": "How to Buy Your First Share", "ta": "முதல் பங்கை எப்படி வாங்குவது?" }
+  },
+  "outline": [
+    { "card": 1,  "label": { "en": "Welcome", "ta": "வரவேற்பு" } },
+    { "card": 2,  "label": { "en": "Pizza analogy", "ta": "Pizza உதாரணம்" } },
+    { "card": 3,  "label": { "en": "Share = a slice", "ta": "Share = ஒரு துண்டு" } },
+    { "card": 4,  "label": { "en": "Check · ownership", "ta": "சோதனை · ownership" } },
+    { "sep": true },
+    { "card": 5,  "label": { "en": "Ownership scale", "ta": "Ownership அளவு" } },
+    { "card": 6,  "label": { "en": "Why people invest", "ta": "ஏன் முதலீடு செய்கிறார்கள்" } },
+    { "card": 7,  "label": { "en": "Check · ownership %", "ta": "சோதனை · ownership %" } },
+    { "sep": true },
+    { "card": 8,  "label": { "en": "No guarantees", "ta": "உறுதியில்லை" } },
+    { "card": 9,  "label": { "en": "Check · risk", "ta": "சோதனை · ஆபத்து" } },
+    { "card": 10, "label": { "en": "Result", "ta": "முடிவு" } }
+  ],
+  "rail_tip": {
+    "icon": "⚡",
+    "label": { "en": "EARN XP", "ta": "XP பெற" },
+    "text": { "en": "+10 XP per correct check. Get all 3 right for the full 30 XP.", "ta": "ஒவ்வொரு சரியான பதிலுக்கும் +10 XP. மூன்றும் சரி = 30 XP." }
+  },
+  "cards": [
+    {
+      "id": "c1", "type": "cover",
+      "emoji": "🧩", "level": "beginner",
+      "title": [
+        { "text": { "en": "What is a ", "ta": "" }, "em": false },
+        { "text": { "en": "Share?", "ta": "Share என்றால் என்ன?" }, "em": true }
+      ],
+      "description": { "en": "A 3-minute story. By the end you will know what a share actually means, how ownership scales with shares, and why no investment is guaranteed.", "ta": "3 நிமிட கதை. முடிவில் Share என்றால் என்ன, ownership எப்படி அளவிடப்படுகிறது, முதலீட்டில் உறுதி இல்லை என்று தெரியும்." },
+      "chips": [
+        { "text": "📖 3 MIN" }, { "text": "🧠 3 CHECKS" }, { "text": "+30 XP", "accent": true }
+      ]
+    },
+    {
+      "id": "c2", "type": "content",
+      "pill": { "en": "§ 01 · THE ANALOGY", "ta": "§ 01 · உதாரணம்" },
+      "emoji": "🍕",
+      "title": [
+        { "text": { "en": "Pizza", "ta": "Pizza" }, "em": true },
+        { "text": { "en": " and ownership", "ta": " மற்றும் ownership" }, "em": false }
+      ],
+      "blocks": [
+        { "type": "paragraph", "text": { "en": "Imagine a pizza cut into 8 equal slices. Whoever holds the slices owns a share of that pizza.", "ta": "ஒரு Pizza-ஐ 8 சம துண்டுகளாக வெட்டியிருக்கிறார்கள் என்று நினைத்துக்கொள்ளுங்கள். எவரிடம் துண்டுகள் இருக்கின்றனவோ அவர்களுக்கு அந்த Pizza-வில் ownership." } },
+        { "type": "pizza", "total_slices": 8, "items": [
+          { "emoji": "🍕",   "label": { "en": "1 slice", "ta": "1 துண்டு" },     "pct": "12.5%" },
+          { "emoji": "🍕🍕", "label": { "en": "4 slices", "ta": "4 துண்டுகள்" }, "pct": "50%" },
+          { "emoji": "🍕🍕🍕", "label": { "en": "8 slices", "ta": "8 துண்டுகள்" }, "pct": "100%", "highlight": true }
+        ]},
+        { "type": "paragraph", "variant": "muted", "text": { "en": "A company's ownership works exactly the same way. The slices are called shares.", "ta": "ஒரு நிறுவனத்தின் ownership-மும் இதே மாதிரி வேலை செய்கிறது. அந்த துண்டுகளுக்கு Share என்று பெயர்." } }
+      ]
+    },
+    {
+      "id": "c3", "type": "content",
+      "pill": { "en": "§ 01 · THE DEFINITION", "ta": "§ 01 · வரையறை" },
+      "emoji": "📋",
+      "title": [
+        { "text": { "en": "A share is a ", "ta": "" }, "em": false },
+        { "text": { "en": "slice of a company", "ta": "நிறுவனத்தின் ஒரு பகுதி" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "text": { "en": "When a company wants to raise money, it splits its ownership into thousands of small pieces. Each piece is called a share. Buy one, and you own a tiny fraction of that company.", "ta": "ஒரு நிறுவனம் பணம் திரட்ட விரும்பும்போது, தன் ownership-ஐ ஆயிரக்கணக்கான சிறு பகுதிகளாக பிரிக்கிறது. ஒவ்வொரு பகுதியும் ஒரு Share. அதை வாங்கினால் நிறுவனத்தின் சிறு பகுதி உங்களுடையது." } },
+        { "type": "callout-example", "label": { "en": "REAL EXAMPLE", "ta": "உண்மையான உதாரணம்" }, "text": { "en": "Reliance Industries has approximately 676 crore shares. Each single share gives its holder a fractional ownership stake in India's largest company.", "ta": "Reliance Industries-ஐட சுமார் 676 கோடி Shares உள்ளன. ஒரு Share வாங்கினாலும் நீங்கள் இந்தியாவின் மிகப்பெரிய நிறுவனத்தில் உரிமையாளர்." } }
+      ]
+    },
+    {
+      "id": "c4", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 1 of 3", "ta": "விரைவு சோதனை · 1 / 3" },
+      "q_id": "m1l3-q1",
+      "question": {
+        "kind": "true-false", "xp": 10,
+        "text": { "en": "Buying even 1 share of a company makes you a part-owner of that company.", "ta": "ஒரு நிறுவனத்தின் 1 Share மட்டும் வாங்கினாலும் நீங்கள் அந்த நிறுவனத்தின் பகுதி உரிமையாளர் ஆகிறீர்கள்." },
+        "options": [
+          { "key": "T", "text": { "en": "True", "ta": "சரி" }, "correct": true },
+          { "key": "F", "text": { "en": "False", "ta": "தவறு" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": false,
+          "correct": { "en": "Yes — even 1 share is a legal ownership stake. There is no minimum. One share of Reliance makes you a shareholder of Reliance, regardless of how small the fraction.", "ta": "ஆம் — 1 Share-கூட சட்டரீதியான ownership. குறைந்தபட்சம் என்று எதுவும் இல்லை. Reliance-ன் 1 Share வாங்கினால் நீங்கள் Reliance-ன் பங்குதாரர்." },
+          "wrong": { "en": "That is exactly what a share means — ownership. The word 'share' implies you are sharing ownership of the company. Even 1 share out of 676 crore is still genuine ownership.", "ta": "Share என்றாலே ownership. 'Share' என்ற வார்த்தையே நிறுவனத்தின் ownership பகிர்வைக் குறிக்கிறது. 676 கோடியில் 1 Share-கூட உண்மையான ownership தான்." }
+        }
+      }
+    },
+    {
+      "id": "c5", "type": "content",
+      "pill": { "en": "§ 02 · HOW OWNERSHIP SCALES", "ta": "§ 02 · OWNERSHIP அளவு" },
+      "title": [
+        { "text": { "en": "More shares, ", "ta": "" }, "em": false },
+        { "text": { "en": "more ownership", "ta": "அதிக Shares, அதிக ownership" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "variant": "muted", "text": { "en": "Say a company has exactly 100 shares in total. How much you own depends purely on how many you hold.", "ta": "ஒரு நிறுவனத்திடம் மொத்தம் 100 Shares உள்ளன என்று வைத்துக்கொள்ளுங்கள். நீங்கள் எவ்வளவு வைத்திருக்கிறீர்கள் என்பதை பொறுத்தே ownership அமையும்." } },
+        { "type": "scale", "total": 100, "items": [
+          { "icon": "👤", "label": { "en": "1 of 100 shares", "ta": "100-ல் 1 Share" },   "pct": "1%",  "major": false },
+          { "icon": "👥", "label": { "en": "25 of 100 shares", "ta": "100-ல் 25 Shares" }, "pct": "25%", "major": false },
+          { "icon": "👑", "label": { "en": "51 of 100 shares", "ta": "100-ல் 51 Shares" }, "pct": "51%", "major": true }
+        ]},
+        { "type": "paragraph", "variant": "muted", "text": { "en": "Owning more than 50% is called a controlling stake — it gives you the decisive vote in company decisions. This is why major investors and promoters hold significant shareholding.", "ta": "50%-க்கும் அதிகமாக வைத்திருப்பது controlling stake — நிறுவன முடிவுகளில் முக்கிய வாக்கு அளிக்கும். அதனால்தான் பெரிய முதலீட்டாளர்களும் promoters-உம் குறிப்பிடத்தக்க shareholding வைத்திருக்கிறார்கள்." } }
+      ]
+    },
+    {
+      "id": "c6", "type": "content",
+      "pill": { "en": "§ 03 · WHY INVEST", "ta": "§ 03 · ஏன் முதலீடு" },
+      "title": [
+        { "text": { "en": "Why buy a ", "ta": "" }, "em": false },
+        { "text": { "en": "share?", "ta": "Share ஏன் வாங்குவது?" }, "em": true }
+      ],
+      "blocks": [
+        { "type": "paragraph", "variant": "muted", "text": { "en": "When you buy shares, you are betting that the company will grow. If it does, more investors will want to own it — and that demand pushes the share price up.", "ta": "நீங்கள் Shares வாங்கும்போது, நிறுவனம் வளரும் என்று நம்புகிறீர்கள். அது வளர்ந்தால் அதிக முதலீட்டாளர்கள் அதை வேண்டுவார்கள் — அந்த தேவை Share விலையை உயர்த்தலாம்." } },
+        { "type": "chain", "steps": [
+          { "icon": "📊", "text": { "en": "Revenue grows", "ta": "வருமானம் வளர்கிறது" }, "arrow": "▲" },
+          { "icon": "💵", "text": { "en": "Profit increases", "ta": "லாபம் அதிகரிக்கிறது" }, "arrow": "▲" },
+          { "icon": "🧑‍🤝‍🧑", "text": { "en": "More investors want the share", "ta": "அதிக முதலீட்டாளர்கள் Share வேண்டுகிறார்கள்" }, "arrow": "▲" },
+          { "icon": "📈", "text": { "en": "Share price may rise", "ta": "Share விலை உயரலாம்" }, "arrow": "?", "highlight": true }
+        ]}
+      ]
+    },
+    {
+      "id": "c7", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 2 of 3", "ta": "விரைவு சோதனை · 2 / 3" },
+      "q_id": "m1l3-q2",
+      "question": {
+        "kind": "mcq", "xp": 10,
+        "text": { "en": "A company has 100 shares total. Priya buys 25 of them. What percentage of the company does she own?", "ta": "ஒரு நிறுவனத்திடம் மொத்தம் 100 Shares உள்ளன. Priya 25 வாங்குகிறார். அவர் நிறுவனத்தின் எவ்வளவு சதவீதம் வைத்திருக்கிறார்?" },
+        "options": [
+          { "key": "A", "text": { "en": "25% — a quarter of the company", "ta": "25% — நிறுவனத்தின் கால் பாகம்" }, "correct": true },
+          { "key": "B", "text": { "en": "75% — the majority", "ta": "75% — பெரும்பகுதி" }, "correct": false },
+          { "key": "C", "text": { "en": "It depends on the share price", "ta": "Share விலையை பொறுத்தது" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": false,
+          "correct": { "en": "25 out of 100 = 25%. Ownership percentage is simply shares held ÷ total shares. If the company is valued at ₹1 crore, Priya's 25% stake is worth ₹25 lakh.", "ta": "25 ÷ 100 = 25%. Ownership percentage என்பது வைத்திருக்கும் Shares ÷ மொத்த Shares. நிறுவனம் ₹1 கோடி மதிப்புள்ளதென்றால் Priya-வின் 25% stake மதிப்பு ₹25 லட்சம்." },
+          "wrong": { "en": "Ownership percentage is shares held ÷ total shares — straight division. Price affects the rupee value of her stake, not the percentage. 25 out of 100 is always 25%, whether the share costs ₹10 or ₹10,000.", "ta": "Ownership percentage = வைத்திருக்கும் Shares ÷ மொத்த Shares — எளிய வகுத்தல். Share விலை stake-ன் ரூபாய் மதிப்பை மாற்றும், சதவீதத்தை அல்ல. 100-ல் 25 என்பது எப்போதும் 25% — Share ₹10 ஆனாலும் ₹10,000 ஆனாலும்." }
+        }
+      }
+    },
+    {
+      "id": "c8", "type": "content",
+      "pill": { "en": "§ 04 · WHAT SHARES DON'T GUARANTEE", "ta": "§ 04 · உறுதியற்றவை" },
+      "title": [
+        { "text": { "en": "Ownership", "ta": "Ownership" }, "em": true },
+        { "text": { "en": " ≠ guarantee", "ta": " ≠ உறுதி" }, "em": false }
+      ],
+      "blocks": [
+        { "type": "paragraph", "variant": "muted", "text": { "en": "Owning a share is real. What happens to its price after you buy it is not in your control.", "ta": "Share வைத்திருப்பது உண்மையானது. அதை வாங்கிய பிறகு விலை என்ன ஆகும் என்பது உங்கள் கட்டுப்பாட்டில் இல்லை." } },
+        { "type": "no-list", "items": [
+          { "title": { "en": "Guaranteed profit", "ta": "உறுதியான லாபம்" }, "description": { "en": "Share prices can fall — your investment can lose value.", "ta": "Share விலை குறையலாம் — முதலீடு மதிப்பை இழக்கலாம்." } },
+          { "title": { "en": "Fixed monthly return", "ta": "நிலையான மாத வருமானம்" }, "description": { "en": "Shares are not fixed deposits. There is no guaranteed payout each month.", "ta": "Shares என்பது Fixed Deposit இல்லை. ஒவ்வொரு மாதமும் நிலையான பணம் கிடைக்கும் என்று இல்லை." } },
+          { "title": { "en": "Instant money", "ta": "உடனடி பணம்" }, "description": { "en": "Prices fluctuate daily. Growth, if it comes, takes time.", "ta": "விலைகள் தினமும் மாறும். வளர்ச்சி வந்தால் அது நேரம் எடுக்கும்." } }
+        ]}
+      ]
+    },
+    {
+      "id": "c9", "type": "quiz", "gate": true,
+      "check_label": { "en": "QUICK CHECK · 3 of 3", "ta": "விரைவு சோதனை · 3 / 3" },
+      "q_id": "m1l3-q3",
+      "question": {
+        "kind": "mcq", "xp": 10,
+        "text": { "en": "Which of these is NOT guaranteed when you buy shares?", "ta": "Shares வாங்கும்போது எது உறுதியற்றது?" },
+        "options": [
+          { "key": "A", "text": { "en": "The share price will rise over time", "ta": "Share விலை காலப்போக்கில் உயரும்" }, "correct": true },
+          { "key": "B", "text": { "en": "You hold a legal ownership stake in the company", "ta": "நிறுவனத்தில் சட்டரீதியான ownership உங்களுக்கு இருக்கும்" }, "correct": false },
+          { "key": "C", "text": { "en": "You can sell your shares in the stock market", "ta": "Stock market-ல் உங்கள் Shares விற்கலாம்" }, "correct": false }
+        ],
+        "feedback": {
+          "shared": false,
+          "correct": { "en": "Price direction is never guaranteed. Shares can fall as well as rise — that is the nature of equity. Ownership (B) and the ability to sell (C) are guaranteed features of listed shares.", "ta": "விலை திசை என்றும் உறுதியற்றது. Shares மேலேயும் செல்லலாம், கீழேயும் வரலாம் — அதுவே equity-யின் இயல்பு. Ownership (B) மற்றும் விற்கும் திறன் (C) listed shares-ன் உறுதியான அம்சங்கள்." },
+          "wrong": { "en": "Ownership (B) and the ability to sell in the market (C) are built-in features of holding listed shares. The one thing that is never guaranteed is price direction — a share can lose value, even in a well-run company.", "ta": "Ownership (B) மற்றும் சந்தையில் விற்கும் திறன் (C) listed shares வைத்திருக்கும்போது கிடைக்கும் அம்சங்கள். என்றும் உறுதியற்றது விலை திசை மட்டுமே — நன்றாக நடத்தப்படும் நிறுவனத்திலும் கூட Share மதிப்பு குறையலாம்." }
+        }
+      }
+    },
+    {
+      "id": "c10", "type": "result",
+      "lesson_id": "m1l3",
+      "quiz_total": 3,
+      "lesson_done_label": { "en": "Lesson 1.3 done", "ta": "பாடம் 1.3 முடிந்தது" }
+    }
+  ]
+}

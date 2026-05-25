@@ -523,11 +523,11 @@
             </a>
           </li>
           <li>
-            <span class="lesson-item is-locked">
+            <a class="lesson-item is-available" href="/training/learn_m1_l3.html">
               <span class="lesson-dot">3</span>
-              <span class="lesson-label" data-en="Who Are the Players?" data-ta="சந்தையில் யார் யார்?">Who Are the Players?</span>
-              <span class="lesson-xp">+25 XP</span>
-            </span>
+              <span class="lesson-label" data-en="What is a Share?" data-ta="Share என்றால் என்ன?">What is a Share?</span>
+              <span class="lesson-xp">+30 XP</span>
+            </a>
           </li>
           <li>
             <span class="lesson-item is-locked">
@@ -665,15 +665,18 @@
         ? m1Total + ' இல் ' + m1Done + ' பாடங்கள் முடிந்தன'
         : m1Done + ' of ' + m1Total + ' lessons complete';
 
-    // Mark lesson 1 done if completed
-    if (lessonsArr.includes('m1l1')) {
-      const firstLesson = document.querySelector('.lesson-item[href="/training/learn_m1_l1.html"]');
-      if (firstLesson) {
-        firstLesson.classList.remove('is-available');
-        firstLesson.classList.add('is-done');
-        firstLesson.querySelector('.lesson-dot').textContent = '✓';
+    [['m1l1', '/training/learn_m1_l1.html'],
+     ['m1l2', '/training/learn_m1_l2.html'],
+     ['m1l3', '/training/learn_m1_l3.html']].forEach(([id, href]) => {
+      if (lessonsArr.includes(id)) {
+        const el = document.querySelector(`.lesson-item[href="${href}"]`);
+        if (el) {
+          el.classList.remove('is-available');
+          el.classList.add('is-done');
+          el.querySelector('.lesson-dot').textContent = '✓';
+        }
       }
-    }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', render);
