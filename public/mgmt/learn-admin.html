@@ -629,12 +629,14 @@ function richTitleHTML(title, idx) {
 }
 
 function blockRowHTML(block, idx, bi) {
-  const meta = BLOCK_META[block.type]||{icon:'?',label:block.type||'Unknown'};
+  const typeOpts = Object.entries(BLOCK_META).map(([k,v]) =>
+    `<option value="${k}" ${block.type===k?'selected':''}>${v.icon} ${v.label}</option>`
+  ).join('');
   return `<div class="brow" id="brow-${idx}-${bi}">
     <div class="brow-hd">
-      <span style="font-size:13px;">${meta.icon}</span>
-      <span class="blabel">${meta.label}</span>
-      <button class="btn-act danger" onclick="removeBlock(${idx},${bi})">✕</button>
+      <select class="form-select form-select-sm" style="width:165px;font-size:11px;padding:2px 6px;"
+        onchange="changeBlockType(${idx},${bi},this.value)">${typeOpts}</select>
+      <button class="btn-act danger ms-auto" onclick="removeBlock(${idx},${bi})">✕</button>
     </div>
     ${blockFieldHTML(block,idx,bi)}
   </div>`;
@@ -974,6 +976,16 @@ function addBlock(idx) {
 
 function removeBlock(idx, bi) {
   lessonItems[idx].data.blocks.splice(bi,1);
+  renderLessonBuilder();
+}
+
+function changeBlockType(idx, bi, newType) {
+  const old      = lessonItems[idx].data.blocks[bi];
+  const newBlock = makeBlock(newType);
+  // Carry over text content where both types have a text field
+  const oldText = old.text || (old.en || old.ta ? {en:old.en||'',ta:old.ta||''} : null);
+  if (oldText && newBlock.hasOwnProperty('text')) newBlock.text = oldText;
+  lessonItems[idx].data.blocks[bi] = newBlock;
   renderLessonBuilder();
 }
 
