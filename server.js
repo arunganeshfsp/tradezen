@@ -4,9 +4,10 @@ const path    = require("path");
 
 const { initDB } = require("./db/init");
 
-const stockRoutes = require("./routes/stockRoute");
-const adminRoutes = require("./routes/adminRoute");
-const learnRoutes = require("./routes/learnRoute");
+const stockRoutes      = require("./routes/stockRoute");
+const adminRoutes      = require("./routes/adminRoute");
+const learnRoutes      = require("./routes/learnRoute");
+const adminLearnRoutes = require("./routes/adminLearnRoute");
 
 const app = express();
 
@@ -16,7 +17,8 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-app.use("/mgmt", adminRoutes);
+app.use("/mgmt",       adminRoutes);
+app.use("/mgmt/learn", adminLearnRoutes);
 app.use("/api",       stockRoutes);
 app.use("/api/learn", learnRoutes);
 

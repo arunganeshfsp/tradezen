@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Learn Admin — TradeZen</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+:root {
+  --tz-bg:       #0d1117;
+  --tz-surface:  #161b22;
+  --tz-border:   #30363d;
+  --tz-gain:     #3fb950;
+  --tz-warn:     #d29922;
+  --tz-danger:   #f85149;
+  --tz-accent:   #58a6ff;
+}
+body          { background: var(--tz-bg); color: #e6edf3; font-size: 14px; }
+#sidebar      { width: 280px; min-width: 280px; background: var(--tz-surface);
+                border-right: 1px solid var(--tz-border); height: calc(100vh - 52px);
+                overflow-y: auto; }
+#editor       { flex: 1; height: calc(100vh - 52px); overflow-y: auto; padding: 1.25rem; }
+.tree-cat     { font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+                color: #8b949e; padding: 8px 12px 2px; }
+.tree-mod     { padding: 4px 12px 4px 20px; color: #c9d1d9; font-size: 13px; cursor: default; }
+.tree-ch      { padding: 3px 12px 3px 32px; cursor: pointer; border-radius: 4px;
+                display: flex; align-items: center; gap: 6px; color: #8b949e; }
+.tree-ch:hover{ background: rgba(88,166,255,.1); color: #e6edf3; }
+.tree-ch.active{ background: rgba(88,166,255,.2); color: var(--tz-accent); }
+.status-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; display:inline-block; }
+.s-draft      { background: #8b949e; }
+.s-in_review  { background: var(--tz-warn); }
+.s-approved   { background: #58a6ff; }
+.s-scheduled  { background: #a371f7; }
+.s-published  { background: var(--tz-gain); }
+.s-archived   { background: var(--tz-danger); }
+.badge-status { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+.card-item    { background: var(--tz-surface); border: 1px solid var(--tz-border);
+                border-radius: 8px; margin-bottom: 8px; }
+.card-item-hd { padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+                cursor: pointer; user-select: none; }
+.card-item-bd { padding: 12px 14px; border-top: 1px solid var(--tz-border); display:none; }
+.card-item-bd.open { display: block; }
+.block-row    { background: #0d1117; border: 1px solid var(--tz-border);
+                border-radius: 6px; padding: 10px; margin-bottom: 6px; }
+.q-item       { background: var(--tz-surface); border: 1px solid var(--tz-border);
+                border-radius: 8px; margin-bottom: 8px; padding: 12px 14px; }
+.form-control, .form-select {
+  background: #0d1117; border-color: var(--tz-border); color: #e6edf3; font-size: 13px; }
+.form-control:focus, .form-select:focus {
+  background: #0d1117; border-color: var(--tz-accent); color: #e6edf3; box-shadow: none; }
+.nav-tabs .nav-link        { color: #8b949e; border-color: transparent; }
+.nav-tabs .nav-link.active { color: var(--tz-accent); background: transparent;
+                              border-bottom-color: var(--tz-accent); }
+.btn-xs { padding: 2px 8px; font-size: 11px; }
+#toast-area { position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark px-3 py-2" style="background:var(--tz-surface);border-bottom:1px solid var(--tz-border);height:52px;">
+  <span class="navbar-brand mb-0 fw-semibold" style="font-size:15px;">📚 Learn Admin</span>
+  <div class="d-flex align-items-center gap-3">
+    <span id="save-status" class="text-muted" style="font-size:12px;"></span>
+    <button class="btn btn-sm btn-outline-secondary btn-xs" onclick="promptToken()">Token</button>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <!-- Sidebar tree -->
+  <div id="sidebar">
+    <div style="padding:10px 12px 6px;">
+      <input id="tree-search" class="form-control form-control-sm"
+             placeholder="Filter chapters…" oninput="filterTree(this.value)">
+    </div>
+    <div id="tree-root"></div>
+  </div>
+
+  <!-- Editor -->
+  <div id="editor">
+    <div id="no-selection" class="text-muted text-center mt-5">
+      <div style="font-size:40px;">📖</div>
+      <div class="mt-2">Select a chapter from the tree</div>
+    </div>
+
+    <div id="chapter-editor" style="display:none; max-width:860px;">
+      <!-- Chapter header -->
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <span id="ch-emoji" style="font-size:28px;"></span>
+        <div>
+          <div id="ch-title" class="fw-semibold" style="font-size:18px;"></div>
+          <div id="ch-meta" class="text-muted" style="font-size:12px;"></div>
+        </div>
+        <span id="ch-status-badge" class="badge badge-status ms-auto"></span>
+      </div>
+
+      <!-- Tabs -->
+      <ul class="nav nav-tabs mb-3" id="editorTabs">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-meta">Metadata</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-cards">Cards</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-questions">Questions</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-workflow">Workflow</a></li>
+      </ul>
+
+      <div class="tab-content">
+
+        <!-- ── Metadata ── -->
+        <div class="tab-pane fade show active" id="tab-meta">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Title</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">EN</span>
+                    <input type="text" class="form-control" id="m-title-en">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">TA</span>
+                    <input type="text" class="form-control" id="m-title-ta">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">EN</span>
+                    <textarea class="form-control" id="m-desc-en" rows="2"></textarea>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">TA</span>
+                    <textarea class="form-control" id="m-desc-ta" rows="2"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-2">
+              <label class="form-label fw-semibold">Emoji</label>
+              <input type="text" class="form-control form-control-sm" id="m-emoji">
+            </div>
+            <div class="col-2">
+              <label class="form-label fw-semibold">XP Reward</label>
+              <input type="number" class="form-control form-control-sm" id="m-xp">
+            </div>
+            <div class="col-2">
+              <label class="form-label fw-semibold">Duration (min)</label>
+              <input type="number" class="form-control form-control-sm" id="m-dur">
+            </div>
+            <div class="col-3">
+              <label class="form-label fw-semibold">Difficulty</label>
+              <select class="form-select form-select-sm" id="m-difficulty"></select>
+            </div>
+            <div class="col-12 mt-1">
+              <button class="btn btn-primary btn-sm" onclick="saveMetadata()">Save Metadata</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Cards ── -->
+        <div class="tab-pane fade" id="tab-cards">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="text-muted" style="font-size:12px;">Cover → Content → Result. Quiz cards are managed in Questions tab.</span>
+            <div class="d-flex gap-2">
+              <select class="form-select form-select-sm" id="new-card-type" style="width:130px;">
+                <option value="cover">Cover</option>
+                <option value="content" selected>Content</option>
+                <option value="result">Result</option>
+              </select>
+              <button class="btn btn-success btn-sm" onclick="addCard()">+ Add Card</button>
+            </div>
+          </div>
+          <div id="cards-list"></div>
+          <button class="btn btn-primary btn-sm mt-2" onclick="saveCards()">Save Cards</button>
+        </div>
+
+        <!-- ── Questions ── -->
+        <div class="tab-pane fade" id="tab-questions">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted" style="font-size:12px;">Quiz questions are interleaved at their display_order position.</span>
+            <button class="btn btn-success btn-sm" onclick="addQuestion()">+ Add Question</button>
+          </div>
+          <div id="questions-list"></div>
+          <button class="btn btn-primary btn-sm mt-2" onclick="saveQuestions()">Save Questions</button>
+        </div>
+
+        <!-- ── Workflow ── -->
+        <div class="tab-pane fade" id="tab-workflow">
+          <div class="mb-4">
+            <div class="fw-semibold mb-1">Current Status</div>
+            <span id="wf-current-badge" class="badge badge-status fs-6 px-3 py-2"></span>
+          </div>
+          <div class="fw-semibold mb-2">Transition To</div>
+          <div id="wf-buttons" class="d-flex gap-2 flex-wrap"></div>
+          <hr style="border-color:var(--tz-border);">
+          <div class="text-muted" style="font-size:12px; line-height:1.8;">
+            <strong>Workflow:</strong> draft → in_review → approved → published → archived<br>
+            Only <strong>published</strong> chapters are visible to learners.
+          </div>
+        </div>
+
+      </div><!-- tab-content -->
+    </div><!-- chapter-editor -->
+  </div><!-- editor -->
+</div>
+
+<div id="toast-area"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let token        = sessionStorage.getItem('tz_admin_token') || '';
+let currentSlug  = null;
+let editCards    = [];
+let editQuestions= [];
+let lookups      = { difficulties: [], modules: [] };
+let treeData     = [];
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function promptToken() {
+  const t = prompt('Enter ADMIN_TOKEN:');
+  if (t) { token = t.trim(); sessionStorage.setItem('tz_admin_token', token); toast('Token saved', 'success'); }
+}
+
+if (!token) promptToken();
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json', 'x-admin-token': token } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch('/mgmt/learn' + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'secondary') {
+  const el = document.createElement('div');
+  el.className = `alert alert-${type} py-2 px-3 mb-2`;
+  el.style.fontSize = '13px';
+  el.textContent = msg;
+  document.getElementById('toast-area').prepend(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+function setSaveStatus(msg) { document.getElementById('save-status').textContent = msg; }
+
+// ── Tree ──────────────────────────────────────────────────────────────────────
+const STATUS_COLOR = { draft:'s-draft', in_review:'s-in_review', approved:'s-approved',
+                       scheduled:'s-scheduled', published:'s-published', archived:'s-archived' };
+
+async function loadTree() {
+  try {
+    treeData = await api('GET', '/tree');
+    renderTree(treeData);
+    await loadLookups();
+  } catch(e) { toast('Tree load failed: ' + e.message, 'danger'); }
+}
+
+function renderTree(data) {
+  const root = document.getElementById('tree-root');
+  root.innerHTML = '';
+  data.forEach(cat => {
+    const catEl = document.createElement('div');
+    catEl.className = 'tree-cat';
+    catEl.textContent = (cat.icon || '') + ' ' + (cat.title?.en || cat.slug);
+    root.appendChild(catEl);
+    (cat.modules || []).forEach(mod => {
+      const modEl = document.createElement('div');
+      modEl.className = 'tree-mod';
+      modEl.textContent = mod.title?.en || mod.slug;
+      root.appendChild(modEl);
+      (mod.chapters || []).forEach(ch => {
+        const chEl = document.createElement('div');
+        chEl.className = 'tree-ch';
+        chEl.dataset.slug = ch.slug;
+        chEl.innerHTML = `<span class="status-dot ${STATUS_COLOR[ch.status] || ''}"></span>
+          <span>${ch.emoji || ''} ${ch.title?.en || ch.slug}</span>`;
+        chEl.onclick = () => selectChapter(ch.slug);
+        root.appendChild(chEl);
+      });
+    });
+  });
+}
+
+function filterTree(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.tree-ch').forEach(el => {
+    el.style.display = (!q || el.textContent.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+
+// ── Lookups ───────────────────────────────────────────────────────────────────
+async function loadLookups() {
+  lookups = await api('GET', '/lookups');
+  const sel = document.getElementById('m-difficulty');
+  sel.innerHTML = lookups.difficulties.map(d =>
+    `<option value="${d.difficulty_id}">${d.icon || ''} ${d.label?.en || d.slug}</option>`
+  ).join('');
+}
+
+// ── Chapter selection ─────────────────────────────────────────────────────────
+async function selectChapter(slug) {
+  document.querySelectorAll('.tree-ch').forEach(el =>
+    el.classList.toggle('active', el.dataset.slug === slug)
+  );
+  try {
+    const data = await api('GET', '/chapter/' + slug);
+    currentSlug   = slug;
+    editCards     = JSON.parse(JSON.stringify(data.cards || []));
+    editQuestions = JSON.parse(JSON.stringify(data.questions || []));
+    renderChapterEditor(data);
+    document.getElementById('no-selection').style.display = 'none';
+    document.getElementById('chapter-editor').style.display = '';
+    // Switch to metadata tab
+    document.querySelector('[href="#tab-meta"]').click();
+  } catch(e) { toast('Load failed: ' + e.message, 'danger'); }
+}
+
+function renderChapterEditor(data) {
+  const ch = data.chapter;
+  document.getElementById('ch-emoji').textContent  = ch.emoji || '';
+  document.getElementById('ch-title').textContent  = ch.title?.en || ch.slug;
+  document.getElementById('ch-meta').textContent   =
+    `${ch.slug} · ${ch.module_slug} · ${ch.level_slug || ''}`;
+
+  const badge = document.getElementById('ch-status-badge');
+  badge.textContent = ch.status;
+  badge.className   = `badge badge-status ms-auto ${STATUS_COLOR[ch.status] || 'bg-secondary'}`;
+
+  // Metadata form
+  document.getElementById('m-title-en').value = ch.title?.en || '';
+  document.getElementById('m-title-ta').value = ch.title?.ta || '';
+  document.getElementById('m-desc-en').value  = ch.description?.en || '';
+  document.getElementById('m-desc-ta').value  = ch.description?.ta || '';
+  document.getElementById('m-emoji').value    = ch.emoji || '';
+  document.getElementById('m-xp').value       = ch.xp_reward || 40;
+  document.getElementById('m-dur').value      = ch.duration_min || 4;
+  const diffSel = document.getElementById('m-difficulty');
+  if (ch.difficulty_id) diffSel.value = ch.difficulty_id;
+
+  renderCards(editCards);
+  renderQuestions(editQuestions);
+  renderWorkflow(ch);
+}
+
+// ── Save metadata ─────────────────────────────────────────────────────────────
+async function saveMetadata() {
+  if (!currentSlug) return;
+  const payload = {
+    title:       { en: v('m-title-en'), ta: v('m-title-ta') },
+    description: { en: v('m-desc-en'),  ta: v('m-desc-ta')  },
+    emoji:        v('m-emoji'),
+    xp_reward:    parseInt(v('m-xp'))   || 40,
+    duration_min: parseInt(v('m-dur'))  || 4,
+    difficulty_id: parseInt(document.getElementById('m-difficulty').value) || null,
+  };
+  try {
+    await api('PATCH', '/chapter/' + currentSlug, payload);
+    toast('Metadata saved', 'success');
+    setSaveStatus('Saved ' + new Date().toLocaleTimeString());
+    loadTree();
+  } catch(e) { toast('Save failed: ' + e.message, 'danger'); }
+}
+
+function v(id) { return document.getElementById(id)?.value?.trim() || ''; }
+
+// ── Cards ─────────────────────────────────────────────────────────────────────
+function renderCards(cards) {
+  const list = document.getElementById('cards-list');
+  list.innerHTML = '';
+  cards.forEach((card, idx) => list.appendChild(buildCardEl(card, idx)));
+}
+
+function buildCardEl(card, idx) {
+  const wrap = document.createElement('div');
+  wrap.className = 'card-item';
+  wrap.innerHTML = `
+    <div class="card-item-hd" onclick="toggleCardBody(this)">
+      <span class="badge bg-secondary">${idx + 1}</span>
+      <span class="fw-semibold" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;">${card.type}</span>
+      <span class="text-muted ms-2" style="font-size:12px;">${cardPreview(card)}</span>
+      <div class="ms-auto d-flex gap-1">
+        ${idx > 0 ? `<button class="btn btn-xs btn-outline-secondary" onclick="moveCard(event,${idx},-1)">↑</button>` : ''}
+        ${idx < editCards.length-1 ? `<button class="btn btn-xs btn-outline-secondary" onclick="moveCard(event,${idx},1)">↓</button>` : ''}
+        <button class="btn btn-xs btn-outline-danger" onclick="removeCard(event,${idx})">✕</button>
+      </div>
+    </div>
+    <div class="card-item-bd">${buildCardForm(card, idx)}</div>`;
+  return wrap;
+}
+
+function cardPreview(card) {
+  if (card.type === 'cover')   return card.heading?.en || card.title?.en || '';
+  if (card.type === 'content') return `${(card.blocks||[]).length} block(s)`;
+  if (card.type === 'result')  return 'Result card';
+  return '';
+}
+
+function toggleCardBody(hd) {
+  const bd = hd.nextElementSibling;
+  bd.classList.toggle('open');
+}
+
+function buildCardForm(card, idx) {
+  if (card.type === 'cover') {
+    return `
+      <div class="row g-2">
+        <div class="col-6"><label class="form-label mb-1" style="font-size:11px;">Heading EN</label>
+          <input class="form-control form-control-sm" value="${esc(card.heading?.en||card.title?.en||'')}"
+            onchange="setCardField(${idx},'heading.en',this.value)"></div>
+        <div class="col-6"><label class="form-label mb-1" style="font-size:11px;">Heading TA</label>
+          <input class="form-control form-control-sm" value="${esc(card.heading?.ta||card.title?.ta||'')}"
+            onchange="setCardField(${idx},'heading.ta',this.value)"></div>
+        <div class="col-6"><label class="form-label mb-1" style="font-size:11px;">Subtitle EN</label>
+          <input class="form-control form-control-sm" value="${esc(card.sub?.en||card.subtitle?.en||'')}"
+            onchange="setCardField(${idx},'sub.en',this.value)"></div>
+        <div class="col-6"><label class="form-label mb-1" style="font-size:11px;">Subtitle TA</label>
+          <input class="form-control form-control-sm" value="${esc(card.sub?.ta||card.subtitle?.ta||'')}"
+            onchange="setCardField(${idx},'sub.ta',this.value)"></div>
+        <div class="col-2"><label class="form-label mb-1" style="font-size:11px;">Emoji</label>
+          <input class="form-control form-control-sm" value="${esc(card.emoji||'')}"
+            onchange="setCardField(${idx},'emoji',this.value)"></div>
+        <div class="col-3"><label class="form-label mb-1" style="font-size:11px;">BG Color</label>
+          <input class="form-control form-control-sm" value="${esc(card.bg||'')}"
+            placeholder="e.g. #1a1a2e" onchange="setCardField(${idx},'bg',this.value)"></div>
+      </div>`;
+  }
+  if (card.type === 'content') {
+    const blocks = (card.blocks || []).map((b, bi) => buildBlockEl(idx, bi, b)).join('');
+    const typeOpts = ['headline','paragraph','tip','callout','key_value']
+      .map(t => `<option value="${t}">${t}</option>`).join('');
+    return `<div id="blocks-${idx}">${blocks}</div>
+      <div class="mt-2 d-flex gap-2">
+        <select class="form-select form-select-sm" id="new-block-type-${idx}" style="width:140px;">${typeOpts}</select>
+        <button class="btn btn-outline-success btn-sm btn-xs" onclick="addBlock(${idx})">+ Block</button>
+      </div>`;
+  }
+  if (card.type === 'result') {
+    return `<div class="text-muted" style="font-size:12px;">Result card is auto-rendered. No editable fields.</div>`;
+  }
+  return `<textarea class="form-control form-control-sm" rows="3"
+    onchange="setCardRaw(${idx},this.value)">${esc(JSON.stringify(card,null,2))}</textarea>`;
+}
+
+function buildBlockEl(cidx, bidx, block) {
+  const typeLabel = block.type || 'block';
+  const removeBtn = `<button class="btn btn-xs btn-outline-danger" onclick="removeBlock(${cidx},${bidx})">✕</button>`;
+  if (['headline','paragraph','tip','callout'].includes(block.type)) {
+    return `<div class="block-row" id="block-${cidx}-${bidx}">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-secondary" style="font-size:10px;">${typeLabel}</span>${removeBtn}
+      </div>
+      <div class="row g-2">
+        <div class="col-6"><input class="form-control form-control-sm" placeholder="EN"
+          value="${esc(block.text?.en||block.en||'')}"
+          onchange="setBlockField(${cidx},${bidx},'text.en',this.value)"></div>
+        <div class="col-6"><input class="form-control form-control-sm" placeholder="TA"
+          value="${esc(block.text?.ta||block.ta||'')}"
+          onchange="setBlockField(${cidx},${bidx},'text.ta',this.value)"></div>
+      </div>
+    </div>`;
+  }
+  if (block.type === 'key_value') {
+    const items = (block.items || []).map((item, ii) => `
+      <div class="d-flex gap-1 mb-1">
+        <input class="form-control form-control-sm" placeholder="Key EN" style="flex:1"
+          value="${esc(item.key?.en||item.k||'')}"
+          onchange="setKVField(${cidx},${bidx},${ii},'key.en',this.value)">
+        <input class="form-control form-control-sm" placeholder="Val EN" style="flex:2"
+          value="${esc(item.val?.en||item.v||'')}"
+          onchange="setKVField(${cidx},${bidx},${ii},'val.en',this.value)">
+        <input class="form-control form-control-sm" placeholder="Val TA" style="flex:2"
+          value="${esc(item.val?.ta||'')}"
+          onchange="setKVField(${cidx},${bidx},${ii},'val.ta',this.value)">
+        <button class="btn btn-xs btn-outline-danger" onclick="removeKV(${cidx},${bidx},${ii})">✕</button>
+      </div>`).join('');
+    return `<div class="block-row" id="block-${cidx}-${bidx}">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-secondary" style="font-size:10px;">key_value</span>${removeBtn}
+        <button class="btn btn-xs btn-outline-success" onclick="addKV(${cidx},${bidx})">+ Row</button>
+      </div>
+      <div id="kv-${cidx}-${bidx}">${items}</div>
+    </div>`;
+  }
+  return `<div class="block-row"><div class="d-flex gap-2 mb-1">
+    <span class="badge bg-secondary">${typeLabel}</span>${removeBtn}</div>
+    <textarea class="form-control form-control-sm" rows="2"
+      onchange="setBlockRaw(${cidx},${bidx},this.value)">${esc(JSON.stringify(block))}</textarea>
+  </div>`;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// Card mutations
+function addCard() {
+  const type = document.getElementById('new-card-type').value;
+  const defaults = { cover: {type:'cover',heading:{en:'',ta:''},sub:{en:'',ta:''},emoji:'',bg:''},
+                     content: {type:'content',blocks:[]},
+                     result:  {type:'result'} };
+  editCards.push(defaults[type] || {type});
+  renderCards(editCards);
+}
+
+function removeCard(e, idx) { e.stopPropagation(); editCards.splice(idx,1); renderCards(editCards); }
+
+function moveCard(e, idx, dir) {
+  e.stopPropagation();
+  const swp = idx + dir;
+  if (swp < 0 || swp >= editCards.length) return;
+  [editCards[idx], editCards[swp]] = [editCards[swp], editCards[idx]];
+  renderCards(editCards);
+}
+
+function setCardField(idx, path, val) {
+  setDeep(editCards[idx], path, val);
+}
+
+function setCardRaw(idx, val) {
+  try { editCards[idx] = JSON.parse(val); } catch(_) {}
+}
+
+function addBlock(cidx) {
+  const type = document.getElementById(`new-block-type-${cidx}`)?.value || 'paragraph';
+  if (!editCards[cidx].blocks) editCards[cidx].blocks = [];
+  const defaults = {
+    headline:  {type:'headline', text:{en:'',ta:''}},
+    paragraph: {type:'paragraph', text:{en:'',ta:''}},
+    tip:       {type:'tip', text:{en:'',ta:''}},
+    callout:   {type:'callout', text:{en:'',ta:''}},
+    key_value: {type:'key_value', items:[]},
+  };
+  editCards[cidx].blocks.push(defaults[type] || {type});
+  renderCards(editCards);
+}
+
+function removeBlock(cidx, bidx) { editCards[cidx].blocks.splice(bidx,1); renderCards(editCards); }
+
+function setBlockField(cidx, bidx, path, val) { setDeep(editCards[cidx].blocks[bidx], path, val); }
+function setBlockRaw(cidx, bidx, val) { try { editCards[cidx].blocks[bidx]=JSON.parse(val); } catch(_){} }
+
+function addKV(cidx, bidx) {
+  if (!editCards[cidx].blocks[bidx].items) editCards[cidx].blocks[bidx].items=[];
+  editCards[cidx].blocks[bidx].items.push({key:{en:'',ta:''},val:{en:'',ta:''}});
+  renderCards(editCards);
+}
+function removeKV(cidx, bidx, ii) { editCards[cidx].blocks[bidx].items.splice(ii,1); renderCards(editCards); }
+function setKVField(cidx, bidx, ii, path, val) { setDeep(editCards[cidx].blocks[bidx].items[ii], path, val); }
+
+function setDeep(obj, path, val) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length-1; i++) {
+    if (!cur[parts[i]]) cur[parts[i]] = {};
+    cur = cur[parts[i]];
+  }
+  cur[parts[parts.length-1]] = val;
+}
+
+async function saveCards() {
+  if (!currentSlug) return;
+  try {
+    await api('PUT', '/chapter/' + currentSlug + '/cards', { cards: editCards });
+    toast('Cards saved', 'success');
+    setSaveStatus('Saved ' + new Date().toLocaleTimeString());
+  } catch(e) { toast('Save failed: ' + e.message, 'danger'); }
+}
+
+// ── Questions ─────────────────────────────────────────────────────────────────
+function renderQuestions(questions) {
+  const list = document.getElementById('questions-list');
+  list.innerHTML = '';
+  questions.forEach((q, idx) => list.appendChild(buildQuestionEl(q, idx)));
+}
+
+function buildQuestionEl(q, idx) {
+  const wrap = document.createElement('div');
+  wrap.className = 'q-item';
+  const qTypeOpts = ['mcq','tf'].map(t =>
+    `<option value="${t}" ${q.quiz_type===t?'selected':''}>${t.toUpperCase()}</option>`).join('');
+  const optRows = (q.options || [{en:'',ta:''},{en:'',ta:''},{en:'',ta:''},{en:'',ta:''}])
+    .map((o, oi) => `
+      <div class="d-flex gap-2 mb-1 align-items-center">
+        <span class="text-muted" style="width:20px;font-size:12px;">${String.fromCharCode(65+oi)}</span>
+        <input class="form-control form-control-sm" placeholder="EN" style="flex:1"
+          value="${esc(o.en||'')}" onchange="setQOption(${idx},${oi},'en',this.value)">
+        <input class="form-control form-control-sm" placeholder="TA" style="flex:1"
+          value="${esc(o.ta||'')}" onchange="setQOption(${idx},${oi},'ta',this.value)">
+        <input type="radio" name="correct-${idx}" value="${oi}" ${q.correct_index===oi?'checked':''}
+          onchange="setQField(${idx},'correct_index',${oi})" title="Correct answer">
+      </div>`).join('');
+
+  wrap.innerHTML = `
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <span class="badge bg-secondary">${idx+1}</span>
+      <select class="form-select form-select-sm" style="width:80px;"
+        onchange="setQField(${idx},'quiz_type',this.value)">${qTypeOpts}</select>
+      <span class="text-muted ms-auto" style="font-size:11px;">Insert at card position:</span>
+      <input type="number" class="form-control form-control-sm" style="width:70px;"
+        value="${q.display_order||0}" onchange="setQField(${idx},'display_order',parseInt(this.value)||0)">
+      <button class="btn btn-xs btn-outline-danger" onclick="removeQuestion(${idx})">✕</button>
+    </div>
+    <div class="row g-2 mb-2">
+      <div class="col-6"><input class="form-control form-control-sm" placeholder="Question EN"
+        value="${esc(q.question?.en||'')}" onchange="setQDeep(${idx},'question.en',this.value)"></div>
+      <div class="col-6"><input class="form-control form-control-sm" placeholder="Question TA"
+        value="${esc(q.question?.ta||'')}" onchange="setQDeep(${idx},'question.ta',this.value)"></div>
+    </div>
+    <div class="mb-2" style="font-size:12px; color:#8b949e;">Options (select correct ○)</div>
+    <div>${optRows}</div>
+    <div class="row g-2 mt-2">
+      <div class="col-6"><input class="form-control form-control-sm" placeholder="Explanation EN"
+        value="${esc(q.explanation?.en||'')}" onchange="setQDeep(${idx},'explanation.en',this.value)"></div>
+      <div class="col-6"><input class="form-control form-control-sm" placeholder="Explanation TA"
+        value="${esc(q.explanation?.ta||'')}" onchange="setQDeep(${idx},'explanation.ta',this.value)"></div>
+    </div>`;
+  return wrap;
+}
+
+function addQuestion() {
+  editQuestions.push({
+    quiz_type:'mcq', question:{en:'',ta:''}, options:[{en:'',ta:''},{en:'',ta:''},{en:'',ta:''},{en:'',ta:''}],
+    correct_index:0, explanation:{en:'',ta:''}, display_order:editCards.length, is_required:true,
+  });
+  renderQuestions(editQuestions);
+}
+
+function removeQuestion(idx) { editQuestions.splice(idx,1); renderQuestions(editQuestions); }
+function setQField(idx, key, val) { editQuestions[idx][key] = val; }
+function setQDeep(idx, path, val) { setDeep(editQuestions[idx], path, val); }
+function setQOption(idx, oi, lang, val) {
+  if (!editQuestions[idx].options) editQuestions[idx].options = [];
+  if (!editQuestions[idx].options[oi]) editQuestions[idx].options[oi] = {};
+  editQuestions[idx].options[oi][lang] = val;
+}
+
+async function saveQuestions() {
+  if (!currentSlug) return;
+  try {
+    await api('PUT', '/chapter/' + currentSlug + '/questions', { questions: editQuestions });
+    toast('Questions saved', 'success');
+    setSaveStatus('Saved ' + new Date().toLocaleTimeString());
+  } catch(e) { toast('Save failed: ' + e.message, 'danger'); }
+}
+
+// ── Workflow ──────────────────────────────────────────────────────────────────
+const TRANSITIONS = {
+  draft:['in_review'], in_review:['draft','approved'],
+  approved:['in_review','scheduled','published'], scheduled:['approved','published'],
+  published:['archived'], archived:['draft'],
+};
+const STATUS_BTN = {
+  in_review:'btn-warning', approved:'btn-primary', published:'btn-success',
+  scheduled:'btn-info', draft:'btn-secondary', archived:'btn-danger',
+};
+
+function renderWorkflow(ch) {
+  const badge = document.getElementById('wf-current-badge');
+  badge.textContent = ch.status;
+  badge.className = `badge badge-status fs-6 px-3 py-2 ${STATUS_COLOR[ch.status]||''}`;
+  const btns = document.getElementById('wf-buttons');
+  btns.innerHTML = (TRANSITIONS[ch.status]||[]).map(s =>
+    `<button class="btn btn-sm ${STATUS_BTN[s]||'btn-secondary'}" onclick="transitionStatus('${s}')">
+      → ${s.replace('_',' ')}
+    </button>`
+  ).join('');
+}
+
+async function transitionStatus(status) {
+  if (!currentSlug) return;
+  if (!confirm(`Transition to "${status}"?`)) return;
+  try {
+    await api('POST', '/chapter/' + currentSlug + '/status', { status });
+    toast(`Status → ${status}`, 'success');
+    const data = await api('GET', '/chapter/' + currentSlug);
+    renderChapterEditor(data);
+    loadTree();
+  } catch(e) { toast('Transition failed: ' + e.message, 'danger'); }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadTree();
+</script>
+</body>
+</html>
