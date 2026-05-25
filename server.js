@@ -8,6 +8,8 @@ const stockRoutes      = require("./routes/stockRoute");
 const adminRoutes      = require("./routes/adminRoute");
 const learnRoutes      = require("./routes/learnRoute");
 const adminLearnRoutes = require("./routes/adminLearnRoute");
+const authRoutes       = require("./routes/authRoute");
+const progressRoutes   = require("./routes/progressRoute");
 
 const app = express();
 
@@ -19,8 +21,10 @@ app.get("/", (req, res) => {
 
 app.use("/mgmt",       adminRoutes);
 app.use("/mgmt/learn", adminLearnRoutes);
-app.use("/api",       stockRoutes);
-app.use("/api/learn", learnRoutes);
+app.use("/api",        stockRoutes);
+app.use("/api/auth",   authRoutes);
+app.use("/api/learn",  progressRoutes);
+app.use("/api/learn",  learnRoutes);
 
 // Static files
 app.use(express.static(path.join(__dirname, "public")));

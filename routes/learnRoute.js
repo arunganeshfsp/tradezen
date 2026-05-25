@@ -1,5 +1,6 @@
 const express = require('express');
 const { query } = require('../db/db');
+const { requireAuth } = require('../middleware/auth');
 const router  = express.Router();
 
 // ── GET /api/learn/catalog ──────────────────────────────────────────────────
@@ -78,7 +79,7 @@ router.get('/catalog', async (_req, res) => {
 // Returns a full lesson: metadata + assembled cards (non-quiz + quiz interleaved).
 // Shape is backwards-compatible with the old lesson JSON format.
 // Pass ?preview_token=TOKEN (admin token) to bypass the published-only filter.
-router.get('/lesson/:id', async (req, res) => {
+router.get('/lesson/:id', requireAuth, async (req, res) => {
   const slug         = req.params.id.replace(/[^a-z0-9]/gi, '');
   const adminToken   = process.env.ADMIN_TOKEN;
   const isPreview    = adminToken && req.query.preview_token === adminToken;

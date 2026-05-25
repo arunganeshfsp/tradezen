@@ -257,3 +257,43 @@ CREATE INDEX IF NOT EXISTS idx_versions_entity     ON content_versions(entity_ty
 CREATE INDEX IF NOT EXISTS idx_versions_time       ON content_versions(changed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_chapters_title      ON chapters USING GIN(title);
 CREATE INDEX IF NOT EXISTS idx_qbank_question      ON question_bank USING GIN(question);
+
+-- ─── USER AUTH & PROGRESS ────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS users (
+  user_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email         TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  display_name  TEXT,
+  avatar_url    TEXT,
+  xp_total      INTEGER DEFAULT 0,
+  streak_days   INTEGER DEFAULT 0,
+  last_active   TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  updated_at    TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS user_progress (
+  progress_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  chapter_id   UUID NOT NULL REFERENCES chapters(chapter_id) ON DELETE CASCADE,
+  status       TEXT DEFAULT 'started' CHECK (status IN ('started','completed')),
+  xp_earned    INTEGER DEFAULT 0,
+  completed_at TIMESTAMPTZ,
+  started_at   TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (user_id, chapter_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_quiz_attempts (
+  attempt_id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  question_id  UUID NOT NULL REFERENCES question_bank(question_id) ON DELETE CASCADE,
+  chapter_id   UUID NOT NULL REFERENCES chapters(chapter_id) ON DELETE CASCADE,
+  answer_index INTEGER,
+  is_correct   BOOLEAN,
+  attempted_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_progress_user    ON user_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_chapter ON user_progress(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user    ON user_quiz_attempts(user_id);

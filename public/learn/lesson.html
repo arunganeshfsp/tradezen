@@ -513,7 +513,7 @@
       TZTutor.scoreBook.register(id);
       const opts = q.querySelectorAll('.q-option');
       const fb   = q.querySelector('.q-feedback');
-      opts.forEach(opt => {
+      opts.forEach((opt, oi) => {
         opt.addEventListener('click', () => {
           if (q.dataset.locked) return;
           q.dataset.locked = '1';
@@ -537,7 +537,7 @@
             }
           }
           if (correct) TZTutor.confetti(36);
-          document.dispatchEvent(new CustomEvent('tz-answered', { detail: { id, correct } }));
+          document.dispatchEvent(new CustomEvent('tz-answered', { detail: { id, correct, answerIndex: oi } }));
         });
       });
     });
@@ -660,6 +660,7 @@
       if (current === cards.length - 1) {
         TZTutor.renderResult('#resultCard');
         saveProgress(lesson.cards[current].lesson_id || lesson.id);
+        document.dispatchEvent(new CustomEvent('tz-lesson-complete'));
         nextBtn.disabled = true;
       }
     }
@@ -750,25 +751,70 @@
   }
 
   /* ── Boot ─────────────────────────────────────────────────── */
+  function apiTrack(path, body, token) {
+    fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(body),
+    }).catch(() => {});
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const params       = new URLSearchParams(window.location.search);
     const id           = params.get('id');
     const previewToken = params.get('preview_token');
+
     if (!id) {
       $('loading').innerHTML = '<div style="font-family:var(--tz-font-ui);color:var(--tz-fg-1);text-align:center;padding:40px"><h2>No lesson ID</h2><p>Add <code>?id=m1l1</code> to the URL</p><a href="/learn/" style="color:var(--tz-accent-1)">← Browse lessons</a></div>';
       return;
     }
-    const apiUrl = '/api/learn/lesson/' + encodeURIComponent(id) +
+
+    // Auth gate (skip for admin preview)
+    const token = localStorage.getItem('tz_learn_token');
+    if (!previewToken && !token) {
+      location.replace('/learn/auth.html?next=' + encodeURIComponent(location.href));
+      return;
+    }
+
+    const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+    const apiUrl  = '/api/learn/lesson/' + encodeURIComponent(id) +
       (previewToken ? '?preview_token=' + encodeURIComponent(previewToken) : '');
-    fetch(apiUrl)
+
+    fetch(apiUrl, { headers })
       .then(r => {
+        if (r.status === 401) {
+          localStorage.removeItem('tz_learn_token');
+          localStorage.removeItem('tz_learn_user');
+          location.replace('/learn/auth.html?next=' + encodeURIComponent(location.href));
+          throw new Error('session_expired');
+        }
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
-      .then(renderLesson)
+      .then(lesson => {
+        renderLesson(lesson);
+        if (token) apiTrack('/api/learn/progress', { chapter_slug: id, status: 'started' }, token);
+      })
       .catch(err => {
+        if (err.message === 'session_expired') return;
         $('loading').innerHTML = `<div style="font-family:var(--tz-font-ui);color:var(--tz-fg-1);text-align:center;padding:40px"><h2 style="color:var(--tz-loss)">Could not load lesson</h2><p style="color:var(--tz-fg-3)">${esc(err.message)}</p><a href="/learn/" style="color:var(--tz-accent-1)">← Browse lessons</a></div>`;
       });
+
+    // Track quiz answers
+    document.addEventListener('tz-answered', e => {
+      if (!token) return;
+      const { id: qId, correct, answerIndex } = e.detail;
+      apiTrack('/api/learn/quiz-attempt', {
+        chapter_slug: id, question_id: qId,
+        answer_index: answerIndex, is_correct: correct,
+      }, token);
+    });
+
+    // Track lesson completion (result card reached)
+    document.addEventListener('tz-lesson-complete', () => {
+      if (!token) return;
+      apiTrack('/api/learn/progress', { chapter_slug: id, status: 'completed' }, token);
+    });
 
     document.addEventListener('click', () => setTimeout(applyLang, 50));
   });
