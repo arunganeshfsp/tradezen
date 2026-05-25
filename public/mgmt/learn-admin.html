@@ -408,8 +408,10 @@ function renderLessonBuilder() {
 
 function izone(pos) {
   return `<div class="izone">
+    <button class="btn btn-sm py-0 px-2" style="font-size:11px;border:1px solid #a371f7;color:#a371f7;"
+      onclick="insertCover(${pos})">🎬 Cover</button>
     <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:11px;"
-      onclick="insertCard(${pos})">+ Card</button>
+      onclick="insertCard(${pos})">+ Content</button>
     <button class="btn btn-sm py-0 px-2" style="font-size:11px;border:1px solid var(--quiz);color:var(--quiz);"
       onclick="insertQuiz(${pos})">+ Quiz</button>
   </div>`;
@@ -800,6 +802,12 @@ function quizBodyHTML(data, idx) {
 function toggleItem(bodyId) {
   const el = document.getElementById(bodyId);
   if (el) el.classList.toggle('collapsed');
+}
+
+function insertCover(pos) {
+  const card = {type:'cover', heading:{en:'',ta:''}, description:{en:'',ta:''}, emoji:''};
+  lessonItems.splice(pos, 0, {kind:'card', data:card});
+  renderLessonBuilder();
 }
 
 function insertCard(pos) {
