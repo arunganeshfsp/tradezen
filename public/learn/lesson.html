@@ -90,6 +90,7 @@
     .card-slide.is-prev   { transform: translateX(-40px); }
     .card-level { align-self: flex-start; margin-bottom: 20px; }
     .card-emoji { font-size: 64px; line-height: 1; display: block; margin-bottom: 14px; }
+    .visual-hero { font-size: 108px; line-height: 1; text-align: center; flex: 1; display: flex; align-items: center; justify-content: center; }
     .card-title { font-family: var(--tz-font-display); font-size: clamp(26px, 7vw, 34px); line-height: 1.1; letter-spacing: -0.025em; color: var(--tz-fg-1); font-weight: 400; margin: 0 0 14px; }
     .card-title em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
     .card-body { font-family: var(--tz-font-ui); font-size: 16px; line-height: 1.6; color: var(--tz-fg-1); margin: 0 0 12px; }
@@ -423,6 +424,16 @@
 </article>`;
   }
 
+  function renderVisual(card, idx) {
+    return `
+<article class="card-slide" data-card="${idx+1}">
+  <div class="visual-hero">${card.emoji || '📸'}</div>
+  <h2 class="card-title" style="text-align:center;">${renderTitle(card.title)}</h2>
+  ${card.caption ? `<p class="card-body muted" style="text-align:center;" data-en="${esc(en(card.caption))}" data-ta="${esc(ta(card.caption))}">${esc(en(card.caption))}</p>` : ''}
+  <div class="spacer"></div>
+</article>`;
+  }
+
   function renderContent(card, idx) {
     const emojiHtml = card.emoji ? `<span class="card-emoji">${card.emoji}</span>` : '';
     return `
@@ -729,6 +740,7 @@
       try {
         switch (card.type) {
           case 'cover':   return renderCover(card, idx, lesson.level || 'beginner');
+          case 'visual':  return renderVisual(card, idx);
           case 'content': return renderContent(card, idx);
           case 'quiz':    return renderQuiz(card, idx);
           case 'result':  return renderResult(card, idx, lesson);

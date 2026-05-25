@@ -47,9 +47,13 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
 .item-preview{color:var(--muted);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .item-bd{padding:12px;border-top:1px solid var(--bdr);}
 .item-bd.collapsed{display:none;}
-.izone{display:flex;align-items:center;gap:8px;padding:5px 0;opacity:.35;transition:opacity .15s;}
+.izone{display:flex;align-items:center;gap:8px;padding:4px 0;opacity:.4;transition:opacity .15s;}
 .izone:hover{opacity:1;}
 .izone::before,.izone::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.item-drag-handle{color:var(--bdr);font-size:14px;cursor:grab;flex-shrink:0;transition:color .12s;user-select:none;}
+.lesson-item:hover .item-drag-handle{color:var(--muted);}
+.lesson-item.drag-over{outline:2px solid var(--accent);outline-offset:-1px;}
+.lesson-item.dragging{opacity:.3;}
 /* Block rows */
 .brow{background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;padding:10px;margin-bottom:5px;}
 .brow-hd{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
@@ -244,7 +248,7 @@ const BLOCK_META = {
   'divider':         {icon:'—',   label:'Divider'},
   'emoji-row':       {icon:'😀',  label:'Emoji Row'},
 };
-const CARD_ICONS  = {cover:'🎬',content:'📄',result:'🏆'};
+const CARD_ICONS  = {cover:'🎬',content:'📄',visual:'🖼',result:'🏆'};
 const STATUS_CLS  = {draft:'s-draft',in_review:'s-in_review',approved:'s-approved',
                      scheduled:'s-scheduled',published:'s-published',archived:'s-archived'};
 const TRANSITIONS = {draft:['in_review'],in_review:['draft','approved'],
@@ -404,12 +408,69 @@ function renderLessonBuilder() {
   });
   document.getElementById('lesson-builder').innerHTML = html;
   editor.scrollTop = scroll;
+  wireItemDrag();
+}
+
+function wireItemDrag() {
+  let srcIdx = null;
+  document.querySelectorAll('#lesson-builder .lesson-item').forEach(el => {
+    el.draggable = true;
+    el.addEventListener('dragstart', e => {
+      srcIdx = parseInt(el.dataset.idx);
+      setTimeout(() => el.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.lesson-item').forEach(i => i.classList.remove('drag-over'));
+    });
+    el.addEventListener('dragover',  e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    el.addEventListener('dragenter', e => {
+      e.preventDefault();
+      const tgt = parseInt(el.dataset.idx);
+      if (tgt !== srcIdx) el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', e => {
+      if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+    });
+    el.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      el.classList.remove('drag-over');
+      const tgtIdx = parseInt(el.dataset.idx);
+      if (srcIdx === null || srcIdx === tgtIdx) return;
+      const [item] = lessonItems.splice(srcIdx, 1);
+      lessonItems.splice(tgtIdx, 0, item);
+      srcIdx = null;
+      renderLessonBuilder();
+    });
+  });
+}
+
+function changeCardType(idx, newType) {
+  if (!confirm(`Change to "${newType}"? Type-specific fields will be reset.`)) {
+    renderLessonBuilder(); return;
+  }
+  const old   = lessonItems[idx].data;
+  const emoji = old.emoji || '';
+  const title = old.title || old.heading || {en:'', ta:''};
+  let newData;
+  if (newType === 'cover') {
+    newData = {type:'cover', emoji, heading: title, description:{en:'',ta:''}};
+  } else if (newType === 'visual') {
+    newData = {type:'visual', emoji, title, caption:{en:'',ta:''}};
+  } else {
+    newData = {type:'content', emoji, title: Array.isArray(title)?title:[{text:title,em:false}], blocks:[], pill:{en:'',ta:''}};
+  }
+  lessonItems[idx].data = newData;
+  renderLessonBuilder();
 }
 
 function izone(pos) {
   return `<div class="izone">
     <button class="btn btn-sm py-0 px-2" style="font-size:11px;border:1px solid #a371f7;color:#a371f7;"
       onclick="insertCover(${pos})">🎬 Cover</button>
+    <button class="btn btn-sm py-0 px-2" style="font-size:11px;border:1px solid var(--gain);color:var(--gain);"
+      onclick="insertVisual(${pos})">🖼 Visual</button>
     <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:11px;"
       onclick="insertCard(${pos})">+ Content</button>
     <button class="btn btn-sm py-0 px-2" style="font-size:11px;border:1px solid var(--quiz);color:var(--quiz);"
@@ -418,26 +479,29 @@ function izone(pos) {
 }
 
 function cardHTML(data, idx) {
-  const icon = CARD_ICONS[data.type]||'📄';
+  const icon    = CARD_ICONS[data.type]||'📄';
   const preview = cardPreview(data);
-  const moves = `${idx>0?`<button class="btn-act" onclick="moveItem(event,${idx},-1)">↑</button>`:''}
-    ${idx<lessonItems.length-1?`<button class="btn-act" onclick="moveItem(event,${idx},1)">↓</button>`:''}`;
-  return `<div class="lesson-item">
+  const typeOpts = ['cover','visual','content'].map(t =>
+    `<option value="${t}" ${data.type===t?'selected':''}>${CARD_ICONS[t]} ${t}</option>`
+  ).join('');
+  return `<div class="lesson-item" data-idx="${idx}">
     <div class="item-hd kind-card" onclick="toggleItem('body-${idx}')">
+      <span class="item-drag-handle" title="Drag to reorder">⠿</span>
       <span>${icon}</span>
-      <span class="fw-semibold" style="font-size:12px;">${(data.type||'card').toUpperCase()}</span>
+      <select class="form-select form-select-sm" style="width:108px;font-size:11px;padding:2px 4px;"
+        onclick="event.stopPropagation()" onchange="changeCardType(${idx},this.value)">${typeOpts}</select>
       <span class="item-preview">${esc(preview)}</span>
       <div class="d-flex gap-1 ms-auto" onclick="event.stopPropagation()">
-        ${moves}
         <button class="btn-act danger" onclick="removeItem(${idx})">✕</button>
       </div>
     </div>
-    <div class="item-bd" id="body-${idx}">${cardBodyHTML(data,idx)}</div>
+    <div class="item-bd collapsed" id="body-${idx}">${cardBodyHTML(data,idx)}</div>
   </div>`;
 }
 
 function cardPreview(data) {
   if (data.type==='cover')   return extractText(data.title,'en') || extractText(data.heading,'en') || '';
+  if (data.type==='visual')  return (data.emoji||'🖼') + ' ' + (extractText(data.title,'en')||'');
   if (data.type==='result')  return 'Completion screen';
   if (data.type==='content') {
     // Show rich title if present, else fall back to first block
@@ -452,11 +516,25 @@ function cardPreview(data) {
 
 function cardBodyHTML(data, idx) {
   if (data.type==='cover')   return coverHTML(data,idx);
+  if (data.type==='visual')  return visualHTML(data,idx);
   if (data.type==='content') return contentHTML(data,idx);
   if (data.type==='result')  return `<p class="text-muted mb-0" style="font-size:12px;">
     Shown automatically on lesson completion. No fields to edit.</p>`;
   return textPairField(idx,'data.title.en','data.title.ta',
     extractText(data.title,'en'),extractText(data.title,'ta'),'Title');
+}
+
+function visualHTML(data, idx) {
+  return `<div class="row g-2">
+    <div class="col-2"><label class="form-label">Emoji</label>
+      <input class="form-control form-control-sm" style="font-size:20px;text-align:center;"
+        value="${esc(data.emoji||'')}" placeholder="📸"
+        onchange="setLessonField(${idx},'data.emoji',this.value)"></div>
+    ${labelRow('Title EN','Title TA')}
+    ${inputRow(idx,'data.title.en',extractText(data.title,'en'),'data.title.ta',extractText(data.title,'ta'))}
+    ${labelRow('Caption EN (optional)','Caption TA (optional)')}
+    ${inputRow(idx,'data.caption.en',data.caption?.en||'','data.caption.ta',data.caption?.ta||'')}
+  </div>`;
 }
 
 function coverHTML(data, idx) {
@@ -735,19 +813,17 @@ function setTitleSegEm(idx, si, isHighlight) {
 // Quiz HTML
 function quizHTML(data, idx) {
   const preview = (data.question?.en || data.question?.text?.en || '').substring(0,60)||'(no question)';
-  const moves = `${idx>0?`<button class="btn-act" onclick="moveItem(event,${idx},-1)">↑</button>`:''}
-    ${idx<lessonItems.length-1?`<button class="btn-act" onclick="moveItem(event,${idx},1)">↓</button>`:''}`;
-  return `<div class="lesson-item">
+  return `<div class="lesson-item" data-idx="${idx}">
     <div class="item-hd kind-quiz" onclick="toggleItem('body-${idx}')">
+      <span class="item-drag-handle" title="Drag to reorder">⠿</span>
       <span>❓</span>
       <span class="fw-semibold" style="font-size:12px;color:var(--quiz);">QUIZ</span>
       <span class="item-preview">${esc(preview)}</span>
       <div class="d-flex gap-1 ms-auto" onclick="event.stopPropagation()">
-        ${moves}
         <button class="btn-act danger" onclick="removeItem(${idx})">✕</button>
       </div>
     </div>
-    <div class="item-bd" id="body-${idx}">${quizBodyHTML(data,idx)}</div>
+    <div class="item-bd collapsed" id="body-${idx}">${quizBodyHTML(data,idx)}</div>
   </div>`;
 }
 
@@ -810,6 +886,12 @@ function insertCover(pos) {
   renderLessonBuilder();
 }
 
+function insertVisual(pos) {
+  const card = {type:'visual', emoji:'', title:{en:'',ta:''}, caption:{en:'',ta:''}};
+  lessonItems.splice(pos, 0, {kind:'card', data:card});
+  renderLessonBuilder();
+}
+
 function insertCard(pos) {
   const card = {type:'content', blocks:[], _originalIndex: pos};
   lessonItems.splice(pos, 0, {kind:'card', data:card});
@@ -830,13 +912,6 @@ function removeItem(idx) {
   renderLessonBuilder();
 }
 
-function moveItem(e, idx, dir) {
-  e.stopPropagation();
-  const swp = idx+dir;
-  if (swp<0||swp>=lessonItems.length) return;
-  [lessonItems[idx],lessonItems[swp]] = [lessonItems[swp],lessonItems[idx]];
-  renderLessonBuilder();
-}
 
 // ── Field setters (no re-render) ──────────────────────────────────────────────
 function setLessonField(idx, path, val) {
