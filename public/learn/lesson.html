@@ -401,21 +401,22 @@
   }
 
   /* ── Card renderers ───────────────────────────────────────── */
-  function renderCover(card, idx) {
+  function renderCover(card, idx, lessonLevel) {
     const lvlMap = { beginner: 'Beginner', intermediate: 'Intermediate', hard: 'Hard', expert: 'Expert' };
     const lvlTa  = { beginner: 'தொடக்கம்', intermediate: 'இடைநிலை', hard: 'கடினம்', expert: 'நிபுணர்' };
+    const lvl    = card.level || lessonLevel || 'beginner';
     const chips  = (card.chips || []).map(c => {
       const style = c.accent ? `style="color:var(--tz-accent-1);"` : '';
       return `<span ${style}>${c.text}</span>`;
     }).join('');
     return `
 <article class="card-slide${idx===0?' is-active':''}" data-card="${idx+1}">
-  <span class="level-badge card-level" data-level="${card.level}">
+  <span class="level-badge card-level" data-level="${lvl}">
     <span class="dots"><i></i><i></i><i></i><i></i></span>
-    <span data-en="${lvlMap[card.level]||card.level}" data-ta="${lvlTa[card.level]||card.level}">${lvlMap[card.level]||card.level}</span>
+    <span data-en="${lvlMap[lvl]||lvl}" data-ta="${lvlTa[lvl]||lvl}">${lvlMap[lvl]||lvl}</span>
   </span>
   <span class="card-emoji">${card.emoji||''}</span>
-  <h2 class="card-title">${renderTitle(card.title)}</h2>
+  <h2 class="card-title">${renderTitle(card.title || card.heading)}</h2>
   <p class="card-body muted" data-en="${esc(en(card.description))}" data-ta="${esc(ta(card.description))}">${esc(en(card.description))}</p>
   <div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-family:var(--tz-font-mono);font-size:11.5px;color:var(--tz-fg-3);letter-spacing:0.12em;text-transform:uppercase;">${chips}</div>
   <div class="spacer"></div>
@@ -718,7 +719,7 @@
 
   /* ── Main render ──────────────────────────────────────────── */
   function renderLesson(lesson) {
-    document.title = 'TradeZen Learn · ' + (lesson.title.map ? lesson.title.map(p => p.text.en).join('') : '');
+    document.title = 'TradeZen Learn · ' + en(lesson.title);
 
     $('railLeft').innerHTML  = buildLeftRail(lesson);
     $('railRight').innerHTML = buildRightRail(lesson);
@@ -726,7 +727,7 @@
     const cardsHtml = lesson.cards.map((card, idx) => {
       try {
         switch (card.type) {
-          case 'cover':   return renderCover(card, idx);
+          case 'cover':   return renderCover(card, idx, lesson.level || 'beginner');
           case 'content': return renderContent(card, idx);
           case 'quiz':    return renderQuiz(card, idx);
           case 'result':  return renderResult(card, idx, lesson);
