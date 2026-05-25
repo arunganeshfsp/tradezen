@@ -301,6 +301,24 @@ router.delete('/chapter/:slug', async (req, res) => {
   }
 });
 
+// ── Reorder chapters within a module ────────────────────────────────────────
+router.post('/module/:slug/reorder', async (req, res) => {
+  const { slugs } = req.body;
+  if (!Array.isArray(slugs)) return res.status(400).json({ error: 'slugs must be array' });
+  try {
+    for (let i = 0; i < slugs.length; i++) {
+      await query(
+        `UPDATE chapters SET display_order=$1, updated_at=now() WHERE slug=$2`,
+        [i + 1, slugs[i]]
+      );
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[adminLearn] reorder chapters:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Lookup data (for dropdowns) ──────────────────────────────────────────────
 router.get('/lookups', async (_req, res) => {
   try {
