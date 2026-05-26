@@ -3904,6 +3904,7 @@ def _stock_analyse_sync(symbol: str) -> dict:
     day_low  = round(float(hist["Low"].iloc[-1]), 2)
     w52_high = round(float(hist["High"].max()), 2)
     w52_low  = round(float(hist["Low"].min()), 2)
+    near52wh = last_close >= w52_high * 0.98
 
     avg_vol_20 = int(volumes.iloc[-21:-1].mean()) if len(volumes) >= 21 else int(volumes.mean())
     cur_vol    = int(volumes.iloc[-1])
@@ -3968,9 +3969,23 @@ def _stock_analyse_sync(symbol: str) -> dict:
     pb          = _f("priceToBook", 2)
     ev_ebitda   = _f("enterpriseToEbitda", 1)
     eps         = _f("trailingEps", 2)
-    div_yield   = _f("dividendYield", 4)   # raw fraction, multiply ×100 for %
+    div_yield   = _f("dividendYield", 4)   # yfinance may return fraction OR percent
     book_val    = _f("bookValue", 2)
-    market_cap  = info.get("marketCap")    # raw integer
+    market_cap  = info.get("marketCap")    # raw integer (INR)
+
+    # SEBI approximate thresholds (updated bi-annually by AMFI)
+    # Large Cap: top 100 stocks  ≈ > ₹20,000 Cr
+    # Mid Cap:   101–250          ≈ ₹5,000–20,000 Cr
+    # Small Cap: 251+             ≈ < ₹5,000 Cr
+    if market_cap is not None:
+        if market_cap >= 200_000_000_000:   # ₹20,000 Cr
+            cap_category = "Large Cap"
+        elif market_cap >= 50_000_000_000:  # ₹5,000 Cr
+            cap_category = "Mid Cap"
+        else:
+            cap_category = "Small Cap"
+    else:
+        cap_category = None
     roe         = _f("returnOnEquity", 4)
     roa         = _f("returnOnAssets", 4)
     de_ratio    = _f("debtToEquity", 2)
@@ -4061,11 +4076,91 @@ def _stock_analyse_sync(symbol: str) -> dict:
     ]
     summary = " ".join(summary_parts)
 
+    # ── Quick note (plain-English analyst paragraph) ──────────────────────────
+    note_parts = []
+
+    # Sentence 1 — valuation
+    if pe is not None:
+        pe_ctx = f"PE of {pe}x is considered {val_label.lower()}"
+        if forward_pe is not None:
+            pe_ctx += f" (forward PE: {forward_pe}x)"
+        note_parts.append(f"{company} trades at a {pe_ctx}.")
+    else:
+        note_parts.append(f"{company} is listed on NSE.")
+
+    # Sentence 2 — price action & momentum
+    ma_ctx = []
+    if above_50 is True:  ma_ctx.append("above SMA 50")
+    elif above_50 is False: ma_ctx.append("below SMA 50")
+    if above_200 is True: ma_ctx.append("above SMA 200")
+    elif above_200 is False: ma_ctx.append("below SMA 200")
+    ma_str = " and ".join(ma_ctx) if ma_ctx else ""
+
+    if rsi_val >= 70:
+        rsi_str = f"RSI at {rsi_val} signals overbought conditions — watch for a potential pullback."
+    elif rsi_val <= 30:
+        rsi_str = f"RSI at {rsi_val} signals oversold territory — a bounce could be near."
+    elif rsi_val >= 55:
+        rsi_str = f"RSI at {rsi_val} reflects positive momentum."
+    else:
+        rsi_str = f"RSI at {rsi_val} indicates neutral momentum."
+
+    price_sentence = f"The stock is {ma_str + ', with ' if ma_str else ''}{rsi_str}"
+    if golden_cross:
+        price_sentence += " A golden cross (SMA 50 > SMA 200) adds to the bullish structure."
+    note_parts.append(price_sentence)
+
+    # Sentence 3 — financial health
+    fin_details = []
+    if roe is not None:
+        fin_details.append(f"ROE of {round(roe*100,1)}%")
+    if de_ratio is not None:
+        debt_desc = "low" if de_ratio < 50 else ("moderate" if de_ratio < 150 else "high")
+        fin_details.append(f"{debt_desc} debt-to-equity ({round(de_ratio,1)})")
+    if profit_mg is not None and profit_mg > 0:
+        fin_details.append(f"profit margin of {round(profit_mg*100,1)}%")
+
+    div_yield_pct_val = round(div_yield if div_yield is not None and div_yield > 1 else (div_yield * 100 if div_yield is not None else 0), 2) if div_yield is not None else None
+    if div_yield_pct_val and div_yield_pct_val >= 1:
+        fin_details.append(f"dividend yield of {div_yield_pct_val}%")
+
+    if fin_details:
+        note_parts.append(f"On fundamentals: {company} shows " + ", ".join(fin_details) + ".")
+
+    # Sentence 4 — growth
+    growth_parts = []
+    if rev_growth is not None:
+        dir_ = "growing" if rev_growth > 0 else "declining"
+        growth_parts.append(f"revenue {dir_} at {round(rev_growth*100,1)}% YoY")
+    if earn_growth is not None:
+        dir_ = "growing" if earn_growth > 0 else "declining"
+        growth_parts.append(f"earnings {dir_} at {round(earn_growth*100,1)}% YoY")
+    if ret_1y is not None:
+        dir_ = "up" if ret_1y >= 0 else "down"
+        growth_parts.append(f"stock {dir_} {abs(ret_1y)}% over the past year")
+    if growth_parts:
+        note_parts.append("With " + ", ".join(growth_parts) + ".")
+
+    # Sentence 5 — risk note
+    risk_notes = []
+    if beta is not None:
+        if beta > 1.3:
+            risk_notes.append(f"High beta ({beta}) means the stock is more volatile than the market")
+        elif beta < 0.7:
+            risk_notes.append(f"Low beta ({beta}) makes this a relatively defensive pick")
+    if near52wh:
+        risk_notes.append("trading near its 52-week high — momentum is strong but upside may be limited short-term")
+    if risk_notes:
+        note_parts.append(". ".join(risk_notes) + ".")
+
+    note = " ".join(note_parts)
+
     return {
         "symbol":       raw,
         "company":      company,
         "sector":       sector,
         "industry":     industry,
+        "cap_category": cap_category,
 
         # Price snapshot
         "price": {
@@ -4088,7 +4183,9 @@ def _stock_analyse_sync(symbol: str) -> dict:
             "ev_ebitda":    ev_ebitda,
             "eps":          eps,
             "book_value":   book_val,
-            "dividend_yield_pct": round(div_yield * 100, 2) if div_yield is not None else None,
+            # yfinance inconsistency: some stocks return 0.0376 (fraction), others return 3.76 (already %)
+            # Values > 1 are clearly already in percent form; multiply only true fractions.
+            "dividend_yield_pct": round(div_yield if div_yield > 1 else div_yield * 100, 2) if div_yield is not None else None,
             "roe_pct":      round(roe * 100, 2) if roe is not None else None,
             "roa_pct":      round(roa * 100, 2) if roa is not None else None,
             "de_ratio":     de_ratio,
@@ -4129,6 +4226,9 @@ def _stock_analyse_sync(symbol: str) -> dict:
             "overall":    overall,
             "summary":    summary,
         },
+
+        # Quick analyst note
+        "note": note,
 
         # Chart data — last 252 trading days of daily closes
         "chart": {

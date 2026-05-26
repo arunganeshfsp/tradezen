@@ -68,7 +68,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
   flex-wrap:wrap;margin-bottom:1.5rem;}
 .stock-name h2{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px;}
 .stock-name .meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;
-  color:var(--muted);text-transform:uppercase;}
+  color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.cap-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:2px 9px;border-radius:999px;border:1px solid;}
+.cap-badge.large{color:#a78bfa;border-color:rgba(167,139,250,0.35);background:rgba(167,139,250,0.1);}
+.cap-badge.mid  {color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg);}
+.cap-badge.small{color:var(--dim);border-color:var(--border2);background:var(--bg3);}
 .price-block{text-align:right;}
 .price-block .ltp{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--text);}
 .price-block .chg{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:2px;}
@@ -392,7 +397,7 @@ function buildFinTable(rows, epsLabel) {
   if (!rows || rows.length === 0) return '<div class="no-data">No data available</div>';
 
   const periods = rows.map(r => esc(r.period));
-  const METRICS = [
+  const ALL_METRICS = [
     { key:'revenue',          label:'Revenue' },
     { key:'gross_profit',     label:'Gross Profit' },
     { key:'operating_income', label:'Operating Income' },
@@ -401,6 +406,14 @@ function buildFinTable(rows, epsLabel) {
     { key:'eps',              label: epsLabel || 'EPS (₹)' },
   ];
 
+  // Drop metrics where every period is null (e.g. Gross Profit / EBITDA for banks)
+  const hiddenLabels = [];
+  const METRICS = ALL_METRICS.filter(m => {
+    const hasData = rows.some(r => r[m.key] !== null && r[m.key] !== undefined);
+    if (!hasData && m.key !== 'revenue' && m.key !== 'net_income') hiddenLabels.push(m.label);
+    return hasData;
+  });
+
   const headerCells = periods.map(p => `<th>${p}</th>`).join('');
 
   const bodyRows = METRICS.map(m => {
@@ -408,7 +421,6 @@ function buildFinTable(rows, epsLabel) {
       const val  = r[m.key];
       const prev = i < rows.length - 1 ? rows[i + 1][m.key] : null;
       const tag  = (m.key !== 'eps') ? growthTag(val, prev) : '';
-      // EPS in direct ₹ units, financials in Crores
       const disp = m.key === 'eps'
         ? (val !== null ? '₹' + Number(val).toFixed(2) : '—')
         : fmtCr(val);
@@ -416,6 +428,12 @@ function buildFinTable(rows, epsLabel) {
     }).join('');
     return `<tr><td>${m.label}</td>${cells}</tr>`;
   }).join('');
+
+  const sectorNote = hiddenLabels.length
+    ? `<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);padding:8px 14px;border-top:1px solid var(--border);">
+        ${hiddenLabels.join(' · ')} not applicable for this sector
+       </div>`
+    : '';
 
   return `
     <div class="tbl-wrap">
@@ -425,6 +443,7 @@ function buildFinTable(rows, epsLabel) {
         </thead>
         <tbody>${bodyRows}</tbody>
       </table>
+      ${sectorNote}
     </div>`;
 }
 
@@ -467,7 +486,10 @@ function renderResults(d) {
     <div class="stock-header">
       <div class="stock-name">
         <h2>${esc(d.company)}</h2>
-        <div class="meta">${esc(d.symbol)}${d.sector ? ' · ' + esc(d.sector) : ''}${d.industry ? ' · ' + esc(d.industry) : ''}</div>
+        <div class="meta">
+          ${d.cap_category ? `<span class="cap-badge ${d.cap_category === 'Large Cap' ? 'large' : d.cap_category === 'Mid Cap' ? 'mid' : 'small'}">${esc(d.cap_category)}</span>` : ''}
+          <span>${esc(d.symbol)}${d.sector ? ' · ' + esc(d.sector) : ''}${d.industry ? ' · ' + esc(d.industry) : ''}</span>
+        </div>
       </div>
       <div class="price-block">
         <div class="ltp">₹${fmt(p.last, 2)}</div>
@@ -635,7 +657,14 @@ function renderResults(d) {
 
     </div><!-- /tab-technical -->
 
-    <div style="margin-top:2rem;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">
+    <!-- Quick note -->
+    ${d.note ? `
+    <div style="margin-top:2rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Quick Note</div>
+      <div style="font-size:13.5px;color:var(--dim);line-height:1.75;">${esc(d.note)}</div>
+    </div>` : ''}
+
+    <div style="margin-top:1.25rem;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">
       Data: Yahoo Finance (yfinance). Prices ~15 min delayed outside market hours. Not investment advice.
     </div>
   `;
