@@ -3997,8 +3997,8 @@ def _stock_analyse_sync(symbol: str) -> dict:
         mom_label in ("Bullish", "Overbought"),
         fin_label in ("Strong", "Healthy"),
     ])
-    if pos == 3:   overall = "positive"
-    elif pos == 2: overall = "neutral"
+    if pos >= 2:   overall = "positive"
+    elif pos == 1: overall = "neutral"
     else:          overall = "negative"
 
     summary_parts = [
@@ -4077,6 +4077,12 @@ def _stock_analyse_sync(symbol: str) -> dict:
             "financials": fin_label,
             "overall":    overall,
             "summary":    summary,
+        },
+
+        # Chart data — last 252 trading days of daily closes
+        "chart": {
+            "dates":  [d.strftime("%Y-%m-%d") for d in hist.index.date],
+            "closes": [round(float(v), 2) for v in closes.tolist()],
         },
     }
 

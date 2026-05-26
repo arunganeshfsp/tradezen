@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="tradezen.css">
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <style>
 :root{
@@ -47,24 +48,22 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 .search-btn:hover{opacity:.88;}
 .search-btn:disabled{opacity:.5;cursor:default;}
 
-/* Quick picks */
 .quick-picks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2.5rem;}
 .qp{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;
   padding:4px 12px;border:1px solid var(--border2);border-radius:20px;
   background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;}
 .qp:hover{color:var(--text);border-color:rgba(255,255,255,.3);background:var(--bg2);}
 
-/* ── Loading / Error states ──────────────────────────── */
+/* ── Loading / Error ─────────────────────────────────── */
 .state-box{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px;}
 .spinner{width:32px;height:32px;border:2px solid var(--bg3);border-top-color:var(--accent);
   border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .err-icon{font-size:32px;margin-bottom:10px;}
 
-/* ── Results area ─────────────────────────────────────── */
 #results{display:none;}
 
-/* ── Stock header ─────────────────────────────────────── */
+/* ── Stock header ────────────────────────────────────── */
 .stock-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
   flex-wrap:wrap;margin-bottom:1.5rem;}
 .stock-name h2{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px;}
@@ -76,7 +75,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 .chg.pos{color:var(--green);}
 .chg.neg{color:var(--red);}
 
-/* ── Scorecard strip ───────────────────────────────────── */
+/* ── Scorecard ───────────────────────────────────────── */
 .scorecard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}
 @media(max-width:640px){.scorecard{grid-template-columns:repeat(2,1fr);}}
 .sc-card{border-radius:10px;border:1px solid var(--border);padding:14px 16px;background:var(--bg2);
@@ -94,12 +93,25 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 .summary-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
   padding:14px 18px;margin-bottom:1.75rem;font-size:13.5px;color:var(--dim);line-height:1.65;}
 
-/* ── Section heading ───────────────────────────────────── */
+/* ── Chart ───────────────────────────────────────────── */
+.chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:16px;margin-bottom:1.5rem;position:relative;}
+.chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.chart-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);}
+.chart-tabs{display:flex;gap:4px;}
+.ct{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;
+  padding:3px 10px;border:1px solid var(--border);border-radius:6px;
+  background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
+.ct.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+#priceChart{width:100%!important;height:220px!important;}
+
+/* ── Section heading ─────────────────────────────────── */
 .sec-head{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--muted);padding-bottom:8px;
   border-bottom:1px solid var(--border);margin-bottom:14px;margin-top:2rem;}
 
-/* ── Metric grid ───────────────────────────────────────── */
+/* ── Metric grid ─────────────────────────────────────── */
 .metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:.5rem;}
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
   padding:13px 15px;display:flex;flex-direction:column;gap:3px;}
@@ -111,23 +123,26 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 .m-val.neg{color:var(--red);}
 .m-val.warn{color:var(--amber);}
 
-/* ── 52W range bar ─────────────────────────────────────── */
+/* ── 52W range bar ───────────────────────────────────── */
 .range-bar-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
   padding:13px 15px;margin-bottom:1rem;}
-.range-bar-wrap .rb-labels{display:flex;justify-content:space-between;
-  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:8px;}
-.range-bar-track{height:6px;background:var(--bg3);border-radius:999px;position:relative;margin-top:4px;}
+.rb-title{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between;}
+.rb-badge{font-size:9.5px;letter-spacing:.08em;padding:2px 8px;border-radius:999px;
+  border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);}
+.range-bar-track{height:6px;background:var(--bg3);border-radius:999px;position:relative;}
 .range-bar-fill{position:absolute;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));
   border-radius:999px;transition:width .4s;}
 .range-bar-pin{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;
   background:var(--text);border:2px solid var(--bg);transform:translate(-50%,-50%);transition:left .4s;}
-.rb-title{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.rb-labels{display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:8px;}
 
-/* ── Technical indicator row ───────────────────────────── */
+/* ── Technical row ───────────────────────────────────── */
 .tech-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:.5rem;}
 
-/* ── Returns row ─────────────────────────────────────────── */
+/* ── Returns grid ────────────────────────────────────── */
 .ret-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:.5rem;}
 @media(max-width:480px){.ret-grid{grid-template-columns:1fr 1fr;}}
 </style>
@@ -138,7 +153,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 
 <div class="page">
 
-  <!-- Hero -->
   <div class="hero">
     <a href="/" class="back-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
@@ -148,14 +162,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
     <p>Enter any NSE symbol to get a full fundamental + technical snapshot with a plain-English scorecard.</p>
   </div>
 
-  <!-- Search -->
   <div class="search-wrap">
     <input id="symbolInput" class="search-input" type="text" placeholder="e.g. RELIANCE, INFY, TATACHEM"
       autocomplete="off" autocapitalize="characters" spellcheck="false" />
     <button id="analyseBtn" class="search-btn">Analyse</button>
   </div>
 
-  <div class="quick-picks" id="quickPicks">
+  <div class="quick-picks">
     <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);align-self:center;letter-spacing:.08em;">Quick:</span>
     <button class="qp" data-sym="RELIANCE">RELIANCE</button>
     <button class="qp" data-sym="INFY">INFY</button>
@@ -166,34 +179,31 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
     <button class="qp" data-sym="ADANIENT">ADANIENT</button>
   </div>
 
-  <!-- Loading / error -->
   <div id="stateBox" class="state-box" style="display:none;">
     <div id="spinner" class="spinner" style="display:none;"></div>
     <div id="errIcon" class="err-icon" style="display:none;">⚠️</div>
     <div id="stateMsg"></div>
   </div>
 
-  <!-- Results -->
   <div id="results"></div>
 
 </div>
 
 <script>
-const input = document.getElementById('symbolInput');
-const btn   = document.getElementById('analyseBtn');
+const input    = document.getElementById('symbolInput');
+const btn      = document.getElementById('analyseBtn');
 const stateBox = document.getElementById('stateBox');
 const spinner  = document.getElementById('spinner');
 const errIcon  = document.getElementById('errIcon');
 const stateMsg = document.getElementById('stateMsg');
 const results  = document.getElementById('results');
 
-document.querySelectorAll('.qp').forEach(b => {
-  b.addEventListener('click', () => {
-    input.value = b.dataset.sym;
-    doAnalyse();
-  });
-});
+let priceChart = null;
+let _chartData = null;  // { dates, closes }
 
+document.querySelectorAll('.qp').forEach(b =>
+  b.addEventListener('click', () => { input.value = b.dataset.sym; doAnalyse(); })
+);
 input.addEventListener('keydown', e => { if (e.key === 'Enter') doAnalyse(); });
 btn.addEventListener('click', doAnalyse);
 
@@ -205,18 +215,24 @@ function showState(loading, msg) {
   stateMsg.textContent   = msg;
 }
 
-function fmt(v, dec=2, suffix='') {
+function fmt(v, dec=2) {
   if (v === null || v === undefined) return '—';
-  return Number(v).toFixed(dec) + suffix;
+  return Number(v).toFixed(dec);
 }
 function fmtBig(v) {
   if (v === null || v === undefined) return '—';
   if (v >= 1e12) return '₹' + (v/1e12).toFixed(2) + 'T';
   if (v >= 1e9)  return '₹' + (v/1e9).toFixed(2) + 'B';
-  if (v >= 1e7)  return '₹' + (v/1e7).toFixed(2) + 'Cr';
+  if (v >= 1e7)  return '₹' + (v/1e7).toFixed(2) + ' Cr';
   return '₹' + v.toLocaleString('en-IN');
 }
-function pctClass(v) {
+function fmtNum(v) {
+  if (v === null || v === undefined) return '—';
+  if (v >= 1e7)  return (v/1e7).toFixed(2) + ' Cr';
+  if (v >= 1e5)  return (v/1e5).toFixed(2) + ' L';
+  return Number(v).toLocaleString('en-IN');
+}
+function pctCls(v) {
   if (v === null || v === undefined) return '';
   return v > 0 ? 'pos' : v < 0 ? 'neg' : '';
 }
@@ -224,8 +240,12 @@ function pctSign(v) {
   if (v === null || v === undefined) return '—';
   return (v > 0 ? '+' : '') + Number(v).toFixed(2) + '%';
 }
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-function scorecardColor(label, domain) {
+function scColor(label, domain) {
   const map = {
     valuation:  { Cheap:'positive', Fair:'positive', Stretched:'neutral', Expensive:'negative', 'N/A':'' },
     momentum:   { Bullish:'positive', Overbought:'neutral', Neutral:'', Bearish:'negative', Oversold:'negative' },
@@ -238,10 +258,97 @@ function scorecardColor(label, domain) {
 function macdLabel(cross, hist) {
   if (cross === 'BULLISH_CROSS') return { text:'Bullish Cross', cls:'pos' };
   if (cross === 'BEARISH_CROSS') return { text:'Bearish Cross', cls:'neg' };
-  if (hist > 0) return { text:'Above Signal', cls:'pos' };
-  if (hist < 0) return { text:'Below Signal', cls:'neg' };
-  return { text:'Flat', cls:'' };
+  return hist > 0 ? { text:'Above Signal', cls:'pos' } : { text:'Below Signal', cls:'neg' };
 }
+
+// ── Chart rendering ───────────────────────────────────────────────────────────
+
+function buildChartDataset(dates, closes, nDays) {
+  const slice = nDays ? dates.slice(-nDays) : dates;
+  const vals  = nDays ? closes.slice(-nDays) : closes;
+  const isUp  = vals[vals.length - 1] >= vals[0];
+  return { labels: slice, data: vals, isUp };
+}
+
+function drawChart(dates, closes, nDays) {
+  const canvas = document.getElementById('priceChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if (priceChart) { priceChart.destroy(); priceChart = null; }
+
+  const { labels, data, isUp } = buildChartDataset(dates, closes, nDays);
+  const lineColor = isUp ? '#34d399' : '#f87171';
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 220);
+  grad.addColorStop(0, isUp ? 'rgba(52,211,153,0.18)' : 'rgba(248,113,113,0.18)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: lineColor,
+        borderWidth: 1.5,
+        fill: true,
+        backgroundColor: grad,
+        pointRadius: 0,
+        tension: 0.2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1c2040',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          titleColor: '#9ea3c0',
+          bodyColor: '#f0f1f8',
+          titleFont: { family: "'JetBrains Mono', monospace", size: 10 },
+          bodyFont:  { family: "'JetBrains Mono', monospace", size: 12 },
+          callbacks: {
+            label: ctx => '₹' + Number(ctx.parsed.y).toFixed(2),
+          }
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#585d7e',
+            font: { family: "'JetBrains Mono', monospace", size: 9 },
+            maxTicksLimit: 8,
+            maxRotation: 0,
+          },
+        },
+        y: {
+          position: 'right',
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#585d7e',
+            font: { family: "'JetBrains Mono', monospace", size: 9 },
+            callback: v => '₹' + Number(v).toFixed(0),
+          },
+        },
+      },
+    }
+  });
+}
+
+function setChartTab(nDays) {
+  document.querySelectorAll('.ct').forEach(t =>
+    t.classList.toggle('active', parseInt(t.dataset.days) === nDays)
+  );
+  if (_chartData) drawChart(_chartData.dates, _chartData.closes, nDays);
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
 
 function renderResults(d) {
   const p  = d.price;
@@ -249,22 +356,21 @@ function renderResults(d) {
   const te = d.technicals;
   const re = d.returns;
   const sc = d.scorecard;
+  _chartData = d.chart;
 
   const chgCls  = p.change_pct >= 0 ? 'pos' : 'neg';
   const chgSign = p.change_pct >= 0 ? '+' : '';
 
-  // 52W range bar position
+  // 52W range: clamp to [0, 100]
   const w52range = p.week52_high - p.week52_low;
-  const pinPct   = w52range > 0 ? ((p.last - p.week52_low) / w52range * 100).toFixed(1) : 50;
+  const rawPct   = w52range > 0 ? (p.last - p.week52_low) / w52range * 100 : 50;
+  const pinPct   = Math.min(100, Math.max(0, rawPct)).toFixed(1);
+  const near52wh = p.last >= p.week52_high * 0.98;
 
-  // MACD label
-  const macdL = macdLabel(te.macd_cross, te.macd_hist);
-
-  // RSI colour
+  const macdL  = macdLabel(te.macd_cross, te.macd_hist);
   const rsiCls = te.rsi >= 70 ? 'warn' : te.rsi <= 30 ? 'neg' : 'pos';
 
   results.innerHTML = `
-    <!-- Stock header -->
     <div class="stock-header">
       <div class="stock-name">
         <h2>${esc(d.company)}</h2>
@@ -276,21 +382,20 @@ function renderResults(d) {
       </div>
     </div>
 
-    <!-- Scorecard -->
     <div class="scorecard">
-      <div class="sc-card ${scorecardColor(sc.valuation,'valuation')}">
+      <div class="sc-card ${scColor(sc.valuation,'valuation')}">
         <div class="sc-label">Valuation</div>
         <div class="sc-value">${esc(sc.valuation)}</div>
       </div>
-      <div class="sc-card ${scorecardColor(sc.momentum,'momentum')}">
+      <div class="sc-card ${scColor(sc.momentum,'momentum')}">
         <div class="sc-label">Momentum</div>
         <div class="sc-value">${esc(sc.momentum)}</div>
       </div>
-      <div class="sc-card ${scorecardColor(sc.financials,'financials')}">
+      <div class="sc-card ${scColor(sc.financials,'financials')}">
         <div class="sc-label">Financials</div>
         <div class="sc-value">${esc(sc.financials)}</div>
       </div>
-      <div class="sc-card ${scorecardColor(sc.overall,'overall')}">
+      <div class="sc-card ${scColor(sc.overall,'overall')}">
         <div class="sc-label">Overall</div>
         <div class="sc-value" style="text-transform:capitalize;">${esc(sc.overall)}</div>
       </div>
@@ -298,10 +403,26 @@ function renderResults(d) {
 
     <div class="summary-box">${esc(sc.summary)}</div>
 
-    <!-- 52W Range -->
+    <!-- Price chart -->
+    <div class="chart-wrap">
+      <div class="chart-head">
+        <div class="chart-title">1-Year Price Chart</div>
+        <div class="chart-tabs">
+          <button class="ct" data-days="63">3M</button>
+          <button class="ct" data-days="126">6M</button>
+          <button class="ct active" data-days="0">1Y</button>
+        </div>
+      </div>
+      <canvas id="priceChart"></canvas>
+    </div>
+
+    <!-- 52W range -->
     <div class="sec-head">52-Week Range</div>
     <div class="range-bar-wrap">
-      <div class="rb-title">Price vs 52-week H/L</div>
+      <div class="rb-title">
+        Price vs 52-week H/L
+        ${near52wh ? '<span class="rb-badge">Near 52W High</span>' : ''}
+      </div>
       <div class="range-bar-track">
         <div class="range-bar-fill" style="width:${pinPct}%"></div>
         <div class="range-bar-pin" style="left:${pinPct}%"></div>
@@ -322,7 +443,7 @@ function renderResults(d) {
       <div class="metric"><div class="m-label">Market Cap</div><div class="m-val">${fmtBig(fu.market_cap)}</div></div>
     </div>
 
-    <!-- Valuation fundamentals -->
+    <!-- Valuation -->
     <div class="sec-head">Valuation</div>
     <div class="metric-grid">
       <div class="metric"><div class="m-label">P/E (TTM)</div><div class="m-val">${fmt(fu.pe,1)}</div></div>
@@ -347,9 +468,9 @@ function renderResults(d) {
         <div class="m-val ${fu.profit_margin_pct !== null && fu.profit_margin_pct >= 10 ? 'pos' : fu.profit_margin_pct !== null && fu.profit_margin_pct < 0 ? 'neg' : ''}">${fmt(fu.profit_margin_pct,1)}%</div></div>
       <div class="metric"><div class="m-label">Operating Margin</div><div class="m-val">${fmt(fu.operating_margin_pct,1)}%</div></div>
       <div class="metric"><div class="m-label">Revenue Growth</div>
-        <div class="m-val ${pctClass(fu.revenue_growth_pct)}">${pctSign(fu.revenue_growth_pct)}</div></div>
+        <div class="m-val ${pctCls(fu.revenue_growth_pct)}">${pctSign(fu.revenue_growth_pct)}</div></div>
       <div class="metric"><div class="m-label">Earnings Growth</div>
-        <div class="m-val ${pctClass(fu.earnings_growth_pct)}">${pctSign(fu.earnings_growth_pct)}</div></div>
+        <div class="m-val ${pctCls(fu.earnings_growth_pct)}">${pctSign(fu.earnings_growth_pct)}</div></div>
       ${fu.institutional_holding_pct !== null ? `
       <div class="metric"><div class="m-label">Inst. Holding</div><div class="m-val">${fmt(fu.institutional_holding_pct,1)}%</div></div>` : ''}
     </div>
@@ -389,36 +510,33 @@ function renderResults(d) {
     <div class="ret-grid">
       <div class="metric">
         <div class="m-label">1 Month</div>
-        <div class="m-val ${pctClass(re.ret_1m_pct)}">${pctSign(re.ret_1m_pct)}</div>
+        <div class="m-val ${pctCls(re.ret_1m_pct)}">${pctSign(re.ret_1m_pct)}</div>
       </div>
       <div class="metric">
         <div class="m-label">3 Months</div>
-        <div class="m-val ${pctClass(re.ret_3m_pct)}">${pctSign(re.ret_3m_pct)}</div>
+        <div class="m-val ${pctCls(re.ret_3m_pct)}">${pctSign(re.ret_3m_pct)}</div>
       </div>
       <div class="metric">
         <div class="m-label">1 Year</div>
-        <div class="m-val ${pctClass(re.ret_1y_pct)}">${pctSign(re.ret_1y_pct)}</div>
+        <div class="m-val ${pctCls(re.ret_1y_pct)}">${pctSign(re.ret_1y_pct)}</div>
       </div>
     </div>
 
     <div style="margin-top:2rem;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">
-      Data source: Yahoo Finance (yfinance). Prices delayed ~15 min outside market hours. Not investment advice.
+      Data: Yahoo Finance (yfinance). Prices ~15 min delayed outside market hours. Not investment advice.
     </div>
   `;
 
   results.style.display = 'block';
   stateBox.style.display = 'none';
-}
 
-function esc(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function fmtNum(v) {
-  if (v === null || v === undefined) return '—';
-  if (v >= 1e7)  return (v/1e7).toFixed(2) + ' Cr';
-  if (v >= 1e5)  return (v/1e5).toFixed(2) + ' L';
-  return Number(v).toLocaleString('en-IN');
+  // Wire chart tab buttons
+  document.querySelectorAll('.ct').forEach(t =>
+    t.addEventListener('click', () => setChartTab(parseInt(t.dataset.days)))
+  );
+
+  // Draw initial chart (full 1Y)
+  requestAnimationFrame(() => drawChart(_chartData.dates, _chartData.closes, 0));
 }
 
 async function doAnalyse() {
@@ -431,11 +549,7 @@ async function doAnalyse() {
   try {
     const res  = await fetch(`/api/stock/analyse/${encodeURIComponent(sym)}`);
     const data = await res.json();
-
-    if (data.error) {
-      showState(false, data.error);
-      return;
-    }
+    if (data.error) { showState(false, data.error); return; }
     renderResults(data);
   } catch(e) {
     showState(false, 'Could not connect to the server. Make sure the engine is running.');
@@ -444,7 +558,6 @@ async function doAnalyse() {
   }
 }
 
-// Auto-analyse if ?symbol= in URL
 const urlSym = new URLSearchParams(location.search).get('symbol');
 if (urlSym) { input.value = urlSym.toUpperCase(); doAnalyse(); }
 </script>
