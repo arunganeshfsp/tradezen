@@ -199,7 +199,7 @@ Visual separator. No fields needed.
 ```
 
 #### link
-Tappable link card for further reading. Use sparingly — one per card at most. Always use a real, working URL. `description` is optional but recommended — one sentence explaining what the user will find there.
+Tappable card that opens a URL in the user's external browser. Use sparingly — one per lesson is usually enough, placed on the last content card before the result. Always use a real, working URL. `description` is optional but recommended — one sentence telling the user what they will find so they can decide before tapping.
 ```json
 {
   "type": "link",
