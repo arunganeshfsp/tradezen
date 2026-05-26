@@ -729,4 +729,15 @@ router.get("/patterns/cup-handle/scan", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/stock/analyse/:symbol ──────────────────────────────────────────
+// Comprehensive fundamental + technical snapshot for any NSE-listed stock
+router.get("/stock/analyse/:symbol", async (req, res) => {
+  try {
+    const symbol = req.params.symbol.toUpperCase().replace(/[^A-Z0-9\-\.&]/g, "");
+    if (!symbol) return res.status(400).json({ error: "Symbol required" });
+    const data = await aiService.proxy("GET", `/stock/analyse/${symbol}`, 30000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

@@ -25,6 +25,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | shared-ui | `shared-ui.md` | active |
 | data-layer | `data-layer.md` | active |
 | indicators | `indicators.md` | active |
+| stock-analyser | `stock-analyser.md` | active |
 
 ---
 

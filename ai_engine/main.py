@@ -3818,6 +3818,280 @@ async def mgmt_restart(srv: str, request: Request):
         return JSONResponse(status_code=400, content={"error": "unknown server"})
     return _pm2(f"pm2 restart {name}")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Stock Analyser — comprehensive fundamental + technical snapshot
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _stock_analyse_sync(symbol: str) -> dict:
+    import yfinance as yf
+    import pandas as pd
+    from core.indicators.rsi import calculate_rsi
+
+    raw = symbol.upper().strip()
+    ticker_sym = raw if raw.endswith(".NS") or raw.startswith("^") else raw + ".NS"
+    tk = yf.Ticker(ticker_sym)
+
+    info = {}
+    try:
+        info = tk.info or {}
+    except Exception:
+        pass
+
+    # ── Price history (1y daily) ──────────────────────────────────────────────
+    hist = tk.history(period="1y", interval="1d", auto_adjust=True)
+    if hist.empty or len(hist) < 30:
+        return {"error": f"No data for {raw}. Check if the symbol is listed on NSE."}
+
+    closes  = hist["Close"].squeeze()
+    volumes = hist["Volume"].squeeze()
+
+    last_close  = round(float(closes.iloc[-1]), 2)
+    prev_close  = round(float(closes.iloc[-2]), 2) if len(closes) > 1 else last_close
+    change_pct  = round((last_close - prev_close) / prev_close * 100, 2) if prev_close else 0
+
+    day_high = round(float(hist["High"].iloc[-1]), 2)
+    day_low  = round(float(hist["Low"].iloc[-1]), 2)
+    w52_high = round(float(hist["High"].max()), 2)
+    w52_low  = round(float(hist["Low"].min()), 2)
+
+    avg_vol_20 = int(volumes.iloc[-21:-1].mean()) if len(volumes) >= 21 else int(volumes.mean())
+    cur_vol    = int(volumes.iloc[-1])
+
+    # ── RSI (14) ─────────────────────────────────────────────────────────────
+    rsi_series = calculate_rsi(closes, period=14)
+    rsi_val    = round(float(rsi_series.iloc[-1]), 1)
+
+    # ── MACD (12,26,9) ───────────────────────────────────────────────────────
+    ema12 = closes.ewm(span=12, adjust=False).mean()
+    ema26 = closes.ewm(span=26, adjust=False).mean()
+    macd_line   = ema12 - ema26
+    signal_line = macd_line.ewm(span=9, adjust=False).mean()
+    histogram   = macd_line - signal_line
+    macd_val    = round(float(macd_line.iloc[-1]), 4)
+    signal_val  = round(float(signal_line.iloc[-1]), 4)
+    hist_val    = round(float(histogram.iloc[-1]), 4)
+    # crossover: last bar crossed above/below signal?
+    prev_hist   = float(histogram.iloc[-2]) if len(histogram) > 1 else 0
+    if hist_val > 0 and prev_hist <= 0:
+        macd_cross = "BULLISH_CROSS"
+    elif hist_val < 0 and prev_hist >= 0:
+        macd_cross = "BEARISH_CROSS"
+    else:
+        macd_cross = "NONE"
+
+    # ── Moving averages ───────────────────────────────────────────────────────
+    sma50_val  = round(float(closes.rolling(50).mean().iloc[-1]), 2) if len(closes) >= 50 else None
+    sma200_val = round(float(closes.rolling(200).mean().iloc[-1]), 2) if len(closes) >= 200 else None
+    above_50   = (last_close > sma50_val) if sma50_val else None
+    above_200  = (last_close > sma200_val) if sma200_val else None
+    golden_cross = (
+        (sma50_val is not None and sma200_val is not None) and
+        (sma50_val > sma200_val)
+    )
+
+    # ── Returns ───────────────────────────────────────────────────────────────
+    def _ret(n_days: int) -> float | None:
+        if len(closes) < n_days + 1:
+            return None
+        base = float(closes.iloc[-(n_days + 1)])
+        if base == 0:
+            return None
+        return round((last_close - base) / base * 100, 2)
+
+    ret_1m  = _ret(21)
+    ret_3m  = _ret(63)
+    ret_1y  = _ret(252)
+
+    # ── Fundamentals from info dict ───────────────────────────────────────────
+    def _f(key, decimals=2):
+        v = info.get(key)
+        if v is None or (isinstance(v, float) and (v != v)):   # NaN check
+            return None
+        try:
+            return round(float(v), decimals)
+        except (TypeError, ValueError):
+            return None
+
+    pe          = _f("trailingPE", 1)
+    forward_pe  = _f("forwardPE", 1)
+    pb          = _f("priceToBook", 2)
+    ev_ebitda   = _f("enterpriseToEbitda", 1)
+    eps         = _f("trailingEps", 2)
+    div_yield   = _f("dividendYield", 4)   # raw fraction, multiply ×100 for %
+    book_val    = _f("bookValue", 2)
+    market_cap  = info.get("marketCap")    # raw integer
+    roe         = _f("returnOnEquity", 4)
+    roa         = _f("returnOnAssets", 4)
+    de_ratio    = _f("debtToEquity", 2)
+    rev_growth  = _f("revenueGrowth", 4)
+    earn_growth = _f("earningsGrowth", 4)
+    profit_mg   = _f("profitMargins", 4)
+    oper_mg     = _f("operatingMargins", 4)
+    beta        = _f("beta", 2)
+    sector      = info.get("sector", "")
+    industry    = info.get("industry", "")
+    company     = info.get("longName") or info.get("shortName") or raw
+
+    # Major holders (institutional %)
+    inst_pct = None
+    try:
+        mh = tk.major_holders
+        if mh is not None and not mh.empty:
+            for _, row in mh.iterrows():
+                val_str = str(row.iloc[0]).replace("%", "").strip()
+                lbl     = str(row.iloc[1]).lower()
+                if "institution" in lbl:
+                    try:
+                        inst_pct = round(float(val_str), 2)
+                    except ValueError:
+                        pass
+    except Exception:
+        pass
+
+    # ── Scorecard ─────────────────────────────────────────────────────────────
+    # Valuation signal
+    val_label = "N/A"
+    if pe is not None:
+        if pe < 15:        val_label = "Cheap"
+        elif pe < 25:      val_label = "Fair"
+        elif pe < 40:      val_label = "Stretched"
+        else:              val_label = "Expensive"
+
+    # Momentum signal
+    if rsi_val >= 70:      mom_label = "Overbought"
+    elif rsi_val >= 55:    mom_label = "Bullish"
+    elif rsi_val >= 45:    mom_label = "Neutral"
+    elif rsi_val >= 30:    mom_label = "Bearish"
+    else:                  mom_label = "Oversold"
+
+    # Adjust for price vs MAs
+    ma_bullish = (above_50 is True) and (above_200 is True)
+    ma_bearish = (above_50 is False) and (above_200 is False)
+    if mom_label == "Neutral":
+        if ma_bullish:   mom_label = "Bullish"
+        elif ma_bearish: mom_label = "Bearish"
+
+    # Financials signal
+    fin_score = 0
+    if roe is not None:
+        if roe > 0.15:    fin_score += 1
+        elif roe < 0.05:  fin_score -= 1
+    if de_ratio is not None:
+        if de_ratio < 50:    fin_score += 1
+        elif de_ratio > 150: fin_score -= 1
+    if profit_mg is not None:
+        if profit_mg > 0.10: fin_score += 1
+        elif profit_mg < 0:  fin_score -= 1
+    if earn_growth is not None:
+        if earn_growth > 0.10: fin_score += 1
+        elif earn_growth < 0:  fin_score -= 1
+
+    if fin_score >= 3:      fin_label = "Strong"
+    elif fin_score >= 1:    fin_label = "Healthy"
+    elif fin_score == 0:    fin_label = "Mixed"
+    else:                   fin_label = "Concerning"
+
+    # Overall
+    pos = sum([
+        val_label in ("Cheap", "Fair"),
+        mom_label in ("Bullish", "Overbought"),
+        fin_label in ("Strong", "Healthy"),
+    ])
+    if pos == 3:   overall = "positive"
+    elif pos == 2: overall = "neutral"
+    else:          overall = "negative"
+
+    summary_parts = [
+        f"{company} is trading at ₹{last_close}",
+        f"({'+' if change_pct >= 0 else ''}{change_pct}% today).",
+        f"Valuation: {val_label}.",
+        f"Momentum: {mom_label} (RSI {rsi_val}).",
+        f"Financials: {fin_label}.",
+    ]
+    summary = " ".join(summary_parts)
+
+    return {
+        "symbol":       raw,
+        "company":      company,
+        "sector":       sector,
+        "industry":     industry,
+
+        # Price snapshot
+        "price": {
+            "last":        last_close,
+            "change_pct":  change_pct,
+            "day_high":    day_high,
+            "day_low":     day_low,
+            "week52_high": w52_high,
+            "week52_low":  w52_low,
+            "volume":      cur_vol,
+            "avg_volume":  avg_vol_20,
+        },
+
+        # Fundamentals
+        "fundamentals": {
+            "market_cap":   market_cap,
+            "pe":           pe,
+            "forward_pe":   forward_pe,
+            "pb":           pb,
+            "ev_ebitda":    ev_ebitda,
+            "eps":          eps,
+            "book_value":   book_val,
+            "dividend_yield_pct": round(div_yield * 100, 2) if div_yield is not None else None,
+            "roe_pct":      round(roe * 100, 2) if roe is not None else None,
+            "roa_pct":      round(roa * 100, 2) if roa is not None else None,
+            "de_ratio":     de_ratio,
+            "profit_margin_pct":   round(profit_mg * 100, 2) if profit_mg is not None else None,
+            "operating_margin_pct": round(oper_mg * 100, 2) if oper_mg is not None else None,
+            "revenue_growth_pct":  round(rev_growth * 100, 2) if rev_growth is not None else None,
+            "earnings_growth_pct": round(earn_growth * 100, 2) if earn_growth is not None else None,
+            "beta":         beta,
+            "institutional_holding_pct": inst_pct,
+        },
+
+        # Technical
+        "technicals": {
+            "rsi":         rsi_val,
+            "macd":        macd_val,
+            "macd_signal": signal_val,
+            "macd_hist":   hist_val,
+            "macd_cross":  macd_cross,
+            "sma50":       sma50_val,
+            "sma200":      sma200_val,
+            "above_sma50":  above_50,
+            "above_sma200": above_200,
+            "golden_cross": golden_cross,
+        },
+
+        # Returns
+        "returns": {
+            "ret_1m_pct": ret_1m,
+            "ret_3m_pct": ret_3m,
+            "ret_1y_pct": ret_1y,
+        },
+
+        # Scorecard
+        "scorecard": {
+            "valuation":  val_label,
+            "momentum":   mom_label,
+            "financials": fin_label,
+            "overall":    overall,
+            "summary":    summary,
+        },
+    }
+
+
+@app.get("/stock/analyse/{symbol}")
+async def stock_analyse(symbol: str):
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _stock_analyse_sync, symbol)
+        return result
+    except Exception as e:
+        log.error(f"[STOCK-ANALYSER] {symbol}: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/mgmt/logs/{srv}")
 async def mgmt_logs(srv: str, request: Request):
     if not _check_token(request):

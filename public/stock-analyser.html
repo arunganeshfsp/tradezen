@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Analyser — TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
+
+<style>
+:root{
+  --bg:#06070f;--bg2:#0e1124;--bg3:#161a32;--bg4:#1c2040;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.15);
+  --text:#f0f1f8;--dim:#9ea3c0;--muted:#585d7e;--faint:#3a3d5a;
+  --accent:#7c6af7;--accent2:#5b8af5;--accent-bg:rgba(124,106,247,0.08);
+  --green:#34d399;--green-bg:rgba(52,211,153,0.08);--green-border:rgba(52,211,153,0.25);
+  --amber:#f5a524;--amber-bg:rgba(245,165,36,0.08);--amber-border:rgba(245,165,36,0.25);
+  --red:#f87171;--red-bg:rgba(248,113,113,0.08);--red-border:rgba(248,113,113,0.25);
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-serif;font-size:14px;line-height:1.6;min-height:100vh;}
+
+.page{max-width:1100px;margin:0 auto;padding:2rem 1.25rem 5rem;}
+
+/* ── Hero ─────────────────────────────────────────────── */
+.hero{margin-bottom:2rem;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.08em;color:var(--muted);text-decoration:none;margin-bottom:1.25rem;
+  transition:color .15s;}
+.back-link:hover{color:var(--text);}
+.hero h1{font-size:clamp(22px,4vw,30px);font-weight:700;color:var(--text);margin-bottom:6px;}
+.hero p{font-size:13.5px;color:var(--dim);max-width:520px;}
+
+/* ── Search bar ───────────────────────────────────────── */
+.search-wrap{display:flex;gap:10px;margin-bottom:2rem;max-width:560px;}
+.search-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;
+  padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);
+  outline:none;transition:border-color .15s;}
+.search-input::placeholder{color:var(--muted);}
+.search-input:focus{border-color:var(--accent);}
+.search-btn{background:var(--accent);border:none;border-radius:10px;padding:11px 22px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;
+  cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.search-btn:hover{opacity:.88;}
+.search-btn:disabled{opacity:.5;cursor:default;}
+
+/* Quick picks */
+.quick-picks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2.5rem;}
+.qp{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;
+  padding:4px 12px;border:1px solid var(--border2);border-radius:20px;
+  background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;}
+.qp:hover{color:var(--text);border-color:rgba(255,255,255,.3);background:var(--bg2);}
+
+/* ── Loading / Error states ──────────────────────────── */
+.state-box{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px;}
+.spinner{width:32px;height:32px;border:2px solid var(--bg3);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.err-icon{font-size:32px;margin-bottom:10px;}
+
+/* ── Results area ─────────────────────────────────────── */
+#results{display:none;}
+
+/* ── Stock header ─────────────────────────────────────── */
+.stock-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin-bottom:1.5rem;}
+.stock-name h2{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.stock-name .meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;
+  color:var(--muted);text-transform:uppercase;}
+.price-block{text-align:right;}
+.price-block .ltp{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--text);}
+.price-block .chg{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:2px;}
+.chg.pos{color:var(--green);}
+.chg.neg{color:var(--red);}
+
+/* ── Scorecard strip ───────────────────────────────────── */
+.scorecard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}
+@media(max-width:640px){.scorecard{grid-template-columns:repeat(2,1fr);}}
+.sc-card{border-radius:10px;border:1px solid var(--border);padding:14px 16px;background:var(--bg2);
+  display:flex;flex-direction:column;gap:4px;}
+.sc-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);}
+.sc-value{font-size:15px;font-weight:700;color:var(--text);}
+.sc-card.positive{border-color:var(--green-border);background:var(--green-bg);}
+.sc-card.positive .sc-value{color:var(--green);}
+.sc-card.negative{border-color:var(--red-border);background:var(--red-bg);}
+.sc-card.negative .sc-value{color:var(--red);}
+.sc-card.neutral{border-color:var(--amber-border);background:var(--amber-bg);}
+.sc-card.neutral .sc-value{color:var(--amber);}
+
+.summary-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 18px;margin-bottom:1.75rem;font-size:13.5px;color:var(--dim);line-height:1.65;}
+
+/* ── Section heading ───────────────────────────────────── */
+.sec-head{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);padding-bottom:8px;
+  border-bottom:1px solid var(--border);margin-bottom:14px;margin-top:2rem;}
+
+/* ── Metric grid ───────────────────────────────────────── */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:.5rem;}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:13px 15px;display:flex;flex-direction:column;gap:3px;}
+.metric .m-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);}
+.metric .m-val{font-size:15px;font-weight:700;color:var(--text);}
+.metric .m-sub{font-size:11px;color:var(--muted);}
+.m-val.pos{color:var(--green);}
+.m-val.neg{color:var(--red);}
+.m-val.warn{color:var(--amber);}
+
+/* ── 52W range bar ─────────────────────────────────────── */
+.range-bar-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:13px 15px;margin-bottom:1rem;}
+.range-bar-wrap .rb-labels{display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:8px;}
+.range-bar-track{height:6px;background:var(--bg3);border-radius:999px;position:relative;margin-top:4px;}
+.range-bar-fill{position:absolute;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));
+  border-radius:999px;transition:width .4s;}
+.range-bar-pin{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;
+  background:var(--text);border:2px solid var(--bg);transform:translate(-50%,-50%);transition:left .4s;}
+.rb-title{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+
+/* ── Technical indicator row ───────────────────────────── */
+.tech-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:.5rem;}
+
+/* ── Returns row ─────────────────────────────────────────── */
+.ret-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:.5rem;}
+@media(max-width:480px){.ret-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Tools
+    </a>
+    <h1>Stock Analyser</h1>
+    <p>Enter any NSE symbol to get a full fundamental + technical snapshot with a plain-English scorecard.</p>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <input id="symbolInput" class="search-input" type="text" placeholder="e.g. RELIANCE, INFY, TATACHEM"
+      autocomplete="off" autocapitalize="characters" spellcheck="false" />
+    <button id="analyseBtn" class="search-btn">Analyse</button>
+  </div>
+
+  <div class="quick-picks" id="quickPicks">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);align-self:center;letter-spacing:.08em;">Quick:</span>
+    <button class="qp" data-sym="RELIANCE">RELIANCE</button>
+    <button class="qp" data-sym="INFY">INFY</button>
+    <button class="qp" data-sym="TCS">TCS</button>
+    <button class="qp" data-sym="HDFCBANK">HDFCBANK</button>
+    <button class="qp" data-sym="TATAMOTORS">TATAMOTORS</button>
+    <button class="qp" data-sym="ZOMATO">ZOMATO</button>
+    <button class="qp" data-sym="ADANIENT">ADANIENT</button>
+  </div>
+
+  <!-- Loading / error -->
+  <div id="stateBox" class="state-box" style="display:none;">
+    <div id="spinner" class="spinner" style="display:none;"></div>
+    <div id="errIcon" class="err-icon" style="display:none;">⚠️</div>
+    <div id="stateMsg"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results"></div>
+
+</div>
+
+<script>
+const input = document.getElementById('symbolInput');
+const btn   = document.getElementById('analyseBtn');
+const stateBox = document.getElementById('stateBox');
+const spinner  = document.getElementById('spinner');
+const errIcon  = document.getElementById('errIcon');
+const stateMsg = document.getElementById('stateMsg');
+const results  = document.getElementById('results');
+
+document.querySelectorAll('.qp').forEach(b => {
+  b.addEventListener('click', () => {
+    input.value = b.dataset.sym;
+    doAnalyse();
+  });
+});
+
+input.addEventListener('keydown', e => { if (e.key === 'Enter') doAnalyse(); });
+btn.addEventListener('click', doAnalyse);
+
+function showState(loading, msg) {
+  results.style.display = 'none';
+  stateBox.style.display = 'block';
+  spinner.style.display  = loading ? 'block' : 'none';
+  errIcon.style.display  = loading ? 'none'  : 'block';
+  stateMsg.textContent   = msg;
+}
+
+function fmt(v, dec=2, suffix='') {
+  if (v === null || v === undefined) return '—';
+  return Number(v).toFixed(dec) + suffix;
+}
+function fmtBig(v) {
+  if (v === null || v === undefined) return '—';
+  if (v >= 1e12) return '₹' + (v/1e12).toFixed(2) + 'T';
+  if (v >= 1e9)  return '₹' + (v/1e9).toFixed(2) + 'B';
+  if (v >= 1e7)  return '₹' + (v/1e7).toFixed(2) + 'Cr';
+  return '₹' + v.toLocaleString('en-IN');
+}
+function pctClass(v) {
+  if (v === null || v === undefined) return '';
+  return v > 0 ? 'pos' : v < 0 ? 'neg' : '';
+}
+function pctSign(v) {
+  if (v === null || v === undefined) return '—';
+  return (v > 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+}
+
+function scorecardColor(label, domain) {
+  const map = {
+    valuation:  { Cheap:'positive', Fair:'positive', Stretched:'neutral', Expensive:'negative', 'N/A':'' },
+    momentum:   { Bullish:'positive', Overbought:'neutral', Neutral:'', Bearish:'negative', Oversold:'negative' },
+    financials: { Strong:'positive', Healthy:'positive', Mixed:'neutral', Concerning:'negative' },
+    overall:    { positive:'positive', neutral:'neutral', negative:'negative' },
+  };
+  return (map[domain] && map[domain][label]) || '';
+}
+
+function macdLabel(cross, hist) {
+  if (cross === 'BULLISH_CROSS') return { text:'Bullish Cross', cls:'pos' };
+  if (cross === 'BEARISH_CROSS') return { text:'Bearish Cross', cls:'neg' };
+  if (hist > 0) return { text:'Above Signal', cls:'pos' };
+  if (hist < 0) return { text:'Below Signal', cls:'neg' };
+  return { text:'Flat', cls:'' };
+}
+
+function renderResults(d) {
+  const p  = d.price;
+  const fu = d.fundamentals;
+  const te = d.technicals;
+  const re = d.returns;
+  const sc = d.scorecard;
+
+  const chgCls  = p.change_pct >= 0 ? 'pos' : 'neg';
+  const chgSign = p.change_pct >= 0 ? '+' : '';
+
+  // 52W range bar position
+  const w52range = p.week52_high - p.week52_low;
+  const pinPct   = w52range > 0 ? ((p.last - p.week52_low) / w52range * 100).toFixed(1) : 50;
+
+  // MACD label
+  const macdL = macdLabel(te.macd_cross, te.macd_hist);
+
+  // RSI colour
+  const rsiCls = te.rsi >= 70 ? 'warn' : te.rsi <= 30 ? 'neg' : 'pos';
+
+  results.innerHTML = `
+    <!-- Stock header -->
+    <div class="stock-header">
+      <div class="stock-name">
+        <h2>${esc(d.company)}</h2>
+        <div class="meta">${esc(d.symbol)}${d.sector ? ' · ' + esc(d.sector) : ''}${d.industry ? ' · ' + esc(d.industry) : ''}</div>
+      </div>
+      <div class="price-block">
+        <div class="ltp">₹${fmt(p.last, 2)}</div>
+        <div class="chg ${chgCls}">${chgSign}${fmt(p.change_pct, 2)}% today</div>
+      </div>
+    </div>
+
+    <!-- Scorecard -->
+    <div class="scorecard">
+      <div class="sc-card ${scorecardColor(sc.valuation,'valuation')}">
+        <div class="sc-label">Valuation</div>
+        <div class="sc-value">${esc(sc.valuation)}</div>
+      </div>
+      <div class="sc-card ${scorecardColor(sc.momentum,'momentum')}">
+        <div class="sc-label">Momentum</div>
+        <div class="sc-value">${esc(sc.momentum)}</div>
+      </div>
+      <div class="sc-card ${scorecardColor(sc.financials,'financials')}">
+        <div class="sc-label">Financials</div>
+        <div class="sc-value">${esc(sc.financials)}</div>
+      </div>
+      <div class="sc-card ${scorecardColor(sc.overall,'overall')}">
+        <div class="sc-label">Overall</div>
+        <div class="sc-value" style="text-transform:capitalize;">${esc(sc.overall)}</div>
+      </div>
+    </div>
+
+    <div class="summary-box">${esc(sc.summary)}</div>
+
+    <!-- 52W Range -->
+    <div class="sec-head">52-Week Range</div>
+    <div class="range-bar-wrap">
+      <div class="rb-title">Price vs 52-week H/L</div>
+      <div class="range-bar-track">
+        <div class="range-bar-fill" style="width:${pinPct}%"></div>
+        <div class="range-bar-pin" style="left:${pinPct}%"></div>
+      </div>
+      <div class="rb-labels">
+        <span>₹${fmt(p.week52_low, 2)} <span style="color:var(--muted);font-size:9.5px;">52W LOW</span></span>
+        <span style="color:var(--text);">₹${fmt(p.last, 2)}</span>
+        <span>₹${fmt(p.week52_high, 2)} <span style="color:var(--muted);font-size:9.5px;">52W HIGH</span></span>
+      </div>
+    </div>
+
+    <!-- Price snapshot -->
+    <div class="sec-head">Price Snapshot</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="m-label">Day High</div><div class="m-val">₹${fmt(p.day_high,2)}</div></div>
+      <div class="metric"><div class="m-label">Day Low</div><div class="m-val">₹${fmt(p.day_low,2)}</div></div>
+      <div class="metric"><div class="m-label">Volume</div><div class="m-val">${fmtNum(p.volume)}</div><div class="m-sub">Avg ${fmtNum(p.avg_volume)}</div></div>
+      <div class="metric"><div class="m-label">Market Cap</div><div class="m-val">${fmtBig(fu.market_cap)}</div></div>
+    </div>
+
+    <!-- Valuation fundamentals -->
+    <div class="sec-head">Valuation</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="m-label">P/E (TTM)</div><div class="m-val">${fmt(fu.pe,1)}</div></div>
+      <div class="metric"><div class="m-label">Forward P/E</div><div class="m-val">${fmt(fu.forward_pe,1)}</div></div>
+      <div class="metric"><div class="m-label">P/B</div><div class="m-val">${fmt(fu.pb,2)}</div></div>
+      <div class="metric"><div class="m-label">EV/EBITDA</div><div class="m-val">${fmt(fu.ev_ebitda,1)}</div></div>
+      <div class="metric"><div class="m-label">EPS (TTM)</div><div class="m-val">${fmt(fu.eps,2)}</div></div>
+      <div class="metric"><div class="m-label">Book Value</div><div class="m-val">${fmt(fu.book_value,2)}</div></div>
+      <div class="metric"><div class="m-label">Dividend Yield</div><div class="m-val">${fmt(fu.dividend_yield_pct,2)}%</div></div>
+      <div class="metric"><div class="m-label">Beta</div><div class="m-val">${fmt(fu.beta,2)}</div></div>
+    </div>
+
+    <!-- Financial health -->
+    <div class="sec-head">Financial Health</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="m-label">ROE</div>
+        <div class="m-val ${fu.roe_pct !== null && fu.roe_pct >= 15 ? 'pos' : fu.roe_pct !== null && fu.roe_pct < 5 ? 'neg' : ''}">${fmt(fu.roe_pct,1)}%</div></div>
+      <div class="metric"><div class="m-label">ROA</div><div class="m-val">${fmt(fu.roa_pct,1)}%</div></div>
+      <div class="metric"><div class="m-label">D/E Ratio</div>
+        <div class="m-val ${fu.de_ratio !== null && fu.de_ratio > 150 ? 'neg' : fu.de_ratio !== null && fu.de_ratio < 50 ? 'pos' : ''}">${fmt(fu.de_ratio,1)}</div></div>
+      <div class="metric"><div class="m-label">Profit Margin</div>
+        <div class="m-val ${fu.profit_margin_pct !== null && fu.profit_margin_pct >= 10 ? 'pos' : fu.profit_margin_pct !== null && fu.profit_margin_pct < 0 ? 'neg' : ''}">${fmt(fu.profit_margin_pct,1)}%</div></div>
+      <div class="metric"><div class="m-label">Operating Margin</div><div class="m-val">${fmt(fu.operating_margin_pct,1)}%</div></div>
+      <div class="metric"><div class="m-label">Revenue Growth</div>
+        <div class="m-val ${pctClass(fu.revenue_growth_pct)}">${pctSign(fu.revenue_growth_pct)}</div></div>
+      <div class="metric"><div class="m-label">Earnings Growth</div>
+        <div class="m-val ${pctClass(fu.earnings_growth_pct)}">${pctSign(fu.earnings_growth_pct)}</div></div>
+      ${fu.institutional_holding_pct !== null ? `
+      <div class="metric"><div class="m-label">Inst. Holding</div><div class="m-val">${fmt(fu.institutional_holding_pct,1)}%</div></div>` : ''}
+    </div>
+
+    <!-- Technical indicators -->
+    <div class="sec-head">Technical Indicators</div>
+    <div class="tech-row">
+      <div class="metric">
+        <div class="m-label">RSI (14)</div>
+        <div class="m-val ${rsiCls}">${fmt(te.rsi,1)}</div>
+        <div class="m-sub">${te.rsi >= 70 ? 'Overbought' : te.rsi <= 30 ? 'Oversold' : 'Neutral zone'}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">MACD</div>
+        <div class="m-val ${macdL.cls}">${macdL.text}</div>
+        <div class="m-sub">${fmt(te.macd,4)} / sig ${fmt(te.macd_signal,4)}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">SMA 50</div>
+        <div class="m-val ${te.above_sma50 === true ? 'pos' : te.above_sma50 === false ? 'neg' : ''}">${fmt(te.sma50,2)}</div>
+        <div class="m-sub">${te.above_sma50 === true ? 'Price above ↑' : te.above_sma50 === false ? 'Price below ↓' : '—'}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">SMA 200</div>
+        <div class="m-val ${te.above_sma200 === true ? 'pos' : te.above_sma200 === false ? 'neg' : ''}">${te.sma200 !== null ? fmt(te.sma200,2) : '< 1y data'}</div>
+        <div class="m-sub">${te.above_sma200 === true ? 'Price above ↑' : te.above_sma200 === false ? 'Price below ↓' : '—'}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">Golden Cross</div>
+        <div class="m-val ${te.golden_cross ? 'pos' : 'neg'}">${te.golden_cross ? 'Yes' : 'No'}</div>
+        <div class="m-sub">SMA 50 ${te.golden_cross ? '>' : '<'} SMA 200</div>
+      </div>
+    </div>
+
+    <!-- Returns -->
+    <div class="sec-head">Price Returns</div>
+    <div class="ret-grid">
+      <div class="metric">
+        <div class="m-label">1 Month</div>
+        <div class="m-val ${pctClass(re.ret_1m_pct)}">${pctSign(re.ret_1m_pct)}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">3 Months</div>
+        <div class="m-val ${pctClass(re.ret_3m_pct)}">${pctSign(re.ret_3m_pct)}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">1 Year</div>
+        <div class="m-val ${pctClass(re.ret_1y_pct)}">${pctSign(re.ret_1y_pct)}</div>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">
+      Data source: Yahoo Finance (yfinance). Prices delayed ~15 min outside market hours. Not investment advice.
+    </div>
+  `;
+
+  results.style.display = 'block';
+  stateBox.style.display = 'none';
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtNum(v) {
+  if (v === null || v === undefined) return '—';
+  if (v >= 1e7)  return (v/1e7).toFixed(2) + ' Cr';
+  if (v >= 1e5)  return (v/1e5).toFixed(2) + ' L';
+  return Number(v).toLocaleString('en-IN');
+}
+
+async function doAnalyse() {
+  const sym = input.value.trim().toUpperCase().replace(/[^A-Z0-9\-\.&]/g,'');
+  if (!sym) { input.focus(); return; }
+
+  btn.disabled = true;
+  showState(true, `Fetching data for ${sym}…`);
+
+  try {
+    const res  = await fetch(`/api/stock/analyse/${encodeURIComponent(sym)}`);
+    const data = await res.json();
+
+    if (data.error) {
+      showState(false, data.error);
+      return;
+    }
+    renderResults(data);
+  } catch(e) {
+    showState(false, 'Could not connect to the server. Make sure the engine is running.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Auto-analyse if ?symbol= in URL
+const urlSym = new URLSearchParams(location.search).get('symbol');
+if (urlSym) { input.value = urlSym.toUpperCase(); doAnalyse(); }
+</script>
+
+</body>
+</html>

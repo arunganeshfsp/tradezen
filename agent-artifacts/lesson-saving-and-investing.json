@@ -1,0 +1,225 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🏦",
+      "heading": { "en": "Saving & Investing", "ta": "சேமிப்பு & முதலீடு" },
+      "description": { "en": "Two habits that build wealth — but they work very differently. Learn when to save and when to invest.", "ta": "செல்வம் கட்டும் இரண்டு பழக்கங்கள் — ஆனால் இரண்டும் வேறு வேறு விதமாக வேலை செய்கின்றன. எப்போது சேமிக்க வேண்டும், எப்போது முதலீடு செய்ய வேண்டும் என்று தெரிந்து கொள்ளுங்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "⚖️",
+      "title": { "en": "Saving keeps it safe. Investing makes it grow.", "ta": "சேமிப்பு பாதுகாக்கிறது. முதலீடு வளர்க்கிறது." },
+      "caption": { "en": "You need both — but knowing the difference changes everything about how you manage money.", "ta": "இரண்டும் தேவை — ஆனால் வித்தியாசம் தெரிந்தால், பணத்தை நிர்வகிக்கும் விதமே மாறும்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is Saving?", "ta": "சேமிப்பு என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Keeping Your Money Safe", "ta": "உங்கள் பணத்தை பாதுகாப்பாக வைத்திருத்தல்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Saving means setting aside money you don't spend — usually in a bank account or FD. It's safe, easy to access, and grows slowly. Savings are your financial cushion for life's surprises.", "ta": "சேமிப்பு என்பது செலவழிக்காமல் தனியாக வைக்கும் பணம் — பொதுவாக வங்கி கணக்கு அல்லது FD-ல். இது பாதுகாப்பானது, எளிதாக எடுக்கலாம், மெதுவாக வளரும். சேமிப்பு என்பது வாழ்க்கையில் எதிர்பாராத நேரங்களுக்கான உங்கள் நிதி தலையணை." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Savings account", "ta": "சேமிப்பு கணக்கு" }, "val": { "en": "~3% per year", "ta": "~3% ஆண்டுக்கு" } },
+            { "key": { "en": "Fixed Deposit (FD)", "ta": "நிலையான வைப்பு (FD)" }, "val": { "en": "~6.5% per year", "ta": "~6.5% ஆண்டுக்கு" } },
+            { "key": { "en": "Market risk", "ta": "சந்தை ஆபத்து" }, "val": { "en": "None", "ta": "இல்லை" } },
+            { "key": { "en": "Withdrawal", "ta": "எடுக்கும் வசதி" }, "val": { "en": "Easy and quick", "ta": "எளிதாக மற்றும் விரைவாக" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Savings are your safety net — use them for emergencies, short-term goals, and peace of mind.", "ta": "சேமிப்பு உங்கள் பாதுகாப்பு வலை — அவசரநிலை, குறுகிய கால இலக்குகள் மற்றும் மனநிறைவுக்கு இதை பயன்படுத்துங்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is Investing?", "ta": "முதலீடு என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Making Your Money Work", "ta": "உங்கள் பணத்தை வேலை வைத்தல்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Investing means putting your money into assets — like stocks, mutual funds, or gold — that can grow over time. Returns are higher than savings, but there is risk involved. The longer you stay invested, the better the odds.", "ta": "முதலீடு என்பது உங்கள் பணத்தை பங்குகள், மியூச்சுவல் ஃபண்ட், தங்கம் போன்ற சொத்துகளில் வைப்பது — இவை காலப்போக்கில் வளரலாம். சேமிப்பை விட வருமானம் அதிகம், ஆனால் ஆபத்தும் உண்டு. நீண்ட நேரம் முதலீட்டில் இருந்தால் வெற்றி வாய்ப்பு அதிகம்." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Stocks — Reliance, Infosys, HDFC Bank", "ta": "பங்குகள் — ரிலையன்ஸ், இன்ஃபோசிஸ், HDFC வங்கி" },
+            { "en": "Mutual Funds & SIPs — professionally managed baskets", "ta": "மியூச்சுவல் ஃபண்ட் & SIP — நிபுணர்களால் நிர்வகிக்கப்படும் கூடைகள்" },
+            { "en": "Nifty 50 Index Funds — invest in India's top 50 companies", "ta": "நிஃப்டி 50 இண்டெக்ஸ் ஃபண்ட் — இந்தியாவின் முதல் 50 நிறுவனங்களில் முதலீடு" },
+            { "en": "Gold & Real Estate — alternative long-term assets", "ta": "தங்கம் & ரியல் எஸ்டேட் — மாற்று நீண்டகால சொத்துகள்" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "Investing is not gambling. It's putting money in productive assets that grow with India's economy.", "ta": "முதலீடு என்பது சூதாட்டம் இல்லை. இது இந்தியாவின் பொருளாதாரத்துடன் வளரும் உற்பத்தி சொத்துகளில் பணம் வைப்பது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Save vs Invest", "ta": "சேமிப்பு vs முதலீடு" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Same Goal, Different Paths", "ta": "ஒரே இலக்கு, வேறு வழிகள்" }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "🏦",
+              "title": { "en": "Saving", "ta": "சேமிப்பு" },
+              "subtitle": { "en": "Safe, low return, easy access, short-term", "ta": "பாதுகாப்பு, குறைந்த வருமானம், எளிதான அணுகல், குறுகிய கால" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "📈",
+              "title": { "en": "Investing", "ta": "முதலீடு" },
+              "subtitle": { "en": "Some risk, high return, long-term, wealth-building", "ta": "சிறிது ஆபத்து, அதிக வருமானம், நீண்ட கால, செல்வம் கட்டுதல்" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Purpose", "ta": "நோக்கம்" }, "val": { "en": "Emergency fund vs Wealth creation", "ta": "அவசர நிதி vs செல்வம் உருவாக்கம்" } },
+            { "key": { "en": "Timeframe", "ta": "காலகட்டம்" }, "val": { "en": "Short-term vs Long-term (3+ years)", "ta": "குறுகிய காலம் vs நீண்ட காலம் (3+ ஆண்டுகள்)" } },
+            { "key": { "en": "Typical return", "ta": "வழக்கமான வருமானம்" }, "val": { "en": "3–6.5% vs 10–12%+", "ta": "3–6.5% vs 10–12%+" } }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Which of these is an example of investing — not saving?", "ta": "இவற்றில் எது சேமிப்பு இல்லை — முதலீடு?" },
+      "options": [
+        { "en": "Keeping money in a savings account", "ta": "சேமிப்பு கணக்கில் பணம் வைத்திருத்தல்" },
+        { "en": "Opening a Fixed Deposit at a bank", "ta": "வங்கியில் நிலையான வைப்பு தொடங்குதல்" },
+        { "en": "Starting a Nifty 50 mutual fund SIP", "ta": "நிஃப்டி 50 மியூச்சுவல் ஃபண்ட் SIP தொடங்குதல்" },
+        { "en": "Keeping cash at home", "ta": "வீட்டில் ரொக்கம் வைத்திருத்தல்" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "A Nifty 50 SIP puts your money in equity markets — it can grow well over time but carries market risk. Savings accounts and FDs are savings instruments, not investments.", "ta": "நிஃப்டி 50 SIP உங்கள் பணத்தை பங்குச் சந்தையில் வைக்கிறது — காலப்போக்கில் நல்லா வளரும், ஆனால் சந்தை ஆபத்து உண்டு. சேமிப்பு கணக்கும் FD-யும் சேமிப்பு கருவிகள், முதலீடு இல்லை." },
+      "is_required": true,
+      "display_order": 5
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "When to Do What", "ta": "எப்போது என்ன செய்வது" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "A Simple Rule of Thumb", "ta": "ஒரு எளிய விதி" }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "First: save 3–6 months of expenses as an emergency fund", "ta": "முதலில்: 3–6 மாத செலவுகளை அவசர நிதியாக சேமியுங்கள்" },
+            { "en": "Save for any goal you need to achieve within 1–2 years", "ta": "1–2 ஆண்டுகளில் தேவைப்படும் இலக்குகளுக்கு சேமியுங்கள்" },
+            { "en": "Invest for goals that are 3 or more years away", "ta": "3 அல்லது அதிக ஆண்டுகள் தூரத்தில் உள்ள இலக்குகளுக்கு முதலீடு செய்யுங்கள்" },
+            { "en": "Never invest money you may need in an emergency", "ta": "அவசரத்தில் தேவைப்படும் பணத்தை ஒருபோதும் முதலீடு செய்யாதீர்கள்" }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Never invest your emergency fund. Markets can fall right when you need the money most.", "ta": "உங்கள் அவசர நிதியை ஒருபோதும் முதலீடு செய்யாதீர்கள். பணம் மிகவும் தேவைப்படும் நேரத்தில் சந்தை கீழே போகலாம்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Risk & Return", "ta": "ஆபத்து & வருமானம்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Higher Return = Higher Risk", "ta": "அதிக வருமானம் = அதிக ஆபத்து" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Every investment involves some risk — the chance that your money may temporarily fall in value. Higher potential returns come with higher risk. Matching the risk level to your goal and timeline is the key to smart investing.", "ta": "ஒவ்வொரு முதலீட்டிலும் சிறிது ஆபத்து உண்டு — உங்கள் பணத்தின் மதிப்பு தற்காலிகமாக குறையலாம். அதிக வருமானத்திற்கு அதிக ஆபத்து. உங்கள் இலக்கு மற்றும் காலகட்டத்திற்கு ஏற்ற ஆபத்தை தேர்ந்தெடுப்பதே சிறந்த முதலீட்டின் திறவுகோல்." }
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "3–5 Years+", "ta": "3–5 ஆண்டுகள்+" },
+          "subtitle": { "en": "minimum time in equity for market ups and downs to average out in your favour", "ta": "சந்தையின் ஏற்ற இறக்கங்கள் உங்களுக்கு சாதகமாக சராசரியாக மாற தேவையான குறைந்தபட்ச காலம்" }
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Beginner formula: Build a 3–6 month emergency fund first. Then invest the rest for the long term.", "ta": "தொடக்கக்காரருக்கான சூத்திரம்: முதலில் 3–6 மாத அவசர நிதி உருவாக்குங்கள். பிறகு மீதியை நீண்டகாலத்திற்கு முதலீடு செய்யுங்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "You need ₹50,000 in 6 months for a planned vacation. What should you do with this money now?", "ta": "திட்டமிட்ட விடுமுறைக்கு 6 மாதங்களில் ₹50,000 தேவை. இந்த பணத்தை இப்போது என்ன செய்ய வேண்டும்?" },
+      "options": [
+        { "en": "Invest in stocks for higher returns", "ta": "அதிக வருமானத்திற்காக பங்குகளில் முதலீடு செய்யுங்கள்" },
+        { "en": "Put it in a Nifty 50 mutual fund", "ta": "நிஃப்டி 50 மியூச்சுவல் ஃபண்டில் போடுங்கள்" },
+        { "en": "Keep it in an FD or savings account", "ta": "FD அல்லது சேமிப்பு கணக்கில் வைத்திருங்கள்" },
+        { "en": "Buy gold for safety", "ta": "பாதுகாப்புக்காக தங்கம் வாங்குங்கள்" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "For a goal just 6 months away, never invest in equity — markets can fall in the short term and you may not have the full amount when you need it. An FD or savings account keeps your money safe and accessible.", "ta": "6 மாத இலக்குக்கு பங்குகளில் போடவே கூடாது — குறுகிய காலத்தில் சந்தை கீழே போகலாம், தேவைப்படும் நேரத்தில் தொகை கம்மியாகலாம். FD அல்லது சேமிப்பு கணக்கு பணத்தை பாதுகாப்பாகவும் கையில் எடுக்கும் வகையிலும் வைக்கும்." },
+      "is_required": true,
+      "display_order": 8
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "You should invest your emergency fund in stocks to earn better returns.", "ta": "சிறந்த வருமானம் பெற உங்கள் அவசர நிதியை பங்குகளில் முதலீடு செய்யலாம்." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. Your emergency fund must be in safe, liquid instruments like a savings account or FD. Stocks can fall sharply just when you need the money — defeating the whole purpose of an emergency fund.", "ta": "பொய். உங்கள் அவசர நிதி சேமிப்பு கணக்கு அல்லது FD போன்ற பாதுகாப்பான, உடனே எடுக்கக்கூடிய இடத்தில் இருக்க வேண்டும். பணம் தேவைப்படும் நேரத்திலேயே பங்குகள் கடுமையாக விழலாம் — இது அவசர நிதியின் நோக்கையே தோல்வியாக்கும்." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]
