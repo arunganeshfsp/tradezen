@@ -271,6 +271,7 @@ const BLOCK_META = {
   'badge-highlight': {icon:'🏷',  label:'Highlight Badge'},
   'divider':         {icon:'—',   label:'Divider'},
   'emoji-row':       {icon:'😀',  label:'Emoji Row'},
+  'link':            {icon:'🔗',  label:'Link'},
 };
 const CARD_ICONS  = {cover:'🎬',content:'📄',visual:'🖼',result:'🏆'};
 const STATUS_CLS  = {draft:'s-draft',in_review:'s-in_review',approved:'s-approved',
@@ -725,6 +726,14 @@ function blockFieldHTML(block, idx, bi) {
   if (t==='emoji-row')  return S('_emojiStr',(block.items||[]).join(' '),'Emojis separated by space') +
     `<div class="mt-1 text-muted" style="font-size:10px;">Separate with spaces. Saved on blur.</div>`;
   if (t==='divider')    return `<span class="text-muted" style="font-size:11px;">Horizontal divider — no fields.</span>`;
+  if (t==='link')       return `<div class="row g-1">
+    ${colWrap(S('label.en',block.label?.en||'','Label EN'),6)}${colWrap(S('label.ta',block.label?.ta||'','Label TA'),6)}
+    </div><div class="row g-1 mt-1">
+    ${colWrap(S('description.en',block.description?.en||'','Short description EN (optional)'),6)}${colWrap(S('description.ta',block.description?.ta||'','Short description TA (optional)'),6)}
+    </div><div class="row g-1 mt-1">
+    ${colWrap(`<input class="form-control form-control-sm" placeholder="https://..." value="${esc(block.url||'')}"
+      onchange="setBlockProp(${idx},${bi},'url',this.value)">`,12)}
+    </div>`;
 
   // Generic fallback: show text if extractable, else raw toggle
   if (en||ta) return taPair(en,ta,'text.en','text.ta') +
@@ -1076,6 +1085,7 @@ function makeBlock(type) {
     'badge-highlight':{type:'badge-highlight',text:{en:'',ta:''},subtitle:{en:'',ta:''}},
     divider:         {type:'divider'},
     'emoji-row':     {type:'emoji-row',items:[]},
+    link:            {type:'link',label:{en:'',ta:''},description:{en:'',ta:''},url:''},
   };
   return defaults[type]||{type};
 }

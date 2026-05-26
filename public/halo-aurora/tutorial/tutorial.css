@@ -21,7 +21,7 @@
   text-transform: uppercase;
   color: var(--tz-fg-1);
 }
-.level-badge .dots { display: inline-flex; gap: 3px; }
+.level-badge .dots { display: inline-flex; gap: 3px; align-items: center; }
 .level-badge .dots i {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--tz-fg-3);
@@ -197,6 +197,7 @@
 }
 .q-feedback.is-correct .head { color: var(--tz-gain); }
 .q-feedback.is-wrong   .head { color: var(--tz-loss); }
+.q-feedback > div { flex: 1; min-width: 0; }
 
 .q-feedback .fb-ok,
 .q-feedback .fb-no { display: none; }

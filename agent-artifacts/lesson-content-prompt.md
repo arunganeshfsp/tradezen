@@ -198,6 +198,17 @@ Visual separator. No fields needed.
 { "type": "divider" }
 ```
 
+#### link
+Tappable link card for further reading. Use sparingly — one per card at most. Always use a real, working URL. `description` is optional but recommended — one sentence explaining what the user will find there.
+```json
+{
+  "type": "link",
+  "label": { "en": "Read: SEBI Investor Charter", "ta": "படியுங்கள்: SEBI முதலீட்டாளர் சாசனம்" },
+  "description": { "en": "Official guide to your rights as a retail investor in India.", "ta": "இந்தியாவில் சில்லறை முதலீட்டாளராக உங்கள் உரிமைகளுக்கான அதிகாரப்பூர்வ வழிகாட்டி." },
+  "url": "https://www.sebi.gov.in"
+}
+```
+
 ---
 
 ### Content quality rules
