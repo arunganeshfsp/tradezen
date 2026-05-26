@@ -3822,6 +3822,57 @@ async def mgmt_restart(srv: str, request: Request):
 # Stock Analyser — comprehensive fundamental + technical snapshot
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _extract_financials(tk) -> dict:
+    """Extract quarterly and annual income statement rows from a yfinance Ticker."""
+    ROWS = {
+        "revenue":          ["Total Revenue"],
+        "gross_profit":     ["Gross Profit"],
+        "operating_income": ["Operating Income", "Operating Revenue"],
+        "ebitda":           ["EBITDA", "Normalized EBITDA"],
+        "net_income":       ["Net Income", "Net Income Common Stockholders"],
+        "eps":              ["Basic EPS", "Diluted EPS"],
+    }
+
+    def _safe(df, keys, col):
+        for k in keys:
+            try:
+                if k in df.index:
+                    v = df.at[k, col]
+                    if v is not None and not (isinstance(v, float) and math.isnan(v)):
+                        return round(float(v), 2)
+            except Exception:
+                pass
+        return None
+
+    def _build_rows(df, max_cols, label_fmt):
+        rows = []
+        if df is None or df.empty:
+            return rows
+        cols = [c for c in df.columns[:max_cols]]
+        for col in cols:
+            try:
+                label = col.strftime(label_fmt) if hasattr(col, "strftime") else str(col)[:10]
+                entry = {"period": label}
+                for key, candidates in ROWS.items():
+                    entry[key] = _safe(df, candidates, col)
+                rows.append(entry)
+            except Exception:
+                pass
+        return rows
+
+    quarterly, annual = [], []
+    try:
+        quarterly = _build_rows(tk.quarterly_income_stmt, 4, "%b %Y")
+    except Exception:
+        pass
+    try:
+        annual = _build_rows(tk.income_stmt, 5, "%Y")
+    except Exception:
+        pass
+
+    return {"quarterly": quarterly, "annual": annual}
+
+
 def _stock_analyse_sync(symbol: str) -> dict:
     import yfinance as yf
     import pandas as pd
@@ -4084,6 +4135,9 @@ def _stock_analyse_sync(symbol: str) -> dict:
             "dates":  [d.strftime("%Y-%m-%d") for d in hist.index.date],
             "closes": [round(float(v), 2) for v in closes.tolist()],
         },
+
+        # Financial results — quarterly and annual income statement
+        "results": _extract_financials(tk),
     }
 
 

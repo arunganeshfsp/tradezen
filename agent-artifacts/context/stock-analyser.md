@@ -41,6 +41,12 @@ Appends `.NS` unless symbol already ends in `.NS` or starts with `^`.
 - **Financials**: scoring system (ROE, D/E, profit margin, earnings growth), maps to Strong/Healthy/Mixed/Concerning
 - **Overall**: count of positive scorecard dimensions — 3 → positive, 2 → neutral, <2 → negative
 
+## Results tab
+`_extract_financials(tk)` runs `tk.quarterly_income_stmt` (last 4Q) and `tk.income_stmt` (last 5Y).
+Extracts: Total Revenue, Gross Profit, Operating Income, EBITDA, Net Income, EPS (Basic/Diluted).
+Returns `{ quarterly: [...], annual: [...] }` — each entry has `{period, revenue, gross_profit, operating_income, ebitda, net_income, eps}`.
+Frontend formats all P&L values as Crores (divide by 1e7). Growth % arrows computed client-side by comparing consecutive columns.
+
 ## Known caveats
 - `tk.info` can be empty for newly listed or thinly traded stocks — all fundamentals return `null` gracefully
 - `major_holders` format is inconsistent across yfinance versions; institutional holding is best-effort
