@@ -209,6 +209,8 @@ Tappable card that opens a URL in the user's external browser. Use sparingly —
 }
 ```
 
+> **url must be a plain string** starting with `https://` — no markdown brackets, no parentheses. Wrong: `"[https://sebi.gov.in](https://sebi.gov.in)"`. Right: `"https://www.sebi.gov.in"`.
+
 ---
 
 ### Content quality rules
