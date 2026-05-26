@@ -398,7 +398,17 @@ function fillMetaForm(ch) {
 }
 
 // ── Lesson Builder render ─────────────────────────────────────────────────────
-function renderLessonBuilder() {
+function getOpenItems() {
+  const open = new Set();
+  document.querySelectorAll('#lesson-builder .item-bd:not(.collapsed)').forEach(el => {
+    const m = el.id.match(/^body-(\d+)$/);
+    if (m) open.add(parseInt(m[1]));
+  });
+  return open;
+}
+
+function renderLessonBuilder(keepOpen) {
+  const open   = keepOpen ?? getOpenItems();
   const editor = document.getElementById('editor');
   const scroll = editor.scrollTop;
   let html = izone(0);
@@ -407,6 +417,10 @@ function renderLessonBuilder() {
     html += izone(idx+1);
   });
   document.getElementById('lesson-builder').innerHTML = html;
+  open.forEach(idx => {
+    const el = document.getElementById('body-'+idx);
+    if (el) el.classList.remove('collapsed');
+  });
   editor.scrollTop = scroll;
   wireItemDrag();
 }
@@ -553,19 +567,29 @@ function coverHTML(data, idx) {
   </div>`;
 }
 
-function contentHTML(data, idx) {
-  const blocks    = data.blocks||[];
-  const blockRows = blocks.map((b,bi)=>blockRowHTML(b,idx,bi)).join('');
-  const typeOpts  = Object.entries(BLOCK_META).map(([k,v])=>
+function blockIzone(idx, pos) {
+  const typeOpts = Object.entries(BLOCK_META).map(([k,v])=>
     `<option value="${k}">${v.icon} ${v.label}</option>`).join('');
+  return `<div class="d-flex align-items-center gap-1 my-1" style="opacity:.3;transition:opacity .15s;"
+    onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.3">
+    <div style="flex:1;height:1px;background:var(--bdr);"></div>
+    <select class="form-select form-select-sm" id="btype-${idx}-${pos}" style="width:160px;font-size:11px;padding:2px 6px;">${typeOpts}</select>
+    <button class="btn btn-sm btn-outline-success py-0 px-2" style="font-size:11px;"
+      onclick="insertBlockAt(${idx},${pos})">＋</button>
+    <div style="flex:1;height:1px;background:var(--bdr);"></div>
+  </div>`;
+}
+
+function contentHTML(data, idx) {
+  const blocks = data.blocks||[];
+  let blockRows = blockIzone(idx, 0);
+  blocks.forEach((b,bi) => {
+    blockRows += blockRowHTML(b,idx,bi) + blockIzone(idx, bi+1);
+  });
   return `
     ${contentCardHeaderHTML(data, idx)}
     <div style="border-top:1px solid var(--bdr);margin:10px 0;"></div>
-    <div id="blocks-${idx}">${blockRows}</div>
-    <div class="mt-2 d-flex gap-2 align-items-center">
-      <select class="form-select form-select-sm" id="btype-${idx}" style="width:190px;">${typeOpts}</select>
-      <button class="btn btn-sm btn-outline-success" style="font-size:12px;" onclick="addBlock(${idx})">+ Add Block</button>
-    </div>`;
+    <div id="blocks-${idx}">${blockRows}</div>`;
 }
 
 function contentCardHeaderHTML(data, idx) {
@@ -629,6 +653,7 @@ function richTitleHTML(title, idx) {
 }
 
 function blockRowHTML(block, idx, bi) {
+  const total   = (lessonItems[idx]?.data?.blocks||[]).length;
   const typeOpts = Object.entries(BLOCK_META).map(([k,v]) =>
     `<option value="${k}" ${block.type===k?'selected':''}>${v.icon} ${v.label}</option>`
   ).join('');
@@ -636,7 +661,11 @@ function blockRowHTML(block, idx, bi) {
     <div class="brow-hd">
       <select class="form-select form-select-sm" style="width:165px;font-size:11px;padding:2px 6px;"
         onchange="changeBlockType(${idx},${bi},this.value)">${typeOpts}</select>
-      <button class="btn-act danger ms-auto" onclick="removeBlock(${idx},${bi})">✕</button>
+      <div class="d-flex gap-1 ms-auto">
+        ${bi>0       ?`<button class="btn-act" title="Move up"   onclick="moveBlock(${idx},${bi},-1)">↑</button>`:''}
+        ${bi<total-1 ?`<button class="btn-act" title="Move down" onclick="moveBlock(${idx},${bi}, 1)">↓</button>`:''}
+        <button class="btn-act danger" onclick="removeBlock(${idx},${bi})">✕</button>
+      </div>
     </div>
     ${blockFieldHTML(block,idx,bi)}
   </div>`;
@@ -976,6 +1005,23 @@ function addBlock(idx) {
 
 function removeBlock(idx, bi) {
   lessonItems[idx].data.blocks.splice(bi,1);
+  renderLessonBuilder();
+}
+
+function insertBlockAt(idx, pos) {
+  const selId = `btype-${idx}-${pos}`;
+  const type  = document.getElementById(selId)?.value || 'paragraph';
+  const nb    = makeBlock(type);
+  if (!lessonItems[idx].data.blocks) lessonItems[idx].data.blocks = [];
+  lessonItems[idx].data.blocks.splice(pos, 0, nb);
+  renderLessonBuilder();
+}
+
+function moveBlock(idx, bi, dir) {
+  const blocks = lessonItems[idx].data.blocks;
+  const swp = bi + dir;
+  if (swp < 0 || swp >= blocks.length) return;
+  [blocks[bi], blocks[swp]] = [blocks[swp], blocks[bi]];
   renderLessonBuilder();
 }
 
