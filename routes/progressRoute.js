@@ -3,10 +3,8 @@ const { query } = require('../db/db');
 const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 
-router.use(requireAuth);
-
 // ── Mark chapter started / completed ─────────────────────────────────────────
-router.post('/progress', async (req, res) => {
+router.post('/progress', requireAuth, async (req, res) => {
   const { chapter_slug, status } = req.body;
   if (!chapter_slug || !['started', 'completed'].includes(status))
     return res.status(400).json({ error: 'chapter_slug and status (started|completed) required' });
@@ -63,7 +61,7 @@ router.post('/progress', async (req, res) => {
 });
 
 // ── Save quiz attempt ─────────────────────────────────────────────────────────
-router.post('/quiz-attempt', async (req, res) => {
+router.post('/quiz-attempt', requireAuth, async (req, res) => {
   const { chapter_slug, question_id, answer_index, is_correct } = req.body;
   if (!chapter_slug || !question_id)
     return res.status(400).json({ error: 'chapter_slug and question_id required' });
@@ -87,7 +85,7 @@ router.post('/quiz-attempt', async (req, res) => {
 });
 
 // ── Get user's full progress ──────────────────────────────────────────────────
-router.get('/my-progress', async (req, res) => {
+router.get('/my-progress', requireAuth, async (req, res) => {
   try {
     const { rows } = await query(`
       SELECT up.chapter_id, ch.slug, ch.title, up.status, up.xp_earned,
