@@ -8,74 +8,96 @@ const router  = express.Router();
 const STATIC_CATALOG = path.join(__dirname, '../public/learn/catalog.json');
 const STATIC_LESSONS = path.join(__dirname, '../public/learn/lessons');
 
+// Normalize a DB title field (may be a plain string or already a {en,ta} object)
+// into the canonical {en, ta} shape the client renderer expects.
+function toLocObj(v) {
+  if (v && typeof v === 'object') return v;
+  const s = String(v || '');
+  return { en: s, ta: s };
+}
+
 // ── GET /api/learn/catalog ──────────────────────────────────────────────────
-// Returns category → module → chapter tree (published only, no card content).
-// Shape is backwards-compatible with the old catalog.json format.
+// Single JOIN query — fetches all categories + modules + chapters in one round trip.
 router.get('/catalog', async (_req, res) => {
   try {
-    const { rows: categories } = await query(`
-      SELECT category_id, slug, title, icon, display_order
-      FROM   categories
-      WHERE  deleted_at IS NULL AND status = 'published'
-      ORDER  BY display_order
+    const { rows } = await query(`
+      SELECT
+        cat.slug            AS cat_slug,
+        cat.title           AS cat_title,
+        cat.icon            AS cat_icon,
+        cat.display_order   AS cat_order,
+        m.slug              AS mod_slug,
+        m.title             AS mod_title,
+        m.display_order     AS mod_order,
+        ch.slug             AS ch_id,
+        ch.title            AS ch_title,
+        ch.emoji            AS ch_emoji,
+        ch.status           AS ch_status,
+        ch.xp_reward        AS ch_xp,
+        ch.duration_min     AS ch_dur,
+        ch.display_order    AS ch_order,
+        dl.slug             AS ch_level,
+        COUNT(cq.question_id)::int AS quiz_count
+      FROM   categories cat
+      LEFT JOIN modules m
+             ON m.category_id = cat.category_id
+            AND m.deleted_at IS NULL AND m.status = 'published'
+      LEFT JOIN chapters ch
+             ON ch.module_id = m.module_id
+            AND ch.deleted_at IS NULL
+      LEFT JOIN difficulty_levels dl
+             ON dl.difficulty_id = ch.difficulty_id
+      LEFT JOIN chapter_questions cq
+             ON cq.chapter_id = ch.chapter_id
+      WHERE  cat.deleted_at IS NULL AND cat.status = 'published'
+      GROUP  BY cat.slug, cat.title, cat.icon, cat.display_order,
+                m.slug, m.title, m.display_order,
+                ch.slug, ch.title, ch.emoji, ch.status,
+                ch.xp_reward, ch.duration_min, ch.display_order, dl.slug
+      ORDER  BY cat.display_order, m.display_order, ch.display_order
     `);
 
-    const subjects = await Promise.all(categories.map(async cat => {
-      const { rows: mods } = await query(`
-        SELECT module_id, slug, title, display_order
-        FROM   modules
-        WHERE  category_id = $1 AND deleted_at IS NULL AND status = 'published'
-        ORDER  BY display_order
-      `, [cat.category_id]);
+    // Assemble flat rows into nested category → module → lesson tree
+    const catMap = new Map();
+    rows.forEach(r => {
+      if (!catMap.has(r.cat_slug)) {
+        catMap.set(r.cat_slug, {
+          id:      r.cat_slug,
+          icon:    r.cat_icon,
+          title:   toLocObj(r.cat_title),
+          modMap:  new Map(),
+        });
+      }
+      const cat = catMap.get(r.cat_slug);
+      if (!r.mod_slug) return;
+      if (!cat.modMap.has(r.mod_slug)) {
+        cat.modMap.set(r.mod_slug, {
+          id:      r.mod_slug,
+          title:   toLocObj(r.mod_title),
+          lessons: [],
+        });
+      }
+      const mod = cat.modMap.get(r.mod_slug);
+      if (!r.ch_id) return;
+      mod.lessons.push({
+        id:           r.ch_id,
+        order:        r.ch_order,
+        status:       r.ch_status,
+        level:        r.ch_level || 'beginner',
+        xp:           r.ch_xp,
+        duration_min: r.ch_dur,
+        quiz_count:   r.quiz_count,
+        emoji:        r.ch_emoji,
+        title:        toLocObj(r.ch_title),
+      });
+    });
 
-      const modules = await Promise.all(mods.map(async mod => {
-        const { rows: chs } = await query(`
-          SELECT
-            ch.slug              AS id,
-            ch.title,
-            ch.emoji,
-            ch.status,
-            ch.xp_reward         AS xp,
-            ch.duration_min,
-            ch.display_order     AS "order",
-            dl.slug              AS level,
-            (SELECT COUNT(*)::int
-               FROM chapter_questions cq
-              WHERE cq.chapter_id = ch.chapter_id) AS quiz_count
-          FROM   chapters ch
-          LEFT JOIN difficulty_levels dl ON dl.difficulty_id = ch.difficulty_id
-          WHERE  ch.module_id = $1 AND ch.deleted_at IS NULL
-          ORDER  BY ch.display_order
-        `, [mod.module_id]);
-
-        return {
-          id:      mod.slug,
-          title:   mod.title,
-          lessons: chs.map(ch => ({
-            id:           ch.id,
-            order:        ch.order,
-            status:       ch.status,
-            level:        ch.level   || 'beginner',
-            xp:           ch.xp,
-            duration_min: ch.duration_min,
-            quiz_count:   ch.quiz_count,
-            emoji:        ch.emoji,
-            title:        ch.title,
-          })),
-        };
-      }));
-
-      return {
-        id:      cat.slug,
-        icon:    cat.icon,
-        title:   cat.title,
-        modules,
-      };
+    const subjects = Array.from(catMap.values()).map(cat => ({
+      id:      cat.id,
+      icon:    cat.icon,
+      title:   cat.title,
+      modules: Array.from(cat.modMap.values()),
     }));
-
-    if (subjects.length === 0 && fs.existsSync(STATIC_CATALOG)) {
-      return res.json(JSON.parse(fs.readFileSync(STATIC_CATALOG, 'utf8')));
-    }
 
     res.json({ version: '2', subjects });
   } catch (err) {

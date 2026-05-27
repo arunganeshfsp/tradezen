@@ -33,7 +33,7 @@ Back-links inside `learn/lesson.html` (close button, back button, "Back to Learn
 
 | Route | Returns |
 |---|---|
-| `GET /api/learn/catalog` | Category → module → chapter tree |
+| `GET /api/learn/catalog` | Category → module → chapter tree (single JOIN query) |
 | `GET /api/learn/lesson/:id` | Full lesson with cards array |
 | `GET /api/mgmt/learn/tree` | Admin tree (requires `ADMIN_TOKEN` header) |
 | `GET /api/mgmt/learn/chapter/:slug` | Admin single chapter |

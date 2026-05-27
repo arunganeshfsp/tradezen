@@ -114,6 +114,7 @@
   <!-- Top bar -->
   <header class="topbar">
     <a href="/index.html" class="brand">
+      <img src="/app-icon.svg" width="28" height="28" alt="TradeZen" style="border-radius:7px;flex-shrink:0">
       <span class="wordmark">Trade<em>Zen</em></span>
     </a>
     <div class="sep"></div>
@@ -292,6 +293,23 @@
       applyLang();
     }
 
+    // ── Normalize catalog titles (handles plain strings from DB or {en,ta} objects) ──
+    function normalizeCatalog(catalog) {
+      function loc(v) {
+        if (v && typeof v === 'object') return v;
+        const s = String(v || '');
+        return { en: s, ta: s };
+      }
+      (catalog.subjects || []).forEach(s => {
+        s.title = loc(s.title);
+        (s.modules || []).forEach(m => {
+          m.title = loc(m.title);
+          (m.lessons || []).forEach(l => { l.title = loc(l.title); });
+        });
+      });
+      return catalog;
+    }
+
     // ── Boot ──────────────────────────────────────────────────────────────────
     function showError() {
       document.getElementById('loading-state').style.display = 'none';
@@ -300,15 +318,12 @@
     function loadStatic() {
       fetch('/learn/catalog.json')
         .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(renderCatalog)
+        .then(c => renderCatalog(normalizeCatalog(c)))
         .catch(showError);
     }
     fetch('/api/learn/catalog')
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(catalog => {
-        if (!catalog.subjects || catalog.subjects.length === 0) { loadStatic(); return; }
-        renderCatalog(catalog);
-      })
+      .then(c => renderCatalog(normalizeCatalog(c)))
       .catch(loadStatic);
 
     // ── Sync lang from halo-aurora.js ─────────────────────────────────────────
