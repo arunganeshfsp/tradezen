@@ -1,7 +1,12 @@
 const express = require('express');
+const fs      = require('fs');
+const path    = require('path');
 const { query } = require('../db/db');
 const { requireAuth } = require('../middleware/auth');
 const router  = express.Router();
+
+const STATIC_CATALOG = path.join(__dirname, '../public/learn/catalog.json');
+const STATIC_LESSONS = path.join(__dirname, '../public/learn/lessons');
 
 // ── GET /api/learn/catalog ──────────────────────────────────────────────────
 // Returns category → module → chapter tree (published only, no card content).
@@ -68,9 +73,16 @@ router.get('/catalog', async (_req, res) => {
       };
     }));
 
+    if (subjects.length === 0 && fs.existsSync(STATIC_CATALOG)) {
+      return res.json(JSON.parse(fs.readFileSync(STATIC_CATALOG, 'utf8')));
+    }
+
     res.json({ version: '2', subjects });
   } catch (err) {
     console.error('[learnRoute] catalog error:', err.message);
+    if (fs.existsSync(STATIC_CATALOG)) {
+      return res.json(JSON.parse(fs.readFileSync(STATIC_CATALOG, 'utf8')));
+    }
     res.status(500).json({ error: 'catalog unavailable' });
   }
 });
@@ -79,7 +91,7 @@ router.get('/catalog', async (_req, res) => {
 // Returns a full lesson: metadata + assembled cards (non-quiz + quiz interleaved).
 // Shape is backwards-compatible with the old lesson JSON format.
 // Pass ?preview_token=TOKEN (admin token) to bypass the published-only filter.
-router.get('/lesson/:id', requireAuth, async (req, res) => {
+router.get('/lesson/:id', async (req, res) => {
   const slug         = req.params.id.replace(/[^a-z0-9]/gi, '');
   const adminToken   = process.env.ADMIN_TOKEN;
   const isPreview    = adminToken && req.query.preview_token === adminToken;
@@ -102,7 +114,13 @@ router.get('/lesson/:id', requireAuth, async (req, res) => {
       WHERE  ch.slug = $1 AND ch.deleted_at IS NULL ${statusClause}
     `, [slug]);
 
-    if (!chRows.length) return res.status(404).json({ error: 'lesson not found' });
+    if (!chRows.length) {
+      const staticLesson = path.join(STATIC_LESSONS, `${slug}.json`);
+      if (fs.existsSync(staticLesson)) {
+        return res.json(JSON.parse(fs.readFileSync(staticLesson, 'utf8')));
+      }
+      return res.status(404).json({ error: 'lesson not found' });
+    }
     const ch = chRows[0];
 
     // Non-quiz cards
@@ -224,6 +242,10 @@ router.get('/lesson/:id', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('[learnRoute] lesson error:', err.message);
+    const staticLesson = path.join(STATIC_LESSONS, `${slug}.json`);
+    if (fs.existsSync(staticLesson)) {
+      return res.json(JSON.parse(fs.readFileSync(staticLesson, 'utf8')));
+    }
     res.status(500).json({ error: 'lesson unavailable' });
   }
 });
