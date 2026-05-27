@@ -293,13 +293,23 @@
     }
 
     // ── Boot ──────────────────────────────────────────────────────────────────
+    function showError() {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').style.display = '';
+    }
+    function loadStatic() {
+      fetch('/learn/catalog.json')
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(renderCatalog)
+        .catch(showError);
+    }
     fetch('/api/learn/catalog')
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(renderCatalog)
-      .catch(() => {
-        document.getElementById('loading-state').style.display = 'none';
-        document.getElementById('error-state').style.display = '';
-      });
+      .then(catalog => {
+        if (!catalog.subjects || catalog.subjects.length === 0) { loadStatic(); return; }
+        renderCatalog(catalog);
+      })
+      .catch(loadStatic);
 
     // ── Sync lang from halo-aurora.js ─────────────────────────────────────────
     document.addEventListener('tz-lang-change', e => {
