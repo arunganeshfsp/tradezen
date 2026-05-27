@@ -173,6 +173,10 @@ body.fs-lock{overflow:hidden}
 .bk-bar-wrap{flex:1;background:var(--bg3);border-radius:3px;height:6px;overflow:hidden}
 .bk-bar-fill{height:100%;border-radius:3px;transition:width .55s cubic-bezier(.4,0,.2,1)}
 .bk-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:36px;text-align:right;flex-shrink:0}
+.logic-label{margin-top:10px;padding:8px 10px;background:var(--bg2);border-radius:6px;font-size:12px;color:var(--dim);line-height:1.6;border-left:3px solid var(--border);transition:border-color .4s,color .3s}
+.logic-label.bull-label{border-left-color:var(--green);color:var(--text)}
+.logic-label.bear-label{border-left-color:var(--red);color:var(--text)}
+.logic-label.warn-label{border-left-color:#f5a623;color:var(--text)}
 
 /* ── CANDLE INFO ── */
 .ci-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
@@ -260,6 +264,17 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .cp-info{flex:1;min-width:0}
 @keyframes cpPop{0%{transform:scale(0.95);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
 .cp-pop{animation:cpPop .35s ease}
+
+/* ── POST-GAME SUMMARY ── */
+.pg-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.pg-head{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.pg-head-icon{font-size:15px;flex-shrink:0}
+.pg-head-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.pg-head-sub{font-size:11px;color:var(--dim);margin-left:auto}
+.pg-body-inner{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.pg-bullet{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--text);line-height:1.6}
+.pg-bullet-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.pg-bullet-text{flex:1}
 
 /* ── DAY STORY VIEWER ── */
 .story-viewer-wrap{padding:0}
@@ -520,6 +535,19 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
   </div>
 
+  <!-- POST-GAME SUMMARY (inside left column, shown once candles are loaded) -->
+  <div id="postgame-wrap" style="display:none">
+    <div class="pg-card" data-sec>
+      <div class="pg-head sec-hdr" onclick="toggleSec(this)">
+        <span class="pg-head-icon">📋</span>
+        <span class="pg-head-title">Trading Diary</span>
+        <span class="pg-head-sub">Today's Summary</span>
+        <span class="sec-chev" style="margin-left:8px">▾</span>
+      </div>
+      <div class="sec-body" id="pg-body"></div>
+    </div>
+  </div>
+
   <!-- DAY STORY VIEWER (inside left column, fills vertical gap, sidebar stays visible) -->
   <div class="story-viewer-wrap" id="story-viewer-wrap" style="display:none">
     <div class="story-viewer" data-sec>
@@ -637,6 +665,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-trend" style="width:0%;background:var(--accent)"></div></div>
           <span class="bk-val" id="bk-trend-v">—</span>
         </div>
+        <div id="logic-label" class="logic-label">—</div>
       </div>
     </div>
 
@@ -1434,6 +1463,43 @@ function dismissToast() {
   if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
 }
 
+// ─── Logic Label ──────────────────────────────────────────────────────────────
+function buildLogicLabel(d, comp, score) {
+  const vwap  = d.vwap_pos;
+  const st    = comp.st_dir;
+  const vol   = comp.rel_volume;
+  const state = d.state;
+  if (state === 'absorption')         return { text:'High volume + compressed price = Absorption zone. Big move loading — direction unknown. Do not trade until it breaks.', cls:'warn-label' };
+  if (state === 'fake_breakout')      return { text:'Wick trap: price broke out but reversed hard. Reversal candle likely next — do not chase the breakout.', cls:'warn-label' };
+  if (state === 'momentum_weakening') return { text:'Candle bodies shrinking — trend is losing fuel. Reduce size; reversal may be near.', cls:'warn-label' };
+  const volNote = vol < 0.7 ? ' Low volume — wait for confirmation.' : vol >= 2.0 ? ' High volume confirms the move.' : '';
+  if (score > 25) {
+    if (vwap === 'above' && st === 'up')   return { text:'High body strength + Above VWAP + Uptrend = Strong buyer floor.' + volNote + ' Not a good time to sell.', cls:'bull-label' };
+    if (vwap === 'above' && st === 'down') return { text:'Bullish candle but Supertrend is DOWN — counter-trend move. Treat as a pullback bounce, not a trend entry.' + volNote, cls:'warn-label' };
+    if (vwap === 'below' && st === 'up')   return { text:'Bullish push but price is below VWAP — buyers fighting the intraday average. Wait for VWAP reclaim before going long.' + volNote, cls:'warn-label' };
+    if (vwap === 'below' && st === 'down') return { text:'Strong-looking bull candle but below VWAP with Supertrend down — likely a dead-cat bounce. High risk to buy here.' + volNote, cls:'warn-label' };
+    return { text:'Strong bullish candle — buyers pushing hard.' + volNote, cls:'bull-label' };
+  }
+  if (score < -25) {
+    if (vwap === 'below' && st === 'down') return { text:'Heavy selling + Below VWAP + Downtrend = Sellers in full control.' + volNote + ' Avoid buying dips — wait for trend reversal.', cls:'bear-label' };
+    if (vwap === 'below' && st === 'up')   return { text:'Sharp bearish candle but Supertrend is UP — counter-trend selling. Watch for a reversal back up near VWAP.' + volNote, cls:'warn-label' };
+    if (vwap === 'above' && st === 'down') return { text:'Bearish candle but price above VWAP — mixed signal. Bulls may defend here. Wait.' + volNote, cls:'warn-label' };
+    if (vwap === 'above' && st === 'up')   return { text:'Bearish candle despite being above VWAP in an uptrend — likely a pullback, not a reversal.' + volNote + ' Hold your longs.', cls:'warn-label' };
+    return { text:'Strong bearish candle — sellers pushing hard.' + volNote, cls:'bear-label' };
+  }
+  if (score >= 5) {
+    if (vwap === 'above' && st === 'up') return { text:'Moderate bullish lean + Above VWAP + Uptrend — favours buyers.' + volNote + ' Wait for volume confirmation for a trend entry.', cls:'bull-label' };
+    if (vwap === 'above')                return { text:'Mild bullish bias above VWAP — trend alignment needed for a clean trade.', cls:'bull-label' };
+    return { text:'Mild bullish lean — conditions mixed. No high-conviction entry yet.', cls:'warn-label' };
+  }
+  if (score <= -5) {
+    if (vwap === 'below' && st === 'down') return { text:'Moderate bearish lean + Below VWAP + Downtrend — favours sellers.' + volNote + ' Avoid longs until Supertrend flips.', cls:'bear-label' };
+    if (vwap === 'below')                  return { text:'Mild bearish bias below VWAP — trend alignment needed for a short setup.', cls:'bear-label' };
+    return { text:'Mild bearish lean — conditions mixed. No high-conviction entry yet.', cls:'warn-label' };
+  }
+  return { text:'Balanced candle — no clear directional edge. Wait for a decisive move before acting.', cls:'warn-label' };
+}
+
 // ─── Panel updates ────────────────────────────────────────────────────────────
 const STATE_META = {
   buyer_domination:  { icon: '⚡', label: 'BUYER DOMINATION',  desc: 'Strong bullish candle — buyers in control',   cls: 'st-buy',  ring: '#2ecc71' },
@@ -1517,6 +1583,12 @@ function updatePanel(candle) {
   document.getElementById('bk-trend').style.background = trendCol;
   document.getElementById('bk-trend-v').textContent    =
     comp.st_dir === 'up' ? '↑ UP' : comp.st_dir === 'down' ? '↓ DOWN' : '— N/A';
+
+  // Logic label
+  const ll   = buildLogicLabel(d, comp, score);
+  const llEl = document.getElementById('logic-label');
+  llEl.textContent = ll.text;
+  llEl.className   = 'logic-label ' + ll.cls;
 
   // Candle OHLCV
   const bullish = candle.close >= candle.open;
@@ -1954,6 +2026,85 @@ function tryBuildStory() {
   if (!_candles.length || !_cprData) return;
   _storyEntries = generateDayStory(_candles, _cprData);
   renderStorySection(_storyEntries);
+  renderPostGame();
+}
+
+function buildPostGame(candles) {
+  const valid = candles.filter(c => c.dominance && c.dominance.components);
+  if (valid.length < 5) return null;
+
+  const toIST = ts => {
+    const d = new Date(ts * 1000);
+    const mins = d.getUTCHours() * 60 + d.getUTCMinutes() + 330;
+    return `${String(Math.floor(mins / 60) % 24).padStart(2,'0')}:${String(mins % 60).padStart(2,'0')}`;
+  };
+
+  // Bullet 1 — Morning Trend (first 30% of session)
+  const mEnd = Math.max(3, Math.floor(valid.length * 0.3));
+  const mAvg = valid.slice(0, mEnd).reduce((s, c) => s + c.dominance.score, 0) / mEnd;
+  const mIcon = mAvg > 10 ? '🟢' : mAvg < -10 ? '🔴' : '🟡';
+  const mWord = mAvg > 10 ? 'Bullish' : mAvg < -10 ? 'Bearish' : 'Mixed/Choppy';
+  const mPhrase = mAvg > 0 ? 'buyers were leading' : mAvg < 0 ? 'sellers had the edge' : 'no clear direction';
+  const bullet1 = { icon: mIcon, text: `Morning Trend: ${mWord} — ${mPhrase} up to ~${toIST(valid[mEnd - 1].time)} IST.` };
+
+  // Bullet 2 — Turning Point (first Supertrend direction flip)
+  let flipIdx = -1, flipFrom = null, flipTo = null, prevDir = null;
+  for (let i = 0; i < valid.length; i++) {
+    const dir = valid[i].dominance.components.st_dir;
+    if (dir === 'N/A') continue;
+    if (prevDir && dir !== prevDir) { flipIdx = i; flipFrom = prevDir; flipTo = dir; break; }
+    prevDir = dir;
+  }
+  let bullet2;
+  if (flipIdx === -1) {
+    const d0 = valid.find(c => c.dominance.components.st_dir !== 'N/A');
+    const dw = d0 ? (d0.dominance.components.st_dir === 'up' ? 'bullish' : 'bearish') : 'neutral';
+    bullet2 = { icon: '🔄', text: `Turning Point: Supertrend stayed ${dw} all day — a clean trending session with no direction flip.` };
+  } else {
+    const toLabel   = flipTo === 'up' ? 'GREEN (bullish)' : 'RED (bearish)';
+    const fromLabel = flipFrom === 'up' ? 'bullish' : 'bearish';
+    bullet2 = { icon: '🔄', text: `Turning Point: Supertrend flipped from ${fromLabel} to ${toLabel} at ${toIST(valid[flipIdx].time)} IST — the market story changed here.` };
+  }
+
+  // Bullet 3 — Key Lesson from dominant day pattern
+  const stCounts = {};
+  let vwapAbove = 0, vwapBelow = 0, vwapFlips = 0, prevVwap = null;
+  valid.forEach(c => {
+    const s = c.dominance.state;
+    stCounts[s] = (stCounts[s] || 0) + 1;
+    const vp = c.dominance.vwap_pos;
+    if (vp === 'above') vwapAbove++; else if (vp === 'below') vwapBelow++;
+    if (prevVwap && vp !== 'at' && prevVwap !== 'at' && vp !== prevVwap) vwapFlips++;
+    prevVwap = vp;
+  });
+  const absCount   = (stCounts.absorption || 0) + (stCounts.fake_breakout || 0);
+  const trendCount = (stCounts.buyer_domination || 0) + (stCounts.seller_domination || 0);
+  let bullet3;
+  if (absCount > valid.length * 0.15)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Multiple absorption zones today — high volume with little price movement means smart money was absorbing supply/demand. These levels often become future support/resistance.' };
+  else if (trendCount > valid.length * 0.4)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Today was a strong trending day. Riding the Supertrend and staying on the VWAP side was the winning strategy.' };
+  else if (vwapFlips >= 3)
+    bullet3 = { icon: '📚', text: `Key Lesson: Price crossed VWAP ${vwapFlips} times today — a choppy session. Range-trading near VWAP outperformed trend-following.` };
+  else if (vwapAbove > vwapBelow * 2)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Price held above VWAP most of the session — VWAP acted as a floor. This is how bulls use the intraday average as support.' };
+  else if (vwapBelow > vwapAbove * 2)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Price stayed below VWAP most of the session — VWAP acted as a ceiling. This is how bears use the intraday average as resistance.' };
+  else
+    bullet3 = { icon: '📚', text: 'Key Lesson: Mixed signals throughout. Patience was key — waiting for score > ±25 with VWAP and Supertrend aligned would have filtered most of the noise.' };
+
+  return [bullet1, bullet2, bullet3];
+}
+
+function renderPostGame() {
+  const bullets = buildPostGame(_candles);
+  const wrap    = document.getElementById('postgame-wrap');
+  const body    = document.getElementById('pg-body');
+  if (!bullets || !wrap || !body) return;
+  body.innerHTML = `<div class="pg-body-inner">${bullets.map(b =>
+    `<div class="pg-bullet"><span class="pg-bullet-icon">${b.icon}</span><span class="pg-bullet-text">${b.text}</span></div>`
+  ).join('')}</div>`;
+  wrap.style.display = '';
 }
 
 function renderStorySection(entries) {
@@ -1991,6 +2142,8 @@ function clearStory() {
   _storyViewIdx = 0;
   const wrap = document.getElementById('story-viewer-wrap');
   if (wrap) wrap.style.display = 'none';
+  const pgWrap = document.getElementById('postgame-wrap');
+  if (pgWrap) pgWrap.style.display = 'none';
 }
 
 // ─── Closed-Hours Hub ─────────────────────────────────────────────────────────
@@ -2093,6 +2246,8 @@ function showClosedHub(extraMsg) {
   document.getElementById('state-name').textContent  = 'Practice Mode';
   document.getElementById('state-desc').textContent  = 'Market closed — quiz active';
   document.getElementById('insight-txt').textContent = 'Perfect time to drill candle patterns! Can you get 10 right in a row? 🎯';
+  const llEl = document.getElementById('logic-label');
+  if (llEl) { llEl.textContent = '—'; llEl.className = 'logic-label'; }
 
   clearStory();
   // Reset quiz scores on new session

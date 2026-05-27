@@ -104,6 +104,23 @@ Switching back from PRACTICE calls `reload()` to restore the chart.
 
 ---
 
+## Logic Label (added 2026-05-27)
+
+`buildLogicLabel(d, comp, score)` — generates a single consequence sentence shown below the Score Breakdown bars as `#logic-label`. Three special states override all scoring logic (absorption, fake_breakout, momentum_weakening). For all other states, a decision tree on `score`, `d.vwap_pos`, and `comp.st_dir` selects one of ~12 templated messages with an optional volume note. CSS classes: `.bull-label` (green border), `.bear-label` (red border), `.warn-label` (orange border). Called from `updatePanel`; reset to '—' in `showClosedHub`.
+
+---
+
+## Post-Game Summary (added 2026-05-27)
+
+`buildPostGame(candles)` — generates 3 bullets from `_candles` data (no backend call):
+1. **Morning Trend** — avg score of first 30% of candles → Bullish/Bearish/Mixed label + time
+2. **Turning Point** — first `st_dir` flip in the session → reports time and direction; "no flip" if all-day trend
+3. **Key Lesson** — derived from dominant state counts + VWAP position ratio (absorption → trending → VWAP play → mixed)
+
+`renderPostGame()` — fills `#pg-body` and shows `#postgame-wrap`. Called from `tryBuildStory()`. Hidden by `clearStory()` and `showClosedHub`. Card is collapsible via `[data-sec]` pattern. Not shown in PRACTICE mode (clearStory is called). Shown in both LIVE and REPLAY modes whenever candles are loaded.
+
+---
+
 ## Story Enhancements (added 2026-05-27)
 
 - **Keyword coloring** — `_colorizeStory(text)` wraps bull/bear words in `.st-bull` / `.st-bear` spans. `_renderStoryViewer` uses `innerHTML` (safe — text is generated internally, no user input).
@@ -116,10 +133,11 @@ Pattern: `[data-sec]` marks a collapsible section. `.sec-hdr` inside it is the c
 
 Collapsible sections:
 - `hist-section` — Recent Candles strip
+- `.pg-card` inside `#postgame-wrap` — Trading Diary / Post-Game Summary
 - `.story-viewer` — Day Story (the inner card, not the wrap)
 - `.dom-card` — Dominance meter (bar + pcts hidden, labels row stays as header)
 - Unnamed `[data-sec]` wrapper — groups `state-card` + `insight-card` under "Market State & Insight" header
-- `.bk-card` — Score Breakdown bars
+- `.bk-card` — Score Breakdown bars (includes `#logic-label` inside sec-body)
 - `.ci-card` — Current Candle OHLCV
 - `.cp-card` — Candle Pattern card (`id="cp-body"` div also gets `sec-body` class)
 
