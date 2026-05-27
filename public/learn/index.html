@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeZen Learn — CMS Preview</title>
+  <title>TradeZen Learn</title>
 
   <link rel="stylesheet" href="/halo-aurora/css/halo-tokens.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
@@ -18,7 +18,9 @@
     .topbar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .topbar .brand .wordmark { font-family: var(--tz-font-display); font-size: 17px; letter-spacing: -0.02em; color: var(--tz-fg-1); font-weight: 400; }
     .topbar .brand .wordmark em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-    .topbar .cms-badge { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: rgba(var(--tz-accent-rgb), 0.12); border: 1px solid var(--tz-border-accent); color: var(--tz-accent-1); }
+    .topbar .back-link { font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--tz-fg-3); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 180ms; padding: 4px 0; }
+    .topbar .back-link:hover { color: var(--tz-fg-1); }
+    .topbar .sep { width: 1px; height: 18px; background: var(--tz-border); flex-shrink: 0; }
     .topbar .spacer { flex: 1; }
     #themeToggle { background: none; border: 1px solid var(--tz-border); border-radius: 999px; padding: 6px 14px; font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--tz-fg-2); cursor: pointer; transition: border-color 180ms, color 180ms; }
     #themeToggle:hover { border-color: var(--tz-accent-1); color: var(--tz-fg-1); }
@@ -98,12 +100,6 @@
     /* XP summary in module header */
     .module-header .m-xp { margin-left: auto; font-family: var(--tz-font-mono); font-size: 10px; color: var(--tz-fg-3); }
 
-    /* Quick links */
-    .quick-links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
-    .quick-link { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-2); text-decoration: none; transition: border-color 180ms, color 180ms; }
-    .quick-link:hover { border-color: var(--tz-accent-1); color: var(--tz-fg-1); }
-    .quick-link .ql-icon { font-size: 16px; }
-
     /* Responsive */
     @media (max-width: 575px) {
       .page-wrap { padding: 24px 14px 60px; }
@@ -120,7 +116,11 @@
     <a href="/index.html" class="brand">
       <span class="wordmark">Trade<em>Zen</em></span>
     </a>
-    <span class="cms-badge">CMS Preview</span>
+    <div class="sep"></div>
+    <a href="/index.html" class="back-link">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Dashboard
+    </a>
     <div class="spacer"></div>
     <button id="themeToggle">☀ Light</button>
   </header>
@@ -129,35 +129,15 @@
 
     <!-- Hero -->
     <section class="hero">
-      <p class="eyebrow" data-en="Learn — Content Library" data-ta="கற்றல் — உள்ளட்ட நூலகம்">Learn — Content Library</p>
-      <h1>All <em>Chapters</em> at a Glance</h1>
-      <p class="sub" data-en="CMS parallel track — testing ground for JSON-driven lessons. Published lessons open in the dynamic renderer. Draft lessons are visible but not yet playable." data-ta="CMS இணை பாதை — JSON-இயக்கப்படும் பாடங்களுக்கான சோதனை தளம். வெளியிடப்பட்ட பாடங்கள் dynamic renderer-இல் திறக்கும்.">
-        CMS parallel track — testing ground for JSON-driven lessons. Published lessons open in the dynamic renderer. Draft lessons are visible but not yet playable.
+      <p class="eyebrow" data-en="TradeZen Learn" data-ta="TradeZen கற்றல்">TradeZen Learn</p>
+      <h1>Learn to Trade <em>Smarter</em></h1>
+      <p class="sub" data-en="Structured lessons on technical analysis, market psychology, and options — built for Indian markets. Pick up where you left off, earn XP, and track your progress." data-ta="தொழில்நுட்ப பகுப்பாய்வு, சந்தை உளவியல், மற்றும் options — இந்திய சந்தைகளுக்காக உருவாக்கப்பட்டது. நீங்கள் நிறுத்திய இடத்திலிருந்து தொடரவும், XP சம்பாதிக்கவும்.">
+        Structured lessons on technical analysis, market psychology, and options — built for Indian markets. Pick up where you left off, earn XP, and track your progress.
       </p>
       <div class="stats-row" id="stats-row">
         <!-- populated by JS -->
       </div>
     </section>
-
-    <!-- Quick links -->
-    <div class="quick-links">
-      <a href="/learn/" class="quick-link">
-        <span class="ql-icon">🏠</span>
-        <span data-en="HTML Home" data-ta="HTML முகப்பு">HTML Home</span>
-      </a>
-      <a href="/learn/lesson.html?id=m1l1" class="quick-link">
-        <span class="ql-icon">▶</span>
-        <span data-en="Open Lesson 1.1" data-ta="பாடம் 1.1 திறக்கவும்">Open Lesson 1.1</span>
-      </a>
-      <a href="/api/learn/catalog" class="quick-link" target="_blank">
-        <span class="ql-icon">{ }</span>
-        <span data-en="Raw catalog JSON" data-ta="Raw catalog JSON">Raw catalog JSON</span>
-      </a>
-      <a href="/api/learn/lesson/m1l1" class="quick-link" target="_blank">
-        <span class="ql-icon">{ }</span>
-        <span data-en="Raw lesson JSON" data-ta="Raw lesson JSON">Raw lesson JSON</span>
-      </a>
-    </div>
 
     <!-- Loading -->
     <div id="loading-state">
