@@ -99,9 +99,10 @@ router.get('/catalog', async (_req, res) => {
       modules: Array.from(cat.modMap.values()),
     }));
 
+    console.log('[learnRoute] catalog: rows=%d subjects=%d', rows.length, subjects.length);
     res.json({ version: '2', subjects });
   } catch (err) {
-    console.error('[learnRoute] catalog error:', err.message);
+    console.error('[learnRoute] catalog error — falling back to static:', err.message);
     if (fs.existsSync(STATIC_CATALOG)) {
       return res.json(JSON.parse(fs.readFileSync(STATIC_CATALOG, 'utf8')));
     }
