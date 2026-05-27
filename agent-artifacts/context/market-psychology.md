@@ -104,6 +104,27 @@ Switching back from PRACTICE calls `reload()` to restore the chart.
 
 ---
 
+## Story Enhancements (added 2026-05-27)
+
+- **Keyword coloring** — `_colorizeStory(text)` wraps bull/bear words in `.st-bull` / `.st-bear` spans. `_renderStoryViewer` uses `innerHTML` (safe — text is generated internally, no user input).
+- **Chart jump** — "📍 See on chart" button in `.sv-footer` calls `storyJumpToChart()`. Uses `_chart.setCrosshairPosition(close, time, _candleSeries)` + `timeScale().setVisibleLogicalRange()` to scroll the chart to the story entry's candle (entry `.idx` maps directly to `_candles[idx]`).
+- Both nav buttons (`storyFirst/Prev/Next/Last`) and the chart button use `event.stopPropagation()` to prevent triggering the `.sv-header` collapse toggle.
+
+## Section Collapse System (added 2026-05-27)
+
+Pattern: `[data-sec]` marks a collapsible section. `.sec-hdr` inside it is the clickable header (calls `toggleSec(this)`). `.sec-body` is the content to hide. CSS: `[data-sec].sec-collapsed .sec-body { display:none }`.
+
+Collapsible sections:
+- `hist-section` — Recent Candles strip
+- `.story-viewer` — Day Story (the inner card, not the wrap)
+- `.dom-card` — Dominance meter (bar + pcts hidden, labels row stays as header)
+- Unnamed `[data-sec]` wrapper — groups `state-card` + `insight-card` under "Market State & Insight" header
+- `.bk-card` — Score Breakdown bars
+- `.ci-card` — Current Candle OHLCV
+- `.cp-card` — Candle Pattern card (`id="cp-body"` div also gets `sec-body` class)
+
+---
+
 ## Known Caveats
 
 - `tryBuildStory()` is called from 3 places: `reload()`, `fetchAndDrawLevels()`, `pollTick()` (new candle). This is intentional — CPR and candles load asynchronously and either can arrive first.

@@ -294,6 +294,21 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .sv-dot.past{background:var(--muted)}
 .sv-dot.active{background:var(--accent);transform:scale(1.4);box-shadow:0 0 6px rgba(124,106,247,0.5)}
 
+/* ── SECTION COLLAPSE ── */
+.sec-hdr{cursor:pointer;user-select:none}
+.sec-hdr:hover{opacity:.85}
+.sec-chev{font-size:10px;color:var(--muted);transition:transform .2s;margin-left:auto;padding-left:8px;flex-shrink:0;line-height:1;display:inline-block}
+[data-sec].sec-collapsed .sec-chev{transform:rotate(-90deg)}
+[data-sec].sec-collapsed .sec-body{display:none !important}
+.sec-group-hdr{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:9px 14px;display:flex;align-items:center;gap:8px}
+.sec-group-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);flex:1}
+/* Story chart-link */
+.sv-chart-btn{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:rgba(124,106,247,0.07);border:1px solid rgba(124,106,247,0.2);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all .15s;letter-spacing:.3px}
+.sv-chart-btn:hover{color:var(--accent);border-color:rgba(124,106,247,0.45);background:rgba(124,106,247,0.12)}
+/* Story keyword coloring */
+.st-bull{color:var(--green);font-weight:600}
+.st-bear{color:var(--red);font-weight:600}
+
 /* ── CLOSED-HOURS HUB ── */
 #psych-chart.closed-hub{height:auto !important}
 .ch-banner{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg2)}
@@ -498,23 +513,26 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div><!-- /chart-panel -->
 
   <!-- CANDLE HISTORY (inside left column, fills gap below chart) -->
-  <div class="hist-section">
-    <div class="hist-title">Recent Candles</div>
-    <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
+  <div class="hist-section" data-sec>
+    <div class="hist-title sec-hdr" onclick="toggleSec(this)">Recent Candles <span class="sec-chev">▾</span></div>
+    <div class="sec-body">
+      <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
+    </div>
   </div>
 
   <!-- DAY STORY VIEWER (inside left column, fills vertical gap, sidebar stays visible) -->
   <div class="story-viewer-wrap" id="story-viewer-wrap" style="display:none">
-    <div class="story-viewer">
-      <div class="sv-header">
+    <div class="story-viewer" data-sec>
+      <div class="sv-header sec-hdr" onclick="toggleSec(this)">
         <span class="sv-header-icon">📖</span>
         <span class="sv-header-title">Today's Market Story</span>
         <span class="sv-header-meta" id="sv-meta"></span>
+        <span class="sec-chev" style="margin-left:10px">▾</span>
       </div>
-      <div class="sv-body">
+      <div class="sv-body sec-body">
         <div class="sv-nav-group">
-          <button class="sv-nav sv-skip" id="sv-first" onclick="storyFirst()" title="First moment">&#x23EE;</button>
-          <button class="sv-nav" id="sv-prev" onclick="storyPrev()" title="Previous">&#8592;</button>
+          <button class="sv-nav sv-skip" id="sv-first" onclick="storyFirst();event.stopPropagation()" title="First moment">&#x23EE;</button>
+          <button class="sv-nav" id="sv-prev" onclick="storyPrev();event.stopPropagation()" title="Previous">&#8592;</button>
         </div>
         <div class="sv-main">
           <div class="sv-act" id="sv-act"></div>
@@ -527,12 +545,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           </div>
           <div class="sv-footer">
             <span class="sv-counter" id="sv-counter"></span>
+            <button class="sv-chart-btn" onclick="storyJumpToChart();event.stopPropagation()" title="Jump to this candle on the chart">&#128205; See on chart</button>
             <div class="sv-dots" id="sv-dots"></div>
           </div>
         </div>
         <div class="sv-nav-group sv-nav-right">
-          <button class="sv-nav" id="sv-next" onclick="storyNext()" title="Next">&#8594;</button>
-          <button class="sv-nav sv-skip" id="sv-last" onclick="storyLast()" title="Last moment">&#x23ED;</button>
+          <button class="sv-nav" id="sv-next" onclick="storyNext();event.stopPropagation()" title="Next">&#8594;</button>
+          <button class="sv-nav sv-skip" id="sv-last" onclick="storyLast();event.stopPropagation()" title="Last moment">&#x23ED;</button>
         </div>
       </div>
     </div>
@@ -547,92 +566,106 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="psych-sidebar">
 
     <!-- DOMINANCE METER -->
-    <div class="dom-card">
-      <div class="dom-labels">
+    <div class="dom-card" data-sec>
+      <div class="dom-labels sec-hdr" onclick="toggleSec(this)">
         <span class="dom-lbl buy">BUYERS</span>
         <span class="dom-score neut" id="dom-score">—</span>
         <span class="dom-lbl sell">SELLERS</span>
+        <span class="sec-chev">▾</span>
       </div>
-      <div class="dom-bar-wrap">
-        <div class="dom-fill buy-fill" id="buy-fill" style="width:50%"></div>
-        <div class="dom-fill sell-fill" id="sell-fill" style="width:50%"></div>
+      <div class="sec-body">
+        <div class="dom-bar-wrap">
+          <div class="dom-fill buy-fill" id="buy-fill" style="width:50%"></div>
+          <div class="dom-fill sell-fill" id="sell-fill" style="width:50%"></div>
+        </div>
+        <div class="dom-pcts">
+          <span class="dom-pct-val buy" id="buy-pct">—</span>
+          <span class="dom-pct-val sell" id="sell-pct">—</span>
+        </div>
+        <div class="dom-note">Buyer Aggression vs Seller Pressure — not exact volume</div>
       </div>
-      <div class="dom-pcts">
-        <span class="dom-pct-val buy" id="buy-pct">—</span>
-        <span class="dom-pct-val sell" id="sell-pct">—</span>
-      </div>
-      <div class="dom-note">Buyer Aggression vs Seller Pressure — not exact volume</div>
     </div>
 
-    <!-- STATE BADGE -->
-    <div class="state-card" id="state-card">
-      <div class="state-icon-wrap" id="state-icon-wrap">—</div>
-      <div class="state-content">
-        <div class="state-name" id="state-name">Loading…</div>
-        <div class="state-desc" id="state-desc">Analyzing candle data</div>
+    <!-- STATE + INSIGHT (grouped, collapsible) -->
+    <div data-sec>
+      <div class="sec-group-hdr sec-hdr" onclick="toggleSec(this)">
+        <span class="sec-group-lbl">Market State &amp; Insight</span>
+        <span class="sec-chev">▾</span>
       </div>
-      <div class="state-pulse-ring" id="state-ring"></div>
-    </div>
-
-    <!-- INSIGHT -->
-    <div class="insight-card">
-      <div class="insight-icon">🧠</div>
-      <p class="insight-txt" id="insight-txt">Fetching market data…</p>
+      <div class="sec-body" style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
+        <div class="state-card" id="state-card">
+          <div class="state-icon-wrap" id="state-icon-wrap">—</div>
+          <div class="state-content">
+            <div class="state-name" id="state-name">Loading…</div>
+            <div class="state-desc" id="state-desc">Analyzing candle data</div>
+          </div>
+          <div class="state-pulse-ring" id="state-ring"></div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon">🧠</div>
+          <p class="insight-txt" id="insight-txt">Fetching market data…</p>
+        </div>
+      </div>
     </div>
 
     <!-- SCORE BREAKDOWN -->
-    <div class="bk-card">
-      <div class="bk-title">Score Breakdown</div>
-      <div class="bk-row">
-        <span class="bk-lbl">Body Strength</span>
-        <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-body" style="width:0%;background:var(--accent)"></div></div>
-        <span class="bk-val" id="bk-body-v">—</span>
-      </div>
-      <div class="bk-row">
-        <span class="bk-lbl">Close Position</span>
-        <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-close" style="width:0%;background:var(--accent)"></div></div>
-        <span class="bk-val" id="bk-close-v">—</span>
-      </div>
-      <div class="bk-row">
-        <span class="bk-lbl">Rel. Volume</span>
-        <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-vol" style="width:0%;background:var(--cyan)"></div></div>
-        <span class="bk-val" id="bk-vol-v">—</span>
-      </div>
-      <div class="bk-row">
-        <span class="bk-lbl">VWAP Position</span>
-        <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-vwap" style="width:0%;background:var(--accent)"></div></div>
-        <span class="bk-val" id="bk-vwap-v">—</span>
-      </div>
-      <div class="bk-row">
-        <span class="bk-lbl">Trend Align</span>
-        <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-trend" style="width:0%;background:var(--accent)"></div></div>
-        <span class="bk-val" id="bk-trend-v">—</span>
+    <div class="bk-card" data-sec>
+      <div class="bk-title sec-hdr" onclick="toggleSec(this)" style="display:flex;align-items:center">Score Breakdown <span class="sec-chev">▾</span></div>
+      <div class="sec-body">
+        <div class="bk-row">
+          <span class="bk-lbl">Body Strength</span>
+          <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-body" style="width:0%;background:var(--accent)"></div></div>
+          <span class="bk-val" id="bk-body-v">—</span>
+        </div>
+        <div class="bk-row">
+          <span class="bk-lbl">Close Position</span>
+          <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-close" style="width:0%;background:var(--accent)"></div></div>
+          <span class="bk-val" id="bk-close-v">—</span>
+        </div>
+        <div class="bk-row">
+          <span class="bk-lbl">Rel. Volume</span>
+          <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-vol" style="width:0%;background:var(--cyan)"></div></div>
+          <span class="bk-val" id="bk-vol-v">—</span>
+        </div>
+        <div class="bk-row">
+          <span class="bk-lbl">VWAP Position</span>
+          <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-vwap" style="width:0%;background:var(--accent)"></div></div>
+          <span class="bk-val" id="bk-vwap-v">—</span>
+        </div>
+        <div class="bk-row">
+          <span class="bk-lbl">Trend Align</span>
+          <div class="bk-bar-wrap"><div class="bk-bar-fill" id="bk-trend" style="width:0%;background:var(--accent)"></div></div>
+          <span class="bk-val" id="bk-trend-v">—</span>
+        </div>
       </div>
     </div>
 
     <!-- CANDLE INFO -->
-    <div class="ci-card">
-      <div class="ci-title">Current Candle</div>
-      <div class="ci-grid">
-        <div class="ci-item"><span class="ci-label">O</span><span class="ci-value" id="ci-o">—</span></div>
-        <div class="ci-item"><span class="ci-label">H</span><span class="ci-value bull" id="ci-h">—</span></div>
-        <div class="ci-item"><span class="ci-label">L</span><span class="ci-value bear" id="ci-l">—</span></div>
-        <div class="ci-item"><span class="ci-label">C</span><span class="ci-value" id="ci-c">—</span></div>
-        <div class="ci-vol-row">
-          <span class="ci-label">V</span>
-          <span class="ci-value" id="ci-v" style="font-size:11px">—</span>
-          <div class="ci-vol-bar-wrap"><div class="ci-vol-bar" id="ci-vol-bar" style="width:0%"></div></div>
+    <div class="ci-card" data-sec>
+      <div class="ci-title sec-hdr" onclick="toggleSec(this)" style="display:flex;align-items:center">Current Candle <span class="sec-chev">▾</span></div>
+      <div class="sec-body">
+        <div class="ci-grid">
+          <div class="ci-item"><span class="ci-label">O</span><span class="ci-value" id="ci-o">—</span></div>
+          <div class="ci-item"><span class="ci-label">H</span><span class="ci-value bull" id="ci-h">—</span></div>
+          <div class="ci-item"><span class="ci-label">L</span><span class="ci-value bear" id="ci-l">—</span></div>
+          <div class="ci-item"><span class="ci-label">C</span><span class="ci-value" id="ci-c">—</span></div>
+          <div class="ci-vol-row">
+            <span class="ci-label">V</span>
+            <span class="ci-value" id="ci-v" style="font-size:11px">—</span>
+            <div class="ci-vol-bar-wrap"><div class="ci-vol-bar" id="ci-vol-bar" style="width:0%"></div></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- CANDLE PATTERN -->
-    <div class="cp-card" id="cp-card">
-      <div class="cp-head">
+    <div class="cp-card" id="cp-card" data-sec>
+      <div class="cp-head sec-hdr" onclick="toggleSec(this)">
         <span class="cp-title">Candle Pattern</span>
         <span class="cp-badge" id="cp-badge">—</span>
+        <span class="sec-chev">▾</span>
       </div>
-      <div id="cp-body">
+      <div id="cp-body" class="sec-body">
         <div style="text-align:center;padding:16px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Waiting for data…</div>
       </div>
     </div>
@@ -1680,8 +1713,8 @@ function _renderStoryViewer() {
   document.getElementById('sv-time').textContent    = e.time;
   document.getElementById('sv-emoji').textContent   = e.emoji;
   const txtEl = document.getElementById('sv-text');
-  txtEl.textContent = e.text;
-  txtEl.className   = `sv-text tone-${e.tone}`;
+  txtEl.innerHTML = _colorizeStory(e.text);
+  txtEl.className = `sv-text tone-${e.tone}`;
   document.getElementById('sv-counter').textContent = `${i + 1} / ${reals.length}`;
 
   const atFirst = i === 0, atLast = i === reals.length - 1;
@@ -1708,6 +1741,33 @@ function storyFirst() { _storyViewIdx = 0; _renderStoryViewer(); }
 function storyLast()  { _storyViewIdx = _storyReals().length - 1; _renderStoryViewer(); }
 function storyPrev()  { if (_storyViewIdx > 0) { _storyViewIdx--; _renderStoryViewer(); } }
 function storyNext()  { const r = _storyReals(); if (_storyViewIdx < r.length - 1) { _storyViewIdx++; _renderStoryViewer(); } }
+
+function storyJumpToChart() {
+  const reals = _storyReals();
+  if (!reals.length || !_chart || !_candleSeries) return;
+  const e = reals[Math.max(0, Math.min(_storyViewIdx, reals.length - 1))];
+  if (e.idx == null || !_candles[e.idx]) return;
+  const c = _candles[e.idx];
+  try {
+    _chart.setCrosshairPosition(c.close, c.time, _candleSeries);
+    const from = Math.max(0, e.idx - 20);
+    const to   = Math.min(_candles.length - 1, e.idx + 5);
+    _chart.timeScale().setVisibleLogicalRange({ from, to });
+  } catch(_) {}
+}
+
+function _colorizeStory(text) {
+  return text
+    .replace(/\b(bullish|Bulls?|Buyers?|Breakout|momentum|buying|defended|uptrend|bounce|reclaimed)\b/gi,
+             '<span class="st-bull">$&</span>')
+    .replace(/\b(bearish|Bears?|Sellers?|Breakdown|selling|pressure|rejected|downtrend|fallen?|weakness)\b/gi,
+             '<span class="st-bear">$&</span>');
+}
+
+function toggleSec(hdrEl) {
+  const sec = hdrEl.closest('[data-sec]');
+  if (sec) sec.classList.toggle('sec-collapsed');
+}
 
 function _stFmt(ts) {
   const d = new Date(ts * 1000);
@@ -1792,7 +1852,7 @@ function generateDayStory(candles, cprData) {
       else if (aboveV)         { verdict='Buyers held the edge at close. Mild bullish day.'; tone='bull'; }
       else if (belowC && !aboveV){ verdict='Bears in full control. Classic downtrend session.'; tone='bear'; }
       else                     { verdict='Choppy day — neither side convincingly won.'; tone='neutral'; }
-      push({ emoji:'🏁', tone, text:`Day closed at ${c.close.toFixed(0)}. ${verdict}` }, i);
+      push({ emoji:'🏁', tone, text:`Session over. ${verdict}` }, i);
       return;
     }
 
