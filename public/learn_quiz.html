@@ -190,7 +190,7 @@ nav{background:rgba(10,12,24,0.97);border-bottom:1px solid var(--border);height:
       <div class="res-actions">
         <button class="res-btn btn-primary" id="btnFinish" onclick="finishQuiz()">Save & Continue →</button>
         <button class="res-btn btn-secondary" onclick="retakeQuiz()">↺ Retake</button>
-        <a href="/training/learn_home.html" class="res-btn btn-secondary">Dashboard</a>
+        <a href="/learn/" class="res-btn btn-secondary">Dashboard</a>
       </div>
     </div>
 
@@ -778,7 +778,7 @@ function finishQuiz() {
   if (hasCh) {
     window.location.href = `/learn_technical.html#ch${nextCh}`;
   } else {
-    window.location.href = `/learn_home.html`;
+    window.location.href = `/learn/`;
   }
 }
 
@@ -793,7 +793,7 @@ function retakeQuiz() {
 }
 
 function showError(msg) {
-  document.getElementById('loadingState').innerHTML = `<div style="color:var(--red)">${msg}</div><br><a href="/training/learn_home.html" style="color:var(--accent)">← Back to Dashboard</a>`;
+  document.getElementById('loadingState').innerHTML = `<div style="color:var(--red)">${msg}</div><br><a href="/learn/" style="color:var(--accent)">← Back to Dashboard</a>`;
 }
 
 /* ── i18n foundation ─────────────────────────────────────────── */

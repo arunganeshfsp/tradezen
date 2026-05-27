@@ -1,44 +1,60 @@
 # Context: learn
 
-**Files:** `public/learn_home.html` (new entry point), `public/learn_m1_l1.html` (new), `public/learn_dashboard.html`, `public/learn_technical.html`, `public/learn_quiz.html`, `public/learn_ch_ta_1.html` … `learn_ch_ta_10.html`, `public/learn-sidebar.js`  
-**Halo Aurora assets:** `public/halo-aurora/css/halo-tokens.css`, `halo-aurora.css`, `public/halo-aurora/js/halo-aurora.js`, `public/halo-aurora/tutorial/tutorial.css`, `tutorial.js`  
-**Last updated:** 2026-05-24
+**Files (active CMS system):** `public/learn/index.html`, `public/learn/lesson.html`, `public/learn/catalog.json`, `public/learn/lessons/*.json`  
+**Routes:** `routes/learnRoute.js` (PostgreSQL-backed catalog + lesson API), `routes/adminLearnRoute.js` (admin CRUD)  
+**Admin CMS:** `public/mgmt/learn-admin.html`  
+**Legacy pages (kept but no longer linked from nav):** `public/learn_dashboard.html`, `public/learn_technical.html`, `public/learn_quiz.html`, `public/learn_ch_ta_1.html` … `learn_ch_ta_10.html`  
+**Deprecated (for removal):** `public/training/learn_home.html`, `public/training/learn_m1_l1.html`, `public/training/learn_m1_l2.html`, `public/training/learn_m1_l3.html`  
+**Last updated:** 2026-05-27
 
 ---
 
 ## Purpose
 
-Two parallel learning systems coexist:
+The CMS-driven system at `/learn/` is now the primary learn section.
 
-1. **Legacy system** — `learn_dashboard.html` entry point; 10 Tamil TA chapters; old gamification. Nav links sitewide now point away from this (see below).
-2. **Halo Aurora system** — `learn_home.html` entry point; new Duolingo-style Story Cards format; all sitewide `📚 Learn` nav links now point here.
+- **Entry point:** `GET /learn/` → `public/learn/index.html` — catalog view, fetches `/api/learn/catalog`
+- **Lesson renderer:** `public/learn/lesson.html` — single dynamic page, loads lesson by `?id=` from `/api/learn/lesson/:id`
+- **Backend:** `routes/learnRoute.js` serves catalog and lesson data from PostgreSQL
+- **Admin:** `/mgmt/learn-admin.html` manages content via `routes/adminLearnRoute.js` (protected by `ADMIN_TOKEN` header)
 
 ---
 
-## Halo Aurora Learning Section
+## Nav Migration (2026-05-27)
 
-### Entry point
-`learn_home.html` — Halo Aurora landing page. Reads `tz_learn` localStorage for XP/progress. Shows Module 1 with Lesson 1.1 available; Lessons 1.2–1.4 locked (COMING SOON). Modules 2 & 3 show as coming soon.
+All sitewide `📚 Learn` nav links (25 HTML files) updated from `/training/learn_home.html` → `/learn/`.  
+Files updated: cpr_monitor, fno_scanner, market_psychology, options_analysis, s1_monitor, stock_movers, swing_trading, trade_flow, index, learn_quiz, learn_technical, learn_dashboard, learn_ch_ta_1…10, swing_trading_tutorial_tamil, cup_handle_tutorial, learn/lesson.html, learn/index.html.
 
-### Lesson pages
-`learn_m1_l1.html` — Module 1, Lesson 1: "What is the Stock Market?" — 9 Story Cards (Option B format). Three interactive checkpoints gated with `data-needs-answer`: T/F, Tap-the-image, MCQ. On completion writes `m1l1` to `lessons_done[]` and XP to `tz_learn`.
+Back-links inside `learn/lesson.html` (close button, back button, "Back to Learn" button in rail) also updated to `/learn/`.
 
-### Halo Aurora assets (self-contained under `public/halo-aurora/`)
-- `css/halo-tokens.css` — all `--tz-*` design tokens (dark + light)
-- `css/halo-aurora.css` — Bootstrap 5.3.3 overrides + component styles
-- `js/halo-aurora.js` — theme/lang toggle, filter chips, sparklines
-- `tutorial/tutorial.css` — quiz primitives, result card, confetti
-- `tutorial/tutorial.js` — TZTutor engine: scoreBook, confetti, renderResult, updateProgress; XP writes to `tz_learn`
+---
 
-### Key design rules
-- Only `var(--tz-*)` tokens — no raw hex
-- Bootstrap 5.3.3 + `data-bs-theme` for dark/light (separate from legacy `theme.css`)
-- Fonts: DM Serif Display / DM Sans / JetBrains Mono / Noto Sans Tamil
-- XP localStorage key: `tz_learn` — same key as legacy system (compatible: legacy uses `chapters_done`, new uses `lessons_done`)
-- Lesson IDs: `m1l1`, `m1l2`, etc.
+## CMS API
 
-### Nav migration (2026-05-24)
-All sitewide `📚 Learn` nav links (16 HTML files) updated from `learn_dashboard.html` → `learn_home.html`. Old tutorial pages (`learn_ch_ta_*.html`, `swing_trading_tutorial_tamil.html`, etc.) remain on disk and accessible by direct URL but are no longer linked from the primary nav.
+| Route | Returns |
+|---|---|
+| `GET /api/learn/catalog` | Category → module → chapter tree |
+| `GET /api/learn/lesson/:id` | Full lesson with cards array |
+| `GET /api/mgmt/learn/tree` | Admin tree (requires `ADMIN_TOKEN` header) |
+| `GET /api/mgmt/learn/chapter/:slug` | Admin single chapter |
+
+---
+
+## Legacy / Old TA Course
+
+Still accessible directly by URL; nav no longer links there:
+- `learn_dashboard.html` — XP tracker + 10 Tamil TA chapters
+- `learn_technical.html` — chapter listing
+- `learn_ch_ta_1.html` … `learn_ch_ta_10.html` — Tamil TA chapter content
+- `learn_quiz.html` — standalone quiz (uses `?module=ta&ch=N` params)
+
+`learn_quiz.html` redirected to `/learn/` (fixed broken `/learn_home.html` href and `window.location.href`).
+
+---
+
+## Deprecated `/training/` pages
+
+`public/training/learn_home.html` and `learn_m1_l1/l2/l3.html` are the old static Halo Aurora lesson pages. They are self-contained (only link to each other) and can be deleted by the user. Nothing outside `/training/` links to them anymore.
 
 ---
 

@@ -219,7 +219,7 @@
     <header class="stage-top">
       <div class="dots" id="dots"></div>
       <div class="top-row">
-        <a class="close" href="/training/learn_home.html" aria-label="Back to lessons">
+        <a class="close" href="/learn/" aria-label="Back to lessons">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </a>
         <div class="meta">
@@ -549,7 +549,7 @@
   </div>
   ${nextHtml}
   <div style="margin-top:12px;">
-    <a href="/training/learn_home.html" class="btn btn-ghost btn-sm w-100 justify-content-center" data-en="← Back to Learn" data-ta="← கற்றலுக்கு திரும்பு">← Back to Learn</a>
+    <a href="/learn/" class="btn btn-ghost btn-sm w-100 justify-content-center" data-en="← Back to Learn" data-ta="← கற்றலுக்கு திரும்பு">← Back to Learn</a>
   </div>
   <div class="spacer"></div>
 </article>`;
@@ -605,7 +605,7 @@
     return `
 <div class="rail-card">
   <div class="module-crumb">
-    <a class="back" href="/training/learn_home.html" aria-label="Back to modules">${BACK_SVG}</a>
+    <a class="back" href="/learn/" aria-label="Back to modules">${BACK_SVG}</a>
     <div class="meta">
       <div class="k">MODULE ${lesson.module_id ? lesson.module_id.replace('m','') : '1'}</div>
       <div class="v" data-en="${esc(en(lesson.module_label))}" data-ta="${esc(ta(lesson.module_label))}">${esc(en(lesson.module_label))}</div>
