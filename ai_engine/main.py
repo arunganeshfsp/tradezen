@@ -2799,8 +2799,12 @@ def _stock_indicators_sync(symbol: str) -> dict:
         delta = pd.Series(closes).diff()
         gain  = delta.clip(lower=0).rolling(14).mean()
         loss  = (-delta.clip(upper=0)).rolling(14).mean()
-        rs    = gain / loss.replace(0, float('nan'))
-        rsi_val = round(float(100 - 100 / (1 + rs.iloc[-1])), 2)
+        rs_last = loss.iloc[-1]
+        if rs_last == 0:
+            rsi_val = 100.0
+        else:
+            rs = gain.iloc[-1] / rs_last
+            rsi_val = round(float(100 - 100 / (1 + rs)), 2)
 
         # EMA trend
         s = pd.Series(closes)

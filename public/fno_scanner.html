@@ -609,32 +609,33 @@ async function openConfirm(stock) {
 function renderConfirm(stock, ind) {
   const dom      = stock.dominance;   // BUYER | SELLER
   const domStr   = stock.strength;    // 0-100
-  const rsi      = ind.rsi;
-  const trend    = ind.trend;         // UP | DOWN
-  const vol      = ind.volumeSignal  || ind.volumeSignal  || 'NORMAL';
+  const rsi      = (ind.rsi != null && !Number.isNaN(ind.rsi)) ? ind.rsi : null;
+  const rsiStr   = rsi !== null ? rsi.toFixed(1) : '—';
+  const trend    = ind.trend || 'UNKNOWN';
+  const vol      = ind.volumeSignal || 'NORMAL';
   const candle   = ind.candlePattern || 'NONE';
 
   // ── Signal logic ────────────────────────────────────────────────
   let signal = 'WAIT', reason = '', sigClass = 'sig-wait';
 
-  const bullAlign = dom === 'BUYER'  && trend === 'UP'   && rsi < 65;
-  const bearAlign = dom === 'SELLER' && trend === 'DOWN' && rsi > 35;
+  const bullAlign = dom === 'BUYER'  && trend === 'UP'   && rsi !== null && rsi < 65;
+  const bearAlign = dom === 'SELLER' && trend === 'DOWN' && rsi !== null && rsi > 35;
 
   if (bullAlign && domStr >= 55) {
     signal   = vol === 'HIGH' ? 'STRONG BUY CALL ▲' : 'BUY CALL ▲';
-    reason   = `Buyers dominating (${stock.buy_pct}%) · EMA trend bullish · RSI ${rsi.toFixed(1)} (room to run)${vol === 'HIGH' ? ' · Volume confirms' : ''}`;
+    reason   = `Buyers dominating (${stock.buy_pct}%) · EMA trend bullish · RSI ${rsiStr} (room to run)${vol === 'HIGH' ? ' · Volume confirms' : ''}`;
     sigClass = 'sig-call';
   } else if (bearAlign && domStr >= 55) {
     signal   = vol === 'HIGH' ? 'STRONG BUY PUT ▼' : 'BUY PUT ▼';
-    reason   = `Sellers dominating (${stock.sell_pct}%) · EMA trend bearish · RSI ${rsi.toFixed(1)} (room to fall)${vol === 'HIGH' ? ' · Volume confirms' : ''}`;
+    reason   = `Sellers dominating (${stock.sell_pct}%) · EMA trend bearish · RSI ${rsiStr} (room to fall)${vol === 'HIGH' ? ' · Volume confirms' : ''}`;
     sigClass = 'sig-put';
-  } else if (dom === 'BUYER' && rsi >= 65) {
+  } else if (dom === 'BUYER' && rsi !== null && rsi >= 65) {
     signal   = 'WAIT — Overbought';
-    reason   = `Buyers dominating but RSI ${rsi.toFixed(1)} is overbought. Wait for pullback before entering CALL.`;
+    reason   = `Buyers dominating but RSI ${rsiStr} is overbought. Wait for pullback before entering CALL.`;
     sigClass = 'sig-wait';
-  } else if (dom === 'SELLER' && rsi <= 35) {
+  } else if (dom === 'SELLER' && rsi !== null && rsi <= 35) {
     signal   = 'WAIT — Oversold';
-    reason   = `Sellers dominating but RSI ${rsi.toFixed(1)} is oversold. Bounce risk — wait before entering PUT.`;
+    reason   = `Sellers dominating but RSI ${rsiStr} is oversold. Bounce risk — wait before entering PUT.`;
     sigClass = 'sig-wait';
   } else if (dom === 'BUYER' && trend === 'DOWN') {
     signal   = 'SKIP — Trend Conflict';
@@ -646,7 +647,7 @@ function renderConfirm(stock, ind) {
     sigClass = 'sig-skip';
   } else {
     signal   = 'WAIT';
-    reason   = `Signals are mixed. Dominance: ${domStr}%, RSI: ${rsi.toFixed(1)}, Trend: ${trend}. Wait for clearer setup.`;
+    reason   = `Signals are mixed. Dominance: ${domStr}%, RSI: ${rsiStr}, Trend: ${trend}. Wait for clearer setup.`;
     sigClass = 'sig-wait';
   }
 
@@ -691,7 +692,7 @@ function renderConfirm(stock, ind) {
                                      ['ib-grey',   'Moderate — Check option chain OI'];
 
   // ── RSI badge ───────────────────────────────────────────────────
-  const rsiBadge = rsi >= 70 ? ['OVERBOUGHT','ib-red'] : rsi <= 30 ? ['OVERSOLD','ib-green'] : rsi >= 60 ? ['ELEVATED','ib-yellow'] : rsi <= 40 ? ['DEPRESSED','ib-yellow'] : ['NEUTRAL','ib-grey'];
+  const rsiBadge = rsi === null ? ['N/A','ib-grey'] : rsi >= 70 ? ['OVERBOUGHT','ib-red'] : rsi <= 30 ? ['OVERSOLD','ib-green'] : rsi >= 60 ? ['ELEVATED','ib-yellow'] : rsi <= 40 ? ['DEPRESSED','ib-yellow'] : ['NEUTRAL','ib-grey'];
 
   // ── Trend badge ─────────────────────────────────────────────────
   const trendBadge = trend === 'UP' ? ['BULLISH','ib-green'] : ['BEARISH','ib-red'];
@@ -723,7 +724,7 @@ function renderConfirm(stock, ind) {
       </div>
       <div class="ind-row">
         <span class="ind-name">RSI (14)</span>
-        <span class="ind-val">${rsi.toFixed(1)}</span>
+        <span class="ind-val">${rsiStr}</span>
         <span class="ind-badge ${rsiBadge[1]}">${rsiBadge[0]}</span>
       </div>
       <div class="ind-row">
