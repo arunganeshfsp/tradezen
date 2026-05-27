@@ -2,7 +2,6 @@ const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
 const { query } = require('../db/db');
-const { requireAuth } = require('../middleware/auth');
 const router  = express.Router();
 
 const STATIC_CATALOG = path.join(__dirname, '../public/learn/catalog.json');
