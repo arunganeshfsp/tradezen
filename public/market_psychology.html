@@ -2033,11 +2033,7 @@ function buildPostGame(candles) {
   const valid = candles.filter(c => c.dominance && c.dominance.components);
   if (valid.length < 5) return null;
 
-  const toIST = ts => {
-    const d = new Date(ts * 1000);
-    const mins = d.getUTCHours() * 60 + d.getUTCMinutes() + 330;
-    return `${String(Math.floor(mins / 60) % 24).padStart(2,'0')}:${String(mins % 60).padStart(2,'0')}`;
-  };
+  const toIST = ts => _stFmt(ts);
 
   // Bullet 1 — Morning Trend (first 30% of session)
   const mEnd = Math.max(3, Math.floor(valid.length * 0.3));
