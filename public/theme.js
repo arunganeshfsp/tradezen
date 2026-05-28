@@ -3,11 +3,18 @@
   var _theme = localStorage.getItem('tz_theme') || 'dark';
   document.documentElement.setAttribute('data-theme', _theme);
 
+  function _applyIconTheme(mode) {
+    document.querySelectorAll('[data-app-logo]').forEach(function (img) {
+      img.src = mode === 'light' ? '/app-icon-light.svg' : '/app-icon.svg';
+    });
+  }
+
   window.toggleTheme = function () {
     var cur  = document.documentElement.getAttribute('data-theme') || 'dark';
     var next = cur === 'dark' ? 'light' : 'dark';
     localStorage.setItem('tz_theme', next);
     document.documentElement.setAttribute('data-theme', next);
+    _applyIconTheme(next);
   };
 
   // ── Language ───────────────────────────────────────────────────────────
@@ -46,6 +53,7 @@
 
   // ── Inject lang button + apply lang on DOMContentLoaded ────────────────
   document.addEventListener('DOMContentLoaded', function () {
+    _applyIconTheme(_theme);
     var navR = document.querySelector('.nav-r');
     if (navR && !document.getElementById('langToggle')) {
       var btn = document.createElement('button');

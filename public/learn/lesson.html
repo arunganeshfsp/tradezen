@@ -97,7 +97,7 @@
     .card-body { font-family: var(--tz-font-ui); font-size: 16px; line-height: 1.6; color: var(--tz-fg-1); margin: 0 0 12px; flex: none; }
     .card-body.muted { color: var(--tz-fg-2); }
     .card-pill { display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--tz-surface); border: 1px solid var(--tz-border); font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--tz-fg-2); text-transform: uppercase; margin-bottom: 18px; }
-    .spacer { flex: 1; min-height: 8px; max-height: 56px; }
+    .spacer { flex: 1; min-height: 8px; }
     .stage-bottom { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 10px; z-index: 4; }
     .stage-bottom .btn-prev, .stage-bottom .btn-next { flex: 1; padding: 14px 18px; border-radius: 16px; font-family: var(--tz-font-ui); font-size: 14.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 180ms var(--tz-ease-out); }
     .stage-bottom .btn-prev { background: rgba(255,255,255,0.06); color: var(--tz-fg-1); border: 1px solid var(--tz-border); flex: 0 0 96px; }
@@ -108,7 +108,7 @@
     .stage-bottom .btn-next:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
     /* Quiz inside card */
-    .card-slide .result-card { padding: 24px 18px; border-radius: var(--tz-radius-xl); }
+    .card-slide .result-card { padding: 24px 18px 32px; border-radius: var(--tz-radius-xl); flex: none; }
     .card-slide .result-card .trophy { width: 60px; height: 60px; }
     .card-slide .result-card .score  { font-size: 52px; }
     .card-slide .quiz-q { background: transparent; border: none; padding: 0; }
