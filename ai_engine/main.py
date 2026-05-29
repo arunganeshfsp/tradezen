@@ -2517,25 +2517,40 @@ async def psychology_tick(symbol: str = "NIFTY", interval: str = "5m"):
 
 
 @app.get("/psychology/levels")
-async def psychology_levels(symbol: str = "NIFTY"):
+async def psychology_levels(symbol: str = "NIFTY", date: str = None):
     import yfinance as yf
     import datetime as _dt
     IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
     yf_sym = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}.get(symbol.upper(), f"{symbol.upper()}.NS")
-    df = yf.Ticker(yf_sym).history(period="10d", interval="1d")
-    if df.empty or len(df) < 2:
-        return {"error": "Insufficient data"}
-    today = _dt.datetime.now(IST).date()
-    try:
-        df.index = df.index.normalize()
-        past = df[df.index.date < today]
-        if past.empty:
+
+    if date:
+        # Historical: fetch daily bars ending before the target date
+        target = _dt.datetime.strptime(date, "%Y-%m-%d").date()
+        start  = (target - _dt.timedelta(days=20)).strftime("%Y-%m-%d")
+        df = yf.Ticker(yf_sym).history(start=start, end=date, interval="1d")
+        if df.empty:
+            return {"error": f"No daily data before {date}"}
+        try:
+            df.index = df.index.normalize()
+            prev_row = df[df.index.date < target].iloc[-1]
+        except Exception:
+            prev_row = df.iloc[-1]
+        prev = prev_row
+    else:
+        df = yf.Ticker(yf_sym).history(period="10d", interval="1d")
+        if df.empty or len(df) < 2:
+            return {"error": "Insufficient data"}
+        today = _dt.datetime.now(IST).date()
+        try:
+            df.index = df.index.normalize()
+            past = df[df.index.date < today]
+            if past.empty:
+                past = df.iloc[:-1]
+        except Exception:
             past = df.iloc[:-1]
-    except Exception:
-        past = df.iloc[:-1]
-    if past.empty:
-        return {"error": "No prior session data"}
-    prev = past.iloc[-1]
+        if past.empty:
+            return {"error": "No prior session data"}
+        prev = past.iloc[-1]
     H, L, C = float(prev.High), float(prev.Low), float(prev.Close)
     pp    = round((H + L + C) / 3, 2)
     _bc   = round((H + L) / 2, 2)

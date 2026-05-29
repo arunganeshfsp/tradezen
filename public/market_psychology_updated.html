@@ -217,6 +217,7 @@ input[type=range]{accent-color:var(--accent)}
 .tp-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;transition:all .2s}
 .tp-badge.live{background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:var(--green)}
 .tp-badge.replay{background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.35);color:var(--accent)}
+.tp-badge.hist{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.3);color:var(--cyan);letter-spacing:.3px}
 .tp-badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
 .tp-badge.live .tp-badge-dot{animation:pulseAnim 1.4s infinite}
 .tp-sym{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);white-space:nowrap}
@@ -471,7 +472,6 @@ input[type=range]{accent-color:var(--accent)}
 .hist-load-btn:disabled{opacity:.45;cursor:default}
 .hist-body{flex:1;display:flex;flex-direction:column;min-height:0}
 .hist-chart-wrap{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:320px}
-#hist-chart{border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--bg)}
 .hist-status{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:10px;color:var(--muted);font-size:13px;text-align:center;padding:24px}
 .hist-status-icon{font-size:38px;opacity:.35;line-height:1}
 .hist-asof{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:0 4px}
@@ -520,7 +520,7 @@ input[type=range]{accent-color:var(--accent)}
   <div class="htag">📺 TRADE PLAYER</div>
   <h1>Watch. Replay. <em>Learn.</em></h1>
   <p class="hero-sub">Live market action · Historical session replay · Candle psychology · VWAP & Supertrend · Read the tape, beat by beat</p>
-  <a class="hero-cta" href="#" onclick="openCspModal();return false;">📖 Try Candle Stories</a>
+  <a class="hero-cta" href="#" onclick="openCspModal('stories');return false;">📖 Session Story</a>
 </div>
 
 <!-- CONTROLS -->
@@ -883,6 +883,7 @@ let _orbLines      = [];
 let _levelsVisible = false; // kept for legacy; controlled by _indState.cpr / _indState.pivots
 let _floatLabels   = [];
 let _isFullscreen  = false;
+let _histDate = null;        // null = today/live; 'YYYY-MM-DD' = historical session
 let _livePoll = null;        // setInterval id
 let _rpIdx    = 0;           // replay cursor
 let _rpTimer  = null;        // replay setInterval id
@@ -932,8 +933,10 @@ function setMode(mode) {
   _tpSetMode(mode);
 
   if (mode === 'live') {
+    const wasHist = !!_histDate;
+    _histDate = null;
     rpStop();
-    startLivePoll();
+    if (wasHist) reload(); else startLivePoll();
   } else {
     stopLivePoll();
     rpStop();
@@ -950,10 +953,13 @@ async function reload() {
   clearError();
 
   try {
-    const res  = await fetch(`/api/psychology/candles?symbol=${_sym}&interval=${_tf}`);
+    const url = _histDate
+      ? `/api/psychology/candles?symbol=${_sym}&interval=${_tf}&date=${_histDate}`
+      : `/api/psychology/candles?symbol=${_sym}&interval=${_tf}`;
+    const res  = await fetch(url);
     const data = await res.json();
 
-    if (data.market_closed || !data.candles || data.candles.length === 0) {
+    if (!_histDate && (data.market_closed || !data.candles || data.candles.length === 0)) {
       showMarketClosed(data.error || 'Market closed — no intraday data today');
       return;
     }
@@ -961,21 +967,36 @@ async function reload() {
       showError(data.error);
       return;
     }
+    if (!data.candles || data.candles.length === 0) {
+      showError(`No data for ${_histDate || 'today'}`);
+      return;
+    }
 
     _candles = data.candles;
     _lastCandleTime = _candles.length ? _candles[_candles.length - 1].time : 0;
     buildChart(data.candles);
-    fetchAndDrawLevels();  // also calls tryBuildStory() once CPR loads
-    fetchAndDrawOrb();
+    fetchAndDrawLevels();
+    if (!_histDate) fetchAndDrawOrb();
     updatePanel(_candles[_candles.length - 1]);
     updateHistStrip(_candles);
-    tryBuildStory();  // may be partial until CPR loads; fetchAndDrawLevels fills the rest
-    document.getElementById('chart-asof').textContent =
-      `${data.count} candles · last: ${data.as_of} IST`;
-    document.getElementById('ctrl-asof').textContent = data.as_of + ' IST';
+    tryBuildStory();
+    const label = _histDate ? `${data.count} candles · ${_histDate}` : `${data.count} candles · last: ${data.as_of} IST`;
+    document.getElementById('chart-asof').textContent = label;
+    document.getElementById('ctrl-asof').textContent  = _histDate ? _histDate : data.as_of + ' IST';
 
-    if (_mode === 'live') startLivePoll();
-    else { _rpIdx = _candles.length - 1; rpInitSlider(); rpRender(); }
+    if (_histDate) {
+      _rpIdx = _candles.length - 1;
+      rpInitSlider();
+      rpRender();
+      // Ensure badge + controls reflect historical replay state
+      _tpSetMode('replay');
+    } else if (_mode === 'live') {
+      startLivePoll();
+    } else {
+      _rpIdx = _candles.length - 1;
+      rpInitSlider();
+      rpRender();
+    }
 
   } catch (e) {
     showError('Engine unreachable — is Python running?');
@@ -1104,7 +1125,10 @@ function _calcCam(H, L, C) {
 
 async function fetchAndDrawLevels() {
   try {
-    const res = await fetch(`/api/psychology/levels?symbol=${_sym}`);
+    const levelsUrl = _histDate
+      ? `/api/psychology/levels?symbol=${_sym}&date=${_histDate}`
+      : `/api/psychology/levels?symbol=${_sym}`;
+    const res = await fetch(levelsUrl);
     const d   = await res.json();
     if (!d.cpr || !d.camarilla) return;
     _cprData = { cpr: d.cpr, cam: d.camarilla };
@@ -1656,8 +1680,13 @@ function _tpSetMode(mode) {
   const speedGrp = document.getElementById('tp-speed-grp');
 
   if (badge) {
-    badge.className = 'tp-badge ' + (isReplay ? 'replay' : 'live');
-    if (label) label.textContent = isReplay ? 'REPLAY' : 'LIVE';
+    if (_histDate) {
+      badge.className = 'tp-badge hist';
+      if (label) label.textContent = _histDate;
+    } else {
+      badge.className = 'tp-badge ' + (isReplay ? 'replay' : 'live');
+      if (label) label.textContent = isReplay ? 'REPLAY' : 'LIVE';
+    }
   }
   if (scrubRow) scrubRow.style.display = isReplay ? '' : 'none';
   if (speedGrp) speedGrp.style.display = isReplay ? '' : 'none';
@@ -2497,17 +2526,14 @@ reload();
     <!-- header: modal tabs + close -->
     <div class="csp-modal-hdr">
       <div class="csp-modal-tabs">
-        <button class="csp-modal-tab active" id="csp-modal-tab-stories" onclick="cspModalTab('stories')">📖 Candle Stories</button>
-        <button class="csp-modal-tab" id="csp-modal-tab-hist" onclick="cspModalTab('hist')">📅 Historical Chart</button>
+        <button class="csp-modal-tab active" id="csp-modal-tab-stories" onclick="cspModalTab('stories')">📖 Session Story</button>
+        <button class="csp-modal-tab" id="csp-modal-tab-hist" onclick="cspModalTab('hist')">📅 Load Session</button>
       </div>
       <button class="csp-modal-close" onclick="closeCspModal()" title="Close">✕</button>
     </div>
 
     <!-- STORIES PANE -->
     <div class="csp-pane" id="csp-pane-stories">
-      <div class="csp-inner-head">
-        <div class="csp-story-tabs" id="csp-tabs"></div>
-      </div>
       <div class="csp-body">
         <div class="csp-personality">
           <div class="csp-personality-emoji" id="csp-emoji">🌅</div>
@@ -2564,17 +2590,15 @@ reload();
           <label>Date</label>
           <input type="date" id="hist-date" class="hist-date-input" />
         </div>
-        <button class="hist-load-btn" id="hist-load-btn" onclick="loadHistChart()">Load Chart</button>
+        <button class="hist-load-btn" id="hist-load-btn" onclick="loadHistSession()">Load Session</button>
       </div>
       <div class="hist-chart-wrap">
         <div class="hist-status" id="hist-status">
           <div class="hist-status-icon">📅</div>
-          <span>Select a date above and tap <strong>Load Chart</strong></span>
+          <span>Pick a date and tap <strong>Load Session</strong> — the full page will load that day's candles, indicators, and story.</span>
         </div>
-        <div id="hist-chart" style="display:none;height:340px"></div>
-        <div class="hist-asof" id="hist-asof" style="display:none"></div>
       </div>
-      <div class="hist-note">⚠ yfinance: 5m/15m data available up to 60 days back · 1m up to 7 days back</div>
+      <div class="hist-note">⚠ 5m/15m data: up to 60 days back · 1m: up to 7 days back (yfinance limit)</div>
     </div>
   </div>
 </div>
@@ -2582,150 +2606,18 @@ reload();
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
 <script>
-// ─── Candle Story Player ──────────────────────────────────────────────────────
-const CSP_STORIES = [
-  {
-    id:'sunny', emoji:'☀️',
-    title_en:'Sunny Day', title_ta:'சன்னி நாள்',
-    takeaway_en:'When buyers hold above VWAP all day, the market tells a single story — steady control from open to close.',
-    takeaway_ta:'வாங்குபவர்கள் VWAP-க்கு மேலே நாள் முழுவதும் நிலைத்திருக்கும்போது, சந்தை ஒரே கதையைச் சொல்கிறது — திறப்பிலிருந்து மூடல் வரை நிலையான கட்டுப்பாடு.',
-    xp:15,
-    beats:[
-      { act_en:'Act I — Gap-Up Open', act_ta:'Act I — திறப்பு',
-        candlePersonality:{ emoji:'🌅', label:'Gap-Up Open' },
-        candles:[{ o:62, h:88, l:58, c:84, bull:true }],
-        highlight:[0],
-        narration_en:'The day opened with a strong gap up. Buyers stepped in immediately — the first candle closed near its high, leaving a tiny lower wick. Sellers never got a foothold.',
-        narration_ta:'நாள் வலிமையான இடைவெளியுடன் திறந்தது. வாங்குபவர்கள் உடனடியாக நுழைந்தனர் — முதல் மெழுகுதிரி அதன் உயரத்திற்கு அருகில் மூடியது, சிறிய கீழ் விக்கை விட்டு சென்றது.' },
-      { act_en:'Act II — VWAP Hold', act_ta:'Act II — VWAP நிலை',
-        candlePersonality:{ emoji:'🛡️', label:'VWAP Shield' },
-        candles:[{ o:62, h:88, l:58, c:84, bull:true },
-                 { o:82, h:86, l:68, c:71, bull:false },
-                 { o:71, h:76, l:64, c:74, bull:true }],
-        highlight:[2],
-        narration_en:'Price pulled back toward VWAP — and held. The bounce candle closed strong, confirming VWAP as a dynamic support floor. Buyers defended their ground exactly where they needed to.',
-        narration_ta:'விலை VWAP நோக்கி திரும்பியது — மற்றும் நிலைத்தது. திரும்பும் மெழுகுதிரி வலிமையாக மூடியது, VWAP ஆதரவு தளமாக உறுதிப்படுத்தியது.' },
-      { act_en:'Act III — High-Volume Push', act_ta:'Act III — அதிக அளவு தள்ளுதல்',
-        candlePersonality:{ emoji:'🚀', label:'High-Volume Push' },
-        candles:[{ o:62, h:88, l:58, c:84, bull:true },
-                 { o:82, h:86, l:68, c:71, bull:false },
-                 { o:71, h:76, l:64, c:74, bull:true },
-                 { o:74, h:97, l:72, c:94, bull:true }],
-        highlight:[3],
-        narration_en:'A high-volume marubozu candle broke above the morning high. Volume was well above average — this was institutional buying, not retail excitement. The move was deliberate.',
-        narration_ta:'அதிக அளவிலான மாருபோஸு மெழுகுதிரி காலை உயரத்திற்கு மேலே முறிந்தது. அளவு சராசரியை விட அதிகமாக இருந்தது — இது நிறுவன வாங்குதல், சில்லறை உற்சாகம் அல்ல.' },
-      { act_en:'Act IV — Strong Close', act_ta:'Act IV — வலிமையான மூடல்',
-        candlePersonality:{ emoji:'💪', label:'Held All Day' },
-        candles:[{ o:62, h:88, l:58, c:84, bull:true },
-                 { o:82, h:86, l:68, c:71, bull:false },
-                 { o:71, h:76, l:64, c:74, bull:true },
-                 { o:74, h:97, l:72, c:94, bull:true },
-                 { o:94, h:100, l:84, c:96, bull:true }],
-        highlight:[4],
-        narration_en:'The session closed near the day\'s high. No profit-taking panic, no late-day reversal. Buyers held control from open to close — a textbook trend day.',
-        narration_ta:'அமர்வு நாளின் உயரத்திற்கு அருகில் மூடியது. இலாப எடுக்கும் பீதி இல்லை, நாள் இறுதி தலைகீழ் இல்லை. வாங்குபவர்கள் திறப்பிலிருந்து மூடல் வரை கட்டுப்பாட்டை வைத்திருந்தனர்.' }
-    ]
-  },
-  {
-    id:'stormy', emoji:'⛈️',
-    title_en:'Stormy Day', title_ta:'புயல் நாள்',
-    takeaway_en:'When sellers reclaim VWAP from above, each bounce becomes a selling opportunity — the trend punishes buyers who fight it.',
-    takeaway_ta:'விற்பவர்கள் VWAP-ஐ மேலிருந்து மீண்டெடுக்கும்போது, ஒவ்வொரு திரும்புதலும் விற்பனை வாய்ப்பாகிறது.',
-    xp:15,
-    beats:[
-      { act_en:'Act I — Gap-Down Open', act_ta:'Act I — இடைவெளி கீழ் திறப்பு',
-        candlePersonality:{ emoji:'⛈️', label:'Bearish Gap' },
-        candles:[{ o:78, h:82, l:52, c:55, bull:false }],
-        highlight:[0],
-        narration_en:'The market gapped down sharply below the previous session\'s close. The opening candle closed near its low — sellers were in control before the first minute ended.',
-        narration_ta:'சந்தை முந்தைய அமர்வின் மூடலுக்கு கீழே கடுமையாக இடைவெளியிட்டு திறந்தது. திறப்பு மெழுகுதிரி அதன் குறைந்த நிலைக்கு அருகில் மூடியது.' },
-      { act_en:'Act II — Bull Trap', act_ta:'Act II — வாங்குபவர் கட்டி',
-        candlePersonality:{ emoji:'🪤', label:'Bull Trap' },
-        candles:[{ o:78, h:82, l:52, c:55, bull:false },
-                 { o:55, h:72, l:52, c:65, bull:true },
-                 { o:65, h:68, l:40, c:42, bull:false }],
-        highlight:[2],
-        narration_en:'A bounce carried price back toward VWAP — but sellers were waiting exactly there. The rejection candle had a long upper wick, showing strong selling pressure at that resistance zone.',
-        narration_ta:'ஒரு திரும்புதல் விலையை VWAP நோக்கி கொண்டு சென்றது — ஆனால் விற்பவர்கள் அங்கே காத்திருந்தனர். நிராகரிக்கும் மெழுகுதிரி நீண்ட மேல் விக்கைக் கொண்டிருந்தது.' },
-      { act_en:'Act III — Support Broken', act_ta:'Act III — ஆதரவு முறிவு',
-        candlePersonality:{ emoji:'🔓', label:'Floor Collapsed' },
-        candles:[{ o:78, h:82, l:52, c:55, bull:false },
-                 { o:55, h:72, l:52, c:65, bull:true },
-                 { o:65, h:68, l:40, c:42, bull:false },
-                 { o:42, h:44, l:15, c:18, bull:false }],
-        highlight:[3],
-        narration_en:'Key support broke with a large bear candle on elevated volume. Once that level failed, there were no more buyers to absorb the selling. The decline accelerated.',
-        narration_ta:'உயர்ந்த அளவில் ஒரு பெரிய கரடி மெழுகுதிரியுடன் முக்கிய ஆதரவு முறிந்தது. அந்த நிலை தோல்வியடைந்தவுடன், விற்பனையை உறிஞ்ச வாங்குபவர்கள் இல்லை.' },
-      { act_en:'Act IV — No Relief', act_ta:'Act IV — நிவாரணம் இல்லை',
-        candlePersonality:{ emoji:'🩸', label:'Closed at the Low' },
-        candles:[{ o:78, h:82, l:52, c:55, bull:false },
-                 { o:55, h:72, l:52, c:65, bull:true },
-                 { o:65, h:68, l:40, c:42, bull:false },
-                 { o:42, h:44, l:15, c:18, bull:false },
-                 { o:18, h:22, l:3,  c:5,  bull:false }],
-        highlight:[4],
-        narration_en:'The session ended near the day\'s low — no recovery, no late buying. The day\'s story was written at the open and sellers held that narrative all the way to the close.',
-        narration_ta:'அமர்வு நாளின் குறைந்த நிலைக்கு அருகில் முடிந்தது — மீட்பு இல்லை, தாமதமான வாங்குதல் இல்லை. நாளின் கதை திறப்பிலேயே எழுதப்பட்டது.' }
-    ]
-  },
-  {
-    id:'sideways', emoji:'↔️',
-    title_en:'Sideways Day', title_ta:'பக்கவாட்டு நாள்',
-    takeaway_en:'On choppy days the market rewards patience over action. No clear VWAP side, no trend — the best trade is often no trade.',
-    takeaway_ta:'கொந்தளிக்கும் நாட்களில் சந்தை செயல்பாட்டை விட பொறுமையை வெகுமதி அளிக்கிறது. தெளிவான VWAP பக்கம் இல்லை, போக்கு இல்லை.',
-    xp:15,
-    beats:[
-      { act_en:'Act I — Flat Open', act_ta:'Act I — தட்டையான திறப்பு',
-        candlePersonality:{ emoji:'😴', label:'No Conviction' },
-        candles:[{ o:48, h:58, l:40, c:52, bull:true }],
-        highlight:[0],
-        narration_en:'A small-bodied candle at the open — neither buyers nor sellers committed. Volume was below average, the range was tight. No early edge for either side.',
-        narration_ta:'திறப்பில் சிறிய உடல் மெழுகுதிரி — வாங்குபவர்களும் விற்பவர்களும் உறுதி செய்யவில்லை. அளவு சராசரிக்கு கீழே, வரம்பு இறுக்கமாக இருந்தது.' },
-      { act_en:'Act II — Whipsaw Zone', act_ta:'Act II — சலசலப்பு மண்டலம்',
-        candlePersonality:{ emoji:'🔁', label:'Whipsaw Zone' },
-        candles:[{ o:48, h:58, l:40, c:52, bull:true },
-                 { o:52, h:65, l:45, c:47, bull:false },
-                 { o:47, h:60, l:42, c:57, bull:true },
-                 { o:57, h:64, l:44, c:46, bull:false }],
-        highlight:[1,2,3],
-        narration_en:'Price kept crossing VWAP back and forth. Every breakout attempt failed quickly. This is the whipsaw zone — the market tested both buyers and sellers and rejected both.',
-        narration_ta:'விலை VWAP-ஐ முன்னும் பின்னும் கடந்தது. ஒவ்வொரு முறிவு முயற்சியும் விரைவாக தோல்வியடைந்தது. இது சலசலப்பு மண்டலம்.' },
-      { act_en:'Act III — Compression', act_ta:'Act III — சுருக்கம்',
-        candlePersonality:{ emoji:'🗜️', label:'Coiling Tight' },
-        candles:[{ o:48, h:58, l:40, c:52, bull:true },
-                 { o:52, h:65, l:45, c:47, bull:false },
-                 { o:47, h:60, l:42, c:57, bull:true },
-                 { o:57, h:64, l:44, c:46, bull:false },
-                 { o:46, h:54, l:41, c:49, bull:true },
-                 { o:49, h:55, l:43, c:46, bull:false }],
-        highlight:[4,5],
-        narration_en:'Candles shrank — smaller bodies, tighter ranges. The market was coiling. This compression often precedes a larger move, but the direction stayed unknown.',
-        narration_ta:'மெழுகுதிரிகள் சுருங்கின — சிறிய உடல்கள், இறுக்கமான வரம்புகள். சந்தை சுருண்டுகொண்டிருந்தது. இந்த சுருக்கம் பெரும்பாலும் பெரிய நகர்வுக்கு முன்னால் வரும்.' },
-      { act_en:'Act IV — Neither Side Won', act_ta:'Act IV — யாரும் வெல்லவில்லை',
-        candlePersonality:{ emoji:'🤝', label:'Neither Side Won' },
-        candles:[{ o:48, h:58, l:40, c:52, bull:true },
-                 { o:52, h:65, l:45, c:47, bull:false },
-                 { o:47, h:60, l:42, c:57, bull:true },
-                 { o:57, h:64, l:44, c:46, bull:false },
-                 { o:46, h:54, l:41, c:49, bull:true },
-                 { o:49, h:55, l:43, c:46, bull:false },
-                 { o:46, h:56, l:40, c:50, bull:true }],
-        highlight:[6],
-        narration_en:'The session closed nearly where it opened. No net movement, no winner. The day\'s only lesson: on choppy days the market often takes from both sides before returning to neutral.',
-        narration_ta:'அமர்வு திறந்த இடத்திற்கு அருகில் மூடியது. நிகர இயக்கம் இல்லை, வெற்றியாளர் இல்லை. கொந்தளிக்கும் நாட்களில் சந்தை நடுநிலைக்கு திரும்பும் முன் இரு பக்கங்களிலிருந்தும் எடுக்கும்.' }
-    ]
-  }
-];
+// ─── Session Story Player ─────────────────────────────────────────────────────;
 
-let _cspStory = 0, _cspBeat = 0, _cspTimer = null, _cspPlaying = false, _cspDone = false;
+// ─── Session Story Player (real data only) ────────────────────────────────────
+let _cspBeats  = [];         // built from current session candles
+let _cspBeat   = 0;
+let _cspTimer  = null;
+let _cspPlaying = false;
+let _cspDone   = false;
 
 function _cspLang() {
   return (localStorage.getItem('tz_lang') || document.documentElement.getAttribute('data-lang') || 'en');
 }
-
-// ─── Today's Story helpers ────────────────────────────────────────────────────
-let _cspIsToday    = false;
-let _cspTodayBeats = null;
 
 const _CSP_EMOJI_LABELS = {
   '🌅':'Opening Move',   '🟢':'Buying Surge',    '🔴':'Selling Pressure',
@@ -2735,16 +2627,14 @@ const _CSP_EMOJI_LABELS = {
   '🧊':'Cooling Off',    '🏳️':'Indecision',
 };
 
-function _currentBeats() {
-  return _cspIsToday ? (_cspTodayBeats || []) : CSP_STORIES[_cspStory].beats;
-}
+function _currentBeats() { return _cspBeats; }
 
-function _buildTodayBeats() {
+function _buildStoryBeats() {
   const entries = _storyEntries.filter(e => !e.isDiv);
   if (!entries.length || !_candles.length) return null;
 
   // One representative entry per act + any significant flip/breakout event
-  const byAct  = [1, 2, 3].map(a => entries.find(e => e.act === a)).filter(Boolean);
+  const byAct = [1, 2, 3].map(a => entries.find(e => e.act === a)).filter(Boolean);
   const extra  = entries.find(e => ['🔄','⚡','🚨'].includes(e.emoji) && !byAct.includes(e));
   const picks  = [...byAct, extra].filter(Boolean).slice(0, 5);
 
@@ -2770,35 +2660,31 @@ function _buildTodayBeats() {
   });
 }
 
-function cspTodayStory() {
-  _cspIsToday = true;
-  _cspBeat    = 0;
-  _cspDone    = false;
-  _cspPlaying = false;
+function _refreshStoryBeats() {
+  _cspBeat = 0; _cspDone = false; _cspPlaying = false;
   if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
 
-  document.querySelectorAll('.csp-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('csp-today-btn')?.classList.add('active');
+  _cspBeats = _buildStoryBeats() || [];
 
-  _cspTodayBeats = _buildTodayBeats();
-
-  if (!_cspTodayBeats) {
-    // No live data — show closed state
-    document.getElementById('csp-emoji').textContent      = '🌙';
-    document.getElementById('csp-label').textContent      = 'Market Closed';
-    document.getElementById('csp-act').textContent        = 'No live data right now';
-    document.getElementById('csp-narration').textContent  =
-      'Live candle data is not available. Market hours are 09:15 – 15:30 IST, Mon – Fri. ' +
-      'Try the Historical Chart tab to explore a past session.';
-    document.getElementById('csp-chart').innerHTML = '<div style="text-align:center;padding:40px 0;font-size:36px;opacity:.25">🌙</div>';
+  if (!_cspBeats.length) {
+    // No session data — prompt to load
+    const sessionLabel = _histDate ? _histDate : 'Today';
+    document.getElementById('csp-emoji').textContent     = '🌙';
+    document.getElementById('csp-label').textContent     = 'No Session Data';
+    document.getElementById('csp-act').textContent       = sessionLabel;
+    document.getElementById('csp-narration').textContent =
+      _histDate
+        ? `No story data available for ${_histDate}. The session may not have been a trading day.`
+        : 'Live candle data is not available — market may be closed. Load a historical session to replay any past trading day.';
+    document.getElementById('csp-chart').innerHTML = '<div style="text-align:center;padding:40px 0;font-size:36px;opacity:.22">🌙</div>';
     document.getElementById('csp-dots').innerHTML  = '';
-    document.getElementById('csp-back').disabled   = true;
-    document.getElementById('csp-fwd').disabled    = true;
-    document.getElementById('csp-complete').style.display = 'none';
-    document.querySelector('.csp-chart-area').style.display   = '';
+    document.getElementById('csp-back').disabled = true;
+    document.getElementById('csp-fwd').disabled  = true;
+    document.getElementById('csp-complete').style.display      = 'none';
+    document.querySelector('.csp-chart-area').style.display    = '';
     document.querySelector('.csp-progress-track').style.display = 'none';
-    document.querySelector('.csp-narration').style.display    = '';
-    document.querySelector('.csp-controls').style.display     = '';
+    document.querySelector('.csp-narration').style.display     = '';
+    document.querySelector('.csp-controls').style.display      = '';
     return;
   }
   _cspRender();
@@ -2891,30 +2777,18 @@ function _cspShowComplete() {
   if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
   document.getElementById('csp-play').innerHTML = '&#9654;';
 
-  let icon, title_en, title_ta, takeaway_en, takeaway_ta, xp;
-
-  if (_cspIsToday) {
-    const pg = buildPostGame(_candles);
-    icon       = '📈';
-    title_en   = "Today's Session";
-    title_ta   = 'இன்றைய அமர்வு';
-    xp         = 20;
-    if (pg && pg.length) {
-      takeaway_en = pg.map(b => b.text).join(' · ');
-      takeaway_ta = takeaway_en;
-    } else {
-      takeaway_en = 'Session complete. Review the chart to reinforce today\'s patterns.';
-      takeaway_ta = takeaway_en;
-    }
+  const pg   = buildPostGame(_candles);
+  const icon = _histDate ? '📅' : '📈';
+  const title_en  = _histDate ? `Session: ${_histDate}` : "Today's Session";
+  const title_ta  = title_en;
+  const xp        = 20;
+  let takeaway_en, takeaway_ta;
+  if (pg && pg.length) {
+    takeaway_en = pg.map(b => b.text).join(' · ');
   } else {
-    const story = CSP_STORIES[_cspStory];
-    icon       = story.emoji;
-    title_en   = story.title_en;
-    title_ta   = story.title_ta;
-    takeaway_en = story.takeaway_en;
-    takeaway_ta = story.takeaway_ta;
-    xp         = story.xp;
+    takeaway_en = 'Session story complete. Review the main chart to reinforce the patterns.';
   }
+  takeaway_ta = takeaway_en;
 
   const lang = _cspLang();
   document.getElementById('csp-complete-icon').textContent    = icon;
@@ -2969,50 +2843,12 @@ function cspReplay() {
   _cspRender();
 }
 
-function cspSelectStory(idx) {
-  _cspIsToday = false;
-  _cspStory   = idx;
-  _cspBeat    = 0;
-  _cspDone    = false;
-  _cspPlaying = false;
-  if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
-  document.querySelectorAll('.csp-tab').forEach((t, i) => t.classList.toggle('active', i === idx && !t.id));
-  document.getElementById('csp-today-btn')?.classList.remove('active');
-  _cspRender();
-}
-
-function _cspUpdateTabs() {
-  const lang = _cspLang();
-  document.querySelectorAll('.csp-tab').forEach((btn, i) => {
-    const s = CSP_STORIES[i];
-    btn.textContent = s.emoji + ' ' + (lang === 'ta' ? s.title_ta : s.title_en);
-  });
-}
-
-// Build story selector tabs and init player
+// Init player — beats built on demand when modal opens
 (function _cspInit() {
-  const tabs = document.getElementById('csp-tabs');
-  CSP_STORIES.forEach((s, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'csp-tab' + (i === 0 ? ' active' : '');
-    btn.textContent = s.emoji + ' ' + s.title_en;
-    btn.onclick = () => cspSelectStory(i);
-    tabs.appendChild(btn);
-  });
-
-  // Today's Story tab — live data
-  const todayBtn = document.createElement('button');
-  todayBtn.id        = 'csp-today-btn';
-  todayBtn.className = 'csp-tab csp-tab-today';
-  todayBtn.textContent = '📈 Today';
-  todayBtn.onclick   = () => cspTodayStory();
-  tabs.appendChild(todayBtn);
-  _cspRender();
-  var _prevOnLangChange = window.onLangChange;
+  var _prev = window.onLangChange;
   window.onLangChange = function(l) {
-    if (_prevOnLangChange) _prevOnLangChange(l);
-    _cspUpdateTabs();
-    _cspRender();
+    if (_prev) _prev(l);
+    if (_cspBeats.length) _cspRender();
   };
 })();
 
@@ -3020,15 +2856,33 @@ function _cspUpdateTabs() {
 function openCspModal(tab) {
   document.getElementById('csp-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-  if (tab) cspModalTab(tab);
-  else cspModalTab('stories');
+  const t = tab || 'stories';
+  cspModalTab(t);
+  if (t === 'stories') _refreshStoryBeats();
 }
 
 function closeCspModal() {
   document.getElementById('csp-overlay').classList.remove('open');
   document.body.style.overflow = '';
-  // pause story auto-play when modal closes
   if (_cspPlaying) cspTogglePlay();
+}
+
+function loadHistSession() {
+  const date   = document.getElementById('hist-date').value;
+  if (!date) return;
+  // Read sym/tf from modal pickers and apply to main page
+  const symBtn = document.querySelector('#hist-sym-grp .tog.active');
+  const tfBtn  = document.querySelector('#hist-tf-grp .tog.active');
+  if (symBtn) _sym = symBtn.textContent.trim();
+  if (tfBtn)  _tf  = tfBtn.textContent.trim();
+  // Sync ctrl-bar sym/tf buttons
+  document.querySelectorAll('#sym-grp .tog').forEach(b => b.classList.toggle('active', b.textContent.trim() === _sym));
+  document.querySelectorAll('#tf-grp .tog').forEach(b => b.classList.toggle('active', b.textContent.trim() === _tf));
+  _histDate = date;
+  document.getElementById('btn-live').classList.remove('live-active', 'active');
+  document.getElementById('btn-replay').classList.add('active');
+  closeCspModal();
+  reload();
 }
 
 document.addEventListener('keydown', function(e) {
@@ -3046,19 +2900,14 @@ function cspModalTab(tab) {
   if (!isStories) _histInitDateBounds();
 }
 
-// ─── Historical Chart ─────────────────────────────────────────────────────────
-let _histSym   = 'NIFTY';
-let _histTf    = '5m';
-let _histChart = null;  // LightweightCharts instance
-
+// ─── Historical session picker ────────────────────────────────────────────────
 function setHistSym(sym, btn) {
-  _histSym = sym;
+  // sym selection now controls the main page _sym — keep UI consistent
   document.querySelectorAll('#hist-sym-grp .tog').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
 
 function setHistTf(tf, btn) {
-  _histTf = tf;
   document.querySelectorAll('#hist-tf-grp .tog').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
@@ -3078,92 +2927,6 @@ function _histInitDateBounds() {
   inp.min = fmt(sixtyAgo);
   inp.value = fmt(yesterday);
   inp.dataset.init = '1';
-}
-
-async function loadHistChart() {
-  const date = document.getElementById('hist-date').value;
-  if (!date) return;
-
-  const btn    = document.getElementById('hist-load-btn');
-  const status = document.getElementById('hist-status');
-  const chartEl = document.getElementById('hist-chart');
-  const asofEl  = document.getElementById('hist-asof');
-
-  btn.disabled = true;
-  chartEl.style.display = 'none';
-  asofEl.style.display  = 'none';
-  status.style.display  = '';
-  status.innerHTML = '<div class="spin" style="width:24px;height:24px;border-width:3px"></div><span>Loading…</span>';
-
-  // destroy previous chart
-  if (_histChart) { try { _histChart.remove(); } catch(e) {} _histChart = null; }
-
-  try {
-    const res  = await fetch(`/api/psychology/candles?symbol=${_histSym}&interval=${_histTf}&date=${date}`);
-    const data = await res.json();
-
-    if (data.error || !data.candles || !data.candles.length) {
-      status.innerHTML = `<div class="hist-status-icon">😶</div><span>${data.error || 'No data for this date'}</span>`;
-      btn.disabled = false;
-      return;
-    }
-
-    status.style.display = 'none';
-    chartEl.style.display = '';
-
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    _histChart = LightweightCharts.createChart(chartEl, {
-      width:  chartEl.offsetWidth || 800,
-      height: 340,
-      layout: { background: { color: isDark ? '#0A0C18' : '#ffffff' }, textColor: isDark ? '#9ba3bf' : '#333' },
-      grid:   { vertLines: { color: isDark ? '#1a1e35' : '#e0e0e0' }, horzLines: { color: isDark ? '#1a1e35' : '#e0e0e0' } },
-      crosshair:   { mode: LightweightCharts.CrosshairMode.Normal },
-      rightPriceScale: { borderColor: isDark ? '#252a44' : '#cccccc' },
-      timeScale: { borderColor: isDark ? '#252a44' : '#cccccc', timeVisible: true, secondsVisible: false },
-    });
-
-    const candleSeries = _histChart.addCandlestickSeries({
-      upColor: '#2ecc71', downColor: '#e74c3c',
-      borderUpColor: '#2ecc71', borderDownColor: '#e74c3c',
-      wickUpColor: '#2ecc71', wickDownColor: '#e74c3c',
-    });
-    candleSeries.setData(data.candles.map(c => ({
-      time: c.time, open: c.open, high: c.high, low: c.low, close: c.close,
-    })));
-
-    const vwapPoints = data.candles.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap }));
-    if (vwapPoints.length) {
-      const vwapSeries = _histChart.addLineSeries({
-        color: '#00d4ff', lineWidth: 1.5,
-        lineStyle: LightweightCharts.LineStyle.Dashed,
-        priceLineVisible: false, lastValueVisible: false, title: 'VWAP',
-      });
-      vwapSeries.setData(vwapPoints);
-    }
-
-    const stUp = [], stDn = [];
-    data.candles.forEach(c => {
-      if (c.supertrend == null) return;
-      if (c.supertrend_dir === 'up')   stUp.push({ time: c.time, value: c.supertrend });
-      else                              stDn.push({ time: c.time, value: c.supertrend });
-    });
-    if (stUp.length) {
-      const s = _histChart.addLineSeries({ color: '#2ecc71', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, title: 'ST' });
-      s.setData(stUp);
-    }
-    if (stDn.length) {
-      const s = _histChart.addLineSeries({ color: '#e74c3c', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, title: 'ST' });
-      s.setData(stDn);
-    }
-
-    _histChart.timeScale().fitContent();
-
-    asofEl.textContent = `${data.count} candles · ${_histSym} ${_histTf} · ${date}`;
-    asofEl.style.display = '';
-  } catch(e) {
-    status.innerHTML = `<div class="hist-status-icon">⚠️</div><span>Failed to load — ${e.message}</span>`;
-  }
-  btn.disabled = false;
 }
 </script>
 </body>
