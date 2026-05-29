@@ -57,7 +57,9 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:16px}
 .hero h1{font-family:'Syne',sans-serif;font-size:clamp(26px,4.5vw,48px);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1.5px;margin-bottom:8px}
 .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{font-size:13px;color:var(--dim);max-width:560px;margin:0 auto}
+.hero-sub{font-size:13px;color:var(--dim);max-width:560px;margin:0 auto 20px}
+.hero-cta{display:inline-flex;align-items:center;gap:7px;margin-top:4px;padding:10px 24px;border-radius:22px;background:linear-gradient(135deg,rgba(124,106,247,0.18),rgba(0,212,255,0.1));border:1.5px solid rgba(124,106,247,0.45);color:var(--text);font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .2s;letter-spacing:.2px}
+.hero-cta:hover{background:linear-gradient(135deg,rgba(124,106,247,0.3),rgba(0,212,255,0.18));border-color:var(--accent);color:#fff;transform:translateY(-1px);box-shadow:0 4px 20px rgba(124,106,247,0.25)}
 
 /* ── CONTROLS BAR ── */
 .ctrl-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;flex-wrap:wrap;gap:20px;align-items:center}
@@ -473,6 +475,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="htag">🧠 VISUAL MARKET PSYCHOLOGY</div>
   <h1>TradeFun — <em>See the Market</em></h1>
   <p class="hero-sub">Buyer vs Seller · Candle Psychology · VWAP Reactions · Momentum Shifts · Educational Mode</p>
+  <a class="hero-cta" href="#csp-section" onclick="document.getElementById('csp-section').scrollIntoView({behavior:'smooth'});return false;">📖 Try Candle Stories</a>
 </div>
 
 <!-- CONTROLS -->
@@ -563,9 +566,17 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <span class="ind-pill-lbl" onclick="toggleInd('ema21')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#e8a045"></span>EMA 21</span>
         <button class="ind-info-btn" onclick="showIndInfo(event,'ema21')">ⓘ</button>
       </div>
-      <div class="ind-pill active" data-ind="cpr">
+      <div class="ind-pill" data-ind="cpr">
         <span class="ind-pill-lbl" onclick="toggleInd('cpr')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#00d4ff;opacity:.8"></span>CPR</span>
         <button class="ind-info-btn" onclick="showIndInfo(event,'cpr')">ⓘ</button>
+      </div>
+      <div class="ind-pill" data-ind="pivots">
+        <span class="ind-pill-lbl" onclick="toggleInd('pivots')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#f5a623;opacity:.8"></span>Pivots</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'pivots')">ⓘ</button>
+      </div>
+      <div class="ind-pill" data-ind="orb">
+        <span class="ind-pill-lbl" onclick="toggleInd('orb')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#a78bfa"></span>ORB</span>
+        <button class="ind-info-btn" onclick="showIndInfo(event,'orb')">ⓘ</button>
       </div>
       <div class="ind-pill" data-ind="rsi">
         <span class="ind-pill-lbl" onclick="toggleInd('rsi')"><span class="ind-dot" style="display:inline-block;width:14px;height:2px;border-radius:1px;background:#f5a623"></span>RSI</span>
@@ -802,7 +813,7 @@ let _priceLines    = [];
 let _cprData       = null;
 let _orbData       = null;
 let _orbLines      = [];
-let _levelsVisible = true;
+let _levelsVisible = false; // kept for legacy; controlled by _indState.cpr / _indState.pivots
 let _floatLabels   = [];
 let _isFullscreen  = false;
 let _livePoll = null;        // setInterval id
@@ -814,7 +825,7 @@ let _lastCandleTime = 0;  // tracks completed-candle detection
 let _toastTimer = null;
 
 // Indicator toggle state — true = visible
-const _indState = { vwap:true, st:true, vol:true, ema9:false, ema21:false, cpr:true, rsi:false, macd:false };
+const _indState = { vwap:true, st:true, vol:true, ema9:false, ema21:false, cpr:false, pivots:false, orb:false, rsi:false, macd:false };
 
 const _IND_INFO = {
   vwap:  'VWAP — Volume Weighted Average Price. Session average price weighted by volume. Price above VWAP = bullish intraday bias; below = bearish. Acts as a dynamic support/resistance that resets each session.',
@@ -822,7 +833,9 @@ const _IND_INFO = {
   vol:   'Volume — contracts traded per candle. High volume confirms the direction of a move. Low volume on a breakout = weak signal, likely to fail. Opening and closing candles typically carry the highest volume.',
   ema9:  'EMA 9 (Fast EMA) — reacts quickly to price. Price above EMA 9 = short-term bullish momentum. Useful as dynamic support in uptrends. Often used with EMA 21 for crossover signals.',
   ema21: 'EMA 21 (Medium EMA) — smoother trend filter. EMA 9 crossing above EMA 21 = Golden Cross (buy). EMA 9 crossing below EMA 21 = Death Cross (sell). In a strong trend price stays above both EMAs.',
-  cpr:   'CPR + Camarilla — Central Pivot Range (TC/PP/BC) from previous day OHLC. Narrow CPR = trending day ahead. Wide CPR = sideways. Camarilla H4/L4 are critical breakout/breakdown levels watched by professionals.',
+  cpr:   'CPR — Central Pivot Range (TC/BC) from previous day OHLC. Narrow CPR = trending day ahead. Wide CPR = sideways. Price respecting TC/BC tells you who is in control for the session.',
+  pivots:'Pivots — Standard R1/R2/S1/S2 support-resistance levels + Camarilla H4/L4 breakout zones. H4/L4 are key institutional levels — a close beyond them often triggers a strong directional move.',
+  orb:   'ORB — Opening Range Breakout. High and Low of the first candle(s) after market open. A sustained move above ORB High = bullish bias; below ORB Low = bearish bias. Often used as a session anchor.',
   rsi:   'RSI 14 — Relative Strength Index (0–100). Above 70 = overbought (watch for reversal). Below 30 = oversold (watch for bounce). 40–60 = neutral zone. In strong trends RSI can stay extreme for extended periods.',
   macd:  'MACD (12,26,9) — momentum indicator. Blue line = MACD (EMA12−EMA26). Orange line = Signal (EMA9 of MACD). Histogram above 0 = bullish momentum building. MACD crossing above Signal = buy signal.',
 };
@@ -1036,7 +1049,7 @@ async function fetchAndDrawLevels() {
     const d   = await res.json();
     if (!d.cpr || !d.camarilla) return;
     _cprData = { cpr: d.cpr, cam: d.camarilla };
-    if (_levelsVisible) drawLevels();
+    if (_indState.cpr || _indState.pivots) drawLevels();
     tryBuildStory();  // CPR data now available — rebuild story with full context
   } catch(e) {}
 }
@@ -1046,44 +1059,53 @@ function drawLevels() {
   clearLevels();
   const LS = LightweightCharts.LineStyle;
   const { cpr, cam } = _cprData;
-  [
-    // CPR zone
-    { price: cpr.tc, color: '#00d4ff',              width: 1, style: LS.Solid,        title: 'TC' },
-    { price: cpr.pp, color: 'rgba(200,200,200,0.5)', width: 1, style: LS.SparseDotted, title: 'PP' },
-    { price: cpr.bc, color: '#00d4ff',              width: 1, style: LS.Solid,        title: 'BC' },
-    // Standard pivots
-    { price: cpr.r1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted,       title: 'R1' },
-    { price: cpr.r2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted,       title: 'R2' },
-    { price: cpr.s1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted,       title: 'S1' },
-    { price: cpr.s2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted,       title: 'S2' },
-    // Camarilla — key levels only
-    { price: cam.h4, color: '#2ecc71',              width: 2, style: LS.Dashed,        title: 'H4 ▲' },
-    { price: cam.h3, color: 'rgba(46,204,113,0.55)', width: 1, style: LS.Dotted,       title: 'H3' },
-    { price: cam.l3, color: 'rgba(231,76,60,0.55)',  width: 1, style: LS.Dotted,       title: 'L3' },
-    { price: cam.l4, color: '#e74c3c',              width: 2, style: LS.Dashed,        title: 'L4 ▼' },
-  ].forEach(s => {
+  const lines = [], floats = [];
+
+  if (_indState.cpr) {
+    lines.push(
+      { price: cpr.tc, color: '#00d4ff',               width: 1, style: LS.Solid,        title: 'TC' },
+      { price: cpr.pp, color: 'rgba(200,200,200,0.5)',  width: 1, style: LS.SparseDotted, title: 'PP' },
+      { price: cpr.bc, color: '#00d4ff',               width: 1, style: LS.Solid,        title: 'BC' },
+    );
+    floats.push(
+      [cpr.tc, 'TC', '#00d4ff',              'rgba(0,212,255,0.13)'],
+      [cpr.pp, 'PP', 'rgba(180,180,180,0.9)','rgba(180,180,180,0.08)'],
+      [cpr.bc, 'BC', '#00d4ff',              'rgba(0,212,255,0.13)'],
+    );
+  }
+
+  if (_indState.pivots) {
+    lines.push(
+      { price: cpr.r1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted, title: 'R1' },
+      { price: cpr.r2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted, title: 'R2' },
+      { price: cpr.s1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted, title: 'S1' },
+      { price: cpr.s2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted, title: 'S2' },
+      { price: cam.h4, color: '#2ecc71',               width: 2, style: LS.Dashed, title: 'H4 ▲' },
+      { price: cam.h3, color: 'rgba(46,204,113,0.55)', width: 1, style: LS.Dotted, title: 'H3' },
+      { price: cam.l3, color: 'rgba(231,76,60,0.55)',  width: 1, style: LS.Dotted, title: 'L3' },
+      { price: cam.l4, color: '#e74c3c',               width: 2, style: LS.Dashed, title: 'L4 ▼' },
+    );
+    floats.push(
+      [cpr.r1, 'R1',    '#f5a623',              'rgba(245,166,35,0.11)'],
+      [cpr.r2, 'R2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
+      [cpr.s1, 'S1',    '#f5a623',              'rgba(245,166,35,0.11)'],
+      [cpr.s2, 'S2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
+      [cam.h4, 'H4 ▲', '#2ecc71',              'rgba(46,204,113,0.13)'],
+      [cam.h3, 'H3',    'rgba(46,204,113,0.65)','rgba(46,204,113,0.07)'],
+      [cam.l3, 'L3',    'rgba(231,76,60,0.65)', 'rgba(231,76,60,0.07)'],
+      [cam.l4, 'L4 ▼', '#e74c3c',              'rgba(231,76,60,0.13)'],
+    );
+  }
+
+  lines.forEach(s => {
     _priceLines.push(_candleSeries.createPriceLine({
       price: s.price, color: s.color, lineWidth: s.width,
       lineStyle: s.style, axisLabelVisible: true, title: s.title,
     }));
   });
-
-  // Floating labels over the chart (left side)
   clearFloatingLabels();
-  [
-    [cpr.tc, 'TC',    '#00d4ff',             'rgba(0,212,255,0.13)'],
-    [cpr.pp, 'PP',    'rgba(180,180,180,0.9)','rgba(180,180,180,0.08)'],
-    [cpr.bc, 'BC',    '#00d4ff',             'rgba(0,212,255,0.13)'],
-    [cpr.r1, 'R1',    '#f5a623',             'rgba(245,166,35,0.11)'],
-    [cpr.r2, 'R2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
-    [cpr.s1, 'S1',    '#f5a623',             'rgba(245,166,35,0.11)'],
-    [cpr.s2, 'S2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
-    [cam.h4, 'H4 ▲', '#2ecc71',             'rgba(46,204,113,0.13)'],
-    [cam.h3, 'H3',    'rgba(46,204,113,0.65)','rgba(46,204,113,0.07)'],
-    [cam.l3, 'L3',    'rgba(231,76,60,0.65)', 'rgba(231,76,60,0.07)'],
-    [cam.l4, 'L4 ▼', '#e74c3c',             'rgba(231,76,60,0.13)'],
-  ].forEach(([price, text, color, bg]) => _makeFloatLabel(price, text, color, bg));
-  updateFloatingLabels();
+  floats.forEach(([price, text, color, bg]) => _makeFloatLabel(price, text, color, bg));
+  if (floats.length) updateFloatingLabels();
 }
 
 function clearLevels() {
@@ -1098,7 +1120,7 @@ async function fetchAndDrawOrb() {
     const d   = await res.json();
     if (!d.orb || d.orb.high == null) return;
     _orbData = d.orb;
-    drawOrbLines();
+    if (_indState.orb) drawOrbLines();
   } catch(e) {}
 }
 
@@ -1131,9 +1153,10 @@ function applyIndVisibility() {
   if (_volumeSeries) _volumeSeries.applyOptions({ visible: _indState.vol });
   if (_ema9Series)   _ema9Series.applyOptions({ visible: _indState.ema9 });
   if (_ema21Series)  _ema21Series.applyOptions({ visible: _indState.ema21 });
-  // CPR levels
-  _levelsVisible = _indState.cpr;
-  if (_indState.cpr) { if (_cprData) drawLevels(); } else clearLevels();
+  // CPR / Pivots levels
+  if (_indState.cpr || _indState.pivots) { if (_cprData) drawLevels(); } else clearLevels();
+  // ORB lines
+  if (_indState.orb) { if (_orbData) drawOrbLines(); } else clearOrbLines();
   // RSI sub-panel
   const rsiEl = document.getElementById('rsi-panel');
   if (rsiEl) rsiEl.style.display = _indState.rsi ? '' : 'none';
