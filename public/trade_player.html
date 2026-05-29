@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Player | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="/css/trade-player.css">
+</head>
+<body>
+
+<div class="tp-root" id="tp-root" data-theme="dark">
+  <div class="tp-halo"></div>
+  <div class="tp-grid-bg"></div>
+  <div class="tp-layout">
+
+    <!-- ── TopNav ──────────────────────────────────────────────── -->
+    <header class="tp-nav">
+      <a class="tp-brand" href="/">
+        <div class="tp-brand-tile" id="tp-brand-icon"></div>
+        <span class="tp-brand-wordmark">Trade<span class="text-grad-cyan">Zen</span></span>
+      </a>
+      <nav class="tp-nav-links">
+        <a href="/" class="tp-nav-link">Tools</a>
+        <a href="/trade_player.html" class="tp-nav-link active">Trade Player</a>
+        <a href="/learn/" class="tp-nav-link">Learn</a>
+      </nav>
+      <div class="tp-nav-right">
+        <button class="tp-theme-btn" id="tp-theme-btn" onclick="tpToggleTheme()" title="Toggle theme"></button>
+        <button class="tp-btn tp-btn-grad tp-nav-app-btn">Open app</button>
+      </div>
+    </header>
+
+    <!-- ── Hero ────────────────────────────────────────────────── -->
+    <div class="tp-hero">
+      <div class="tp-hero-left">
+        <div class="tp-eyebrow"><span class="dot"></span>MARKET REPLAY · LEARN THE TAPE</div>
+        <h1 class="tp-hero-title">Trade <span class="text-grad-cyan">Player</span></h1>
+        <p class="tp-hero-blurb">Watch the market unfold candle by candle. Replay any session, read the psychology, build your instinct — risk-free.</p>
+      </div>
+      <div class="tp-hero-right">
+        <div class="tp-hero-price-block">
+          <div class="tp-hero-sym" id="tp-hero-sym">NIFTY</div>
+          <div class="tp-hero-price-row">
+            <span class="tp-hero-price mono" id="tp-hero-price">—</span>
+            <span class="tp-hero-change" id="tp-hero-change">—</span>
+          </div>
+        </div>
+        <button class="tp-btn tp-btn-grad" onclick="tpStoryOpen()">
+          <span id="tp-book-icon"></span>Session Story
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Controls ─────────────────────────────────────────────── -->
+    <div class="tp-controls">
+      <div class="tp-seg" id="tp-sym-seg">
+        <button class="tp-seg-btn active" onclick="tpSetSym('NIFTY',this)">NIFTY</button>
+        <button class="tp-seg-btn" onclick="tpSetSym('BANKNIFTY',this)">BANKNIFTY</button>
+      </div>
+      <div class="tp-seg" id="tp-tf-seg">
+        <button class="tp-seg-btn" onclick="tpSetTf('1m',this)">1m</button>
+        <button class="tp-seg-btn active" onclick="tpSetTf('5m',this)">5m</button>
+        <button class="tp-seg-btn" onclick="tpSetTf('15m',this)">15m</button>
+      </div>
+      <div class="tp-ctrl-divider"></div>
+      <button class="tp-pill on" data-ind="vwap" onclick="tpToggleInd('vwap',this)"><span class="tp-pill-swatch" style="background:var(--tp-cyan)"></span>VWAP</button>
+      <button class="tp-pill on" data-ind="st"   onclick="tpToggleInd('st',this)"><span class="tp-pill-swatch" style="background:var(--tz-gain)"></span>Supertrend</button>
+      <button class="tp-pill on" data-ind="vol"  onclick="tpToggleInd('vol',this)"><span class="tp-pill-swatch" style="background:var(--tz-accent-1)"></span>Volume</button>
+      <button class="tp-pill" data-ind="cpr" onclick="tpToggleInd('cpr',this)"><span class="tp-pill-swatch" style="background:var(--tz-accent-1)"></span>CPR</button>
+      <button class="tp-pill" data-ind="orb" onclick="tpToggleInd('orb',this)"><span class="tp-pill-swatch" style="background:var(--tp-cyan)"></span>ORB</button>
+    </div>
+
+    <!-- ── Main ─────────────────────────────────────────────────── -->
+    <div class="tp-main">
+
+      <!-- Left: chart + NCC -->
+      <div class="tp-chart-col">
+        <div class="tp-card tp-chart-pane" id="tp-chart-pane">
+          <div class="tp-chart-legend" id="tp-chart-legend"></div>
+          <div id="psych-chart" style="width:100%;flex:1;min-height:0"></div>
+        </div>
+        <div class="tp-ncc-outer" id="tp-ncc">
+          <div class="tp-ncc-inner">
+            <div class="tp-ncc-hdr">
+              <span id="tp-ncc-spark"></span>
+              <span class="tp-ncc-title">Next Candle Context</span>
+              <span class="tp-ncc-hint" id="tp-ncc-hint">AI READ · LIVE</span>
+            </div>
+            <div id="tp-ncc-content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="tp-sidebar tp-card tp-scroll">
+        <div class="tp-sidebar-tabs">
+          <button class="tp-sidebar-tab active" onclick="tpTabSwitch('pulse',this)">
+            <span id="tp-tab-icon-pulse"></span>Pulse
+          </button>
+          <button class="tp-sidebar-tab" onclick="tpTabSwitch('candle',this)">
+            <span id="tp-tab-icon-candle"></span>Candle
+          </button>
+          <button class="tp-sidebar-tab" onclick="tpTabSwitch('levels',this)">
+            <span id="tp-tab-icon-levels"></span>Levels
+          </button>
+        </div>
+        <div class="tp-sidebar-body tp-scroll">
+
+          <!-- PULSE tab -->
+          <div class="tp-tab-pane" id="tp-tab-pulse">
+            <div>
+              <span class="tp-label">Buyer / Seller Dominance</span>
+              <div class="tp-dom-bar-wrap">
+                <div class="tp-dom-buyers" id="tp-dom-buyers" style="width:50%">50%</div>
+                <div class="tp-dom-sellers" id="tp-dom-sellers">50%</div>
+              </div>
+              <div class="tp-dom-labels"><span>Buyers</span><span>Sellers</span></div>
+            </div>
+            <div>
+              <span class="tp-label">Market State</span>
+              <div class="tp-state-card">
+                <div class="tp-state-icon" id="tp-state-icon"></div>
+                <div>
+                  <div class="tp-state-name" id="tp-state-name">Loading…</div>
+                  <div class="tp-state-sub">Based on last 6 candles + Supertrend</div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <span class="tp-label">Score Breakdown</span>
+              <div id="tp-scores" style="display:flex;flex-direction:column;gap:9px"></div>
+            </div>
+          </div>
+
+          <!-- CANDLE tab -->
+          <div class="tp-tab-pane" id="tp-tab-candle" style="display:none">
+            <div>
+              <span class="tp-label" id="tp-candle-lbl">Current Candle</span>
+              <div class="tp-ohlc-grid">
+                <div class="tp-ohlc-tile"><div class="tp-ohlc-lbl">Open</div><div class="tp-ohlc-val mono" id="tp-ci-o">—</div></div>
+                <div class="tp-ohlc-tile"><div class="tp-ohlc-lbl">High</div><div class="tp-ohlc-val mono" id="tp-ci-h" style="color:var(--tz-gain)">—</div></div>
+                <div class="tp-ohlc-tile"><div class="tp-ohlc-lbl">Low</div><div class="tp-ohlc-val mono" id="tp-ci-l" style="color:var(--tz-loss)">—</div></div>
+                <div class="tp-ohlc-tile"><div class="tp-ohlc-lbl">Close</div><div class="tp-ohlc-val mono" id="tp-ci-c">—</div></div>
+              </div>
+              <div class="tp-vol-row" style="margin-top:8px">
+                <div><div class="tp-ohlc-lbl">Volume</div><div class="tp-ohlc-val mono" id="tp-ci-v">—</div></div>
+                <div style="text-align:right"><div class="tp-ohlc-lbl">Day Change</div><div class="tp-ohlc-val mono" id="tp-ci-chg">—</div></div>
+              </div>
+            </div>
+            <div>
+              <span class="tp-label">Pattern Detected</span>
+              <div id="tp-pattern-card" class="tp-pattern-card neut">
+                <div class="tp-pattern-hdr">
+                  <span class="tp-pattern-name" id="tp-pattern-name">—</span>
+                  <span class="tp-pattern-chip neut" id="tp-pattern-chip">Neutral</span>
+                </div>
+                <div class="tp-pattern-note" id="tp-pattern-note">Waiting for data…</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEVELS tab -->
+          <div class="tp-tab-pane" id="tp-tab-levels" style="display:none">
+            <div><span class="tp-label">VWAP</span><div id="tp-levels-vwap"></div></div>
+            <div><span class="tp-label">Central Pivot Range</span><div id="tp-levels-cpr"></div></div>
+            <div><span class="tp-label">Opening Range</span><div id="tp-levels-orb"></div></div>
+          </div>
+
+        </div>
+      </div><!-- /sidebar -->
+
+    </div><!-- /tp-main -->
+
+    <!-- ── Player Bar ─────────────────────────────────────────── -->
+    <div class="tp-bar" id="tp-bar">
+      <div class="tp-scrubber-row" id="tp-scrubber-row" style="display:none">
+        <span class="tp-scrubber-lbl" id="tp-scr-start">09:15</span>
+        <div class="tp-scrubber-track" id="tp-scr-track">
+          <div class="tp-scrubber-fill" id="tp-scr-fill" style="width:0%"></div>
+          <div class="tp-scrubber-thumb" id="tp-scr-thumb" style="left:0%"></div>
+        </div>
+        <span class="tp-scrubber-lbl" id="tp-scr-end">15:30</span>
+      </div>
+      <div class="tp-bar-main">
+        <div class="tp-bar-left">
+          <button class="tp-mode-badge live" id="tp-mode-badge" onclick="tpToggleMode()">
+            <span class="tp-mode-dot"></span><span id="tp-mode-label">LIVE</span>
+          </button>
+          <div class="tp-sym-chip" id="tp-sym-chip">NIFTY <span>5m</span></div>
+          <button class="tp-btn tp-btn-ghost" onclick="tpHistOpen()" style="padding:8px 12px;font-size:12px">
+            <span id="tp-cal-icon"></span>Historical
+          </button>
+        </div>
+        <div class="tp-transport">
+          <button class="tp-tbtn" id="tp-first-btn" onclick="rpFirst()" disabled></button>
+          <button class="tp-tbtn" id="tp-prev-btn"  onclick="rpStep(-1)" disabled></button>
+          <button class="tp-tbtn tp-tbtn-play" id="tp-play-btn" onclick="tpPlayToggle()" disabled></button>
+          <button class="tp-tbtn" id="tp-next-btn"  onclick="rpStep(1)" disabled></button>
+          <button class="tp-tbtn" id="tp-last-btn"  onclick="rpLast()" disabled></button>
+        </div>
+        <div class="tp-bar-right">
+          <div>
+            <div class="tp-candle-time mono" id="tp-candle-time">—</div>
+            <div class="tp-candle-counter" id="tp-candle-counter">CANDLE —</div>
+          </div>
+          <div class="tp-speed-seg">
+            <button class="tp-speed-btn" onclick="tpSetSpeed(0.5,this)">0.5×</button>
+            <button class="tp-speed-btn active" onclick="tpSetSpeed(1,this)">1×</button>
+            <button class="tp-speed-btn" onclick="tpSetSpeed(2,this)">2×</button>
+            <button class="tp-speed-btn" onclick="tpSetSpeed(4,this)">4×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tp-layout -->
+
+  <!-- ── Story drawer ──────────────────────────────────────────── -->
+  <div class="tp-story-backdrop" id="tp-story-backdrop" onclick="tpStoryClose()"></div>
+  <div class="tp-story-drawer" id="tp-story-drawer">
+    <div class="tp-story-hdr">
+      <div class="tp-zeni-bob" id="tp-story-zeni"></div>
+      <div class="tp-story-hdr-text">
+        <div class="tp-story-hdr-title">Session Story</div>
+        <div class="tp-story-hdr-sub">Narrated by Zeni 🦊</div>
+      </div>
+      <button class="tp-story-close-btn" id="tp-story-close-btn" onclick="tpStoryClose()"></button>
+    </div>
+    <div class="tp-story-body tp-scroll">
+      <div class="tp-story-segs" id="tp-story-segs"></div>
+      <div id="tp-story-chart" style="margin-bottom:14px"></div>
+      <div class="tp-story-narration" id="tp-story-narration"></div>
+    </div>
+    <div class="tp-story-footer">
+      <button class="tp-story-nav-btn" id="tp-story-prev-btn" onclick="tpStoryNav(-1)" disabled></button>
+      <button class="tp-btn tp-btn-grad" id="tp-story-next-btn" onclick="tpStoryNav(1)" style="padding:11px 22px">
+        <span id="tp-story-btn-label">Next beat</span><span id="tp-story-btn-icon"></span>
+      </button>
+      <button class="tp-story-nav-btn" id="tp-story-fwd-btn" onclick="tpStoryNav(1)"></button>
+    </div>
+  </div>
+
+  <!-- ── Historical picker ─────────────────────────────────────── -->
+  <div class="tp-hist-picker" id="tp-hist-picker" onclick="if(event.target===this)tpHistClose()">
+    <div class="tp-hist-picker-box">
+      <div class="tp-hist-picker-title">Load Historical Session</div>
+      <div class="tp-hist-row">
+        <div class="tp-seg">
+          <button class="tp-seg-btn active" onclick="tpHistSetSym('NIFTY',this)">NIFTY</button>
+          <button class="tp-seg-btn" onclick="tpHistSetSym('BANKNIFTY',this)">BANKNIFTY</button>
+        </div>
+        <div class="tp-seg">
+          <button class="tp-seg-btn" onclick="tpHistSetTf('1m',this)">1m</button>
+          <button class="tp-seg-btn active" onclick="tpHistSetTf('5m',this)">5m</button>
+          <button class="tp-seg-btn" onclick="tpHistSetTf('15m',this)">15m</button>
+        </div>
+      </div>
+      <div class="tp-hist-row">
+        <input type="date" id="tp-hist-date" class="tp-hist-date-input">
+      </div>
+      <div class="tp-hist-note">5m/15m data: up to 60 days back · 1m: up to 7 days back</div>
+      <div class="tp-hist-actions">
+        <button class="tp-btn tp-btn-ghost" onclick="tpHistClose()" style="padding:9px 16px">Cancel</button>
+        <button class="tp-btn tp-btn-grad" onclick="tpHistLoad()" style="padding:9px 16px">Load Session</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tp-root -->
+
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+/* ── Icons ──────────────────────────────────────────────────────────────────── */
+function _icon(name,size,color,sw){
+  size=size||18; color=color||'currentColor'; sw=sw||1.9;
+  var a='width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="'+color+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"';
+  var p={
+    play:'<svg '+a+' fill="'+color+'" stroke="none"><path d="M7 5.5v13l11-6.5z"/></svg>',
+    pause:'<svg '+a+' fill="'+color+'" stroke="none"><rect x="6.5" y="5.5" width="3.6" height="13" rx="1"/><rect x="13.9" y="5.5" width="3.6" height="13" rx="1"/></svg>',
+    prev:'<svg '+a+'><path d="M7 5.5v13M18 6l-8 6 8 6"/></svg>',
+    next:'<svg '+a+'><path d="M17 5.5v13M6 6l8 6-8 6"/></svg>',
+    rewind:'<svg '+a+'><path d="M11 6l-7 6 7 6zM20 6l-7 6 7 6z"/></svg>',
+    forward:'<svg '+a+'><path d="M13 6l7 6-7 6zM4 6l7 6-7 6z"/></svg>',
+    book:'<svg '+a+'><path d="M4 5.5A1.5 1.5 0 015.5 4H12v15.5H5.5A1.5 1.5 0 014 18z"/><path d="M20 5.5A1.5 1.5 0 0018.5 4H12v15.5h6.5A1.5 1.5 0 0020 18z"/></svg>',
+    calendar:'<svg '+a+'><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>',
+    brain:'<svg '+a+'><path d="M9 4.5A3 3 0 006 7.4 3 3 0 005 13a3 3 0 002.5 3.4A2.6 2.6 0 0012 19V5a2.5 2.5 0 00-3-1.5z"/><path d="M15 4.5A3 3 0 0118 7.4 3 3 0 0119 13a3 3 0 01-2.5 3.4A2.6 2.6 0 0112 19"/></svg>',
+    candle:'<svg '+a+'><path d="M8 3v4M8 17v4M16 6v3M16 16v3"/><rect x="5.5" y="7" width="5" height="10" rx="1"/><rect x="13.5" y="9" width="5" height="7" rx="1"/></svg>',
+    target:'<svg '+a+'><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="'+color+'"/></svg>',
+    sun:'<svg '+a+'><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M5 5l1.8 1.8M17.2 17.2L19 19M19 5l-1.8 1.8M6.8 17.2L5 19"/></svg>',
+    moon:'<svg '+a+'><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg>',
+    close:'<svg '+a+'><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    'chev-r':'<svg '+a+'><path d="M9 6l6 6-6 6"/></svg>',
+    'chev-l':'<svg '+a+'><path d="M15 6l-6 6 6 6"/></svg>',
+    spark:'<svg '+a+' fill="'+color+'" stroke="none"><path d="M12 2l1.7 4.8L18 8.5l-4.3 1.7L12 15l-1.7-4.8L6 8.5l4.3-1.7z"/></svg>',
+    replayi:'<svg '+a+'><path d="M4 12a8 8 0 1 1 .5 2.8M4 12V7M4 7h4"/></svg>'
+  };
+  return p[name]||'<svg width="'+size+'" height="'+size+'"></svg>';
+}
+
+/* ── Zeni fox ─────────────────────────────────────────────────────────────── */
+function _zeni(size,mood){
+  size=size||64; mood=mood||'happy';
+  var px=mood==='think'?1.5:0;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 100" fill="none">'
+    +'<defs><linearGradient id="zf" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c6af7"/><stop offset="100%" stop-color="#00d4ff"/></linearGradient></defs>'
+    +'<path d="M26 34 L20 12 L40 26 Z" fill="url(#zf)"/>'
+    +'<path d="M74 34 L80 12 L60 26 Z" fill="url(#zf)"/>'
+    +'<path d="M27 30 L24 18 L35 26 Z" fill="#06070f" opacity=".55"/>'
+    +'<path d="M73 30 L76 18 L65 26 Z" fill="#06070f" opacity=".55"/>'
+    +'<path d="M50 24 C72 24 82 40 82 56 C82 74 68 86 50 86 C32 86 18 74 18 56 C18 40 28 24 50 24 Z" fill="url(#zf)"/>'
+    +'<path d="M50 40 C64 40 72 50 72 60 C72 73 62 82 50 82 C38 82 28 73 28 60 C28 50 36 40 50 40 Z" fill="#0e1124" opacity=".92"/>'
+    +'<circle cx="40" cy="58" r="4.4" fill="#fff"/><circle cx="60" cy="58" r="4.4" fill="#fff"/>'
+    +'<circle cx="'+(40+px)+'" cy="59" r="2.3" fill="#06070f"/><circle cx="'+(60+px)+'" cy="59" r="2.3" fill="#06070f"/>'
+    +'<path d="M50 64 L45 70 Q50 74 55 70 Z" fill="#00d4ff"/>'
+    +'<path d="M50 73 v4" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>'
+    +'<circle cx="34" cy="66" r="3" fill="#00d4ff" opacity=".25"/>'
+    +'<circle cx="66" cy="66" r="3" fill="#00d4ff" opacity=".25"/>'
+    +'</svg>';
+}
+
+// === EXISTING ENGINE ===
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let _sym      = 'NIFTY';
+let _tf       = '5m';
+let _mode     = 'live';      // 'live' | 'replay'
+let _candles  = [];          // full candle array from server
+let _chart    = null;
+let _candleSeries  = null;
+let _vwapSeries    = null;
+let _stUpSeries    = null;
+let _stDownSeries  = null;
+let _volumeSeries  = null;
+let _ema9Series    = null;
+let _ema21Series   = null;
+let _rsiChart      = null;
+let _rsiSeries     = null;
+let _macdChart     = null;
+let _macdLineSeries   = null;
+let _macdSignalSeries = null;
+let _macdHistSeries   = null;
+let _priceLines    = [];
+let _cprData       = null;
+let _orbData       = null;
+let _orbLines      = [];
+let _levelsVisible = false; // kept for legacy; controlled by _indState.cpr / _indState.pivots
+let _floatLabels   = [];
+let _isFullscreen  = false;
+let _histDate = null;        // null = today/live; 'YYYY-MM-DD' = historical session
+let _livePoll = null;        // setInterval id
+let _rpIdx    = 0;           // replay cursor
+let _rpTimer  = null;        // replay setInterval id
+let _rpMs     = 1000;        // replay speed ms
+let _rpPlaying = false;
+let _lastCandleTime = 0;  // tracks completed-candle detection
+let _toastTimer = null;
+
+// Indicator toggle state — true = visible
+const _indState = { vwap:true, st:true, vol:true, ema9:false, ema21:false, cpr:false, pivots:false, orb:false, rsi:false, macd:false };
+
+const _IND_INFO = {
+  vwap:  'VWAP — Volume Weighted Average Price. Session average price weighted by volume. Price above VWAP = bullish intraday bias; below = bearish. Acts as a dynamic support/resistance that resets each session.',
+  st:    'Supertrend — trend-following indicator using ATR. Green line below price = uptrend (acts as support). Red line above price = downtrend (acts as resistance). The flip point signals a trend reversal entry.',
+  vol:   'Volume — contracts traded per candle. High volume confirms the direction of a move. Low volume on a breakout = weak signal, likely to fail. Opening and closing candles typically carry the highest volume.',
+  ema9:  'EMA 9 (Fast EMA) — reacts quickly to price. Price above EMA 9 = short-term bullish momentum. Useful as dynamic support in uptrends. Often used with EMA 21 for crossover signals.',
+  ema21: 'EMA 21 (Medium EMA) — smoother trend filter. EMA 9 crossing above EMA 21 = Golden Cross (buy). EMA 9 crossing below EMA 21 = Death Cross (sell). In a strong trend price stays above both EMAs.',
+  cpr:   'CPR — Central Pivot Range (TC/BC) from previous day OHLC. Narrow CPR = trending day ahead. Wide CPR = sideways. Price respecting TC/BC tells you who is in control for the session.',
+  pivots:'Pivots — Standard R1/R2/S1/S2 support-resistance levels + Camarilla H4/L4 breakout zones. H4/L4 are key institutional levels — a close beyond them often triggers a strong directional move.',
+  orb:   'ORB — Opening Range Breakout. High and Low of the first candle(s) after market open. A sustained move above ORB High = bullish bias; below ORB Low = bearish bias. Often used as a session anchor.',
+  rsi:   'RSI 14 — Relative Strength Index (0–100). Above 70 = overbought (watch for reversal). Below 30 = oversold (watch for bounce). 40–60 = neutral zone. In strong trends RSI can stay extreme for extended periods.',
+  macd:  'MACD (12,26,9) — momentum indicator. Blue line = MACD (EMA12−EMA26). Orange line = Signal (EMA9 of MACD). Histogram above 0 = bullish momentum building. MACD crossing above Signal = buy signal.',
+};
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+function setSym(sym, btn) {
+  _sym = sym;
+  document.querySelectorAll('#sym-grp .tog').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  reload();
+}
+
+function setTf(tf, btn) {
+  _tf = tf;
+  document.querySelectorAll('#tf-grp .tog').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  reload();
+}
+
+function setMode(mode) {
+  const prevMode = _mode;
+  _mode = mode;
+  document.getElementById('btn-live').classList.toggle('live-active', mode === 'live');
+  document.getElementById('btn-live').classList.toggle('active',      mode === 'live');
+  document.getElementById('btn-replay').classList.toggle('active',    mode === 'replay');
+  document.getElementById('pulse-dot').classList.toggle('paused', mode !== 'live');
+  _tpSetMode(mode);
+
+  if (mode === 'live') {
+    const wasHist = !!_histDate;
+    _histDate = null;
+    rpStop();
+    if (wasHist) reload(); else startLivePoll();
+  } else {
+    stopLivePoll();
+    rpStop();
+    if (_candles.length) { _rpIdx = _candles.length - 1; rpInitSlider(); rpRender(); }
+  }
+}
+
+// ─── Load ─────────────────────────────────────────────────────────────────────
+async function reload() {
+  stopLivePoll();
+  rpStop();
+  setChartLoading();
+  document.getElementById('chart-title').textContent = `${_sym} · ${_tf}`;
+  clearError();
+
+  try {
+    const url = _histDate
+      ? `/api/psychology/candles?symbol=${_sym}&interval=${_tf}&date=${_histDate}`
+      : `/api/psychology/candles?symbol=${_sym}&interval=${_tf}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (!_histDate && (data.market_closed || !data.candles || data.candles.length === 0)) {
+      showMarketClosed(data.error || 'Market closed — no intraday data today');
+      return;
+    }
+    if (data.error) {
+      showError(data.error);
+      return;
+    }
+    if (!data.candles || data.candles.length === 0) {
+      showError(`No data for ${_histDate || 'today'}`);
+      return;
+    }
+
+    _candles = data.candles;
+    _lastCandleTime = _candles.length ? _candles[_candles.length - 1].time : 0;
+    buildChart(data.candles);
+    fetchAndDrawLevels();
+    if (!_histDate) fetchAndDrawOrb();
+    updatePanel(_candles[_candles.length - 1]);
+    updateHistStrip(_candles);
+    tryBuildStory();
+    const label = _histDate ? `${data.count} candles · ${_histDate}` : `${data.count} candles · last: ${data.as_of} IST`;
+    document.getElementById('chart-asof').textContent = label;
+    document.getElementById('ctrl-asof').textContent  = _histDate ? _histDate : data.as_of + ' IST';
+
+    if (_histDate) {
+      _rpIdx = _candles.length - 1;
+      rpInitSlider();
+      rpRender();
+      // Ensure badge + controls reflect historical replay state
+      _tpSetMode('replay');
+    } else if (_mode === 'live') {
+      startLivePoll();
+    } else {
+      _rpIdx = _candles.length - 1;
+      rpInitSlider();
+      rpRender();
+    }
+
+  } catch (e) {
+    showError('Engine unreachable — is Python running?');
+  }
+}
+
+// ─── Chart ────────────────────────────────────────────────────────────────────
+function setChartLoading() {
+  const el = document.getElementById('psych-chart');
+  el.className = '';  // clear closed-hub class if set
+  el.innerHTML = '<div class="loading-state"><div class="spin"></div>Loading candles…</div>';
+  _chart = null; _candleSeries = null; _vwapSeries = null;
+  _stUpSeries = null; _stDownSeries = null; _volumeSeries = null;
+  _priceLines = []; clearFloatingLabels();
+  clearStory();
+}
+
+function buildChart(candles) {
+  const container = document.getElementById('psych-chart');
+  container.innerHTML = '';
+
+  _chart = LightweightCharts.createChart(container, {
+    layout:          { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid:            { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#252a44' },
+    timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    width:  container.clientWidth,
+    height: _isFullscreen ? (window.innerHeight - 88) : 360,
+  });
+  _chart.timeScale().subscribeVisibleLogicalRangeChange(updateFloatingLabels);
+
+  // Candlestick
+  _candleSeries = _chart.addCandlestickSeries({
+    upColor:        '#2ecc71', downColor:        '#e74c3c',
+    borderUpColor:  '#2ecc71', borderDownColor:  '#e74c3c',
+    wickUpColor:    '#2ecc71', wickDownColor:    '#e74c3c',
+  });
+  _candleSeries.setData(candles.map(c => ({
+    time: c.time, open: c.open, high: c.high, low: c.low, close: c.close,
+  })));
+
+  // VWAP — dashed cyan line
+  _vwapSeries = _chart.addLineSeries({
+    color: '#00d4ff', lineWidth: 2, priceLineVisible: false,
+    lastValueVisible: true, title: 'VWAP', crosshairMarkerVisible: false,
+    lineStyle: LightweightCharts.LineStyle.Dashed, visible: _indState.vwap,
+  });
+  _vwapSeries.setData(candles.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
+
+  // Supertrend UP — green below price (support)
+  _stUpSeries = _chart.addLineSeries({
+    color: '#2ecc71', lineWidth: 2, priceLineVisible: false,
+    lastValueVisible: true, title: 'ST↑', crosshairMarkerVisible: false, visible: _indState.st,
+  });
+  _stUpSeries.setData(candles.filter(c => c.supertrend_dir === 'up' && c.supertrend)
+    .map(c => ({ time: c.time, value: c.supertrend })));
+
+  // Supertrend DOWN — red above price (resistance)
+  _stDownSeries = _chart.addLineSeries({
+    color: '#e74c3c', lineWidth: 2, priceLineVisible: false,
+    lastValueVisible: true, title: 'ST↓', crosshairMarkerVisible: false, visible: _indState.st,
+  });
+  _stDownSeries.setData(candles.filter(c => c.supertrend_dir === 'down' && c.supertrend)
+    .map(c => ({ time: c.time, value: c.supertrend })));
+
+  // Volume histogram — overlay scale, bottom 18%
+  _volumeSeries = _chart.addHistogramSeries({
+    priceFormat: { type: 'volume' }, priceScaleId: '',
+    lastValueVisible: false, priceLineVisible: false, visible: _indState.vol,
+  });
+  _chart.priceScale('').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 }, visible: false });
+  _volumeSeries.setData(candles.map(c => ({
+    time: c.time, value: c.volume,
+    color: c.close >= c.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)',
+  })));
+
+  // EMA 9 — fast, orange
+  _ema9Series = _chart.addLineSeries({
+    color: '#f5a623', lineWidth: 1, priceLineVisible: false,
+    lastValueVisible: true, title: 'EMA9', crosshairMarkerVisible: false, visible: _indState.ema9,
+  });
+  _ema9Series.setData(_calcEMAData(candles, 9));
+
+  // EMA 21 — medium, purple
+  _ema21Series = _chart.addLineSeries({
+    color: '#e8a045', lineWidth: 1, priceLineVisible: false,
+    lastValueVisible: true, title: 'EMA21', crosshairMarkerVisible: false, visible: _indState.ema21,
+  });
+  _ema21Series.setData(_calcEMAData(candles, 21));
+
+  _chart.timeScale().fitContent();
+}
+
+function _mainChartHeight() {
+  if (_isFullscreen) {
+    let h = window.innerHeight - 44 - 44 - 30; // hdr ~44 + ind-bar ~44 + asof ~30
+    if (_indState.rsi)  h -= 132;
+    if (_indState.macd) h -= 132;
+    return Math.max(180, h);
+  }
+  return 360;
+}
+
+function _resizeChart() {
+  if (_chart) {
+    const c = document.getElementById('psych-chart');
+    const h = _mainChartHeight();
+    if (_isFullscreen) c.style.height = h + 'px';
+    else c.style.height = '';
+    _chart.applyOptions({ width: c.clientWidth, height: h });
+    updateFloatingLabels();
+  }
+  if (_rsiChart)  { const el = document.getElementById('rsi-chart');  if (el) _rsiChart.applyOptions({ width: el.clientWidth }); }
+  if (_macdChart) { const el = document.getElementById('macd-chart'); if (el) _macdChart.applyOptions({ width: el.clientWidth }); }
+}
+
+// ─── CPR & Camarilla levels ───────────────────────────────────────────────────
+function _calcCam(H, L, C) {
+  const r = H - L, r2 = v => Math.round(v * 100) / 100;
+  return {
+    h4: r2(C + r * 1.1 / 2), h3: r2(C + r * 1.1 / 4),
+    l3: r2(C - r * 1.1 / 4), l4: r2(C - r * 1.1 / 2),
+  };
+}
+
+async function fetchAndDrawLevels() {
+  try {
+    const levelsUrl = _histDate
+      ? `/api/psychology/levels?symbol=${_sym}&date=${_histDate}`
+      : `/api/psychology/levels?symbol=${_sym}`;
+    const res = await fetch(levelsUrl);
+    const d   = await res.json();
+    if (!d.cpr || !d.camarilla) return;
+    _cprData = { cpr: d.cpr, cam: d.camarilla };
+    if (_indState.cpr || _indState.pivots) drawLevels();
+    tryBuildStory();  // CPR data now available — rebuild story with full context
+  } catch(e) {}
+}
+
+function drawLevels() {
+  if (!_candleSeries || !_cprData) return;
+  clearLevels();
+  const LS = LightweightCharts.LineStyle;
+  const { cpr, cam } = _cprData;
+  const lines = [], floats = [];
+
+  if (_indState.cpr) {
+    lines.push(
+      { price: cpr.tc, color: '#00d4ff',               width: 1, style: LS.Solid,        title: 'TC' },
+      { price: cpr.pp, color: 'rgba(200,200,200,0.5)',  width: 1, style: LS.SparseDotted, title: 'PP' },
+      { price: cpr.bc, color: '#00d4ff',               width: 1, style: LS.Solid,        title: 'BC' },
+    );
+    floats.push(
+      [cpr.tc, 'TC', '#00d4ff',              'rgba(0,212,255,0.13)'],
+      [cpr.pp, 'PP', 'rgba(180,180,180,0.9)','rgba(180,180,180,0.08)'],
+      [cpr.bc, 'BC', '#00d4ff',              'rgba(0,212,255,0.13)'],
+    );
+  }
+
+  if (_indState.pivots) {
+    lines.push(
+      { price: cpr.r1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted, title: 'R1' },
+      { price: cpr.r2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted, title: 'R2' },
+      { price: cpr.s1, color: 'rgba(245,166,35,0.75)', width: 1, style: LS.Dotted, title: 'S1' },
+      { price: cpr.s2, color: 'rgba(245,166,35,0.5)',  width: 1, style: LS.Dotted, title: 'S2' },
+      { price: cam.h4, color: '#2ecc71',               width: 2, style: LS.Dashed, title: 'H4 ▲' },
+      { price: cam.h3, color: 'rgba(46,204,113,0.55)', width: 1, style: LS.Dotted, title: 'H3' },
+      { price: cam.l3, color: 'rgba(231,76,60,0.55)',  width: 1, style: LS.Dotted, title: 'L3' },
+      { price: cam.l4, color: '#e74c3c',               width: 2, style: LS.Dashed, title: 'L4 ▼' },
+    );
+    floats.push(
+      [cpr.r1, 'R1',    '#f5a623',              'rgba(245,166,35,0.11)'],
+      [cpr.r2, 'R2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
+      [cpr.s1, 'S1',    '#f5a623',              'rgba(245,166,35,0.11)'],
+      [cpr.s2, 'S2',    'rgba(245,166,35,0.75)','rgba(245,166,35,0.07)'],
+      [cam.h4, 'H4 ▲', '#2ecc71',              'rgba(46,204,113,0.13)'],
+      [cam.h3, 'H3',    'rgba(46,204,113,0.65)','rgba(46,204,113,0.07)'],
+      [cam.l3, 'L3',    'rgba(231,76,60,0.65)', 'rgba(231,76,60,0.07)'],
+      [cam.l4, 'L4 ▼', '#e74c3c',              'rgba(231,76,60,0.13)'],
+    );
+  }
+
+  lines.forEach(s => {
+    _priceLines.push(_candleSeries.createPriceLine({
+      price: s.price, color: s.color, lineWidth: s.width,
+      lineStyle: s.style, axisLabelVisible: true, title: s.title,
+    }));
+  });
+  clearFloatingLabels();
+  floats.forEach(([price, text, color, bg]) => _makeFloatLabel(price, text, color, bg));
+  if (floats.length) updateFloatingLabels();
+}
+
+function clearLevels() {
+  _priceLines.forEach(l => { try { _candleSeries.removePriceLine(l); } catch(e) {} });
+  _priceLines = [];
+  clearFloatingLabels();
+}
+
+async function fetchAndDrawOrb() {
+  try {
+    const res = await fetch('/api/trade-flow');
+    const d   = await res.json();
+    if (!d.orb || d.orb.high == null) return;
+    _orbData = d.orb;
+    if (_indState.orb) drawOrbLines();
+  } catch(e) {}
+}
+
+function drawOrbLines() {
+  if (!_candleSeries || !_orbData) return;
+  clearOrbLines();
+  const LS = LightweightCharts.LineStyle;
+  _orbLines.push(_candleSeries.createPriceLine({ price: _orbData.high, color: '#a78bfa', lineWidth: 2, lineStyle: LS.Solid, axisLabelVisible: true, title: 'ORB H' }));
+  _orbLines.push(_candleSeries.createPriceLine({ price: _orbData.low,  color: '#a78bfa', lineWidth: 2, lineStyle: LS.Solid, axisLabelVisible: true, title: 'ORB L' }));
+}
+
+function clearOrbLines() {
+  _orbLines.forEach(l => { try { _candleSeries.removePriceLine(l); } catch(e) {} });
+  _orbLines = [];
+}
+
+function toggleLevels() { toggleInd('cpr'); }
+
+// ─── Indicator toggles ────────────────────────────────────────────────────────
+function toggleInd(ind) {
+  _indState[ind] = !_indState[ind];
+  document.querySelector(`.ind-pill[data-ind="${ind}"]`)?.classList.toggle('active', _indState[ind]);
+  applyIndVisibility();
+}
+
+function applyIndVisibility() {
+  if (_vwapSeries)   _vwapSeries.applyOptions({ visible: _indState.vwap });
+  if (_stUpSeries)   _stUpSeries.applyOptions({ visible: _indState.st });
+  if (_stDownSeries) _stDownSeries.applyOptions({ visible: _indState.st });
+  if (_volumeSeries) _volumeSeries.applyOptions({ visible: _indState.vol });
+  if (_ema9Series)   _ema9Series.applyOptions({ visible: _indState.ema9 });
+  if (_ema21Series)  _ema21Series.applyOptions({ visible: _indState.ema21 });
+  // CPR / Pivots levels
+  if (_indState.cpr || _indState.pivots) { if (_cprData) drawLevels(); } else clearLevels();
+  // ORB lines
+  if (_indState.orb) { if (_orbData) drawOrbLines(); } else clearOrbLines();
+  // RSI sub-panel
+  const rsiEl = document.getElementById('rsi-panel');
+  if (rsiEl) rsiEl.style.display = _indState.rsi ? '' : 'none';
+  if (_indState.rsi && !_rsiChart) buildRsiChart();
+  // MACD sub-panel
+  const macdEl = document.getElementById('macd-panel');
+  if (macdEl) macdEl.style.display = _indState.macd ? '' : 'none';
+  if (_indState.macd && !_macdChart) buildMacdChart();
+  // Recompute EMA data if newly enabled
+  if (_indState.ema9  && _ema9Series  && _candles.length) _ema9Series.setData(_calcEMAData(_candles, 9));
+  if (_indState.ema21 && _ema21Series && _candles.length) _ema21Series.setData(_calcEMAData(_candles, 21));
+  setTimeout(_resizeChart, 30);
+}
+
+function showIndInfo(event, ind) {
+  event.stopPropagation();
+  const tip = document.getElementById('ind-tooltip');
+  tip.textContent = _IND_INFO[ind] || '';
+  tip.style.display = 'block';
+  const r = event.currentTarget.getBoundingClientRect();
+  tip.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 296)) + 'px';
+  tip.style.top  = (r.top - 8) + 'px';
+  requestAnimationFrame(() => {
+    const tr = tip.getBoundingClientRect();
+    if (tr.top < 8) tip.style.top = (r.bottom + 8) + 'px';
+    if (tr.bottom > window.innerHeight - 8) tip.style.top = Math.max(8, window.innerHeight - tr.height - 8) + 'px';
+  });
+  const dismiss = e => { if (!tip.contains(e.target)) { tip.style.display = 'none'; document.removeEventListener('click', dismiss); } };
+  setTimeout(() => document.addEventListener('click', dismiss), 0);
+}
+
+// ─── Client-side indicator computations ──────────────────────────────────────
+function _calcEMAData(candles, period) {
+  if (candles.length < period) return [];
+  const k = 2 / (period + 1);
+  let ema = candles.slice(0, period).reduce((s, c) => s + c.close, 0) / period;
+  const out = [{ time: candles[period - 1].time, value: +ema.toFixed(2) }];
+  for (let i = period; i < candles.length; i++) {
+    ema = candles[i].close * k + ema * (1 - k);
+    out.push({ time: candles[i].time, value: +ema.toFixed(2) });
+  }
+  return out;
+}
+
+function _calcRSIData(candles, period = 14) {
+  if (candles.length < period + 1) return [];
+  const out = [];
+  let ag = 0, al = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = candles[i].close - candles[i - 1].close;
+    if (d > 0) ag += d; else al -= d;
+  }
+  ag /= period; al /= period;
+  out.push({ time: candles[period].time, value: +(al === 0 ? 100 : 100 - 100 / (1 + ag / al)).toFixed(2) });
+  for (let i = period + 1; i < candles.length; i++) {
+    const d = candles[i].close - candles[i - 1].close;
+    ag = (ag * (period - 1) + Math.max(d, 0)) / period;
+    al = (al * (period - 1) + Math.max(-d, 0)) / period;
+    out.push({ time: candles[i].time, value: +(al === 0 ? 100 : 100 - 100 / (1 + ag / al)).toFixed(2) });
+  }
+  return out;
+}
+
+function _calcMACDData(candles, fast = 12, slow = 26, sig = 9) {
+  const ef = _calcEMAData(candles, fast);
+  const es = _calcEMAData(candles, slow);
+  const efMap = new Map(ef.map(x => [x.time, x.value]));
+  const macdLine = es.filter(x => efMap.has(x.time))
+    .map(x => ({ time: x.time, value: +(efMap.get(x.time) - x.value).toFixed(2) }));
+  if (macdLine.length < sig) return { line: macdLine, signal: [], hist: [] };
+  const sk = 2 / (sig + 1);
+  let se = macdLine.slice(0, sig).reduce((s, c) => s + c.value, 0) / sig;
+  const signalLine = [{ time: macdLine[sig - 1].time, value: +se.toFixed(2) }];
+  for (let i = sig; i < macdLine.length; i++) {
+    se = macdLine[i].value * sk + se * (1 - sk);
+    signalLine.push({ time: macdLine[i].time, value: +se.toFixed(2) });
+  }
+  const hist = signalLine.map((s, idx) => {
+    const m = macdLine[sig - 1 + idx];
+    if (!m) return null;
+    const v = +(m.value - s.value).toFixed(2);
+    return { time: s.time, value: v, color: v >= 0 ? 'rgba(245,166,35,0.9)' : 'rgba(231,76,60,0.8)' };
+  }).filter(Boolean);
+  return { line: macdLine, signal: signalLine, hist };
+}
+
+// ─── Sub-panel chart builders ─────────────────────────────────────────────────
+function buildRsiChart() {
+  const el = document.getElementById('rsi-chart');
+  el.innerHTML = '';
+  _rsiChart = LightweightCharts.createChart(el, {
+    layout:          { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid:            { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    rightPriceScale: { borderColor: '#252a44', scaleMargins: { top: 0.1, bottom: 0.1 } },
+    timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
+    width: el.clientWidth, height: 110,
+  });
+  _rsiSeries = _rsiChart.addLineSeries({
+    color: '#f5a623', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'RSI',
+  });
+  const LS = LightweightCharts.LineStyle;
+  _rsiSeries.createPriceLine({ price: 70, color: 'rgba(231,76,60,0.55)', lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: 'OB' });
+  _rsiSeries.createPriceLine({ price: 30, color: 'rgba(46,204,113,0.55)', lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: 'OS' });
+  _rsiSeries.createPriceLine({ price: 50, color: 'rgba(155,163,191,0.2)', lineWidth: 1, lineStyle: LS.Dotted, axisLabelVisible: false });
+  const rsiData = _calcRSIData(_candles);
+  _rsiSeries.setData(rsiData);
+  _rsiChart.timeScale().fitContent();
+  if (rsiData.length) document.getElementById('rsi-val').textContent = rsiData[rsiData.length - 1].value.toFixed(1);
+}
+
+function buildMacdChart() {
+  const el = document.getElementById('macd-chart');
+  el.innerHTML = '';
+  _macdChart = LightweightCharts.createChart(el, {
+    layout:          { background: { color: '#0e1020' }, textColor: '#9ba3bf' },
+    grid:            { vertLines: { color: '#1a1e35' }, horzLines: { color: '#1a1e35' } },
+    rightPriceScale: { borderColor: '#252a44' },
+    timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
+    crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
+    width: el.clientWidth, height: 110,
+  });
+  const macd = _calcMACDData(_candles);
+  _macdHistSeries = _macdChart.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false });
+  _macdHistSeries.setData(macd.hist);
+  _macdLineSeries = _macdChart.addLineSeries({
+    color: '#f5a623', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'MACD',
+  });
+  _macdLineSeries.setData(macd.line);
+  _macdSignalSeries = _macdChart.addLineSeries({
+    color: 'rgba(220,220,220,0.75)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+    priceLineVisible: false, lastValueVisible: true, title: 'Sig',
+  });
+  _macdSignalSeries.setData(macd.signal);
+  _macdChart.timeScale().fitContent();
+  if (macd.line.length) document.getElementById('macd-val').textContent = macd.line[macd.line.length - 1].value.toFixed(2);
+}
+
+// ─── Floating labels (indicators drawn over the chart area) ──────────────────
+function _makeFloatLabel(price, text, color, bg) {
+  const wrap = document.getElementById('psych-chart');
+  if (!wrap) return;
+  const el = document.createElement('div');
+  el.className = 'chart-float-label';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.background = bg;
+  el.style.borderColor = color;
+  wrap.appendChild(el);
+  _floatLabels.push({ el, price });
+}
+
+function updateFloatingLabels() {
+  if (!_candleSeries || !_chart) return;
+  const chartH = _mainChartHeight();
+  _floatLabels.forEach(({ el, price }) => {
+    const y = _candleSeries.priceToCoordinate(price);
+    if (y !== null && y > 4 && y < chartH - 4) {
+      el.style.top     = Math.round(y - 9) + 'px';
+      el.style.opacity = '1';
+    } else {
+      el.style.opacity = '0';
+    }
+  });
+}
+
+function clearFloatingLabels() {
+  _floatLabels.forEach(({ el }) => { try { el.remove(); } catch(e) {} });
+  _floatLabels = [];
+}
+
+// ─── Fullscreen ───────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  _isFullscreen = !_isFullscreen;
+  const panel = document.getElementById('chart-panel');
+  const btn   = document.getElementById('fsBtn');
+  panel.classList.toggle('fs-mode', _isFullscreen);
+  document.body.classList.toggle('fs-lock', _isFullscreen);
+  btn.textContent = _isFullscreen ? '✕' : '⛶';
+  btn.title       = _isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
+  setTimeout(_resizeChart, 30);
+}
+
+// Update only the last candle in chart (live mode)
+function chartUpdateLast(candle) {
+  if (!_candleSeries) return;
+  _candleSeries.update({ time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close });
+  if (candle.vwap)      _vwapSeries.update({ time: candle.time, value: candle.vwap });
+  if (candle.supertrend && candle.supertrend_dir === 'up')
+    _stUpSeries.update({ time: candle.time, value: candle.supertrend });
+  if (candle.supertrend && candle.supertrend_dir === 'down')
+    _stDownSeries.update({ time: candle.time, value: candle.supertrend });
+  if (candle.volume && _volumeSeries)
+    _volumeSeries.update({ time: candle.time, value: candle.volume, color: candle.close >= candle.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)' });
+  // EMA live update
+  if (_ema9Series  && _indState.ema9)  { const d = _calcEMAData(_candles, 9);  if (d.length) _ema9Series.update(d[d.length-1]); }
+  if (_ema21Series && _indState.ema21) { const d = _calcEMAData(_candles, 21); if (d.length) _ema21Series.update(d[d.length-1]); }
+  // RSI live update
+  if (_rsiChart && _indState.rsi) {
+    const d = _calcRSIData(_candles);
+    if (d.length) { _rsiSeries.update(d[d.length-1]); document.getElementById('rsi-val').textContent = d[d.length-1].value.toFixed(1); }
+  }
+  // MACD live update
+  if (_macdChart && _indState.macd) {
+    const m = _calcMACDData(_candles);
+    if (m.hist.length)   _macdHistSeries.update(m.hist[m.hist.length-1]);
+    if (m.line.length)   { _macdLineSeries.update(m.line[m.line.length-1]); document.getElementById('macd-val').textContent = m.line[m.line.length-1].value.toFixed(2); }
+    if (m.signal.length) _macdSignalSeries.update(m.signal[m.signal.length-1]);
+  }
+  updateFloatingLabels();
+}
+
+// ─── Candle Pattern Detection ─────────────────────────────────────────────────
+const PATTERNS = {
+  doji:             { id:'doji',             emoji:'➕', name:'Doji',               dir:'neutral', color:'var(--dim)',
+    desc:"Buyers and sellers fought hard all period but ended at a draw! Neither side could win. Indecision is in the air.",
+    hint:"Wait for the next candle to break above or below this doji. That breakout direction is your trade signal." },
+  long_legged_doji: { id:'long_legged_doji', emoji:'🕯',  name:'Long-Legged Doji',   dir:'neutral', color:'var(--dim)',
+    desc:"Wild ride! Price swung massively in both directions but came back to where it started. Pure market confusion.",
+    hint:"This price level is a battlefield. A strong candle in either direction will resolve the fight." },
+  gravestone_doji:  { id:'gravestone_doji',  emoji:'⛔', name:'Gravestone Doji',     dir:'bear',    color:'var(--red)',
+    desc:"Graveyard for bulls! Price shot up but sellers crushed it all the way back to the open. The rally was completely rejected.",
+    hint:"Bearish warning — especially at a resistance level. A red candle next confirms the rejection." },
+  dragonfly_doji:   { id:'dragonfly_doji',   emoji:'🐉', name:'Dragonfly Doji',      dir:'bull',    color:'var(--green)',
+    desc:"Phoenix moment! Price crashed hard but buyers roared back and reclaimed every point. The floor held strong!",
+    hint:"Bullish potential — especially at a support level. A green candle above this high confirms the reversal." },
+  bull_marubozu:    { id:'bull_marubozu',    emoji:'🚀', name:'Bull Marubozu',        dir:'bull',    color:'var(--green)',
+    desc:"FULL POWER! Not a single wick — buyers controlled every single tick of this candle. Zero hesitation, zero mercy.",
+    hint:"Strong momentum. Stay long above this candle's close. Any pullback is likely shallow and short-lived." },
+  bear_marubozu:    { id:'bear_marubozu',    emoji:'💀', name:'Bear Marubozu',        dir:'bear',    color:'var(--red)',
+    desc:"FULL POWER BEARS! Sellers dominated every tick from open to close. The bulls put up zero fight.",
+    hint:"Strong downward momentum. Avoid buying here. Wait for a clear reversal signal before going long." },
+  hammer:           { id:'hammer',           emoji:'🔨', name:'Hammer',               dir:'bull',    color:'var(--green)',
+    desc:"The Comeback Kid! Sellers pushed price way down during the candle, but buyers punched back hard and closed near the top. A floor may be forming!",
+    hint:"Bullish reversal signal. If next candle closes above this hammer's high — that's your entry!" },
+  hanging_man:      { id:'hanging_man',      emoji:'⚠️', name:'Hanging Man',          dir:'bear',    color:'var(--red)',
+    desc:"Same shape as a hammer but appearing at a HIGH is a RED FLAG! Sellers are testing the bulls. Something's about to give.",
+    hint:"Bearish warning at resistance. Watch for a red candle next to confirm the reversal. If it closes red — exit longs." },
+  inverted_hammer:  { id:'inverted_hammer',  emoji:'🔼', name:'Inverted Hammer',      dir:'bull',    color:'var(--yellow)',
+    desc:"Buyers tested the ceiling above — they got pushed back, but they're showing up! There's buying interest here.",
+    hint:"Needs confirmation. A bullish candle closing above this candle's high confirms the potential reversal." },
+  shooting_star:    { id:'shooting_star',    emoji:'💫', name:'Shooting Star',        dir:'bear',    color:'var(--red)',
+    desc:"Shot down from above! Price tried to rally to new highs but got SLAPPED back hard. Sellers mean serious business.",
+    hint:"Bearish reversal signal at a top. If the next candle closes below this candle's low — watch out below!" },
+  spinning_top:     { id:'spinning_top',     emoji:'🔄', name:'Spinning Top',         dir:'neutral', color:'var(--yellow)',
+    desc:"The market is dizzy! Wicks on both sides with a small body — nobody could dominate this period. Indecision in the air.",
+    hint:"Wait for the next candle to give direction. Spinning tops near key levels with high volume are extra significant." },
+  bull_engulfing:   { id:'bull_engulfing',   emoji:'🦁', name:'Bullish Engulfing',    dir:'bull',    color:'var(--green)',
+    desc:"BULLS ROAR! This green candle completely swallowed the previous red candle — like a lion devouring its prey. Powerful reversal!",
+    hint:"Strong buy signal! Enter above this candle's high. Stop loss goes below the low of the engulfed candle." },
+  bear_engulfing:   { id:'bear_engulfing',   emoji:'🐻', name:'Bearish Engulfing',    dir:'bear',    color:'var(--red)',
+    desc:"BEARS ATTACK! A massive red candle just swallowed the entire previous green candle. Sellers took over completely.",
+    hint:"Strong sell signal! The bears are clearly in charge now. Avoid buying until the pressure eases." },
+  bull_harami:      { id:'bull_harami',      emoji:'🐣', name:'Bullish Harami',       dir:'bull',    color:'var(--green)',
+    desc:"Baby bull hiding inside the bear! A small green candle formed entirely inside the previous red body. Selling is pausing.",
+    hint:"The bears may be exhausted. A green candle closing above this high suggests a potential trend shift." },
+  bear_harami:      { id:'bear_harami',      emoji:'📦', name:'Bearish Harami',       dir:'bear',    color:'var(--red)',
+    desc:"Tiny bear hiding inside the bull! A small red candle appeared inside the previous large green body. Bulls are losing steam.",
+    hint:"Buying momentum may be fading. Watch if the next candle confirms with a bearish close below this low." },
+  strong_bull:      { id:'strong_bull',      emoji:'📈', name:'Strong Bull',          dir:'bull',    color:'var(--green)',
+    desc:"Buyers pushing hard! A solid green candle with conviction — bulls are clearly in control this period.",
+    hint:"Momentum is bullish. Look for pullbacks to the midpoint of this candle as potential entry points." },
+  strong_bear:      { id:'strong_bear',      emoji:'📉', name:'Strong Bear',          dir:'bear',    color:'var(--red)',
+    desc:"Sellers pressing hard! A solid red candle — bears have the upper hand here. Don't fight this momentum.",
+    hint:"Bearish momentum is active. Wait for a clear reversal pattern before considering any long positions." },
+  mild_bull:        { id:'mild_bull',        emoji:'↗',  name:'Mild Bullish',         dir:'bull',    color:'var(--green)',
+    desc:"A gentle green candle — buyers have a small edge, but conviction is limited. The lean is bullish.",
+    hint:"Not a strong signal on its own. Works best as continuation inside an established uptrend." },
+  mild_bear:        { id:'mild_bear',        emoji:'↘',  name:'Mild Bearish',         dir:'bear',    color:'var(--red)',
+    desc:"A gentle red candle — sellers have a slight edge. Nothing dramatic, but the pressure is downward.",
+    hint:"Weak signal alone. More meaningful as continuation in a clear downtrend with other confirmations." },
+};
+
+function detectCandlePattern(candle, prevCandle) {
+  const O = candle.open, H = candle.high, L = candle.low, C = candle.close;
+  const range = H - L;
+  if (range < 0.5) return PATTERNS.doji;
+
+  const body      = Math.abs(C - O);
+  const upperWick = H - Math.max(C, O);
+  const lowerWick = Math.min(C, O) - L;
+  const bullish   = C >= O;
+  const bodyR     = body / range;
+  const upperR    = upperWick / range;
+  const lowerR    = lowerWick / range;
+
+  // Doji variants (body < 10% of range)
+  if (bodyR < 0.10) {
+    if (lowerR > 0.40 && upperR < 0.15) return PATTERNS.dragonfly_doji;
+    if (upperR > 0.40 && lowerR < 0.15) return PATTERNS.gravestone_doji;
+    if (upperR > 0.25 && lowerR > 0.25) return PATTERNS.long_legged_doji;
+    return PATTERNS.doji;
+  }
+
+  // Marubozu (body > 90%)
+  if (bodyR > 0.90) return bullish ? PATTERNS.bull_marubozu : PATTERNS.bear_marubozu;
+
+  // Hammer / Hanging Man — long lower wick
+  if (lowerR >= 0.55 && bodyR <= 0.30 && upperR <= 0.15)
+    return bullish ? PATTERNS.hammer : PATTERNS.hanging_man;
+
+  // Shooting Star / Inverted Hammer — long upper wick
+  if (upperR >= 0.55 && bodyR <= 0.30 && lowerR <= 0.15)
+    return bullish ? PATTERNS.inverted_hammer : PATTERNS.shooting_star;
+
+  // Spinning Top — small body, wicks both sides
+  if (bodyR < 0.35 && upperR > 0.20 && lowerR > 0.20) return PATTERNS.spinning_top;
+
+  // Two-candle patterns
+  if (prevCandle) {
+    const PO = prevCandle.open, PH = prevCandle.high, PL = prevCandle.low, PC = prevCandle.close;
+    const prevBullish = PC >= PO;
+    const prevBody    = Math.abs(PC - PO);
+    const prevRange   = PH - PL;
+    if (prevRange > 0.5 && prevBody > prevRange * 0.3) {
+      if (!prevBullish && bullish  && C > PO && O < PC && body >= prevBody * 0.85) return PATTERNS.bull_engulfing;
+      if ( prevBullish && !bullish && C < PO && O > PC && body >= prevBody * 0.85) return PATTERNS.bear_engulfing;
+      if (!prevBullish && bullish  && O >= Math.min(PO, PC) && C <= Math.max(PO, PC) && body < prevBody * 0.55) return PATTERNS.bull_harami;
+      if ( prevBullish && !bullish && O <= Math.max(PO, PC) && C >= Math.min(PO, PC) && body < prevBody * 0.55) return PATTERNS.bear_harami;
+    }
+  }
+
+  // Generic strong/mild
+  if (bodyR > 0.60) return bullish ? PATTERNS.strong_bull : PATTERNS.strong_bear;
+  return bullish ? PATTERNS.mild_bull : PATTERNS.mild_bear;
+}
+
+function renderPatternCard(pattern, isLive) {
+  if (!pattern) return;
+  const card  = document.getElementById('cp-card');
+  const badge = document.getElementById('cp-badge');
+  const body  = document.getElementById('cp-body');
+  if (!card) return;
+
+  card.className = 'cp-card ' + (pattern.dir === 'bull' ? 'cp-bull' : pattern.dir === 'bear' ? 'cp-bear' : '');
+  badge.textContent = isLive ? 'LIVE' : 'CLOSED';
+  badge.className   = 'cp-badge ' + (isLive ? 'live' : 'done');
+
+  if (body.dataset.lastPattern !== pattern.id) {
+    const candleData = PATTERN_CANDLES[pattern.id];
+    const svgHtml    = candleData ? drawCandleSVG(candleData.c, 96) : '';
+    const infoHtml = `
+      <div class="cp-name" style="color:${pattern.color}">${pattern.emoji} ${pattern.name}</div>
+      <div class="cp-desc">${pattern.desc}</div>
+      <div class="cp-hint-wrap">
+        <span class="cp-hint-icon">👀</span>
+        <span class="cp-hint-txt">${pattern.hint}</span>
+      </div>`;
+    body.innerHTML = svgHtml
+      ? `<div class="cp-pop cp-with-candle">
+           <div class="cp-candle-svg">${svgHtml}</div>
+           <div class="cp-info">${infoHtml}</div>
+         </div>`
+      : `<div class="cp-pop">
+           <span class="cp-emoji">${pattern.emoji}</span>
+           ${infoHtml}
+         </div>`;
+    body.dataset.lastPattern = pattern.id;
+  }
+}
+
+function showPatternToast(pattern, timeStr) {
+  if (!pattern) return;
+  const toast = document.getElementById('cp-toast');
+  if (!toast) return;
+  if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+
+  toast.className = 'cp-toast cp-toast-' + pattern.dir;
+  document.getElementById('cp-toast-time').textContent = timeStr;
+  document.getElementById('cp-toast-name').innerHTML   = `${pattern.emoji} ${pattern.name}`;
+  document.getElementById('cp-toast-desc').textContent = pattern.desc;
+
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+  _toastTimer = setTimeout(dismissToast, 9000);
+}
+
+function dismissToast() {
+  const t = document.getElementById('cp-toast');
+  if (t) t.classList.remove('show');
+  if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+}
+
+// ─── Logic Label ──────────────────────────────────────────────────────────────
+function buildLogicLabel(d, comp, score) {
+  const vwap  = d.vwap_pos;
+  const st    = comp.st_dir;
+  const vol   = comp.rel_volume;
+  const state = d.state;
+  if (state === 'absorption')         return { text:'High volume + compressed price = Absorption zone. Big move loading — direction unknown. Do not trade until it breaks.', cls:'warn-label' };
+  if (state === 'fake_breakout')      return { text:'Wick trap: price broke out but reversed hard. Reversal candle likely next — do not chase the breakout.', cls:'warn-label' };
+  if (state === 'momentum_weakening') return { text:'Candle bodies shrinking — trend is losing fuel. Reduce size; reversal may be near.', cls:'warn-label' };
+  const volNote = vol < 0.7 ? ' Low volume — wait for confirmation.' : vol >= 2.0 ? ' High volume confirms the move.' : '';
+  if (score > 25) {
+    if (vwap === 'above' && st === 'up')   return { text:'High body strength + Above VWAP + Uptrend = Strong buyer floor.' + volNote + ' Not a good time to sell.', cls:'bull-label' };
+    if (vwap === 'above' && st === 'down') return { text:'Bullish candle but Supertrend is DOWN — counter-trend move. Treat as a pullback bounce, not a trend entry.' + volNote, cls:'warn-label' };
+    if (vwap === 'below' && st === 'up')   return { text:'Bullish push but price is below VWAP — buyers fighting the intraday average. Wait for VWAP reclaim before going long.' + volNote, cls:'warn-label' };
+    if (vwap === 'below' && st === 'down') return { text:'Strong-looking bull candle but below VWAP with Supertrend down — likely a dead-cat bounce. High risk to buy here.' + volNote, cls:'warn-label' };
+    return { text:'Strong bullish candle — buyers pushing hard.' + volNote, cls:'bull-label' };
+  }
+  if (score < -25) {
+    if (vwap === 'below' && st === 'down') return { text:'Heavy selling + Below VWAP + Downtrend = Sellers in full control.' + volNote + ' Avoid buying dips — wait for trend reversal.', cls:'bear-label' };
+    if (vwap === 'below' && st === 'up')   return { text:'Sharp bearish candle but Supertrend is UP — counter-trend selling. Watch for a reversal back up near VWAP.' + volNote, cls:'warn-label' };
+    if (vwap === 'above' && st === 'down') return { text:'Bearish candle but price above VWAP — mixed signal. Bulls may defend here. Wait.' + volNote, cls:'warn-label' };
+    if (vwap === 'above' && st === 'up')   return { text:'Bearish candle despite being above VWAP in an uptrend — likely a pullback, not a reversal.' + volNote + ' Hold your longs.', cls:'warn-label' };
+    return { text:'Strong bearish candle — sellers pushing hard.' + volNote, cls:'bear-label' };
+  }
+  if (score >= 5) {
+    if (vwap === 'above' && st === 'up') return { text:'Moderate bullish lean + Above VWAP + Uptrend — favours buyers.' + volNote + ' Wait for volume confirmation for a trend entry.', cls:'bull-label' };
+    if (vwap === 'above')                return { text:'Mild bullish bias above VWAP — trend alignment needed for a clean trade.', cls:'bull-label' };
+    return { text:'Mild bullish lean — conditions mixed. No high-conviction entry yet.', cls:'warn-label' };
+  }
+  if (score <= -5) {
+    if (vwap === 'below' && st === 'down') return { text:'Moderate bearish lean + Below VWAP + Downtrend — favours sellers.' + volNote + ' Avoid longs until Supertrend flips.', cls:'bear-label' };
+    if (vwap === 'below')                  return { text:'Mild bearish bias below VWAP — trend alignment needed for a short setup.', cls:'bear-label' };
+    return { text:'Mild bearish lean — conditions mixed. No high-conviction entry yet.', cls:'warn-label' };
+  }
+  return { text:'Balanced candle — no clear directional edge. Wait for a decisive move before acting.', cls:'warn-label' };
+}
+
+// ─── Panel updates ────────────────────────────────────────────────────────────
+const STATE_META = {
+  buyer_domination:  { icon: '⚡', label: 'BUYER DOMINATION',  desc: 'Strong bullish candle — buyers in control',   cls: 'st-buy',  ring: '#2ecc71' },
+  seller_domination: { icon: '🔻', label: 'SELLER DOMINATION', desc: 'Strong bearish candle — sellers in control',  cls: 'st-sell', ring: '#e74c3c' },
+  absorption:        { icon: '⚖', label: 'ABSORPTION',         desc: 'High volume, compressed price — possible trap', cls: 'st-abs', ring: '#f5a623' },
+  momentum_weakening:{ icon: '〰', label: 'MOMENTUM WEAKENING', desc: 'Candle bodies shrinking — conviction fading', cls: 'st-weak', ring: '#f5a623' },
+  fake_breakout:     { icon: '⚠', label: 'FAKE BREAKOUT RISK', desc: 'Breakout without follow-through — wick trap', cls: 'st-fake', ring: '#f97316' },
+  buyer_pressure:    { icon: '↑',  label: 'BUYER PRESSURE',    desc: 'Mild bullish lean — needs confirmation',       cls: 'st-pres', ring: '#9ba3bf' },
+  seller_pressure:   { icon: '↓',  label: 'SELLER PRESSURE',   desc: 'Mild bearish lean — needs confirmation',       cls: 'st-pres', ring: '#9ba3bf' },
+  neutral:           { icon: '—',  label: 'NEUTRAL / CHOPPY',  desc: 'No clear directional edge — wait for signal',  cls: 'st-pres', ring: '#4a5070' },
+};
+
+// ─── Trade Player bar state ───────────────────────────────────────────────────
+function _tpSetMode(mode) {
+  const isReplay = mode === 'replay';
+  const badge    = document.getElementById('tp-badge');
+  const label    = document.getElementById('tp-badge-label');
+  const scrubRow = document.getElementById('tp-scrubber-row');
+  const speedGrp = document.getElementById('tp-speed-grp');
+
+  if (badge) {
+    if (_histDate) {
+      badge.className = 'tp-badge hist';
+      if (label) label.textContent = _histDate;
+    } else {
+      badge.className = 'tp-badge ' + (isReplay ? 'replay' : 'live');
+      if (label) label.textContent = isReplay ? 'REPLAY' : 'LIVE';
+    }
+  }
+  if (scrubRow) scrubRow.style.display = isReplay ? '' : 'none';
+  if (speedGrp) speedGrp.style.display = isReplay ? '' : 'none';
+
+  // Transport — disable in live mode, enable in replay
+  ['tp-first','tp-prev','tp-play-btn','tp-next','tp-last'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !isReplay;
+  });
+
+  // Sym chip
+  const symEl = document.getElementById('tp-sym');
+  if (symEl) symEl.textContent = `${_sym} · ${_tf}`;
+}
+
+function _tpLiveUpdate(candle) {
+  if (!candle) return;
+  const d   = new Date(candle.time * 1000);
+  const t   = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+  const el  = document.getElementById('tp-candle-time');
+  if (el) el.textContent = t + ' IST';
+  const posEl   = document.getElementById('tp-pos');
+  const totalEl = document.getElementById('tp-total');
+  if (posEl)   posEl.textContent   = _candles.length;
+  if (totalEl) totalEl.textContent = _candles.length;
+}
+
+function updatePanel(candle) {
+  if (!candle || !candle.dominance) return;
+  if (_mode === 'live') _tpLiveUpdate(candle);
+  const d    = candle.dominance;
+  const comp = d.components;
+  const meta = STATE_META[d.state] || STATE_META.neutral;
+
+  // Chart glow — preserve fs-mode when resetting glow classes
+  const panel = document.getElementById('chart-panel');
+  panel.classList.remove('glow-buy', 'glow-sell', 'glow-abs');
+  if      (['buyer_domination', 'buyer_pressure'].includes(d.state))  panel.classList.add('glow-buy');
+  else if (['seller_domination', 'seller_pressure'].includes(d.state)) panel.classList.add('glow-sell');
+  else if (['absorption', 'momentum_weakening', 'fake_breakout'].includes(d.state)) panel.classList.add('glow-abs');
+
+  // Dominance meter
+  const score = d.score;
+  document.getElementById('buy-fill').style.width  = d.buyer_pct  + '%';
+  document.getElementById('sell-fill').style.width = d.seller_pct + '%';
+  document.getElementById('buy-pct').textContent   = d.buyer_pct  + '% Aggression';
+  document.getElementById('sell-pct').textContent  = d.seller_pct + '% Pressure';
+
+  const scoreEl = document.getElementById('dom-score');
+  scoreEl.textContent = (score >= 0 ? '+' : '') + score;
+  scoreEl.className   = 'dom-score ' + (score > 15 ? 'pos' : score < -15 ? 'neg' : 'neut');
+
+  // State badge
+  const stCard = document.getElementById('state-card');
+  stCard.className = 'state-card ' + meta.cls;
+  stCard.classList.add('state-pop');
+  setTimeout(() => stCard.classList.remove('state-pop'), 350);
+
+  document.getElementById('state-icon-wrap').textContent = meta.icon;
+  document.getElementById('state-name').textContent      = meta.label;
+  document.getElementById('state-desc').textContent      = meta.desc;
+  document.getElementById('state-ring').style.background = meta.ring;
+
+  // Insight
+  const insightEl = document.getElementById('insight-txt');
+  if (insightEl.textContent !== d.insight) {
+    insightEl.classList.add('fade');
+    setTimeout(() => {
+      insightEl.textContent = d.insight;
+      insightEl.classList.remove('fade');
+      insightEl.classList.add('insight-in');
+      setTimeout(() => insightEl.classList.remove('insight-in'), 400);
+    }, 200);
+  }
+
+  // Score breakdown bars
+  function setBk(id, valId, rawVal, maxVal, color) {
+    const pct = Math.min(100, Math.round(Math.abs(rawVal) / maxVal * 100));
+    document.getElementById(id).style.width      = pct + '%';
+    document.getElementById(id).style.background = color;
+    document.getElementById(valId).textContent   = rawVal.toFixed ? rawVal.toFixed(2) : rawVal;
+  }
+
+  const bkColor = score >= 0 ? 'var(--green)' : 'var(--red)';
+  setBk('bk-body',  'bk-body-v',  comp.body_pct,  1.0, bkColor);
+  setBk('bk-close', 'bk-close-v', comp.close_pos, 1.0, bkColor);
+  const volColor = comp.rel_volume > 1.2 ? 'var(--cyan)' : 'var(--accent)';
+  setBk('bk-vol',   'bk-vol-v',   comp.rel_volume,3.0, volColor);
+  const vwapCol  = comp.vwap_sign >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('bk-vwap').style.width      = (Math.abs(comp.vwap_sign) * 100) + '%';
+  document.getElementById('bk-vwap').style.background = vwapCol;
+  document.getElementById('bk-vwap-v').textContent    =
+    d.vwap_pos === 'above' ? '↑ ABOVE' : d.vwap_pos === 'below' ? '↓ BELOW' : '— AT';
+  const trendPct = Math.min(100, Math.abs(comp.trend_sign) * 100);
+  const trendCol = comp.trend_sign > 0 ? 'var(--green)' : comp.trend_sign < 0 ? 'var(--red)' : 'var(--muted)';
+  document.getElementById('bk-trend').style.width      = trendPct + '%';
+  document.getElementById('bk-trend').style.background = trendCol;
+  document.getElementById('bk-trend-v').textContent    =
+    comp.st_dir === 'up' ? '↑ UP' : comp.st_dir === 'down' ? '↓ DOWN' : '— N/A';
+
+  // Logic label
+  const ll   = buildLogicLabel(d, comp, score);
+  const llEl = document.getElementById('logic-label');
+  llEl.textContent = ll.text;
+  llEl.className   = 'logic-label ' + ll.cls;
+
+  // Candle OHLCV
+  const bullish = candle.close >= candle.open;
+  document.getElementById('ci-o').textContent   = candle.open.toFixed(0);
+  document.getElementById('ci-h').textContent   = candle.high.toFixed(0);
+  document.getElementById('ci-l').textContent   = candle.low.toFixed(0);
+  const cEl = document.getElementById('ci-c');
+  cEl.textContent   = candle.close.toFixed(0);
+  cEl.className     = 'ci-value ' + (bullish ? 'bull' : 'bear');
+  document.getElementById('ci-v').textContent   = fmtVol(candle.volume);
+  // Vol bar relative to some reference (80% for roughly 1× avg → assume vol 1-2M typical)
+  document.getElementById('ci-vol-bar').style.width =
+    Math.min(100, Math.round(comp.rel_volume * 50)) + '%';
+
+  // Candle pattern card
+  const _cpIdx  = _mode === 'replay' ? _rpIdx : _candles.length - 1;
+  const _cpPrev = _cpIdx > 0 ? _candles[_cpIdx - 1] : null;
+  renderPatternCard(detectCandlePattern(candle, _cpPrev), _mode === 'live');
+
+  // Next Candle Context card
+  _ncRender();
+}
+
+function fmtVol(v) {
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K';
+  return String(v);
+}
+
+function updateHistStrip(candles) {
+  const strip    = document.getElementById('hist-strip');
+  const last8    = candles.slice(-8);
+  const startIdx = candles.length - last8.length;
+  strip.innerHTML = last8.map((c, i) => {
+    if (!c.dominance) return '';
+    const d       = c.dominance;
+    const meta    = STATE_META[d.state] || STATE_META.neutral;
+    const bullish = c.close >= c.open;
+    const _cd     = new Date(c.time * 1000);
+    const timeStr = `${String(_cd.getUTCHours()).padStart(2,'0')}:${String(_cd.getUTCMinutes()).padStart(2,'0')}`;
+    const scoreStr = (d.score >= 0 ? '+' : '') + d.score;
+    const barColor = d.score >= 0 ? 'var(--green)' : 'var(--red)';
+    const absIdx  = startIdx + i;
+    const prevC   = absIdx > 0 ? candles[absIdx - 1] : null;
+    const pat     = detectCandlePattern(c, prevC);
+    return `<div class="hist-candle" onclick="rpJump(${absIdx})" title="${pat ? pat.name : ''}">
+      <div class="hc-time">${timeStr}</div>
+      <div style="font-size:18px;line-height:1;margin-bottom:3px">${pat ? pat.emoji : '—'}</div>
+      <div class="hc-state" style="color:${meta.ring}">${meta.icon} ${scoreStr}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${bullish ? 'var(--green)' : 'var(--red)'};margin-bottom:4px">${c.close.toFixed(0)}</div>
+      <div class="hc-bar-wrap"><div class="hc-buy-fill" style="width:${d.buyer_pct}%;background:${barColor}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Live polling ─────────────────────────────────────────────────────────────
+function startLivePoll() {
+  stopLivePoll();
+  _livePoll = setInterval(pollTick, 5000);
+}
+
+function stopLivePoll() {
+  if (_livePoll) { clearInterval(_livePoll); _livePoll = null; }
+}
+
+async function pollTick() {
+  try {
+    const res  = await fetch(`/api/psychology/tick?symbol=${_sym}&interval=${_tf}`);
+    const data = await res.json();
+    if (data.error || !data.candle) return;
+
+    const candle = data.candle;
+    document.getElementById('ctrl-asof').textContent = data.as_of + ' IST';
+    document.getElementById('chart-asof').textContent = `${_candles.length} candles · last: ${data.as_of} IST`;
+
+    // Update or append candle in our array
+    if (_candles.length && _candles[_candles.length - 1].time === candle.time) {
+      _candles[_candles.length - 1] = candle;
+    } else {
+      // New candle started — previous one just completed
+      if (_candles.length >= 1 && _lastCandleTime !== 0) {
+        const completedC = _candles[_candles.length - 1];
+        const prevForCompleted = _candles.length >= 2 ? _candles[_candles.length - 2] : null;
+        const completedPattern = detectCandlePattern(completedC, prevForCompleted);
+        const _d = new Date(completedC.time * 1000);
+        const tStr = `${String(_d.getUTCHours()).padStart(2,'0')}:${String(_d.getUTCMinutes()).padStart(2,'0')}`;
+        showPatternToast(completedPattern, tStr);
+      }
+      _lastCandleTime = candle.time;
+      _candles.push(candle);
+      updateHistStrip(_candles);
+      tryBuildStory();  // regenerate story with the new completed candle
+    }
+
+    chartUpdateLast(candle);
+    updatePanel(candle);
+    clearError();
+  } catch (_) {}
+}
+
+// ─── Replay ───────────────────────────────────────────────────────────────────
+function rpInitSlider() {
+  const sl = document.getElementById('tp-scrubber');
+  if (!sl) return;
+  sl.max   = Math.max(0, _candles.length - 1);
+  sl.value = _rpIdx;
+  document.getElementById('tp-total').textContent = _candles.length;
+  ['tp-first','tp-prev','tp-play-btn','tp-next','tp-last'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.disabled = false;
+  });
+}
+
+function _tpUpdateScrubber() {
+  const sl = document.getElementById('tp-scrubber');
+  if (sl) sl.value = _rpIdx;
+  const posEl = document.getElementById('tp-pos');
+  if (posEl) posEl.textContent = _rpIdx + 1;
+  // candle time readout
+  const c = _candles[_rpIdx];
+  if (c) {
+    const d = new Date(c.time * 1000);
+    const t = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+    const el = document.getElementById('tp-candle-time');
+    if (el) el.textContent = t + ' IST';
+  }
+  // scrubber time labels
+  if (_candles.length) {
+    const first = _candles[0], last = _candles[_candles.length-1];
+    const fmt = ts => { const d=new Date(ts*1000); return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`; };
+    const startEl = document.getElementById('tp-time-start');
+    const endEl   = document.getElementById('tp-time-end');
+    if (startEl) startEl.textContent = fmt(first.time);
+    if (endEl)   endEl.textContent   = fmt(last.time);
+  }
+}
+
+function rpRender() {
+  if (!_candles.length) return;
+  _rpIdx = Math.max(0, Math.min(_rpIdx, _candles.length - 1));
+
+  const slice = _candles.slice(0, _rpIdx + 1);
+  if (_candleSeries) {
+    _candleSeries.setData(slice.map(c => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close })));
+    _vwapSeries.setData(slice.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap })));
+    _stUpSeries.setData(slice.filter(c => c.supertrend_dir === 'up' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
+    _stDownSeries.setData(slice.filter(c => c.supertrend_dir === 'down' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
+    _volumeSeries.setData(slice.map(c => ({ time: c.time, value: c.volume, color: c.close >= c.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)' })));
+    _chart.timeScale().scrollToPosition(-2, false);
+  }
+
+  updatePanel(_candles[_rpIdx]);
+  updateStoryReplayState(_rpIdx);
+  _tpUpdateScrubber();
+}
+
+function rpStep(n) {
+  _rpIdx = Math.max(0, Math.min(_rpIdx + n, _candles.length - 1));
+  rpRender();
+}
+
+function rpFirst() {
+  _rpIdx = 0;
+  rpRender();
+}
+
+function rpLast() {
+  _rpIdx = _candles.length - 1;
+  rpRender();
+}
+
+function rpSeek(v) {
+  _rpIdx = parseInt(v, 10);
+  rpRender();
+}
+
+function rpJump(idx) {
+  if (_mode !== 'replay') setMode('replay');
+  _rpIdx = idx;
+  rpRender();
+}
+
+function rpToggle() {
+  _rpPlaying ? rpStop() : rpPlay();
+}
+
+function rpPlay() {
+  _rpPlaying = true;
+  const btn = document.getElementById('tp-play-btn');
+  if (btn) btn.innerHTML = '&#9646;&#9646;';
+  _rpTimer = setInterval(() => {
+    if (_rpIdx >= _candles.length - 1) { rpStop(); return; }
+    _rpIdx++;
+    rpRender();
+  }, _rpMs);
+}
+
+function rpStop() {
+  _rpPlaying = false;
+  if (_rpTimer) { clearInterval(_rpTimer); _rpTimer = null; }
+  const btn = document.getElementById('tp-play-btn');
+  if (btn) btn.innerHTML = '&#9654;';
+}
+
+function rpSpeed(btn) {
+  document.querySelectorAll('.tp-sp').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _rpMs = parseInt(btn.dataset.ms, 10);
+  if (_rpPlaying) { rpStop(); rpPlay(); }
+}
+
+// ─── Day Story ────────────────────────────────────────────────────────────────
+
+let _storyEntries = [];
+let _storyViewIdx  = 0;
+
+const _SV_ACT_LABELS = {
+  1: 'ACT 1 · OPENING GAMBIT',
+  2: 'ACT 2 · MID-DAY TREND',
+  3: 'ACT 3 · POWER HOUR',
+};
+
+function _storyReals() {
+  return _storyEntries.filter(e => !e.isDiv);
+}
+
+function _renderStoryViewer() {
+  const reals = _storyReals();
+  if (!reals.length) return;
+  const i = Math.max(0, Math.min(_storyViewIdx, reals.length - 1));
+  const e = reals[i];
+
+  document.getElementById('sv-act').textContent     = _SV_ACT_LABELS[e.act] || '';
+  document.getElementById('sv-time').textContent    = e.time;
+  document.getElementById('sv-emoji').textContent   = e.emoji;
+  const txtEl = document.getElementById('sv-text');
+  txtEl.innerHTML = _colorizeStory(e.text);
+  txtEl.className = `sv-text tone-${e.tone}`;
+  document.getElementById('sv-counter').textContent = `${i + 1} / ${reals.length}`;
+
+  const atFirst = i === 0, atLast = i === reals.length - 1;
+  const el = id => document.getElementById(id);
+  if (el('sv-first')) el('sv-first').disabled = atFirst;
+  if (el('sv-prev'))  el('sv-prev').disabled  = atFirst;
+  if (el('sv-next'))  el('sv-next').disabled  = atLast;
+  if (el('sv-last'))  el('sv-last').disabled  = atLast;
+
+  const dotsEl = el('sv-dots');
+  if (dotsEl) {
+    dotsEl.innerHTML = reals.length <= 16
+      ? reals.map((_, di) =>
+          `<span class="sv-dot ${di < i ? 'past' : di === i ? 'active' : ''}"></span>`
+        ).join('')
+      : '';
+  }
+
+  const entryEl = el('sv-entry');
+  if (entryEl) { entryEl.classList.remove('sv-anim'); void entryEl.offsetWidth; entryEl.classList.add('sv-anim'); }
+}
+
+function storyFirst() { _storyViewIdx = 0; _renderStoryViewer(); }
+function storyLast()  { _storyViewIdx = _storyReals().length - 1; _renderStoryViewer(); }
+function storyPrev()  { if (_storyViewIdx > 0) { _storyViewIdx--; _renderStoryViewer(); } }
+function storyNext()  { const r = _storyReals(); if (_storyViewIdx < r.length - 1) { _storyViewIdx++; _renderStoryViewer(); } }
+
+function storyJumpToChart() {
+  const reals = _storyReals();
+  if (!reals.length || !_chart || !_candleSeries) return;
+  const e = reals[Math.max(0, Math.min(_storyViewIdx, reals.length - 1))];
+  if (e.idx == null || !_candles[e.idx]) return;
+  const c = _candles[e.idx];
+  try {
+    _chart.setCrosshairPosition(c.close, c.time, _candleSeries);
+    const from = Math.max(0, e.idx - 20);
+    const to   = Math.min(_candles.length - 1, e.idx + 5);
+    _chart.timeScale().setVisibleLogicalRange({ from, to });
+  } catch(_) {}
+}
+
+function _colorizeStory(text) {
+  return text
+    .replace(/\b(bullish|Bulls?|Buyers?|Breakout|momentum|buying|defended|uptrend|bounce|reclaimed)\b/gi,
+             '<span class="st-bull">$&</span>')
+    .replace(/\b(bearish|Bears?|Sellers?|Breakdown|selling|pressure|rejected|downtrend|fallen?|weakness)\b/gi,
+             '<span class="st-bear">$&</span>');
+}
+
+function toggleSec(hdrEl) {
+  const sec = hdrEl.closest('[data-sec]');
+  if (sec) sec.classList.toggle('sec-collapsed');
+}
+
+function _stFmt(ts) {
+  const d = new Date(ts * 1000);
+  return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+}
+
+function _stAct(ts) {
+  // ts is IST-shifted: getUTCHours()/Minutes() returns the IST wall-clock time
+  const d = new Date(ts * 1000);
+  const m = d.getUTCHours() * 60 + d.getUTCMinutes();
+  if (m < 630) return 1;   // 09:15 – 10:30 IST  (Opening Gambit)
+  if (m < 840) return 2;   // 10:30 – 14:00 IST  (Mid-day Trend)
+  return 3;                 // 14:00 – 15:30 IST  (Power Hour)
+}
+
+function generateDayStory(candles, cprData) {
+  if (!candles.length || !cprData) return [];
+  const { cpr, cam } = cprData;
+  const entries = [];
+  const near = (price, level) => level && Math.abs(price - level) / level < 0.0015;
+
+  const keyLevels = [
+    { name:'TC', price:cpr.tc, side:'res' },
+    { name:'PP', price:cpr.pp, side:'neu' },
+    { name:'BC', price:cpr.bc, side:'sup' },
+    { name:'R1', price:cpr.r1, side:'res' },
+    { name:'R2', price:cpr.r2, side:'res' },
+    { name:'S1', price:cpr.s1, side:'sup' },
+    { name:'S2', price:cpr.s2, side:'sup' },
+    { name:'H4', price:cam.h4, side:'res' },
+    { name:'L4', price:cam.l4, side:'sup' },
+  ].filter(l => l.price);
+
+  const brokenLevels = new Set();
+  let prevVwapSign = null, prevStDir = null;
+  let lastEntryIdx = -99, quietSince = 0, currentAct = 0;
+
+  const push = (e, i) => {
+    entries.push({ ...e, idx:i, time:_stFmt(candles[i].time), act:_stAct(candles[i].time) });
+    lastEntryIdx = i;
+    quietSince = 0;
+  };
+
+  candles.forEach((c, i) => {
+    const bullish = c.close >= c.open;
+    const act = _stAct(c.time);
+
+    // Act divider
+    if (act !== currentAct) {
+      currentAct = act;
+      const labels = {
+        1: 'ACT 1 · Opening Gambit  (09:15 – 10:30)',
+        2: 'ACT 2 · Mid-day Trend   (10:30 – 14:00)',
+        3: 'ACT 3 · Power Hour      (14:00 – 15:30)',
+      };
+      entries.push({ isDiv:true, act, label:labels[act] });
+    }
+
+    // ── Opening candle ───────────────────────────────────────────────────────
+    if (i === 0) {
+      let ctx, tone;
+      if (c.open > cpr.tc) {
+        ctx = `above TC (${cpr.tc.toFixed(0)}) — bulls set the tone immediately. TC becomes the first support to defend.`;
+        tone = 'bull';
+      } else if (c.open < cpr.bc) {
+        ctx = `below BC (${cpr.bc.toFixed(0)}) — bears have the early edge. BC is now overhead resistance.`;
+        tone = 'bear';
+      } else {
+        ctx = `inside the CPR zone (${cpr.bc.toFixed(0)}–${cpr.tc.toFixed(0)}) — no clear bias yet. Wait for a decisive break of TC or BC.`;
+        tone = 'neutral';
+      }
+      push({ emoji:'🌅', tone, text:`Market opened at ${c.open.toFixed(0)}, ${ctx}` }, 0);
+      prevVwapSign = c.vwap ? (c.close >= c.vwap ? 1 : -1) : 0;
+      prevStDir = c.supertrend_dir || null;
+      return;
+    }
+
+    // ── Closing candle ───────────────────────────────────────────────────────
+    if (i === candles.length - 1) {
+      const aboveV = c.vwap && c.close >= c.vwap;
+      const aboveC = c.close > cpr.tc, belowC = c.close < cpr.bc;
+      let verdict, tone;
+      if (aboveC && aboveV)    { verdict='Bulls dominated. Strong uptrend day.'; tone='bull'; }
+      else if (aboveV)         { verdict='Buyers held the edge at close. Mild bullish day.'; tone='bull'; }
+      else if (belowC && !aboveV){ verdict='Bears in full control. Classic downtrend session.'; tone='bear'; }
+      else                     { verdict='Choppy day — neither side convincingly won.'; tone='neutral'; }
+      push({ emoji:'🏁', tone, text:`Session over. ${verdict}` }, i);
+      return;
+    }
+
+    let added = false;
+
+    // ── Supertrend flip ──────────────────────────────────────────────────────
+    if (c.supertrend_dir && c.supertrend_dir !== prevStDir && prevStDir !== null) {
+      const up = c.supertrend_dir === 'up';
+      push({ emoji: up ? '🟢' : '🔴', tone: up ? 'bull' : 'bear',
+        text: `Supertrend flipped ${up ? 'GREEN' : 'RED'} at ${c.close.toFixed(0)}. Trend officially ${up ? 'bullish' : 'bearish'}. ${up ? 'Momentum traders enter long here — use the green ST line as your trailing stop.' : 'Avoid new longs. The red ST line is now dynamic resistance.'}` }, i);
+      added = true;
+    }
+    if (c.supertrend_dir) prevStDir = c.supertrend_dir;
+
+    // ── VWAP cross ───────────────────────────────────────────────────────────
+    if (c.vwap) {
+      const vs = c.close >= c.vwap ? 1 : -1;
+      if (prevVwapSign !== null && vs !== prevVwapSign && i - lastEntryIdx >= 2) {
+        push({ emoji: vs > 0 ? '📈' : '📉', tone: vs > 0 ? 'bull' : 'bear',
+          text: `Price crossed ${vs > 0 ? 'above' : 'below'} VWAP (${c.vwap.toFixed(0)}). Intraday sentiment ${vs > 0 ? 'turned bullish — buyers now own the session average cost. This is where intraday bias shifts.' : 'turned bearish — sellers are now below average. Short-side has the edge until VWAP is reclaimed.'}` }, i);
+        added = true;
+      }
+      prevVwapSign = vs;
+    }
+
+    // ── Named pattern at a key level ─────────────────────────────────────────
+    const pat = detectCandlePattern(c, i > 0 ? candles[i - 1] : null);
+    const named = pat && !['mild_bull','mild_bear','strong_bull','strong_bear'].includes(pat.id);
+    if (!added && named) {
+      const lv = keyLevels.find(l =>
+        near(c.close, l.price) || near(c.low, l.price) || near(c.high, l.price)
+      );
+      if (lv && i - lastEntryIdx >= 1) {
+        let action, tone;
+        if (pat.dir === 'bull' && lv.side === 'sup')
+          [action, tone] = [`buyers defended ${lv.name} (${lv.price.toFixed(0)}) — textbook reversal setup at support. Confirmation: next candle closes above this candle's high.`, 'bull'];
+        else if (pat.dir === 'bear' && lv.side === 'res')
+          [action, tone] = [`sellers rejected ${lv.name} (${lv.price.toFixed(0)}) — classic reversal at resistance. Confirmation: next candle closes below this candle's low.`, 'bear'];
+        else if (pat.dir === 'bull' && lv.side === 'res')
+          [action, tone] = [`bulls testing ${lv.name} (${lv.price.toFixed(0)}) resistance — breakout attempt. A strong close above needs volume to be trusted.`, 'bull'];
+        else if (pat.dir === 'bear' && lv.side === 'sup')
+          [action, tone] = [`bears attacking ${lv.name} (${lv.price.toFixed(0)}) support — breakdown watch. Protect your stops.`, 'bear'];
+        else
+          [action, tone] = [`total indecision at ${lv.name} (${lv.price.toFixed(0)}) — this is a high-stakes moment. The very next candle decides the direction.`, 'neutral'];
+
+        push({ emoji:pat.emoji, tone, text:`${pat.emoji} ${pat.name} at ${lv.name} — ${action}` }, i);
+        added = true;
+      }
+    }
+
+    // ── Level break (first confirmed close beyond R/S levels) ────────────────
+    if (!added && i > 0) {
+      const bkLevels = [
+        { name:'R1', price:cpr.r1, dir:1 },{ name:'R2', price:cpr.r2, dir:1 },
+        { name:'H4', price:cam.h4, dir:1 },{ name:'S1', price:cpr.s1, dir:-1 },
+        { name:'S2', price:cpr.s2, dir:-1 },{ name:'L4', price:cam.l4, dir:-1 },
+      ].filter(l => l.price);
+      for (const lv of bkLevels) {
+        if (brokenLevels.has(lv.name)) continue;
+        const prev = candles[i - 1];
+        if (lv.dir > 0 && c.close > lv.price && prev.close <= lv.price) {
+          brokenLevels.add(lv.name);
+          push({ emoji:'💥', tone:'bull',
+            text:`Breakout! Price closed above ${lv.name} (${lv.price.toFixed(0)}) for the first time today. This former resistance could act as support on any pullback. Watch for a retest.` }, i);
+          added = true; break;
+        }
+        if (lv.dir < 0 && c.close < lv.price && prev.close >= lv.price) {
+          brokenLevels.add(lv.name);
+          push({ emoji:'💔', tone:'bear',
+            text:`Breakdown! Price closed below ${lv.name} (${lv.price.toFixed(0)}) for the first time today. Former support now flips to resistance. Expect sellers to defend any bounce to this level.` }, i);
+          added = true; break;
+        }
+      }
+    }
+
+    // ── High-volume candle with conviction ───────────────────────────────────
+    if (!added && named && c.dominance && c.dominance.components.rel_volume >= 1.8 && i - lastEntryIdx >= 3) {
+      const vol = c.dominance.components.rel_volume.toFixed(1);
+      push({ emoji:'⚡', tone: bullish ? 'bull' : 'bear',
+        text:`${pat.emoji} ${pat.name} with ${vol}× average volume — ${bullish ? 'strong institutional buying interest' : 'heavy institutional selling pressure'}. High-conviction candle. Respect this move.` }, i);
+      added = true;
+    }
+
+    // ── Quiet zone (mid-day only) ─────────────────────────────────────────────
+    if (!added) {
+      quietSince++;
+      if (quietSince >= 6 && act === 2) {
+        push({ emoji:'😴', tone:'neutral',
+          text:`Quiet zone — no significant moves for 30+ minutes. Market is consolidating with low volume. This often precedes a sharp breakout. Wait for a decisive candle with above-average volume before acting.` }, i);
+        quietSince = 0;
+      }
+    } else quietSince = 0;
+  });
+
+  return entries;
+}
+
+function tryBuildStory() {
+  if (!_candles.length || !_cprData) return;
+  _storyEntries = generateDayStory(_candles, _cprData);
+  renderStorySection(_storyEntries);
+  renderPostGame();
+}
+
+function buildPostGame(candles) {
+  const valid = candles.filter(c => c.dominance && c.dominance.components);
+  if (valid.length < 5) return null;
+
+  const toIST = ts => _stFmt(ts);
+
+  // Bullet 1 — Morning Trend (first 30% of session)
+  const mEnd = Math.max(3, Math.floor(valid.length * 0.3));
+  const mAvg = valid.slice(0, mEnd).reduce((s, c) => s + c.dominance.score, 0) / mEnd;
+  const mIcon = mAvg > 10 ? '🟢' : mAvg < -10 ? '🔴' : '🟡';
+  const mWord = mAvg > 10 ? 'Bullish' : mAvg < -10 ? 'Bearish' : 'Mixed/Choppy';
+  const mPhrase = mAvg > 0 ? 'buyers were leading' : mAvg < 0 ? 'sellers had the edge' : 'no clear direction';
+  const bullet1 = { icon: mIcon, text: `Morning Trend: ${mWord} — ${mPhrase} up to ~${toIST(valid[mEnd - 1].time)} IST.` };
+
+  // Bullet 2 — Turning Point (first Supertrend direction flip)
+  let flipIdx = -1, flipFrom = null, flipTo = null, prevDir = null;
+  for (let i = 0; i < valid.length; i++) {
+    const dir = valid[i].dominance.components.st_dir;
+    if (dir === 'N/A') continue;
+    if (prevDir && dir !== prevDir) { flipIdx = i; flipFrom = prevDir; flipTo = dir; break; }
+    prevDir = dir;
+  }
+  let bullet2;
+  if (flipIdx === -1) {
+    const d0 = valid.find(c => c.dominance.components.st_dir !== 'N/A');
+    const dw = d0 ? (d0.dominance.components.st_dir === 'up' ? 'bullish' : 'bearish') : 'neutral';
+    bullet2 = { icon: '🔄', text: `Turning Point: Supertrend stayed ${dw} all day — a clean trending session with no direction flip.` };
+  } else {
+    const toLabel   = flipTo === 'up' ? 'GREEN (bullish)' : 'RED (bearish)';
+    const fromLabel = flipFrom === 'up' ? 'bullish' : 'bearish';
+    bullet2 = { icon: '🔄', text: `Turning Point: Supertrend flipped from ${fromLabel} to ${toLabel} at ${toIST(valid[flipIdx].time)} IST — the market story changed here.` };
+  }
+
+  // Bullet 3 — Key Lesson from dominant day pattern
+  const stCounts = {};
+  let vwapAbove = 0, vwapBelow = 0, vwapFlips = 0, prevVwap = null;
+  valid.forEach(c => {
+    const s = c.dominance.state;
+    stCounts[s] = (stCounts[s] || 0) + 1;
+    const vp = c.dominance.vwap_pos;
+    if (vp === 'above') vwapAbove++; else if (vp === 'below') vwapBelow++;
+    if (prevVwap && vp !== 'at' && prevVwap !== 'at' && vp !== prevVwap) vwapFlips++;
+    prevVwap = vp;
+  });
+  const absCount   = (stCounts.absorption || 0) + (stCounts.fake_breakout || 0);
+  const trendCount = (stCounts.buyer_domination || 0) + (stCounts.seller_domination || 0);
+  let bullet3;
+  if (absCount > valid.length * 0.15)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Multiple absorption zones today — high volume with little price movement means smart money was absorbing supply/demand. These levels often become future support/resistance.' };
+  else if (trendCount > valid.length * 0.4)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Today was a strong trending day. Riding the Supertrend and staying on the VWAP side was the winning strategy.' };
+  else if (vwapFlips >= 3)
+    bullet3 = { icon: '📚', text: `Key Lesson: Price crossed VWAP ${vwapFlips} times today — a choppy session. Range-trading near VWAP outperformed trend-following.` };
+  else if (vwapAbove > vwapBelow * 2)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Price held above VWAP most of the session — VWAP acted as a floor. This is how bulls use the intraday average as support.' };
+  else if (vwapBelow > vwapAbove * 2)
+    bullet3 = { icon: '📚', text: 'Key Lesson: Price stayed below VWAP most of the session — VWAP acted as a ceiling. This is how bears use the intraday average as resistance.' };
+  else
+    bullet3 = { icon: '📚', text: 'Key Lesson: Mixed signals throughout. Patience was key — waiting for score > ±25 with VWAP and Supertrend aligned would have filtered most of the noise.' };
+
+  return [bullet1, bullet2, bullet3];
+}
+
+function renderPostGame() {
+  const bullets = buildPostGame(_candles);
+  const wrap    = document.getElementById('postgame-wrap');
+  const body    = document.getElementById('pg-body');
+  if (!bullets || !wrap || !body) return;
+  body.innerHTML = `<div class="pg-body-inner">${bullets.map(b =>
+    `<div class="pg-bullet"><span class="pg-bullet-icon">${b.icon}</span><span class="pg-bullet-text">${b.text}</span></div>`
+  ).join('')}</div>`;
+  wrap.style.display = '';
+}
+
+function renderStorySection(entries) {
+  const wrap = document.getElementById('story-viewer-wrap');
+  if (!wrap) return;
+  const reals = entries.filter(e => !e.isDiv);
+  if (!reals.length) { wrap.style.display = 'none'; return; }
+
+  // Always jump to latest entry on rebuild
+  _storyViewIdx = reals.length - 1;
+
+  const meta = document.getElementById('sv-meta');
+  if (meta) meta.textContent = `${_sym} · ${_tf} · ${reals.length} moments`;
+
+  wrap.style.display = '';
+  _renderStoryViewer();
+}
+
+function updateStoryReplayState(currentIdx) {
+  if (!_storyEntries.length || _mode !== 'replay') return;
+  const reals = _storyReals();
+  // Find the last real entry whose candle idx <= currentIdx
+  let target = -1;
+  for (let i = 0; i < reals.length; i++) {
+    if (reals[i].idx <= currentIdx) target = i;
+  }
+  if (target >= 0 && target !== _storyViewIdx) {
+    _storyViewIdx = target;
+    _renderStoryViewer();
+  }
+}
+
+function clearStory() {
+  _storyEntries = [];
+  _storyViewIdx = 0;
+  const wrap = document.getElementById('story-viewer-wrap');
+  if (wrap) wrap.style.display = 'none';
+  const pgWrap = document.getElementById('postgame-wrap');
+  if (pgWrap) pgWrap.style.display = 'none';
+}
+
+// ─── Closed-Hours Hub ─────────────────────────────────────────────────────────
+
+// Representative OHLC values (0–100 normalised) for each pattern's visual
+const PATTERN_CANDLES = {
+  doji:             { c:[{ o:50, h:85, l:15, c:52,  bull:true  }] },
+  long_legged_doji: { c:[{ o:50, h:97, l:3,  c:51,  bull:true  }] },
+  gravestone_doji:  { c:[{ o:18, h:90, l:15, c:20,  bull:true  }] },
+  dragonfly_doji:   { c:[{ o:82, h:86, l:8,  c:80,  bull:false }] },
+  bull_marubozu:    { c:[{ o:12, h:88, l:12, c:88,  bull:true  }] },
+  bear_marubozu:    { c:[{ o:88, h:88, l:12, c:12,  bull:false }] },
+  hammer:           { c:[{ o:72, h:80, l:8,  c:76,  bull:true  }] },
+  hanging_man:      { c:[{ o:78, h:84, l:10, c:74,  bull:false }] },
+  inverted_hammer:  { c:[{ o:22, h:90, l:16, c:28,  bull:true  }] },
+  shooting_star:    { c:[{ o:28, h:92, l:20, c:22,  bull:false }] },
+  spinning_top:     { c:[{ o:58, h:82, l:20, c:54,  bull:false }] },
+  bull_engulfing:   { c:[{ o:66, h:70, l:44, c:47,  bull:false },
+                         { o:40, h:82, l:38, c:76,  bull:true  }] },
+  bear_engulfing:   { c:[{ o:36, h:60, l:32, c:56,  bull:true  },
+                         { o:60, h:64, l:16, c:20,  bull:false }] },
+  bull_harami:      { c:[{ o:72, h:76, l:24, c:28,  bull:false },
+                         { o:38, h:60, l:36, c:58,  bull:true  }] },
+  bear_harami:      { c:[{ o:28, h:76, l:24, c:72,  bull:true  },
+                         { o:62, h:66, l:44, c:48,  bull:false }] },
+};
+
+function drawCandleSVG(candleArr, svgH = 130) {
+  const pad = 10;
+  const h   = svgH - 2 * pad;
+  const n   = candleArr.length;
+  const bW  = n === 1 ? 28 : 20;
+  const gap = 14;
+  const svgW = n === 1 ? 72 : (n * bW + (n - 1) * gap + 40);
+  const gHi  = Math.max(...candleArr.map(c => c.h));
+  const gLo  = Math.min(...candleArr.map(c => c.l));
+  const rng  = gHi - gLo || 1;
+  const toY  = v => pad + (gHi - v) / rng * h;
+
+  let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
+  candleArr.forEach((c, i) => {
+    const cx   = n === 1 ? svgW / 2 : (20 + bW / 2 + i * (bW + gap));
+    const col  = c.bull ? '#2ecc71' : '#e74c3c';
+    const bTop = Math.min(toY(c.o), toY(c.c));
+    const bBot = Math.max(toY(c.o), toY(c.c));
+    const bH   = Math.max(3, bBot - bTop);
+    svg += `<line x1="${cx}" y1="${toY(c.h)}" x2="${cx}" y2="${bTop}" stroke="${col}" stroke-width="2" stroke-linecap="round"/>`;
+    svg += `<rect x="${cx - bW/2}" y="${bTop}" width="${bW}" height="${bH}" fill="${col}" rx="2"/>`;
+    svg += `<line x1="${cx}" y1="${bBot}" x2="${cx}" y2="${toY(c.l)}" stroke="${col}" stroke-width="2" stroke-linecap="round"/>`;
+  });
+  return svg + '</svg>';
+}
+
+function showClosedHub() {
+  clearError();
+  const el = document.getElementById('psych-chart');
+  el.className = 'closed-hub';
+  el.innerHTML = `
+    <div class="ch-banner">
+      <span class="ch-moon">🌙</span>
+      <div>
+        <div class="ch-banner-title">Market Closed</div>
+        <div class="ch-banner-chips">
+          <span class="closed-chip">🕘 Opens 09:15 IST</span>
+          <span class="closed-chip">🕞 Closes 15:30 IST</span>
+          <span class="closed-chip">Mon – Fri only</span>
+        </div>
+      </div>
+    </div>
+    <div class="ch-actions">
+      <button class="ch-action-btn ch-action-primary" onclick="openCspModal('hist')">
+        📅 <span>Load Historical Session</span>
+        <small>Pick a past date and replay it</small>
+      </button>
+      <button class="ch-action-btn" onclick="openCspModal('stories')">
+        📖 <span>Candle Stories</span>
+        <small>Educational scenario walkthroughs</small>
+      </button>
+    </div>
+    <div class="ch-lib-hdr">📚 Pattern Reference</div>
+    <div class="lib-grid" id="lib-grid"></div>`;
+
+  document.getElementById('chart-asof').textContent = 'Market closed';
+  document.getElementById('ctrl-asof').textContent  = 'Closed';
+  document.getElementById('pulse-dot').classList.add('paused');
+  document.getElementById('dom-score').textContent  = '—';
+  document.getElementById('dom-score').className    = 'dom-score neut';
+  document.getElementById('state-name').textContent = 'Market Closed';
+  document.getElementById('state-desc').textContent = 'Next session: 09:15 IST';
+  document.getElementById('insight-txt').textContent = 'Load a historical session to replay any past trading day, or explore Candle Stories to study key patterns.';
+  const llEl = document.getElementById('logic-label');
+  if (llEl) { llEl.textContent = '—'; llEl.className = 'logic-label'; }
+  clearStory();
+  renderLibrary();
+}
+
+function renderLibrary() {
+  const grid = document.getElementById('lib-grid');
+  if (!grid || grid.dataset.done) return;
+  grid.innerHTML = Object.keys(PATTERN_CANDLES).map(id => {
+    const p = PATTERNS[id]; if (!p) return '';
+    const dirClass = p.dir === 'bull' ? 'lc-bull' : p.dir === 'bear' ? 'lc-bear' : '';
+    return `<div class="lib-card ${dirClass}">
+      <div class="lib-candle-area">${drawCandleSVG(PATTERN_CANDLES[id].c, 90)}</div>
+      <div class="lib-card-name" style="color:${p.color}">${p.emoji} ${p.name}</div>
+      <div class="lib-card-hint">${p.hint}</div>
+    </div>`;
+  }).join('');
+  grid.dataset.done = '1';
+}
+
+// ─── Error / closed handling ──────────────────────────────────────────────────
+function showError(msg) {
+  document.getElementById('err-msg').textContent      = msg;
+  document.getElementById('err-banner').style.display = 'flex';
+}
+
+function clearError() {
+  document.getElementById('err-banner').style.display = 'none';
+}
+
+function showMarketClosed(msg) {
+  showClosedHub(msg);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('resize', _resizeChart);
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && _isFullscreen) toggleFullscreen(); });
+
+// ─── Next Candle Context ──────────────────────────────────────────────────────
+let _ncGuess    = null;   // 'bull' | 'bear' | 'ind'
+let _ncRevealed = false;
+
+const _NC = {
+  bull: { label:'Buyers Likely',  cls:'bull', icon:'🟢' },
+  bear: { label:'Sellers Likely', cls:'bear', icon:'🔴' },
+  ind:  { label:'Indecision',     cls:'neut', icon:'⚡' },
+};
+
+function _ncAnalyse(idx) {
+  if (!_candles.length || idx < 0 || idx >= _candles.length) return null;
+  const c = _candles[idx];
+  if (!c?.dominance) return null;
+  const d = c.dominance, comp = d.components;
+  const stDir = comp.st_dir, vwapPos = d.vwap_pos, score = d.score;
+
+  let bias = 0;
+  const reasons = [];
+
+  // Supertrend
+  if (stDir === 'up') {
+    bias += 2;
+    reasons.push({ cls:'bull', text:'Supertrend up — uptrend intact, sellers have work to do' });
+  } else if (stDir === 'down') {
+    bias -= 2;
+    reasons.push({ cls:'bear', text:'Supertrend down — downtrend intact, buyers face overhead resistance' });
+  }
+
+  // VWAP
+  if (vwapPos === 'above') {
+    bias += 1;
+    reasons.push({ cls:'bull', text:'Price above VWAP — intraday tape favors buyers' });
+  } else if (vwapPos === 'below') {
+    bias -= 1;
+    reasons.push({ cls:'bear', text:'Price below VWAP — intraday tape favors sellers' });
+  } else {
+    reasons.push({ cls:'neut', text:'Price at VWAP — decision zone, both sides watching' });
+  }
+
+  // Dominance
+  if (score > 25) {
+    bias += 1;
+    reasons.push({ cls:'bull', text:`Dominance +${score} — buyers pressing, sellers not responding` });
+  } else if (score < -25) {
+    bias -= 1;
+    reasons.push({ cls:'bear', text:`Dominance ${score} — sellers pressing, buyers stepping aside` });
+  } else if (Math.abs(score) <= 8) {
+    reasons.push({ cls:'neut', text:'Dominance near zero — no clear aggressor, chop likely' });
+  }
+
+  // 3-candle momentum
+  if (idx >= 2) {
+    const a = _candles[idx-2], b = _candles[idx-1];
+    if (c.close > b.close && b.close > a.close) {
+      bias += 1;
+      reasons.push({ cls:'bull', text:'Three consecutive higher closes — buyers building momentum' });
+    } else if (c.close < b.close && b.close < a.close) {
+      bias -= 1;
+      reasons.push({ cls:'bear', text:'Three consecutive lower closes — sellers building momentum' });
+    }
+  }
+
+  // Last candle character
+  const body = Math.abs(c.close - c.open), range = c.high - c.low || 1;
+  const bodyR = body / range, bullC = c.close >= c.open;
+  if (bodyR > 0.65) {
+    if (bullC) { bias += 1; reasons.push({ cls:'bull', text:'Strong bull body — buyers closed near the high, conviction visible' }); }
+    else        { bias -= 1; reasons.push({ cls:'bear', text:'Strong bear body — sellers closed near the low, conviction visible' }); }
+  } else if (bodyR < 0.25) {
+    reasons.push({ cls:'neut', text:'Small body, long wicks — market undecided at this level' });
+    bias = Math.round(bias * 0.6);
+  }
+
+  // State nuances
+  if (d.state === 'absorption') {
+    reasons.push({ cls:'neut', text:'Absorption zone — high volume, little movement. Smart money positioning' });
+    bias = Math.round(bias * 0.5);
+  } else if (d.state === 'fake_breakout') {
+    reasons.push({ cls:'neut', text:'Fake breakout — the obvious direction may be a trap here' });
+    bias = Math.round(bias * 0.4);
+  }
+
+  const abs = Math.abs(bias);
+  const outcome  = abs <= 1 ? 'ind' : bias > 0 ? 'bull' : 'bear';
+  const strength = abs >= 4 ? 'Strong' : abs >= 2 ? 'Moderate' : 'Weak';
+  return { outcome, strength, reasons: reasons.slice(0, 4) };
+}
+
+function _ncActual(idx) {
+  if (idx < 0 || idx >= _candles.length) return null;
+  const c = _candles[idx];
+  const bodyR = Math.abs(c.close - c.open) / ((c.high - c.low) || 1);
+  if (bodyR < 0.25) return 'ind';
+  return c.close >= c.open ? 'bull' : 'bear';
+}
+
+function _ncHtml(a, resultHtml) {
+  if (!a) return '<div style="color:var(--muted);font-size:12px;padding:10px 14px">Not enough data yet</div>';
+  const o = _NC[a.outcome];
+  return `
+    <div class="nc-outcome">
+      <div class="nc-badge ${o.cls}">${o.icon} ${o.label}</div>
+      <span class="nc-strength">${a.strength}</span>
+    </div>
+    <div class="nc-reasons">
+      ${a.reasons.map(r => `<div class="nc-reason"><div class="nc-dot ${r.cls}"></div><span>${r.text}</span></div>`).join('')}
+    </div>
+    ${resultHtml || ''}`;
+}
+
+function ncGuess(cls) {
+  if (_ncRevealed) return;
+  _ncGuess = cls;
+  document.querySelectorAll('.nc-guess-btn').forEach(b => {
+    b.className = 'nc-guess-btn' + (b.dataset.g === cls ? ` pick-${cls}` : '');
+  });
+  const btn = document.getElementById('nc-reveal-btn');
+  if (btn) btn.disabled = false;
+}
+
+function ncReveal() {
+  if (!_ncGuess || _ncRevealed) return;
+  _ncRevealed = true;
+  const prevIdx = _rpIdx;
+  rpStep(1);
+  const actual   = _ncActual(_rpIdx);
+  const analysis = _ncAnalyse(prevIdx);
+  const hit      = actual === _ncGuess;
+  const actualLbl = actual ? _NC[actual].label : '—';
+  const resultHtml = `
+    <div class="nc-result ${hit ? 'hit' : 'miss'}" style="margin:0 14px 14px">
+      ${hit
+        ? `✅ Good read — next candle confirmed <b>${actualLbl}</b>`
+        : `❌ Next candle showed <b>${actualLbl}</b>`}
+    </div>`;
+  const body = document.getElementById('nc-body');
+  if (body) body.innerHTML = _ncHtml(analysis, resultHtml);
+}
+
+function _ncRender() {
+  const body = document.getElementById('nc-body');
+  if (!body) return;
+  _ncGuess = null;
+  _ncRevealed = false;
+  const idx      = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+  const analysis = _ncAnalyse(idx);
+  const canGuess = _mode === 'replay' && idx < _candles.length - 1;
+
+  if (canGuess) {
+    body.innerHTML = `
+      <div class="nc-guess-wrap">
+        <div class="nc-guess-lbl">What does the tape suggest?</div>
+        <div class="nc-guess-btns">
+          <button class="nc-guess-btn" data-g="bull" onclick="ncGuess('bull')">🟢<br>Buyers</button>
+          <button class="nc-guess-btn" data-g="bear" onclick="ncGuess('bear')">🔴<br>Sellers</button>
+          <button class="nc-guess-btn" data-g="ind"  onclick="ncGuess('ind')">⚡<br>Indecision</button>
+        </div>
+        <button class="nc-reveal-btn" id="nc-reveal-btn" onclick="ncReveal()" disabled>See next candle →</button>
+      </div>`;
+  } else {
+    body.innerHTML = _ncHtml(analysis, null);
+  }
+}
+
+reload();
+
+// ─── Session Story Player ─────────────────────────────────────────────────────;
+
+// ─── Session Story Player (real data only) ────────────────────────────────────
+let _cspBeats  = [];         // built from current session candles
+let _cspBeat   = 0;
+let _cspTimer  = null;
+let _cspPlaying = false;
+let _cspDone   = false;
+
+function _cspLang() {
+  return (localStorage.getItem('tz_lang') || document.documentElement.getAttribute('data-lang') || 'en');
+}
+
+const _CSP_EMOJI_LABELS = {
+  '🌅':'Opening Move',   '🟢':'Buying Surge',    '🔴':'Selling Pressure',
+  '💪':'Bull Conviction','🐻':'Bear Conviction',  '🔄':'Trend Flip',
+  '⚡':'Volume Spike',   '😴':'Quiet Zone',       '🎯':'Level Test',
+  '🔥':'Momentum Build', '🧱':'Absorption Zone',  '🚨':'Key Breakout',
+  '🧊':'Cooling Off',    '🏳️':'Indecision',
+};
+
+function _currentBeats() { return _cspBeats; }
+
+function _buildStoryBeats() {
+  const entries = _storyEntries.filter(e => !e.isDiv);
+  if (!entries.length || !_candles.length) return null;
+
+  // One representative entry per act + any significant flip/breakout event
+  const byAct = [1, 2, 3].map(a => entries.find(e => e.act === a)).filter(Boolean);
+  const extra  = entries.find(e => ['🔄','⚡','🚨'].includes(e.emoji) && !byAct.includes(e));
+  const picks  = [...byAct, extra].filter(Boolean).slice(0, 5);
+
+  return picks.map(entry => {
+    const ci    = Math.min(entry.idx, _candles.length - 1);
+    const start = Math.max(0, ci - 7);
+    const slice = _candles.slice(start, ci + 1);
+    const candleArr = slice.map(c => ({
+      o: c.open, h: c.high, l: c.low, c: c.close, bull: c.close >= c.open,
+      vwap: c.vwap || null,
+    }));
+    return {
+      act_en: `${entry.time} IST`,
+      act_ta: `${entry.time} IST`,
+      candlePersonality: {
+        emoji: entry.emoji,
+        label: _CSP_EMOJI_LABELS[entry.emoji] || 'Market Moment',
+      },
+      candles: candleArr,
+      highlight: [candleArr.length - 1],
+      narration_en: entry.text,
+      narration_ta: entry.text,
+    };
+  });
+}
+
+function _refreshStoryBeats() {
+  _cspBeat = 0; _cspDone = false; _cspPlaying = false;
+  if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
+
+  _cspBeats = _buildStoryBeats() || [];
+
+  if (!_cspBeats.length) {
+    // No session data — prompt to load
+    const sessionLabel = _histDate ? _histDate : 'Today';
+    document.getElementById('csp-emoji').textContent     = '🌙';
+    document.getElementById('csp-label').textContent     = 'No Session Data';
+    document.getElementById('csp-act').textContent       = sessionLabel;
+    document.getElementById('csp-narration').textContent =
+      _histDate
+        ? `No story data available for ${_histDate}. The session may not have been a trading day.`
+        : 'Live candle data is not available — market may be closed. Load a historical session to replay any past trading day.';
+    document.getElementById('csp-chart').innerHTML = '<div style="text-align:center;padding:40px 0;font-size:36px;opacity:.22">🌙</div>';
+    document.getElementById('csp-dots').innerHTML  = '';
+    document.getElementById('csp-back').disabled = true;
+    document.getElementById('csp-fwd').disabled  = true;
+    document.getElementById('csp-complete').style.display      = 'none';
+    document.querySelector('.csp-chart-area').style.display    = '';
+    document.querySelector('.csp-progress-track').style.display = 'none';
+    document.querySelector('.csp-narration').style.display     = '';
+    document.querySelector('.csp-controls').style.display      = '';
+    return;
+  }
+  _cspRender();
+}
+
+function _cspDrawChart(beat) {
+  const candles = beat.candles;
+  const n = candles.length;
+
+  // Fill the chart container width responsively
+  const container = document.getElementById('csp-chart');
+  const availW = Math.max((container ? container.offsetWidth : 480) - 40, 200);
+  const svgH = 210;
+  const padX = 14, padY = 16;
+  const chartH = svgH - padY * 2;
+
+  // Distribute candles across available width
+  const gapRatio = 0.45;
+  const bW  = Math.min(Math.max(availW / (n + (n - 1) * gapRatio), 12), 52);
+  const gap = bW * gapRatio;
+  const svgW = padX * 2 + n * bW + (n - 1) * gap;
+
+  // Y-axis scaled to THIS beat's candle range + 12% breathing room
+  const hi  = Math.max(...candles.map(c => c.h));
+  const lo  = Math.min(...candles.map(c => c.l));
+  const rng = hi - lo || hi * 0.005 || 1;
+  const pad = rng * 0.12;
+  const gHi = hi + pad, gLo = lo - pad;
+  const span = gHi - gLo;
+  const toY = v => padY + (gHi - v) / span * chartH;
+
+  // VWAP: use the last known real vwap, fall back to close mean
+  const lastVwap = [...candles].reverse().find(c => c.vwap);
+  const vwapVal  = lastVwap ? lastVwap.vwap : candles.reduce((s, c) => s + c.c, 0) / n;
+
+  let svg = `<svg class="csp-chart-svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
+
+  // VWAP line (only if within visible range)
+  if (vwapVal >= gLo && vwapVal <= gHi) {
+    const vy = toY(vwapVal);
+    svg += `<line x1="${padX}" y1="${vy}" x2="${svgW - padX}" y2="${vy}" class="csp-chart-vwap-line"/>`;
+    svg += `<text x="${svgW - padX + 2}" y="${vy + 4}" font-size="8" fill="rgba(0,212,255,0.55)" font-family="monospace">VWAP</text>`;
+  }
+
+  candles.forEach((c, i) => {
+    const isHighlighted = beat.highlight.includes(i);
+    const cx   = padX + bW / 2 + i * (bW + gap);
+    const col  = c.bull ? '#2ecc71' : '#e74c3c';
+    const opacity = isHighlighted ? '1' : '0.3';
+    const bTop = Math.min(toY(c.o), toY(c.c));
+    const bBot = Math.max(toY(c.o), toY(c.c));
+    const bH   = Math.max(2, bBot - bTop);
+    svg += `<g opacity="${opacity}">`;
+    svg += `<line x1="${cx}" y1="${toY(c.h)}" x2="${cx}" y2="${bTop}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
+    svg += `<rect x="${cx - bW/2}" y="${bTop}" width="${bW}" height="${bH}" fill="${col}" rx="2"/>`;
+    svg += `<line x1="${cx}" y1="${bBot}" x2="${cx}" y2="${toY(c.l)}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
+    svg += `</g>`;
+    if (isHighlighted) {
+      // Highlight dot above the wick
+      svg += `<circle cx="${cx}" cy="${toY(c.h) - 7}" r="3.5" fill="${col}" opacity="0.9"/>`;
+    }
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+function _cspRender() {
+  const beats = _currentBeats();
+  if (!beats.length) return;
+  const beat = beats[_cspBeat];
+  const lang = _cspLang();
+
+  document.getElementById('csp-emoji').textContent = beat.candlePersonality.emoji;
+  document.getElementById('csp-label').textContent = beat.candlePersonality.label;
+  document.getElementById('csp-act').textContent   = lang === 'ta' ? beat.act_ta : beat.act_en;
+  document.getElementById('csp-narration').textContent = lang === 'ta' ? beat.narration_ta : beat.narration_en;
+  document.getElementById('csp-chart').innerHTML   = _cspDrawChart(beat);
+
+  // dots
+  const dotsEl = document.getElementById('csp-dots');
+  dotsEl.innerHTML = beats.map((b, i) => {
+    const cls = i < _cspBeat ? 'csp-dot done' : i === _cspBeat ? 'csp-dot active' : 'csp-dot';
+    return `<span class="${cls}" onclick="cspJump(${i})" title="${lang === 'ta' ? b.act_ta : b.act_en}"></span>`;
+  }).join('') + `<span class="csp-dot-label">${_cspBeat + 1} / ${beats.length}</span>`;
+
+  document.getElementById('csp-play').innerHTML    = _cspPlaying ? '&#9646;&#9646;' : '&#9654;';
+  document.getElementById('csp-back').disabled     = _cspBeat === 0;
+  document.getElementById('csp-fwd').disabled      = _cspBeat >= beats.length - 1;
+
+  document.getElementById('csp-complete').style.display        = 'none';
+  document.querySelector('.csp-chart-area').style.display      = '';
+  document.querySelector('.csp-progress-track').style.display  = '';
+  document.querySelector('.csp-narration').style.display       = '';
+  document.querySelector('.csp-controls').style.display        = '';
+  _cspDone = false;
+}
+
+function _cspShowComplete() {
+  _cspDone = true;
+  _cspPlaying = false;
+  if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
+  document.getElementById('csp-play').innerHTML = '&#9654;';
+
+  const pg   = buildPostGame(_candles);
+  const icon = _histDate ? '📅' : '📈';
+  const title_en  = _histDate ? `Session: ${_histDate}` : "Today's Session";
+  const title_ta  = title_en;
+  const xp        = 20;
+  let takeaway_en, takeaway_ta;
+  if (pg && pg.length) {
+    takeaway_en = pg.map(b => b.text).join(' · ');
+  } else {
+    takeaway_en = 'Session story complete. Review the main chart to reinforce the patterns.';
+  }
+  takeaway_ta = takeaway_en;
+
+  const lang = _cspLang();
+  document.getElementById('csp-complete-icon').textContent    = icon;
+  document.getElementById('csp-complete-title').textContent   = lang === 'ta' ? title_ta   : title_en;
+  document.getElementById('csp-complete-takeaway').textContent = lang === 'ta' ? takeaway_ta : takeaway_en;
+  document.getElementById('csp-xp-val').textContent           = `+${xp} XP`;
+
+  document.querySelector('.csp-chart-area').style.display      = 'none';
+  document.querySelector('.csp-progress-track').style.display  = 'none';
+  document.querySelector('.csp-narration').style.display       = 'none';
+  document.querySelector('.csp-controls').style.display        = 'none';
+  document.getElementById('csp-complete').style.display        = '';
+}
+
+function cspJump(idx) {
+  _cspBeat = idx;
+  _cspPlaying = false;
+  if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
+  _cspRender();
+}
+
+function cspBack() {
+  if (_cspBeat > 0) { _cspBeat--; _cspRender(); }
+}
+
+function cspForward() {
+  const beats = _currentBeats();
+  if (_cspBeat < beats.length - 1) { _cspBeat++; _cspRender(); }
+  else _cspShowComplete();
+}
+
+function cspTogglePlay() {
+  if (_cspDone) { cspReplay(); return; }
+  _cspPlaying = !_cspPlaying;
+  document.getElementById('csp-play').innerHTML = _cspPlaying ? '&#9646;&#9646;' : '&#9654;';
+  if (_cspPlaying) {
+    _cspTimer = setInterval(() => {
+      const beats = _currentBeats();
+      if (_cspBeat < beats.length - 1) { _cspBeat++; _cspRender(); }
+      else { clearInterval(_cspTimer); _cspTimer = null; _cspPlaying = false; _cspShowComplete(); }
+    }, 3200);
+  } else {
+    if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
+  }
+}
+
+function cspReplay() {
+  _cspBeat = 0;
+  _cspDone = false;
+  _cspPlaying = false;
+  if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
+  _cspRender();
+}
+
+// Init player — beats built on demand when modal opens
+(function _cspInit() {
+  var _prev = window.onLangChange;
+  window.onLangChange = function(l) {
+    if (_prev) _prev(l);
+    if (_cspBeats.length) _cspRender();
+  };
+})();
+
+// ─── Modal open / close ───────────────────────────────────────────────────────
+function openCspModal(tab) {
+  document.getElementById('csp-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const t = tab || 'stories';
+  cspModalTab(t);
+  if (t === 'stories') _refreshStoryBeats();
+}
+
+function closeCspModal() {
+  document.getElementById('csp-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  if (_cspPlaying) cspTogglePlay();
+}
+
+function loadHistSession() {
+  const date   = document.getElementById('hist-date').value;
+  if (!date) return;
+  // Read sym/tf from modal pickers and apply to main page
+  const symBtn = document.querySelector('#hist-sym-grp .tog.active');
+  const tfBtn  = document.querySelector('#hist-tf-grp .tog.active');
+  if (symBtn) _sym = symBtn.textContent.trim();
+  if (tfBtn)  _tf  = tfBtn.textContent.trim();
+  // Sync ctrl-bar sym/tf buttons
+  document.querySelectorAll('#sym-grp .tog').forEach(b => b.classList.toggle('active', b.textContent.trim() === _sym));
+  document.querySelectorAll('#tf-grp .tog').forEach(b => b.classList.toggle('active', b.textContent.trim() === _tf));
+  _histDate = date;
+  document.getElementById('btn-live').classList.remove('live-active', 'active');
+  document.getElementById('btn-replay').classList.add('active');
+  closeCspModal();
+  reload();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('csp-overlay').classList.contains('open')) {
+    closeCspModal();
+  }
+});
+
+function cspModalTab(tab) {
+  const isStories = tab === 'stories';
+  document.getElementById('csp-pane-stories').style.display = isStories ? '' : 'none';
+  document.getElementById('csp-pane-hist').style.display    = isStories ? 'none' : '';
+  document.getElementById('csp-modal-tab-stories').classList.toggle('active', isStories);
+  document.getElementById('csp-modal-tab-hist').classList.toggle('active', !isStories);
+  if (!isStories) _histInitDateBounds();
+}
+
+// ─── Historical session picker ────────────────────────────────────────────────
+function setHistSym(sym, btn) {
+  // sym selection now controls the main page _sym — keep UI consistent
+  document.querySelectorAll('#hist-sym-grp .tog').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setHistTf(tf, btn) {
+  document.querySelectorAll('#hist-tf-grp .tog').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function _histInitDateBounds() {
+  const inp = document.getElementById('hist-date');
+  if (!inp || inp.dataset.init) return;
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  // skip weekends for default
+  while (yesterday.getDay() === 0 || yesterday.getDay() === 6) yesterday.setDate(yesterday.getDate() - 1);
+  const fmt = d => d.toISOString().slice(0, 10);
+  const sixtyAgo = new Date(today);
+  sixtyAgo.setDate(today.getDate() - 60);
+  inp.max = fmt(yesterday);
+  inp.min = fmt(sixtyAgo);
+  inp.value = fmt(yesterday);
+  inp.dataset.init = '1';
+}
+
+</script>
+</body>
+</html>
