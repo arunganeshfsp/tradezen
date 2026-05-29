@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeFun — Market Psychology | TradeZen</title>
+<title>Trade Player | TradeZen</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="/favicon.png" />
 <link rel="stylesheet" href="css/halo-tokens.css" />
@@ -208,22 +208,45 @@ body.fs-lock{overflow:hidden}
 .hc-bar-wrap{background:var(--bg3);border-radius:2px;height:4px;overflow:hidden}
 .hc-buy-fill{height:100%;border-radius:2px;transition:width .4s}
 
-/* ── REPLAY CONTROLS ── */
-.replay-bar{max-width:1240px;margin:0 auto;padding:0 28px 32px}
-@media(max-width:600px){.replay-bar{padding:0 16px 24px}}
-.replay-inner{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:16px}
-.rp-btns{display:flex;gap:6px}
-.rp-btn{width:34px;height:34px;border-radius:8px;background:var(--bg3);border:1px solid var(--border2);color:var(--dim);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.rp-btn:hover{color:var(--text);border-color:var(--border)}
-.rp-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;width:auto;padding:0 16px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
-.rp-btn.primary:hover{opacity:.85}
-.rp-speed{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
-.rp-sp{padding:4px 10px;border-radius:var(--r2);background:transparent;border:1px solid var(--border2);color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
-.rp-sp.active{background:var(--bg3);border-color:var(--accent);color:var(--accent)}
-.rp-progress{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);margin-left:auto}
-.rp-progress span{color:var(--text)}
-.rp-slider{flex:1;min-width:140px}
-input[type=range]{width:100%;accent-color:var(--accent)}
+/* ── TRADE PLAYER BAR ── */
+input[type=range]{accent-color:var(--accent)}
+.tp-bar{position:sticky;bottom:0;z-index:100;background:rgba(10,12,24,0.97);backdrop-filter:blur(18px);border-top:1px solid var(--border)}
+.tp-inner{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;min-height:68px}
+/* Left */
+.tp-left{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tp-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;transition:all .2s}
+.tp-badge.live{background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:var(--green)}
+.tp-badge.replay{background:rgba(124,106,247,0.12);border:1px solid rgba(124,106,247,0.35);color:var(--accent)}
+.tp-badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.tp-badge.live .tp-badge-dot{animation:pulseAnim 1.4s infinite}
+.tp-sym{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);white-space:nowrap}
+.tp-hist-btn{padding:5px 11px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tp-hist-btn:hover{color:var(--accent);border-color:rgba(124,106,247,0.4)}
+/* Center */
+.tp-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.tp-scrubber-row{display:flex;align-items:center;gap:8px;width:100%}
+.tp-time-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0}
+.tp-scrubber{flex:1;height:4px;cursor:pointer;accent-color:var(--accent)}
+.tp-transport{display:flex;align-items:center;gap:6px}
+.tp-btn{width:34px;height:34px;border-radius:9px;background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;line-height:1}
+.tp-btn:hover{color:var(--text);background:var(--bg3);border-color:var(--border2)}
+.tp-btn:disabled{opacity:.28;cursor:default;pointer-events:none}
+.tp-btn-play{width:46px;height:46px;border-radius:13px;background:var(--accent);border:none;color:#fff;font-size:18px}
+.tp-btn-play:hover{background:#6b5ae8;color:#fff}
+/* Right */
+.tp-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tp-candle-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);white-space:nowrap;min-width:60px;text-align:right}
+.tp-speed-grp{display:flex;gap:3px}
+.tp-sp{padding:4px 8px;border-radius:5px;background:transparent;border:1px solid var(--border2);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:all .15s}
+.tp-sp.active{background:var(--bg3);border-color:var(--accent);color:var(--accent)}
+.tp-counter{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+.tp-counter strong{color:var(--text)}
+@media(max-width:768px){
+  .tp-inner{flex-wrap:wrap;gap:8px;padding:8px 14px;min-height:auto}
+  .tp-center{order:3;width:100%}
+  .tp-right{order:2;margin-left:auto}
+  .tp-sym{display:none}
+}
 
 /* ── ERROR BANNER ── */
 .err-banner{max-width:1240px;margin:16px auto 0;padding:0 28px}
@@ -332,32 +355,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .ch-moon{font-size:28px;flex-shrink:0}
 .ch-banner-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
 .ch-banner-chips{display:flex;gap:8px;flex-wrap:wrap}
-.ch-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg1)}
-.ch-tab{flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.5px}
-.ch-tab:hover{color:var(--text);background:var(--bg3)}
-.ch-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(124,106,247,0.05)}
+.ch-actions{display:flex;gap:12px;padding:16px 20px;flex-wrap:wrap}
+.ch-action-btn{flex:1;min-width:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:16px 12px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--border);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.ch-action-btn span{font-size:14px;font-weight:600}
+.ch-action-btn small{font-size:11px;color:var(--muted);font-weight:400}
+.ch-action-btn:hover{border-color:var(--border2);background:var(--bg3)}
+.ch-action-primary{background:rgba(124,106,247,0.1);border-color:rgba(124,106,247,0.35)}
+.ch-action-primary:hover{background:rgba(124,106,247,0.18);border-color:var(--accent)}
+.ch-lib-hdr{padding:4px 20px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
 
 /* Quiz */
-.quiz-wrap{padding:24px 20px 20px;max-width:540px;margin:0 auto;text-align:center}
-.quiz-subtitle{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
-.quiz-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:0}
-.quiz-candle-area{display:flex;justify-content:center;align-items:center;min-height:140px;margin:20px 0 16px}
-.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.quiz-btn{padding:10px 8px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;line-height:1.3}
-.quiz-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(124,106,247,0.08);color:var(--accent)}
-.quiz-btn:disabled{cursor:default;opacity:0.85}
-.quiz-btn.quiz-btn-correct{border-color:var(--green) !important;background:rgba(46,204,113,0.1) !important;color:var(--green) !important}
-.quiz-btn.quiz-btn-wrong{border-color:var(--red) !important;background:rgba(231,76,60,0.08) !important;color:var(--red) !important}
-.quiz-fb{font-size:12.5px;line-height:1.55;padding:10px 14px;border-radius:8px;margin-bottom:12px;text-align:left}
-.quiz-fb-correct{background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);color:var(--green)}
-.quiz-fb-wrong{background:rgba(231,76,60,0.07);border:1px solid rgba(231,76,60,0.2);color:var(--text)}
-.quiz-fb-wrong strong{color:var(--yellow)}
-.quiz-scorebar{display:flex;gap:28px;justify-content:center;padding:12px 0 4px;border-top:1px solid var(--border)}
-.quiz-score-item{text-align:center}
-.quiz-score-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--text);line-height:1;min-width:40px;display:block}
-.quiz-score-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;display:block}
-@keyframes quizPop{0%{transform:scale(0.94);opacity:0}60%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
-.quiz-pop{animation:quizPop .3s ease}
 
 /* Library */
 .lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:16px}
@@ -368,7 +375,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .lib-candle-area{display:flex;justify-content:center;align-items:center;height:90px;margin-bottom:8px}
 .lib-card-name{font-family:'Syne',sans-serif;font-size:11.5px;font-weight:700;margin-bottom:4px}
 .lib-card-hint{font-size:10px;color:var(--muted);line-height:1.45}
-@media(max-width:600px){.quiz-opts{grid-template-columns:1fr}}
 
 /* ── CANDLE PATTERN TOAST ── */
 .cp-toast{position:fixed;bottom:24px;right:24px;z-index:500;max-width:290px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:13px 15px;box-shadow:0 8px 32px rgba(0,0,0,0.55);transform:translateY(24px);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);pointer-events:none}
@@ -393,6 +399,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .csp-tab{font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;background:var(--bg2);border:1px solid var(--border);color:var(--dim);cursor:pointer;transition:all .15s}
 .csp-tab:hover{border-color:var(--border2);color:var(--text)}
 .csp-tab.active{background:rgba(124,106,247,0.15);border-color:var(--accent);color:var(--accent)}
+.csp-tab-today{border-color:rgba(46,204,113,0.3);color:var(--green)}
+.csp-tab-today:hover{border-color:rgba(46,204,113,0.6)}
+.csp-tab-today.active{background:rgba(46,204,113,0.12);border-color:var(--green);color:var(--green)}
 .csp-body{background:var(--bg1);border:1px solid var(--border);border-radius:16px;overflow:hidden}
 .csp-personality{display:flex;align-items:center;gap:12px;padding:18px 24px 14px;background:var(--bg2);border-bottom:1px solid var(--border)}
 .csp-personality-emoji{font-size:36px;line-height:1;flex-shrink:0}
@@ -437,9 +446,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   .csp-progress-track{padding:0 16px 12px}
 }
 /* ── CANDLE STORY MODAL ──────────────────────────────────────────────────── */
-.csp-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.75);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:16px}
+.csp-overlay{position:fixed;inset:0;z-index:1050;background:rgba(0,0,0,0.75);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:center;padding:72px 16px 16px}
 .csp-overlay.open{display:flex}
-.csp-modal{width:100%;max-width:900px;max-height:90vh;background:var(--bg1);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.6)}
+.csp-modal{width:100%;max-width:900px;max-height:calc(100vh - 88px);background:var(--bg1);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.6)}
 .csp-modal-hdr{display:flex;align-items:center;gap:8px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .csp-modal-tabs{display:flex;gap:4px;flex:1;flex-wrap:wrap}
 .csp-modal-tab{font-size:12px;font-weight:600;padding:6px 14px;border-radius:16px;background:transparent;border:1.5px solid transparent;color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap}
@@ -468,8 +477,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .hist-asof{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:0 4px}
 .hist-note{font-size:11px;color:var(--muted);padding:0 16px 12px;opacity:.7}
 @media(max-width:600px){
-  .csp-overlay{padding:0}
-  .csp-modal{max-height:100dvh;border-radius:0;border-left:none;border-right:none}
+  .csp-overlay{padding:0;align-items:flex-end}
+  .csp-modal{max-height:92dvh;border-radius:20px 20px 0 0;border-left:none;border-right:none;border-bottom:none}
   .hist-ctrl-bar{gap:10px}
 }
 </style>
@@ -508,9 +517,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <!-- HERO -->
 <div class="hero">
-  <div class="htag">🧠 VISUAL MARKET PSYCHOLOGY</div>
-  <h1>TradeFun — <em>See the Market</em></h1>
-  <p class="hero-sub">Buyer vs Seller · Candle Psychology · VWAP Reactions · Momentum Shifts · Educational Mode</p>
+  <div class="htag">📺 TRADE PLAYER</div>
+  <h1>Watch. Replay. <em>Learn.</em></h1>
+  <p class="hero-sub">Live market action · Historical session replay · Candle psychology · VWAP & Supertrend · Read the tape, beat by beat</p>
   <a class="hero-cta" href="#" onclick="openCspModal();return false;">📖 Try Candle Stories</a>
 </div>
 
@@ -534,9 +543,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="ctrl-grp">
     <div class="ctrl-lbl">MODE</div>
     <div class="btn-grp">
-      <button class="tog live-active" id="btn-live"     onclick="setMode('live')">⚡ LIVE</button>
-      <button class="tog"             id="btn-replay"   onclick="setMode('replay')">▶ REPLAY</button>
-      <button class="tog"             id="btn-practice" onclick="setMode('practice')">🎮 PRACTICE</button>
+      <button class="tog live-active" id="btn-live"   onclick="setMode('live')">⚡ LIVE</button>
+      <button class="tog"             id="btn-replay" onclick="setMode('replay')">▶ REPLAY</button>
     </div>
   </div>
   <div class="ctrl-status">
@@ -802,25 +810,48 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div><!-- /psych-sidebar -->
 </div><!-- /main-wrap -->
 
-<!-- REPLAY CONTROLS -->
-<div class="replay-bar" id="replay-bar" style="display:none">
-  <div class="replay-inner">
-    <div class="rp-btns">
-      <button class="rp-btn" onclick="rpStep(-5)" title="−5">⏮</button>
-      <button class="rp-btn" onclick="rpStep(-1)" title="−1">◀</button>
-      <button class="rp-btn primary" id="rp-play-btn" onclick="rpToggle()">▶ Play</button>
-      <button class="rp-btn" onclick="rpStep(1)"  title="+1">▶</button>
-      <button class="rp-btn" onclick="rpStep(5)"  title="+5">⏭</button>
+<!-- TRADE PLAYER BAR -->
+<div class="tp-bar" id="tp-bar">
+  <div class="tp-inner">
+
+    <!-- Left: mode badge + symbol + historical shortcut -->
+    <div class="tp-left">
+      <div class="tp-badge live" id="tp-badge">
+        <div class="tp-badge-dot"></div>
+        <span id="tp-badge-label">LIVE</span>
+      </div>
+      <span class="tp-sym" id="tp-sym">NIFTY · 5m</span>
+      <button class="tp-hist-btn" onclick="openCspModal('hist')" title="Load a historical session">📅 Historical</button>
     </div>
-    <div class="rp-speed">
-      <span>Speed:</span>
-      <button class="rp-sp" data-ms="2000" onclick="rpSpeed(this)">0.5×</button>
-      <button class="rp-sp active" data-ms="1000" onclick="rpSpeed(this)">1×</button>
-      <button class="rp-sp" data-ms="500"  onclick="rpSpeed(this)">2×</button>
-      <button class="rp-sp" data-ms="250"  onclick="rpSpeed(this)">4×</button>
+
+    <!-- Center: scrubber (replay only) + transport -->
+    <div class="tp-center">
+      <div class="tp-scrubber-row" id="tp-scrubber-row" style="display:none">
+        <span class="tp-time-lbl" id="tp-time-start">09:15</span>
+        <input type="range" class="tp-scrubber" id="tp-scrubber" min="0" value="0" oninput="rpSeek(this.value)">
+        <span class="tp-time-lbl" id="tp-time-end">15:30</span>
+      </div>
+      <div class="tp-transport" id="tp-transport">
+        <button class="tp-btn" id="tp-first" onclick="rpFirst()" title="First candle" disabled>⏮</button>
+        <button class="tp-btn" id="tp-prev"  onclick="rpStep(-1)" title="Previous" disabled>⏪</button>
+        <button class="tp-btn tp-btn-play" id="tp-play-btn" onclick="rpToggle()" disabled>▶</button>
+        <button class="tp-btn" id="tp-next"  onclick="rpStep(1)" title="Next" disabled>⏩</button>
+        <button class="tp-btn" id="tp-last"  onclick="rpLast()" title="Latest" disabled>⏭</button>
+      </div>
     </div>
-    <input type="range" class="rp-slider" id="rp-slider" min="0" value="0" oninput="rpSeek(this.value)">
-    <div class="rp-progress">Candle <span id="rp-pos">0</span> / <span id="rp-total">0</span></div>
+
+    <!-- Right: candle time + speed + counter -->
+    <div class="tp-right">
+      <div class="tp-candle-time" id="tp-candle-time">—</div>
+      <div class="tp-speed-grp" id="tp-speed-grp" style="display:none">
+        <button class="tp-sp" data-ms="2000" onclick="rpSpeed(this)">0.5×</button>
+        <button class="tp-sp active" data-ms="1000" onclick="rpSpeed(this)">1×</button>
+        <button class="tp-sp" data-ms="500"  onclick="rpSpeed(this)">2×</button>
+        <button class="tp-sp" data-ms="250"  onclick="rpSpeed(this)">4×</button>
+      </div>
+      <div class="tp-counter"><strong id="tp-pos">—</strong><span style="opacity:.4"> / </span><span id="tp-total">—</span></div>
+    </div>
+
   </div>
 </div>
 
@@ -897,24 +928,16 @@ function setMode(mode) {
   document.getElementById('btn-live').classList.toggle('live-active', mode === 'live');
   document.getElementById('btn-live').classList.toggle('active',      mode === 'live');
   document.getElementById('btn-replay').classList.toggle('active',    mode === 'replay');
-  document.getElementById('btn-practice').classList.toggle('active',  mode === 'practice');
-  document.getElementById('replay-bar').style.display = mode === 'replay' ? 'block' : 'none';
   document.getElementById('pulse-dot').classList.toggle('paused', mode !== 'live');
+  _tpSetMode(mode);
 
-  if (mode === 'practice') {
-    stopLivePoll();
-    rpStop();
-    showClosedHub();
-  } else if (prevMode === 'practice') {
-    // Returning from practice — full reload to restore chart
-    reload();
-  } else if (mode === 'live') {
+  if (mode === 'live') {
     rpStop();
     startLivePoll();
   } else {
     stopLivePoll();
     rpStop();
-    if (_candles.length) { _rpIdx = _candles.length - 1; rpRender(); }
+    if (_candles.length) { _rpIdx = _candles.length - 1; rpInitSlider(); rpRender(); }
   }
 }
 
@@ -1624,8 +1647,47 @@ const STATE_META = {
   neutral:           { icon: '—',  label: 'NEUTRAL / CHOPPY',  desc: 'No clear directional edge — wait for signal',  cls: 'st-pres', ring: '#4a5070' },
 };
 
+// ─── Trade Player bar state ───────────────────────────────────────────────────
+function _tpSetMode(mode) {
+  const isReplay = mode === 'replay';
+  const badge    = document.getElementById('tp-badge');
+  const label    = document.getElementById('tp-badge-label');
+  const scrubRow = document.getElementById('tp-scrubber-row');
+  const speedGrp = document.getElementById('tp-speed-grp');
+
+  if (badge) {
+    badge.className = 'tp-badge ' + (isReplay ? 'replay' : 'live');
+    if (label) label.textContent = isReplay ? 'REPLAY' : 'LIVE';
+  }
+  if (scrubRow) scrubRow.style.display = isReplay ? '' : 'none';
+  if (speedGrp) speedGrp.style.display = isReplay ? '' : 'none';
+
+  // Transport — disable in live mode, enable in replay
+  ['tp-first','tp-prev','tp-play-btn','tp-next','tp-last'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !isReplay;
+  });
+
+  // Sym chip
+  const symEl = document.getElementById('tp-sym');
+  if (symEl) symEl.textContent = `${_sym} · ${_tf}`;
+}
+
+function _tpLiveUpdate(candle) {
+  if (!candle) return;
+  const d   = new Date(candle.time * 1000);
+  const t   = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+  const el  = document.getElementById('tp-candle-time');
+  if (el) el.textContent = t + ' IST';
+  const posEl   = document.getElementById('tp-pos');
+  const totalEl = document.getElementById('tp-total');
+  if (posEl)   posEl.textContent   = _candles.length;
+  if (totalEl) totalEl.textContent = _candles.length;
+}
+
 function updatePanel(candle) {
   if (!candle || !candle.dominance) return;
+  if (_mode === 'live') _tpLiveUpdate(candle);
   const d    = candle.dominance;
   const comp = d.components;
   const meta = STATE_META[d.state] || STATE_META.neutral;
@@ -1800,17 +1862,44 @@ async function pollTick() {
 
 // ─── Replay ───────────────────────────────────────────────────────────────────
 function rpInitSlider() {
-  const sl = document.getElementById('rp-slider');
+  const sl = document.getElementById('tp-scrubber');
+  if (!sl) return;
   sl.max   = Math.max(0, _candles.length - 1);
-  sl.value = _candles.length - 1;
-  document.getElementById('rp-total').textContent = _candles.length;
+  sl.value = _rpIdx;
+  document.getElementById('tp-total').textContent = _candles.length;
+  ['tp-first','tp-prev','tp-play-btn','tp-next','tp-last'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.disabled = false;
+  });
+}
+
+function _tpUpdateScrubber() {
+  const sl = document.getElementById('tp-scrubber');
+  if (sl) sl.value = _rpIdx;
+  const posEl = document.getElementById('tp-pos');
+  if (posEl) posEl.textContent = _rpIdx + 1;
+  // candle time readout
+  const c = _candles[_rpIdx];
+  if (c) {
+    const d = new Date(c.time * 1000);
+    const t = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+    const el = document.getElementById('tp-candle-time');
+    if (el) el.textContent = t + ' IST';
+  }
+  // scrubber time labels
+  if (_candles.length) {
+    const first = _candles[0], last = _candles[_candles.length-1];
+    const fmt = ts => { const d=new Date(ts*1000); return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`; };
+    const startEl = document.getElementById('tp-time-start');
+    const endEl   = document.getElementById('tp-time-end');
+    if (startEl) startEl.textContent = fmt(first.time);
+    if (endEl)   endEl.textContent   = fmt(last.time);
+  }
 }
 
 function rpRender() {
   if (!_candles.length) return;
   _rpIdx = Math.max(0, Math.min(_rpIdx, _candles.length - 1));
 
-  // Show candles up to _rpIdx
   const slice = _candles.slice(0, _rpIdx + 1);
   if (_candleSeries) {
     _candleSeries.setData(slice.map(c => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close })));
@@ -1823,13 +1912,21 @@ function rpRender() {
 
   updatePanel(_candles[_rpIdx]);
   updateStoryReplayState(_rpIdx);
-
-  document.getElementById('rp-slider').value = _rpIdx;
-  document.getElementById('rp-pos').textContent = _rpIdx + 1;
+  _tpUpdateScrubber();
 }
 
 function rpStep(n) {
   _rpIdx = Math.max(0, Math.min(_rpIdx + n, _candles.length - 1));
+  rpRender();
+}
+
+function rpFirst() {
+  _rpIdx = 0;
+  rpRender();
+}
+
+function rpLast() {
+  _rpIdx = _candles.length - 1;
   rpRender();
 }
 
@@ -1850,7 +1947,8 @@ function rpToggle() {
 
 function rpPlay() {
   _rpPlaying = true;
-  document.getElementById('rp-play-btn').textContent = '⏸ Pause';
+  const btn = document.getElementById('tp-play-btn');
+  if (btn) btn.innerHTML = '&#9646;&#9646;';
   _rpTimer = setInterval(() => {
     if (_rpIdx >= _candles.length - 1) { rpStop(); return; }
     _rpIdx++;
@@ -1861,12 +1959,12 @@ function rpPlay() {
 function rpStop() {
   _rpPlaying = false;
   if (_rpTimer) { clearInterval(_rpTimer); _rpTimer = null; }
-  const btn = document.getElementById('rp-play-btn');
-  if (btn) btn.textContent = '▶ Play';
+  const btn = document.getElementById('tp-play-btn');
+  if (btn) btn.innerHTML = '&#9654;';
 }
 
 function rpSpeed(btn) {
-  document.querySelectorAll('.rp-sp').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tp-sp').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   _rpMs = parseInt(btn.dataset.ms, 10);
   if (_rpPlaying) { rpStop(); rpPlay(); }
@@ -2305,10 +2403,7 @@ function drawCandleSVG(candleArr, svgH = 130) {
   return svg + '</svg>';
 }
 
-let _quizScore = 0, _quizStreak = 0, _quizBest = 0;
-let _quizCurrentId = null, _quizAnswered = false, _quizNextTimer = null;
-
-function showClosedHub(extraMsg) {
+function showClosedHub() {
   clearError();
   const el = document.getElementById('psych-chart');
   el.className = 'closed-hub';
@@ -2316,7 +2411,7 @@ function showClosedHub(extraMsg) {
     <div class="ch-banner">
       <span class="ch-moon">🌙</span>
       <div>
-        <div class="ch-banner-title">Market Closed — Practice Time!</div>
+        <div class="ch-banner-title">Market Closed</div>
         <div class="ch-banner-chips">
           <span class="closed-chip">🕘 Opens 09:15 IST</span>
           <span class="closed-chip">🕞 Closes 15:30 IST</span>
@@ -2324,53 +2419,31 @@ function showClosedHub(extraMsg) {
         </div>
       </div>
     </div>
-    <div class="ch-tabs">
-      <button class="ch-tab active" id="ch-tab-quiz" onclick="chTab('quiz')">🧠 Pattern Quiz</button>
-      <button class="ch-tab"        id="ch-tab-lib"  onclick="chTab('lib')">📚 Pattern Library</button>
+    <div class="ch-actions">
+      <button class="ch-action-btn ch-action-primary" onclick="openCspModal('hist')">
+        📅 <span>Load Historical Session</span>
+        <small>Pick a past date and replay it</small>
+      </button>
+      <button class="ch-action-btn" onclick="openCspModal('stories')">
+        📖 <span>Candle Stories</span>
+        <small>Educational scenario walkthroughs</small>
+      </button>
     </div>
-    <div id="ch-quiz">
-      <div class="quiz-wrap">
-        <div class="quiz-subtitle">Test your knowledge</div>
-        <div class="quiz-title">What is this candlestick pattern?</div>
-        <div class="quiz-candle-area" id="quiz-candle"></div>
-        <div class="quiz-opts" id="quiz-opts"></div>
-        <div id="quiz-fb"></div>
-        <div class="quiz-scorebar">
-          <div class="quiz-score-item"><span class="quiz-score-num" id="quiz-score">0</span><span class="quiz-score-lbl">Score</span></div>
-          <div class="quiz-score-item"><span class="quiz-score-num" id="quiz-streak">0</span><span class="quiz-score-lbl">Streak</span></div>
-          <div class="quiz-score-item"><span class="quiz-score-num" id="quiz-best">0</span><span class="quiz-score-lbl">Best</span></div>
-        </div>
-      </div>
-    </div>
-    <div id="ch-lib" style="display:none">
-      <div class="lib-grid" id="lib-grid"></div>
-    </div>`;
+    <div class="ch-lib-hdr">📚 Pattern Reference</div>
+    <div class="lib-grid" id="lib-grid"></div>`;
 
-  document.getElementById('chart-asof').textContent = 'Practice mode — no live data';
+  document.getElementById('chart-asof').textContent = 'Market closed';
   document.getElementById('ctrl-asof').textContent  = 'Closed';
   document.getElementById('pulse-dot').classList.add('paused');
-  document.getElementById('dom-score').textContent   = '—';
-  document.getElementById('dom-score').className     = 'dom-score neut';
-  document.getElementById('state-name').textContent  = 'Practice Mode';
-  document.getElementById('state-desc').textContent  = 'Market closed — quiz active';
-  document.getElementById('insight-txt').textContent = 'Perfect time to drill candle patterns! Can you get 10 right in a row? 🎯';
+  document.getElementById('dom-score').textContent  = '—';
+  document.getElementById('dom-score').className    = 'dom-score neut';
+  document.getElementById('state-name').textContent = 'Market Closed';
+  document.getElementById('state-desc').textContent = 'Next session: 09:15 IST';
+  document.getElementById('insight-txt').textContent = 'Load a historical session to replay any past trading day, or explore Candle Stories to study key patterns.';
   const llEl = document.getElementById('logic-label');
   if (llEl) { llEl.textContent = '—'; llEl.className = 'logic-label'; }
-
   clearStory();
-  // Reset quiz scores on new session
-  _quizScore = 0; _quizStreak = 0;
-  updateQuizScore();
-  startQuiz();
-}
-
-function chTab(tab) {
-  const isQuiz = tab === 'quiz';
-  document.getElementById('ch-quiz').style.display = isQuiz ? '' : 'none';
-  document.getElementById('ch-lib').style.display  = isQuiz ? 'none' : '';
-  document.getElementById('ch-tab-quiz').classList.toggle('active',  isQuiz);
-  document.getElementById('ch-tab-lib').classList.toggle('active', !isQuiz);
-  if (!isQuiz) renderLibrary();
+  renderLibrary();
 }
 
 function renderLibrary() {
@@ -2386,68 +2459,6 @@ function renderLibrary() {
     </div>`;
   }).join('');
   grid.dataset.done = '1';
-}
-
-function startQuiz() {
-  if (_quizNextTimer) { clearTimeout(_quizNextTimer); _quizNextTimer = null; }
-  const ids = Object.keys(PATTERN_CANDLES);
-  const pool = ids.filter(k => k !== _quizCurrentId);
-  _quizCurrentId = pool[Math.floor(Math.random() * pool.length)];
-  _quizAnswered  = false;
-
-  const wrongs = ids.filter(k => k !== _quizCurrentId).sort(() => Math.random() - 0.5).slice(0, 3);
-  const opts   = [_quizCurrentId, ...wrongs].sort(() => Math.random() - 0.5);
-
-  const cEl = document.getElementById('quiz-candle');
-  const oEl = document.getElementById('quiz-opts');
-  const fEl = document.getElementById('quiz-fb');
-  if (!cEl) return;
-
-  cEl.className = 'quiz-candle-area quiz-pop';
-  cEl.innerHTML = drawCandleSVG(PATTERN_CANDLES[_quizCurrentId].c);
-  oEl.innerHTML = opts.map(id =>
-    `<button class="quiz-btn" onclick="quizAnswer('${id}')">${PATTERNS[id].emoji} ${PATTERNS[id].name}</button>`
-  ).join('');
-  fEl.innerHTML = '';
-}
-
-function quizAnswer(id) {
-  if (_quizAnswered) return;
-  _quizAnswered = true;
-  const correct = id === _quizCurrentId;
-  const pat = PATTERNS[_quizCurrentId];
-
-  if (correct) {
-    _quizScore++;
-    _quizStreak++;
-    _quizBest = Math.max(_quizBest, _quizScore);
-    document.getElementById('quiz-fb').innerHTML =
-      `<div class="quiz-fb quiz-fb-correct">✅ Correct! ${pat.emoji} <strong>${pat.name}</strong> — ${pat.hint}</div>`;
-  } else {
-    _quizStreak = 0;
-    document.getElementById('quiz-fb').innerHTML =
-      `<div class="quiz-fb quiz-fb-wrong">❌ That was <strong>${pat.emoji} ${pat.name}</strong> — ${pat.desc}</div>`;
-  }
-
-  document.querySelectorAll('.quiz-btn').forEach(btn => {
-    const m = btn.getAttribute('onclick').match(/'([\w]+)'/);
-    if (!m) return;
-    if (m[1] === _quizCurrentId) btn.classList.add('quiz-btn-correct');
-    else if (m[1] === id && !correct) btn.classList.add('quiz-btn-wrong');
-    btn.disabled = true;
-  });
-
-  updateQuizScore();
-  _quizNextTimer = setTimeout(startQuiz, 3200);
-}
-
-function updateQuizScore() {
-  const sEl = document.getElementById('quiz-score');
-  const stEl = document.getElementById('quiz-streak');
-  const bEl  = document.getElementById('quiz-best');
-  if (sEl)  sEl.textContent  = _quizScore;
-  if (stEl) stEl.innerHTML   = _quizStreak >= 3 ? `🔥${_quizStreak}` : String(_quizStreak);
-  if (bEl)  bEl.textContent  = _quizBest;
 }
 
 // ─── Error / closed handling ──────────────────────────────────────────────────
@@ -2712,29 +2723,109 @@ function _cspLang() {
   return (localStorage.getItem('tz_lang') || document.documentElement.getAttribute('data-lang') || 'en');
 }
 
+// ─── Today's Story helpers ────────────────────────────────────────────────────
+let _cspIsToday    = false;
+let _cspTodayBeats = null;
+
+const _CSP_EMOJI_LABELS = {
+  '🌅':'Opening Move',   '🟢':'Buying Surge',    '🔴':'Selling Pressure',
+  '💪':'Bull Conviction','🐻':'Bear Conviction',  '🔄':'Trend Flip',
+  '⚡':'Volume Spike',   '😴':'Quiet Zone',       '🎯':'Level Test',
+  '🔥':'Momentum Build', '🧱':'Absorption Zone',  '🚨':'Key Breakout',
+  '🧊':'Cooling Off',    '🏳️':'Indecision',
+};
+
+function _currentBeats() {
+  return _cspIsToday ? (_cspTodayBeats || []) : CSP_STORIES[_cspStory].beats;
+}
+
+function _buildTodayBeats() {
+  const entries = _storyEntries.filter(e => !e.isDiv);
+  if (!entries.length || !_candles.length) return null;
+
+  // One representative entry per act + any significant flip/breakout event
+  const byAct  = [1, 2, 3].map(a => entries.find(e => e.act === a)).filter(Boolean);
+  const extra  = entries.find(e => ['🔄','⚡','🚨'].includes(e.emoji) && !byAct.includes(e));
+  const picks  = [...byAct, extra].filter(Boolean).slice(0, 5);
+
+  return picks.map(entry => {
+    const ci    = Math.min(entry.idx, _candles.length - 1);
+    const start = Math.max(0, ci - 7);
+    const slice = _candles.slice(start, ci + 1);
+    const candleArr = slice.map(c => ({
+      o: c.open, h: c.high, l: c.low, c: c.close, bull: c.close >= c.open,
+    }));
+    return {
+      act_en: `${entry.time} IST`,
+      act_ta: `${entry.time} IST`,
+      candlePersonality: {
+        emoji: entry.emoji,
+        label: _CSP_EMOJI_LABELS[entry.emoji] || 'Market Moment',
+      },
+      candles: candleArr,
+      highlight: [candleArr.length - 1],
+      narration_en: entry.text,
+      narration_ta: entry.text,
+    };
+  });
+}
+
+function cspTodayStory() {
+  _cspIsToday = true;
+  _cspBeat    = 0;
+  _cspDone    = false;
+  _cspPlaying = false;
+  if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
+
+  document.querySelectorAll('.csp-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('csp-today-btn')?.classList.add('active');
+
+  _cspTodayBeats = _buildTodayBeats();
+
+  if (!_cspTodayBeats) {
+    // No live data — show closed state
+    document.getElementById('csp-emoji').textContent      = '🌙';
+    document.getElementById('csp-label').textContent      = 'Market Closed';
+    document.getElementById('csp-act').textContent        = 'No live data right now';
+    document.getElementById('csp-narration').textContent  =
+      'Live candle data is not available. Market hours are 09:15 – 15:30 IST, Mon – Fri. ' +
+      'Try the Historical Chart tab to explore a past session.';
+    document.getElementById('csp-chart').innerHTML = '<div style="text-align:center;padding:40px 0;font-size:36px;opacity:.25">🌙</div>';
+    document.getElementById('csp-dots').innerHTML  = '';
+    document.getElementById('csp-back').disabled   = true;
+    document.getElementById('csp-fwd').disabled    = true;
+    document.getElementById('csp-complete').style.display = 'none';
+    document.querySelector('.csp-chart-area').style.display   = '';
+    document.querySelector('.csp-progress-track').style.display = 'none';
+    document.querySelector('.csp-narration').style.display    = '';
+    document.querySelector('.csp-controls').style.display     = '';
+    return;
+  }
+  _cspRender();
+}
+
 function _cspDrawChart(beat) {
   const candles = beat.candles;
   const n = candles.length;
   const bW = n <= 2 ? 28 : n <= 4 ? 22 : 16;
   const gap = n <= 2 ? 18 : n <= 4 ? 14 : 10;
   const padX = 16, padY = 14;
-  const maxW = Math.min(520, window.innerWidth - 80);
   const totalW = padX * 2 + n * bW + (n - 1) * gap;
   const svgW = Math.max(totalW, 180);
   const svgH = 160;
   const chartH = svgH - padY * 2;
 
-  // Pre-lock Y-axis to full story range (all candles across ALL beats)
-  const story = CSP_STORIES[_cspStory];
-  const allC = story.beats.flatMap(b => b.candles);
+  // Pre-lock Y-axis to full story range (all beats), so scale never jumps
+  const allC = _currentBeats().flatMap(b => b.candles);
   const gHi = Math.max(...allC.map(c => c.h));
   const gLo = Math.min(...allC.map(c => c.l));
   const rng = gHi - gLo || 1;
   const toY = v => padY + (gHi - v) / rng * chartH;
 
-  // VWAP approx: mean of closes across all story candles so far (normalised)
-  const allSoFar = story.beats.slice(0, _cspBeat + 1).flatMap(b => b.candles);
-  const vwapVal = allSoFar.reduce((s, c) => s + c.c, 0) / allSoFar.length;
+  // VWAP: mean close of all candles across beats seen so far
+  const beats    = _currentBeats();
+  const allSoFar = beats.slice(0, _cspBeat + 1).flatMap(b => b.candles);
+  const vwapVal  = allSoFar.reduce((s, c) => s + c.c, 0) / allSoFar.length;
 
   let svg = `<svg class="csp-chart-svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
   // VWAP line
@@ -2764,9 +2855,10 @@ function _cspDrawChart(beat) {
 }
 
 function _cspRender() {
-  const story = CSP_STORIES[_cspStory];
-  const beat  = story.beats[_cspBeat];
-  const lang  = _cspLang();
+  const beats = _currentBeats();
+  if (!beats.length) return;
+  const beat = beats[_cspBeat];
+  const lang = _cspLang();
 
   document.getElementById('csp-emoji').textContent = beat.candlePersonality.emoji;
   document.getElementById('csp-label').textContent = beat.candlePersonality.label;
@@ -2776,24 +2868,20 @@ function _cspRender() {
 
   // dots
   const dotsEl = document.getElementById('csp-dots');
-  dotsEl.innerHTML = story.beats.map((b, i) => {
+  dotsEl.innerHTML = beats.map((b, i) => {
     const cls = i < _cspBeat ? 'csp-dot done' : i === _cspBeat ? 'csp-dot active' : 'csp-dot';
     return `<span class="${cls}" onclick="cspJump(${i})" title="${lang === 'ta' ? b.act_ta : b.act_en}"></span>`;
-  }).join('') + `<span class="csp-dot-label">${_cspBeat + 1} / ${story.beats.length}</span>`;
+  }).join('') + `<span class="csp-dot-label">${_cspBeat + 1} / ${beats.length}</span>`;
 
-  // play button icon
-  document.getElementById('csp-play').innerHTML = _cspPlaying ? '&#9646;&#9646;' : '&#9654;';
+  document.getElementById('csp-play').innerHTML    = _cspPlaying ? '&#9646;&#9646;' : '&#9654;';
+  document.getElementById('csp-back').disabled     = _cspBeat === 0;
+  document.getElementById('csp-fwd').disabled      = _cspBeat >= beats.length - 1;
 
-  // back/fwd
-  document.getElementById('csp-back').disabled = _cspBeat === 0;
-  document.getElementById('csp-fwd').disabled  = _cspBeat >= story.beats.length - 1;
-
-  // hide complete, show controls/chart
-  document.getElementById('csp-complete').style.display = 'none';
-  document.querySelector('.csp-chart-area').style.display = '';
-  document.querySelector('.csp-progress-track').style.display = '';
-  document.querySelector('.csp-narration').style.display = '';
-  document.querySelector('.csp-controls').style.display = '';
+  document.getElementById('csp-complete').style.display        = 'none';
+  document.querySelector('.csp-chart-area').style.display      = '';
+  document.querySelector('.csp-progress-track').style.display  = '';
+  document.querySelector('.csp-narration').style.display       = '';
+  document.querySelector('.csp-controls').style.display        = '';
   _cspDone = false;
 }
 
@@ -2803,18 +2891,42 @@ function _cspShowComplete() {
   if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
   document.getElementById('csp-play').innerHTML = '&#9654;';
 
-  const story = CSP_STORIES[_cspStory];
-  const lang  = _cspLang();
-  document.getElementById('csp-complete-icon').textContent   = story.emoji;
-  document.getElementById('csp-complete-title').textContent  = lang === 'ta' ? story.title_ta : story.title_en;
-  document.getElementById('csp-complete-takeaway').textContent = lang === 'ta' ? story.takeaway_ta : story.takeaway_en;
-  document.getElementById('csp-xp-val').textContent = `+${story.xp} XP`;
+  let icon, title_en, title_ta, takeaway_en, takeaway_ta, xp;
 
-  document.querySelector('.csp-chart-area').style.display = 'none';
-  document.querySelector('.csp-progress-track').style.display = 'none';
-  document.querySelector('.csp-narration').style.display = 'none';
-  document.querySelector('.csp-controls').style.display = 'none';
-  document.getElementById('csp-complete').style.display = '';
+  if (_cspIsToday) {
+    const pg = buildPostGame(_candles);
+    icon       = '📈';
+    title_en   = "Today's Session";
+    title_ta   = 'இன்றைய அமர்வு';
+    xp         = 20;
+    if (pg && pg.length) {
+      takeaway_en = pg.map(b => b.text).join(' · ');
+      takeaway_ta = takeaway_en;
+    } else {
+      takeaway_en = 'Session complete. Review the chart to reinforce today\'s patterns.';
+      takeaway_ta = takeaway_en;
+    }
+  } else {
+    const story = CSP_STORIES[_cspStory];
+    icon       = story.emoji;
+    title_en   = story.title_en;
+    title_ta   = story.title_ta;
+    takeaway_en = story.takeaway_en;
+    takeaway_ta = story.takeaway_ta;
+    xp         = story.xp;
+  }
+
+  const lang = _cspLang();
+  document.getElementById('csp-complete-icon').textContent    = icon;
+  document.getElementById('csp-complete-title').textContent   = lang === 'ta' ? title_ta   : title_en;
+  document.getElementById('csp-complete-takeaway').textContent = lang === 'ta' ? takeaway_ta : takeaway_en;
+  document.getElementById('csp-xp-val').textContent           = `+${xp} XP`;
+
+  document.querySelector('.csp-chart-area').style.display      = 'none';
+  document.querySelector('.csp-progress-track').style.display  = 'none';
+  document.querySelector('.csp-narration').style.display       = 'none';
+  document.querySelector('.csp-controls').style.display        = 'none';
+  document.getElementById('csp-complete').style.display        = '';
 }
 
 function cspJump(idx) {
@@ -2829,8 +2941,8 @@ function cspBack() {
 }
 
 function cspForward() {
-  const story = CSP_STORIES[_cspStory];
-  if (_cspBeat < story.beats.length - 1) { _cspBeat++; _cspRender(); }
+  const beats = _currentBeats();
+  if (_cspBeat < beats.length - 1) { _cspBeat++; _cspRender(); }
   else _cspShowComplete();
 }
 
@@ -2840,8 +2952,8 @@ function cspTogglePlay() {
   document.getElementById('csp-play').innerHTML = _cspPlaying ? '&#9646;&#9646;' : '&#9654;';
   if (_cspPlaying) {
     _cspTimer = setInterval(() => {
-      const story = CSP_STORIES[_cspStory];
-      if (_cspBeat < story.beats.length - 1) { _cspBeat++; _cspRender(); }
+      const beats = _currentBeats();
+      if (_cspBeat < beats.length - 1) { _cspBeat++; _cspRender(); }
       else { clearInterval(_cspTimer); _cspTimer = null; _cspPlaying = false; _cspShowComplete(); }
     }, 3200);
   } else {
@@ -2858,12 +2970,14 @@ function cspReplay() {
 }
 
 function cspSelectStory(idx) {
-  _cspStory = idx;
-  _cspBeat  = 0;
-  _cspDone  = false;
+  _cspIsToday = false;
+  _cspStory   = idx;
+  _cspBeat    = 0;
+  _cspDone    = false;
   _cspPlaying = false;
   if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
-  document.querySelectorAll('.csp-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.csp-tab').forEach((t, i) => t.classList.toggle('active', i === idx && !t.id));
+  document.getElementById('csp-today-btn')?.classList.remove('active');
   _cspRender();
 }
 
@@ -2885,6 +2999,14 @@ function _cspUpdateTabs() {
     btn.onclick = () => cspSelectStory(i);
     tabs.appendChild(btn);
   });
+
+  // Today's Story tab — live data
+  const todayBtn = document.createElement('button');
+  todayBtn.id        = 'csp-today-btn';
+  todayBtn.className = 'csp-tab csp-tab-today';
+  todayBtn.textContent = '📈 Today';
+  todayBtn.onclick   = () => cspTodayStory();
+  tabs.appendChild(todayBtn);
   _cspRender();
   var _prevOnLangChange = window.onLangChange;
   window.onLangChange = function(l) {
