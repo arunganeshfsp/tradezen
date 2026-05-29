@@ -2086,10 +2086,12 @@ function _stFmt(ts) {
 }
 
 function _stAct(ts) {
-  const m = new Date(ts * 1000).getUTCHours() * 60 + new Date(ts * 1000).getUTCMinutes();
-  if (m < 300) return 1;   // before 05:00 UTC = before 10:30 IST
-  if (m < 510) return 2;   // before 08:30 UTC = before 14:00 IST
-  return 3;
+  // ts is IST-shifted: getUTCHours()/Minutes() returns the IST wall-clock time
+  const d = new Date(ts * 1000);
+  const m = d.getUTCHours() * 60 + d.getUTCMinutes();
+  if (m < 630) return 1;   // 09:15 – 10:30 IST  (Opening Gambit)
+  if (m < 840) return 2;   // 10:30 – 14:00 IST  (Mid-day Trend)
+  return 3;                 // 14:00 – 15:30 IST  (Power Hour)
 }
 
 function generateDayStory(candles, cprData) {
