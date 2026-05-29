@@ -377,6 +377,40 @@ input[type=range]{accent-color:var(--accent)}
 .lib-card-name{font-family:'Syne',sans-serif;font-size:11.5px;font-weight:700;margin-bottom:4px}
 .lib-card-hint{font-size:10px;color:var(--muted);line-height:1.45}
 
+/* ── NEXT CANDLE CONTEXT ── */
+.nc-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.nc-head{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:border-color .15s}
+.nc-head:hover{background:var(--bg2)}
+.nc-head-icon{font-size:15px;flex-shrink:0}
+.nc-head-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);flex:1}
+.nc-outcome{display:flex;align-items:center;gap:10px;padding:12px 14px 6px}
+.nc-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px}
+.nc-badge.bull{background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:var(--green)}
+.nc-badge.bear{background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);color:var(--red)}
+.nc-badge.neut{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.25);color:var(--yellow)}
+.nc-strength{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--muted);text-transform:uppercase}
+.nc-reasons{padding:0 14px 14px;display:flex;flex-direction:column;gap:7px}
+.nc-reason{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.55;color:var(--dim)}
+.nc-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.nc-dot.bull{background:var(--green)}
+.nc-dot.bear{background:var(--red2)}
+.nc-dot.neut{background:var(--yellow);opacity:.8}
+/* Guess mode */
+.nc-guess-wrap{padding:12px 14px 14px}
+.nc-guess-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.nc-guess-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.nc-guess-btn{padding:9px 4px;border-radius:8px;background:var(--bg2);border:1.5px solid var(--border);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;line-height:1.4}
+.nc-guess-btn:hover{border-color:var(--border2);color:var(--text)}
+.nc-guess-btn.pick-bull{background:rgba(46,204,113,0.1);border-color:var(--green);color:var(--green)}
+.nc-guess-btn.pick-bear{background:rgba(231,76,60,0.07);border-color:var(--red);color:var(--red)}
+.nc-guess-btn.pick-neut{background:rgba(245,166,35,0.07);border-color:var(--yellow);color:var(--yellow)}
+.nc-reveal-btn{width:100%;padding:9px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.nc-reveal-btn:disabled{opacity:.3;cursor:default}
+.nc-result{padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-top:10px;line-height:1.5}
+.nc-result.hit{background:rgba(46,204,113,0.09);border:1px solid rgba(46,204,113,0.25);color:var(--green)}
+.nc-result.miss{background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.2);color:var(--text)}
+.nc-result.miss b{color:var(--yellow)}
+
 /* ── CANDLE PATTERN TOAST ── */
 .cp-toast{position:fixed;bottom:24px;right:24px;z-index:500;max-width:290px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:13px 15px;box-shadow:0 8px 32px rgba(0,0,0,0.55);transform:translateY(24px);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);pointer-events:none}
 .cp-toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
@@ -804,6 +838,18 @@ input[type=range]{accent-color:var(--accent)}
       </div>
       <div id="cp-body" class="sec-body">
         <div style="text-align:center;padding:16px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Waiting for data…</div>
+      </div>
+    </div>
+
+    <!-- NEXT CANDLE CONTEXT -->
+    <div class="nc-card" data-sec>
+      <div class="nc-head sec-hdr" onclick="toggleSec(this)">
+        <span class="nc-head-icon">🎯</span>
+        <span class="nc-head-title">Next Candle Context</span>
+        <span class="sec-chev">▾</span>
+      </div>
+      <div class="sec-body" id="nc-body">
+        <div style="color:var(--muted);font-size:12px;padding:10px 14px">Waiting for data…</div>
       </div>
     </div>
 
@@ -1810,6 +1856,9 @@ function updatePanel(candle) {
   const _cpIdx  = _mode === 'replay' ? _rpIdx : _candles.length - 1;
   const _cpPrev = _cpIdx > 0 ? _candles[_cpIdx - 1] : null;
   renderPatternCard(detectCandlePattern(candle, _cpPrev), _mode === 'live');
+
+  // Next Candle Context card
+  _ncRender();
 }
 
 function fmtVol(v) {
@@ -2509,6 +2558,172 @@ function showMarketClosed(msg) {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('resize', _resizeChart);
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && _isFullscreen) toggleFullscreen(); });
+
+// ─── Next Candle Context ──────────────────────────────────────────────────────
+let _ncGuess    = null;   // 'bull' | 'bear' | 'ind'
+let _ncRevealed = false;
+
+const _NC = {
+  bull: { label:'Buyers Likely',  cls:'bull', icon:'🟢' },
+  bear: { label:'Sellers Likely', cls:'bear', icon:'🔴' },
+  ind:  { label:'Indecision',     cls:'neut', icon:'⚡' },
+};
+
+function _ncAnalyse(idx) {
+  if (!_candles.length || idx < 0 || idx >= _candles.length) return null;
+  const c = _candles[idx];
+  if (!c?.dominance) return null;
+  const d = c.dominance, comp = d.components;
+  const stDir = comp.st_dir, vwapPos = d.vwap_pos, score = d.score;
+
+  let bias = 0;
+  const reasons = [];
+
+  // Supertrend
+  if (stDir === 'up') {
+    bias += 2;
+    reasons.push({ cls:'bull', text:'Supertrend up — uptrend intact, sellers have work to do' });
+  } else if (stDir === 'down') {
+    bias -= 2;
+    reasons.push({ cls:'bear', text:'Supertrend down — downtrend intact, buyers face overhead resistance' });
+  }
+
+  // VWAP
+  if (vwapPos === 'above') {
+    bias += 1;
+    reasons.push({ cls:'bull', text:'Price above VWAP — intraday tape favors buyers' });
+  } else if (vwapPos === 'below') {
+    bias -= 1;
+    reasons.push({ cls:'bear', text:'Price below VWAP — intraday tape favors sellers' });
+  } else {
+    reasons.push({ cls:'neut', text:'Price at VWAP — decision zone, both sides watching' });
+  }
+
+  // Dominance
+  if (score > 25) {
+    bias += 1;
+    reasons.push({ cls:'bull', text:`Dominance +${score} — buyers pressing, sellers not responding` });
+  } else if (score < -25) {
+    bias -= 1;
+    reasons.push({ cls:'bear', text:`Dominance ${score} — sellers pressing, buyers stepping aside` });
+  } else if (Math.abs(score) <= 8) {
+    reasons.push({ cls:'neut', text:'Dominance near zero — no clear aggressor, chop likely' });
+  }
+
+  // 3-candle momentum
+  if (idx >= 2) {
+    const a = _candles[idx-2], b = _candles[idx-1];
+    if (c.close > b.close && b.close > a.close) {
+      bias += 1;
+      reasons.push({ cls:'bull', text:'Three consecutive higher closes — buyers building momentum' });
+    } else if (c.close < b.close && b.close < a.close) {
+      bias -= 1;
+      reasons.push({ cls:'bear', text:'Three consecutive lower closes — sellers building momentum' });
+    }
+  }
+
+  // Last candle character
+  const body = Math.abs(c.close - c.open), range = c.high - c.low || 1;
+  const bodyR = body / range, bullC = c.close >= c.open;
+  if (bodyR > 0.65) {
+    if (bullC) { bias += 1; reasons.push({ cls:'bull', text:'Strong bull body — buyers closed near the high, conviction visible' }); }
+    else        { bias -= 1; reasons.push({ cls:'bear', text:'Strong bear body — sellers closed near the low, conviction visible' }); }
+  } else if (bodyR < 0.25) {
+    reasons.push({ cls:'neut', text:'Small body, long wicks — market undecided at this level' });
+    bias = Math.round(bias * 0.6);
+  }
+
+  // State nuances
+  if (d.state === 'absorption') {
+    reasons.push({ cls:'neut', text:'Absorption zone — high volume, little movement. Smart money positioning' });
+    bias = Math.round(bias * 0.5);
+  } else if (d.state === 'fake_breakout') {
+    reasons.push({ cls:'neut', text:'Fake breakout — the obvious direction may be a trap here' });
+    bias = Math.round(bias * 0.4);
+  }
+
+  const abs = Math.abs(bias);
+  const outcome  = abs <= 1 ? 'ind' : bias > 0 ? 'bull' : 'bear';
+  const strength = abs >= 4 ? 'Strong' : abs >= 2 ? 'Moderate' : 'Weak';
+  return { outcome, strength, reasons: reasons.slice(0, 4) };
+}
+
+function _ncActual(idx) {
+  if (idx < 0 || idx >= _candles.length) return null;
+  const c = _candles[idx];
+  const bodyR = Math.abs(c.close - c.open) / ((c.high - c.low) || 1);
+  if (bodyR < 0.25) return 'ind';
+  return c.close >= c.open ? 'bull' : 'bear';
+}
+
+function _ncHtml(a, resultHtml) {
+  if (!a) return '<div style="color:var(--muted);font-size:12px;padding:10px 14px">Not enough data yet</div>';
+  const o = _NC[a.outcome];
+  return `
+    <div class="nc-outcome">
+      <div class="nc-badge ${o.cls}">${o.icon} ${o.label}</div>
+      <span class="nc-strength">${a.strength}</span>
+    </div>
+    <div class="nc-reasons">
+      ${a.reasons.map(r => `<div class="nc-reason"><div class="nc-dot ${r.cls}"></div><span>${r.text}</span></div>`).join('')}
+    </div>
+    ${resultHtml || ''}`;
+}
+
+function ncGuess(cls) {
+  if (_ncRevealed) return;
+  _ncGuess = cls;
+  document.querySelectorAll('.nc-guess-btn').forEach(b => {
+    b.className = 'nc-guess-btn' + (b.dataset.g === cls ? ` pick-${cls}` : '');
+  });
+  const btn = document.getElementById('nc-reveal-btn');
+  if (btn) btn.disabled = false;
+}
+
+function ncReveal() {
+  if (!_ncGuess || _ncRevealed) return;
+  _ncRevealed = true;
+  const prevIdx = _rpIdx;
+  rpStep(1);
+  const actual   = _ncActual(_rpIdx);
+  const analysis = _ncAnalyse(prevIdx);
+  const hit      = actual === _ncGuess;
+  const actualLbl = actual ? _NC[actual].label : '—';
+  const resultHtml = `
+    <div class="nc-result ${hit ? 'hit' : 'miss'}" style="margin:0 14px 14px">
+      ${hit
+        ? `✅ Good read — next candle confirmed <b>${actualLbl}</b>`
+        : `❌ Next candle showed <b>${actualLbl}</b>`}
+    </div>`;
+  const body = document.getElementById('nc-body');
+  if (body) body.innerHTML = _ncHtml(analysis, resultHtml);
+}
+
+function _ncRender() {
+  const body = document.getElementById('nc-body');
+  if (!body) return;
+  _ncGuess = null;
+  _ncRevealed = false;
+  const idx      = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+  const analysis = _ncAnalyse(idx);
+  const canGuess = _mode === 'replay' && idx < _candles.length - 1;
+
+  if (canGuess) {
+    body.innerHTML = `
+      <div class="nc-guess-wrap">
+        <div class="nc-guess-lbl">What does the tape suggest?</div>
+        <div class="nc-guess-btns">
+          <button class="nc-guess-btn" data-g="bull" onclick="ncGuess('bull')">🟢<br>Buyers</button>
+          <button class="nc-guess-btn" data-g="bear" onclick="ncGuess('bear')">🔴<br>Sellers</button>
+          <button class="nc-guess-btn" data-g="ind"  onclick="ncGuess('ind')">⚡<br>Indecision</button>
+        </div>
+        <button class="nc-reveal-btn" id="nc-reveal-btn" onclick="ncReveal()" disabled>See next candle →</button>
+      </div>`;
+  } else {
+    body.innerHTML = _ncHtml(analysis, null);
+  }
+}
+
 reload();
 </script>
 <!-- CANDLE PATTERN TOAST -->
