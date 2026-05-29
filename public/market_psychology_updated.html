@@ -2545,7 +2545,7 @@ reload();
           </div>
         </div>
         <div class="csp-chart-area">
-          <div id="csp-chart" style="min-height:160px;display:flex;align-items:center;justify-content:center"></div>
+          <div id="csp-chart" style="min-height:210px;display:flex;align-items:center;justify-content:center;width:100%"></div>
         </div>
         <div class="csp-progress-track" id="csp-dots"></div>
         <div class="csp-narration">
@@ -2646,6 +2646,7 @@ function _buildStoryBeats() {
     const slice = _candles.slice(start, ci + 1);
     const candleArr = slice.map(c => ({
       o: c.open, h: c.high, l: c.low, c: c.close, bull: c.close >= c.open,
+      vwap: c.vwap || null,
     }));
     return {
       act_en: `${entry.time} IST`,
@@ -2695,48 +2696,59 @@ function _refreshStoryBeats() {
 function _cspDrawChart(beat) {
   const candles = beat.candles;
   const n = candles.length;
-  const bW = n <= 2 ? 28 : n <= 4 ? 22 : 16;
-  const gap = n <= 2 ? 18 : n <= 4 ? 14 : 10;
-  const padX = 16, padY = 14;
-  const totalW = padX * 2 + n * bW + (n - 1) * gap;
-  const svgW = Math.max(totalW, 180);
-  const svgH = 160;
+
+  // Fill the chart container width responsively
+  const container = document.getElementById('csp-chart');
+  const availW = Math.max((container ? container.offsetWidth : 480) - 40, 200);
+  const svgH = 210;
+  const padX = 14, padY = 16;
   const chartH = svgH - padY * 2;
 
-  // Pre-lock Y-axis to full story range (all beats), so scale never jumps
-  const allC = _currentBeats().flatMap(b => b.candles);
-  const gHi = Math.max(...allC.map(c => c.h));
-  const gLo = Math.min(...allC.map(c => c.l));
-  const rng = gHi - gLo || 1;
-  const toY = v => padY + (gHi - v) / rng * chartH;
+  // Distribute candles across available width
+  const gapRatio = 0.45;
+  const bW  = Math.min(Math.max(availW / (n + (n - 1) * gapRatio), 12), 52);
+  const gap = bW * gapRatio;
+  const svgW = padX * 2 + n * bW + (n - 1) * gap;
 
-  // VWAP: mean close of all candles across beats seen so far
-  const beats    = _currentBeats();
-  const allSoFar = beats.slice(0, _cspBeat + 1).flatMap(b => b.candles);
-  const vwapVal  = allSoFar.reduce((s, c) => s + c.c, 0) / allSoFar.length;
+  // Y-axis scaled to THIS beat's candle range + 12% breathing room
+  const hi  = Math.max(...candles.map(c => c.h));
+  const lo  = Math.min(...candles.map(c => c.l));
+  const rng = hi - lo || hi * 0.005 || 1;
+  const pad = rng * 0.12;
+  const gHi = hi + pad, gLo = lo - pad;
+  const span = gHi - gLo;
+  const toY = v => padY + (gHi - v) / span * chartH;
+
+  // VWAP: use the last known real vwap, fall back to close mean
+  const lastVwap = [...candles].reverse().find(c => c.vwap);
+  const vwapVal  = lastVwap ? lastVwap.vwap : candles.reduce((s, c) => s + c.c, 0) / n;
 
   let svg = `<svg class="csp-chart-svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
-  // VWAP line
-  svg += `<line x1="${padX}" y1="${toY(vwapVal)}" x2="${svgW - padX}" y2="${toY(vwapVal)}" class="csp-chart-vwap-line"/>`;
-  // VWAP label
-  svg += `<text x="${svgW - padX + 2}" y="${toY(vwapVal) + 4}" font-size="8" fill="rgba(0,212,255,0.6)" font-family="monospace">VWAP</text>`;
+
+  // VWAP line (only if within visible range)
+  if (vwapVal >= gLo && vwapVal <= gHi) {
+    const vy = toY(vwapVal);
+    svg += `<line x1="${padX}" y1="${vy}" x2="${svgW - padX}" y2="${vy}" class="csp-chart-vwap-line"/>`;
+    svg += `<text x="${svgW - padX + 2}" y="${vy + 4}" font-size="8" fill="rgba(0,212,255,0.55)" font-family="monospace">VWAP</text>`;
+  }
 
   candles.forEach((c, i) => {
     const isHighlighted = beat.highlight.includes(i);
-    const cx = padX + bW / 2 + i * (bW + gap);
-    const col = c.bull ? '#2ecc71' : '#e74c3c';
-    const dim = isHighlighted ? '1' : '0.35';
+    const cx   = padX + bW / 2 + i * (bW + gap);
+    const col  = c.bull ? '#2ecc71' : '#e74c3c';
+    const opacity = isHighlighted ? '1' : '0.3';
     const bTop = Math.min(toY(c.o), toY(c.c));
     const bBot = Math.max(toY(c.o), toY(c.c));
-    const bH = Math.max(3, bBot - bTop);
-    svg += `<g opacity="${dim}">`;
-    svg += `<line x1="${cx}" y1="${toY(c.h)}" x2="${cx}" y2="${bTop}" stroke="${col}" stroke-width="2" stroke-linecap="round"/>`;
+    const bH   = Math.max(2, bBot - bTop);
+    svg += `<g opacity="${opacity}">`;
+    svg += `<line x1="${cx}" y1="${toY(c.h)}" x2="${cx}" y2="${bTop}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
     svg += `<rect x="${cx - bW/2}" y="${bTop}" width="${bW}" height="${bH}" fill="${col}" rx="2"/>`;
-    svg += `<line x1="${cx}" y1="${bBot}" x2="${cx}" y2="${toY(c.l)}" stroke="${col}" stroke-width="2" stroke-linecap="round"/>`;
-    if (isHighlighted) {
-      svg += `<circle cx="${cx}" cy="${toY(c.h) - 6}" r="3" fill="${col}" opacity="0.8"/>`;
-    }
+    svg += `<line x1="${cx}" y1="${bBot}" x2="${cx}" y2="${toY(c.l)}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
     svg += `</g>`;
+    if (isHighlighted) {
+      // Highlight dot above the wick
+      svg += `<circle cx="${cx}" cy="${toY(c.h) - 7}" r="3.5" fill="${col}" opacity="0.9"/>`;
+    }
   });
   svg += `</svg>`;
   return svg;
