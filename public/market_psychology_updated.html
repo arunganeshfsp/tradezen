@@ -436,6 +436,42 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   .csp-controls{gap:8px;padding:14px 16px}
   .csp-progress-track{padding:0 16px 12px}
 }
+/* ── CANDLE STORY MODAL ──────────────────────────────────────────────────── */
+.csp-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.75);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:16px}
+.csp-overlay.open{display:flex}
+.csp-modal{width:100%;max-width:900px;max-height:90vh;background:var(--bg1);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.6)}
+.csp-modal-hdr{display:flex;align-items:center;gap:8px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.csp-modal-tabs{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.csp-modal-tab{font-size:12px;font-weight:600;padding:6px 14px;border-radius:16px;background:transparent;border:1.5px solid transparent;color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap}
+.csp-modal-tab:hover{color:var(--text)}
+.csp-modal-tab.active{background:rgba(124,106,247,0.12);border-color:rgba(124,106,247,0.4);color:var(--accent)}
+.csp-modal-close{width:30px;height:30px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);color:var(--dim);font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.csp-modal-close:hover{color:var(--text);border-color:var(--border2)}
+.csp-pane{flex:1;overflow-y:auto;min-height:0}
+/* story pane inner header — story selector */
+.csp-inner-head{display:flex;align-items:center;gap:10px;padding:12px 16px 4px;flex-wrap:wrap;flex-shrink:0}
+/* historical pane */
+.hist-ctrl-bar{display:flex;align-items:flex-end;gap:14px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap;flex-shrink:0}
+.hist-ctrl-group{display:flex;flex-direction:column;gap:5px}
+.hist-ctrl-group label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.hist-date-input{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:5px 10px;height:30px;outline:none;cursor:pointer;transition:border-color .15s}
+.hist-date-input:focus{border-color:var(--accent)}
+.hist-date-input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+.hist-load-btn{padding:0 20px;height:30px;border-radius:var(--r2);background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;align-self:flex-end;white-space:nowrap}
+.hist-load-btn:hover{background:#6b5ae8}
+.hist-load-btn:disabled{opacity:.45;cursor:default}
+.hist-body{flex:1;display:flex;flex-direction:column;min-height:0}
+.hist-chart-wrap{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:320px}
+#hist-chart{border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--bg)}
+.hist-status{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:10px;color:var(--muted);font-size:13px;text-align:center;padding:24px}
+.hist-status-icon{font-size:38px;opacity:.35;line-height:1}
+.hist-asof{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:0 4px}
+.hist-note{font-size:11px;color:var(--muted);padding:0 16px 12px;opacity:.7}
+@media(max-width:600px){
+  .csp-overlay{padding:0}
+  .csp-modal{max-height:100dvh;border-radius:0;border-left:none;border-right:none}
+  .hist-ctrl-bar{gap:10px}
+}
 </style>
 </head>
 <body>
@@ -475,7 +511,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="htag">🧠 VISUAL MARKET PSYCHOLOGY</div>
   <h1>TradeFun — <em>See the Market</em></h1>
   <p class="hero-sub">Buyer vs Seller · Candle Psychology · VWAP Reactions · Momentum Shifts · Educational Mode</p>
-  <a class="hero-cta" href="#csp-section" onclick="document.getElementById('csp-section').scrollIntoView({behavior:'smooth'});return false;">📖 Try Candle Stories</a>
+  <a class="hero-cta" href="#" onclick="openCspModal();return false;">📖 Try Candle Stories</a>
 </div>
 
 <!-- CONTROLS -->
@@ -2444,54 +2480,93 @@ reload();
   <div class="cp-toast-desc" id="cp-toast-desc">—</div>
 </div>
 
-<!-- SYNCED CANDLE-STORY PLAYER -->
-<section class="csp-section" id="csp-section">
-  <div class="csp-head">
-    <div>
-      <div class="csp-tag">Story Mode</div>
-      <div class="csp-title">Candle Story Player</div>
+<!-- CANDLE STORY MODAL -->
+<div class="csp-overlay" id="csp-overlay" onclick="if(event.target===this)closeCspModal()">
+  <div class="csp-modal">
+    <!-- header: modal tabs + close -->
+    <div class="csp-modal-hdr">
+      <div class="csp-modal-tabs">
+        <button class="csp-modal-tab active" id="csp-modal-tab-stories" onclick="cspModalTab('stories')">📖 Candle Stories</button>
+        <button class="csp-modal-tab" id="csp-modal-tab-hist" onclick="cspModalTab('hist')">📅 Historical Chart</button>
+      </div>
+      <button class="csp-modal-close" onclick="closeCspModal()" title="Close">✕</button>
     </div>
-    <div class="csp-story-tabs" id="csp-tabs"></div>
-  </div>
-  <div class="csp-body">
-    <!-- personality headline -->
-    <div class="csp-personality">
-      <div class="csp-personality-emoji" id="csp-emoji">🌅</div>
-      <div class="csp-personality-right">
-        <div class="csp-personality-label" id="csp-label">—</div>
-        <div class="csp-personality-act" id="csp-act">—</div>
+
+    <!-- STORIES PANE -->
+    <div class="csp-pane" id="csp-pane-stories">
+      <div class="csp-inner-head">
+        <div class="csp-story-tabs" id="csp-tabs"></div>
+      </div>
+      <div class="csp-body">
+        <div class="csp-personality">
+          <div class="csp-personality-emoji" id="csp-emoji">🌅</div>
+          <div class="csp-personality-right">
+            <div class="csp-personality-label" id="csp-label">—</div>
+            <div class="csp-personality-act" id="csp-act">—</div>
+          </div>
+        </div>
+        <div class="csp-chart-area">
+          <div id="csp-chart" style="min-height:160px;display:flex;align-items:center;justify-content:center"></div>
+        </div>
+        <div class="csp-progress-track" id="csp-dots"></div>
+        <div class="csp-narration">
+          <div class="csp-zeni">
+            <div class="csp-zeni-avatar">🦊</div>
+            <div class="csp-zeni-bubble" id="csp-narration">—</div>
+          </div>
+        </div>
+        <div class="csp-controls">
+          <button class="csp-ctrl-btn" id="csp-back" onclick="cspBack()" title="Previous">&#x23EE;</button>
+          <button class="csp-ctrl-play" id="csp-play" onclick="cspTogglePlay()" title="Play / Pause">&#9654;</button>
+          <button class="csp-ctrl-btn" id="csp-fwd" onclick="cspForward()" title="Next">&#x23ED;</button>
+        </div>
+        <div class="csp-complete" id="csp-complete">
+          <div class="csp-complete-icon" id="csp-complete-icon">🎉</div>
+          <div class="csp-complete-title" id="csp-complete-title">Story Complete</div>
+          <div class="csp-complete-takeaway" id="csp-complete-takeaway">—</div>
+          <div class="csp-complete-xp"><span>⚡</span><span id="csp-xp-val">+15 XP</span></div>
+          <br>
+          <button class="csp-replay-btn" onclick="cspReplay()">&#x21BA; Replay</button>
+        </div>
       </div>
     </div>
-    <!-- chart -->
-    <div class="csp-chart-area">
-      <div id="csp-chart" style="min-height:160px;display:flex;align-items:center;justify-content:center"></div>
-    </div>
-    <!-- progress dots -->
-    <div class="csp-progress-track" id="csp-dots"></div>
-    <!-- narration -->
-    <div class="csp-narration">
-      <div class="csp-zeni">
-        <div class="csp-zeni-avatar">🦊</div>
-        <div class="csp-zeni-bubble" id="csp-narration">—</div>
+
+    <!-- HISTORICAL PANE -->
+    <div class="csp-pane" id="csp-pane-hist" style="display:none">
+      <div class="hist-ctrl-bar">
+        <div class="hist-ctrl-group">
+          <label>Symbol</label>
+          <div class="btn-grp" id="hist-sym-grp">
+            <button class="tog active" onclick="setHistSym('NIFTY',this)">NIFTY</button>
+            <button class="tog" onclick="setHistSym('BANKNIFTY',this)">BANKNIFTY</button>
+          </div>
+        </div>
+        <div class="hist-ctrl-group">
+          <label>Timeframe</label>
+          <div class="btn-grp" id="hist-tf-grp">
+            <button class="tog" onclick="setHistTf('1m',this)">1m</button>
+            <button class="tog active" onclick="setHistTf('5m',this)">5m</button>
+            <button class="tog" onclick="setHistTf('15m',this)">15m</button>
+          </div>
+        </div>
+        <div class="hist-ctrl-group">
+          <label>Date</label>
+          <input type="date" id="hist-date" class="hist-date-input" />
+        </div>
+        <button class="hist-load-btn" id="hist-load-btn" onclick="loadHistChart()">Load Chart</button>
       </div>
-    </div>
-    <!-- controls -->
-    <div class="csp-controls">
-      <button class="csp-ctrl-btn" id="csp-back" onclick="cspBack()" title="Previous">&#x23EE;</button>
-      <button class="csp-ctrl-play" id="csp-play" onclick="cspTogglePlay()" title="Play / Pause">&#9654;</button>
-      <button class="csp-ctrl-btn" id="csp-fwd" onclick="cspForward()" title="Next">&#x23ED;</button>
-    </div>
-    <!-- completion -->
-    <div class="csp-complete" id="csp-complete">
-      <div class="csp-complete-icon" id="csp-complete-icon">🎉</div>
-      <div class="csp-complete-title" id="csp-complete-title">Story Complete</div>
-      <div class="csp-complete-takeaway" id="csp-complete-takeaway">—</div>
-      <div class="csp-complete-xp"><span>⚡</span><span id="csp-xp-val">+15 XP</span></div>
-      <br>
-      <button class="csp-replay-btn" onclick="cspReplay()">&#x21BA; Replay</button>
+      <div class="hist-chart-wrap">
+        <div class="hist-status" id="hist-status">
+          <div class="hist-status-icon">📅</div>
+          <span>Select a date above and tap <strong>Load Chart</strong></span>
+        </div>
+        <div id="hist-chart" style="display:none;height:340px"></div>
+        <div class="hist-asof" id="hist-asof" style="display:none"></div>
+      </div>
+      <div class="hist-note">⚠ yfinance: 5m/15m data available up to 60 days back · 1m up to 7 days back</div>
     </div>
   </div>
-</section>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
@@ -2800,7 +2875,7 @@ function _cspUpdateTabs() {
   });
 }
 
-// Build tabs and init
+// Build story selector tabs and init player
 (function _cspInit() {
   const tabs = document.getElementById('csp-tabs');
   CSP_STORIES.forEach((s, i) => {
@@ -2811,7 +2886,6 @@ function _cspUpdateTabs() {
     tabs.appendChild(btn);
   });
   _cspRender();
-  // re-render on lang change so narration updates
   var _prevOnLangChange = window.onLangChange;
   window.onLangChange = function(l) {
     if (_prevOnLangChange) _prevOnLangChange(l);
@@ -2819,6 +2893,156 @@ function _cspUpdateTabs() {
     _cspRender();
   };
 })();
+
+// ─── Modal open / close ───────────────────────────────────────────────────────
+function openCspModal(tab) {
+  document.getElementById('csp-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (tab) cspModalTab(tab);
+  else cspModalTab('stories');
+}
+
+function closeCspModal() {
+  document.getElementById('csp-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // pause story auto-play when modal closes
+  if (_cspPlaying) cspTogglePlay();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('csp-overlay').classList.contains('open')) {
+    closeCspModal();
+  }
+});
+
+function cspModalTab(tab) {
+  const isStories = tab === 'stories';
+  document.getElementById('csp-pane-stories').style.display = isStories ? '' : 'none';
+  document.getElementById('csp-pane-hist').style.display    = isStories ? 'none' : '';
+  document.getElementById('csp-modal-tab-stories').classList.toggle('active', isStories);
+  document.getElementById('csp-modal-tab-hist').classList.toggle('active', !isStories);
+  if (!isStories) _histInitDateBounds();
+}
+
+// ─── Historical Chart ─────────────────────────────────────────────────────────
+let _histSym   = 'NIFTY';
+let _histTf    = '5m';
+let _histChart = null;  // LightweightCharts instance
+
+function setHistSym(sym, btn) {
+  _histSym = sym;
+  document.querySelectorAll('#hist-sym-grp .tog').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setHistTf(tf, btn) {
+  _histTf = tf;
+  document.querySelectorAll('#hist-tf-grp .tog').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function _histInitDateBounds() {
+  const inp = document.getElementById('hist-date');
+  if (!inp || inp.dataset.init) return;
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  // skip weekends for default
+  while (yesterday.getDay() === 0 || yesterday.getDay() === 6) yesterday.setDate(yesterday.getDate() - 1);
+  const fmt = d => d.toISOString().slice(0, 10);
+  const sixtyAgo = new Date(today);
+  sixtyAgo.setDate(today.getDate() - 60);
+  inp.max = fmt(yesterday);
+  inp.min = fmt(sixtyAgo);
+  inp.value = fmt(yesterday);
+  inp.dataset.init = '1';
+}
+
+async function loadHistChart() {
+  const date = document.getElementById('hist-date').value;
+  if (!date) return;
+
+  const btn    = document.getElementById('hist-load-btn');
+  const status = document.getElementById('hist-status');
+  const chartEl = document.getElementById('hist-chart');
+  const asofEl  = document.getElementById('hist-asof');
+
+  btn.disabled = true;
+  chartEl.style.display = 'none';
+  asofEl.style.display  = 'none';
+  status.style.display  = '';
+  status.innerHTML = '<div class="spin" style="width:24px;height:24px;border-width:3px"></div><span>Loading…</span>';
+
+  // destroy previous chart
+  if (_histChart) { try { _histChart.remove(); } catch(e) {} _histChart = null; }
+
+  try {
+    const res  = await fetch(`/api/psychology/candles?symbol=${_histSym}&interval=${_histTf}&date=${date}`);
+    const data = await res.json();
+
+    if (data.error || !data.candles || !data.candles.length) {
+      status.innerHTML = `<div class="hist-status-icon">😶</div><span>${data.error || 'No data for this date'}</span>`;
+      btn.disabled = false;
+      return;
+    }
+
+    status.style.display = 'none';
+    chartEl.style.display = '';
+
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    _histChart = LightweightCharts.createChart(chartEl, {
+      width:  chartEl.offsetWidth || 800,
+      height: 340,
+      layout: { background: { color: isDark ? '#0A0C18' : '#ffffff' }, textColor: isDark ? '#9ba3bf' : '#333' },
+      grid:   { vertLines: { color: isDark ? '#1a1e35' : '#e0e0e0' }, horzLines: { color: isDark ? '#1a1e35' : '#e0e0e0' } },
+      crosshair:   { mode: LightweightCharts.CrosshairMode.Normal },
+      rightPriceScale: { borderColor: isDark ? '#252a44' : '#cccccc' },
+      timeScale: { borderColor: isDark ? '#252a44' : '#cccccc', timeVisible: true, secondsVisible: false },
+    });
+
+    const candleSeries = _histChart.addCandlestickSeries({
+      upColor: '#2ecc71', downColor: '#e74c3c',
+      borderUpColor: '#2ecc71', borderDownColor: '#e74c3c',
+      wickUpColor: '#2ecc71', wickDownColor: '#e74c3c',
+    });
+    candleSeries.setData(data.candles.map(c => ({
+      time: c.time, open: c.open, high: c.high, low: c.low, close: c.close,
+    })));
+
+    const vwapPoints = data.candles.filter(c => c.vwap).map(c => ({ time: c.time, value: c.vwap }));
+    if (vwapPoints.length) {
+      const vwapSeries = _histChart.addLineSeries({
+        color: '#00d4ff', lineWidth: 1.5,
+        lineStyle: LightweightCharts.LineStyle.Dashed,
+        priceLineVisible: false, lastValueVisible: false, title: 'VWAP',
+      });
+      vwapSeries.setData(vwapPoints);
+    }
+
+    const stUp = [], stDn = [];
+    data.candles.forEach(c => {
+      if (c.supertrend == null) return;
+      if (c.supertrend_dir === 'up')   stUp.push({ time: c.time, value: c.supertrend });
+      else                              stDn.push({ time: c.time, value: c.supertrend });
+    });
+    if (stUp.length) {
+      const s = _histChart.addLineSeries({ color: '#2ecc71', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, title: 'ST' });
+      s.setData(stUp);
+    }
+    if (stDn.length) {
+      const s = _histChart.addLineSeries({ color: '#e74c3c', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, title: 'ST' });
+      s.setData(stDn);
+    }
+
+    _histChart.timeScale().fitContent();
+
+    asofEl.textContent = `${data.count} candles · ${_histSym} ${_histTf} · ${date}`;
+    asofEl.style.display = '';
+  } catch(e) {
+    status.innerHTML = `<div class="hist-status-icon">⚠️</div><span>Failed to load — ${e.message}</span>`;
+  }
+  btn.disabled = false;
+}
 </script>
 </body>
 </html>

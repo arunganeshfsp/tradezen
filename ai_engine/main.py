@@ -2400,12 +2400,97 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
     return result
 
 
+def _psychology_sync_historical(symbol: str, interval: str, date: str) -> dict:
+    """Fetch a specific past session's candle data — same pipeline as live, no caching."""
+    import yfinance as yf
+    import pandas as pd
+    from datetime import datetime as _dt2, timedelta as _td2
+
+    symbol   = symbol.upper()
+    interval = interval.lower()
+    yf_sym   = _YF_SYMBOLS.get(symbol, "^NSEI")
+    yf_interval, _ = _INTERVAL_MAP.get(interval, ("5m", "1d"))
+
+    target = _dt2.strptime(date, "%Y-%m-%d").date()
+    start  = target.strftime("%Y-%m-%d")
+    end    = (target + _td2(days=1)).strftime("%Y-%m-%d")
+
+    df = yf.Ticker(yf_sym).history(start=start, end=end, interval=yf_interval)
+    if df.empty:
+        return {"error": f"No data for {date} — may be a holiday or weekend", "candles": [], "count": 0}
+
+    try:
+        df.index = df.index.tz_convert("Asia/Kolkata")
+    except Exception:
+        pass
+
+    df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
+    try:
+        df = df.between_time("09:15", "15:30")
+    except Exception:
+        pass
+
+    if df.empty:
+        return {"error": f"No trading session on {date}", "candles": [], "count": 0}
+
+    _VOL_PROXY = {"NIFTY": "NIFTYBEES.NS", "BANKNIFTY": "BANKBEES.NS"}
+    vol_proxy = _VOL_PROXY.get(symbol)
+    if vol_proxy and (df["Volume"] == 0).all():
+        try:
+            vdf = yf.Ticker(vol_proxy).history(start=start, end=end, interval=yf_interval)
+            if not vdf.empty:
+                try:
+                    vdf.index = vdf.index.tz_convert("Asia/Kolkata")
+                except Exception:
+                    pass
+                vdf = vdf[["Volume"]].reindex(df.index, method="nearest", tolerance=pd.Timedelta("5min"))
+                df["Volume"] = vdf["Volume"].fillna(0).astype(int)
+        except Exception:
+            pass
+
+    typical      = (df["High"] + df["Low"] + df["Close"]) / 3
+    pv           = typical * df["Volume"]
+    df["vwap"]   = pv.cumsum() / df["Volume"].cumsum().replace(0, float("nan"))
+    st_list      = _compute_supertrend(df, period=10, multiplier=3.0)
+    df["vol_ma"] = df["Volume"].rolling(20, min_periods=1).mean()
+
+    candles_out, history = [], []
+    for i in range(len(df)):
+        row    = df.iloc[i]
+        o, h, l, c = float(row.Open), float(row.High), float(row.Low), float(row.Close)
+        v      = float(row.Volume)
+        vwap   = float(row.vwap)   if not pd.isna(row.vwap)   else None
+        vol_ma = float(row.vol_ma) if not pd.isna(row.vol_ma) else v
+        st     = st_list[i] if i < len(st_list) else {"value": None, "direction": "neutral"}
+        dom    = _psych_dominance(o, h, l, c, v, vwap, vol_ma, st, history)
+        ts_ist = int(row.name.timestamp()) + IST_OFFSET
+        candle = {
+            "time": ts_ist, "open": round(o, 2), "high": round(h, 2),
+            "low": round(l, 2), "close": round(c, 2), "volume": int(v),
+            "vwap": round(vwap, 2) if vwap else None,
+            "supertrend": round(float(st["value"]), 2) if st.get("value") else None,
+            "supertrend_dir": st["direction"], "dominance": dom,
+        }
+        candles_out.append(candle)
+        history.append({"score": dom["score"], "components": dom["components"]})
+
+    return _sanitize_floats({
+        "symbol": symbol, "interval": interval, "date": date,
+        "candles": candles_out, "count": len(candles_out), "as_of": date,
+    })
+
+
 @app.get("/psychology/candles")
-async def psychology_candles(symbol: str = "NIFTY", interval: str = "5m"):
-    """Full candle history with VWAP, Supertrend and dominance scores."""
+async def psychology_candles(symbol: str = "NIFTY", interval: str = "5m", date: str = None):
+    """Full candle history with VWAP, Supertrend and dominance scores.
+    Pass ?date=YYYY-MM-DD for a specific historical session (up to 60 days back for 5m/15m, 7 days for 1m).
+    """
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, _psychology_sync, symbol, interval)
+        if date:
+            result = await loop.run_in_executor(None, _psychology_sync_historical, symbol, interval, date)
+        else:
+            result = await loop.run_in_executor(None, _psychology_sync, symbol, interval)
         return result
     except Exception as e:
         log.error(f"Psychology candles error ({symbol}/{interval}): {e}")
