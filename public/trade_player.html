@@ -2966,7 +2966,17 @@ function tpNccReveal() {
 // ── Session Story drawer ───────────────────────────────────────────────────────
 var _tpStoryBeat = 0;
 
+// Override: skip legacy csp-* DOM writes that crash on null querySelector
+function _refreshStoryBeats() {
+  _cspBeat = 0; _cspPlaying = false;
+  if (typeof _cspDone !== 'undefined') _cspDone = false;
+  if (_cspTimer) { clearInterval(_cspTimer); _cspTimer = null; }
+  _cspBeats = _buildStoryBeats() || [];
+}
+
 function tpStoryOpen() {
+  // If story not built yet but CPR data is now available, build it now
+  if (!_storyEntries.length && _cprData) tryBuildStory();
   _refreshStoryBeats();
   _tpStoryBeat = 0;
   document.getElementById('tp-story-backdrop').classList.add('open');
