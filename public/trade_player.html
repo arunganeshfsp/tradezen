@@ -3059,10 +3059,23 @@ function setChartLoading() {
 }
 
 function showError(msg) {
-  // Market-closed / holiday messages get the beach card regardless of which code path called us
-  if (msg && /closed|holiday/i.test(msg)) { showMarketClosed(msg); return; }
+  // In live mode, market-closed/holiday errors show the beach card
+  if (!_histDate && msg && /closed|holiday/i.test(msg)) { showMarketClosed(msg); return; }
   var el = document.getElementById('psych-chart');
   if (!el) return;
+  // Historical load with no data: show a "pick another date" card
+  if (_histDate && msg && /holiday|weekend|no data|no trading/i.test(msg)) {
+    el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:300px;gap:20px;padding:40px 28px;text-align:center">'
+      + '<div style="font-size:44px;line-height:1">📅</div>'
+      + '<div>'
+      + '<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:18px;color:var(--tz-fg-0);margin-bottom:6px">No Session Data</div>'
+      + '<div style="font-size:13px;color:var(--tz-fg-2)">' + _histDate + ' · Not a trading day</div>'
+      + '</div>'
+      + '<div style="font-size:13px;color:var(--tz-fg-2);max-width:280px;line-height:1.7">This date had no trading session. Try a weekday that is not a market holiday.</div>'
+      + '<button class="tp-btn tp-btn-grad" onclick="tpHistOpen()" style="padding:11px 22px;font-size:14px">Pick Another Date</button>'
+      + '</div>';
+    return;
+  }
   el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:260px;gap:16px;padding:32px;text-align:center">'
     + '<div style="font-size:30px">⚠️</div>'
     + '<div style="color:var(--tz-fg-0);font-weight:600;font-size:14px">' + msg + '</div>'
