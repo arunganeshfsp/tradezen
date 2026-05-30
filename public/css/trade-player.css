@@ -135,11 +135,7 @@ body {
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.tp-eyebrow {
-  display: inline-flex; align-items: center; gap: 7px;
-  font: 600 11px/1 var(--tz-font-ui); letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--tz-fg-2);
-}
+.tp-eyebrow { display: none; }
 .tp-eyebrow .dot {
   width: 6px; height: 6px; border-radius: 99px;
   background: var(--tp-cyan);
@@ -283,18 +279,15 @@ body {
 /* ── Hero ───────────────────────────────────────────────────── */
 .tp-hero {
   display: flex; align-items: center; gap: 24px;
-  padding: 18px 24px; flex-shrink: 0;
+  padding: 8px 24px; flex-shrink: 0;
 }
 .tp-hero-left { flex: 1; min-width: 0; }
 .tp-hero-title {
-  font: 800 36px/1 var(--tz-font-display);
+  font: 800 24px/1 var(--tz-font-display);
   letter-spacing: -0.03em; color: var(--tz-fg-1);
-  margin: 9px 0 0;
+  margin: 4px 0 0;
 }
-.tp-hero-blurb {
-  font: 400 14px/1.5 var(--tz-font-ui);
-  color: var(--tz-fg-2); margin-top: 7px; max-width: 440px;
-}
+.tp-hero-blurb { display: none; }
 .tp-hero-right {
   display: flex; align-items: center; gap: 22px; flex-shrink: 0;
 }
@@ -332,7 +325,7 @@ body {
   padding-bottom: 16px;
 }
 .tp-chart-pane {
-  flex: 1; min-height: 320px; overflow: hidden;
+  flex: 1; min-height: 260px; max-height: calc(100vh - 460px); overflow: hidden;
   position: relative; display: flex; flex-direction: column;
 }
 .tp-chart-legend {
