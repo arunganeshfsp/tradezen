@@ -2436,6 +2436,7 @@ function loadHistSession() {
   reload();
 }
 
+// ── ESC closes story drawer (old modal) ──────────────────────────────────────
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && document.getElementById('csp-overlay').classList.contains('open')) {
     closeCspModal();
@@ -2480,6 +2481,554 @@ function _histInitDateBounds() {
   inp.dataset.init = '1';
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TRADE PLAYER UI WIRING
+// Connects the new HTML shell to the existing engine.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Theme ──────────────────────────────────────────────────────────────────────
+(function(){
+  var t = localStorage.getItem('tz_theme') || 'dark';
+  var root = document.getElementById('tp-root');
+  if (root) root.setAttribute('data-theme', t);
+})();
+
+function tpToggleTheme() {
+  var root = document.getElementById('tp-root');
+  var next = (root.getAttribute('data-theme') || 'dark') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('tz_theme', next);
+  root.setAttribute('data-theme', next);
+  _tpRenderThemeBtn();
+}
+function _tpRenderThemeBtn() {
+  var isDark = (document.getElementById('tp-root').getAttribute('data-theme') || 'dark') === 'dark';
+  var btn = document.getElementById('tp-theme-btn');
+  if (btn) btn.innerHTML = _icon(isDark ? 'sun' : 'moon', 16);
+}
+
+// ── DOMContentLoaded: inject all icons ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  _tpRenderThemeBtn();
+  function si(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
+  si('tp-brand-icon',      _icon('candle',   17, '#fff', 1.9));
+  si('tp-book-icon',       _icon('book',     16, '#fff'));
+  si('tp-ncc-spark',       _icon('spark',    14, 'var(--tp-cyan)'));
+  si('tp-tab-icon-pulse',  _icon('brain',    14));
+  si('tp-tab-icon-candle', _icon('candle',   14));
+  si('tp-tab-icon-levels', _icon('target',   14));
+  si('tp-story-zeni',      _zeni(40, 'happy'));
+  si('tp-story-close-btn', _icon('close',    16));
+  si('tp-cal-icon',        _icon('calendar', 14));
+  si('tp-first-btn',       _icon('prev',     17));
+  si('tp-prev-btn',        _icon('rewind',   17));
+  si('tp-play-btn',        _icon('play',     22, '#fff'));
+  si('tp-next-btn',        _icon('forward',  17));
+  si('tp-last-btn',        _icon('next',     17));
+  si('tp-story-prev-btn',  _icon('chev-l',   16));
+  si('tp-story-fwd-btn',   _icon('chev-r',   16));
+  si('tp-story-btn-icon',  _icon('chev-r',   15, '#fff'));
+
+  // Scrubber: click-to-seek + drag
+  var track = document.getElementById('tp-scr-track');
+  if (track) {
+    var seeking = false;
+    function doSeek(e) {
+      if (!_candles.length) return;
+      var r = track.getBoundingClientRect();
+      var pct = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      _rpIdx = Math.round(pct * (_candles.length - 1));
+      rpRender();
+    }
+    track.addEventListener('mousedown', function(e) { seeking = true; doSeek(e); });
+    document.addEventListener('mousemove', function(e) { if (seeking) doSeek(e); });
+    document.addEventListener('mouseup',   function()  { seeking = false; });
+    track.addEventListener('click', doSeek);
+  }
+
+  // Initial state
+  _tpSetMode(_mode);
+});
+
+// ── Controls ───────────────────────────────────────────────────────────────────
+function tpSetSym(sym, btn) {
+  document.querySelectorAll('#tp-sym-seg .tp-seg-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  _sym = sym; _tpSyncChip(); reload();
+}
+function tpSetTf(tf, btn) {
+  document.querySelectorAll('#tp-tf-seg .tp-seg-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  _tf = tf; _tpSyncChip(); reload();
+}
+function tpToggleInd(ind, btn) {
+  btn.classList.toggle('on');
+  // sync swatch color
+  var swatch = btn.querySelector('.tp-pill-swatch');
+  var colors = { vwap: 'var(--tp-cyan)', st: 'var(--tz-gain)', vol: 'var(--tz-accent-1)', cpr: 'var(--tz-accent-1)', orb: 'var(--tp-cyan)' };
+  if (swatch) swatch.style.background = btn.classList.contains('on') ? (colors[ind] || 'var(--tz-border-strong)') : 'var(--tz-border-strong)';
+  toggleInd(ind);
+}
+function _tpSyncChip() {
+  var chip = document.getElementById('tp-sym-chip');
+  if (chip) chip.innerHTML = _sym + ' <span>' + _tf + '</span>';
+}
+
+// ── Mode ───────────────────────────────────────────────────────────────────────
+function tpToggleMode() { setMode(_mode === 'live' ? 'replay' : 'live'); }
+
+function _tpUpdateModeBadge() {
+  var badge = document.getElementById('tp-mode-badge');
+  var hint  = document.getElementById('tp-ncc-hint');
+  if (!badge) return;
+  if (_histDate) {
+    badge.className = 'tp-mode-badge hist';
+    badge.innerHTML = '<span id="tp-mode-label">' + _histDate + '</span>';
+    if (hint) hint.textContent = 'AI READ · REPLAY';
+  } else if (_mode === 'live') {
+    badge.className = 'tp-mode-badge live';
+    badge.innerHTML = '<span class="tp-mode-dot"></span><span id="tp-mode-label">LIVE</span>';
+    if (hint) hint.textContent = 'AI READ · LIVE';
+  } else {
+    badge.className = 'tp-mode-badge replay';
+    badge.innerHTML = _icon('play', 11, 'var(--tz-accent-1)') + '<span id="tp-mode-label">REPLAY</span>';
+    if (hint) hint.textContent = 'GUESS THE NEXT MOVE';
+  }
+}
+
+// ── _tpSetMode (override) ──────────────────────────────────────────────────────
+function _tpSetMode(mode) {
+  var isReplay = mode === 'replay' || !!_histDate;
+  var row = document.getElementById('tp-scrubber-row');
+  if (row) row.style.display = isReplay ? '' : 'none';
+  ['tp-first-btn','tp-prev-btn','tp-play-btn','tp-next-btn','tp-last-btn'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.disabled = !isReplay;
+  });
+  _tpUpdateModeBadge();
+  _tpUpdatePlayBtn();
+  _tpSyncChip();
+}
+
+// ── Player bar ─────────────────────────────────────────────────────────────────
+function tpPlayToggle() { rpToggle(); _tpUpdatePlayBtn(); }
+
+function _tpUpdatePlayBtn() {
+  var btn = document.getElementById('tp-play-btn');
+  if (!btn) return;
+  btn.innerHTML = _icon(_rpPlaying ? 'pause' : 'play', 22, '#fff');
+  if (_rpPlaying) btn.classList.add('tp-playing'); else btn.classList.remove('tp-playing');
+}
+
+function _tpScrubUpdate() {
+  if (!_candles.length) return;
+  var idx   = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+  var total = _candles.length;
+  var pct   = total > 1 ? (idx / (total - 1)) * 100 : 0;
+  var fill  = document.getElementById('tp-scr-fill');
+  var thumb = document.getElementById('tp-scr-thumb');
+  if (fill)  fill.style.width = pct + '%';
+  if (thumb) thumb.style.left = pct + '%';
+  var ctr = document.getElementById('tp-candle-counter');
+  if (ctr) ctr.textContent = 'CANDLE ' + (idx + 1) + '/' + total;
+  var c = _candles[idx];
+  if (c) {
+    var d = new Date(c.time * 1000);
+    var te = document.getElementById('tp-candle-time');
+    if (te) te.textContent = String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0') + ' IST';
+  }
+  if (total > 0) {
+    var fmt = function(ts) { var d = new Date(ts*1000); return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0'); };
+    var ss = document.getElementById('tp-scr-start'), se = document.getElementById('tp-scr-end');
+    if (ss) ss.textContent = fmt(_candles[0].time);
+    if (se) se.textContent = fmt(_candles[total-1].time);
+  }
+}
+
+function tpSetSpeed(s, btn) {
+  document.querySelectorAll('.tp-speed-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  _rpMs = Math.round(900 / s);
+  if (_rpPlaying) { rpStop(); rpPlay(); }
+}
+
+// ── _tpLiveUpdate (override) ───────────────────────────────────────────────────
+function _tpLiveUpdate(candle) {
+  _tpScrubUpdate();
+  if (candle && _candles.length > 1) {
+    var price = candle.close, first = _candles[0].open;
+    var chg = price - first, chgP = (chg / first) * 100;
+    var prEl = document.getElementById('tp-hero-price');
+    var chEl = document.getElementById('tp-hero-change');
+    var syEl = document.getElementById('tp-hero-sym');
+    if (prEl) prEl.textContent = price.toFixed(2);
+    if (syEl) syEl.textContent = _sym;
+    if (chEl) {
+      chEl.textContent = (chg >= 0 ? '▲ ' : '▼ ') + Math.abs(chg).toFixed(1) + ' (' + (chgP >= 0 ? '+' : '') + chgP.toFixed(2) + '%)';
+      chEl.className = 'tp-hero-change ' + (chg >= 0 ? 'up' : 'dn');
+    }
+  }
+}
+
+// ── Chart legend ───────────────────────────────────────────────────────────────
+function _tpUpdateLegend() {
+  var legend = document.getElementById('tp-chart-legend');
+  if (!legend || !_candles.length) return;
+  var idx = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+  var c = _candles[idx], html = '';
+  if (_indState.vwap && c && c.vwap)
+    html += '<span class="tp-legend-vwap">— VWAP ' + c.vwap.toFixed(0) + '</span>';
+  if (_indState.st && c && c.supertrend_dir)
+    html += '<span class="' + (c.supertrend_dir === 'up' ? 'tp-legend-st-up' : 'tp-legend-st-down') + '">— ST ' + (c.supertrend_dir === 'up' ? '↑' : '↓') + '</span>';
+  legend.innerHTML = html;
+}
+
+// ── Sidebar update ─────────────────────────────────────────────────────────────
+function _tpSidebarUpdate(candle) {
+  if (!candle || !candle.dominance) return;
+  var d = candle.dominance, comp = d.components;
+
+  // Dominance bar
+  var buyPct = Math.round(d.buyer_pct || 50);
+  var buyEl  = document.getElementById('tp-dom-buyers');
+  var selEl  = document.getElementById('tp-dom-sellers');
+  if (buyEl) { buyEl.style.width = buyPct + '%'; buyEl.textContent = buyPct + '%'; }
+  if (selEl) selEl.textContent = (100 - buyPct) + '%';
+
+  // Market state
+  var meta = (typeof STATE_META !== 'undefined' && STATE_META[d.state]) || { icon: '🔄', name: d.state || 'Neutral', color: 'var(--tp-cyan)' };
+  var stIcon = document.getElementById('tp-state-icon');
+  var stName = document.getElementById('tp-state-name');
+  if (stIcon) stIcon.innerHTML = '<span style="font-size:20px">' + meta.icon + '</span>';
+  if (stName) { stName.textContent = meta.name || d.state; stName.style.color = meta.color || 'var(--tp-cyan)'; }
+
+  // Score breakdown
+  var sc = document.getElementById('tp-scores');
+  if (sc) {
+    var stV = comp.st_dir === 'up' ? 75 : comp.st_dir === 'down' ? 25 : 50;
+    var rows = [
+      ['Body Strength',  Math.round(50 + (comp.body_str  || 0) * 50)],
+      ['Close Position', Math.round(50 + (comp.close_pos || 0) * 50)],
+      ['VWAP Position',  d.vwap_pos === 'above' ? 70 : d.vwap_pos === 'below' ? 30 : 50],
+      ['Trend Align',    stV],
+      ['Rel. Volume',    Math.min(100, Math.round((comp.rel_volume || 1) * 50))]
+    ];
+    sc.innerHTML = rows.map(function(r) {
+      var v = r[1];
+      var col = v >= 55 ? 'var(--tz-gain)' : v <= 45 ? 'var(--tz-loss)' : 'var(--tz-warning)';
+      return '<div class="tp-score-row"><div class="tp-score-row-head"><span>' + r[0] + '</span><span class="mono" style="color:var(--tz-fg-1)">' + v + '</span></div><div class="tp-score-track"><div class="tp-score-fill" style="width:' + v + '%;background:' + col + '"></div></div></div>';
+    }).join('');
+  }
+
+  // Candle OHLCV
+  var idx = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+  var k   = _candles[idx] || candle;
+  var lbl = document.getElementById('tp-candle-lbl');
+  if (lbl) {
+    var dd = new Date(k.time * 1000);
+    lbl.textContent = 'Current Candle · ' + String(dd.getUTCHours()).padStart(2,'0') + ':' + String(dd.getUTCMinutes()).padStart(2,'0');
+  }
+  var sv = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+  sv('tp-ci-o', k.open.toFixed(2));
+  sv('tp-ci-h', k.high.toFixed(2));
+  sv('tp-ci-l', k.low.toFixed(2));
+  sv('tp-ci-c', k.close.toFixed(2));
+  sv('tp-ci-v', ((k.volume || 0) / 1000).toFixed(1) + 'K');
+  if (_candles.length) {
+    var chg = k.close - _candles[0].open, chgP = (chg / _candles[0].open) * 100;
+    var ce = document.getElementById('tp-ci-chg');
+    if (ce) {
+      ce.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + ' (' + (chgP >= 0 ? '+' : '') + chgP.toFixed(2) + '%)';
+      ce.style.color = chg >= 0 ? 'var(--tz-gain)' : 'var(--tz-loss)';
+    }
+  }
+
+  // Pattern card
+  var pat = (typeof detectCandlePattern === 'function') ? detectCandlePattern(k, idx > 0 ? _candles[idx-1] : null) : null;
+  if (pat) {
+    var bias = pat.dir || 'neut';
+    var pc = document.getElementById('tp-pattern-card');   if (pc) pc.className = 'tp-pattern-card ' + bias;
+    var pn = document.getElementById('tp-pattern-name');   if (pn) pn.textContent = (pat.emoji || '') + ' ' + (pat.name || '—');
+    var pp = document.getElementById('tp-pattern-chip');   if (pp) { pp.className = 'tp-pattern-chip ' + bias; pp.textContent = bias === 'bull' ? 'Bullish' : bias === 'bear' ? 'Bearish' : 'Neutral'; }
+    var pt = document.getElementById('tp-pattern-note');   if (pt) pt.textContent = pat.hint || pat.desc || '';
+  }
+
+  // Levels tab
+  var vEl = document.getElementById('tp-levels-vwap');
+  if (vEl && k && k.vwap) {
+    var above = k.close > k.vwap;
+    vEl.innerHTML = '<div class="tp-level-row"><span class="tp-level-dot" style="background:var(--tp-cyan)"></span><span class="tp-level-name">VWAP</span><span class="tp-level-val mono">' + Number(k.vwap).toFixed(2) + '</span><span class="tp-level-note">' + (above ? 'Price above — bullish bias' : 'Price below — bearish bias') + '</span></div>';
+  }
+  var cEl = document.getElementById('tp-levels-cpr');
+  if (cEl && typeof _cprData !== 'undefined' && _cprData && _cprData.cpr) {
+    var cpr = _cprData.cpr;
+    cEl.innerHTML = [['R1', cpr.r1], ['TC', cpr.tc], ['Pivot (PP)', cpr.pp], ['BC', cpr.bc], ['S1', cpr.s1]].map(function(r) {
+      return '<div class="tp-level-row"><span class="tp-level-dot" style="background:var(--tz-accent-1)"></span><span class="tp-level-name">' + r[0] + '</span><span class="tp-level-val mono">' + Number(r[1]).toFixed(2) + '</span></div>';
+    }).join('');
+  }
+  var oEl = document.getElementById('tp-levels-orb');
+  if (oEl && typeof _orbData !== 'undefined' && _orbData) {
+    oEl.innerHTML = '<div class="tp-level-row"><span class="tp-level-dot" style="background:var(--tp-cyan)"></span><span class="tp-level-name">ORB High</span><span class="tp-level-val mono">' + Number(_orbData.high).toFixed(2) + '</span></div>'
+      + '<div class="tp-level-row"><span class="tp-level-dot" style="background:var(--tp-cyan)"></span><span class="tp-level-name">ORB Low</span><span class="tp-level-val mono">' + Number(_orbData.low).toFixed(2) + '</span></div>';
+  }
+
+  _tpUpdateLegend();
+}
+
+// ── Sidebar tab switch ─────────────────────────────────────────────────────────
+function tpTabSwitch(tab, btn) {
+  document.querySelectorAll('.tp-sidebar-tab').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  ['pulse', 'candle', 'levels'].forEach(function(t) {
+    var el = document.getElementById('tp-tab-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+  var icons = { pulse: 'brain', candle: 'candle', levels: 'target' };
+  ['pulse', 'candle', 'levels'].forEach(function(t) {
+    var ic = document.getElementById('tp-tab-icon-' + t);
+    if (ic) ic.innerHTML = _icon(icons[t], 14, t === tab ? 'var(--tp-cyan)' : 'currentColor');
+  });
+}
+
+// ── NCC: confidence ring + AI read state ───────────────────────────────────────
+var _tpNccGuess = null, _tpNccRevealed = false;
+
+function _tpConfRing(pct, side) {
+  var r = 23, c = 2 * Math.PI * r;
+  var col = side === 'bull' ? 'var(--tz-gain)' : side === 'bear' ? 'var(--tz-loss)' : 'var(--tz-warning)';
+  var off = (c - (pct / 100) * c).toFixed(1);
+  return '<svg width="54" height="54" viewBox="0 0 54 54" style="transform:rotate(-90deg);display:block">'
+    + '<circle cx="27" cy="27" r="' + r + '" fill="none" stroke="var(--tz-border-strong)" stroke-width="4"/>'
+    + '<circle cx="27" cy="27" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off + '" style="transition:stroke-dashoffset 400ms var(--tz-ease-out)"/>'
+    + '</svg>';
+}
+
+// Override _ncRender from the existing engine
+function _ncRender() {
+  var body = document.getElementById('tp-ncc-content');
+  var hint = document.getElementById('tp-ncc-hint');
+  if (!body) return;
+  _tpNccGuess = null; _tpNccRevealed = false;
+  var idx      = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+  var analysis = (typeof _ncAnalyse === 'function') ? _ncAnalyse(idx) : null;
+  var canGuess = _mode === 'replay' && idx < _candles.length - 1;
+
+  if (hint) hint.textContent = canGuess ? 'GUESS THE NEXT MOVE' : ('AI READ · ' + (_mode === 'live' ? 'LIVE' : 'REPLAY'));
+
+  if (canGuess) {
+    body.innerHTML = '<div class="tp-ncc-guess-prompt"><div style="flex-shrink:0">' + _zeni(46, 'think') + '</div>'
+      + '<div>What do <strong style="color:var(--tp-cyan)">you</strong> think the next candle does?</div></div>'
+      + '<div class="tp-ncc-guess-btns">'
+      + [['Buyers','bull','var(--tz-gain)','🟢'],['Indecision','ind','var(--tz-warning)','🟡'],['Sellers','bear','var(--tz-loss)','🔴']].map(function(row) {
+          return '<button class="tp-ncc-guess-btn" data-g="' + row[1] + '" data-col="' + row[2] + '" onclick="tpNccGuess(\'' + row[1] + '\')" onmouseenter="this.style.borderColor=this.dataset.col" onmouseleave="this.style.borderColor=\'\'"><span class="btn-emoji">' + row[3] + '</span>' + row[0] + '</button>';
+        }).join('')
+      + '</div>';
+  } else {
+    body.innerHTML = _tpNccAiHtml(analysis, null);
+  }
+  body.classList.add('tp-rise');
+}
+
+function _tpNccAiHtml(a, resultHtml) {
+  if (!a) return '<div style="color:var(--tz-fg-3);font-size:12px;padding:8px 0">Not enough data yet</div>';
+  var sm = { bull: { label: 'Buyers Likely', col: 'var(--tz-gain)', emoji: '🟢' }, bear: { label: 'Sellers Likely', col: 'var(--tz-loss)', emoji: '🔴' }, ind: { label: 'Indecision', col: 'var(--tz-warning)', emoji: '🟡' } };
+  var o    = sm[a.outcome] || sm.ind;
+  var conf = Math.round(Math.min(94, Math.max(45, Math.abs(a.bias || 0) / 6 * 100)));
+  return '<div class="tp-ncc-ai-main">'
+    + '<div class="tp-ncc-conf-wrap">' + _tpConfRing(conf, a.outcome) + '<span class="tp-ncc-conf-num">' + conf + '</span></div>'
+    + '<div class="tp-ncc-verdict"><div class="tp-ncc-side" style="color:' + o.col + '">' + o.emoji + ' ' + o.label + '</div>'
+    + '<div class="tp-ncc-conviction">' + a.strength.toUpperCase() + ' CONVICTION · ' + conf + '% CONFIDENCE</div></div></div>'
+    + '<ul class="tp-ncc-reasons">' + a.reasons.map(function(r) { return '<li class="tp-ncc-reason"><span class="tp-ncc-arrow">&#9658;</span>' + r.text + '</li>'; }).join('') + '</ul>'
+    + (resultHtml || '');
+}
+
+function tpNccGuess(gs) {
+  if (_tpNccRevealed) return;
+  _tpNccGuess = gs;
+  document.querySelectorAll('.tp-ncc-guess-btn').forEach(function(b) {
+    b.style.borderColor = b.dataset.g === gs ? b.dataset.col : '';
+    b.style.background  = b.dataset.g === gs ? 'rgba(255,255,255,0.05)' : '';
+  });
+  var body = document.getElementById('tp-ncc-content');
+  if (!body.querySelector('.tp-ncc-reveal-wrap')) {
+    var div = document.createElement('div');
+    div.className = 'tp-ncc-reveal-wrap';
+    div.style.marginTop = '12px';
+    div.innerHTML = '<button class="tp-btn tp-btn-grad" style="width:100%;justify-content:center" onclick="tpNccReveal()">See next candle &#10142;</button>';
+    body.appendChild(div);
+  }
+}
+
+function tpNccReveal() {
+  if (!_tpNccGuess || _tpNccRevealed) return;
+  _tpNccRevealed = true;
+  var prev     = _rpIdx;
+  rpStep(1);
+  var actual   = (typeof _ncActual === 'function') ? _ncActual(_rpIdx) : null;
+  var analysis = (typeof _ncAnalyse === 'function') ? _ncAnalyse(prev) : null;
+  var conf     = Math.round(Math.min(94, Math.max(45, Math.abs((analysis || {}).bias || 0) / 6 * 100)));
+  var sm       = { bull: 'Buyers', bear: 'Sellers', ind: 'Indecision' };
+  var hit      = actual === _tpNccGuess;
+  var resultHtml = '<div style="margin-top:14px">'
+    + '<div class="tp-ncc-result-hdr">' + _zeni(46, hit ? 'happy' : 'think')
+    + '<div><div class="tp-ncc-result-verdict" style="color:' + (hit ? 'var(--tz-gain)' : 'var(--tz-loss)') + '">' + (hit ? 'Nailed it! 🎉' : 'Not quite.') + '</div>'
+    + '<div class="tp-ncc-result-sub">Next: <b>' + (sm[actual] || '—') + '</b>. You picked: <b>' + (sm[_tpNccGuess] || '—') + '</b>.</div></div></div>'
+    + '<div class="tp-ncc-chips">'
+    + '<div class="tp-ncc-chip"><div class="tp-ncc-chip-lbl">TradeZen AI</div><div class="tp-ncc-chip-val">' + (sm[(analysis || {}).outcome] || '—') + ' · ' + conf + '%</div></div>'
+    + '<div class="tp-ncc-chip"><div class="tp-ncc-chip-lbl">Outcome</div><div class="tp-ncc-chip-val" style="color:' + (actual === 'bull' ? 'var(--tz-gain)' : actual === 'bear' ? 'var(--tz-loss)' : 'var(--tz-warning)') + '">' + (sm[actual] || '—') + '</div></div>'
+    + '</div></div>';
+  var body = document.getElementById('tp-ncc-content');
+  if (body && analysis) body.innerHTML = _tpNccAiHtml(analysis, resultHtml);
+}
+
+// ── Session Story drawer ───────────────────────────────────────────────────────
+var _tpStoryBeat = 0;
+
+function tpStoryOpen() {
+  _refreshStoryBeats();
+  _tpStoryBeat = 0;
+  document.getElementById('tp-story-backdrop').classList.add('open');
+  document.getElementById('tp-story-drawer').classList.add('open');
+  _tpStoryRender();
+}
+function tpStoryClose() {
+  document.getElementById('tp-story-backdrop').classList.remove('open');
+  document.getElementById('tp-story-drawer').classList.remove('open');
+}
+function tpStoryNav(dir) {
+  var total = _cspBeats.length;
+  if (!total) return;
+  _tpStoryBeat = dir > 0 && _tpStoryBeat >= total - 1 ? 0 : Math.max(0, Math.min(total - 1, _tpStoryBeat + dir));
+  _tpStoryRender();
+  // Sync chart to beat's candle
+  var beat = _cspBeats[_tpStoryBeat];
+  if (beat && _candles.length) {
+    var last = beat.candles[beat.candles.length - 1];
+    for (var i = 0; i < _candles.length; i++) {
+      if (Math.abs(_candles[i].open - last.o) < 1 && Math.abs(_candles[i].close - last.c) < 1) { rpJump(i); break; }
+    }
+  }
+}
+function tpStoryJump(i) { _tpStoryBeat = i; _tpStoryRender(); }
+
+function _tpStoryRender() {
+  var beats   = _cspBeats;
+  var segsEl  = document.getElementById('tp-story-segs');
+  var chartEl = document.getElementById('tp-story-chart');
+  var narrEl  = document.getElementById('tp-story-narration');
+  var prevBtn = document.getElementById('tp-story-prev-btn');
+  var fwdBtn  = document.getElementById('tp-story-fwd-btn');
+  var lbl     = document.getElementById('tp-story-btn-label');
+  var ico     = document.getElementById('tp-story-btn-icon');
+
+  if (!beats.length) {
+    if (narrEl) narrEl.innerHTML = '<div style="color:var(--tz-fg-3);font-size:13px;text-align:center;padding:24px 0">No story data yet.<br>Market may be closed. Load a historical session.</div>';
+    return;
+  }
+  if (segsEl) {
+    segsEl.innerHTML = beats.map(function(b, i) {
+      return '<div class="tp-story-seg' + (i < _tpStoryBeat ? ' done' : i === _tpStoryBeat ? ' active' : '') + '" onclick="tpStoryJump(' + i + ')"></div>';
+    }).join('');
+  }
+  var beat = beats[_tpStoryBeat];
+  if (chartEl && beat) chartEl.innerHTML = _tpStoryMiniChart(beat);
+  if (narrEl && beat) {
+    narrEl.innerHTML = '<div class="tp-story-beat-tag">BEAT ' + (_tpStoryBeat + 1) + '/' + beats.length
+      + '<span class="tp-story-beat-time">· ' + beat.act_en + '</span></div>'
+      + '<h3 class="tp-story-beat-title">' + beat.candlePersonality.emoji + ' ' + beat.candlePersonality.label + '</h3>'
+      + '<p class="tp-story-beat-text">' + beat.narration_en + '</p>';
+    narrEl.classList.remove('tp-rise');
+    void narrEl.offsetWidth;
+    narrEl.classList.add('tp-rise');
+  }
+  var atEnd = _tpStoryBeat >= beats.length - 1;
+  if (prevBtn) prevBtn.disabled = _tpStoryBeat === 0;
+  if (fwdBtn)  fwdBtn.disabled  = atEnd;
+  if (lbl) lbl.textContent = atEnd ? 'Replay story' : 'Next beat';
+  if (ico) ico.innerHTML   = atEnd ? _icon('prev', 15, '#fff') : _icon('chev-r', 15, '#fff');
+}
+
+function _tpStoryMiniChart(beat) {
+  var seg = beat.candles, hi = -Infinity, lo = Infinity;
+  seg.forEach(function(k) { hi = Math.max(hi, k.h); lo = Math.min(lo, k.l); });
+  var W = 280, H = 110, pad = 8, rng = hi - lo || 1;
+  var yOf  = function(p) { return pad + (H - pad*2) * (1 - (p - lo) / rng); };
+  var step = (W - pad*2) / seg.length, cw = step * 0.6;
+  var svg  = '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" style="display:block;border-radius:10px;background:var(--tz-surface-2);border:1px solid var(--tz-border)">';
+  seg.forEach(function(k, i) {
+    var col = k.bull ? 'var(--tz-gain)' : 'var(--tz-loss)';
+    var x   = pad + step * (i + 0.5), isB = i === seg.length - 1;
+    var bT  = Math.min(yOf(k.o), yOf(k.c)), bH = Math.max(1.5, Math.abs(yOf(k.c) - yOf(k.o)));
+    svg += '<g opacity="' + (isB ? 1 : 0.55) + '">'
+      + '<line x1="'+x+'" y1="'+yOf(k.h)+'" x2="'+x+'" y2="'+yOf(k.l)+'" stroke="'+col+'" stroke-width="1"/>'
+      + '<rect x="'+(x-cw/2)+'" y="'+bT+'" width="'+cw+'" height="'+bH+'" fill="'+col+'"/>'
+      + (isB ? '<circle cx="'+x+'" cy="'+yOf(k.c)+'" r="3" fill="var(--tp-cyan)"/>' : '')
+      + '</g>';
+  });
+  return svg + '</svg>';
+}
+
+// ── Historical picker ──────────────────────────────────────────────────────────
+var _tpHistSym = 'NIFTY', _tpHistTf = '5m';
+
+function tpHistOpen() {
+  var p = document.getElementById('tp-hist-picker');
+  if (!p) return;
+  p.classList.add('open');
+  var inp = document.getElementById('tp-hist-date');
+  if (inp && !inp.dataset.init) {
+    var today = new Date(), yest = new Date(today);
+    yest.setDate(today.getDate() - 1);
+    while (yest.getDay() === 0 || yest.getDay() === 6) yest.setDate(yest.getDate() - 1);
+    var sixt = new Date(today); sixt.setDate(today.getDate() - 60);
+    var fmt  = function(d) { return d.toISOString().slice(0, 10); };
+    inp.max = fmt(yest); inp.min = fmt(sixt); inp.value = fmt(yest);
+    inp.dataset.init = '1';
+  }
+}
+function tpHistClose() {
+  var p = document.getElementById('tp-hist-picker'); if (p) p.classList.remove('open');
+}
+function tpHistSetSym(sym, btn) {
+  _tpHistSym = sym;
+  btn.closest('.tp-seg').querySelectorAll('.tp-seg-btn').forEach(function(b) { b.classList.toggle('active', b === btn); });
+}
+function tpHistSetTf(tf, btn) {
+  _tpHistTf = tf;
+  btn.closest('.tp-seg').querySelectorAll('.tp-seg-btn').forEach(function(b) { b.classList.toggle('active', b === btn); });
+}
+function tpHistLoad() {
+  var date = document.getElementById('tp-hist-date').value;
+  if (!date) return;
+  _sym = _tpHistSym; _tf = _tpHistTf;
+  document.querySelectorAll('#tp-sym-seg .tp-seg-btn').forEach(function(b) { b.classList.toggle('active', b.textContent.trim() === _sym); });
+  document.querySelectorAll('#tp-tf-seg .tp-seg-btn').forEach(function(b) { b.classList.toggle('active', b.textContent.trim() === _tf); });
+  _histDate = date;
+  tpHistClose();
+  reload();
+}
+
+// ── Patch engine functions to feed new UI ─────────────────────────────────────
+(function() {
+  var _op = updatePanel;
+  updatePanel = function(candle) {
+    if (!candle || !candle.dominance) return;
+    _op(candle);
+    _tpSidebarUpdate(candle);
+    _tpLiveUpdate(candle);
+  };
+  var _or = rpRender;
+  rpRender = function() {
+    _or();
+    _tpScrubUpdate();
+    _tpUpdatePlayBtn();
+    _tpUpdateLegend();
+    _ncRender();
+  };
+  var _opl = rpPlay; rpPlay = function() { _opl(); _tpUpdatePlayBtn(); };
+  var _ost = rpStop; rpStop = function() { _ost(); _tpUpdatePlayBtn(); };
+  var _osm = setMode;
+  setMode = function(mode) { _osm(mode); _tpSetMode(mode); };
+})();
 </script>
 </body>
 </html>
