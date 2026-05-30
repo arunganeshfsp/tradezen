@@ -332,7 +332,7 @@ body {
   padding-bottom: 16px;
 }
 .tp-chart-pane {
-  flex: 1; min-height: 0; overflow: hidden;
+  flex: 1; min-height: 320px; overflow: hidden;
   position: relative; display: flex; flex-direction: column;
 }
 .tp-chart-legend {

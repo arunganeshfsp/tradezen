@@ -491,9 +491,8 @@ async function reload() {
     if (_histDate) {
       _rpIdx = 0;
       rpInitSlider();
+      setMode('replay');
       rpRender();
-      // Ensure badge + controls reflect historical replay state
-      _tpSetMode('replay');
     } else if (_mode === 'live') {
       startLivePoll();
     } else {
@@ -528,8 +527,7 @@ function buildChart(candles) {
     crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
     rightPriceScale: { borderColor: '#252a44' },
     timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
-    width:  container.clientWidth  || container.offsetWidth  || 600,
-    height: _isFullscreen ? (window.innerHeight - 88) : (container.clientHeight || container.offsetHeight || 360),
+    autoSize: true,
   });
   _chart.timeScale().subscribeVisibleLogicalRangeChange(updateFloatingLabels);
 
@@ -607,11 +605,6 @@ function _mainChartHeight() {
 
 function _resizeChart() {
   if (_chart) {
-    const c = document.getElementById('psych-chart');
-    const h = _mainChartHeight();
-    if (_isFullscreen) c.style.height = h + 'px';
-    else c.style.height = '';
-    _chart.applyOptions({ width: c.clientWidth, height: h });
     updateFloatingLabels();
   }
   if (_rsiChart)  { const el = document.getElementById('rsi-chart');  if (el) _rsiChart.applyOptions({ width: el.clientWidth }); }
