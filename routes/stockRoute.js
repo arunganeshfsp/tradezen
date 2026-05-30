@@ -586,6 +586,7 @@ router.get("/psychology/candles", async (req, res) => {
     const params = new URLSearchParams();
     if (req.query.symbol)   params.set("symbol",   req.query.symbol);
     if (req.query.interval) params.set("interval", req.query.interval);
+    if (req.query.date)     params.set("date",     req.query.date);
     const data = await aiService.proxy("GET", `/psychology/candles?${params}`, 30000);
     res.json(data);
   } catch (err) {
