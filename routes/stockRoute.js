@@ -613,6 +613,7 @@ router.get("/psychology/levels", async (req, res) => {
   try {
     const params = new URLSearchParams();
     if (req.query.symbol) params.set("symbol", req.query.symbol);
+    if (req.query.date)   params.set("date",   req.query.date);
     const data = await aiService.proxy("GET", `/psychology/levels?${params}`, 15000);
     res.json(data);
   } catch (err) {

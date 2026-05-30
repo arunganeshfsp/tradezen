@@ -492,7 +492,13 @@ async function reload() {
     _lastCandleTime = _candles.length ? _candles[_candles.length - 1].time : 0;
     buildChart(data.candles);
     fetchAndDrawLevels();
-    if (!_histDate) fetchAndDrawOrb();
+    if (!_histDate) {
+      fetchAndDrawOrb();
+    } else if (_candles.length >= 1) {
+      // Historical ORB: high/low of the opening candle
+      _orbData = { high: _candles[0].high, low: _candles[0].low };
+      if (_indState.orb) drawOrbLines();
+    }
     updatePanel(_candles[_candles.length - 1]);
     updateHistStrip(_candles);
     tryBuildStory();
