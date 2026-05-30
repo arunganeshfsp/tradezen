@@ -2866,6 +2866,7 @@ function _tpConfRing(pct, side) {
 
 // Override _ncRender — verdict in header, only bullets in body
 function _ncRender() {
+  if (_tpNccRevealed) return;  // reveal is showing — don't overwrite it
   var body = document.getElementById('tp-ncc-content');
   var hint = document.getElementById('tp-ncc-hint');
   if (!body) return;
@@ -2931,20 +2932,20 @@ function tpNccGuess(gs) {
 
 function tpNccReveal() {
   if (!_tpNccGuess || _tpNccRevealed) return;
+  var myGuess  = _tpNccGuess;  // capture before rpStep → rpRender → _ncRender resets it
   _tpNccRevealed = true;
   var prev     = _rpIdx;
   rpStep(1);
   var actual   = (typeof _ncActual === 'function') ? _ncActual(_rpIdx) : null;
   var analysis = (typeof _ncAnalyse === 'function') ? _ncAnalyse(prev) : null;
-  var conf     = Math.round(Math.min(94, Math.max(45, Math.abs((analysis || {}).bias || 0) / 6 * 100)));
   var sm       = { bull: 'Buyers', bear: 'Sellers', ind: 'Indecision' };
-  var hit      = actual === _tpNccGuess;
-  var actCol  = actual === 'bull' ? 'var(--tz-gain)' : actual === 'bear' ? 'var(--tz-loss)' : 'var(--tz-warning)';
+  var hit      = actual === myGuess;
+  var actCol   = actual === 'bull' ? 'var(--tz-gain)' : actual === 'bear' ? 'var(--tz-loss)' : 'var(--tz-warning)';
   var resultHtml =
       _zeni(34, hit ? 'happy' : 'think')
     + '<div class="tp-ncc-result-verdict" style="color:' + (hit ? 'var(--tz-gain)' : 'var(--tz-loss)') + ';margin-top:6px">' + (hit ? 'Nailed it! 🎉' : 'Not quite.') + '</div>'
     + '<div class="tp-ncc-result-sub" style="margin-top:4px">Next: <span style="color:' + actCol + ';font-weight:700">' + (sm[actual] || '—') + '</span></div>'
-    + '<div class="tp-ncc-result-sub">You: <b>' + (sm[_tpNccGuess] || '—') + '</b></div>';
+    + '<div class="tp-ncc-result-sub">You: <b>' + (sm[myGuess] || '—') + '</b></div>';
   var body = document.getElementById('tp-ncc-content');
   var hint = document.getElementById('tp-ncc-hint');
   _tpNccSetHint(hint, analysis);
