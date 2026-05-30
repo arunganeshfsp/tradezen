@@ -2404,18 +2404,26 @@ def _psychology_sync_historical(symbol: str, interval: str, date: str) -> dict:
     """Fetch a specific past session's candle data — same pipeline as live, no caching."""
     import yfinance as yf
     import pandas as pd
-    from datetime import datetime as _dt2, timedelta as _td2
+    from datetime import datetime as _dt2, timedelta as _td2, date as _date_cls
 
     symbol   = symbol.upper()
     interval = interval.lower()
     yf_sym   = _YF_SYMBOLS.get(symbol, "^NSEI")
     yf_interval, _ = _INTERVAL_MAP.get(interval, ("5m", "1d"))
 
-    target = _dt2.strptime(date, "%Y-%m-%d").date()
-    start  = target.strftime("%Y-%m-%d")
-    end    = (target + _td2(days=1)).strftime("%Y-%m-%d")
+    target    = _dt2.strptime(date, "%Y-%m-%d").date()
+    today     = _date_cls.today()
+    days_back = (today - target).days
 
-    df = yf.Ticker(yf_sym).history(start=start, end=end, interval=yf_interval)
+    max_days = 7 if yf_interval == "1m" else 59
+    if days_back < 0:
+        return {"error": f"No data for {date} — date is in the future", "candles": [], "count": 0}
+    if days_back > max_days:
+        return {"error": f"No data for {date} — exceeds {max_days}-day limit for {interval} data", "candles": [], "count": 0}
+
+    # Use period= instead of start/end — more stable with recent yfinance for intraday intervals
+    period_days = min(days_back + 5, max_days)
+    df = yf.Ticker(yf_sym).history(period=f"{period_days}d", interval=yf_interval)
     if df.empty:
         return {"error": f"No data for {date} — may be a holiday or weekend", "candles": [], "count": 0}
 
@@ -2425,6 +2433,16 @@ def _psychology_sync_historical(symbol: str, interval: str, date: str) -> dict:
         pass
 
     df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
+
+    # Filter to the requested date only
+    try:
+        df = df[df.index.date == target]
+    except Exception:
+        df = df[pd.to_datetime(df.index).normalize().date == target]
+
+    if df.empty:
+        return {"error": f"No trading session on {date}", "candles": [], "count": 0}
+
     try:
         df = df.between_time("09:15", "15:30")
     except Exception:
@@ -2437,12 +2455,13 @@ def _psychology_sync_historical(symbol: str, interval: str, date: str) -> dict:
     vol_proxy = _VOL_PROXY.get(symbol)
     if vol_proxy and (df["Volume"] == 0).all():
         try:
-            vdf = yf.Ticker(vol_proxy).history(start=start, end=end, interval=yf_interval)
+            vdf = yf.Ticker(vol_proxy).history(period=f"{period_days}d", interval=yf_interval)
             if not vdf.empty:
                 try:
                     vdf.index = vdf.index.tz_convert("Asia/Kolkata")
                 except Exception:
                     pass
+                vdf = vdf[vdf.index.date == target]
                 vdf = vdf[["Volume"]].reindex(df.index, method="nearest", tolerance=pd.Timedelta("5min"))
                 df["Volume"] = vdf["Volume"].fillna(0).astype(int)
         except Exception:
