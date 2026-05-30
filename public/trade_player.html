@@ -460,7 +460,7 @@ async function reload() {
     const url = _histDate
       ? `/api/psychology/candles?symbol=${_sym}&interval=${_tf}&date=${_histDate}`
       : `/api/psychology/candles?symbol=${_sym}&interval=${_tf}`;
-    const res  = await fetch(url);
+    const res  = await fetch(url, { cache: 'no-store' });
     const data = await res.json();
 
     if (!_histDate && (data.market_closed || !data.candles || data.candles.length === 0)) {
