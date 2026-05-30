@@ -489,7 +489,7 @@ async function reload() {
     document.getElementById('ctrl-asof').textContent  = _histDate ? _histDate : data.as_of + ' IST';
 
     if (_histDate) {
-      _rpIdx = _candles.length - 1;
+      _rpIdx = 0;
       rpInitSlider();
       rpRender();
       // Ensure badge + controls reflect historical replay state
@@ -528,8 +528,8 @@ function buildChart(candles) {
     crosshair:       { mode: LightweightCharts.CrosshairMode.Normal },
     rightPriceScale: { borderColor: '#252a44' },
     timeScale:       { borderColor: '#252a44', timeVisible: true, secondsVisible: false },
-    width:  container.clientWidth,
-    height: _isFullscreen ? (window.innerHeight - 88) : 360,
+    width:  container.clientWidth  || container.offsetWidth  || 600,
+    height: _isFullscreen ? (window.innerHeight - 88) : (container.clientHeight || container.offsetHeight || 360),
   });
   _chart.timeScale().subscribeVisibleLogicalRangeChange(updateFloatingLabels);
 
@@ -1443,7 +1443,7 @@ function rpRender() {
     _stUpSeries.setData(slice.filter(c => c.supertrend_dir === 'up' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
     _stDownSeries.setData(slice.filter(c => c.supertrend_dir === 'down' && c.supertrend).map(c => ({ time: c.time, value: c.supertrend })));
     _volumeSeries.setData(slice.map(c => ({ time: c.time, value: c.volume, color: c.close >= c.open ? 'rgba(46,204,113,0.35)' : 'rgba(231,76,60,0.35)' })));
-    _chart.timeScale().scrollToPosition(-2, false);
+    _chart.timeScale().fitContent();
   }
 
   updatePanel(_candles[_rpIdx]);
