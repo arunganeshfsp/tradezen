@@ -2852,7 +2852,7 @@ function tpTabSwitch(tab, btn) {
 }
 
 // ── NCC: confidence ring + AI read state ───────────────────────────────────────
-var _tpNccGuess = null, _tpNccRevealed = false;
+var _tpNccGuess = null, _tpNccRevealed = false, _tpNccRevealedAtIdx = -1;
 
 function _tpConfRing(pct, side) {
   var r = 23, c = 2 * Math.PI * r;
@@ -2866,7 +2866,11 @@ function _tpConfRing(pct, side) {
 
 // Override _ncRender — verdict in header, only bullets in body
 function _ncRender() {
-  if (_tpNccRevealed) return;  // reveal is showing — don't overwrite it
+  // If user moved to a new candle, dismiss the reveal and show fresh NCC
+  if (_tpNccRevealed && _rpIdx !== _tpNccRevealedAtIdx) {
+    _tpNccRevealed = false; _tpNccGuess = null;
+  }
+  if (_tpNccRevealed) return;  // still on the reveal candle — keep it visible
   var body = document.getElementById('tp-ncc-content');
   var hint = document.getElementById('tp-ncc-hint');
   if (!body) return;
@@ -2936,6 +2940,7 @@ function tpNccReveal() {
   _tpNccRevealed = true;
   var prev     = _rpIdx;
   rpStep(1);
+  _tpNccRevealedAtIdx = _rpIdx;  // remember which candle the reveal sits on
   var actual   = (typeof _ncActual === 'function') ? _ncActual(_rpIdx) : null;
   var analysis = (typeof _ncAnalyse === 'function') ? _ncAnalyse(prev) : null;
   var sm       = { bull: 'Buyers', bear: 'Sellers', ind: 'Indecision' };
