@@ -270,6 +270,45 @@
 
 </div><!-- /tp-root -->
 
+<!-- Legacy engine ID stubs — absorb old null-crash getElementById calls without affecting new UI -->
+<div id="tp-legacy-stubs" style="display:none;position:absolute;pointer-events:none" aria-hidden="true">
+  <span id="chart-title"></span><span id="chart-asof"></span><span id="ctrl-asof"></span>
+  <span id="pulse-dot"></span><button id="btn-live"></button><button id="btn-replay"></button>
+  <div id="err-banner" style="display:none"><span id="err-msg"></span></div>
+  <span id="dom-score"></span>
+  <div id="state-card"><div id="state-icon-wrap"></div><span id="state-name"></span><span id="state-desc"></span><div id="state-ring"></div></div>
+  <span id="insight-txt"></span><span id="logic-label"></span>
+  <span id="bk-vwap"></span><span id="bk-vwap-v"></span><span id="bk-trend"></span><span id="bk-trend-v"></span>
+  <div id="bk-body"></div><span id="bk-body-v"></span><div id="bk-close"></div><span id="bk-close-v"></span><div id="bk-vol"></div><span id="bk-vol-v"></span>
+  <span id="ci-o"></span><span id="ci-h"></span><span id="ci-l"></span><span id="ci-c"></span><span id="ci-v"></span><div id="ci-vol-bar"></div>
+  <div id="hist-strip"></div><div id="chart-panel"></div><button id="fsBtn"></button>
+  <div id="buy-fill"></div><div id="sell-fill"></div><span id="buy-pct"></span><span id="sell-pct"></span>
+  <div id="sv-act"></div><div id="sv-time"></div><div id="sv-emoji"></div><div id="sv-text"></div><div id="sv-counter"></div>
+  <div id="postgame-wrap"><div id="pg-body"></div></div>
+  <div id="story-viewer-wrap"><div id="sv-meta"></div></div>
+  <div id="nc-reveal-btn"></div><div id="nc-body"></div>
+  <div id="csp-overlay">
+    <div id="csp-emoji"></div><div id="csp-label"></div><div id="csp-act"></div>
+    <div id="csp-narration"></div><div id="csp-chart"></div><div id="csp-dots"></div>
+    <button id="csp-back"></button><button id="csp-fwd"></button><button id="csp-play"></button>
+    <div id="csp-complete"><span id="csp-complete-icon"></span><span id="csp-complete-title"></span><span id="csp-complete-takeaway"></span><span id="csp-xp-val"></span></div>
+    <div id="csp-pane-stories"></div><div id="csp-pane-hist"></div>
+    <button id="csp-modal-tab-stories"></button><button id="csp-modal-tab-hist"></button>
+  </div>
+  <span id="hist-date"></span>
+  <div id="tp-badge"><span id="tp-badge-label"></span></div>
+  <div id="tp-scrubber"></div>
+  <span id="tp-pos"></span><span id="tp-total"></span>
+  <span id="tp-time-start"></span><span id="tp-time-end"></span>
+  <span id="tp-sym"></span><div id="tp-speed-grp"></div>
+  <div id="rsi-chart"></div><div id="macd-chart"></div>
+  <div id="rsi-panel"></div><div id="macd-panel"></div>
+  <div id="ind-tooltip"></div><span id="rsi-val"></span><span id="macd-val"></span>
+  <div id="cp-card"><div id="cp-badge"></div><div id="cp-body"></div></div>
+  <div id="cp-toast"><span id="cp-toast-time"></span><span id="cp-toast-name"></span><span id="cp-toast-desc"></span></div>
+  <div id="lib-grid"></div>
+</div>
+
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <script>
 /* ── Icons ──────────────────────────────────────────────────────────────────── */
@@ -3005,6 +3044,48 @@ function tpHistLoad() {
   _histDate = date;
   tpHistClose();
   reload();
+}
+
+// ── Override legacy display functions with new-design implementations ──────────
+
+// Replaces the engine's null-crashing showError / clearError / showMarketClosed / setChartLoading
+
+function setChartLoading() {
+  var el = document.getElementById('psych-chart');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:260px;gap:12px;color:var(--tz-fg-2);font-size:14px">'
+    + '<div style="width:22px;height:22px;border:2px solid var(--tz-border);border-top-color:var(--tp-cyan);border-radius:50%;animation:tp-spin 0.7s linear infinite"></div>'
+    + 'Loading candles…</div>';
+}
+
+function showError(msg) {
+  var el = document.getElementById('psych-chart');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:260px;gap:16px;padding:32px;text-align:center">'
+    + '<div style="font-size:30px">⚠️</div>'
+    + '<div style="color:var(--tz-fg-0);font-weight:600;font-size:14px">' + msg + '</div>'
+    + '<button class="tp-btn tp-btn-ghost" onclick="reload()" style="padding:9px 18px;font-size:13px">Retry</button>'
+    + '</div>';
+}
+
+function clearError() { /* state embedded in psych-chart — no separate banner needed */ }
+
+function showMarketClosed(msg) {
+  var el = document.getElementById('psych-chart');
+  if (!el) return;
+  var today = new Date();
+  var dateStr = today.toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:320px;gap:22px;padding:40px 28px;text-align:center">'
+    + '<div style="font-size:56px;line-height:1">🏖️</div>'
+    + '<div>'
+    + '<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:22px;color:var(--tz-fg-0);margin-bottom:6px">Market Holiday</div>'
+    + '<div style="font-size:13px;color:var(--tz-fg-2)">' + dateStr + '</div>'
+    + '</div>'
+    + '<div style="font-size:13px;color:var(--tz-fg-2);max-width:300px;line-height:1.7">The market is closed today. Pick a past session and replay it candle by candle.</div>'
+    + '<button class="tp-btn tp-btn-grad" onclick="tpHistOpen()" style="padding:12px 26px;font-size:14px">📅 Load Historical Session</button>'
+    + '</div>';
+  // Update mode badge to reflect closed state
+  _tpUpdateModeBadge && _tpUpdateModeBadge();
 }
 
 // ── Patch engine functions to feed new UI ─────────────────────────────────────
