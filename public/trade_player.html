@@ -2919,10 +2919,11 @@ function tpNccReveal() {
   var conf     = Math.round(Math.min(94, Math.max(45, Math.abs((analysis || {}).bias || 0) / 6 * 100)));
   var sm       = { bull: 'Buyers', bear: 'Sellers', ind: 'Indecision' };
   var hit      = actual === _tpNccGuess;
-  var resultHtml = '<div style="margin-top:14px">'
-    + '<div class="tp-ncc-result-hdr">' + _zeni(46, hit ? 'happy' : 'think')
+  var resultHtml = '<div style="margin-top:10px">'
+    + '<div class="tp-ncc-result-hdr">'
     + '<div><div class="tp-ncc-result-verdict" style="color:' + (hit ? 'var(--tz-gain)' : 'var(--tz-loss)') + '">' + (hit ? 'Nailed it! 🎉' : 'Not quite.') + '</div>'
-    + '<div class="tp-ncc-result-sub">Next: <b>' + (sm[actual] || '—') + '</b>. You picked: <b>' + (sm[_tpNccGuess] || '—') + '</b>.</div></div></div>'
+    + '<div class="tp-ncc-result-sub">Next: <b>' + (sm[actual] || '—') + '</b> &middot; You picked: <b>' + (sm[_tpNccGuess] || '—') + '</b></div></div>'
+    + '<div style="flex-shrink:0">' + _zeni(32, hit ? 'happy' : 'think') + '</div></div>'
     + '<div class="tp-ncc-chips">'
     + '<div class="tp-ncc-chip"><div class="tp-ncc-chip-lbl">TradeZen AI</div><div class="tp-ncc-chip-val">' + (sm[(analysis || {}).outcome] || '—') + ' · ' + conf + '%</div></div>'
     + '<div class="tp-ncc-chip"><div class="tp-ncc-chip-lbl">Outcome</div><div class="tp-ncc-chip-val" style="color:' + (actual === 'bull' ? 'var(--tz-gain)' : actual === 'bear' ? 'var(--tz-loss)' : 'var(--tz-warning)') + '">' + (sm[actual] || '—') + '</div></div>'

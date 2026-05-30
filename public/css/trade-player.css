@@ -507,13 +507,18 @@ body {
 .tp-ncc-outer {
   position: relative; border-radius: var(--tz-radius-xl); padding: 1px;
   background: linear-gradient(135deg,rgba(124,106,247,.6),rgba(0,212,255,.5));
-  box-shadow: 0 18px 50px rgba(0,0,0,.5); flex-shrink: 0;
+  box-shadow: 0 18px 50px rgba(0,0,0,.5);
+  flex-shrink: 1; min-height: 70px; overflow: hidden;
   margin-bottom: 8px;
 }
 .tp-ncc-inner {
   background: var(--tz-surface);
   border-radius: calc(var(--tz-radius-xl) - 1px);
   padding: 10px 16px;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+#tp-ncc-content {
+  overflow-y: auto; flex: 1; min-height: 0;
 }
 .tp-ncc-hdr {
   display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
@@ -575,7 +580,7 @@ body {
 .tp-ncc-guess-btn .btn-emoji { font-size: 14px; }
 /* Guess result state */
 .tp-ncc-result-hdr {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px;
 }
 .tp-ncc-result-verdict {
   font: 700 18px/1 var(--tz-font-display); margin-bottom: 4px;
