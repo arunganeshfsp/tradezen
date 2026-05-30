@@ -481,18 +481,18 @@ body {
 .tp-ncc-inner {
   background: var(--tz-surface);
   border-radius: calc(var(--tz-radius-xl) - 1px);
-  padding: 16px 20px;
+  padding: 10px 16px;
 }
 .tp-ncc-hdr {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
 }
 .tp-ncc-title {
   font: 700 11px/1 var(--tz-font-ui); letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--tz-fg-2);
+  text-transform: uppercase; color: var(--tz-fg-2); white-space: nowrap;
 }
 .tp-ncc-hint {
-  margin-left: auto;
-  font: 600 10px/1 var(--tz-font-mono); color: var(--tz-fg-3); letter-spacing: 0.1em;
+  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  font: 600 11px/1 var(--tz-font-mono); color: var(--tz-fg-3);
 }
 /* AI read state */
 .tp-ncc-ai-main {

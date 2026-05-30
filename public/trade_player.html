@@ -2834,7 +2834,7 @@ function _tpConfRing(pct, side) {
     + '</svg>';
 }
 
-// Override _ncRender from the existing engine
+// Override _ncRender — verdict in header, only bullets in body
 function _ncRender() {
   var body = document.getElementById('tp-ncc-content');
   var hint = document.getElementById('tp-ncc-hint');
@@ -2844,10 +2844,9 @@ function _ncRender() {
   var analysis = (typeof _ncAnalyse === 'function') ? _ncAnalyse(idx) : null;
   var canGuess = _mode === 'replay' && idx < _candles.length - 1;
 
-  if (hint) hint.textContent = canGuess ? 'GUESS THE NEXT MOVE' : ('AI READ · ' + (_mode === 'live' ? 'LIVE' : 'REPLAY'));
-
   if (canGuess) {
-    body.innerHTML = '<div class="tp-ncc-guess-prompt"><div style="flex-shrink:0">' + _zeni(46, 'think') + '</div>'
+    if (hint) hint.innerHTML = '<span style="font:600 10px/1 var(--tz-font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--tp-cyan)">Guess the next move</span>';
+    body.innerHTML = '<div class="tp-ncc-guess-prompt"><div style="flex-shrink:0">' + _zeni(40, 'think') + '</div>'
       + '<div>What do <strong style="color:var(--tp-cyan)">you</strong> think the next candle does?</div></div>'
       + '<div class="tp-ncc-guess-btns">'
       + [['Buyers','bull','var(--tz-gain)','🟢'],['Indecision','ind','var(--tz-warning)','🟡'],['Sellers','bear','var(--tz-loss)','🔴']].map(function(row) {
@@ -2855,23 +2854,30 @@ function _ncRender() {
         }).join('')
       + '</div>';
   } else {
-    body.innerHTML = _tpNccAiHtml(analysis, null);
+    _tpNccSetHint(hint, analysis);
+    body.innerHTML = _tpNccBodyHtml(analysis, null);
   }
   body.classList.add('tp-rise');
 }
 
-function _tpNccAiHtml(a, resultHtml) {
-  if (!a) return '<div style="color:var(--tz-fg-3);font-size:12px;padding:8px 0">Not enough data yet</div>';
+function _tpNccSetHint(hint, a) {
+  if (!hint) return;
+  if (!a) { hint.innerHTML = ''; return; }
   var sm = { bull: { label: 'Buyers Likely', col: 'var(--tz-gain)', emoji: '🟢' }, bear: { label: 'Sellers Likely', col: 'var(--tz-loss)', emoji: '🔴' }, ind: { label: 'Indecision', col: 'var(--tz-warning)', emoji: '🟡' } };
   var o    = sm[a.outcome] || sm.ind;
   var conf = Math.round(Math.min(94, Math.max(45, Math.abs(a.bias || 0) / 6 * 100)));
-  return '<div class="tp-ncc-ai-main">'
-    + '<div class="tp-ncc-conf-wrap">' + _tpConfRing(conf, a.outcome) + '<span class="tp-ncc-conf-num">' + conf + '</span></div>'
-    + '<div class="tp-ncc-verdict"><div class="tp-ncc-side" style="color:' + o.col + '">' + o.emoji + ' ' + o.label + '</div>'
-    + '<div class="tp-ncc-conviction">' + a.strength.toUpperCase() + ' CONVICTION · ' + conf + '% CONFIDENCE</div></div></div>'
-    + '<ul class="tp-ncc-reasons">' + a.reasons.map(function(r) { return '<li class="tp-ncc-reason"><span class="tp-ncc-arrow">&#9658;</span>' + r.text + '</li>'; }).join('') + '</ul>'
-    + (resultHtml || '');
+  hint.innerHTML = '<span style="color:' + o.col + ';font:700 12px/1 var(--tz-font-ui)">' + o.emoji + ' ' + o.label + '</span>'
+    + '<span style="color:var(--tz-fg-3);font:500 11px/1 var(--tz-font-mono)">' + conf + '% · ' + (a.strength || 'weak').toUpperCase() + '</span>';
 }
+
+function _tpNccBodyHtml(a, resultHtml) {
+  if (!a) return '<div style="color:var(--tz-fg-3);font-size:12px;padding:4px 0">Not enough data yet</div>';
+  return '<ul class="tp-ncc-reasons">' + a.reasons.map(function(r) {
+    return '<li class="tp-ncc-reason"><span class="tp-ncc-arrow">&#9658;</span>' + r.text + '</li>';
+  }).join('') + '</ul>' + (resultHtml || '');
+}
+
+function _tpNccAiHtml(a, resultHtml) { return _tpNccBodyHtml(a, resultHtml); }
 
 function tpNccGuess(gs) {
   if (_tpNccRevealed) return;
@@ -2909,7 +2915,9 @@ function tpNccReveal() {
     + '<div class="tp-ncc-chip"><div class="tp-ncc-chip-lbl">Outcome</div><div class="tp-ncc-chip-val" style="color:' + (actual === 'bull' ? 'var(--tz-gain)' : actual === 'bear' ? 'var(--tz-loss)' : 'var(--tz-warning)') + '">' + (sm[actual] || '—') + '</div></div>'
     + '</div></div>';
   var body = document.getElementById('tp-ncc-content');
-  if (body && analysis) body.innerHTML = _tpNccAiHtml(analysis, resultHtml);
+  var hint = document.getElementById('tp-ncc-hint');
+  _tpNccSetHint(hint, analysis);
+  if (body && analysis) body.innerHTML = _tpNccBodyHtml(analysis, resultHtml);
 }
 
 // ── Session Story drawer ───────────────────────────────────────────────────────
