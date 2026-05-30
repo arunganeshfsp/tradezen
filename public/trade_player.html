@@ -86,6 +86,7 @@
             <div class="tp-ncc-hdr">
               <span id="tp-ncc-spark"></span>
               <span class="tp-ncc-title">Next Candle Context</span>
+              <button class="tp-ncc-pattern-btn" id="tp-ncc-pattern-btn" onclick="tpPatternOpen()" title="View candle pattern"></button>
               <span class="tp-ncc-hint" id="tp-ncc-hint">AI READ · LIVE</span>
             </div>
             <div id="tp-ncc-content"></div>
@@ -269,6 +270,17 @@
   </div>
 
 </div><!-- /tp-root -->
+
+<!-- ── Candle Pattern Modal ──────────────────────────────────────── -->
+<div class="tp-pi-backdrop" id="tp-pi-backdrop" onclick="tpPatternClose()"></div>
+<div class="tp-pi-modal" id="tp-pi-modal">
+  <div class="tp-pi-hdr">
+    <span id="tp-pi-icon"></span>
+    <span class="tp-pi-title">Candle Pattern · Last 5</span>
+    <button class="tp-pi-close" id="tp-pi-close-btn" onclick="tpPatternClose()"></button>
+  </div>
+  <div class="tp-pi-body" id="tp-pi-content"></div>
+</div>
 
 <!-- Legacy engine ID stubs — absorb old null-crash getElementById calls without affecting new UI -->
 <div id="tp-legacy-stubs" style="display:none;position:absolute;pointer-events:none" aria-hidden="true">
@@ -2560,6 +2572,9 @@ document.addEventListener('DOMContentLoaded', function() {
   si('tp-story-prev-btn',  _icon('chev-l',   16));
   si('tp-story-fwd-btn',   _icon('chev-r',   16));
   si('tp-story-btn-icon',  _icon('chev-r',   15, '#fff'));
+  si('tp-ncc-pattern-btn', _icon('candle',   12, 'currentColor', 1.8));
+  si('tp-pi-icon',         _icon('candle',   15, 'var(--tp-cyan)', 1.8));
+  si('tp-pi-close-btn',    _icon('close',    13));
 
   // Scrubber: click-to-seek + drag
   var track = document.getElementById('tp-scr-track');
@@ -2846,9 +2861,7 @@ function _ncRender() {
 
   if (canGuess) {
     if (hint) hint.innerHTML = '<span style="font:600 10px/1 var(--tz-font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--tp-cyan)">Guess the next move</span>';
-    body.innerHTML = '<div class="tp-ncc-guess-prompt"><div style="flex-shrink:0">' + _zeni(40, 'think') + '</div>'
-      + '<div>What do <strong style="color:var(--tp-cyan)">you</strong> think the next candle does?</div></div>'
-      + '<div class="tp-ncc-guess-btns">'
+    body.innerHTML = '<div class="tp-ncc-guess-btns">'
       + [['Buyers','bull','var(--tz-gain)','🟢'],['Indecision','ind','var(--tz-warning)','🟡'],['Sellers','bear','var(--tz-loss)','🔴']].map(function(row) {
           return '<button class="tp-ncc-guess-btn" data-g="' + row[1] + '" data-col="' + row[2] + '" onclick="tpNccGuess(\'' + row[1] + '\')" onmouseenter="this.style.borderColor=this.dataset.col" onmouseleave="this.style.borderColor=\'\'"><span class="btn-emoji">' + row[3] + '</span>' + row[0] + '</button>';
         }).join('')
@@ -3102,6 +3115,102 @@ function showMarketClosed(msg) {
     + '</div>';
   // Update mode badge to reflect closed state
   _tpUpdateModeBadge && _tpUpdateModeBadge();
+}
+
+// ── Candle Pattern Modal ───────────────────────────────────────────────────────
+function _detectMultiPattern(cs) {
+  if (!cs || cs.length < 2) return null;
+  var n = cs.length, c = cs[n-1], p1 = cs[n-2], p2 = n >= 3 ? cs[n-3] : null;
+  var bull = function(x){ return x.close > x.open; };
+  var bear = function(x){ return x.close < x.open; };
+  var body = function(x){ return Math.abs(x.close - x.open); };
+  var rng  = function(x){ return x.high - x.low || 0.01; };
+  var mid  = function(x){ return (x.open + x.close) / 2; };
+  var sm   = function(x){ return body(x) / rng(x) < 0.3; };
+
+  if (p2) {
+    if (bear(p2) && body(p2)/rng(p2) > 0.5 && sm(p1) && bull(c) && c.close > mid(p2))
+      return { name:'Morning Star', dir:'bull', emoji:'⭐', desc:'Bear candle → small indecision → bull recovery past the bear\'s midpoint. Classic bullish reversal.' };
+    if (bull(p2) && body(p2)/rng(p2) > 0.5 && sm(p1) && bear(c) && c.close < mid(p2))
+      return { name:'Evening Star', dir:'bear', emoji:'🌟', desc:'Bull candle → small indecision → bear breakdown below the bull\'s midpoint. Classic bearish reversal.' };
+    if (bull(p2) && bull(p1) && bull(c) && p1.close > p2.close && c.close > p1.close)
+      return { name:'Three White Soldiers', dir:'bull', emoji:'🪖', desc:'Three consecutive rising bull candles, each closing higher. Strong bullish momentum.' };
+    if (bear(p2) && bear(p1) && bear(c) && p1.close < p2.close && c.close < p1.close)
+      return { name:'Three Black Crows', dir:'bear', emoji:'🪶', desc:'Three consecutive falling bear candles, each closing lower. Strong bearish momentum.' };
+  }
+  if (c.high <= p1.high && c.low >= p1.low)
+    return { name:'Inside Bar', dir:'ind', emoji:'📦', desc:'Current candle is fully inside the prior candle\'s range. Consolidation — watch for a breakout.' };
+  if (bear(p1) && bull(c) && c.open <= p1.close && c.close >= p1.open)
+    return { name:'Bullish Engulfing', dir:'bull', emoji:'🟢', desc:'Bull candle fully engulfs the prior bear body. Buyers overwhelmed sellers — reversal signal.' };
+  if (bull(p1) && bear(c) && c.open >= p1.close && c.close <= p1.open)
+    return { name:'Bearish Engulfing', dir:'bear', emoji:'🔴', desc:'Bear candle fully engulfs the prior bull body. Sellers overwhelmed buyers — reversal signal.' };
+  if (bear(p1) && bull(c) && c.open > p1.close && c.close < p1.open)
+    return { name:'Bullish Harami', dir:'bull', emoji:'🌱', desc:'Small bull candle inside the prior bear\'s range. Selling pressure easing — potential reversal.' };
+  if (bull(p1) && bear(c) && c.open < p1.close && c.close > p1.open)
+    return { name:'Bearish Harami', dir:'bear', emoji:'🌿', desc:'Small bear candle inside the prior bull\'s range. Buying pressure easing — potential reversal.' };
+  if (bull(p1) && bear(c) && Math.abs(p1.high - c.high) < rng(p1) * 0.06)
+    return { name:'Tweezer Top', dir:'bear', emoji:'🔧', desc:'Both candles reach the same high. Overhead supply rejecting price — bearish signal.' };
+  if (bear(p1) && bull(c) && Math.abs(p1.low - c.low) < rng(p1) * 0.06)
+    return { name:'Tweezer Bottom', dir:'bull', emoji:'🔩', desc:'Both candles share the same low. Demand holding the floor — bullish signal.' };
+  if (bull(p1) && bull(c) && c.close > p1.close)
+    return { name:'Bull Continuation', dir:'bull', emoji:'📈', desc:'Consecutive bull candles with rising closes. Trend is intact — buyers in control.' };
+  if (bear(p1) && bear(c) && c.close < p1.close)
+    return { name:'Bear Continuation', dir:'bear', emoji:'📉', desc:'Consecutive bear candles with falling closes. Trend is intact — sellers in control.' };
+  return { name:'No Clear Pattern', dir:'ind', emoji:'↔️', desc:'Mixed signals across recent candles. Wait for a clearer structure before committing.' };
+}
+
+function _miniCandleChart(candles) {
+  var W = 296, H = 72, PAD = 5;
+  var prices = []; candles.forEach(function(c){ prices.push(c.high, c.low); });
+  var minP = Math.min.apply(null, prices), maxP = Math.max.apply(null, prices);
+  var r = maxP - minP || 1;
+  var n = candles.length, cw = Math.floor((W - (n-1)*5) / n);
+  function py(p){ return H - PAD - ((p - minP) / r) * (H - PAD*2); }
+  var svg = '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
+  candles.forEach(function(c, i){
+    var x = i*(cw+5), col = c.close >= c.open ? '#2ecc71' : '#e74c3c';
+    var top = py(Math.max(c.open,c.close)), bot = py(Math.min(c.open,c.close));
+    svg += '<line x1="'+(x+cw/2)+'" y1="'+py(c.high)+'" x2="'+(x+cw/2)+'" y2="'+py(c.low)+'" stroke="'+col+'" stroke-width="1.5"/>';
+    svg += '<rect x="'+x+'" y="'+top+'" width="'+cw+'" height="'+Math.max(1,bot-top)+'" fill="'+col+'" rx="1.5"/>';
+  });
+  return svg + '</svg>';
+}
+
+function tpPatternOpen() {
+  var idx   = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+  var slice = _candles.slice(Math.max(0, idx - 4), idx + 1);
+  var pat   = _detectMultiPattern(slice);
+  var col   = !pat ? 'var(--tz-fg-2)' : pat.dir === 'bull' ? 'var(--tz-gain)' : pat.dir === 'bear' ? 'var(--tz-loss)' : 'var(--tz-warning)';
+  var sigTxt= !pat ? '—' : pat.dir === 'bull' ? 'Bullish' : pat.dir === 'bear' ? 'Bearish' : 'Neutral';
+
+  function fmtT(ts){ var d=new Date(ts*1000); return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'); }
+
+  var body = document.getElementById('tp-pi-content');
+  if (!body) return;
+  body.innerHTML =
+    '<div style="background:var(--tz-bg);border-radius:10px;padding:10px 14px 6px;margin-bottom:14px">'
+    + _miniCandleChart(slice)
+    + '<div style="display:flex;justify-content:space-between;margin-top:5px">'
+    + slice.map(function(c){ return '<span style="font:500 9px/1 var(--tz-font-mono);color:var(--tz-fg-3)">'+fmtT(c.time)+'</span>'; }).join('')
+    + '</div></div>'
+    + '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px">'
+    + '<span style="font-size:26px;line-height:1;flex-shrink:0">'+(pat?pat.emoji:'—')+'</span>'
+    + '<div><div style="font:700 14px/1 var(--tz-font-ui);color:'+col+';margin-bottom:5px">'+(pat?pat.name:'No Pattern')+'</div>'
+    + '<div style="font:400 12px/1.5 var(--tz-font-ui);color:var(--tz-fg-2)">'+(pat?pat.desc:'')+'</div></div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--tz-surface-2);border-radius:8px;border:1px solid var(--tz-border)">'
+    + '<span style="font:600 10px/1 var(--tz-font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--tz-fg-3)">Signal</span>'
+    + '<span style="font:700 12px/1 var(--tz-font-ui);color:'+col+'">'+sigTxt+'</span>'
+    + '<span style="font:500 10px/1 var(--tz-font-mono);color:var(--tz-fg-3);margin-left:auto">'+slice.length+' candles</span>'
+    + '</div>';
+
+  document.getElementById('tp-pi-backdrop').classList.add('open');
+  document.getElementById('tp-pi-modal').classList.add('open');
+}
+
+function tpPatternClose() {
+  document.getElementById('tp-pi-backdrop').classList.remove('open');
+  document.getElementById('tp-pi-modal').classList.remove('open');
 }
 
 // ── Patch engine functions to feed new UI ─────────────────────────────────────
