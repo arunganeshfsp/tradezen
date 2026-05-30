@@ -321,11 +321,11 @@ body {
 }
 .tp-chart-col {
   flex: 1; min-width: 0; min-height: 0;
-  display: flex; flex-direction: column; gap: 14px;
-  padding-bottom: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+  padding-bottom: 0;
 }
 .tp-chart-pane {
-  flex: 1; min-height: 260px; max-height: calc(100vh - 460px); overflow: hidden;
+  flex: 1; min-height: 200px; max-height: calc(100vh - 500px); overflow: hidden;
   position: relative; display: flex; flex-direction: column;
 }
 .tp-chart-legend {
@@ -476,6 +476,7 @@ body {
   position: relative; border-radius: var(--tz-radius-xl); padding: 1px;
   background: linear-gradient(135deg,rgba(124,106,247,.6),rgba(0,212,255,.5));
   box-shadow: 0 18px 50px rgba(0,0,0,.5); flex-shrink: 0;
+  margin-bottom: 8px;
 }
 .tp-ncc-inner {
   background: var(--tz-surface);
