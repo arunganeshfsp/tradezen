@@ -1,0 +1,218 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "⏰",
+      "heading": { "en": "Why Starting Early Matters", "ta": "சீக்கிரம் தொடங்குவது ஏன் முக்கியம்" },
+      "description": { "en": "The biggest advantage in investing isn't skill or timing — it's simply starting young.", "ta": "முதலீட்டில் மிகப்பெரிய நன்மை திறமையோ சரியான நேரமோ இல்லை — அது வெறுமனே இளமையிலேயே தொடங்குவது மட்டுமே." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "❄️",
+      "title": { "en": "A small snowball rolled longer beats a big one rolled briefly.", "ta": "நீண்ட நேரம் உருண்ட சின்ன பனிப்பந்து, கொஞ்ச நேரம் உருண்ட பெரிய பந்தை வெல்லும்." },
+      "caption": { "en": "Time is the engine of compounding — the earlier you start, the more powerfully it works for you.", "ta": "நேரம் கம்பவுண்டிங்கின் எஞ்சின் — சீக்கிரம் தொடங்கினால் அது உங்களுக்கு அதிகமாக வேலை செய்யும்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Time & Compounding", "ta": "நேரம் & கம்பவுண்டிங்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Time Is the Real Return", "ta": "நேரமே உண்மையான வருமானம்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Compounding grows your money on itself — but it needs one thing above everything else: time. The longer your money compounds, the more dramatically it multiplies. Starting at 22 beats starting at 32, even if you invest a smaller amount each month.", "ta": "கம்பவுண்டிங் உங்கள் பணத்தை தானே வளர்க்கும் — ஆனால் அதற்கு ஒன்று மட்டுமே தேவை: நேரம். உங்கள் பணம் கம்பவுண்ட் ஆகும் காலம் நீண்டாலும், அது மிகவும் வேகமாக பெருகும். 22 வயதில் தொடங்குவது 32 வயதில் தொடங்குவதை வெல்லும் — மாதாந்திர தொகை குறைவாக இருந்தாலும் கூட." }
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "10 years earlier", "ta": "10 ஆண்டுகள் முன்னதாக" },
+          "subtitle": { "en": "starting just a decade sooner can result in 2–3× more wealth at retirement", "ta": "வெறும் ஒரு தசாப்தம் முன்னதாக தொடங்கினால் ஓய்வுகாலத்தில் 2–3 மடங்கு அதிக செல்வம் கிடைக்கும்" }
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "You don't need a big salary to start investing. You just need a start.", "ta": "முதலீடு தொடங்க பெரிய சம்பளம் தேவையில்லை. ஒரு தொடக்கம் மட்டுமே தேவை." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Early vs Late", "ta": "முன்னதாக vs தாமதமாக" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Two Friends, One Big Difference", "ta": "இரண்டு நண்பர்கள், ஒரு பெரிய வித்தியாசம்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Arjun starts a SIP of ₹2,000/month at age 22 and stops at 32 — just 10 years of investing. Vikram starts ₹2,000/month at 32 and invests all the way to 60. Both earn 12% per year.", "ta": "அர்ஜுன் 22 வயதில் ₹2,000/மாதம் SIP தொடங்கி 32 வயதில் நிறுத்துகிறான் — வெறும் 10 ஆண்டுகள். விக்ரம் 32 வயதில் தொடங்கி 60 வரை முதலீடு செய்கிறான். இருவரும் 12% வருடாந்திர வருமானம் பெறுகிறார்கள்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Arjun — invested ₹2.4L over 10 yrs", "ta": "அர்ஜுன் — 10 ஆண்டில் ₹2.4L முதலீடு" }, "val": { "en": "~₹1.05 crore at 60", "ta": "60 வயதில் ~₹1.05 கோடி" } },
+            { "key": { "en": "Vikram — invested ₹6.7L over 28 yrs", "ta": "விக்ரம் — 28 ஆண்டில் ₹6.7L முதலீடு" }, "val": { "en": "~₹79 lakh at 60", "ta": "60 வயதில் ~₹79 லட்சம்" } }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "Arjun invested less than half of what Vikram did — yet ended up with more. That is the power of starting early.", "ta": "அர்ஜுன் விக்ரமின் பாதிக்கும் குறைவாக முதலீடு செய்தான் — ஆனாலும் அதிகமாக சம்பாதித்தான். இதுதான் சீக்கிரம் தொடங்குவதன் சக்தி." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Arjun invests ₹2,000/month for 10 years starting at age 22. Vikram invests ₹2,000/month for 28 years starting at age 32. Both earn 12% annually. Who has more money at age 60?", "ta": "அர்ஜுன் 22 வயதில் இருந்து 10 ஆண்டுகள் ₹2,000/மாதம் முதலீடு செய்கிறான். விக்ரம் 32 வயதில் இருந்து 28 ஆண்டுகள் ₹2,000/மாதம் முதலீடு செய்கிறான். இருவரும் 12% வருடாந்திர வருமானம். 60 வயதில் யாரிடம் அதிக பணம் இருக்கும்?" },
+      "options": [
+        { "en": "Vikram — he invested for more years", "ta": "விக்ரம் — அவன் அதிக ஆண்டுகள் முதலீடு செய்தான்" },
+        { "en": "Arjun — he started earlier", "ta": "அர்ஜுன் — அவன் சீக்கிரம் தொடங்கினான்" },
+        { "en": "Both end up with the same amount", "ta": "இருவரும் சம தொகையோடு முடிப்பார்கள்" },
+        { "en": "Vikram — he invested a larger total amount", "ta": "விக்ரம் — அவன் மொத்தமாக அதிக தொகை முதலீடு செய்தான்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "Arjun ends up with ~₹1.05 crore while Vikram has ~₹79 lakh — despite Vikram investing nearly 3× more total. Starting a decade earlier gave Arjun's money more years to compound, which made all the difference.", "ta": "அர்ஜுனிடம் ~₹1.05 கோடி கிடைக்கிறது, விக்ரமிடம் ~₹79 லட்சம் மட்டுமே — விக்ரம் கிட்டத்தட்ட 3 மடங்கு அதிகமாக முதலீடு செய்தாலும். ஒரு தசாப்தம் முன்னதாக தொடங்கியது அர்ஜுனின் பணத்திற்கு கூடுதல் கம்பவுண்டிங் கொடுத்தது — அதுவே வித்தியாசத்தை உருவாக்கியது." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Rule of 72", "ta": "72-ன் விதி" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "How Long to Double Your Money?", "ta": "உங்கள் பணம் இரட்டிப்பாக எவ்வளவு நேரம் ஆகும்?" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "The Rule of 72 is a quick mental trick: divide 72 by your annual return rate and you get the number of years it takes to double your money. More doublings = much more wealth.", "ta": "72-ன் விதி ஒரு எளிய மனக்கணக்கு தந்திரம்: 72-ஐ உங்கள் வருடாந்திர வருமான விகிதத்தால் வகுத்தால், உங்கள் பணம் இரட்டிப்பாக எத்தனை ஆண்டுகள் ஆகும் என்று கிடைக்கும். அதிக இரட்டிப்புகள் = மிகவும் அதிக செல்வம்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Savings account at 3%", "ta": "சேமிப்பு கணக்கு 3%" }, "val": { "en": "Doubles in 24 years", "ta": "24 ஆண்டுகளில் இரட்டிப்பு" } },
+            { "key": { "en": "Fixed Deposit at 6%", "ta": "நிலையான வைப்பு 6%" }, "val": { "en": "Doubles in 12 years", "ta": "12 ஆண்டுகளில் இரட்டிப்பு" } },
+            { "key": { "en": "Equity / Nifty 50 at 12%", "ta": "பங்குச் சந்தை / நிஃப்டி 50, 12%" }, "val": { "en": "Doubles in 6 years", "ta": "6 ஆண்டுகளில் இரட்டிப்பு" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "At 12%, money doubles every 6 years. Start at 24 and your money doubles 6 times before you turn 60 — that's 64× growth!", "ta": "12%-ல் பணம் ஒவ்வொரு 6 ஆண்டுகளிலும் இரட்டிப்பாகும். 24 வயதில் தொடங்கினால் 60 வயதிற்குள் 6 முறை இரட்டிப்பாகும் — அதாவது 64 மடங்கு வளர்ச்சி!" }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Start Small", "ta": "சின்னதாக தொடங்கு" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "₹500 a Month Is Enough to Begin", "ta": "மாதம் ₹500 போதும் தொடங்க" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "You do not need lakhs to start investing. Even a small, consistent SIP — started early — grows into significant wealth over decades. The amount matters far less than starting on time.", "ta": "முதலீடு தொடங்க லட்சங்கள் தேவையில்லை. சின்ன தொகையிலும் தொடர்ச்சியான SIP — சீக்கிரம் தொடங்கினால் — பல தசாப்தங்களில் பெரிய செல்வமாக வளரும். தொகையை விட சரியான நேரத்தில் தொடங்குவதே முக்கியம்." }
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "₹500/month → ~₹26 lakh", "ta": "₹500/மாதம் → ~₹26 லட்சம்" },
+          "subtitle": { "en": "starting at age 22, at 12% annual return, by age 60 — with no increase in SIP amount", "ta": "22 வயதில் தொடங்கி, 12% வருடாந்திர வருமானத்தில், 60 வயதில் — SIP தொகை கூட்டாமல்" }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Start with whatever amount you can afford today", "ta": "இன்று உங்களால் முடியும் எந்த தொகையிலும் தொடங்குங்கள்" },
+            { "en": "Increase your SIP by ₹500 each year as your salary grows", "ta": "சம்பளம் கூடும்போது ஆண்டுதோறும் SIP-ஐ ₹500 அதிகரியுங்கள்" },
+            { "en": "Automate your SIP — never miss a month", "ta": "உங்கள் SIP-ஐ தானியங்கியாக செய்யுங்கள் — எந்த மாதமும் தவறவிடாதீர்கள்" },
+            { "en": "Consistency over time beats a large one-time investment", "ta": "தொடர்ச்சியான சிறு முதலீடு ஒரே முறை செய்யும் பெரிய தொகையை விட வெல்லும்" }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Using the Rule of 72, if your investment earns 12% per year, how many years does it take to double?", "ta": "72-ன் விதி பயன்படுத்தி, உங்கள் முதலீடு ஆண்டுக்கு 12% வருமானம் தந்தால், இரட்டிப்பாக எத்தனை ஆண்டுகள் ஆகும்?" },
+      "options": [
+        { "en": "12 years", "ta": "12 ஆண்டுகள்" },
+        { "en": "8 years", "ta": "8 ஆண்டுகள்" },
+        { "en": "6 years", "ta": "6 ஆண்டுகள்" },
+        { "en": "4 years", "ta": "4 ஆண்டுகள்" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "72 ÷ 12 = 6. At 12% annual return, your money doubles every 6 years. Compare this to an FD at 6% where it takes 12 years — equity doubles your money twice as fast.", "ta": "72 ÷ 12 = 6. 12% வருடாந்திர வருமானத்தில் உங்கள் பணம் ஒவ்வொரு 6 ஆண்டுகளிலும் இரட்டிப்பாகும். 6%-ல் FD-ல் 12 ஆண்டுகள் ஆகும் — பங்குச் சந்தை இரண்டு மடங்கு வேகமாக இரட்டிப்பாக்கும்." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "No Excuses", "ta": "சாக்கு வேண்டாம்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "\"I'll Start When...\" Is Expensive", "ta": "\"நான் ...ல் தொடங்குவேன்\" என்பது விலையுயர்ந்தது" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Every year you delay does not just cost you one year of returns. It costs you years of compounding on those returns. Waiting 5 years to start can reduce your final wealth by more than half.", "ta": "நீங்கள் தாமதிக்கும் ஒவ்வொரு ஆண்டும் ஒரு ஆண்டு வருமானத்தை மட்டும் இழக்கவில்லை. அந்த வருமானத்தின் மீதான பல ஆண்டு கம்பவுண்டிங்கையும் இழக்கிறீர்கள். 5 ஆண்டுகள் தாமதித்தால் இறுதி செல்வம் பாதிக்கும் மேல் குறையலாம்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "\"I'll start when I earn more\"", "ta": "\"சம்பளம் கூடும்போது தொடங்குவேன்\"" }, "val": { "en": "Salary grows, lifestyle grows — start now with less", "ta": "சம்பளம் கூடும், செலவும் கூடும் — இப்போதே குறைவாக தொடங்குங்கள்" } },
+            { "key": { "en": "\"Markets are too high right now\"", "ta": "\"இப்போது சந்தை மிக அதிகமாக இருக்கிறது\"" }, "val": { "en": "Time in market beats timing the market", "ta": "சந்தையில் இருக்கும் நேரம், சரியான நேரம் பார்ப்பதை வெல்லும்" } },
+            { "key": { "en": "\"I don't know enough yet\"", "ta": "\"எனக்கு இன்னும் தெரியவில்லை\"" }, "val": { "en": "Start with a Nifty 50 index fund SIP while you learn", "ta": "கற்றுக்கொள்ளும்போதே நிஃப்டி 50 இண்டெக்ஸ் ஃபண்ட் SIP தொடங்குங்கள்" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Waiting just 5 extra years to start can cost you more than 50% of your final corpus. That is the real price of delay.", "ta": "வெறும் 5 ஆண்டுகள் தாமதிப்பது உங்கள் இறுதி முதலீட்டு தொகுப்பில் 50%-க்கும் மேல் இழக்க வைக்கலாம். இதுதான் தாமதத்தின் உண்மையான விலை." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "A ₹500/month SIP started at age 22 can grow to more wealth than a ₹2,000/month SIP started at age 40.", "ta": "22 வயதில் தொடங்கிய ₹500/மாதம் SIP, 40 வயதில் தொடங்கிய ₹2,000/மாதம் SIP-ஐ விட அதிக செல்வமாக வளரலாம்." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 0,
+      "explanation": { "en": "True. At 12% return, ₹500/month from age 22 grows to ~₹26 lakh by 60. A ₹2,000/month SIP started at 40 grows to only ~₹20 lakh by 60. Starting 18 years earlier with one-fourth the amount still wins — that is how powerful early compounding is.", "ta": "உண்மை. 12% வருமானத்தில், 22 வயதில் ₹500/மாதம் தொடங்கினால் 60 வயதில் ~₹26 லட்சம் வரும். 40 வயதில் ₹2,000/மாதம் தொடங்கினால் ~₹20 லட்சம் மட்டுமே. காலுக்கு கால் தொகையில் 18 ஆண்டுகள் முன்னதாக தொடங்கியும் வெல்கிறது — இப்படிப்பட்ட சக்தி இளமை கம்பவுண்டிங்கில் உள்ளது." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

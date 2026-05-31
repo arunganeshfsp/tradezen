@@ -32,6 +32,28 @@ This step is **mandatory**, not optional. It is how the context grows and replac
 
 Never run `git add`, `git commit`, or `git push`. The user handles all repository operations.
 
+## SEBI Compliance — Language Rules
+
+TradeZen is an **educational platform**, not a SEBI-registered Investment Adviser. All UI copy, tooltips, nudges, and AI-generated text must follow these rules:
+
+**Never use:**
+- "Buy" / "Sell" as an action directive ("buy this stock", "good time to buy")
+- "Entry point" / "Exit point" as advice
+- "Invest in" / "Avoid" as a recommendation
+- Any phrasing that implies a trading signal or investment advice
+
+**Always use instead:**
+- "Study the session" / "Observe the setup"
+- "Reference level" instead of "entry"
+- "Bullish setup" / "Bearish setup" (descriptive, not directive)
+- "This stock may be worth tracking" instead of "consider buying"
+- Nudges must be framed as **analysis tools**, not action prompts (e.g., "See how this stock traded yesterday in Trade Player" not "find a good entry in Trade Player")
+
+**Every tool page** that shows scores, signals, or health ratings must carry a one-line disclaimer:
+> "For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading."
+
+This rule applies to: all HTML copy, template strings, story beats, nudge text, persona descriptions, and any user-facing text generated at runtime.
+
 ## Code Conventions
 
 - No comments unless the WHY is non-obvious

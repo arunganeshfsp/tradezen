@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Health Story — TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
+
+<style>
+:root{
+  --bg:#06070f;--bg2:#0e1124;--bg3:#161a32;--bg4:#1c2040;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.15);
+  --text:#f0f1f8;--dim:#9ea3c0;--muted:#585d7e;--faint:#3a3d5a;
+  --accent:#7c6af7;--accent2:#5b8af5;--accent-bg:rgba(124,106,247,0.08);
+  --green:#34d399;--green-bg:rgba(52,211,153,0.08);--green-border:rgba(52,211,153,0.25);
+  --amber:#f5a524;--amber-bg:rgba(245,165,36,0.08);--amber-border:rgba(245,165,36,0.25);
+  --red:#f87171;--red-bg:rgba(248,113,113,0.08);--red-border:rgba(248,113,113,0.25);
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-serif;font-size:14px;line-height:1.6;min-height:100vh;}
+.page{max-width:900px;margin:0 auto;padding:2rem 1.25rem 5rem;}
+
+/* ── Hero ─────────────────────────────────────── */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.08em;color:var(--muted);text-decoration:none;margin-bottom:1.25rem;transition:color .15s;}
+.back-link:hover{color:var(--text);}
+.hero h1{font-size:clamp(22px,4vw,30px);font-weight:700;color:var(--text);margin-bottom:6px;}
+.hero p{font-size:13.5px;color:var(--dim);max-width:520px;}
+
+/* ── Search ───────────────────────────────────── */
+.search-wrap{display:flex;gap:10px;margin:1.75rem 0 1rem;max-width:540px;}
+.search-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;
+  padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);
+  outline:none;transition:border-color .15s;}
+.search-input::placeholder{color:var(--muted);}
+.search-input:focus{border-color:var(--accent);}
+.search-btn{background:var(--accent);border:none;border-radius:10px;padding:11px 22px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;
+  cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.search-btn:hover{opacity:.88;}
+.search-btn:disabled{opacity:.5;cursor:default;}
+.quick-picks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2.5rem;}
+.qp{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;
+  padding:4px 12px;border:1px solid var(--border2);border-radius:20px;
+  background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;}
+.qp:hover{color:var(--text);border-color:rgba(255,255,255,.3);background:var(--bg2);}
+
+/* ── State ────────────────────────────────────── */
+.state-box{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px;}
+.spinner{width:32px;height:32px;border:2px solid var(--bg3);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+#results{display:none;}
+
+/* ── Persona Card ─────────────────────────────── */
+.persona-card{
+  border-radius:16px;border:1px solid var(--border);
+  padding:32px 24px 28px;margin-bottom:1.5rem;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;overflow:hidden;text-align:center;
+  background:var(--bg2);
+}
+.persona-card::before{
+  content:'';position:absolute;inset:0;
+  opacity:.06;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 30%, var(--p-color) 0%, transparent 70%);
+}
+.persona-glow{
+  width:110px;height:88px;display:flex;align-items:center;justify-content:center;
+  position:relative;margin-bottom:16px;
+}
+.persona-glow::before{
+  content:'';position:absolute;inset:-16px;
+  background:radial-gradient(ellipse, var(--p-color) 0%, transparent 70%);
+  opacity:.18;border-radius:50%;
+}
+.persona-glow svg{width:100%;height:100%;color:var(--p-color);position:relative;z-index:1;}
+.persona-name{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--p-color);margin-bottom:4px;
+}
+.persona-title{
+  font-size:22px;font-weight:700;color:var(--text);margin-bottom:20px;
+}
+.score-gauge{display:block;margin:0 auto;}
+.score-gauge-wrap{position:relative;}
+.persona-unavailable .persona-glow svg{color:var(--muted);}
+
+/* Persona colour tokens set via JS on .persona-card */
+
+/* ── Company header ───────────────────────────── */
+.company-header{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;margin-bottom:1.5rem;}
+.co-name h2{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.co-meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;
+  color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.cap-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:2px 9px;border-radius:999px;border:1px solid;}
+.cap-badge.large{color:#a78bfa;border-color:rgba(167,139,250,0.35);background:rgba(167,139,250,0.1);}
+.cap-badge.mid  {color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg);}
+.cap-badge.small{color:var(--dim);border-color:var(--border2);background:var(--bg3);}
+.price-block{text-align:right;}
+.price-ltp{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--text);}
+.price-chg{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:2px;}
+.price-chg.pos{color:var(--green);}
+.price-chg.neg{color:var(--red);}
+
+/* ── Metric Grid ──────────────────────────────── */
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}
+@media(max-width:600px){.metric-grid{grid-template-columns:repeat(2,1fr);}}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;display:flex;flex-direction:column;gap:3px;}
+.metric-card.good{border-color:var(--green-border);background:var(--green-bg);}
+.metric-card.neutral{border-color:var(--amber-border);background:var(--amber-bg);}
+.metric-card.concern{border-color:var(--red-border);background:var(--red-bg);}
+.m-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.m-label-ta{font-size:10px;color:var(--muted);display:none;}
+.m-value{font-size:20px;font-weight:700;}
+.metric-card.good    .m-value{color:var(--green);}
+.metric-card.neutral .m-value{color:var(--amber);}
+.metric-card.concern .m-value{color:var(--red);}
+.metric-card.na      .m-value{color:var(--muted);}
+.m-status{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.metric-card.good    .m-status{color:var(--green);}
+.metric-card.neutral .m-status{color:var(--amber);}
+.metric-card.concern .m-status{color:var(--red);}
+
+/* ── Narrative ────────────────────────────────── */
+.narrative-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:20px 22px;margin-bottom:1.25rem;}
+.narrative-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.narrative-text{font-size:14px;color:var(--dim);line-height:1.75;}
+.lang-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;
+  background:var(--bg3);border:1px solid var(--border2);border-radius:6px;
+  padding:4px 10px;cursor:pointer;color:var(--dim);transition:all .15s;}
+.lang-toggle:hover{color:var(--text);border-color:var(--accent);}
+
+/* ── Nudge ────────────────────────────────────── */
+.nudge-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:16px 20px;margin-bottom:1.5rem;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.nudge-icon{width:36px;height:36px;border-radius:8px;background:var(--accent-bg);
+  border:1px solid rgba(124,106,247,0.2);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--accent);}
+.nudge-body{flex:1;min-width:0;}
+.nudge-text{font-size:13px;color:var(--dim);line-height:1.55;margin-bottom:8px;}
+.nudge-link{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--accent);text-decoration:none;
+  border:1px solid rgba(124,106,247,0.3);border-radius:6px;padding:5px 12px;
+  transition:all .15s;background:var(--accent-bg);}
+.nudge-link:hover{background:rgba(124,106,247,0.18);border-color:var(--accent);}
+.nudge-link svg{flex-shrink:0;}
+
+/* ── Disclaimer ───────────────────────────────── */
+.disclaimer{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);
+  border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:1.25rem;
+  font-size:12px;color:var(--muted);line-height:1.55;}
+.data-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);margin-top:1rem;}
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page">
+
+  <div class="hero">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Tools
+    </a>
+    <h1 data-en="Stock Health Story" data-ta="பங்கு உடல்நல கதை">Stock Health Story</h1>
+    <p data-en="See any NSE stock's financial health as a living persona — in 2 seconds, without the jargon."
+       data-ta="எந்த NSE பங்கின் நிதி நலனையும் ஒரு உயிரோட்டமான உருவமாக பாருங்கள் — 2 விநாடிகளில், சொல்லாடல் இல்லாமல்.">
+      See any NSE stock's financial health as a living persona — in 2 seconds, without the jargon.
+    </p>
+  </div>
+
+  <div class="search-wrap">
+    <input id="symbolInput" class="search-input" type="text"
+      placeholder="e.g. RELIANCE, INFY, ZOMATO"
+      autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+    <button id="checkBtn" class="search-btn" data-en="Check Health" data-ta="நலன் பரிசோதி">Check Health</button>
+  </div>
+
+  <div class="quick-picks">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);align-self:center;letter-spacing:.08em;">Quick:</span>
+    <button class="qp" data-sym="RELIANCE">RELIANCE</button>
+    <button class="qp" data-sym="INFY">INFY</button>
+    <button class="qp" data-sym="TCS">TCS</button>
+    <button class="qp" data-sym="HDFCBANK">HDFCBANK</button>
+    <button class="qp" data-sym="ZOMATO">ZOMATO</button>
+    <button class="qp" data-sym="TATAMOTORS">TATAMOTORS</button>
+    <button class="qp" data-sym="ADANIENT">ADANIENT</button>
+  </div>
+
+  <div id="stateBox" class="state-box" style="display:none;">
+    <div id="spinner" class="spinner" style="display:none;"></div>
+    <div id="stateMsg" style="margin-top:8px;"></div>
+  </div>
+
+  <div id="results"></div>
+
+</div>
+
+<script>
+const PERSONAS = {
+  fortress: {
+    label: 'THE FORTRESS',
+    title: 'The Fortress',
+    color: '#f5a524',
+    svg: `<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="22" width="7" height="8" rx="1" fill="currentColor"/>
+      <rect x="14" y="22" width="7" height="8" rx="1" fill="currentColor"/>
+      <rect x="23" y="22" width="7" height="8" rx="1" fill="currentColor"/>
+      <rect x="63" y="22" width="7" height="8" rx="1" fill="currentColor"/>
+      <rect x="72" y="22" width="7" height="8" rx="1" fill="currentColor"/>
+      <rect x="81" y="22" width="7" height="8" rx="1" fill="currentColor"/>
+      <rect x="5" y="28" width="30" height="52" rx="2" fill="currentColor"/>
+      <rect x="63" y="28" width="30" height="52" rx="2" fill="currentColor"/>
+      <rect x="33" y="40" width="32" height="40" rx="2" fill="currentColor"/>
+      <path d="M 43 80 L 43 60 Q 50 52 57 60 L 57 80 Z" fill="#06070f"/>
+      <rect x="10" y="42" width="12" height="14" rx="2" fill="#06070f" opacity="0.45"/>
+      <rect x="76" y="42" width="12" height="14" rx="2" fill="#06070f" opacity="0.45"/>
+      <rect x="37" y="46" width="9" height="11" rx="1" fill="#06070f" opacity="0.45"/>
+      <rect x="52" y="46" width="9" height="11" rx="1" fill="#06070f" opacity="0.45"/>
+    </svg>`,
+  },
+  spring_bud: {
+    label: 'THE SPRING BUD',
+    title: 'The Spring Bud',
+    color: '#34d399',
+    svg: `<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="74" rx="36" ry="6" fill="currentColor" opacity="0.3"/>
+      <path d="M 50 70 C 50 57 50 42 50 26" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <path d="M 50 50 C 33 42 22 28 28 18 C 34 12 50 36 50 44" fill="currentColor" opacity="0.85"/>
+      <path d="M 50 42 C 67 33 78 19 72 10 C 65 5 50 30 50 38" fill="currentColor" opacity="0.65"/>
+      <circle cx="50" cy="23" r="5" fill="currentColor"/>
+      <circle cx="26" cy="58" r="2" fill="currentColor" opacity="0.4"/>
+      <circle cx="74" cy="62" r="1.5" fill="currentColor" opacity="0.3"/>
+      <circle cx="36" cy="66" r="1.2" fill="currentColor" opacity="0.25"/>
+    </svg>`,
+  },
+  fading_giant: {
+    label: 'THE FADING GIANT',
+    title: 'The Fading Giant',
+    color: '#9ea3c0',
+    svg: `<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="18" y="10" width="64" height="10" rx="2" fill="currentColor"/>
+      <rect x="30" y="20" width="40" height="46" rx="1" fill="currentColor" opacity="0.75"/>
+      <rect x="18" y="65" width="64" height="10" rx="2" fill="currentColor"/>
+      <path d="M 44 28 L 51 38 L 47 52" stroke="#06070f" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      <path d="M 56 40 L 60 54" stroke="#06070f" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+      <rect x="12" y="70" width="8" height="5" rx="1" fill="currentColor" opacity="0.45"/>
+      <rect x="80" y="68" width="10" height="5" rx="1" fill="currentColor" opacity="0.35"/>
+      <rect x="24" y="73" width="5" height="4" rx="1" fill="currentColor" opacity="0.3"/>
+      <rect x="70" y="72" width="4" height="3" rx="1" fill="currentColor" opacity="0.25"/>
+    </svg>`,
+  },
+  leaky_bucket: {
+    label: 'THE LEAKY BUCKET',
+    title: 'The Leaky Bucket',
+    color: '#f87171',
+    svg: `<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 26 24 A 24 18 0 0 1 74 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M 22 26 L 28 60 L 72 60 L 78 26 Z" fill="currentColor" opacity="0.9"/>
+      <path d="M 24 37 L 76 37" stroke="#06070f" stroke-width="2.5" opacity="0.3"/>
+      <path d="M 25 49 L 75 49" stroke="#06070f" stroke-width="2.5" opacity="0.3"/>
+      <ellipse cx="37" cy="68" rx="3" ry="5" fill="currentColor" opacity="0.65"/>
+      <ellipse cx="50" cy="72" rx="2.5" ry="4.5" fill="currentColor" opacity="0.5"/>
+      <ellipse cx="63" cy="67" rx="2.2" ry="4" fill="currentColor" opacity="0.6"/>
+    </svg>`,
+  },
+  unavailable: {
+    label: 'DATA UNAVAILABLE',
+    title: 'Data Unavailable',
+    color: '#585d7e',
+    svg: `<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="38" r="28" stroke="currentColor" stroke-width="3" opacity="0.5"/>
+      <path d="M 50 24 L 50 42" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <circle cx="50" cy="52" r="3" fill="currentColor" opacity="0.7"/>
+    </svg>`,
+  },
+};
+
+const GAUGE_ARC_LEN = Math.PI * 80; // semicircle r=80
+
+const input    = document.getElementById('symbolInput');
+const btn      = document.getElementById('checkBtn');
+const stateBox = document.getElementById('stateBox');
+const spinner  = document.getElementById('spinner');
+const stateMsg = document.getElementById('stateMsg');
+const results  = document.getElementById('results');
+
+let _lang = 'en';
+let _lastData = null;
+
+document.querySelectorAll('.qp').forEach(b =>
+  b.addEventListener('click', () => { input.value = b.dataset.sym; doCheck(); })
+);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') doCheck(); });
+btn.addEventListener('click', doCheck);
+
+function showState(loading, msg) {
+  results.style.display   = 'none';
+  stateBox.style.display  = 'block';
+  spinner.style.display   = loading ? 'block' : 'none';
+  stateMsg.textContent    = msg;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function metricStatus(status) {
+  const map = { good:'good', neutral:'neutral', concern:'concern', na:'na' };
+  return map[status] || 'na';
+}
+
+function statusLabel(status) {
+  const map = { good:'Good', neutral:'Average', concern:'Watch', na:'N/A' };
+  return map[status] || '—';
+}
+
+function gaugeHTML(score, color) {
+  const filled = (score / 10) * GAUGE_ARC_LEN;
+  const gap    = GAUGE_ARC_LEN - filled;
+  const scoreDisplay = score > 0 ? score.toFixed(1) : '—';
+
+  return `
+  <svg class="score-gauge" viewBox="0 0 200 110" width="200" height="110">
+    <path d="M 20,100 A 80,80 0 0,1 180,100"
+      stroke="#1c2040" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M 20,100 A 80,80 0 0,1 180,100"
+      stroke="${color}" stroke-width="14" fill="none" stroke-linecap="round"
+      stroke-dasharray="${filled.toFixed(1)} ${gap.toFixed(1)}"/>
+    <text x="100" y="90" text-anchor="middle"
+      font-size="30" font-weight="700" fill="${color}"
+      font-family="'JetBrains Mono', monospace">${scoreDisplay}</text>
+    <text x="100" y="106" text-anchor="middle"
+      font-size="11" fill="#9ea3c0"
+      font-family="'JetBrains Mono', monospace">out of 10</text>
+  </svg>`;
+}
+
+function capClass(c) {
+  if (!c) return '';
+  if (c === 'Large Cap') return 'large';
+  if (c === 'Mid Cap')   return 'mid';
+  return 'small';
+}
+
+function renderNarrative(d) {
+  const narr = d.narrative;
+  return _lang === 'ta' ? narr.ta : narr.en;
+}
+
+function renderNudge(d) {
+  const nudge = d.nudge;
+  const txt   = _lang === 'ta' ? nudge.ta : nudge.en;
+  const lbl   = _lang === 'ta' ? nudge.link_ta : nudge.link_en;
+  return { txt, lbl, link: nudge.link };
+}
+
+function render(d) {
+  const p   = PERSONAS[d.persona] || PERSONAS.unavailable;
+  const color = p.color;
+
+  const chgCls  = (d.change_pct || 0) >= 0 ? 'pos' : 'neg';
+  const chgSign = (d.change_pct || 0) >= 0 ? '+' : '';
+
+  const m = d.metrics;
+
+  const nudge = renderNudge(d);
+
+  results.innerHTML = `
+    <!-- Persona Card -->
+    <div class="persona-card" style="--p-color:${color}">
+      <div class="persona-glow">${p.svg}</div>
+      <div class="persona-name">${p.label}</div>
+      <div class="persona-title">${p.title}</div>
+      ${gaugeHTML(d.score, color)}
+    </div>
+
+    <!-- Company Header -->
+    <div class="company-header">
+      <div class="co-name">
+        <h2>${esc(d.company)}</h2>
+        <div class="co-meta">
+          ${d.cap_category ? `<span class="cap-badge ${capClass(d.cap_category)}">${esc(d.cap_category)}</span>` : ''}
+          <span>${esc(d.symbol)}${d.sector ? ' · ' + esc(d.sector) : ''}</span>
+        </div>
+      </div>
+      <div class="price-block">
+        ${d.price ? `<div class="price-ltp">₹${Number(d.price).toFixed(2)}</div>` : ''}
+        ${d.change_pct !== null && d.change_pct !== undefined
+          ? `<div class="price-chg ${chgCls}">${chgSign}${Number(d.change_pct).toFixed(2)}% today</div>`
+          : ''}
+      </div>
+    </div>
+
+    <!-- Metric Grid -->
+    <div class="metric-grid">
+      ${['roe','de_ratio','net_margin','rev_growth'].map(k => {
+        const met = m[k];
+        const st  = metricStatus(met.status);
+        const lbl = _lang === 'ta' ? met.label_ta : met.label;
+        return `<div class="metric-card ${st}">
+          <div class="m-label">${esc(met.label)}</div>
+          <div class="m-value">${esc(met.display)}</div>
+          <div class="m-status">${statusLabel(met.status)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Narrative -->
+    <div class="narrative-box">
+      <div class="narrative-label" data-en="Health Story" data-ta="நலன் கதை">Health Story</div>
+      <div class="narrative-text" id="narrativeText">${esc(renderNarrative(d))}</div>
+      <button class="lang-toggle" id="langToggle">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span id="langLabel">தமிழில் படி</span>
+      </button>
+    </div>
+
+    <!-- Nudge -->
+    <div class="nudge-box">
+      <div class="nudge-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="nudge-body">
+        <div class="nudge-text" id="nudgeText">${esc(nudge.txt)}</div>
+        <a href="${esc(nudge.link)}" class="nudge-link" id="nudgeLink">
+          ${esc(nudge.lbl)}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before making any trading decisions.
+    </div>
+    <div class="data-note">${esc(d.data_note)}</div>
+  `;
+
+  results.style.display   = 'block';
+  stateBox.style.display  = 'none';
+
+  document.getElementById('langToggle').addEventListener('click', () => {
+    _lang = _lang === 'en' ? 'ta' : 'en';
+    document.getElementById('langLabel').textContent  = _lang === 'ta' ? 'Read in English' : 'தமிழில் படி';
+    document.getElementById('narrativeText').textContent = renderNarrative(d);
+    const n = renderNudge(d);
+    document.getElementById('nudgeText').textContent = n.txt;
+    document.getElementById('nudgeLink').href        = n.link;
+    document.getElementById('nudgeLink').childNodes[0].textContent = n.lbl + ' ';
+  });
+}
+
+async function doCheck() {
+  const sym = input.value.trim().toUpperCase().replace(/[^A-Z0-9\-\.&]/g, '');
+  if (!sym) { input.focus(); return; }
+
+  btn.disabled = true;
+  showState(true, `Reading health data for ${sym}…`);
+
+  try {
+    const res  = await fetch(`/api/stock/health/${encodeURIComponent(sym)}`);
+    const data = await res.json();
+    if (data.error) { showState(false, data.error); return; }
+    _lastData = data;
+    render(data);
+  } catch (e) {
+    showState(false, 'Could not connect to the server. Make sure the engine is running.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+const urlSym = new URLSearchParams(location.search).get('symbol');
+if (urlSym) { input.value = urlSym.toUpperCase(); doCheck(); }
+</script>
+
+</body>
+</html>

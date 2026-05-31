@@ -1,0 +1,249 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🛡️",
+      "heading": { "en": "Basic Emergency Fund", "ta": "அடிப்படை அவசர நிதி" },
+      "description": { "en": "Before you invest a single rupee, build your safety net. Here is how to do it right.", "ta": "ஒரு ரூபாய் முதலீடு செய்வதற்கு முன், உங்கள் பாதுகாப்பு வலையை கட்டுங்கள். சரியாக எப்படி செய்வது என்று தெரிந்து கொள்ளுங்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "☂️",
+      "title": { "en": "Your emergency fund is your financial umbrella.", "ta": "உங்கள் அவசர நிதி உங்கள் நிதி குடை." },
+      "caption": { "en": "You won't need it every day — but when the storm hits, you will be very glad you had it.", "ta": "தினமும் தேவைப்படாது — ஆனால் புயல் வரும்போது, வைத்திருந்தோம் என்று மகிழ்வீர்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What It Is", "ta": "என்னவென்று" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Your Financial Safety Net", "ta": "உங்கள் நிதி பாதுகாப்பு வலை" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "An emergency fund is money set aside specifically for unexpected life events — a job loss, medical bill, urgent repair, or a family crisis. It is not for holidays, gadgets, or planned expenses. It sits quietly until you genuinely need it.", "ta": "அவசர நிதி என்பது எதிர்பாராத வாழ்க்கை நிகழ்வுகளுக்காக தனியாக வைக்கப்படும் பணம் — வேலை இழப்பு, மருத்துவ கட்டணம், அவசர பழுது அல்லது குடும்ப நெருக்கடி. விடுமுறை, கேட்ஜெட் அல்லது திட்டமிட்ட செலவுகளுக்கு இல்லை. உண்மையில் தேவைப்படும் வரை அமைதியாக இருக்கும்." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Sudden job loss or salary delay", "ta": "திடீர் வேலை இழப்பு அல்லது சம்பளம் தாமதம்" },
+            { "en": "Medical emergency not fully covered by insurance", "ta": "காப்பீடு முழுமையாக ஈடு செய்யாத மருத்துவ அவசரநிலை" },
+            { "en": "Urgent home or vehicle repair", "ta": "அவசர வீடு அல்லது வாகன பழுது" },
+            { "en": "Family crisis requiring immediate cash", "ta": "உடனடி பணம் தேவைப்படும் குடும்ப நெருக்கடி" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "Without an emergency fund, any financial shock forces you to break investments, take a loan, or go into debt — all at the worst possible time.", "ta": "அவசர நிதி இல்லாமல், எந்த நிதி அதிர்ச்சியும் உங்கள் முதலீட்டை உடைக்கவோ, கடன் வாங்கவோ கட்டாயப்படுத்தும் — எல்லாவற்றிலும் மிக மோசமான நேரத்தில்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "How Much?", "ta": "எவ்வளவு?" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The 3–6 Month Rule", "ta": "3–6 மாத விதி" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Keep 3 to 6 months of your monthly expenses — not your salary — as your emergency fund. If you have dependents, a variable income, or work in a volatile field, aim for 6 months or more.", "ta": "உங்கள் மாதச் செலவுகளில் 3 முதல் 6 மாதம் — சம்பளம் அல்ல — அவசர நிதியாக வையுங்கள். குடும்பத்தினர் இருந்தால், மாறுபடும் வருமானம் இருந்தால், அல்லது ஏற்ற இறக்கமான துறையில் வேலை செய்தால், 6 மாதங்கள் அல்லது அதிகமாக இலக்கு வையுங்கள்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Monthly expenses ₹30,000", "ta": "மாதச் செலவு ₹30,000" }, "val": { "en": "Fund target: ₹90K – ₹1.8L", "ta": "நிதி இலக்கு: ₹90K – ₹1.8L" } },
+            { "key": { "en": "Monthly expenses ₹50,000", "ta": "மாதச் செலவு ₹50,000" }, "val": { "en": "Fund target: ₹1.5L – ₹3L", "ta": "நிதி இலக்கு: ₹1.5L – ₹3L" } },
+            { "key": { "en": "Freelancer / variable income", "ta": "ஃப்ரீலான்சர் / மாறுபடும் வருமானம்" }, "val": { "en": "Aim for 6–9 months", "ta": "6–9 மாதங்களை இலக்காக வையுங்கள்" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Calculate your expenses — rent, food, EMIs, utilities — not your full salary. Do not count discretionary spending like eating out or shopping.", "ta": "உங்கள் செலவுகளை கணக்கிடுங்கள் — வாடகை, உணவு, EMI, பயன்பாடுகள் — முழு சம்பளம் அல்ல. வெளியே சாப்பிடுதல் அல்லது ஷாப்பிங் போன்ற விருப்பமான செலவுகளை எண்ணாதீர்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Your monthly household expenses are ₹40,000. What is the recommended minimum emergency fund?", "ta": "உங்கள் மாதாந்திர குடும்பச் செலவுகள் ₹40,000. பரிந்துரைக்கப்பட்ட குறைந்தபட்ச அவசர நிதி எவ்வளவு?" },
+      "options": [
+        { "en": "₹40,000 — one month is enough", "ta": "₹40,000 — ஒரு மாதம் போதும்" },
+        { "en": "₹80,000 — two months is safe", "ta": "₹80,000 — இரண்டு மாதம் பாதுகாப்பானது" },
+        { "en": "₹1,20,000 — minimum three months", "ta": "₹1,20,000 — குறைந்தபட்சம் மூன்று மாதங்கள்" },
+        { "en": "₹4,80,000 — twelve months to be very safe", "ta": "₹4,80,000 — மிகவும் பாதுகாப்பாக பன்னிரெண்டு மாதங்கள்" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "The standard recommendation is 3–6 months of expenses. For ₹40,000/month in expenses, the minimum is ₹1,20,000 (3 months). If you have dependents or unstable income, build it up to ₹2,40,000 (6 months).", "ta": "நிலையான பரிந்துரை 3–6 மாத செலவுகள். மாதம் ₹40,000 செலவில் குறைந்தபட்சம் ₹1,20,000 (3 மாதங்கள்). குடும்பத்தினர் இருந்தால் அல்லது நிலையற்ற வருமானம் இருந்தால், ₹2,40,000 (6 மாதங்கள்) வரை கட்டுங்கள்." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Where to Keep It", "ta": "எங்கே வைப்பது" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Safe, Liquid, and Separate", "ta": "பாதுகாப்பு, உடனே எடுக்கக்கூடியது, தனியாக" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Your emergency fund must be instantly accessible without penalties. It should never be in stocks or equity mutual funds — markets can fall 30–40% right when you need the money most.", "ta": "உங்கள் அவசர நிதி தண்டம் இல்லாமல் உடனே எடுக்கக்கூடியதாக இருக்க வேண்டும். இது பங்குகளிலோ பங்கு மியூச்சுவல் ஃபண்டிலோ இருக்கவே கூடாது — பணம் மிகவும் தேவைப்படும் நேரத்தில் சந்தை 30–40% வீழலாம்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "❌",
+              "title": { "en": "Wrong Place", "ta": "தவறான இடம்" },
+              "subtitle": { "en": "Stocks, equity funds, crypto, long-term FDs — value can crash or funds get locked", "ta": "பங்குகள், பங்கு ஃபண்டுகள், கிரிப்டோ, நீண்டகால FD — மதிப்பு வீழலாம் அல்லது பணம் லாக் ஆகலாம்" },
+              "variant": "danger"
+            },
+            {
+              "emoji": "✅",
+              "title": { "en": "Right Place", "ta": "சரியான இடம்" },
+              "subtitle": { "en": "Savings account, liquid mutual fund, sweep-in FD, overnight fund — safe and instant", "ta": "சேமிப்பு கணக்கு, லிக்விட் ஃபண்ட், ஸ்வீப்-இன் FD, ஓவர்நைட் ஃபண்ட் — பாதுகாப்பு மற்றும் உடனடி" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Savings account", "ta": "சேமிப்பு கணக்கு" }, "val": { "en": "Instant access, ~3% return", "ta": "உடனடி அணுகல், ~3% வருமானம்" } },
+            { "key": { "en": "Liquid mutual fund", "ta": "லிக்விட் மியூச்சுவல் ஃபண்ட்" }, "val": { "en": "1-day withdrawal, ~6.5–7% return", "ta": "1 நாள் திரும்பப் பெறல், ~6.5–7% வருமானம்" } },
+            { "key": { "en": "Sweep-in FD", "ta": "ஸ்வீப்-இன் FD" }, "val": { "en": "Auto FD on savings, ~6.5% return", "ta": "சேமிப்பில் தானியங்கி FD, ~6.5% வருமானம்" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Never keep your emergency fund in equity, crypto, or any investment with a lock-in period. Accessibility is more important than return here.", "ta": "அவசர நிதியை பங்குகள், கிரிப்டோ அல்லது லாக்-இன் காலம் உள்ள எந்த முதலீட்டிலும் வைக்காதீர்கள். இங்கே வருமானத்தை விட அணுகல் முக்கியம்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "How to Build It", "ta": "எப்படி கட்டுவது" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Start Small, Build Consistently", "ta": "சிறியதாக தொடங்கு, தொடர்ச்சியாக கட்டு" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "You do not need to save the full amount overnight. Start with a goal of ₹10,000, then build it month by month. Treat your emergency fund contribution like a fixed expense — non-negotiable, every month.", "ta": "ஒரே இரவில் முழு தொகையையும் சேமிக்க வேண்டியதில்லை. ₹10,000 இலக்கில் தொடங்கி, மாதம் மாதம் கட்டுங்கள். அவசர நிதி பங்களிப்பை நிலையான செலவாக நடத்துங்கள் — பேரம் பேசவே கூடாது, ஒவ்வொரு மாதமும்." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Step 1 — Calculate your actual monthly expenses", "ta": "படி 1 — உங்கள் உண்மையான மாதச் செலவுகளை கணக்கிடுங்கள்" },
+            { "en": "Step 2 — Set a target of 3–6 months of those expenses", "ta": "படி 2 — அந்த செலவுகளில் 3–6 மாதங்களை இலக்காக வையுங்கள்" },
+            { "en": "Step 3 — Open a separate savings account or liquid fund for it", "ta": "படி 3 — அதற்காக தனி சேமிப்பு கணக்கு அல்லது லிக்விட் ஃபண்ட் திறங்கள்" },
+            { "en": "Step 4 — Automate a monthly transfer on salary day", "ta": "படி 4 — சம்பளம் கிடைக்கும் நாளில் மாதாந்திர தானியங்கி பரிமாற்றம் வையுங்கள்" },
+            { "en": "Step 5 — Only touch it for a real emergency", "ta": "படி 5 — உண்மையான அவசரத்திற்கு மட்டும் எடுங்கள்" }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Keep your emergency fund in a SEPARATE account — not your regular spending account. Out of sight, out of temptation.", "ta": "அவசர நிதியை தனி கணக்கில் வையுங்கள் — வழக்கமான செலவு கணக்கில் இல்லை. கண்ணில் படாமல் இருந்தால், சோதனையும் இல்லை." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Where is the BEST place to keep your emergency fund?", "ta": "உங்கள் அவசர நிதியை வைக்க மிகச் சிறந்த இடம் எது?" },
+      "options": [
+        { "en": "Nifty 50 index fund — for better long-term returns", "ta": "நிஃப்டி 50 இண்டெக்ஸ் ஃபண்ட் — சிறந்த நீண்டகால வருமானத்திற்கு" },
+        { "en": "5-year bank fixed deposit — safe and fixed", "ta": "5 ஆண்டு வங்கி நிலையான வைப்பு — பாதுகாப்பு மற்றும் நிலையானது" },
+        { "en": "Liquid mutual fund or savings account — instant access", "ta": "லிக்விட் மியூச்சுவல் ஃபண்ட் அல்லது சேமிப்பு கணக்கு — உடனடி அணுகல்" },
+        { "en": "Gold ETF — hedge against inflation", "ta": "கோல்ட் ETF — பணவீக்கத்திற்கு எதிரான பாதுகாப்பு" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "Emergency funds need two qualities above all: safety and instant accessibility. A liquid mutual fund or savings account gives both. Equity funds can fall sharply, FDs have lock-ins with penalties, and gold ETFs take time to redeem — none work in a true emergency.", "ta": "அவசர நிதிக்கு எல்லாவற்றிலும் மேலாக இரண்டு குணங்கள் தேவை: பாதுகாப்பு மற்றும் உடனடி அணுகல். லிக்விட் மியூச்சுவல் ஃபண்ட் அல்லது சேமிப்பு கணக்கு இரண்டையும் தருகிறது. பங்கு ஃபண்டுகள் கடுமையாக வீழலாம், FD-களுக்கு லாக்-இன் தண்டம் உண்டு, கோல்ட் ETF திரும்பப் பெற நேரம் ஆகும் — உண்மையான அவசரத்தில் எதுவும் வேலை செய்யாது." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Real vs Fake", "ta": "உண்மை vs போலி" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Not Everything Is an Emergency", "ta": "எல்லாமே அவசரநிலை இல்லை" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Your emergency fund is for genuine, unexpected financial crises. Using it for the wrong reasons leaves you unprotected when a real crisis hits — and forces you to rebuild from zero again.", "ta": "உங்கள் அவசர நிதி உண்மையான, எதிர்பாராத நிதி நெருக்கடிகளுக்கானது. தவறான காரணங்களுக்கு பயன்படுத்தினால், உண்மையான நெருக்கடி வரும்போது பாதுகாப்பே இல்லாமல் போகும் — மீண்டும் பூஜ்ஜியத்திலிருந்து கட்ட வேண்டியதாகும்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "✅",
+              "title": { "en": "Real Emergency", "ta": "உண்மையான அவசரநிலை" },
+              "subtitle": { "en": "Job loss, hospital bill, roof leak, car breakdown on the highway", "ta": "வேலை இழப்பு, மருத்துவமனை கட்டணம், கூரை கசிவு, நெடுஞ்சாலையில் வாகன கோளாறு" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "❌",
+              "title": { "en": "NOT an Emergency", "ta": "அவசரநிலை இல்லை" },
+              "subtitle": { "en": "New phone, vacation, Diwali shopping, a gadget sale, concert tickets", "ta": "புதிய போன், விடுமுறை, தீபாவளி ஷாப்பிங், கேட்ஜெட் சேல், கச்சேரி டிக்கெட்" },
+              "variant": "danger"
+            }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "A sale on a gadget is not an emergency. A flight deal is not an emergency. This fund is only for situations that would otherwise send you into debt.", "ta": "கேட்ஜெட் சேல் அவசரநிலை இல்லை. விமான டீல் அவசரநிலை இல்லை. இல்லாமல் போனால் கடனில் மூழ்கடிக்கும் சூழல்களுக்கு மட்டுமே இந்த நிதி." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "Your emergency fund should be invested in a Nifty 50 mutual fund to earn better returns while staying available.", "ta": "சிறந்த வருமானம் பெறவும் கிடைக்கவும் உங்கள் அவசர நிதியை நிஃப்டி 50 மியூச்சுவல் ஃபண்டில் முதலீடு செய்யலாம்." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. Nifty 50 funds can fall 30–50% during a market crash — exactly when emergencies are most likely to strike. Your emergency fund must be in safe, liquid instruments like a savings account or liquid mutual fund where the value never falls below what you put in.", "ta": "பொய். நிஃப்டி 50 ஃபண்டுகள் சந்தை வீழ்ச்சியின்போது 30–50% வீழலாம் — அவசரநிலைகள் மிகவும் நிகழ்வாய்ப்புள்ள நேரத்திலேயே. உங்கள் அவசர நிதி சேமிப்பு கணக்கு அல்லது லிக்விட் மியூச்சுவல் ஃபண்ட் போன்ற பாதுகாப்பான, உடனே எடுக்கக்கூடிய கருவிகளில் இருக்க வேண்டும் — போட்ட தொகைக்கும் குறையாத இடத்தில்." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

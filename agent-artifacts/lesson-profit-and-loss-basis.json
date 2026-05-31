@@ -1,0 +1,242 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "📊",
+      "heading": { "en": "Profit & Loss Basis", "ta": "லாப நஷ்ட அடிப்படை" },
+      "description": { "en": "Before you can make money in the market, you need to know exactly how to measure it — and what secretly eats into it.", "ta": "சந்தையில் பணம் சம்பாதிப்பதற்கு முன், அதை எப்படி சரியாக அளவிடுவது என்று தெரிந்திருக்க வேண்டும் — மற்றும் என்ன மறைமுகமாக அதை சாப்பிடுகிறது என்றும்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "💹",
+      "title": { "en": "Buy low, sell high — sounds simple. The math behind it isn't.", "ta": "குறைவாக வாங்கு, அதிகமாக விற்று — எளிதாக தோன்றுகிறது. அதன் பின்னால் உள்ள கணக்கு அப்படியில்லை." },
+      "caption": { "en": "Knowing your actual P&L — after every cost — is the foundation of every smart trading decision.", "ta": "ஒவ்வொரு செலவுக்கும் பிறகு உங்கள் உண்மையான லாப நஷ்டத்தை தெரிந்திருப்பது ஒவ்வொரு சிறந்த வர்த்தக முடிவின் அடிப்படை." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is P&L?", "ta": "லாப நஷ்டம் என்ன?" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Your Score in Every Trade", "ta": "ஒவ்வொரு வர்த்தகத்திலும் உங்கள் மதிப்பெண்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "P&L stands for Profit and Loss — it is the difference between what you paid for a stock and what you received when you sold it. Every trade has a P&L, and tracking it honestly is the first step to becoming a disciplined trader.", "ta": "P&L என்பது லாபம் மற்றும் நஷ்டம் — நீங்கள் ஒரு பங்கிற்கு செலுத்திய தொகைக்கும் விற்றபோது பெற்ற தொகைக்கும் இடையேயான வித்தியாசம். ஒவ்வொரு வர்த்தகத்திற்கும் ஒரு லாப நஷ்டம் உண்டு, அதை நேர்மையாக கண்காணிப்பது ஒழுக்கமான வர்த்தகராக மாறுவதற்கான முதல் படி." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "🟢",
+              "title": { "en": "Profit", "ta": "லாபம்" },
+              "subtitle": { "en": "Sell price > Buy price — you gained money on the trade", "ta": "விற்கு விலை > வாங்கு விலை — நீங்கள் வர்த்தகத்தில் பணம் சம்பாதித்தீர்கள்" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "🔴",
+              "title": { "en": "Loss", "ta": "நஷ்டம்" },
+              "subtitle": { "en": "Sell price < Buy price — you lost money on the trade", "ta": "விற்கு விலை < வாங்கு விலை — நீங்கள் வர்த்தகத்தில் பணம் இழந்தீர்கள்" },
+              "variant": "danger"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "P&L is not just a number — it is a record of your decisions. Consistent small profits beat occasional big wins wiped out by careless losses.", "ta": "லாப நஷ்டம் வெறும் ஒரு எண் மட்டுமல்ல — அது உங்கள் முடிவுகளின் பதிவு. கவனக்குறைவான நஷ்டங்களால் அழிக்கப்படும் ஒரு பெரிய வெற்றியை விட தொடர்ச்சியான சிறிய லாபங்கள் சிறந்தவை." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "The Calculation", "ta": "கணக்கீடு" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The Formula Is Simple", "ta": "சூத்திரம் எளிதானது" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Profit or Loss = (Sell Price − Buy Price) × Quantity. Always multiply by the number of shares — a ₹10 move means very different things with 10 shares versus 1,000 shares.", "ta": "லாபம் அல்லது நஷ்டம் = (விற்கு விலை − வாங்கு விலை) × அளவு. எப்போதும் பங்குகளின் எண்ணிக்கையால் பெருக்குங்கள் — 10 பங்குகளில் ₹10 நகர்வும் 1,000 பங்குகளில் ₹10 நகர்வும் மிகவும் வேறுபட்ட அர்த்தங்கள் கொண்டவை." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Buy 100 shares of Infosys @ ₹1,400", "ta": "இன்ஃபோசிஸ் 100 பங்கு @ ₹1,400 வாங்கு" }, "val": { "en": "Cost = ₹1,40,000", "ta": "செலவு = ₹1,40,000" } },
+            { "key": { "en": "Sell @ ₹1,500", "ta": "₹1,500-ல் விற்று" }, "val": { "en": "Received = ₹1,50,000", "ta": "பெற்றது = ₹1,50,000" } },
+            { "key": { "en": "Profit = (₹1,500 − ₹1,400) × 100", "ta": "லாபம் = (₹1,500 − ₹1,400) × 100" }, "val": { "en": "= ₹10,000", "ta": "= ₹10,000" } },
+            { "key": { "en": "Buy 50 shares of Tata Steel @ ₹120, sell @ ₹108", "ta": "டாட்டா ஸ்டீல் 50 பங்கு @ ₹120 வாங்கி, ₹108-ல் விற்று" }, "val": { "en": "Loss = (₹108 − ₹120) × 50 = −₹600", "ta": "நஷ்டம் = (₹108 − ₹120) × 50 = −₹600" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Always calculate P&L on total value (price × quantity) — not just the per-share difference. Quantity is what turns a small move into a big gain or a painful loss.", "ta": "லாப நஷ்டத்தை எப்போதும் மொத்த மதிப்பில் (விலை × அளவு) கணக்கிடுங்கள் — வெறும் ஒரு பங்கு வித்தியாசத்தில் அல்ல. அளவுதான் ஒரு சிறிய நகர்வை பெரிய ஆதாயமாகவோ அல்லது வலிக்கிற நஷ்டமாகவோ மாற்றுகிறது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "You buy 200 shares of Reliance at ₹2,500 per share and sell them at ₹2,600 per share. What is your gross profit?", "ta": "நீங்கள் ரிலையன்ஸின் 200 பங்குகளை ஒரு பங்கு ₹2,500-ல் வாங்கி ₹2,600-ல் விற்கிறீர்கள். உங்கள் மொத்த லாபம் என்ன?" },
+      "options": [
+        { "en": "₹100 — the per-share gain", "ta": "₹100 — ஒரு பங்கு ஆதாயம்" },
+        { "en": "₹2,000 — just a guess", "ta": "₹2,000 — வெறும் யூகம்" },
+        { "en": "₹20,000 — per-share gain × quantity", "ta": "₹20,000 — ஒரு பங்கு ஆதாயம் × அளவு" },
+        { "en": "₹5,00,000 — total sale value", "ta": "₹5,00,000 — மொத்த விற்பனை மதிப்பு" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "Profit = (Sell Price − Buy Price) × Quantity = (₹2,600 − ₹2,500) × 200 = ₹100 × 200 = ₹20,000. Always multiply the per-share gain by the number of shares — the per-share number alone is meaningless without quantity.", "ta": "லாபம் = (விற்கு விலை − வாங்கு விலை) × அளவு = (₹2,600 − ₹2,500) × 200 = ₹100 × 200 = ₹20,000. ஒரு பங்கு ஆதாயத்தை எப்போதும் பங்குகளின் எண்ணிக்கையால் பெருக்குங்கள் — அளவு இல்லாமல் ஒரு பங்கு எண் அர்த்தமற்றது." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Realized vs Unrealized", "ta": "நிறைவேற்றப்பட்ட vs காகித லாபம்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Paper Profit Is Not Real Profit", "ta": "காகித லாபம் உண்மையான லாபம் இல்லை" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Unrealized P&L — also called paper profit or paper loss — is the gain or loss on positions you still hold. You have not sold yet, so nothing is locked in. Realized P&L is what you have actually booked by selling. Only realized P&L is real money in your account.", "ta": "நிறைவேற்றப்படாத லாப நஷ்டம் — காகித லாபம் அல்லது காகித நஷ்டம் என்றும் அழைக்கப்படும் — நீங்கள் இன்னும் வைத்திருக்கும் நிலைகளில் உள்ள ஆதாயம் அல்லது நஷ்டம். நீங்கள் இன்னும் விற்கவில்லை, எனவே எதுவும் உறுதியாகவில்லை. நிறைவேற்றப்பட்ட லாப நஷ்டம் என்பது விற்று உண்மையில் பதிவு செய்தது. நிறைவேற்றப்பட்ட லாப நஷ்டம் மட்டுமே உங்கள் கணக்கில் உண்மையான பணம்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "📄",
+              "title": { "en": "Unrealized (Paper)", "ta": "நிறைவேற்றப்படாத (காகிதம்)" },
+              "subtitle": { "en": "Still holding — profit or loss exists only on screen, can change any minute", "ta": "இன்னும் வைத்திருக்கிறோம் — லாபம் அல்லது நஷ்டம் திரையில் மட்டுமே உள்ளது, எந்த நிமிடமும் மாறலாம்" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "✅",
+              "title": { "en": "Realized (Booked)", "ta": "நிறைவேற்றப்பட்ட (பதிவு செய்யப்பட்ட)" },
+              "subtitle": { "en": "Sold — gain or loss is locked in, actual money credited or debited", "ta": "விற்றுவிட்டோம் — ஆதாயம் அல்லது நஷ்டம் உறுதியாகிவிட்டது, உண்மையான பணம் வரவு அல்லது செலவு" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Many traders watch their unrealized profit grow and keep delaying the exit — only to see it turn into a loss. Paper profit feels real but is not. Always plan your exit price before you enter a trade.", "ta": "பல வர்த்தகர்கள் தங்கள் காகித லாபம் வளர்வதை பார்த்து வெளியேறுவதை தொடர்ந்து தாமதிக்கிறார்கள் — பிறகு அது நஷ்டமாக மாறுவதை பார்க்கிறார்கள். காகித லாபம் உண்மையானதாக தோன்றும் ஆனால் அல்ல. வர்த்தகத்தில் நுழைவதற்கு முன் எப்போதும் வெளியேறும் விலையை திட்டமிடுங்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Hidden Costs", "ta": "மறைமுக செலவுகள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Your Profit Is Smaller Than You Think", "ta": "உங்கள் லாபம் நீங்கள் நினைப்பதை விட குறைவானது" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Every trade in India comes with multiple charges beyond brokerage. These are deducted automatically from your P&L — most beginners discover them only when they check their contract note and wonder where the money went.", "ta": "இந்தியாவில் ஒவ்வொரு வர்த்தகத்திலும் தரகு கட்டணத்திற்கு அப்பால் பல கட்டணங்கள் உண்டு. இவை உங்கள் லாப நஷ்டத்திலிருந்து தானாக கழிக்கப்படும் — பெரும்பாலான தொடக்கக்காரர்கள் ஒப்பந்த குறிப்பை பார்க்கும்போதுதான் கண்டுபிடிக்கிறார்கள், பணம் எங்கே போனது என்று ஆச்சரியப்படுகிறார்கள்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Brokerage", "ta": "தரகு கட்டணம்" }, "val": { "en": "₹20 per order (flat fee — Zerodha, Groww)", "ta": "ஆர்டருக்கு ₹20 (நிலையான கட்டணம் — Zerodha, Groww)" } },
+            { "key": { "en": "STT (Securities Transaction Tax)", "ta": "STT (பத்திர பரிவர்த்தனை வரி)" }, "val": { "en": "0.1% on buy & sell for equity delivery", "ta": "பங்கு டெலிவரி வாங்கு & விற்பனையில் 0.1%" } },
+            { "key": { "en": "Exchange charges (NSE / BSE)", "ta": "பரிமாற்ற கட்டணங்கள் (NSE / BSE)" }, "val": { "en": "Very small % of transaction value", "ta": "பரிவர்த்தனை மதிப்பின் மிகவும் சிறிய %" } },
+            { "key": { "en": "GST", "ta": "GST" }, "val": { "en": "18% on brokerage + exchange charges", "ta": "தரகு + பரிமாற்ற கட்டணங்களில் 18%" } },
+            { "key": { "en": "Stamp duty", "ta": "ஸ்டாம்ப் டியூட்டி" }, "val": { "en": "Small state-level charge on buy side", "ta": "வாங்கும் பக்கத்தில் சிறிய மாநில அளவிலான கட்டணம்" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "For small trades, charges can wipe out a large portion of your gross profit. This is why frequent small trades often destroy capital even when your stock picks are correct.", "ta": "சிறிய வர்த்தகங்களில் கட்டணங்கள் உங்கள் மொத்த லாபத்தின் பெரும் பகுதியை அழிக்கலாம். இதனால்தான் அடிக்கடி சிறிய வர்த்தகங்கள் உங்கள் பங்கு தேர்வுகள் சரியாக இருந்தாலும் முதலீட்டை அழிக்கும்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "You buy and sell shares making a gross profit of ₹500. Your total charges — brokerage, STT, GST, and others — come to ₹350. What is your net profit?", "ta": "நீங்கள் பங்குகளை வாங்கி விற்று மொத்த லாபம் ₹500 சம்பாதிக்கிறீர்கள். உங்கள் மொத்த கட்டணங்கள் — தரகு, STT, GST மற்றும் பிற — ₹350 ஆகிறது. உங்கள் நிகர லாபம் என்ன?" },
+      "options": [
+        { "en": "₹850 — profit plus charges", "ta": "₹850 — லாபம் கூட்டு கட்டணங்கள்" },
+        { "en": "₹500 — the gross profit", "ta": "₹500 — மொத்த லாபம்" },
+        { "en": "₹350 — just the charges paid", "ta": "₹350 — செலுத்திய கட்டணங்கள் மட்டும்" },
+        { "en": "₹150 — gross profit minus charges", "ta": "₹150 — மொத்த லாபம் கழி கட்டணங்கள்" }
+      ],
+      "correct_index": 3,
+      "explanation": { "en": "Net Profit = Gross Profit − Total Charges = ₹500 − ₹350 = ₹150. This is the actual money you keep. On a ₹500 gross profit, charges consumed 70% of your earnings — which is why trade size and charge awareness matter enormously for small traders.", "ta": "நிகர லாபம் = மொத்த லாபம் − மொத்த கட்டணங்கள் = ₹500 − ₹350 = ₹150. இதுதான் நீங்கள் உண்மையில் வைத்திருக்கும் பணம். ₹500 மொத்த லாபத்தில் கட்டணங்கள் உங்கள் வருமானத்தில் 70% எடுத்துக்கொண்டன — சிறிய வர்த்தகர்களுக்கு வர்த்தக அளவும் கட்டண விழிப்புணர்வும் ஏன் மிகவும் முக்கியம் என்பதற்கு இதுவே காரணம்." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "% Return", "ta": "% வருமானம்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "₹10,000 Profit Is Not Always Good", "ta": "₹10,000 லாபம் எப்போதும் நல்லதல்ல" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Absolute profit numbers can be misleading. ₹10,000 profit on a ₹1,00,000 investment is an excellent 10% return. But ₹10,000 profit on a ₹5,00,000 investment is only 2% — which may not even beat a fixed deposit. Always measure P&L as a percentage of your capital.", "ta": "முழுமையான லாப எண்கள் தவறான தோற்றம் கொடுக்கலாம். ₹1,00,000 முதலீட்டில் ₹10,000 லாபம் சிறந்த 10% வருமானம். ஆனால் ₹5,00,000 முதலீட்டில் ₹10,000 லாபம் வெறும் 2% மட்டுமே — இது FD-யை கூட மிஞ்சாமல் போகலாம். லாப நஷ்டத்தை எப்போதும் உங்கள் முதலீட்டின் சதவீதமாக அளவிடுங்கள்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Formula", "ta": "சூத்திரம்" }, "val": { "en": "% Return = (Profit ÷ Investment) × 100", "ta": "% வருமானம் = (லாபம் ÷ முதலீடு) × 100" } },
+            { "key": { "en": "₹10,000 profit on ₹1,00,000", "ta": "₹1,00,000-ல் ₹10,000 லாபம்" }, "val": { "en": "= 10% return ✅ Excellent", "ta": "= 10% வருமானம் ✅ சிறந்தது" } },
+            { "key": { "en": "₹10,000 profit on ₹5,00,000", "ta": "₹5,00,000-ல் ₹10,000 லாபம்" }, "val": { "en": "= 2% return ⚠️ Barely beats FD", "ta": "= 2% வருமானம் ⚠️ FD-யை கஷ்டப்பட்டு மிஞ்சும்" } },
+            { "key": { "en": "₹5,000 loss on ₹50,000", "ta": "₹50,000-ல் ₹5,000 நஷ்டம்" }, "val": { "en": "= −10% loss 🔴 Significant drawdown", "ta": "= −10% நஷ்டம் 🔴 குறிப்பிடத்தக்க வீழ்ச்சி" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Always compare your % return to a benchmark — like the Nifty 50. If Nifty returned 15% this year and you made 6%, the index beat you even though your absolute profit looked fine.", "ta": "உங்கள் % வருமானத்தை எப்போதும் ஒரு அளவுகோலுடன் ஒப்பிடுங்கள் — நிஃப்டி 50 போல். இந்த ஆண்டு நிஃப்டி 15% வருமானம் கொடுத்து நீங்கள் 6% சம்பாதித்தால், உங்கள் முழுமையான லாபம் நன்றாக தோன்றினாலும் இண்டெக்ஸ் உங்களை வெற்றி கொண்டது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "A ₹5,000 profit on a trade is always a good result, regardless of how much capital you invested.", "ta": "ஒரு வர்த்தகத்தில் ₹5,000 லாபம் எப்போதும் ஒரு நல்ல முடிவு — எவ்வளவு முதலீடு செய்தோம் என்பதை பொருட்படுத்தாமல்." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. ₹5,000 on ₹50,000 is a strong 10% return. But ₹5,000 on ₹5,00,000 is just 1% — weaker than a savings account. Always judge a trade's result by its percentage return relative to capital invested, not the absolute rupee amount.", "ta": "பொய். ₹50,000-ல் ₹5,000 வலுவான 10% வருமானம். ஆனால் ₹5,00,000-ல் ₹5,000 வெறும் 1% மட்டுமே — சேமிப்பு கணக்கை விட பலவீனமானது. ஒரு வர்த்தகத்தின் முடிவை எப்போதும் முழுமையான ரூபாய் தொகையால் அல்ல, முதலீட்டு தொகைக்கு தொடர்புடைய சதவீத வருமானத்தால் மதிப்பிடுங்கள்." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

@@ -4375,6 +4375,173 @@ async def stock_analyse(symbol: str):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Stock Health Story — 4-persona fundamental health report
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _stock_health_sync(symbol: str) -> dict:
+    import yfinance as yf
+
+    raw        = symbol.upper().strip()
+    ticker_sym = raw if raw.endswith(".NS") or raw.endswith(".BO") else raw + ".NS"
+    tk         = yf.Ticker(ticker_sym)
+    info       = tk.info or {}
+
+    if not info or (
+        info.get("currentPrice") is None
+        and info.get("regularMarketPrice") is None
+        and info.get("previousClose") is None
+    ):
+        return {"error": f"No data found for '{raw}'. Verify the NSE symbol and try again."}
+
+    def _f(key, decimals=4):
+        v = info.get(key)
+        if v is None:
+            return None
+        try:
+            f = float(v)
+            return None if f != f else round(f, decimals)
+        except (TypeError, ValueError):
+            return None
+
+    company = info.get("longName") or info.get("shortName") or raw
+    sector  = info.get("sector") or ""
+    short   = company.split()[0]
+
+    price      = _f("currentPrice", 2) or _f("regularMarketPrice", 2) or _f("previousClose", 2)
+    prev_close = _f("previousClose", 2)
+    change_pct = (
+        round((price - prev_close) / prev_close * 100, 2)
+        if price and prev_close and prev_close != 0 else None
+    )
+
+    market_cap   = _f("marketCap", 0)
+    cap_category = None
+    if market_cap is not None:
+        if market_cap >= 200_000_000_000:
+            cap_category = "Large Cap"
+        elif market_cap >= 50_000_000_000:
+            cap_category = "Mid Cap"
+        else:
+            cap_category = "Small Cap"
+
+    roe       = _f("returnOnEquity", 4)   # decimal 0.18 = 18 %
+    de_raw    = _f("debtToEquity",   2)   # yfinance stores 50 = 0.5 × D/E
+    profit_mg = _f("profitMargins",  4)   # decimal 0.12 = 12 %
+    rev_gr    = _f("revenueGrowth",  4)   # decimal 0.20 = 20 %
+
+    roe_pct    = round(roe * 100, 1)       if roe       is not None else None
+    de_disp    = round(de_raw / 100, 2)    if de_raw    is not None else None
+    margin_pct = round(profit_mg * 100, 1) if profit_mg is not None else None
+    rev_pct    = round(rev_gr * 100, 1)    if rev_gr    is not None else None
+
+    available = sum(1 for x in [roe, de_raw, profit_mg, rev_gr] if x is not None)
+
+    if available < 2:
+        persona, score = "unavailable", 0.0
+    elif rev_gr is not None and rev_gr > 0.20:
+        persona, score = "spring_bud", 6.5
+    else:
+        score = 0.0
+        if roe       is not None: score += 2.5 if roe >= 0.15       else (1.5 if roe >= 0.08       else 0)
+        if de_raw    is not None: score += 2.5 if de_raw < 50       else (1.5 if de_raw < 100       else 0)
+        if profit_mg is not None: score += 2.5 if profit_mg >= 0.10 else (1.5 if profit_mg >= 0     else 0)
+        if rev_gr    is not None: score += 2.5 if rev_gr >= 0.10    else (1.5 if rev_gr >= 0        else 0)
+        if profit_mg is not None and profit_mg < 0:
+            score = min(score, 2.5)
+        persona = "fortress" if score >= 7 else ("fading_giant" if score >= 4 else "leaky_bucket")
+
+    def _st_roe(v):
+        if v is None: return "na"
+        return "good" if v >= 0.15 else ("neutral" if v >= 0.08 else "concern")
+
+    def _st_de(v):
+        if v is None: return "na"
+        return "good" if v < 50 else ("neutral" if v < 100 else "concern")
+
+    def _st_mg(v):
+        if v is None: return "na"
+        return "good" if v >= 0.10 else ("neutral" if v >= 0 else "concern")
+
+    def _st_rev(v):
+        if v is None: return "na"
+        return "good" if v >= 0.10 else ("neutral" if v >= 0 else "concern")
+
+    def _pct(v, sign=False):
+        if v is None: return "N/A"
+        return (("+" if v >= 0 else "") + f"{v}%") if sign else f"{v}%"
+
+    metrics = {
+        "roe":        {"display": _pct(roe_pct),             "status": _st_roe(roe),    "label": "Return on Equity", "label_ta": "பங்கு வருமானம்"},
+        "de_ratio":   {"display": f"{de_disp}x" if de_disp is not None else "N/A", "status": _st_de(de_raw), "label": "Debt / Equity", "label_ta": "கடன் / பங்கு"},
+        "net_margin": {"display": _pct(margin_pct),          "status": _st_mg(profit_mg), "label": "Net Margin",    "label_ta": "நிகர லாப வரம்பு"},
+        "rev_growth": {"display": _pct(rev_pct, sign=True),  "status": _st_rev(rev_gr), "label": "Revenue Growth",  "label_ta": "வருவாய் வளர்ச்சி"},
+    }
+
+    roe_s    = _pct(roe_pct)
+    de_s     = f"{de_disp}x" if de_disp is not None else "N/A"
+    margin_s = _pct(margin_pct)
+    rev_s    = _pct(rev_pct, sign=True)
+
+    _narr = {
+        "fortress": {
+            "en": f"{short} earns {roe_s} return on shareholder equity and carries a debt load of {de_s} — the structure of a financially disciplined business. Revenue is growing at {rev_s} with net margins at {margin_s}.",
+            "ta": f"{short} பங்குதாரர் பணத்தில் {roe_s} வருமானம் ஈட்டுகிறது, கடன் சுமை {de_s} மட்டுமே உள்ளது. இது நிதி நிலையான நிறுவனத்தின் அமைப்பு — வருவாய் வளர்ச்சி {rev_s}, நிகர லாப வரம்பு {margin_s}.",
+        },
+        "spring_bud": {
+            "en": f"{short} is expanding revenue at {rev_s} year over year — a pace that points to a business in fast-growth mode. Margins may be thin as the company invests in scale, but the direction is upward.",
+            "ta": f"{short} வருடத்திற்கு {rev_s} வேகத்தில் வளர்கிறது — இது வேகமாக விரிவடையும் நிறுவனத்தின் அறிகுறி. வளர்ச்சியில் முதலீடு செய்வதால் லாப வரம்பு குறைவாக இருக்கலாம், ஆனால் திசை மேல்நோக்கியது.",
+        },
+        "fading_giant": {
+            "en": f"{short} is profitable but momentum has softened — ROE of {roe_s} and revenue growth of {rev_s} suggest the business is in a consolidation phase. The core structure holds, but the energy has slowed.",
+            "ta": f"{short} இன்னும் லாபகரமாக உள்ளது, ஆனால் வளர்ச்சி மெதுவாகிவிட்டது. ROE {roe_s}, வருவாய் வளர்ச்சி {rev_s} — நிறுவனம் நிலையான கட்டத்தில் உள்ளது. அடிப்படை கட்டமைப்பு நிலையாக உள்ளது, ஆனால் வேகம் குறைந்துள்ளது.",
+        },
+        "leaky_bucket": {
+            "en": f"{short} is under financial pressure — net margins at {margin_s} and a debt ratio of {de_s} signal a business that needs to course-correct. The current metrics require careful observation before the picture improves.",
+            "ta": f"{short} நிதி சவால்களை எதிர்கொள்கிறது — நிகர லாப வரம்பு {margin_s}, கடன் விகிதம் {de_s}. தற்போதைய குறிகாட்டிகள் நிறுவனத்திற்கு திசை திருத்தல் தேவை என்று காட்டுகின்றன.",
+        },
+        "unavailable": {
+            "en": f"Insufficient financial data is available for {raw} at this time. Try a Nifty 500 stock for best results.",
+            "ta": f"{raw}-க்கான போதுமான நிதி தரவு இப்போது கிடைக்கவில்லை. Nifty 500 பங்குகளில் சிறந்த முடிவுகள் கிடைக்கும்.",
+        },
+    }
+
+    _nudge = {
+        "fortress":     {"en": "Solid fundamentals. Study the recent price structure in Stock Analyser.",       "ta": "வலுவான அடிப்படை. Stock Analyser-ல் சமீபத்திய விலை அமைப்பை ஆராயுங்கள்.",             "link": f"/stock-analyser.html?symbol={raw}", "link_en": "Open Stock Analyser",   "link_ta": "Stock Analyser திறக்கவும்"},
+        "spring_bud":   {"en": "High growth, elevated risk. Observe option activity in F&O Scanner to read market sentiment.", "ta": "அதிக வளர்ச்சி, அதிக ரிஸ்க். சந்தை உணர்வை படிக்க F&O Scanner-ல் ஆப்ஷன் நடவடிக்கையை கவனிக்கவும்.", "link": "/fno_scanner.html",                 "link_en": "Open F&O Scanner",       "link_ta": "F&O Scanner திறக்கவும்"},
+        "fading_giant": {"en": "Signs of a slowdown. Observe the recent price trend in Stock Analyser.",       "ta": "மெதுவடைவின் அறிகுறிகள். Stock Analyser-ல் சமீபத்திய விலை போக்கை கவனிக்கவும்.",    "link": f"/stock-analyser.html?symbol={raw}", "link_en": "Open Stock Analyser",   "link_ta": "Stock Analyser திறக்கவும்"},
+        "leaky_bucket": {"en": "High risk profile. Check Market Movers to observe if selling pressure is building.", "ta": "அதிக ரிஸ்க். விற்பனை அழுத்தம் அதிகரிக்கிறதா என Market Movers-ல் கவனிக்கவும்.", "link": "/stock_movers.html",                "link_en": "Open Market Movers",     "link_ta": "Market Movers திறக்கவும்"},
+        "unavailable":  {"en": "Try Stock Analyser for available data on this symbol.",                        "ta": "இந்த பங்கின் தரவுக்கு Stock Analyser-ஐ முயற்சிக்கவும்.",                           "link": "/stock-analyser.html",               "link_en": "Open Stock Analyser",   "link_ta": "Stock Analyser திறக்கவும்"},
+    }
+
+    return {
+        "symbol":       raw,
+        "company":      company,
+        "sector":       sector,
+        "cap_category": cap_category,
+        "price":        price,
+        "change_pct":   change_pct,
+        "persona":      persona,
+        "score":        round(score, 1),
+        "metrics":      metrics,
+        "narrative":    _narr.get(persona, _narr["unavailable"]),
+        "nudge":        _nudge.get(persona, _nudge["unavailable"]),
+        "data_note":    "Financial ratios from latest annual report via Yahoo Finance. Prices ~15 min delayed.",
+        "available":    persona != "unavailable",
+    }
+
+
+@app.get("/stock/health/{symbol}")
+async def stock_health(symbol: str):
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, _stock_health_sync, symbol)
+        return result
+    except Exception as e:
+        log.error(f"[STOCK-HEALTH] {symbol}: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/mgmt/logs/{srv}")
 async def mgmt_logs(srv: str, request: Request):
     if not _check_token(request):

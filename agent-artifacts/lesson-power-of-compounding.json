@@ -1,0 +1,228 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🌱",
+      "heading": { "en": "Power of Compounding", "ta": "கம்பவுண்டிங்கின் சக்தி" },
+      "description": { "en": "The secret that turns small, regular investments into life-changing wealth — one rupee at a time.", "ta": "சிறிய, தொடர்ச்சியான முதலீடுகளை வாழ்க்கையை மாற்றும் செல்வமாக மாற்றும் ரகசியம் — ஒரு ரூபாய் ஒரு ரூபாயாக." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🌊",
+      "title": { "en": "Compounding is slow at first — then suddenly unstoppable.", "ta": "கம்பவுண்டிங் ஆரம்பத்தில் மெதுவாக இருக்கும் — பிறகு திடீரென்று தடுக்கவே முடியாது." },
+      "caption": { "en": "Like a wave quietly building in the ocean, compounding gathers force before it breaks big.", "ta": "கடலில் அமைதியாக வளரும் அலை போல், கம்பவுண்டிங் வெடிப்பதற்கு முன் சக்தியை திரட்டுகிறது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "How It Works", "ta": "எப்படி வேலை செய்கிறது" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Earning Returns on Your Returns", "ta": "உங்கள் வருமானத்திலும் வருமானம் சம்பாதித்தல்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Simple interest pays you returns only on your original amount. Compounding pays you returns on your original amount AND on every rupee of return you have already earned. That small difference becomes enormous over decades.", "ta": "தனி வட்டி உங்கள் அசல் தொகையில் மட்டுமே வருமானம் தரும். கம்பவுண்டிங் அசல் தொகையிலும், ஏற்கனவே சம்பாதித்த ஒவ்வொரு ரூபாய் வருமானத்திலும் வருமானம் தரும். அந்த சிறிய வித்தியாசம் பல தசாப்தங்களில் மிகப்பெரியதாகிறது." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "➖",
+              "title": { "en": "Simple Interest", "ta": "தனி வட்டி" },
+              "subtitle": { "en": "Earn returns on your original amount only — every year the same", "ta": "அசல் தொகையில் மட்டுமே வருமானம் — ஒவ்வொரு ஆண்டும் ஒரே தொகை" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "📈",
+              "title": { "en": "Compound Interest", "ta": "கூட்டு வட்டி" },
+              "subtitle": { "en": "Earn returns on original + all past returns — grows bigger each year", "ta": "அசல் + கடந்த வருமானம் அனைத்திலும் — ஒவ்வொரு ஆண்டும் அதிகமாக வளரும்" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "₹1 lakh at 12% for 20 years: Simple interest = ₹3.4 lakh. Compound interest = ₹9.6 lakh. Same money, same rate — nearly 3× the result.", "ta": "20 ஆண்டுகளில் 12%-ல் ₹1 லட்சம்: தனி வட்டி = ₹3.4 லட்சம். கூட்டு வட்டி = ₹9.6 லட்சம். அதே பணம், அதே விகிதம் — கிட்டத்தட்ட 3 மடங்கு முடிவு." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Simple vs Compound", "ta": "தனி vs கூட்டு வட்டி" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The Gap Grows Every Year", "ta": "இடைவெளி ஒவ்வொரு ஆண்டும் அதிகரிக்கிறது" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "In the early years, compounding looks almost the same as simple interest. But after year 10, the gap widens dramatically. By year 30, the difference is staggering — this is why long-term investing is so powerful.", "ta": "ஆரம்ப ஆண்டுகளில் கம்பவுண்டிங் தனி வட்டியை போலவே தெரியும். ஆனால் 10 ஆண்டுகளுக்கு பிறகு இடைவெளி வேகமாக அதிகரிக்கிறது. 30 ஆண்டுகளில் வித்தியாசம் அதிர்ச்சியளிக்கும் — இதனால்தான் நீண்டகால முதலீடு மிகவும் சக்திவாய்ந்தது." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "After 5 years", "ta": "5 ஆண்டுகளில்" }, "val": { "en": "Simple ₹1.6L  vs  Compound ₹1.76L", "ta": "தனி ₹1.6L  vs  கூட்டு ₹1.76L" } },
+            { "key": { "en": "After 10 years", "ta": "10 ஆண்டுகளில்" }, "val": { "en": "Simple ₹2.2L  vs  Compound ₹3.1L", "ta": "தனி ₹2.2L  vs  கூட்டு ₹3.1L" } },
+            { "key": { "en": "After 20 years", "ta": "20 ஆண்டுகளில்" }, "val": { "en": "Simple ₹3.4L  vs  Compound ₹9.6L", "ta": "தனி ₹3.4L  vs  கூட்டு ₹9.6L" } },
+            { "key": { "en": "After 30 years", "ta": "30 ஆண்டுகளில்" }, "val": { "en": "Simple ₹4.6L  vs  Compound ₹29.9L", "ta": "தனி ₹4.6L  vs  கூட்டு ₹29.9L" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "The magic really kicks in after year 10. Patience is not just a virtue here — it is the strategy.", "ta": "உண்மையான மாயம் 10 ஆண்டுகளுக்கு பிறகே தொடங்குகிறது. இங்கே பொறுமை வெறும் நல்ல குணம் மட்டுமல்ல — அதுவே உத்தி." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "₹1 lakh is invested at 12% for 20 years. Which gives a higher final amount?", "ta": "₹1 லட்சம் 20 ஆண்டுகளுக்கு 12%-ல் முதலீடு செய்யப்படுகிறது. எது அதிக இறுதி தொகையை தரும்?" },
+      "options": [
+        { "en": "Simple interest — it is more predictable", "ta": "தனி வட்டி — இது மிகவும் கணிக்கக்கூடியது" },
+        { "en": "Compound interest — returns earn returns", "ta": "கூட்டு வட்டி — வருமானமும் வருமானம் சம்பாதிக்கும்" },
+        { "en": "Both give the same result over 20 years", "ta": "20 ஆண்டுகளில் இரண்டும் சம முடிவை தரும்" },
+        { "en": "Depends on market conditions", "ta": "சந்தை நிலைமையை பொறுத்தது" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "At 12% for 20 years: simple interest gives ₹3.4 lakh while compound interest gives ₹9.6 lakh — nearly 3× more. Compounding earns returns on every rupee already earned, creating a snowball effect that simple interest never can.", "ta": "20 ஆண்டுகளில் 12%-ல்: தனி வட்டி ₹3.4 லட்சம் தர, கூட்டு வட்டி ₹9.6 லட்சம் தருகிறது — கிட்டத்தட்ட 3 மடங்கு அதிகம். கம்பவுண்டிங் ஏற்கனவே சம்பாதித்த ஒவ்வொரு ரூபாயிலும் வருமானம் சம்பாதிக்கிறது — தனி வட்டியால் ஒருபோதும் முடியாத பனிப்பந்து விளைவை உருவாக்குகிறது." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Frequency Matters", "ta": "அதிர்வெண் முக்கியம்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "How Often You Compound Changes Everything", "ta": "எத்தனை முறை கம்பவுண்ட் ஆகிறது என்பது எல்லாவற்றையும் மாற்றும்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Compounding can happen annually, quarterly, monthly, or even daily. The more frequently your money compounds, the faster it grows — even at the exact same interest rate. This is why mutual funds and equities are so powerful.", "ta": "கம்பவுண்டிங் வருடாந்திரம், காலாண்டு, மாதாந்திரம் அல்லது தினசரி ஆகலாம். உங்கள் பணம் எவ்வளவு அடிக்கடி கம்பவுண்ட் ஆகிறதோ, அவ்வளவு வேகமாக வளரும் — அதே வட்டி விகிதத்திலும் கூட. இதனால்தான் மியூச்சுவல் ஃபண்டும் பங்குகளும் மிகவும் சக்திவாய்ந்தவை." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Annual compounding", "ta": "வருடாந்திர கம்பவுண்டிங்" }, "val": { "en": "12.00% effective return", "ta": "12.00% பயனுள்ள வருமானம்" } },
+            { "key": { "en": "Monthly compounding", "ta": "மாதாந்திர கம்பவுண்டிங்" }, "val": { "en": "12.68% effective return", "ta": "12.68% பயனுள்ள வருமானம்" } },
+            { "key": { "en": "Daily compounding", "ta": "தினசரி கம்பவுண்டிங்" }, "val": { "en": "12.75% effective return", "ta": "12.75% பயனுள்ள வருமானம்" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Mutual funds and stocks compound effectively every market day. This is why staying invested — without withdrawing — is so important.", "ta": "மியூச்சுவல் ஃபண்டும் பங்குகளும் ஒவ்வொரு சந்தை நாளும் பயனுள்ள முறையில் கம்பவுண்ட் ஆகின்றன. எடுக்காமல் முதலீட்டில் இருப்பது ஏன் மிக முக்கியம் என்பதற்கு இதுவே காரணம்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Real Examples", "ta": "உண்மை உதாரணங்கள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The 8th Wonder of the World", "ta": "உலகின் 8-வது அதிசயம்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Albert Einstein reportedly called compound interest the 8th wonder of the world: \"He who understands it, earns it — he who doesn't, pays it.\" The Nifty 50 has delivered roughly 12% CAGR over the long term, making it a real-life compounding machine for Indian investors.", "ta": "ஆல்பர்ட் ஐன்ஸ்டீன் கூட்டு வட்டியை உலகின் 8-வது அதிசயம் என்று அழைத்தார்: \"இதை புரிந்துகொள்பவர் சம்பாதிப்பார் — புரியாதவர் செலுத்துவார்.\" நிஃப்டி 50 நீண்டகாலத்தில் தோராயமாக 12% CAGR வழங்கியது — இந்திய முதலீட்டாளர்களுக்கு உண்மையான கம்பவுண்டிங் இயந்திரமாக இருக்கிறது." }
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "₹1 lakh → ₹9.6 lakh", "ta": "₹1 லட்சம் → ₹9.6 லட்சம்" },
+          "subtitle": { "en": "in 20 years at 12% CAGR — the Nifty 50's long-term historical average", "ta": "20 ஆண்டுகளில் 12% CAGR-ல் — நிஃப்டி 50-இன் நீண்டகால வரலாற்று சராசரி" }
+        },
+        {
+          "type": "callout",
+          "text": { "en": "A ₹5,000/month SIP in a Nifty 50 index fund started in 2004 would have grown to over ₹50 lakh by 2024 — on a total investment of just ₹12 lakh.", "ta": "2004-ல் நிஃப்டி 50 இண்டெக்ஸ் ஃபண்டில் ₹5,000/மாதம் SIP தொடங்கினால் 2024-ல் ₹50 லட்சத்திற்கும் மேல் ஆகியிருக்கும் — வெறும் ₹12 லட்சம் மட்டுமே மொத்த முதலீடு." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "₹1 lakh invested at 12% compound interest for 30 years grows to approximately:", "ta": "₹1 லட்சம் 12% கூட்டு வட்டியில் 30 ஆண்டுகளுக்கு முதலீடு செய்தால் தோராயமாக எவ்வளவு ஆகும்?" },
+      "options": [
+        { "en": "₹4.6 lakh", "ta": "₹4.6 லட்சம்" },
+        { "en": "₹12 lakh", "ta": "₹12 லட்சம்" },
+        { "en": "₹30 lakh", "ta": "₹30 லட்சம்" },
+        { "en": "₹50 lakh", "ta": "₹50 லட்சம்" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "₹1 lakh at 12% compound interest for 30 years = ~₹29.9 lakh, which is approximately ₹30 lakh. Compare this to simple interest which gives only ₹4.6 lakh — compounding delivers nearly 7× more over 30 years.", "ta": "₹1 லட்சம் 12% கூட்டு வட்டியில் 30 ஆண்டுகளில் ~₹29.9 லட்சம் ஆகும், தோராயமாக ₹30 லட்சம். தனி வட்டி வெறும் ₹4.6 லட்சம் தரும் — 30 ஆண்டுகளில் கம்பவுண்டிங் கிட்டத்தட்ட 7 மடங்கு அதிகம் தருகிறது." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Kills It", "ta": "எது அழிக்கிறது" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Never Interrupt Your Compounding", "ta": "உங்கள் கம்பவுண்டிங்கை ஒருபோதும் குறுக்கிடாதீர்கள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Compounding has one weakness — it needs to be left undisturbed. Withdrawing early, pausing SIPs during market dips, or constantly switching funds all break the compounding chain and restart the clock from zero.", "ta": "கம்பவுண்டிங்கிற்கு ஒரே ஒரு பலவீனம் உண்டு — அதை தொந்தரவு செய்யாமல் விட வேண்டும். சீக்கிரம் எடுப்பது, சந்தை வீழ்ச்சியின்போது SIP நிறுத்துவது, அல்லது தொடர்ந்து ஃபண்ட் மாற்றுவது — இவை எல்லாம் கம்பவுண்டிங் சங்கிலியை உடைத்து கடிகாரத்தை மீண்டும் பூஜ்ஜியத்திலிருந்து தொடங்க வைக்கும்." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Withdrawing midway loses all future compounding on that amount", "ta": "நடுவில் எடுப்பது அந்த தொகையின் எல்லா எதிர்கால கம்பவுண்டிங்கையும் இழக்கும்" },
+            { "en": "Stopping your SIP during a crash is the worst time to quit", "ta": "சந்தை வீழ்ச்சியின்போது SIP நிறுத்துவது விட மோசமான நேரம் இல்லை" },
+            { "en": "Switching funds frequently resets your compounding period", "ta": "அடிக்கடி ஃபண்ட் மாற்றுவது உங்கள் கம்பவுண்டிங் காலத்தை மீட்டமைக்கிறது" },
+            { "en": "Taking out gains and spending them stops the snowball from growing", "ta": "லாபத்தை எடுத்து செலவழிப்பது பனிப்பந்தை வளர விடாமல் நிறுத்துகிறது" }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "The biggest enemy of compounding is not the stock market — it is your own impatience. Stay invested through the ups and downs.", "ta": "கம்பவுண்டிங்கின் மிகப்பெரிய எதிரி பங்குச் சந்தை இல்லை — உங்கள் சொந்த அவசரம். ஏற்ற இறக்கங்களில் முதலீட்டில் இருந்துவிடுங்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "Stopping your SIP for just one year during a market crash has no significant impact on your final corpus.", "ta": "சந்தை வீழ்ச்சியின்போது வெறும் ஒரு ஆண்டு SIP நிறுத்துவது உங்கள் இறுதி முதலீட்டு தொகுப்பில் குறிப்பிடத்தக்க தாக்கம் இல்லை." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. Every missed SIP instalment breaks the compounding chain for that amount. Worse, market crashes are actually the best time to keep investing — you buy more units at lower prices. Pausing during a crash hurts twice: you miss cheap units and lose compounding on that money.", "ta": "பொய். தவறிய ஒவ்வொரு SIP தவணையும் அந்த தொகையின் கம்பவுண்டிங் சங்கிலியை உடைக்கிறது. மேலும், சந்தை வீழ்ச்சி உண்மையில் தொடர்ந்து முதலீடு செய்ய மிகச் சிறந்த நேரம் — குறைந்த விலையில் அதிக யூனிட்கள் வாங்கலாம். வீழ்ச்சியில் நிறுத்துவது இரண்டு விதமாக காயப்படுத்தும்: மலிவான யூனிட்களை இழப்பீர்கள், அந்த பணத்தின் கம்பவுண்டிங்கையும் இழப்பீர்கள்." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

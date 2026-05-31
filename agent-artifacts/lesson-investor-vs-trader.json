@@ -1,0 +1,240 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🏁",
+      "heading": { "en": "Investor vs Trader", "ta": "முதலீட்டாளர் vs வர்த்தகர்" },
+      "description": { "en": "Same market, very different approaches. Knowing which one you are — or want to be — changes everything about how you participate.", "ta": "ஒரே சந்தை, மிகவும் வேறுபட்ட அணுகுமுறைகள். நீங்கள் யார் என்று — அல்லது யாராக விரும்புகிறீர்கள் என்று — தெரிந்தால் நீங்கள் எப்படி பங்கேற்கிறீர்கள் என்பதையே மாற்றும்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🏃",
+      "title": { "en": "Trading is a sprint. Investing is a marathon.", "ta": "வர்த்தகம் ஒரு ஓட்டப் போட்டி. முதலீடு ஒரு மாரத்தான்." },
+      "caption": { "en": "Both can win — but they need different strategies, different tools, and a very different mindset.", "ta": "இரண்டும் வெல்லலாம் — ஆனால் வேறு வேறு உத்திகள், வேறு வேறு கருவிகள், மிகவும் வேறுபட்ட மனோபாவம் தேவை." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "The Investor", "ta": "முதலீட்டாளர்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Buy, Hold, and Let It Grow", "ta": "வாங்கு, வை, வளர விடு" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "An investor buys shares of a company because they believe in its long-term business growth. They hold for years — sometimes decades — and are not bothered by short-term price swings. Their goal is wealth creation through compounding and business growth.", "ta": "ஒரு முதலீட்டாளர் நீண்டகால வணிக வளர்ச்சியில் நம்பிக்கை கொண்டு ஒரு நிறுவனத்தின் பங்குகளை வாங்குகிறார். ஆண்டுகளாக — சில நேரங்களில் தசாப்தங்களாக — வைத்திருக்கிறார், குறுகிய கால விலை ஏற்ற இறக்கங்களால் கலக்கம் கொள்வதில்லை. கம்பவுண்டிங் மற்றும் வணிக வளர்ச்சி மூலம் செல்வம் உருவாக்குவதே அவர்களின் இலக்கு." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Time horizon: 3 years to 30+ years", "ta": "காலகட்டம்: 3 ஆண்டுகள் முதல் 30+ ஆண்டுகள்" },
+            { "en": "Focuses on: earnings growth, management quality, business moat", "ta": "கவனம்: வருமான வளர்ச்சி, நிர்வாக தரம், வணிக பலம்" },
+            { "en": "Example: Rakesh Jhunjhunwala held Titan for decades", "ta": "உதாரணம்: ராகேஷ் ஜுன்ஜுன்வாலா டைட்டனை தசாப்தங்களாக வைத்திருந்தார்" },
+            { "en": "Stress level: low — checks portfolio occasionally", "ta": "மன அழுத்தம்: குறைவு — போர்ட்ஃபோலியோவை அவ்வப்போது பார்க்கிறார்" }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Investors don't panic when Nifty drops 5% in a week. They see it as an opportunity to buy a good business at a lower price.", "ta": "நிஃப்டி ஒரு வாரத்தில் 5% வீழும்போது முதலீட்டாளர்கள் பீதி கொள்வதில்லை. குறைந்த விலையில் ஒரு நல்ல வணிகத்தை வாங்கும் வாய்ப்பாக பார்க்கிறார்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "The Trader", "ta": "வர்த்தகர்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Buy, Sell, Repeat — Quickly", "ta": "வாங்கு, விற்று, மீண்டும் — வேகமாக" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "A trader buys and sells stocks — or derivatives — to profit from short-term price movements. They do not care about a company's long-term future; they care about where the price is going in the next few minutes, hours, or days.", "ta": "ஒரு வர்த்தகர் குறுகிய கால விலை நகர்வுகளில் இருந்து லாபம் பெற பங்குகளை — அல்லது டெரிவேட்டிவ்களை — வாங்கி விற்கிறார். நிறுவனத்தின் நீண்டகால எதிர்காலத்தை அவர்கள் கவலைப்படுவதில்லை; அடுத்த சில நிமிடங்கள், மணிநேரங்கள் அல்லது நாட்களில் விலை எங்கே போகும் என்று கவலைப்படுகிறார்கள்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Scalper", "ta": "ஸ்கால்பர்" }, "val": { "en": "Seconds to minutes — dozens of trades per day", "ta": "வினாடிகள் முதல் நிமிடங்கள் — நாளுக்கு டஜன் கணக்கான வர்த்தகங்கள்" } },
+            { "key": { "en": "Intraday trader", "ta": "இன்ட்ராடே வர்த்தகர்" }, "val": { "en": "Same day — all positions closed before market close", "ta": "அதே நாள் — சந்தை மூடுவதற்கு முன் எல்லா நிலைகளும் மூடப்படும்" } },
+            { "key": { "en": "Swing trader", "ta": "ஸ்விங் வர்த்தகர்" }, "val": { "en": "2–10 days — rides short price swings", "ta": "2–10 நாட்கள் — குறுகிய விலை ஏற்ற இறக்கங்களை சவாரி செய்கிறார்" } },
+            { "key": { "en": "Positional trader", "ta": "போசிஷனல் வர்த்தகர்" }, "val": { "en": "Weeks to a few months — medium-term momentum", "ta": "வாரங்கள் முதல் சில மாதங்கள் — நடுத்தர கால வேகம்" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Trading demands significant time, discipline, and emotional control. SEBI data shows over 90% of intraday traders in India lose money over the long run.", "ta": "வர்த்தகம் குறிப்பிடத்தக்க நேரம், ஒழுக்கம் மற்றும் உணர்ச்சி கட்டுப்பாடு தேவைப்படுகிறது. SEBI தரவு காட்டுகிறது — இந்தியாவில் 90%-க்கும் மேலான இன்ட்ராடே வர்த்தகர்கள் நீண்டகாலத்தில் பணம் இழக்கிறார்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Meena buys 500 shares of HDFC Bank and plans to hold them for 10 years without worrying about daily price moves. She is best described as:", "ta": "மீனா HDFC வங்கியின் 500 பங்குகளை வாங்கி, தினசரி விலை நகர்வுகளை கவலைப்படாமல் 10 ஆண்டுகள் வைத்திருக்க திட்டமிடுகிறாள். அவள் யாராக வர்ணிக்கப்படுவாள்?" },
+      "options": [
+        { "en": "An intraday trader — she holds positions", "ta": "ஒரு இன்ட்ராடே வர்த்தகர் — அவள் நிலைகளை வைத்திருக்கிறாள்" },
+        { "en": "A swing trader — 10 years is a long swing", "ta": "ஒரு ஸ்விங் வர்த்தகர் — 10 ஆண்டுகள் நீண்ட ஸ்விங்" },
+        { "en": "An investor — long-term hold focused on business growth", "ta": "ஒரு முதலீட்டாளர் — வணிக வளர்ச்சியில் கவனம் செலுத்தும் நீண்டகால வைத்திருத்தல்" },
+        { "en": "A scalper — she is very patient", "ta": "ஒரு ஸ்கால்பர் — அவள் மிகவும் பொறுமையானவள்" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "Meena's 10-year holding horizon and focus on the company's business rather than daily price moves clearly describes an investor. Traders close positions within days or weeks — an investor stays invested through market cycles, compounding wealth over time.", "ta": "மீனாவின் 10 ஆண்டு வைத்திருத்தல் காலகட்டமும் தினசரி விலைக்கு பதிலாக நிறுவனத்தின் வணிகத்தில் கவனமும் தெளிவாக ஒரு முதலீட்டாளரை விவரிக்கிறது. வர்த்தகர்கள் நாட்கள் அல்லது வாரங்களில் நிலைகளை மூடுகிறார்கள் — ஒரு முதலீட்டாளர் சந்தை சுழற்சிகளில் முதலீட்டில் இருந்து காலப்போக்கில் செல்வத்தை கம்பவுண்ட் செய்கிறார்." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Side by Side", "ta": "ஒப்பீடு" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Investor vs Trader — At a Glance", "ta": "முதலீட்டாளர் vs வர்த்தகர் — ஒரே பார்வையில்" }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "🌳",
+              "title": { "en": "Investor", "ta": "முதலீட்டாளர்" },
+              "subtitle": { "en": "Long-term · Fundamentals · Low stress · Compounding wealth", "ta": "நீண்ட காலம் · அடிப்படைகள் · குறைந்த மன அழுத்தம் · கம்பவுண்டிங் செல்வம்" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "⚡",
+              "title": { "en": "Trader", "ta": "வர்த்தகர்" },
+              "subtitle": { "en": "Short-term · Price action · High intensity · Quick gains", "ta": "குறுகிய காலம் · விலை நகர்வு · அதிக தீவிரம் · விரைவான ஆதாயங்கள்" },
+              "variant": "neutral"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Time horizon", "ta": "காலகட்டம்" }, "val": { "en": "Years to decades  vs  Minutes to weeks", "ta": "ஆண்டுகள் முதல் தசாப்தங்கள்  vs  நிமிடங்கள் முதல் வாரங்கள்" } },
+            { "key": { "en": "Primary tool", "ta": "முதன்மை கருவி" }, "val": { "en": "Fundamental Analysis  vs  Technical Analysis", "ta": "அடிப்படை பகுப்பாய்வு  vs  தொழில்நுட்ப பகுப்பாய்வு" } },
+            { "key": { "en": "Tax treatment", "ta": "வரி நடத்தை" }, "val": { "en": "LTCG (10% above ₹1L)  vs  STCG (15%)", "ta": "நீண்டகால மூலதன ஆதாய வரி (₹1L மேல் 10%)  vs  குறுகியகால (15%)" } },
+            { "key": { "en": "Risk type", "ta": "ஆபத்து வகை" }, "val": { "en": "Business risk (company fails)  vs  Market / price risk", "ta": "வணிக ஆபத்து (நிறுவனம் தோல்வி)  vs  சந்தை / விலை ஆபத்து" } }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "FA vs TA", "ta": "FA vs TA" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Different Maps for Different Journeys", "ta": "வேறு வேறு பயணங்களுக்கு வேறு வேறு வரைபடங்கள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Investors primarily use Fundamental Analysis — studying a company's financials, earnings, management, and competitive position. Traders primarily use Technical Analysis — studying charts, price patterns, volume, and indicators to predict near-term price moves.", "ta": "முதலீட்டாளர்கள் முதன்மையாக அடிப்படை பகுப்பாய்வை பயன்படுத்துகிறார்கள் — நிறுவனத்தின் நிதிகள், வருமானம், நிர்வாகம் மற்றும் போட்டி நிலையை ஆய்வு செய்கிறார்கள். வர்த்தகர்கள் முதன்மையாக தொழில்நுட்ப பகுப்பாய்வை பயன்படுத்துகிறார்கள் — அருகிலுள்ள விலை நகர்வுகளை கணிக்க சார்ட்கள், விலை வடிவங்கள், வால்யூம் மற்றும் குறிகாட்டிகளை ஆய்வு செய்கிறார்கள்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "📋",
+              "title": { "en": "Fundamental Analysis", "ta": "அடிப்படை பகுப்பாய்வு (FA)" },
+              "subtitle": { "en": "P/E ratio · Revenue growth · Debt · Promoter holding — Is this a great business?", "ta": "P/E விகிதம் · வருவாய் வளர்ச்சி · கடன் · புரமோட்டர் வைத்திருத்தல் — இது சிறந்த வணிகமா?" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "📈",
+              "title": { "en": "Technical Analysis", "ta": "தொழில்நுட்ப பகுப்பாய்வு (TA)" },
+              "subtitle": { "en": "Support & resistance · Candlestick patterns · RSI · Moving averages — Where will price go next?", "ta": "ஆதரவு & எதிர்ப்பு · மெழுகுவர்த்தி வடிவங்கள் · RSI · நகரும் சராசரி — விலை அடுத்து எங்கே போகும்?" },
+              "variant": "neutral"
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Many experienced market participants use both — Fundamental Analysis to decide WHAT to buy, Technical Analysis to decide WHEN to buy it.", "ta": "பல அனுபவமிக்க சந்தை பங்கேற்பாளர்கள் இரண்டையும் பயன்படுத்துகிறார்கள் — என்ன வாங்குவது என்று அடிப்படை பகுப்பாய்வும், எப்போது வாங்குவது என்று தொழில்நுட்ப பகுப்பாய்வும்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Vijay studies a company's quarterly earnings, debt levels, and management quality before buying its shares for a 5-year hold. Which approach is he using?", "ta": "விஜய் ஒரு நிறுவனத்தின் காலாண்டு வருமானம், கடன் நிலைகள் மற்றும் நிர்வாக தரத்தை ஆய்வு செய்த பிறகு 5 ஆண்டு வைத்திருத்தலுக்காக பங்குகளை வாங்குகிறார். அவர் எந்த அணுகுமுறையை பயன்படுத்துகிறார்?" },
+      "options": [
+        { "en": "Technical Analysis — reading charts and patterns", "ta": "தொழில்நுட்ப பகுப்பாய்வு — சார்ட்கள் மற்றும் வடிவங்களை படிக்கிறார்" },
+        { "en": "Fundamental Analysis — studying business health", "ta": "அடிப்படை பகுப்பாய்வு — வணிக ஆரோக்கியத்தை ஆய்வு செய்கிறார்" },
+        { "en": "Scalping — he is collecting data very fast", "ta": "ஸ்கால்பிங் — அவர் மிகவும் வேகமாக தரவு சேகரிக்கிறார்" },
+        { "en": "Momentum trading — earnings drive price momentum", "ta": "மோமென்டம் வர்த்தகம் — வருமானம் விலை வேகத்தை இயக்குகிறது" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "Vijay is using Fundamental Analysis — examining earnings, debt, and management to evaluate the company's business quality before a long-term investment. Technical Analysis focuses on charts and price patterns to time short-term trades, not multi-year holds.", "ta": "விஜய் அடிப்படை பகுப்பாய்வை பயன்படுத்துகிறார் — நீண்டகால முதலீட்டிற்கு முன் நிறுவனத்தின் வணிக தரத்தை மதிப்பீடு செய்ய வருமானம், கடன் மற்றும் நிர்வாகத்தை ஆய்வு செய்கிறார். தொழில்நுட்ப பகுப்பாய்வு குறுகிய கால வர்த்தகங்களை நேரப்படுத்த சார்ட்கள் மற்றும் விலை வடிவங்களில் கவனம் செலுத்துகிறது — பல ஆண்டு வைத்திருத்தல்களில் அல்ல." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Which Is For You?", "ta": "உங்களுக்கு எது?" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Be Honest About Who You Are", "ta": "நீங்கள் யார் என்று நேர்மையாக இருங்கள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Neither approach is superior — both can be profitable with the right skill and discipline. The right choice depends on your time availability, temperament, capital size, and willingness to learn. Most beginners do best starting as investors.", "ta": "எந்த அணுகுமுறையும் உயர்ந்தது இல்லை — சரியான திறமையும் ஒழுக்கமும் இருந்தால் இரண்டும் லாபகரமாக இருக்கலாம். சரியான தேர்வு உங்கள் நேர கிடைப்பு, மனோபாவம், முதலீட்டு தொகை மற்றும் கற்கும் விருப்பத்தை பொறுத்தது. பெரும்பாலான தொடக்கக்காரர்கள் முதலீட்டாளர்களாக தொடங்கினால் சிறப்பாக இருக்கும்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Choose investing if…", "ta": "முதலீடு தேர்வு செய்யுங்கள் என்றால்…" }, "val": { "en": "Full-time job, limited screen time, patient, building long-term goals", "ta": "முழுநேர வேலை, குறைந்த திரை நேரம், பொறுமை, நீண்டகால இலக்குகள் கட்டுகிறீர்கள்" } },
+            { "key": { "en": "Choose trading if…", "ta": "வர்த்தகம் தேர்வு செய்யுங்கள் என்றால்…" }, "val": { "en": "Can dedicate daily market time, handle stress well, have capital to risk while learning", "ta": "தினசரி சந்தை நேரம் ஒதுக்க முடியும், மன அழுத்தத்தை நன்றாக சமாளிக்கிறீர்கள், கற்கும்போது ஆபத்தில் போட முதலீட்டு தொகை உண்டு" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Never start with intraday trading as a beginner. The leverage involved can wipe out your entire capital within days. Build market understanding as an investor first — trading can come later.", "ta": "தொடக்கக்காரராக இன்ட்ராடே வர்த்தகத்துடன் ஒருபோதும் தொடங்காதீர்கள். இதில் உள்ள லீவரேஜ் நாட்களில் உங்கள் முழு முதலீட்டு தொகையையும் அழிக்கலாம். முதலில் முதலீட்டாளராக சந்தை புரிதலை கட்டுங்கள் — வர்த்தகம் பிறகு வரலாம்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "Trading is better than investing because it generates faster returns for everyone who tries it.", "ta": "வர்த்தகம் முதலீட்டை விட சிறந்தது, ஏனென்றால் அது முயற்சிக்கும் எல்லோருக்கும் வேகமான வருமானம் கொடுக்கிறது." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. Trading requires advanced skills, real-time discipline, and strong emotional control — and SEBI data shows over 90% of intraday traders in India lose money over time. Long-term investing has historically built more consistent wealth for most people. Neither is universally better — it depends entirely on the individual's skills, time, and temperament.", "ta": "பொய். வர்த்தகம் மேம்பட்ட திறன்கள், நிகழ் நேர ஒழுக்கம் மற்றும் வலுவான உணர்ச்சி கட்டுப்பாடு தேவைப்படுகிறது — SEBI தரவு காட்டுகிறது இந்தியாவில் 90%-க்கும் மேலான இன்ட்ராடே வர்த்தகர்கள் காலப்போக்கில் பணம் இழக்கிறார்கள். நீண்டகால முதலீடு வரலாற்று ரீதியாக பெரும்பாலான மக்களுக்கு மிகவும் நிலையான செல்வத்தை கட்டியுள்ளது. எதுவும் உலகளாவிய சிறந்தது இல்லை — இது முற்றிலும் தனிநபரின் திறன், நேரம் மற்றும் மனோபாவத்தை பொறுத்தது." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

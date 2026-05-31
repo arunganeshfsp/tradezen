@@ -1,0 +1,247 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "⚔️",
+      "heading": { "en": "Buyers vs Sellers", "ta": "வாங்குவோர் vs விற்பவர்கள்" },
+      "description": { "en": "Every price you see on your screen is the result of a battle between buyers and sellers. Understanding who is winning changes how you read the market.", "ta": "உங்கள் திரையில் நீங்கள் பார்க்கும் ஒவ்வொரு விலையும் வாங்குவோருக்கும் விற்பவர்களுக்கும் இடையேயான போரின் விளைவு. யார் வெல்கிறார்கள் என்று புரிந்தால் சந்தையை படிக்கும் விதமே மாறும்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🪢",
+      "title": { "en": "The market is a never-ending tug of war.", "ta": "சந்தை என்பது ஒரு முடிவில்லாத கயிறு இழுத்தல் போட்டி." },
+      "caption": { "en": "Buyers pull prices up. Sellers pull prices down. The chart is just the scoreboard.", "ta": "வாங்குவோர் விலையை மேலே இழுக்கிறார்கள். விற்பவர்கள் கீழே இழுக்கிறார்கள். சார்ட் என்பது மதிப்பெண் பலகை மட்டுமே." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "The Battle", "ta": "போர்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Two Forces Drive Every Price", "ta": "இரண்டு சக்திகள் ஒவ்வொரு விலையையும் இயக்குகின்றன" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Every trade in the stock market needs both a buyer and a seller. Buyers want to pay less; sellers want to receive more. The price you see on Zerodha or Groww is the exact point where both sides agreed to transact. When buyers are more aggressive, price rises. When sellers push harder, price falls.", "ta": "பங்குச் சந்தையில் ஒவ்வொரு வர்த்தகத்திற்கும் ஒரு வாங்குபவர் மற்றும் ஒரு விற்பவர் தேவை. வாங்குவோர் குறைவாக செலுத்த விரும்புவார்கள்; விற்பவர்கள் அதிகமாக பெற விரும்புவார்கள். Zerodha அல்லது Groww-ல் நீங்கள் பார்க்கும் விலை இரு தரப்பினரும் வர்த்தகம் செய்ய ஒப்புக்கொண்ட சரியான புள்ளி. வாங்குவோர் அதிக ஆவலுடன் இருந்தால் விலை ஏறும். விற்பவர்கள் அழுத்தம் கொடுத்தால் விலை வீழும்." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "More buyers than sellers → price rises", "ta": "விற்பவர்களை விட வாங்குவோர் அதிகம் → விலை ஏறும்" },
+            { "en": "More sellers than buyers → price falls", "ta": "வாங்குவோரை விட விற்பவர்கள் அதிகம் → விலை வீழும்" },
+            { "en": "Roughly equal force → price moves sideways", "ta": "தோராயமாக சம சக்தி → விலை பக்கவாட்டில் நகரும்" },
+            { "en": "Volume reveals how intense the battle really is", "ta": "வால்யூம் போர் எவ்வளவு தீவிரமாக உள்ளது என்று காட்டுகிறது" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "When Reliance trades at ₹2,800, one person thought it was worth buying at that price and another thought it was worth selling. Every price is always a mutual agreement.", "ta": "ரிலையன்ஸ் ₹2,800-ல் வர்த்தகமாகும்போது, ஒருவர் அந்த விலையில் வாங்க தகுதியானது என்று நினைத்தார், மற்றொருவர் விற்க தகுதியானது என்று நினைத்தார். ஒவ்வொரு விலையும் எப்போதும் ஒரு பரஸ்பர ஒப்பந்தம்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Price Movement", "ta": "விலை நகர்வு" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "How Aggression Moves the Price", "ta": "ஆக்கிரமிப்பு விலையை எப்படி நகர்த்துகிறது" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Think of price as a ladder. Buyers climb up — they raise their bid when they badly want a stock. Sellers step down — they lower their ask when they urgently want to exit. Price always moves toward whichever side is more aggressive.", "ta": "விலையை ஒரு ஏணியாக நினையுங்கள். வாங்குவோர் மேலே ஏறுகிறார்கள் — ஒரு பங்கை மிகவும் விரும்பும்போது வாங்கு விலையை உயர்த்துகிறார்கள். விற்பவர்கள் கீழே இறங்குகிறார்கள் — அவசரமாக வெளியேற விரும்பும்போது விற்கு விலையை குறைக்கிறார்கள். விலை எப்போதும் அதிக ஆக்கிரமிப்புள்ள தரப்பை நோக்கி நகரும்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "🟢",
+              "title": { "en": "Buyer Aggression", "ta": "வாங்குவோர் ஆக்கிரமிப்பு" },
+              "subtitle": { "en": "Buyers chase the ask price upward → price goes UP", "ta": "வாங்குவோர் விற்கு விலையை மேலே துரத்துகிறார்கள் → விலை ஏறுகிறது" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "🔴",
+              "title": { "en": "Seller Aggression", "ta": "விற்பவர்கள் ஆக்கிரமிப்பு" },
+              "subtitle": { "en": "Sellers hit the bid price downward → price goes DOWN", "ta": "விற்பவர்கள் வாங்கு விலையை கீழே அடிக்கிறார்கள் → விலை வீழ்கிறது" },
+              "variant": "danger"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "High demand, low supply", "ta": "அதிக தேவை, குறைந்த வழங்கல்" }, "val": { "en": "Price rises fast", "ta": "விலை வேகமாக ஏறும்" } },
+            { "key": { "en": "Low demand, high supply", "ta": "குறைந்த தேவை, அதிக வழங்கல்" }, "val": { "en": "Price falls fast", "ta": "விலை வேகமாக வீழும்" } },
+            { "key": { "en": "Balanced demand & supply", "ta": "சம தேவை & வழங்கல்" }, "val": { "en": "Price drifts sideways", "ta": "விலை பக்கவாட்டில் நகரும்" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "When Infosys posts strong quarterly results, buyers rush in and demand surges — the stock often gaps up at the next market open.", "ta": "இன்ஃபோசிஸ் வலுவான காலாண்டு முடிவுகளை அறிவிக்கும்போது, வாங்குவோர் கூட்டமாக வருகிறார்கள், தேவை அதிகரிக்கிறது — அடுத்த சந்தை திறப்பில் பங்கு பெரும்பாலும் மேலே இடைவெளியுடன் தொடங்கும்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Tata Motors announces record-breaking quarterly sales figures. What is most likely to happen to its stock price?", "ta": "டாட்டா மோட்டார்ஸ் சாதனை படைக்கும் காலாண்டு விற்பனை எண்களை அறிவிக்கிறது. அதன் பங்கு விலைக்கு என்ன ஆகும்?" },
+      "options": [
+        { "en": "Price falls — strong profits attract heavy selling", "ta": "விலை வீழும் — வலுவான லாபம் அதிக விற்பனையை ஈர்க்கிறது" },
+        { "en": "Price rises — more buyers rush in to own the stock", "ta": "விலை ஏறும் — அதிக வாங்குவோர் பங்கை வாங்க கூட்டமாக வருகிறார்கள்" },
+        { "en": "Price stays flat — results are already priced in", "ta": "விலை சமனாக இருக்கும் — முடிவுகள் ஏற்கனவே விலையில் உள்ளடக்கப்பட்டுள்ளன" },
+        { "en": "Volume drops to zero — no one knows what to do", "ta": "வால்யூம் பூஜ்ஜியமாகும் — யாருக்கும் என்ன செய்வதென்று தெரியவில்லை" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "Record sales signal strong business performance. This attracts more buyers who want to own the stock — demand rises faster than supply, pushing the price up. This is buyer aggression driven by positive news.", "ta": "சாதனை விற்பனை வலுவான வணிக செயல்திறனை காட்டுகிறது. இது பங்கை வாங்க விரும்பும் அதிக வாங்குவோரை ஈர்க்கிறது — வழங்கலை விட தேவை வேகமாக ஏறுகிறது, விலையை மேலே தள்ளுகிறது. இது நேர்மறை செய்தியால் தூண்டப்பட்ட வாங்குவோர் ஆக்கிரமிப்பு." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Bid & Ask", "ta": "வாங்கு & விற்கு விலை" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The Two Prices Behind Every Trade", "ta": "ஒவ்வொரு வர்த்தகத்தின் பின்னால் இரண்டு விலைகள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "On any trading platform you will see two prices side by side — the Bid (the highest price a buyer will pay right now) and the Ask (the lowest price a seller will accept right now). Trades happen when a buyer meets the ask price or a seller meets the bid price.", "ta": "எந்த வர்த்தக தளத்திலும் இரண்டு விலைகளை அருகருகே பார்ப்பீர்கள் — வாங்கு விலை (இப்போது ஒரு வாங்குபவர் செலுத்த விரும்பும் அதிகபட்ச விலை) மற்றும் விற்கு விலை (இப்போது ஒரு விற்பவர் ஏற்றுக்கொள்ள விரும்பும் குறைந்தபட்ச விலை). ஒரு வாங்குபவர் விற்கு விலையை சந்திக்கும்போது அல்லது விற்பவர் வாங்கு விலையை சந்திக்கும்போது வர்த்தகம் நடக்கிறது." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Bid price", "ta": "வாங்கு விலை" }, "val": { "en": "Highest price a buyer will pay right now", "ta": "இப்போது ஒரு வாங்குபவர் செலுத்த தயாரான அதிகபட்ச விலை" } },
+            { "key": { "en": "Ask price", "ta": "விற்கு விலை" } , "val": { "en": "Lowest price a seller will accept right now", "ta": "இப்போது ஒரு விற்பவர் ஏற்கத் தயாரான குறைந்தபட்ச விலை" } },
+            { "key": { "en": "Spread (Ask − Bid)", "ta": "இடைவெளி (விற்கு − வாங்கு)" }, "val": { "en": "The hidden cost of every trade", "ta": "ஒவ்வொரு வர்த்தகத்தின் மறைமுக செலவு" } },
+            { "key": { "en": "Tight spread", "ta": "குறுகிய இடைவெளி" }, "val": { "en": "High liquidity — Nifty 50 stocks like HDFC Bank", "ta": "அதிக திரவத்தன்மை — HDFC வங்கி போன்ற நிஃப்டி 50 பங்குகள்" } },
+            { "key": { "en": "Wide spread", "ta": "அகலமான இடைவெளி" }, "val": { "en": "Low liquidity — small-cap stocks", "ta": "குறைந்த திரவத்தன்மை — சிறு முதலீட்டு பங்குகள்" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "In liquid stocks like Reliance or HDFC Bank, the bid-ask spread is just a paisa or two. In small-cap stocks it can be ₹5–₹20 — a hidden cost that eats into every trade you make.", "ta": "ரிலையன்ஸ் அல்லது HDFC வங்கி போன்ற திரவமான பங்குகளில், வாங்கு-விற்கு இடைவெளி வெறும் ஒரு பைசா அல்லது இரண்டு. சிறு முதலீட்டு பங்குகளில் ₹5–₹20 ஆகலாம் — நீங்கள் செய்யும் ஒவ்வொரு வர்த்தகத்தையும் கொஞ்சம் கொஞ்சமாக சாப்பிடும் மறைமுக செலவு." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Volume", "ta": "வால்யூம்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Volume: The Market's Lie Detector", "ta": "வால்யூம்: சந்தையின் உண்மை கண்டுபிடிப்பான்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Price movement alone does not tell the full story. Volume — the number of shares traded in a given period — confirms whether the buyers or sellers are truly committed. High volume on a price move means the move has real conviction behind it. Low volume moves are weak and often reverse quickly.", "ta": "விலை நகர்வு மட்டுமே முழு கதையை சொல்வதில்லை. வால்யூம் — குறிப்பிட்ட காலகட்டத்தில் வர்த்தகமான பங்குகளின் எண்ணிக்கை — வாங்குவோர் அல்லது விற்பவர்கள் உண்மையிலேயே உறுதியாக உள்ளார்களா என்று உறுதிப்படுத்துகிறது. ஒரு விலை நகர்வில் அதிக வால்யூம் என்றால் நகர்வுக்கு பின்னால் உண்மையான நம்பிக்கை உள்ளது. குறைந்த வால்யூம் நகர்வுகள் பலவீனமானவை, பெரும்பாலும் விரைவாக திரும்பும்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Price ↑ + High volume", "ta": "விலை ↑ + அதிக வால்யூம்" }, "val": { "en": "Strong buying — trend likely to continue", "ta": "வலுவான வாங்குதல் — போக்கு தொடர வாய்ப்புள்ளது" } },
+            { "key": { "en": "Price ↑ + Low volume", "ta": "விலை ↑ + குறைந்த வால்யூம்" }, "val": { "en": "Weak rally — may not sustain, watch carefully", "ta": "பலவீனமான ஏற்றம் — நீடிக்காமல் போகலாம், கவனமாக பாருங்கள்" } },
+            { "key": { "en": "Price ↓ + High volume", "ta": "விலை ↓ + அதிக வால்யூம்" }, "val": { "en": "Strong selling pressure — avoid catching the fall", "ta": "வலுவான விற்பனை அழுத்தம் — வீழ்ச்சியை பிடிக்க முயற்சிக்காதீர்கள்" } },
+            { "key": { "en": "Price ↓ + Low volume", "ta": "விலை ↓ + குறைந்த வால்யூம்" }, "val": { "en": "Weak selling — potential support zone nearby", "ta": "பலவீனமான விற்பனை — அருகில் ஆதரவு மண்டலம் இருக்கலாம்" } }
+          ]
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "Volume = Conviction", "ta": "வால்யூம் = நம்பிக்கை" },
+          "subtitle": { "en": "High volume confirms the move is real. Low volume means it could be noise.", "ta": "அதிக வால்யூம் நகர்வு உண்மையானது என்று உறுதிப்படுத்துகிறது. குறைந்த வால்யூம் என்றால் அது சத்தமாக மட்டும் இருக்கலாம்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Nifty 50 rises 200 points in a session but trading volume is significantly below average. What does this most likely indicate?", "ta": "ஒரு அமர்வில் நிஃப்டி 50 200 புள்ளிகள் ஏறுகிறது, ஆனால் வர்த்தக வால்யூம் சராசரியை விட கணிசமாக குறைவாக உள்ளது. இது பொதுவாக என்னை குறிக்கிறது?" },
+      "options": [
+        { "en": "A strong bullish trend — safe to buy immediately", "ta": "வலுவான புல்லிஷ் போக்கு — உடனே வாங்குவது பாதுகாப்பானது" },
+        { "en": "A weak rally not backed by conviction — may reverse", "ta": "நம்பிக்கை இல்லாத பலவீனமான ஏற்றம் — திரும்பலாம்" },
+        { "en": "Sellers have completely given up on this level", "ta": "விற்பவர்கள் இந்த நிலையை முற்றிலும் கைவிட்டுவிட்டார்கள்" },
+        { "en": "Volume does not matter for index movements", "ta": "இண்டெக்ஸ் நகர்வுகளுக்கு வால்யூம் முக்கியமில்லை" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "A price rise on low volume means few participants are driving the move — there is no real conviction from buyers. Such rallies often fade or reverse when normal volume returns. Always confirm a price move with strong volume before acting on it.", "ta": "குறைந்த வால்யூமில் விலை ஏற்றம் என்பது சில பங்கேற்பாளர்கள் மட்டுமே நகர்வை இயக்குகிறார்கள் — வாங்குவோரிடம் உண்மையான நம்பிக்கை இல்லை. இத்தகைய ஏற்றங்கள் பெரும்பாலும் சாதாரண வால்யூம் திரும்பும்போது மங்கும் அல்லது திரும்பும். செயல்படுவதற்கு முன் வலுவான வால்யூம் மூலம் விலை நகர்வை எப்போதும் உறுதிப்படுத்துங்கள்." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Who Is Winning?", "ta": "யார் வெல்கிறார்கள்?" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Reading Buyer & Seller Control on a Chart", "ta": "சார்ட்டில் வாங்குவோர் & விற்பவர்கள் கட்டுப்பாட்டை படிக்கிறோம்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "By combining price action and volume, you can read which side is in control at any given moment. This tells you market momentum and helps you avoid trading against the dominant force.", "ta": "விலை நகர்வு மற்றும் வால்யூமை இணைத்து, எந்த நேரத்திலும் எந்த தரப்பு கட்டுப்பாட்டில் உள்ளது என்று படிக்கலாம். இது சந்தை வேகத்தை சொல்கிறது மற்றும் ஆதிக்க சக்திக்கு எதிரான வர்த்தகத்தை தவிர்க்க உதவுகிறது." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Green candles + rising volume", "ta": "பச்சை மெழுகுவர்த்திகள் + ஏறும் வால்யூம்" }, "val": { "en": "Buyers in firm control", "ta": "வாங்குவோர் உறுதியான கட்டுப்பாட்டில்" } },
+            { "key": { "en": "Red candles + rising volume", "ta": "சிவப்பு மெழுகுவர்த்திகள் + ஏறும் வால்யூம்" }, "val": { "en": "Sellers in firm control", "ta": "விற்பவர்கள் உறுதியான கட்டுப்பாட்டில்" } },
+            { "key": { "en": "Higher highs & higher lows", "ta": "உயர் உச்சங்கள் & உயர் தாழ்வுகள்" }, "val": { "en": "Buyers winning the overall trend", "ta": "வாங்குவோர் ஒட்டுமொத்த போக்கை வெல்கிறார்கள்" } },
+            { "key": { "en": "Lower highs & lower lows", "ta": "தாழ்வான உச்சங்கள் & தாழ்வான தாழ்வுகள்" }, "val": { "en": "Sellers winning the overall trend", "ta": "விற்பவர்கள் ஒட்டுமொத்த போக்கை வெல்கிறார்கள்" } }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "Bank Nifty breaking above a key resistance level on high volume = buyers winning decisively. Always confirm any breakout with strong volume — without it, it may be a false move.", "ta": "வங்கி நிஃப்டி அதிக வால்யூமில் ஒரு முக்கிய எதிர்ப்பு நிலைக்கு மேலே உடைப்பது = வாங்குவோர் தீர்க்கமாக வெல்கிறார்கள். வலுவான வால்யூம் இல்லாமல் எந்த பிரேக்அவுட்டையும் உறுதிப்படுத்தாதீர்கள் — இல்லாமல் போனால் அது ஒரு தவறான நகர்வாக இருக்கலாம்." }
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Never assume buyers or sellers have won permanently. The balance can shift within minutes — always watch price and volume together, not separately.", "ta": "வாங்குவோர் அல்லது விற்பவர்கள் நிரந்தரமாக வென்றுவிட்டார்கள் என்று ஒருபோதும் கருதாதீர்கள். சமநிலை நிமிடங்களில் மாறலாம் — விலை மற்றும் வால்யூமை எப்போதும் சேர்த்து பாருங்கள், தனித்தனியாக அல்ல." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "A stock price rising on very low volume is a reliable sign of a strong, sustainable uptrend.", "ta": "மிகக் குறைந்த வால்யூமில் பங்கு விலை ஏறுவது வலுவான, நிலையான ஏற்றப் போக்கின் நம்பகமான சமிக்ஞை." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. Low volume means very few participants are behind the price move — there is no real conviction. Such moves often reverse quickly once the thin buying dries up. A strong, reliable uptrend needs high volume to confirm that many buyers genuinely support the higher price levels.", "ta": "பொய். குறைந்த வால்யூம் என்பது மிகக் குறைந்த பங்கேற்பாளர்கள் மட்டுமே விலை நகர்வின் பின்னால் உள்ளார்கள் — உண்மையான நம்பிக்கை இல்லை. மெலிந்த வாங்குதல் வற்றிவிட்டவுடன் இத்தகைய நகர்வுகள் பெரும்பாலும் விரைவாக திரும்பும். வலுவான, நம்பகமான ஏற்றப் போக்கிற்கு அதிக வாங்குவோர் உயர்ந்த விலை நிலைகளை உண்மையிலேயே ஆதரிக்கிறார்கள் என்று உறுதிப்படுத்த அதிக வால்யூம் தேவை." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]
