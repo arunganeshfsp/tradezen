@@ -1,0 +1,244 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🛒",
+      "heading": { "en": "How to Buy Your First Share", "ta": "உங்கள் முதல் பங்கை எப்படி வாங்குவது" },
+      "description": { "en": "Your first stock purchase doesn't need to be complicated. Here is a clear, step-by-step guide built for Indian beginners.", "ta": "உங்கள் முதல் பங்கு வாங்குதல் சிக்கலாக இருக்க வேண்டியதில்லை. இந்திய தொடக்கக்காரர்களுக்காக கட்டப்பட்ட தெளிவான, படிப்படியான வழிகாட்டி இதோ." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🚀",
+      "title": { "en": "Every seasoned investor started with just one share.", "ta": "ஒவ்வொரு அனுபவமிக்க முதலீட்டாளரும் ஒரே ஒரு பங்கில் தொடங்கினார்கள்." },
+      "caption": { "en": "The hardest part is placing that first order. Here is exactly what to do.", "ta": "மிகவும் கடினமான பகுதி முதல் ஆர்டரை வைப்பது. என்ன செய்வது என்று இங்கே சரியாக உள்ளது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What You Need", "ta": "என்ன தேவை" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Two Accounts, One Goal", "ta": "இரண்டு கணக்குகள், ஒரு இலக்கு" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "To buy shares in India, you need two accounts — a Demat account, which holds your shares electronically like a digital locker, and a Trading account, which you use to place buy and sell orders. Most brokers open both together in a single online process.", "ta": "இந்தியாவில் பங்குகளை வாங்க உங்களுக்கு இரண்டு கணக்குகள் தேவை — ஒரு டீமேட் கணக்கு, இது உங்கள் பங்குகளை டிஜிட்டல் லாக்கர் போல் மின்னணு முறையில் வைத்திருக்கும், மற்றும் ஒரு வர்த்தக கணக்கு, இதை வாங்கல் மற்றும் விற்பனை ஆர்டர்களை வைக்க பயன்படுத்துவீர்கள். பெரும்பாலான தரகர்கள் இரண்டையும் ஒரே ஆன்லைன் செயல்முறையில் ஒன்றாக திறக்கிறார்கள்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Demat account", "ta": "டீமேட் கணக்கு" }, "val": { "en": "Holds your shares electronically after purchase", "ta": "வாங்கிய பிறகு உங்கள் பங்குகளை மின்னணு முறையில் வைத்திருக்கிறது" } },
+            { "key": { "en": "Trading account", "ta": "வர்த்தக கணக்கு" }, "val": { "en": "Used to place buy & sell orders on NSE / BSE", "ta": "NSE / BSE-ல் வாங்கல் & விற்பனை ஆர்டர்களை வைக்க பயன்படுகிறது" } },
+            { "key": { "en": "Linked bank account", "ta": "இணைக்கப்பட்ட வங்கி கணக்கு" }, "val": { "en": "Funds are debited when you buy, credited when you sell", "ta": "வாங்கும்போது நிதி கழிக்கப்படும், விற்கும்போது வரவு வைக்கப்படும்" } },
+            { "key": { "en": "PAN + Aadhaar", "ta": "PAN + ஆதார்" }, "val": { "en": "Mandatory for KYC verification — keep them ready", "ta": "KYC சரிபார்ப்புக்கு கட்டாயம் — தயாராக வையுங்கள்" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Zerodha and Groww are the most popular brokers among beginners — fully online, clean apps, and flat fee of ₹20 per trade. Account opening is free and takes 1–2 days.", "ta": "Zerodha மற்றும் Groww தொடக்கக்காரர்களில் மிகவும் பிரபலமான தரகர்கள் — முழுக்க ஆன்லைன், தெளிவான ஆப்ஸ், வர்த்தகத்திற்கு ₹20 நிலையான கட்டணம். கணக்கு திறப்பு இலவசம், 1–2 நாட்களில் முடியும்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Step by Step", "ta": "படிப்படியாக" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "From App to Ownership in 5 Steps", "ta": "ஆப்பிலிருந்து உரிமைக்கு 5 படிகளில்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Once your account is active and you have added funds, buying your first share is just a few taps away. Here is the exact sequence to follow.", "ta": "உங்கள் கணக்கு செயல்படும் பிறகு நிதி சேர்த்தவுடன், உங்கள் முதல் பங்கை வாங்குவது சில தட்டுதல்களில் முடியும். பின்பற்ற வேண்டிய சரியான வரிசை இதோ." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Step 1 — Search the stock by name or symbol (e.g., 'INFY' for Infosys)", "ta": "படி 1 — பெயர் அல்லது சின்னம் மூலம் பங்கை தேடுங்கள் (எ.கா., இன்ஃபோசிஸுக்கு 'INFY')" },
+            { "en": "Step 2 — Tap 'Buy' and select the exchange — choose NSE for most stocks", "ta": "படி 2 — 'வாங்கு' தட்டி பரிமாற்றத்தை தேர்ந்தெடுங்கள் — பெரும்பாலான பங்குகளுக்கு NSE தேர்ந்தெடுங்கள்" },
+            { "en": "Step 3 — Enter the quantity (number of shares you want to buy)", "ta": "படி 3 — அளவை உள்ளிடுங்கள் (நீங்கள் வாங்க விரும்பும் பங்குகளின் எண்ணிக்கை)" },
+            { "en": "Step 4 — Choose your order type: Market or Limit (explained in the next card)", "ta": "படி 4 — உங்கள் ஆர்டர் வகையை தேர்ந்தெடுங்கள்: மார்க்கெட் அல்லது லிமிட் (அடுத்த கார்டில் விளக்கப்படுகிறது)" },
+            { "en": "Step 5 — Review all details carefully, then confirm — shares arrive in your Demat by next trading day (T+1)", "ta": "படி 5 — எல்லா விவரங்களையும் கவனமாக சரிபாருங்கள், பிறகு உறுதிப்படுத்துங்கள் — அடுத்த வர்த்தக நாளில் (T+1) உங்கள் டீமேட்டில் பங்குகள் வரும்" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "T+1 settlement means your purchased shares are credited to your Demat account the next trading day after the order is executed — not instantly.", "ta": "T+1 தீர்வு என்பது உங்கள் வாங்கிய பங்குகள் ஆர்டர் நிறைவேற்றப்பட்ட அடுத்த வர்த்தக நாளில் உங்கள் டீமேட் கணக்கில் வரவு வைக்கப்படும் — உடனடியாக இல்லை." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "What is the primary purpose of a Demat account in India?", "ta": "இந்தியாவில் ஒரு டீமேட் கணக்கின் முதன்மை நோக்கம் என்ன?" },
+      "options": [
+        { "en": "To place buy and sell orders on the stock exchange", "ta": "பங்குச் சந்தையில் வாங்கல் மற்றும் விற்பனை ஆர்டர்களை வைக்க" },
+        { "en": "To hold your shares electronically after purchase", "ta": "வாங்கிய பிறகு உங்கள் பங்குகளை மின்னணு முறையில் வைத்திருக்க" },
+        { "en": "To track live stock prices on your phone", "ta": "உங்கள் தொலைபேசியில் நேரடி பங்கு விலைகளை கண்காணிக்க" },
+        { "en": "To automatically pay brokerage fees", "ta": "தரகு கட்டணங்களை தானாக செலுத்த" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "A Demat (Dematerialised) account holds your shares in electronic form — just like a bank account holds your money. When you buy shares, they are credited here. When you sell, they are debited. Your Trading account is the separate account used to actually place the buy/sell orders.", "ta": "ஒரு டீமேட் (Dematerialised) கணக்கு உங்கள் பங்குகளை மின்னணு வடிவில் வைத்திருக்கும் — வங்கி கணக்கு உங்கள் பணத்தை வைத்திருப்பது போல். பங்குகளை வாங்கும்போது இங்கே வரவு வைக்கப்படும். விற்கும்போது செலவாகும். உங்கள் வர்த்தக கணக்கு வாங்கல்/விற்பனை ஆர்டர்களை உண்மையில் வைக்க பயன்படும் தனி கணக்கு." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Order Types", "ta": "ஆர்டர் வகைகள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Market Order vs Limit Order", "ta": "மார்க்கெட் ஆர்டர் vs லிமிட் ஆர்டர்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "When placing a buy order, you must choose an order type. The two most common are the Market Order — which executes immediately at the current price — and the Limit Order — which only executes if the price reaches a level you specify.", "ta": "வாங்கல் ஆர்டரை வைக்கும்போது, ஒரு ஆர்டர் வகையை தேர்ந்தெடுக்க வேண்டும். இரண்டு மிகவும் பொதுவானவை மார்க்கெட் ஆர்டர் — இது தற்போதைய விலையில் உடனடியாக நிறைவேறும் — மற்றும் லிமிட் ஆர்டர் — இது நீங்கள் குறிப்பிடும் விலைக்கு மட்டுமே நிறைவேறும்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "⚡",
+              "title": { "en": "Market Order", "ta": "மார்க்கெட் ஆர்டர்" },
+              "subtitle": { "en": "Instant execution at current market price — fast but no price guarantee", "ta": "தற்போதைய சந்தை விலையில் உடனடி நிறைவேற்றம் — வேகமானது ஆனால் விலை உத்தரவாதம் இல்லை" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "🎯",
+              "title": { "en": "Limit Order", "ta": "லிமிட் ஆர்டர்" },
+              "subtitle": { "en": "Executes only at your set price or better — may not fill if price doesn't reach your level", "ta": "உங்கள் நிர்ணயிக்கப்பட்ட விலையில் அல்லது அதை விட நல்லதில் மட்டுமே நிறைவேறும் — விலை உங்கள் நிலையை எட்டாவிட்டால் நிரப்பப்படாமல் போகலாம்" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Market order — use when", "ta": "மார்க்கெட் ஆர்டர் — எப்போது பயன்படுத்துவது" }, "val": { "en": "Buying liquid stocks like Reliance, HDFC Bank, Infosys", "ta": "ரிலையன்ஸ், HDFC வங்கி, இன்ஃபோசிஸ் போன்ற திரவமான பங்குகளை வாங்கும்போது" } },
+            { "key": { "en": "Limit order — use when", "ta": "லிமிட் ஆர்டர் — எப்போது பயன்படுத்துவது" }, "val": { "en": "You want a specific entry price and can wait for it", "ta": "குறிப்பிட்ட நுழைவு விலை வேண்டும் மற்றும் காத்திருக்க முடியும்" } },
+            { "key": { "en": "Avoid market orders in", "ta": "மார்க்கெட் ஆர்டர் தவிர்க்கவும்" }, "val": { "en": "Small-cap stocks — wide bid-ask spread can hurt you", "ta": "சிறு முதலீட்டு பங்குகள் — அகலமான வாங்கு-விற்கு இடைவெளி உங்களை காயப்படுத்தலாம்" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "For your very first purchase in a Nifty 50 stock, a Market Order is perfectly fine — the bid-ask spread is just a paisa or two, so execution price will be very close to what you see on screen.", "ta": "நிஃப்டி 50 பங்கில் உங்கள் முதல் வாங்குதலுக்கு, மார்க்கெட் ஆர்டர் மிகவும் சரியானது — வாங்கு-விற்கு இடைவெளி வெறும் ஒரு பைசா அல்லது இரண்டு மட்டுமே, எனவே நிறைவேற்ற விலை திரையில் பார்க்கும் விலைக்கு மிகவும் அருகில் இருக்கும்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Before You Click", "ta": "கிளிக் செய்வதற்கு முன்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "5 Things to Verify Before Placing Your Order", "ta": "ஆர்டர் வைப்பதற்கு முன் சரிபார்க்க வேண்டிய 5 விஷயங்கள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Before confirming your very first order, run through this quick checklist. Many beginners skip these steps and end up buying the wrong stock or the wrong quantity.", "ta": "உங்கள் முதல் ஆர்டரை உறுதிப்படுத்துவதற்கு முன், இந்த விரைவான சரிபார்ப்பு பட்டியலை பின்பற்றுங்கள். பல தொடக்கக்காரர்கள் இந்த படிகளை தவிர்த்து தவறான பங்கு அல்லது தவறான அளவு வாங்கிவிடுகிறார்கள்." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Is the stock symbol correct? — search 'INFY', not just 'Infosys', to avoid confusion", "ta": "பங்கு சின்னம் சரியானதா? — குழப்பத்தை தவிர்க்க வெறும் 'இன்ஃபோசிஸ்' அல்ல, 'INFY' தேடுங்கள்" },
+            { "en": "Is the exchange set to NSE? — NSE has higher liquidity for most stocks", "ta": "பரிமாற்றம் NSE-க்கு அமைக்கப்பட்டுள்ளதா? — NSE பெரும்பாலான பங்குகளுக்கு அதிக திரவத்தன்மை கொண்டது" },
+            { "en": "Is the quantity correct? — double-check before confirming", "ta": "அளவு சரியானதா? — உறுதிப்படுத்துவதற்கு முன் மீண்டும் சரிபாருங்கள்" },
+            { "en": "Do you have sufficient funds in your trading account?", "ta": "உங்கள் வர்த்தக கணக்கில் போதுமான நிதி உள்ளதா?" },
+            { "en": "Have you checked recent news about the company before buying?", "ta": "வாங்குவதற்கு முன் நிறுவனத்தைப் பற்றிய சமீபத்திய செய்திகளை சரிபார்த்தீர்களா?" }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Always verify the stock ticker symbol before buying. 'INFY' is Infosys but a wrong search can show similar-looking names. One wrong confirmation and you've bought the wrong company.", "ta": "வாங்குவதற்கு முன் பங்கு டிக்கர் சின்னத்தை எப்போதும் சரிபாருங்கள். 'INFY' இன்ஃபோசிஸ் ஆனால் தவறான தேடல் ஒத்த பெயர்களை காட்டலாம். ஒரு தவறான உறுதிப்படுத்தல் — தவறான நிறுவனத்தை வாங்கிவிட்டீர்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "You want to buy Reliance shares only if the price falls to ₹2,450 from its current price of ₹2,500. Which order type should you use?", "ta": "ரிலையன்ஸ் பங்குகளை தற்போதைய விலை ₹2,500-லிருந்து ₹2,450-க்கு வீழும்போது மட்டும் வாங்க விரும்புகிறீர்கள். எந்த ஆர்டர் வகையை பயன்படுத்த வேண்டும்?" },
+      "options": [
+        { "en": "Market order — buy at current price of ₹2,500 right away", "ta": "மார்க்கெட் ஆர்டர் — தற்போதைய விலை ₹2,500-ல் உடனே வாங்குங்கள்" },
+        { "en": "Limit order — set ₹2,450 as your buy price target", "ta": "லிமிட் ஆர்டர் — ₹2,450-ஐ உங்கள் வாங்கல் விலை இலக்காக அமையுங்கள்" },
+        { "en": "Stop loss order — used for protecting against losses when selling", "ta": "ஸ்டாப் லாஸ் ஆர்டர் — விற்கும்போது நஷ்டத்திலிருந்து பாதுகாக்க பயன்படுகிறது" },
+        { "en": "Bracket order — for hedging both sides of a trade", "ta": "பிராக்கெட் ஆர்டர் — ஒரு வர்த்தகத்தின் இரு பக்கங்களையும் ஹெட்ஜிங் செய்ய" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "A Limit Order lets you set the exact price at which you are willing to buy. By setting ₹2,450, your order will only execute if the price drops to that level — you will not buy at ₹2,500. A Market Order would buy immediately at the current price regardless of where you want to enter.", "ta": "ஒரு லிமிட் ஆர்டர் நீங்கள் வாங்க விரும்பும் சரியான விலையை அமைக்க அனுமதிக்கிறது. ₹2,450 அமைப்பதன் மூலம், விலை அந்த நிலைக்கு வீழும்போது மட்டுமே உங்கள் ஆர்டர் நிறைவேறும் — ₹2,500-ல் வாங்க மாட்டீர்கள். மார்க்கெட் ஆர்டர் நீங்கள் எங்கே நுழைய விரும்புகிறீர்கள் என்பதை பொருட்படுத்தாமல் தற்போதைய விலையில் உடனே வாங்கும்." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Don't Do This", "ta": "இதை செய்யாதீர்கள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Mistakes Every First-Time Buyer Makes", "ta": "ஒவ்வொரு முதல் முறை வாங்குபவரும் செய்யும் தவறுகள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Your first few trades will teach you more than any lesson — but these common mistakes are worth avoiding upfront to protect your capital and your confidence.", "ta": "உங்கள் முதல் சில வர்த்தகங்கள் எந்த பாடத்தையும் விட அதிகமாக கற்பிக்கும் — ஆனால் இந்த பொதுவான தவறுகள் உங்கள் முதலீட்டு தொகையையும் நம்பிக்கையையும் பாதுகாக்க முன்கூட்டியே தவிர்க்க மதிப்புள்ளவை." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Buying based on a WhatsApp tip", "ta": "WhatsApp டிப் அடிப்படையில் வாங்குவது" }, "val": { "en": "Always research the company yourself before buying", "ta": "வாங்குவதற்கு முன் எப்போதும் நிறுவனை நீங்களே ஆராய்ச்சி செய்யுங்கள்" } },
+            { "key": { "en": "Investing money you may need soon", "ta": "விரைவில் தேவைப்படும் பணத்தை முதலீடு செய்வது" }, "val": { "en": "Only invest what you will not need for 3+ years", "ta": "3+ ஆண்டுகளுக்கு தேவைப்படாத பணத்தை மட்டுமே முதலீடு செய்யுங்கள்" } },
+            { "key": { "en": "Checking the price every 10 minutes", "ta": "ஒவ்வொரு 10 நிமிடமும் விலையை பார்ப்பது" }, "val": { "en": "Causes unnecessary panic — check weekly instead", "ta": "தேவையற்ற பீதியை ஏற்படுத்துகிறது — வாரத்தில் ஒருமுறை பாருங்கள்" } },
+            { "key": { "en": "Selling in panic after a small dip", "ta": "சிறிய வீழ்ச்சிக்கு பிறகு பீதியில் விற்பது" }, "val": { "en": "Short-term dips are normal — don't react to noise", "ta": "குறுகிய கால வீழ்ச்சிகள் இயல்பானவை — சத்தத்திற்கு எதிர்வினை செய்யாதீர்கள்" } },
+            { "key": { "en": "Starting with a small-cap penny stock", "ta": "சிறு முதலீட்டு பெனி ஸ்டாக்கில் தொடங்குவது" }, "val": { "en": "Start with Nifty 50 stocks — stable, liquid, and researched", "ta": "நிஃப்டி 50 பங்குகளில் தொடங்குங்கள் — நிலையான, திரவமான மற்றும் ஆராய்ச்சி செய்யப்பட்டவை" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Never buy a stock because a WhatsApp group or social media post said it will 'double tomorrow.' That is how most beginners lose their very first investment.", "ta": "ஒரு WhatsApp குழு அல்லது சோஷியல் மீடியா பதிவு 'நாளை இரட்டிப்பாகும்' என்று சொன்னதால் பங்கை ஒருபோதும் வாங்காதீர்கள். பெரும்பாலான தொடக்கக்காரர்கள் தங்கள் முதல் முதலீட்டை இப்படித்தான் இழக்கிறார்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "After you successfully buy shares, they appear in your Demat account on the same day (T+0 settlement).", "ta": "பங்குகளை வெற்றிகரமாக வாங்கிய பிறகு, அவை அதே நாளில் (T+0 தீர்வு) உங்கள் டீமேட் கணக்கில் தெரியும்." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. India follows T+1 settlement — shares are credited to your Demat account on the next trading day after your order is executed, not the same day. So if you buy on Monday, the shares appear in your Demat by Tuesday. Plan accordingly if you want to sell quickly.", "ta": "பொய். இந்தியா T+1 தீர்வை பின்பற்றுகிறது — உங்கள் ஆர்டர் நிறைவேற்றப்பட்ட அடுத்த வர்த்தக நாளில் பங்குகள் உங்கள் டீமேட் கணக்கில் வரவு வைக்கப்படும், அதே நாளில் அல்ல. எனவே திங்கள்கிழமை வாங்கினால், செவ்வாய்கிழமையில் டீமேட்டில் பங்குகள் தெரியும். விரைவாக விற்க விரும்பினால் அதற்கேற்ப திட்டமிடுங்கள்." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

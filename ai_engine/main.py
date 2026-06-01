@@ -4531,6 +4531,36 @@ def _stock_health_sync(symbol: str) -> dict:
     }
 
 
+@app.get("/stock/reversal-scan")
+async def stock_reversal_scan(
+    universe:     str   = "nifty50",
+    min_decline:  float = 30.0,
+    min_recovery: float = 10.0,
+    support_type: str   = "single",
+    min_days:     int   = 40,
+    max_days:     int   = 130,
+    min_price:    float = None,
+    max_price:    float = None,
+):
+    from core.patterns.reversal_scanner import scan_reversals
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, lambda: scan_reversals(
+            universe=universe,
+            min_decline=min_decline,
+            min_recovery=min_recovery,
+            support_type=support_type,
+            min_days=min_days,
+            max_days=max_days,
+            min_price=min_price if min_price else None,
+            max_price=max_price if max_price else None,
+        ))
+        return result
+    except Exception as e:
+        log.error(f"[REVERSAL-SCAN] {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/stock/health/{symbol}")
 async def stock_health(symbol: str):
     loop = asyncio.get_event_loop()

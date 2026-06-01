@@ -742,6 +742,16 @@ router.get("/stock/analyse/:symbol", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/stock/reversal-scan ────────────────────────────────────────────
+// Scans a stock universe for the Peak→Support→Recovery reversal pattern
+router.get("/stock/reversal-scan", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stock/reversal-scan?${params}`, 120000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── GET /api/stock/health/:symbol ───────────────────────────────────────────
 // 4-persona fundamental health report (Stock Health Story tool)
 router.get("/stock/health/:symbol", async (req, res) => {

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reversal Screener — TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tradezen.css">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
+
+<style>
+:root{
+  --bg:#06070f;--bg2:#0e1124;--bg3:#161a32;--bg4:#1c2040;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.15);
+  --text:#f0f1f8;--dim:#9ea3c0;--muted:#585d7e;--faint:#3a3d5a;
+  --accent:#7c6af7;--accent2:#5b8af5;--accent-bg:rgba(124,106,247,0.08);
+  --green:#34d399;--green-bg:rgba(52,211,153,0.08);--green-border:rgba(52,211,153,0.25);
+  --amber:#f5a524;--amber-bg:rgba(245,165,36,0.08);--amber-border:rgba(245,165,36,0.25);
+  --red:#f87171;--red-bg:rgba(248,113,113,0.08);--red-border:rgba(248,113,113,0.25);
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-serif;font-size:14px;line-height:1.6;min-height:100vh;}
+.page{max-width:1100px;margin:0 auto;padding:2rem 1.25rem 5rem;}
+
+/* ── Hero ─────────────────────────────────────── */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.08em;color:var(--muted);text-decoration:none;margin-bottom:1.25rem;transition:color .15s;}
+.back-link:hover{color:var(--text);}
+.hero{margin-bottom:2rem;}
+.hero h1{font-size:clamp(22px,4vw,30px);font-weight:700;color:var(--text);margin-bottom:6px;}
+.hero p{font-size:13.5px;color:var(--dim);max-width:560px;}
+
+/* ── Filter Panel ─────────────────────────────── */
+.filter-panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:22px 24px;margin-bottom:2rem;}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px 24px;
+  margin-bottom:20px;}
+.filter-group{display:flex;flex-direction:column;gap:8px;}
+.filter-group label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);}
+.filter-val{color:var(--accent);margin-left:6px;}
+
+/* Pills */
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;
+  padding:5px 14px;border:1px solid var(--border2);border-radius:20px;
+  background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;}
+.pill:hover{color:var(--text);border-color:rgba(255,255,255,.3);}
+.pill.active{background:var(--accent-bg);border-color:var(--accent);color:var(--text);}
+
+/* Range sliders */
+.range-wrap{display:flex;flex-direction:column;gap:5px;}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;
+  background:var(--bg3);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg);}
+
+/* Number inputs */
+.num-row{display:flex;align-items:center;gap:8px;}
+.num-input{width:80px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;
+  padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);
+  outline:none;transition:border-color .15s;}
+.num-input:focus{border-color:var(--accent);}
+.num-sep{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.num-row .num-pfx{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.age-hint{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--faint);margin-top:2px;}
+
+/* Scan button */
+.scan-btn{display:flex;align-items:center;gap:8px;background:var(--accent);border:none;
+  border-radius:10px;padding:12px 28px;font-family:'JetBrains Mono',monospace;font-size:13px;
+  font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s;}
+.scan-btn:hover{opacity:.88;}
+.scan-btn:disabled{opacity:.5;cursor:default;}
+.scan-btn svg{flex-shrink:0;}
+
+/* ── State ────────────────────────────────────── */
+.state-box{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px;}
+.spinner{width:32px;height:32px;border:2px solid var(--bg3);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.state-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);margin-top:6px;}
+
+/* ── Results header ───────────────────────────── */
+#results{display:none;}
+.results-header{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;margin-bottom:1.25rem;}
+.results-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);}
+.results-count strong{color:var(--text);}
+.sort-row{display:flex;align-items:center;gap:8px;}
+.sort-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);}
+.sort-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;
+  padding:4px 10px;border:1px solid var(--border2);border-radius:6px;
+  background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;}
+.sort-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+.sort-btn:hover:not(.active){color:var(--text);}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);
+  font-size:13px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;}
+.empty-icon{font-size:32px;margin-bottom:10px;}
+
+/* ── Result Cards Grid ────────────────────────── */
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.cards-grid{grid-template-columns:1fr;}}
+
+.result-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;
+  transition:border-color .2s;}
+.result-card:hover{border-color:rgba(255,255,255,.18);}
+
+/* Card header */
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-sym{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text);}
+.card-price{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--text);
+  text-align:right;}
+.card-days{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);
+  text-align:right;margin-top:2px;}
+
+/* Reversal visual: Peak → Support → Current */
+.rv-viz{display:flex;align-items:center;gap:0;}
+.rv-point{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;}
+.rv-price{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text);}
+.rv-tag{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);}
+.rv-bridge{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 6px;min-width:0;}
+.rv-pct{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;}
+.rv-pct.fall{color:var(--red);}
+.rv-pct.rise{color:var(--green);}
+.rv-line{width:100%;height:2px;border-radius:1px;}
+.rv-line.fall{background:linear-gradient(90deg,var(--red) 0%,rgba(248,113,113,0.3) 100%);}
+.rv-line.rise{background:linear-gradient(90deg,rgba(52,211,153,0.3) 0%,var(--green) 100%);}
+
+/* Recovery strength badge */
+.recovery-badge{display:inline-flex;align-items:center;gap:5px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;
+  padding:3px 10px;border-radius:999px;border:1px solid;}
+.recovery-badge.strong {color:var(--green);border-color:var(--green-border);background:var(--green-bg);}
+.recovery-badge.moderate{color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg);}
+.recovery-badge.early  {color:var(--accent2);border-color:rgba(91,138,245,0.3);background:rgba(91,138,245,0.08);}
+
+/* Card footer */
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding-top:10px;border-top:1px solid var(--border);}
+.health-link{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--accent);text-decoration:none;
+  border:1px solid rgba(124,106,247,0.3);border-radius:6px;padding:5px 10px;
+  background:var(--accent-bg);transition:all .15s;}
+.health-link:hover{background:rgba(124,106,247,0.18);border-color:var(--accent);}
+
+/* ── Disclaimer ───────────────────────────────── */
+.disclaimer{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);
+  border-radius:0 8px 8px 0;padding:10px 14px;margin-top:2rem;
+  font-size:12px;color:var(--muted);line-height:1.55;}
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page">
+
+  <div class="hero">
+    <a href="/stock_health.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Stock Health Story
+    </a>
+    <h1>Reversal Screener</h1>
+    <p>Scans a stock universe for the pattern: significant price fall → support touch → sustained 2-month+ recovery. Set your filters and run the scan.</p>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="filter-panel">
+    <div class="filter-grid">
+
+      <!-- Universe -->
+      <div class="filter-group">
+        <label>Universe</label>
+        <div class="pill-row" id="universeGroup">
+          <button class="pill active" data-val="nifty50">Nifty 50</button>
+          <button class="pill" data-val="nifty500">Nifty 500 <span style="font-size:9px;opacity:.6">~250</span></button>
+        </div>
+      </div>
+
+      <!-- Support Quality -->
+      <div class="filter-group">
+        <label>Support Quality</label>
+        <div class="pill-row" id="supportGroup">
+          <button class="pill active" data-val="single">Single Touch</button>
+          <button class="pill" data-val="double">Double Bottom</button>
+        </div>
+      </div>
+
+      <!-- Price Range -->
+      <div class="filter-group">
+        <label>Price Range</label>
+        <div class="num-row">
+          <span class="num-pfx">₹</span>
+          <input class="num-input" id="minPrice" type="number" placeholder="Min" min="0" step="10"/>
+          <span class="num-sep">—</span>
+          <span class="num-pfx">₹</span>
+          <input class="num-input" id="maxPrice" type="number" placeholder="Max" min="0" step="10"/>
+        </div>
+      </div>
+
+      <!-- Min Decline -->
+      <div class="filter-group">
+        <label>Min Decline <span class="filter-val" id="declineVal">30%</span></label>
+        <div class="range-wrap">
+          <input type="range" id="minDecline" min="10" max="70" value="30" step="5"/>
+        </div>
+      </div>
+
+      <!-- Min Recovery -->
+      <div class="filter-group">
+        <label>Min Recovery from Low <span class="filter-val" id="recoveryVal">10%</span></label>
+        <div class="range-wrap">
+          <input type="range" id="minRecovery" min="5" max="50" value="10" step="5"/>
+        </div>
+      </div>
+
+      <!-- Reversal Age -->
+      <div class="filter-group">
+        <label>Reversal Age (trading days)</label>
+        <div class="num-row">
+          <input class="num-input" id="minDays" type="number" value="40" min="20" max="200" step="5"/>
+          <span class="num-sep">—</span>
+          <input class="num-input" id="maxDays" type="number" value="130" min="30" max="250" step="5"/>
+        </div>
+        <div class="age-hint">40 days ≈ 2 months · 130 days ≈ 6 months</div>
+      </div>
+
+    </div>
+
+    <button class="scan-btn" id="scanBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Run Scan
+    </button>
+  </div>
+
+  <!-- State -->
+  <div id="stateBox" class="state-box" style="display:none;">
+    <div id="spinner" class="spinner" style="display:none;"></div>
+    <div id="stateMsg"></div>
+    <div id="stateSub" class="state-sub"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-header">
+      <div class="results-count" id="resultsCount"></div>
+      <div class="sort-row">
+        <span class="sort-label">Sort:</span>
+        <button class="sort-btn active" data-sort="recovery">Recovery %</button>
+        <button class="sort-btn" data-sort="decline">Decline %</button>
+        <button class="sort-btn" data-sort="age">Freshest</button>
+      </div>
+    </div>
+    <div id="cardsGrid" class="cards-grid"></div>
+  </div>
+
+  <div class="disclaimer">
+    For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before making any trading decisions.
+  </div>
+
+</div>
+
+<script>
+let _data     = null;
+let _sortKey  = 'recovery';
+let _universe = 'nifty50';
+let _support  = 'single';
+
+// ── Filter wiring ─────────────────────────────────────────────────────────────
+function wirePills(groupId, onSelect) {
+  document.getElementById(groupId).querySelectorAll('.pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById(groupId).querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onSelect(btn.dataset.val);
+    });
+  });
+}
+wirePills('universeGroup', v => { _universe = v; });
+wirePills('supportGroup',  v => { _support  = v; });
+
+document.getElementById('minDecline').addEventListener('input', function() {
+  document.getElementById('declineVal').textContent = this.value + '%';
+});
+document.getElementById('minRecovery').addEventListener('input', function() {
+  document.getElementById('recoveryVal').textContent = this.value + '%';
+});
+
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _sortKey = btn.dataset.sort;
+    if (_data) renderCards(sortResults(_data.results));
+  });
+});
+
+// ── State helpers ─────────────────────────────────────────────────────────────
+function showState(loading, msg, sub) {
+  document.getElementById('results').style.display = 'none';
+  const box = document.getElementById('stateBox');
+  box.style.display = 'block';
+  document.getElementById('spinner').style.display  = loading ? 'block' : 'none';
+  document.getElementById('stateMsg').textContent   = msg;
+  document.getElementById('stateSub').textContent   = sub || '';
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmt(v, dec=2) {
+  if (v == null) return '—';
+  return Number(v).toFixed(dec);
+}
+
+function fmtPrice(v) {
+  if (v == null) return '—';
+  return '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ── Sort ──────────────────────────────────────────────────────────────────────
+function sortResults(rows) {
+  const copy = [...rows];
+  if (_sortKey === 'recovery') copy.sort((a, b) => b.recovery_pct - a.recovery_pct);
+  if (_sortKey === 'decline')  copy.sort((a, b) => b.decline_pct  - a.decline_pct);
+  if (_sortKey === 'age')      copy.sort((a, b) => a.days_since_trough - b.days_since_trough);
+  return copy;
+}
+
+// ── Badge ─────────────────────────────────────────────────────────────────────
+function recoveryBadge(pct) {
+  if (pct >= 30) return `<span class="recovery-badge strong">Strong +${pct}%</span>`;
+  if (pct >= 15) return `<span class="recovery-badge moderate">Moderate +${pct}%</span>`;
+  return `<span class="recovery-badge early">Early +${pct}%</span>`;
+}
+
+// ── Render cards ──────────────────────────────────────────────────────────────
+function renderCards(rows) {
+  const grid = document.getElementById('cardsGrid');
+
+  if (!rows.length) {
+    grid.innerHTML = '';
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('stateBox').style.display = 'none';
+    grid.outerHTML; // won't change — use below
+    document.getElementById('cardsGrid').innerHTML =
+      `<div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🔍</div>
+        <div>No stocks matched the current filters.</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--faint);">Try lowering Min Decline or widening the Reversal Age range.</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = rows.map(r => {
+    const tradingDaysNote = r.days_since_trough < 50
+      ? `${r.days_since_trough} trading days ago`
+      : `${r.days_since_trough} trading days ago (~${Math.round(r.days_since_trough / 21)}M)`;
+
+    return `
+    <div class="result-card">
+      <div class="card-head">
+        <div>
+          <div class="card-sym">${esc(r.symbol)}</div>
+        </div>
+        <div>
+          <div class="card-price">${fmtPrice(r.current_price)}</div>
+          <div class="card-days">${tradingDaysNote}</div>
+        </div>
+      </div>
+
+      <!-- Peak → Support → Current visualization -->
+      <div class="rv-viz">
+        <div class="rv-point">
+          <div class="rv-price">${fmtPrice(r.peak)}</div>
+          <div class="rv-tag">Peak</div>
+        </div>
+        <div class="rv-bridge">
+          <div class="rv-pct fall">−${fmt(r.decline_pct, 1)}%</div>
+          <div class="rv-line fall"></div>
+        </div>
+        <div class="rv-point">
+          <div class="rv-price">${fmtPrice(r.support)}</div>
+          <div class="rv-tag">Support</div>
+        </div>
+        <div class="rv-bridge">
+          <div class="rv-pct rise">+${fmt(r.recovery_pct, 1)}%</div>
+          <div class="rv-line rise"></div>
+        </div>
+        <div class="rv-point">
+          <div class="rv-price">${fmtPrice(r.current_price)}</div>
+          <div class="rv-tag">Now</div>
+        </div>
+      </div>
+
+      <div class="card-foot">
+        ${recoveryBadge(r.recovery_pct)}
+        <a href="/stock_health.html?symbol=${esc(r.symbol)}" class="health-link">
+          Health Story
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('stateBox').style.display = 'none';
+}
+
+// ── Scan ──────────────────────────────────────────────────────────────────────
+document.getElementById('scanBtn').addEventListener('click', runScan);
+
+async function runScan() {
+  const btn      = document.getElementById('scanBtn');
+  const minDecl  = document.getElementById('minDecline').value;
+  const minRec   = document.getElementById('minRecovery').value;
+  const minDays  = document.getElementById('minDays').value;
+  const maxDays  = document.getElementById('maxDays').value;
+  const minPrice = document.getElementById('minPrice').value;
+  const maxPrice = document.getElementById('maxPrice').value;
+
+  btn.disabled = true;
+
+  const universeLabel = _universe === 'nifty50' ? 'Nifty 50 (50 stocks)' : 'Nifty 500 proxy (~250 stocks)';
+  showState(
+    true,
+    `Scanning ${universeLabel}…`,
+    _universe === 'nifty500' ? 'This may take 30–60 seconds. Batch downloading price history.' : 'Fetching 9 months of price history…'
+  );
+
+  const params = new URLSearchParams({
+    universe:     _universe,
+    min_decline:  minDecl,
+    min_recovery: minRec,
+    support_type: _support,
+    min_days:     minDays,
+    max_days:     maxDays,
+  });
+  if (minPrice) params.set('min_price', minPrice);
+  if (maxPrice) params.set('max_price', maxPrice);
+
+  try {
+    const res  = await fetch(`/api/stock/reversal-scan?${params}`);
+    const data = await res.json();
+
+    if (data.error) { showState(false, data.error, ''); return; }
+
+    _data = data;
+    document.getElementById('resultsCount').innerHTML =
+      `<strong>${data.matched}</strong> of ${data.universe_size} stocks matched · ${_universe === 'nifty50' ? 'Nifty 50' : 'Nifty 500 proxy'}`;
+
+    renderCards(sortResults(data.results));
+  } catch (e) {
+    showState(false, 'Could not connect to the server. Make sure the engine is running.', '');
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>

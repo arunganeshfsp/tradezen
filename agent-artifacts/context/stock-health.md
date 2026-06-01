@@ -87,6 +87,30 @@ Each of the 4 metrics contributes max 2.5 points:
 
 ---
 
+## Reversal Screener (companion page)
+
+**Page:** `public/stock_reversal.html`  
+**API:** `GET /stock/reversal-scan` (Node) → `GET /stock/reversal-scan` (Python)  
+**Scanner module:** `ai_engine/core/patterns/reversal_scanner.py`
+
+Pattern detected: Peak → significant decline → support touch → 2-month+ sustained recovery.
+
+**User-configurable filters:**
+- Universe: nifty50 (50 stocks) | nifty500 (~250 stocks — Nifty50 + Midcap100 + Smallcap100 combined)
+- Price range: optional min/max
+- Min decline %: how far the stock must have fallen from peak (default 30%)
+- Min recovery %: how far it has recovered from the support (default 10%)
+- Support type: single | double bottom
+- Reversal age: min/max trading days since the trough (default 40–130 days)
+
+**Performance:** Uses `yf.download()` batch download — one API call for all tickers.  
+Nifty50 ≈ 10s. Nifty500 proxy ≈ 30–60s.
+
+**Sort options:** Recovery % | Decline % | Freshest (fewest days since trough)
+
+**Cross-link:** Each result card links to `/stock_health.html?symbol=X` for health persona.  
+Stock Health Story page has a "Reversal Screener" link next to quick picks.
+
 ## Open Issues
 
 - No cap-size filter on the quick picks — ADANIENT can sometimes return unavailable if yfinance is rate-limited.

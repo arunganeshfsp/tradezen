@@ -1,0 +1,260 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🏛️",
+      "heading": { "en": "What is NSE & BSE?", "ta": "NSE & BSE என்றால் என்ன?" },
+      "description": { "en": "Every share you buy or sell in India goes through one of these two exchanges. Here is what they are, how they differ, and why it matters.", "ta": "இந்தியாவில் நீங்கள் வாங்கும் அல்லது விற்கும் ஒவ்வொரு பங்கும் இந்த இரண்டு பரிமாற்றங்களில் ஒன்றின் வழியாக செல்கிறது. அவை என்ன, எவ்வாறு வேறுபடுகின்றன, ஏன் முக்கியம் என்று இதோ." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🏪",
+      "title": { "en": "NSE and BSE are India's two giant stock supermarkets.", "ta": "NSE மற்றும் BSE இந்தியாவின் இரண்டு மிகப்பெரிய பங்கு சூப்பர் மார்க்கெட்கள்." },
+      "caption": { "en": "They connect buyers and sellers of shares — safely, transparently, and in milliseconds.", "ta": "அவை பங்குகளின் வாங்குவோரையும் விற்பவர்களையும் இணைக்கின்றன — பாதுகாப்பாக, வெளிப்படையாக மற்றும் மில்லி விநாடிகளில்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Stock Exchange", "ta": "பங்குச் சந்தை" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The Marketplace for Shares", "ta": "பங்குகளுக்கான சந்தை இடம்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "A stock exchange is a regulated marketplace where buyers and sellers come together to trade shares of listed companies. In India, all trades happen electronically through two main exchanges — NSE and BSE. They ensure fair pricing, transparency, and legal protection for every single trade.", "ta": "ஒரு பங்குச் சந்தை என்பது ஒழுங்குபடுத்தப்பட்ட சந்தை இடம், இங்கே வாங்குவோரும் விற்பவர்களும் பட்டியலிடப்பட்ட நிறுவனங்களின் பங்குகளை வர்த்தகம் செய்ய ஒன்று கூடுகிறார்கள். இந்தியாவில் எல்லா வர்த்தகங்களும் இரண்டு முக்கிய பரிமாற்றங்கள் வழியாக மின்னணு முறையில் நடக்கிறது — NSE மற்றும் BSE. அவை ஒவ்வொரு வர்த்தகத்திற்கும் நியாயமான விலையை, வெளிப்படைத்தன்மையை மற்றும் சட்ட பாதுகாப்பை உறுதிப்படுத்துகின்றன." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Only SEBI-approved listed companies can be traded on an exchange", "ta": "SEBI-அனுமதி பெற்ற பட்டியலிடப்பட்ட நிறுவனங்கள் மட்டுமே பரிமாற்றத்தில் வர்த்தகமாகலாம்" },
+            { "en": "SEBI (Securities and Exchange Board of India) regulates both NSE and BSE", "ta": "SEBI (இந்திய பத்திர மற்றும் பரிமாற்ற வாரியம்) NSE மற்றும் BSE இரண்டையும் ஒழுங்குபடுத்துகிறது" },
+            { "en": "Prices are set by real-time supply and demand — no one fixes them", "ta": "விலைகள் நிகழ் நேர வழங்கல் மற்றும் தேவையால் நிர்ணயிக்கப்படுகின்றன — யாரும் நிர்ணயிப்பதில்லை" },
+            { "en": "Every trade is recorded and settled through a clearing house (NSCCL / ICCL)", "ta": "ஒவ்வொரு வர்த்தகமும் ஒரு கிளியரிங் ஹவுஸ் மூலம் (NSCCL / ICCL) பதிவு செய்யப்பட்டு தீர்க்கப்படுகிறது" }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Think of a stock exchange like a SEBI-supervised online marketplace — like Amazon for shares. You can buy and sell shares of thousands of companies, with every transaction protected by law.", "ta": "ஒரு பங்குச் சந்தையை SEBI மேற்பார்வையிடும் ஆன்லைன் சந்தை இடமாக நினையுங்கள் — பங்குகளுக்கான Amazon போல். ஆயிரக்கணக்கான நிறுவனங்களின் பங்குகளை வாங்கி விற்கலாம், ஒவ்வொரு பரிவர்த்தனையும் சட்டத்தால் பாதுகாக்கப்படும்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "BSE", "ta": "BSE" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Born in 1875 — Asia's Oldest Exchange", "ta": "1875-ல் பிறந்தது — ஆசியாவின் பழமையான பரிமாற்றம்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "The Bombay Stock Exchange (BSE) was established in 1875 under a banyan tree on Dalal Street, Mumbai — making it the oldest stock exchange in Asia. Today it has over 5,000 listed companies, more than any other exchange in India.", "ta": "மும்பை பங்குச் சந்தை (BSE) 1875-ல் மும்பையின் டல்லால் ஸ்ட்ரீட்டில் ஒரு ஆலமரத்தின் கீழ் நிறுவப்பட்டது — இது ஆசியாவின் பழமையான பங்குச் சந்தை. இன்று இந்தியாவில் வேறு எந்த பரிமாற்றத்தையும் விட 5,000-க்கும் மேற்பட்ட பட்டியலிடப்பட்ட நிறுவனங்கள் இதில் உள்ளன." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Full name", "ta": "முழு பெயர்" }, "val": { "en": "Bombay Stock Exchange", "ta": "மும்பை பங்குச் சந்தை" } },
+            { "key": { "en": "Founded", "ta": "நிறுவப்பட்டது" }, "val": { "en": "1875 — Asia's oldest stock exchange", "ta": "1875 — ஆசியாவின் பழமையான பங்குச் சந்தை" } },
+            { "key": { "en": "Location", "ta": "இடம்" }, "val": { "en": "Dalal Street, Mumbai", "ta": "டல்லால் ஸ்ட்ரீட், மும்பை" } },
+            { "key": { "en": "Listed companies", "ta": "பட்டியலிடப்பட்ட நிறுவனங்கள்" }, "val": { "en": "5,000+ companies", "ta": "5,000+ நிறுவனங்கள்" } },
+            { "key": { "en": "Benchmark index", "ta": "அளவுகோல் குறியீடு" }, "val": { "en": "Sensex — tracks India's top 30 companies", "ta": "சென்செக்ஸ் — இந்தியாவின் முதல் 30 நிறுவனங்களை கண்காணிக்கிறது" } }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "BSE's benchmark index — the Sensex — tracks India's top 30 companies. When news channels say 'markets are up today,' they usually mean the Sensex has risen.", "ta": "BSE-இன் அளவுகோல் குறியீடு — சென்செக்ஸ் — இந்தியாவின் முதல் 30 நிறுவனங்களை கண்காணிக்கிறது. செய்தி சேனல்கள் 'இன்று சந்தைகள் ஏறியுள்ளன' என்று சொல்லும்போது, பொதுவாக சென்செக்ஸ் ஏறியுள்ளது என்று பொருள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Which index tracks the performance of the top 30 companies listed on BSE?", "ta": "BSE-ல் பட்டியலிடப்பட்ட முதல் 30 நிறுவனங்களின் செயல்திறனை எந்த குறியீடு கண்காணிக்கிறது?" },
+      "options": [
+        { "en": "Nifty 50 — NSE's flagship index", "ta": "நிஃப்டி 50 — NSE-இன் முக்கிய குறியீடு" },
+        { "en": "Nifty Bank — tracks banking stocks", "ta": "நிஃப்டி வங்கி — வங்கி பங்குகளை கண்காணிக்கிறது" },
+        { "en": "Sensex — BSE's benchmark of top 30 companies", "ta": "சென்செக்ஸ் — BSE-இன் முதல் 30 நிறுவனங்களின் அளவுகோல்" },
+        { "en": "Nifty Midcap — tracks mid-size companies", "ta": "நிஃப்டி மிட்கேப் — நடுத்தர அளவு நிறுவனங்களை கண்காணிக்கிறது" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "The Sensex (Sensitive Index) is BSE's benchmark index and tracks the 30 largest and most actively traded companies on the BSE. The Nifty 50, on the other hand, is NSE's index and tracks the top 50 companies. Both are widely followed as indicators of India's overall market health.", "ta": "சென்செக்ஸ் (Sensitive Index) BSE-இன் அளவுகோல் குறியீடு மற்றும் BSE-ல் 30 மிகப்பெரிய மற்றும் மிகவும் செயலில் வர்த்தகமாகும் நிறுவனங்களை கண்காணிக்கிறது. மறுபுறம் நிஃப்டி 50 NSE-இன் குறியீடு மற்றும் முதல் 50 நிறுவனங்களை கண்காணிக்கிறது. இரண்டும் இந்தியாவின் ஒட்டுமொத்த சந்தை ஆரோக்கியத்தின் குறிகாட்டிகளாக பரவலாக பின்பற்றப்படுகின்றன." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "NSE", "ta": "NSE" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Established 1992 — Now India's Largest", "ta": "1992-ல் நிறுவப்பட்டது — இப்போது இந்தியாவில் மிகப்பெரியது" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "The National Stock Exchange (NSE) was set up in 1992 to bring transparency and technology to Indian markets. It was the first exchange in India to introduce fully electronic, screen-based trading — ending the era of chaotic open-outcry trading floors. Today NSE is the largest stock exchange in India by trading volume.", "ta": "தேசிய பங்குச் சந்தை (NSE) இந்திய சந்தைகளுக்கு வெளிப்படைத்தன்மை மற்றும் தொழில்நுட்பம் கொண்டுவர 1992-ல் அமைக்கப்பட்டது. இது இந்தியாவில் முழுமையான மின்னணு, திரை அடிப்படையிலான வர்த்தகத்தை அறிமுகப்படுத்திய முதல் பரிமாற்றம் — குழப்பமான திறந்த வாய் வர்த்தக தளங்களின் யுகத்தை முடித்தது. இன்று NSE வர்த்தக வால்யூமால் இந்தியாவில் மிகப்பெரிய பங்குச் சந்தை." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Full name", "ta": "முழு பெயர்" }, "val": { "en": "National Stock Exchange", "ta": "தேசிய பங்குச் சந்தை" } },
+            { "key": { "en": "Founded", "ta": "நிறுவப்பட்டது" }, "val": { "en": "1992 — introduced electronic trading in India", "ta": "1992 — இந்தியாவில் மின்னணு வர்த்தகம் அறிமுகப்படுத்தியது" } },
+            { "key": { "en": "Location", "ta": "இடம்" }, "val": { "en": "BKC (Bandra Kurla Complex), Mumbai", "ta": "BKC (பாந்த்ரா குர்லா காம்ப்ளெக்ஸ்), மும்பை" } },
+            { "key": { "en": "Listed companies", "ta": "பட்டியலிடப்பட்ட நிறுவனங்கள்" }, "val": { "en": "2,000+ companies", "ta": "2,000+ நிறுவனங்கள்" } },
+            { "key": { "en": "Benchmark index", "ta": "அளவுகோல் குறியீடு" }, "val": { "en": "Nifty 50 — tracks India's top 50 companies", "ta": "நிஃப்டி 50 — இந்தியாவின் முதல் 50 நிறுவனங்களை கண்காணிக்கிறது" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "NSE also introduced derivatives trading (Futures & Options) to India — making it the preferred exchange for active traders, institutions, and FII investments.", "ta": "NSE இந்தியாவிற்கு டெரிவேட்டிவ் வர்த்தகத்தையும் (எதிர்காலம் & விருப்பங்கள்) அறிமுகப்படுத்தியது — இது செயலில் உள்ள வர்த்தகர்கள், நிறுவனங்கள் மற்றும் FII முதலீடுகளுக்கு விரும்பிய பரிமாற்றமாக உள்ளது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "NSE vs BSE", "ta": "NSE vs BSE" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Which One Should You Use?", "ta": "நீங்கள் எதை பயன்படுத்த வேண்டும்?" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Both exchanges list most of the same major companies and are equally safe. For most retail investors and traders in India, NSE is the default choice because of significantly higher liquidity and tighter bid-ask spreads — meaning you get a fairer price on every trade.", "ta": "இரண்டு பரிமாற்றங்களும் பெரும்பாலான அதே முக்கிய நிறுவனங்களை பட்டியலிடுகின்றன மற்றும் சமமாக பாதுகாப்பானவை. இந்தியாவில் பெரும்பாலான சில்லறை முதலீட்டாளர்களுக்கும் வர்த்தகர்களுக்கும், NSE இயல்புநிலை தேர்வாக உள்ளது — கணிசமாக அதிக திரவத்தன்மை மற்றும் குறுகிய வாங்கு-விற்கு இடைவெளி காரணமாக — அதாவது ஒவ்வொரு வர்த்தகத்திலும் நியாயமான விலை கிடைக்கும்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "⚡",
+              "title": { "en": "NSE", "ta": "NSE" },
+              "subtitle": { "en": "Higher volume · Tighter spreads · F&O hub · Default for most trades", "ta": "அதிக வால்யூம் · குறுகிய இடைவெளி · F&O மையம் · பெரும்பாலான வர்த்தகங்களுக்கு இயல்புநிலை" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "🏛️",
+              "title": { "en": "BSE", "ta": "BSE" },
+              "subtitle": { "en": "Older · More listed companies · Lower volume for most stocks · SME platform", "ta": "பழமையானது · அதிக பட்டியலிடப்பட்ட நிறுவனங்கள் · பெரும்பாலான பங்குகளில் குறைந்த வால்யூம் · SME தளம்" },
+              "variant": "neutral"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Daily trading volume", "ta": "தினசரி வர்த்தக வால்யூம்" }, "val": { "en": "NSE is ~4–5× higher than BSE", "ta": "NSE BSE-ஐ விட ~4–5 மடங்கு அதிகம்" } },
+            { "key": { "en": "Listed companies", "ta": "பட்டியலிடப்பட்ட நிறுவனங்கள்" }, "val": { "en": "BSE 5,000+  vs  NSE 2,000+", "ta": "BSE 5,000+  vs  NSE 2,000+" } },
+            { "key": { "en": "F&O (Derivatives) trading", "ta": "F&O (டெரிவேட்டிவ்) வர்த்தகம்" }, "val": { "en": "NSE dominates — 99% of F&O volumes", "ta": "NSE ஆதிக்கம் செலுத்துகிறது — 99% F&O வால்யூம்கள்" } },
+            { "key": { "en": "Regulated by", "ta": "ஒழுங்குபடுத்தப்படுகிறது" }, "val": { "en": "Both regulated equally by SEBI", "ta": "இரண்டும் SEBI-ஆல் சமமாக ஒழுங்குபடுத்தப்படுகின்றன" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "When you open Zerodha or Groww and search for a stock, NSE is selected by default. For the vast majority of trades, this is exactly the right choice.", "ta": "Zerodha அல்லது Groww திறந்து ஒரு பங்கை தேடும்போது, NSE இயல்பாக தேர்ந்தெடுக்கப்படும். மிகப்பெரும்பாலான வர்த்தகங்களுக்கு, இது சரியான தேர்வாக உள்ளது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Which of the following statements about NSE and BSE is correct?", "ta": "NSE மற்றும் BSE பற்றிய பின்வரும் கூற்றுகளில் எது சரியானது?" },
+      "options": [
+        { "en": "BSE was established before NSE", "ta": "NSE-க்கு முன்பே BSE நிறுவப்பட்டது" },
+        { "en": "NSE has more listed companies than BSE", "ta": "NSE-ல் BSE-ஐ விட அதிக பட்டியலிடப்பட்ட நிறுவனங்கள் உள்ளன" },
+        { "en": "BSE dominates F&O trading in India", "ta": "BSE இந்தியாவில் F&O வர்த்தகத்தில் ஆதிக்கம் செலுத்துகிறது" },
+        { "en": "SEBI regulates NSE but not BSE", "ta": "SEBI NSE-ஐ ஒழுங்குபடுத்துகிறது ஆனால் BSE-ஐ இல்லை" }
+      ],
+      "correct_index": 0,
+      "explanation": { "en": "BSE was founded in 1875 — making it 117 years older than NSE, which was established in 1992. BSE also has more listed companies (5,000+) compared to NSE (2,000+). NSE dominates F&O trading, and SEBI regulates both exchanges equally.", "ta": "BSE 1875-ல் நிறுவப்பட்டது — 1992-ல் நிறுவப்பட்ட NSE-ஐ விட 117 ஆண்டுகள் பழமையானது. BSE-ல் NSE-ஐ விட (2,000+) அதிக பட்டியலிடப்பட்ட நிறுவனங்களும் (5,000+) உள்ளன. NSE F&O வர்த்தகத்தில் ஆதிக்கம் செலுத்துகிறது, மற்றும் SEBI இரண்டு பரிமாற்றங்களையும் சமமாக ஒழுங்குபடுத்துகிறது." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Sensex & Nifty 50", "ta": "சென்செக்ஸ் & நிஃப்டி 50" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The Market's Report Card", "ta": "சந்தையின் மதிப்பெண் அட்டை" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "The Sensex and Nifty 50 are India's two most important market indices. An index is a basket of carefully selected stocks that represents the overall health of the market — just like a thermometer measures body temperature, an index measures market health.", "ta": "சென்செக்ஸ் மற்றும் நிஃப்டி 50 இந்தியாவின் இரண்டு மிக முக்கியமான சந்தை குறியீடுகள். ஒரு குறியீடு என்பது சந்தையின் ஒட்டுமொத்த ஆரோக்கியத்தை பிரதிபலிக்கும் கவனமாக தேர்ந்தெடுக்கப்பட்ட பங்குகளின் கூடை — வெப்பமானி உடல் வெப்பநிலையை அளவிடுவது போல், ஒரு குறியீடு சந்தை ஆரோக்கியத்தை அளவிடுகிறது." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "📊",
+              "title": { "en": "Sensex", "ta": "சென்செக்ஸ்" },
+              "subtitle": { "en": "BSE index · Top 30 companies · Oldest Indian index · Base year 1979", "ta": "BSE குறியீடு · முதல் 30 நிறுவனங்கள் · பழமையான இந்திய குறியீடு · அடிப்படை ஆண்டு 1979" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "📈",
+              "title": { "en": "Nifty 50", "ta": "நிஃப்டி 50" },
+              "subtitle": { "en": "NSE index · Top 50 companies · More diversified · Base year 1995", "ta": "NSE குறியீடு · முதல் 50 நிறுவனங்கள் · அதிக பல்வகைப்பட்டது · அடிப்படை ஆண்டு 1995" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Sensex base value", "ta": "சென்செக்ஸ் அடிப்படை மதிப்பு" }, "val": { "en": "100 in 1978–79 → now ~73,000+ (730× growth)", "ta": "1978–79-ல் 100 → இப்போது ~73,000+ (730 மடங்கு வளர்ச்சி)" } },
+            { "key": { "en": "Nifty 50 base value", "ta": "நிஃப்டி 50 அடிப்படை மதிப்பு" }, "val": { "en": "1,000 in 1995 → now ~22,000+ (22× growth)", "ta": "1995-ல் 1,000 → இப்போது ~22,000+ (22 மடங்கு வளர்ச்சி)" } },
+            { "key": { "en": "What it means when Nifty rises", "ta": "நிஃப்டி ஏறும்போது என்ன பொருள்" }, "val": { "en": "Most top companies are performing well that day", "ta": "அன்று பெரும்பாலான முதல் நிறுவனங்கள் நன்றாக செயல்படுகின்றன" } }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "When news says 'markets crashed today' or 'Dalal Street surges' — they are referring to movements in the Sensex or Nifty 50. These two numbers are the pulse of India's economy.", "ta": "'இன்று சந்தைகள் வீழ்ச்சியடைந்தன' அல்லது 'டல்லால் ஸ்ட்ரீட் ஏற்றம்' என்று செய்திகள் சொல்லும்போது — அவை சென்செக்ஸ் அல்லது நிஃப்டி 50-இன் நகர்வுகளைக் குறிக்கின்றன. இந்த இரண்டு எண்களும் இந்தியாவின் பொருளாதாரத்தின் நாடித்துடிப்பு." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "NSE and BSE are competitors, so a company listed on NSE cannot also be listed on BSE.", "ta": "NSE மற்றும் BSE போட்டியாளர்கள், எனவே NSE-ல் பட்டியலிடப்பட்ட ஒரு நிறுவனம் BSE-லும் பட்டியலிடப்பட முடியாது." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. Most large Indian companies — like Reliance, Infosys, HDFC Bank, and TCS — are listed on both NSE and BSE simultaneously. This is called dual listing. Investors can choose which exchange to trade on, though NSE is preferred for most stocks due to higher liquidity.", "ta": "பொய். ரிலையன்ஸ், இன்ஃபோசிஸ், HDFC வங்கி மற்றும் TCS போன்ற பெரும்பாலான பெரிய இந்திய நிறுவனங்கள் NSE மற்றும் BSE இரண்டிலும் ஒரே நேரத்தில் பட்டியலிடப்பட்டுள்ளன. இதை இரட்டை பட்டியலிடல் என்று அழைக்கிறோம். முதலீட்டாளர்கள் எந்த பரிமாற்றத்தில் வர்த்தகம் செய்வது என்று தேர்ந்தெடுக்கலாம், இருந்தாலும் அதிக திரவத்தன்மை காரணமாக பெரும்பாலான பங்குகளுக்கு NSE விரும்பப்படுகிறது." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

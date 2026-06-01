@@ -1,0 +1,245 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "📊",
+      "heading": { "en": "What is a Stock Index?", "ta": "பங்கு குறியீடு என்றால் என்ன?" },
+      "description": { "en": "An index is the market's scoreboard — it tells you at a glance how the biggest companies are performing. Here is how it works and why every investor should understand it.", "ta": "ஒரு குறியீடு சந்தையின் மதிப்பெண் பலகை — மிகப்பெரிய நிறுவனங்கள் எப்படி செயல்படுகின்றன என்று ஒரே பார்வையில் சொல்கிறது. இது எப்படி வேலை செய்கிறது மற்றும் ஒவ்வொரு முதலீட்டாளரும் ஏன் புரிந்து கொள்ள வேண்டும் என்று இதோ." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🌡️",
+      "title": { "en": "An index is a thermometer for the stock market.", "ta": "ஒரு குறியீடு பங்குச் சந்தையின் வெப்பமானி." },
+      "caption": { "en": "It measures the market's temperature — showing whether things are heating up or cooling down across India's biggest companies.", "ta": "இது சந்தையின் வெப்பநிலையை அளவிடுகிறது — இந்தியாவின் மிகப்பெரிய நிறுவனங்களில் விஷயங்கள் சூடாகுகிறதா அல்லது குளிர்கிறதா என்று காட்டுகிறது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is an Index?", "ta": "குறியீடு என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The Market's Scoreboard", "ta": "சந்தையின் மதிப்பெண் பலகை" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "A stock index is a basket of carefully selected stocks that together represent a specific segment of the market. Instead of watching thousands of individual stocks, an index gives you one single number that tells you how that segment is doing right now.", "ta": "ஒரு பங்கு குறியீடு என்பது சந்தையின் ஒரு குறிப்பிட்ட பிரிவை பிரதிபலிக்கும் கவனமாக தேர்ந்தெடுக்கப்பட்ட பங்குகளின் கூடை. ஆயிரக்கணக்கான தனி பங்குகளை கண்காணிப்பதற்கு பதிலாக, ஒரு குறியீடு அந்த பிரிவு இப்போது எப்படி இயங்குகிறது என்று சொல்லும் ஒரே ஒரு எண் கொடுக்கிறது." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Tracks a selected group of stocks — not every listed company", "ta": "தேர்ந்தெடுக்கப்பட்ட பங்குகளின் குழுவை கண்காணிக்கிறது — பட்டியலிடப்பட்ட ஒவ்வொரு நிறுவனத்தையும் அல்ல" },
+            { "en": "Represents the overall market or a specific sector", "ta": "ஒட்டுமொத்த சந்தையையோ அல்லது ஒரு குறிப்பிட்ட துறையையோ பிரதிபலிக்கிறது" },
+            { "en": "Updates in real time as stock prices move throughout the day", "ta": "நாளெங்கும் பங்கு விலைகள் நகரும்போது நிகழ் நேரத்தில் புதுப்பிக்கப்படுகிறது" },
+            { "en": "Used to benchmark your portfolio — are you beating the market?", "ta": "உங்கள் போர்ட்ஃபோலியோவை அளவிட பயன்படுகிறது — நீங்கள் சந்தையை மிஞ்சுகிறீர்களா?" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "When Nifty 50 moves from 22,000 to 22,220 (+1%), it means India's top 50 companies have collectively become 1% more valuable that day.", "ta": "நிஃப்டி 50 22,000-லிருந்து 22,220-க்கு (+1%) நகரும்போது, இந்தியாவின் முதல் 50 நிறுவனங்கள் சேர்ந்து அன்று 1% அதிக மதிப்பானவை என்று பொருள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Index Criteria", "ta": "குறியீடு தகுதி நிலைகள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Not Every Stock Makes the Cut", "ta": "எல்லா பங்குகளும் தகுதி பெறுவதில்லை" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Index committees — like NSE's Index Maintenance Sub-Committee — decide which stocks qualify using strict, transparent rules. Stocks are reviewed and reshuffled every 6 months. Companies that grow large and liquid can enter; those that shrink or lose activity get replaced.", "ta": "NSE-இன் இண்டெக்ஸ் மெயின்டெனன்ஸ் சப்-கமிட்டி போன்ற குறியீடு கமிட்டிகள் கடுமையான, வெளிப்படையான விதிகளை பயன்படுத்தி எந்த பங்குகள் தகுதி பெறுகின்றன என்று முடிவு செய்கின்றன. பங்குகள் ஒவ்வொரு 6 மாதமும் மதிப்பாய்வு செய்யப்பட்டு மாற்றி அமைக்கப்படும். பெரிதாகி திரவமாகும் நிறுவனங்கள் நுழையலாம்; சுருங்கும் அல்லது செயல்பாட்டை இழக்கும் நிறுவனங்கள் மாற்றப்படும்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Market capitalisation", "ta": "சந்தை மூலதனமயமாக்கல்" }, "val": { "en": "Must be large enough to rank in the top tier", "ta": "முதல் தரத்தில் இடம் பெற போதுமான அளவு பெரியதாக இருக்க வேண்டும்" } },
+            { "key": { "en": "Liquidity (trading volume)", "ta": "திரவத்தன்மை (வர்த்தக வால்யூம்)" }, "val": { "en": "Must trade actively — high average daily volume", "ta": "செயலில் வர்த்தகமாக வேண்டும் — அதிக சராசரி தினசரி வால்யூம்" } },
+            { "key": { "en": "Listing history", "ta": "பட்டியல் வரலாறு" }, "val": { "en": "Typically 6+ months listed on NSE / BSE", "ta": "பொதுவாக NSE / BSE-ல் 6+ மாதங்கள் பட்டியலிடப்பட்டிருக்க வேண்டும்" } },
+            { "key": { "en": "Sector representation", "ta": "துறை பிரதிநிதித்துவம்" }, "val": { "en": "Balanced mix of industries — IT, banking, FMCG, etc.", "ta": "துறைகளின் சமன் கலவை — IT, வங்கி, FMCG, முதலியன" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "This regular replacement of stocks is called index reconstitution. For example, Adani Enterprises entered the Nifty 50 as it grew large enough to qualify by market cap and liquidity.", "ta": "பங்குகளின் இந்த வழக்கமான மாற்றீடு குறியீடு மறு அமைப்பு என்று அழைக்கப்படுகிறது. உதாரணமாக, அதானி என்டர்பிரைசஸ் சந்தை மூலதனம் மற்றும் திரவத்தன்மையில் தகுதி பெறும் அளவு வளர்ந்தவுடன் நிஃப்டி 50-ல் நுழைந்தது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "Which of the following is a key factor that determines whether a stock is included in the Nifty 50 index?", "ta": "ஒரு பங்கு நிஃப்டி 50 குறியீட்டில் சேர்க்கப்படுகிறதா என்பதை தீர்மானிக்கும் முக்கிய காரணி எது?" },
+      "options": [
+        { "en": "Whether the stock price ends green or red on most days", "ta": "பெரும்பாலான நாட்களில் பங்கு விலை பச்சையில் அல்லது சிவப்பில் முடிகிறதா" },
+        { "en": "Market capitalisation and trading liquidity", "ta": "சந்தை மூலதனமயமாக்கல் மற்றும் வர்த்தக திரவத்தன்மை" },
+        { "en": "The company's CEO being well known in the media", "ta": "நிறுவனத்தின் CEO ஊடகங்களில் நன்கு அறியப்பட்டவராக இருப்பது" },
+        { "en": "The company reporting profits every single quarter", "ta": "நிறுவனம் ஒவ்வொரு காலாண்டும் லாபம் தெரிவிப்பது" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "Nifty 50 inclusion is based on market capitalisation (company size) and liquidity (how actively the stock trades). Profitability alone does not guarantee inclusion — even a profitable company with low trading volume may not qualify. The index committee reviews these criteria every 6 months.", "ta": "நிஃப்டி 50 சேர்க்கை சந்தை மூலதனமயமாக்கல் (நிறுவன அளவு) மற்றும் திரவத்தன்மை (பங்கு எவ்வளவு செயலில் வர்த்தகமாகிறது) அடிப்படையில் உள்ளது. லாபம் மட்டும் சேர்க்கையை உறுதிப்படுத்தாது — குறைந்த வர்த்தக வால்யூம் கொண்ட ஒரு லாபகரமான நிறுவனமும் தகுதி பெறாமல் போகலாம். குறியீடு கமிட்டி இந்த தகுதி நிலைகளை ஒவ்வொரு 6 மாதமும் மதிப்பாய்வு செய்கிறது." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Market Cap Weight", "ta": "சந்தை மூலதன எடை" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Bigger Companies Move the Index More", "ta": "பெரிய நிறுவனங்கள் குறியீட்டை அதிகமாக நகர்த்துகின்றன" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Most major indices — including Nifty 50 and Sensex — are market capitalisation weighted. This means larger companies have a bigger impact on the index value. A 2% move in Reliance shifts the Nifty far more than a 2% move in a smaller Nifty company.", "ta": "நிஃப்டி 50 மற்றும் சென்செக்ஸ் உட்பட பெரும்பாலான முக்கிய குறியீடுகள் சந்தை மூலதன எடை கொண்டவை. இதன் பொருள் பெரிய நிறுவனங்கள் குறியீடு மதிப்பில் அதிக தாக்கம் செலுத்துகின்றன. ரிலையன்ஸில் 2% நகர்வு, ஒரு சிறிய நிஃப்டி நிறுவனத்தில் 2% நகர்வை விட நிஃப்டியை மிகவும் அதிகமாக மாற்றும்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Market Cap formula", "ta": "சந்தை மூலதன சூத்திரம்" }, "val": { "en": "Share Price × Total Shares Outstanding", "ta": "பங்கு விலை × மொத்த நிலுவையில் உள்ள பங்குகள்" } },
+            { "key": { "en": "Reliance (high market cap)", "ta": "ரிலையன்ஸ் (அதிக சந்தை மூலதனம்)" }, "val": { "en": "High weightage → big impact on Nifty movement", "ta": "அதிக எடை → நிஃப்டி நகர்வில் பெரிய தாக்கம்" } },
+            { "key": { "en": "Smaller Nifty company", "ta": "சிறிய நிஃப்டி நிறுவனம்" }, "val": { "en": "Low weightage → smaller impact on index", "ta": "குறைந்த எடை → குறியீட்டில் சிறிய தாக்கம்" } },
+            { "key": { "en": "Index value", "ta": "குறியீடு மதிப்பு" }, "val": { "en": "A relative number — not a rupee price of anything", "ta": "ஒரு தொடர்புடைய எண் — எதன் ரூபாய் விலையும் இல்லை" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Because a few very large companies dominate the index, if Reliance, HDFC Bank, and Infosys all fall on the same day, the Nifty can drop even if most other Nifty stocks are rising. This is called concentration risk.", "ta": "சில மிகப்பெரிய நிறுவனங்கள் குறியீட்டை ஆதிக்கம் செலுத்துவதால், ரிலையன்ஸ், HDFC வங்கி மற்றும் இன்ஃபோசிஸ் அனைத்தும் ஒரே நாளில் வீழ்ந்தால், மற்ற நிஃப்டி பங்குகள் அதிகம் ஏறிக்கொண்டிருந்தாலும் நிஃப்டி வீழலாம். இதை செறிவு ஆபத்து என்று அழைக்கிறோம்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Indian Indices", "ta": "இந்திய குறியீடுகள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "India's Key Market Scorecards", "ta": "இந்தியாவின் முக்கிய சந்தை மதிப்பெண் அட்டைகள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "India has dozens of indices, each tracking a different market segment. Beyond Sensex and Nifty 50, there are sector-specific and size-specific indices — each telling you about a different slice of the market.", "ta": "இந்தியாவில் டஜன் கணக்கான குறியீடுகள் உள்ளன, ஒவ்வொன்றும் வேறு வேறு சந்தை பிரிவைக் கண்காணிக்கிறது. சென்செக்ஸ் மற்றும் நிஃப்டி 50-க்கு அப்பால், துறை-குறிப்பிட்ட மற்றும் அளவு-குறிப்பிட்ட குறியீடுகள் உள்ளன — ஒவ்வொன்றும் சந்தையின் வேறு ஒரு பகுதியைப் பற்றி சொல்கிறது." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Nifty 50", "ta": "நிஃப்டி 50" }, "val": { "en": "NSE's top 50 large-cap companies — most watched index", "ta": "NSE-இன் முதல் 50 பெரிய முதலீட்டு நிறுவனங்கள் — மிகவும் கவனிக்கப்படும் குறியீடு" } },
+            { "key": { "en": "Sensex", "ta": "சென்செக்ஸ்" }, "val": { "en": "BSE's top 30 companies — India's oldest index", "ta": "BSE-இன் முதல் 30 நிறுவனங்கள் — இந்தியாவின் பழமையான குறியீடு" } },
+            { "key": { "en": "Nifty Bank", "ta": "நிஃப்டி வங்கி" }, "val": { "en": "Top 12 banking stocks — volatile F&O favourite", "ta": "முதல் 12 வங்கி பங்குகள் — ஏற்ற இறக்கமான F&O விருப்பமானது" } },
+            { "key": { "en": "Nifty IT", "ta": "நிஃப்டி IT" }, "val": { "en": "Top IT companies — Infosys, TCS, Wipro, HCL Tech", "ta": "முதல் IT நிறுவனங்கள் — இன்ஃபோசிஸ், TCS, விப்ரோ, HCL டெக்" } },
+            { "key": { "en": "Nifty Midcap 150", "ta": "நிஃப்டி மிட்கேப் 150" }, "val": { "en": "Mid-size companies — higher growth potential", "ta": "நடுத்தர அளவு நிறுவனங்கள் — அதிக வளர்ச்சி திறன்" } },
+            { "key": { "en": "Nifty Smallcap 250", "ta": "நிஃப்டி ஸ்மால்கேப் 250" }, "val": { "en": "Smaller companies — high risk, high reward potential", "ta": "சிறிய நிறுவனங்கள் — அதிக ஆபத்து, அதிக வெகுமதி திறன்" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "Nifty Bank is the most actively traded index in India's F&O market — more than even Nifty 50 — because banking stocks are highly volatile and move sharply on RBI policy news.", "ta": "நிஃப்டி வங்கி இந்தியாவின் F&O சந்தையில் மிகவும் செயலில் வர்த்தகமாகும் குறியீடு — நிஃப்டி 50-ஐ விட கூட — வங்கி பங்குகள் மிகவும் ஏற்ற இறக்கமானவை மற்றும் RBI கொள்கை செய்திகளில் கடுமையாக நகரும்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "The Nifty Bank index primarily tracks which of the following?", "ta": "நிஃப்டி வங்கி குறியீடு முதன்மையாக பின்வருவனவற்றில் எதை கண்காணிக்கிறது?" },
+      "options": [
+        { "en": "All public sector banks in India", "ta": "இந்தியாவில் உள்ள அனைத்து பொதுத்துறை வங்கிகள்" },
+        { "en": "The 12 most liquid and large banking stocks listed in India", "ta": "இந்தியாவில் பட்டியலிடப்பட்ட 12 மிகவும் திரவமான மற்றும் பெரிய வங்கி பங்குகள்" },
+        { "en": "All companies in the BFSI sector including insurance", "ta": "காப்பீடு உட்பட BFSI துறையிலுள்ள அனைத்து நிறுவனங்கள்" },
+        { "en": "The Reserve Bank of India's financial performance", "ta": "இந்திய ரிசர்வ் வங்கியின் நிதி செயல்திறன்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "Nifty Bank tracks the 12 most liquid and large capitalisation banking stocks listed on NSE — including HDFC Bank, ICICI Bank, SBI, Kotak Bank, and Axis Bank. It does not track all public sector banks or the RBI. Its high volatility and strong daily movement make it the most traded index in India's F&O segment.", "ta": "நிஃப்டி வங்கி NSE-ல் பட்டியலிடப்பட்ட 12 மிகவும் திரவமான மற்றும் பெரிய மூலதன வங்கி பங்குகளை கண்காணிக்கிறது — HDFC வங்கி, ICICI வங்கி, SBI, கோட்டக் வங்கி மற்றும் ஆக்சிஸ் வங்கி உட்பட. இது அனைத்து பொதுத்துறை வங்கிகளையோ அல்லது RBI-யையோ கண்காணிப்பதில்லை. அதிக ஏற்ற இறக்கம் மற்றும் வலுவான தினசரி நகர்வு இந்தியாவின் F&O பிரிவில் மிகவும் வர்த்தகமான குறியீடாக இதை மாற்றுகிறது." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Index Investing", "ta": "குறியீடு முதலீடு" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "You Can Invest in the Entire Index", "ta": "நீங்கள் முழு குறியீட்டிலும் முதலீடு செய்யலாம்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Instead of picking individual stocks, you can invest in an Index Fund or ETF that automatically holds all the stocks in an index in the same proportion. When the Nifty 50 rises, your investment rises too — at a very low cost and with no stock-picking required.", "ta": "தனி பங்குகளை தேர்ந்தெடுப்பதற்கு பதிலாக, ஒரு இண்டெக்ஸ் ஃபண்ட் அல்லது ETF-ல் முதலீடு செய்யலாம் — இது ஒரு குறியீட்டில் உள்ள எல்லா பங்குகளையும் அதே விகிதத்தில் தானாக வைத்திருக்கும். நிஃப்டி 50 ஏரும்போது, உங்கள் முதலீடும் ஏறும் — மிகவும் குறைந்த செலவில் மற்றும் பங்கு தேர்வு தேவையில்லாமல்." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "📋",
+              "title": { "en": "Index Fund", "ta": "இண்டெக்ஸ் ஃபண்ட்" },
+              "subtitle": { "en": "Bought like a mutual fund via SIP · NAV-based pricing · No Demat needed", "ta": "SIP வழியாக மியூச்சுவல் ஃபண்ட் போல் வாங்கப்படும் · NAV அடிப்படையிலான விலை · டீமேட் தேவையில்லை" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "📈",
+              "title": { "en": "ETF (Exchange Traded Fund)", "ta": "ETF (பரிமாற்றத்தில் வர்த்தகமாகும் நிதி)" },
+              "subtitle": { "en": "Traded on NSE/BSE like a stock · Real-time price · Demat account required", "ta": "பங்கு போல் NSE/BSE-ல் வர்த்தகமாகும் · நிகழ் நேர விலை · டீமேட் கணக்கு தேவை" },
+              "variant": "neutral"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Very low expense ratio — typically 0.05% to 0.2% per year", "ta": "மிகவும் குறைந்த செலவு விகிதம் — பொதுவாக ஆண்டுக்கு 0.05% முதல் 0.2%" },
+            { "en": "No fund manager needed — automatically mirrors the index", "ta": "நிதி மேலாளர் தேவையில்லை — தானாக குறியீட்டை பிரதிபலிக்கிறது" },
+            { "en": "Nifty 50 index funds have delivered ~12% CAGR historically", "ta": "நிஃப்டி 50 இண்டெக்ஸ் ஃபண்டுகள் வரலாற்று ரீதியாக ~12% CAGR வழங்கியுள்ளன" },
+            { "en": "Instant diversification — one fund, 50 companies", "ta": "உடனடி பல்வகைமயமாக்கல் — ஒரு ஃபண்ட், 50 நிறுவனங்கள்" },
+            { "en": "Available via Zerodha Coin, Groww, Paytm Money and most brokers", "ta": "Zerodha Coin, Groww, Paytm Money மற்றும் பெரும்பாலான தரகர்கள் வழியாக கிடைக்கும்" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": { "en": "Warren Buffett famously advised: 'Just buy a low-cost index fund.' For most Indian beginners, a monthly SIP in a Nifty 50 index fund is one of the smartest first investments.", "ta": "வாரன் பஃபெட் புகழ்பெற்ற அறிவுரை சொன்னார்: 'வெறுமனே குறைந்த செலவிலான இண்டெக்ஸ் ஃபண்டை வாங்குங்கள்.' பெரும்பாலான இந்திய தொடக்கக்காரர்களுக்கு, நிஃப்டி 50 இண்டெக்ஸ் ஃபண்டில் மாதாந்திர SIP மிகவும் புத்திசாலித்தனமான முதல் முதலீடுகளில் ஒன்று." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "An index fund invests in only 1–2 hand-picked stocks selected by a professional fund manager.", "ta": "ஒரு இண்டெக்ஸ் ஃபண்ட் ஒரு தொழில்முறை நிதி மேலாளரால் தேர்ந்தெடுக்கப்பட்ட 1–2 பங்குகளில் மட்டுமே முதலீடு செய்கிறது." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. An index fund automatically holds ALL the stocks in its target index — in the same proportion as the index. A Nifty 50 index fund holds all 50 companies. No fund manager picks stocks; the fund simply mirrors the index mechanically. This is what makes it low-cost, diversified, and beginner-friendly.", "ta": "பொய். ஒரு இண்டெக்ஸ் ஃபண்ட் அதன் இலக்கு குறியீட்டில் உள்ள எல்லா பங்குகளையும் தானாக வைத்திருக்கும் — குறியீட்டின் அதே விகிதத்தில். ஒரு நிஃப்டி 50 இண்டெக்ஸ் ஃபண்ட் 50 நிறுவனங்கள் அனைத்தையும் வைத்திருக்கும். எந்த நிதி மேலாளரும் பங்குகளை தேர்வு செய்வதில்லை; ஃபண்ட் வெறுமனே குறியீட்டை இயந்திரத்தனமாக பிரதிபலிக்கிறது. இதுவே இதை குறைந்த செலவு, பல்வகைமயமாக்கப்பட்ட மற்றும் தொடக்கக்காரர்களுக்கு ஏற்றதாக்குகிறது." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]
