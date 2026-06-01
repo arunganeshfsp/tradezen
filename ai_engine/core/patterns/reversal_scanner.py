@@ -57,7 +57,8 @@ def scan_reversals(
         log.error(f"[REVERSAL-SCAN] batch download failed: {exc}")
         return {"error": "Failed to fetch market data. Try again in a moment."}
 
-    results = []
+    results     = []
+    near_misses = []
 
     for sym in symbols:
         ticker = sym + ".NS"
@@ -78,13 +79,10 @@ def scan_reversals(
             if max_price and current_price > max_price:
                 continue
 
-            # ── Find the trough in the age window ──────────────────────────
-            # The reversal low must have occurred between min_days and max_days
-            # trading sessions ago (counting back from today).
+            # ── Trough in the age window (data quality guard — not a criterion) ──
             lookback_end   = len(close) - min_days
             lookback_start = max(0, len(close) - max_days)
             lookback = close.iloc[lookback_start:lookback_end]
-
             if len(lookback) < 5:
                 continue
 
@@ -92,53 +90,85 @@ def scan_reversals(
             trough_val  = float(lookback.iloc[trough_pos_in_lookback])
             trough_iloc = lookback_start + trough_pos_in_lookback
 
-            # ── Peak: highest close before the trough ──────────────────────
             pre_trough = close.iloc[:trough_iloc]
             if len(pre_trough) < 5:
                 continue
             peak_val = float(pre_trough.max())
 
-            # ── Decline filter ─────────────────────────────────────────────
-            decline_pct = (peak_val - trough_val) / peak_val * 100
-            if decline_pct < min_decline:
-                continue
-
-            # ── Recovery filter ────────────────────────────────────────────
-            recovery_pct = (current_price - trough_val) / trough_val * 100
-            if recovery_pct < min_recovery:
-                continue
-
-            # ── Support must still be holding ──────────────────────────────
-            # Price must not have broken back below support after the reversal.
-            post_trough = close.iloc[trough_iloc:]
-            post_trough_min = float(post_trough.min())
-            if post_trough_min < trough_val * 0.97:
-                continue
-
-            # ── Trend confirmation: price > 20-day SMA ─────────────────────
-            sma20 = float(close.iloc[-20:].mean())
-            if current_price < sma20 * 0.97:
-                continue
-
-            # ── Double bottom check ────────────────────────────────────────
-            if support_type == "double":
-                window = post_trough.iloc[:min(35, len(post_trough))]
-                bounce_peak = float(window.max())
-                if bounce_peak < trough_val * 1.05:
-                    continue
-
-                bounce_peak_idx = int(window.values.argmax())
-                after_bounce    = post_trough.iloc[bounce_peak_idx:]
-                if len(after_bounce) < 5:
-                    continue
-
-                second_low = float(after_bounce.min())
-                if second_low > trough_val * 1.08:
-                    continue
-
+            # ── Derived metrics ────────────────────────────────────────────────
+            decline_pct       = (peak_val - trough_val) / peak_val * 100
+            recovery_pct      = (current_price - trough_val) / trough_val * 100
             days_since_trough = len(close) - 1 - trough_iloc
+            sma20             = float(close.iloc[-20:].mean())
+            post_trough       = close.iloc[trough_iloc:]
+            post_min          = float(post_trough.min())
 
-            results.append({
+            double_pass = False
+            if support_type == "double":
+                win = post_trough.iloc[:min(35, len(post_trough))]
+                b_peak = float(win.max())
+                if b_peak >= trough_val * 1.05:
+                    b_idx = int(win.values.argmax())
+                    after_bounce = post_trough.iloc[b_idx:]
+                    if len(after_bounce) >= 5:
+                        second_low = float(after_bounce.min())
+                        double_pass = second_low <= trough_val * 1.08
+
+            # ── Evaluate all criteria, collect failures ────────────────────────
+            failures = []
+
+            if decline_pct < min_decline:
+                failures.append({
+                    "name":     "Decline from Peak",
+                    "value":    f"{decline_pct:.1f}%",
+                    "required": f"≥ {min_decline:.0f}%",
+                    "gap":      f"{min_decline - decline_pct:.1f}% short",
+                })
+
+            age_ok = min_days <= days_since_trough <= max_days
+            if not age_ok:
+                direction = "too old" if days_since_trough > max_days else "too recent"
+                failures.append({
+                    "name":     "Reversal Age",
+                    "value":    f"{days_since_trough} days",
+                    "required": f"{min_days}–{max_days} days",
+                    "gap":      direction,
+                })
+
+            if recovery_pct < min_recovery:
+                failures.append({
+                    "name":     "Recovery",
+                    "value":    f"+{recovery_pct:.1f}%",
+                    "required": f"≥ {min_recovery:.0f}%",
+                    "gap":      f"{min_recovery - recovery_pct:.1f}% short",
+                })
+
+            if post_min < trough_val * 0.97:
+                failures.append({
+                    "name":     "Support Holding",
+                    "value":    "Broken",
+                    "required": "Must hold",
+                    "gap":      f"broke by {((trough_val - post_min) / trough_val * 100):.1f}%",
+                })
+
+            if current_price < sma20 * 0.97:
+                failures.append({
+                    "name":     "Uptrend (SMA20)",
+                    "value":    f"₹{current_price:.0f}",
+                    "required": f"≥ SMA20 ₹{sma20:.0f}",
+                    "gap":      f"{((sma20 - current_price) / sma20 * 100):.1f}% below SMA20",
+                })
+
+            if support_type == "double" and not double_pass:
+                failures.append({
+                    "name":     "Double Bottom",
+                    "value":    "Not found",
+                    "required": "Two tests of support",
+                    "gap":      "no confirmed second test",
+                })
+
+            # ── Categorise ─────────────────────────────────────────────────────
+            stock_data = {
                 "symbol":            sym,
                 "current_price":     round(current_price, 2),
                 "peak":              round(peak_val, 2),
@@ -147,17 +177,24 @@ def scan_reversals(
                 "recovery_pct":      round(recovery_pct, 1),
                 "days_since_trough": int(days_since_trough),
                 "sma20":             round(sma20, 2),
-            })
+            }
+
+            if len(failures) == 0:
+                results.append(stock_data)
+            elif len(failures) == 1:
+                near_misses.append({**stock_data, "failed_criterion": failures[0]})
 
         except Exception:
             continue
 
-    results.sort(key=lambda x: x["recovery_pct"], reverse=True)
+    results.sort(    key=lambda x: x["recovery_pct"], reverse=True)
+    near_misses.sort(key=lambda x: x["recovery_pct"], reverse=True)
 
     return {
         "universe":      universe,
         "universe_size": len(symbols),
         "matched":       len(results),
+        "near_misses":   near_misses,
         "filters": {
             "min_decline":   min_decline,
             "min_recovery":  min_recovery,

@@ -204,6 +204,28 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .criterion.fail .cr-got{color:var(--red);}
 .cr-need{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);}
 
+/* ── Near Miss section ────────────────────────── */
+.nm-toggle{display:flex;align-items:center;gap:10px;width:100%;
+  background:var(--bg2);border:1px solid var(--amber-border);border-radius:10px;
+  padding:13px 18px;font-family:'JetBrains Mono',monospace;font-size:12px;
+  font-weight:700;color:var(--amber);cursor:pointer;text-align:left;transition:background .15s;}
+.nm-toggle:hover{background:var(--amber-bg);}
+.nm-count{background:var(--amber);color:#06070f;border-radius:5px;padding:2px 8px;font-size:11px;}
+.nm-chevron{margin-left:auto;transition:transform .2s;flex-shrink:0;}
+
+.near-card{background:var(--bg2);border:1px solid var(--amber-border);border-radius:12px;
+  padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s;}
+.near-card:hover{border-color:var(--amber);}
+
+.miss-reason{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:8px 12px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:8px;}
+.miss-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--amber);font-weight:700;}
+.miss-cname{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text);}
+.miss-val{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--amber);}
+.miss-need{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.miss-gap{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);margin-left:auto;}
+
 /* ── Disclaimer ───────────────────────────────── */
 .disclaimer{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);
   border-radius:0 8px 8px 0;padding:10px 14px;margin-top:2rem;
@@ -329,6 +351,18 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     <div id="cardsGrid" class="cards-grid"></div>
   </div>
 
+  <!-- Near Misses -->
+  <div id="nearMissSection" style="display:none;margin-top:1.5rem;">
+    <button class="nm-toggle" id="nmToggle">
+      <span class="nm-count" id="nmCount">0</span>
+      Near Misses — failed only 1 criterion
+      <svg class="nm-chevron" id="nmChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="nmBody" style="display:none;margin-top:12px;">
+      <div id="nmGrid" class="cards-grid"></div>
+    </div>
+  </div>
+
   <div class="disclaimer">
     For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before making any trading decisions.
   </div>
@@ -367,6 +401,7 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.classList.add('active');
     _sortKey = btn.dataset.sort;
     if (_data) renderCards(sortResults(_data.results));
+    // near misses always sorted by recovery — no re-sort needed
   });
 });
 
@@ -416,16 +451,14 @@ function renderCards(rows) {
   const grid = document.getElementById('cardsGrid');
 
   if (!rows.length) {
-    grid.innerHTML = '';
-    document.getElementById('results').style.display = 'block';
-    document.getElementById('stateBox').style.display = 'none';
-    grid.outerHTML; // won't change — use below
-    document.getElementById('cardsGrid').innerHTML =
+    grid.innerHTML =
       `<div class="empty-state" style="grid-column:1/-1">
         <div class="empty-icon">🔍</div>
-        <div>No stocks matched the current filters.</div>
-        <div style="margin-top:6px;font-size:12px;color:var(--faint);">Try lowering Min Decline or widening the Reversal Age range.</div>
+        <div>No stocks fully matched the current filters.</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--faint);">Check Near Misses below, or try lowering Min Decline / widening the Reversal Age range.</div>
       </div>`;
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('stateBox').style.display = 'none';
     return;
   }
 
@@ -482,6 +515,76 @@ function renderCards(rows) {
 
   document.getElementById('results').style.display = 'block';
   document.getElementById('stateBox').style.display = 'none';
+}
+
+// ── Near Misses ───────────────────────────────────────────────────────────────
+let _nmOpen = false;
+
+document.getElementById('nmToggle').addEventListener('click', () => {
+  _nmOpen = !_nmOpen;
+  document.getElementById('nmBody').style.display    = _nmOpen ? 'block' : 'none';
+  document.getElementById('nmChevron').style.transform = _nmOpen ? 'rotate(180deg)' : '';
+});
+
+function renderNearMisses(rows) {
+  const section = document.getElementById('nearMissSection');
+  if (!rows || !rows.length) { section.style.display = 'none'; return; }
+
+  document.getElementById('nmCount').textContent = rows.length;
+  section.style.display = 'block';
+
+  document.getElementById('nmGrid').innerHTML = rows.map(r => {
+    const f = r.failed_criterion;
+    const daysNote = r.days_since_trough < 50
+      ? `${r.days_since_trough} trading days ago`
+      : `${r.days_since_trough} trading days ago (~${Math.round(r.days_since_trough / 21)}M)`;
+    return `
+    <div class="near-card">
+      <div class="card-head">
+        <div><div class="card-sym">${esc(r.symbol)}</div></div>
+        <div>
+          <div class="card-price">${fmtPrice(r.current_price)}</div>
+          <div class="card-days">${daysNote}</div>
+        </div>
+      </div>
+      <div class="rv-viz">
+        <div class="rv-point">
+          <div class="rv-price">${fmtPrice(r.peak)}</div>
+          <div class="rv-tag">Peak</div>
+        </div>
+        <div class="rv-bridge">
+          <div class="rv-pct fall">−${fmt(r.decline_pct, 1)}%</div>
+          <div class="rv-line fall"></div>
+        </div>
+        <div class="rv-point">
+          <div class="rv-price">${fmtPrice(r.support)}</div>
+          <div class="rv-tag">Support</div>
+        </div>
+        <div class="rv-bridge">
+          <div class="rv-pct rise">+${fmt(r.recovery_pct, 1)}%</div>
+          <div class="rv-line rise"></div>
+        </div>
+        <div class="rv-point">
+          <div class="rv-price">${fmtPrice(r.current_price)}</div>
+          <div class="rv-tag">Now</div>
+        </div>
+      </div>
+      <div class="miss-reason">
+        <span class="miss-label">Missed:</span>
+        <span class="miss-cname">${esc(f.name)}</span>
+        <span class="miss-val">${esc(f.value)}</span>
+        <span class="miss-need">needed ${esc(f.required)}</span>
+        <span class="miss-gap">${esc(f.gap)}</span>
+      </div>
+      <div class="card-foot">
+        ${recoveryBadge(r.recovery_pct)}
+        <a href="/stock_health.html?symbol=${esc(r.symbol)}" class="health-link">
+          Health Story
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── Single stock check ────────────────────────────────────────────────────────
@@ -636,6 +739,7 @@ async function runScan() {
       `<strong>${data.matched}</strong> of ${data.universe_size} stocks matched · ${_universe === 'nifty50' ? 'Nifty 50' : 'Nifty 500 proxy'}`;
 
     renderCards(sortResults(data.results));
+    renderNearMisses(data.near_misses || []);
   } catch (e) {
     showState(false, 'Could not connect to the server. Make sure the engine is running.', '');
   } finally {
