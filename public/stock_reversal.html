@@ -150,6 +150,60 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   background:var(--accent-bg);transition:all .15s;}
 .health-link:hover{background:rgba(124,106,247,0.18);border-color:var(--accent);}
 
+/* ── Single-stock check ───────────────────────── */
+.single-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:22px 24px;margin-bottom:2rem;}
+.single-head{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.single-row{display:flex;gap:10px;flex-wrap:wrap;}
+.single-input{flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:10px;padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:14px;
+  color:var(--text);outline:none;transition:border-color .15s;}
+.single-input::placeholder{color:var(--muted);}
+.single-input:focus{border-color:var(--accent);}
+.single-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;
+  padding:11px 22px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.single-btn:hover{border-color:var(--accent);color:var(--text);}
+.single-btn:disabled{opacity:.5;cursor:default;}
+
+/* Single result card */
+.check-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:22px 22px 18px;margin-bottom:2rem;}
+.check-verdict{display:flex;align-items:center;gap:12px;margin-bottom:18px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);}
+.verdict-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;font-size:20px;}
+.verdict-icon.pass{background:var(--green-bg);}
+.verdict-icon.fail{background:var(--red-bg);}
+.verdict-sym{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--text);}
+.verdict-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
+.verdict-label.pass{color:var(--green);}
+.verdict-label.fail{color:var(--red);}
+.verdict-right{margin-left:auto;text-align:right;}
+.verdict-price{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--text);}
+
+/* Criteria list */
+.criteria-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.criterion{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
+  border-radius:8px;border:1px solid var(--border);}
+.criterion.pass{background:var(--green-bg);border-color:var(--green-border);}
+.criterion.fail{background:var(--red-bg);border-color:var(--red-border);}
+.cr-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;font-weight:700;}
+.criterion.pass .cr-icon{background:var(--green);color:#06070f;}
+.criterion.fail .cr-icon{background:var(--red);color:#06070f;}
+.cr-body{flex:1;min-width:0;}
+.cr-name{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  color:var(--text);margin-bottom:1px;}
+.cr-detail{font-size:12px;color:var(--dim);margin-bottom:2px;}
+.cr-meta{display:flex;gap:12px;flex-wrap:wrap;}
+.cr-got{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;}
+.criterion.pass .cr-got{color:var(--green);}
+.criterion.fail .cr-got{color:var(--red);}
+.cr-need{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);}
+
 /* ── Disclaimer ───────────────────────────────── */
 .disclaimer{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);
   border-radius:0 8px 8px 0;padding:10px 14px;margin-top:2rem;
@@ -239,6 +293,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       Run Scan
     </button>
   </div>
+
+  <!-- Single Stock Check -->
+  <div class="single-section">
+    <div class="single-head">Check a specific stock against the filters above</div>
+    <div class="single-row">
+      <input id="singleInput" class="single-input" type="text"
+        placeholder="e.g. TATAMOTORS, HDFCBANK, ZOMATO"
+        autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+      <button class="single-btn" id="checkBtn">Check Reversal</button>
+    </div>
+  </div>
+
+  <!-- Single Stock Result -->
+  <div id="checkResult" style="display:none;"></div>
 
   <!-- State -->
   <div id="stateBox" class="state-box" style="display:none;">
@@ -414,6 +482,115 @@ function renderCards(rows) {
 
   document.getElementById('results').style.display = 'block';
   document.getElementById('stateBox').style.display = 'none';
+}
+
+// ── Single stock check ────────────────────────────────────────────────────────
+document.getElementById('checkBtn').addEventListener('click', runSingleCheck);
+document.getElementById('singleInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSingleCheck();
+});
+
+async function runSingleCheck() {
+  const sym = document.getElementById('singleInput').value.trim().toUpperCase().replace(/[^A-Z0-9\-\.&]/g, '');
+  if (!sym) { document.getElementById('singleInput').focus(); return; }
+
+  const btn = document.getElementById('checkBtn');
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+
+  const checkResult = document.getElementById('checkResult');
+  checkResult.style.display = 'none';
+
+  const params = new URLSearchParams({
+    min_decline:  document.getElementById('minDecline').value,
+    min_recovery: document.getElementById('minRecovery').value,
+    support_type: _support,
+    min_days:     document.getElementById('minDays').value,
+    max_days:     document.getElementById('maxDays').value,
+  });
+
+  try {
+    const res  = await fetch(`/api/stock/reversal-check/${encodeURIComponent(sym)}?${params}`);
+    const data = await res.json();
+    if (data.error) {
+      checkResult.innerHTML = `<div class="check-card"><div style="color:var(--red);font-family:'JetBrains Mono',monospace;font-size:13px;">${esc(data.error)}</div></div>`;
+    } else {
+      checkResult.innerHTML = renderCheckResult(data);
+    }
+    checkResult.style.display = 'block';
+    checkResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    checkResult.innerHTML = `<div class="check-card"><div style="color:var(--red);font-family:'JetBrains Mono',monospace;font-size:13px;">Could not connect to the server. Make sure the engine is running.</div></div>`;
+    checkResult.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Check Reversal';
+  }
+}
+
+function renderCheckResult(d) {
+  const passClass = d.passed ? 'pass' : 'fail';
+  const passLabel = d.passed ? 'Reversal Confirmed' : 'No Reversal Pattern';
+  const passIcon  = d.passed ? '✓' : '✗';
+
+  const criteriaHTML = d.criteria.map(c => `
+    <div class="criterion ${c.passed ? 'pass' : 'fail'}">
+      <div class="cr-icon">${c.passed ? '✓' : '✗'}</div>
+      <div class="cr-body">
+        <div class="cr-name">${esc(c.name)}</div>
+        <div class="cr-detail">${esc(c.detail)}</div>
+        <div class="cr-meta">
+          <span class="cr-got">${esc(c.value)}</span>
+          <span class="cr-need">required: ${esc(c.required)}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+  <div class="check-card">
+    <div class="check-verdict">
+      <div class="verdict-icon ${passClass}">${passIcon}</div>
+      <div>
+        <div class="verdict-sym">${esc(d.symbol)}</div>
+        <div class="verdict-label ${passClass}">${passLabel}</div>
+      </div>
+      <div class="verdict-right">
+        <div class="verdict-price">${fmtPrice(d.current_price)}</div>
+      </div>
+    </div>
+
+    ${d.peak && d.support ? `
+    <div class="rv-viz" style="margin-bottom:16px;">
+      <div class="rv-point">
+        <div class="rv-price">${fmtPrice(d.peak)}</div>
+        <div class="rv-tag">Peak</div>
+      </div>
+      <div class="rv-bridge">
+        <div class="rv-pct fall">−${fmt(d.decline_pct, 1)}%</div>
+        <div class="rv-line fall"></div>
+      </div>
+      <div class="rv-point">
+        <div class="rv-price">${fmtPrice(d.support)}</div>
+        <div class="rv-tag">Support</div>
+      </div>
+      <div class="rv-bridge">
+        <div class="rv-pct rise">+${fmt(d.recovery_pct, 1)}%</div>
+        <div class="rv-line rise"></div>
+      </div>
+      <div class="rv-point">
+        <div class="rv-price">${fmtPrice(d.current_price)}</div>
+        <div class="rv-tag">Now</div>
+      </div>
+    </div>` : ''}
+
+    <div class="criteria-list">${criteriaHTML}</div>
+
+    <a href="/stock_health.html?symbol=${esc(d.symbol)}" class="health-link">
+      View Health Story for ${esc(d.symbol)}
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>`;
 }
 
 // ── Scan ──────────────────────────────────────────────────────────────────────

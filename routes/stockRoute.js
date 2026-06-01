@@ -752,6 +752,18 @@ router.get("/stock/reversal-scan", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/stock/reversal-check/:symbol ───────────────────────────────────
+// Single-stock reversal check — detailed pass/fail per criterion
+router.get("/stock/reversal-check/:symbol", async (req, res) => {
+  try {
+    const symbol = req.params.symbol.toUpperCase().replace(/[^A-Z0-9\-\.&]/g, "");
+    if (!symbol) return res.status(400).json({ error: "Symbol required" });
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stock/reversal-check/${symbol}?${params}`, 30000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── GET /api/stock/health/:symbol ───────────────────────────────────────────
 // 4-persona fundamental health report (Stock Health Story tool)
 router.get("/stock/health/:symbol", async (req, res) => {

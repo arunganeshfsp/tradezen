@@ -4561,6 +4561,32 @@ async def stock_reversal_scan(
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@app.get("/stock/reversal-check/{symbol}")
+async def stock_reversal_check(
+    symbol:       str,
+    min_decline:  float = 30.0,
+    min_recovery: float = 10.0,
+    support_type: str   = "single",
+    min_days:     int   = 40,
+    max_days:     int   = 130,
+):
+    from core.patterns.reversal_scanner import check_single_stock
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, lambda: check_single_stock(
+            symbol=symbol,
+            min_decline=min_decline,
+            min_recovery=min_recovery,
+            support_type=support_type,
+            min_days=min_days,
+            max_days=max_days,
+        ))
+        return result
+    except Exception as e:
+        log.error(f"[REVERSAL-CHECK] {symbol}: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/stock/health/{symbol}")
 async def stock_health(symbol: str):
     loop = asyncio.get_event_loop()
