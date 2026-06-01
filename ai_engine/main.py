@@ -270,32 +270,39 @@ async def lifespan(app: FastAPI):
                     log.debug(f"Opening price retroactive ({exch}/{token}): {retro_err}")
 
         if (h_now > 9 or (h_now == 9 and m_now >= 30)) and trade_flow_data["orb"] is None:
-            # Try yfinance first for ORB
-            try:
-                orb_yf = _yf_orb()
-                trade_flow_data["orb"] = orb_yf
-                trade_flow_data["_orb_acc"] = orb_yf.copy()
-                log.info(f"📊 ORB (retroactive, yfinance): H={orb_yf['high']} L={orb_yf['low']}")
-            except Exception as yf_orb_err:
-                log.debug(f"yfinance ORB fetch failed: {yf_orb_err} — trying Angel One")
-                for exch, token in retro_attempts:
-                    try:
-                        resp = smart.getCandleData({
-                            "exchange":    exch,
-                            "symboltoken": token,
-                            "interval":    "ONE_MINUTE",
-                            "fromdate":    f"{today_str} 09:15",
-                            "todate":      f"{today_str} 09:30",
-                        })
-                        rows = (resp or {}).get("data") or []
-                        if rows:
-                            orb_h = round(max(float(r[2]) for r in rows), 2)
-                            orb_l = round(min(float(r[3]) for r in rows), 2)
-                            trade_flow_data["orb"] = {"high": orb_h, "low": orb_l}
-                            log.info(f"📊 ORB (retroactive, {exch}): H={orb_h} L={orb_l}")
-                            break
-                    except Exception as retro_err:
-                        log.debug(f"ORB retroactive ({exch}/{token}): {retro_err}")
+            # Angel One candle data is primary — it returns actual OHLC from the exchange.
+            # yfinance ^NSEI frequently understates the opening-range high because the NSE
+            # index is computed from a partial basket in the first few minutes of trading.
+            orb_set = False
+            for exch, token in retro_attempts:
+                try:
+                    resp = smart.getCandleData({
+                        "exchange":    exch,
+                        "symboltoken": token,
+                        "interval":    "ONE_MINUTE",
+                        "fromdate":    f"{today_str} 09:15",
+                        "todate":      f"{today_str} 09:30",
+                    })
+                    rows = (resp or {}).get("data") or []
+                    if rows:
+                        orb_h = round(max(float(r[2]) for r in rows), 2)
+                        orb_l = round(min(float(r[3]) for r in rows), 2)
+                        trade_flow_data["orb"] = {"high": orb_h, "low": orb_l}
+                        trade_flow_data["_orb_acc"] = {"high": orb_h, "low": orb_l}
+                        log.info(f"📊 ORB (retroactive, {exch}): H={orb_h} L={orb_l}")
+                        orb_set = True
+                        break
+                except Exception as retro_err:
+                    log.debug(f"ORB retroactive ({exch}/{token}): {retro_err}")
+
+            if not orb_set:
+                try:
+                    orb_yf = _yf_orb()
+                    trade_flow_data["orb"] = orb_yf
+                    trade_flow_data["_orb_acc"] = orb_yf.copy()
+                    log.info(f"📊 ORB (retroactive, yfinance fallback): H={orb_yf['high']} L={orb_yf['low']}")
+                except Exception as yf_orb_err:
+                    log.debug(f"yfinance ORB fallback also failed: {yf_orb_err}")
 
     except Exception as e:
         log.warning(f"⚠️ Prev OHLC fetch error: {e}")
@@ -388,12 +395,29 @@ async def lifespan(app: FastAPI):
                     if trade_flow_data["orb"] is None and (h > 9 or (h == 9 and m >= 30)):
                         acc = trade_flow_data["_orb_acc"]
                         if acc["high"] is not None and acc["low"] is not None:
-                            trade_flow_data["orb"] = {
-                                "high": round(acc["high"], 2),
-                                "low":  round(acc["low"],  2),
-                            }
-                            log.info(f"📊 ORB locked: H={trade_flow_data['orb']['high']} "
-                                     f"L={trade_flow_data['orb']['low']}")
+                            orb_h = round(acc["high"], 2)
+                            orb_l = round(acc["low"],  2)
+
+                            # LTP ticks can miss brief intraday spikes.
+                            # Correct with Angel One 1-min OHLC candles (NSE spot token).
+                            try:
+                                day_str = now_i.strftime("%Y-%m-%d")
+                                candle_resp = smart.getCandleData({
+                                    "exchange":    "NSE",
+                                    "symboltoken": SPOT_TOKEN,
+                                    "interval":    "ONE_MINUTE",
+                                    "fromdate":    f"{day_str} 09:15",
+                                    "todate":      f"{day_str} 09:30",
+                                })
+                                candle_rows = (candle_resp or {}).get("data") or []
+                                if candle_rows:
+                                    orb_h = max(orb_h, round(max(float(r[2]) for r in candle_rows), 2))
+                                    orb_l = min(orb_l, round(min(float(r[3]) for r in candle_rows), 2))
+                            except Exception:
+                                pass
+
+                            trade_flow_data["orb"] = {"high": orb_h, "low": orb_l}
+                            log.info(f"📊 ORB locked: H={orb_h} L={orb_l}")
 
                 # ── Auto-generate daily report after 3:30 PM ────────────
                 _maybe_auto_generate_report()
