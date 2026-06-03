@@ -1,0 +1,360 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🏦",
+      "heading": { "en": "Retail Investor vs FII vs DII", "ta": "சில்லறை முதலீட்டாளர் vs FII vs DII" },
+      "description": { "en": "Learn who really moves the market — and how to read the smart money.", "ta": "சந்தையை உண்மையில் யார் நகர்த்துகிறார்கள் என்று கற்று — ஸ்மார்ட் மணியை படிக்கக் கற்றுக்கொள்ளுங்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🧩",
+      "title": { "en": "Three players, one market", "ta": "மூன்று வீரர்கள், ஒரே சந்தை" },
+      "caption": { "en": "Retail investors, foreign giants, and domestic institutions — all trading the same Nifty 50.", "ta": "சில்லறை முதலீட்டாளர்கள், வெளிநாட்டு நிறுவனங்கள், மற்றும் உள்நாட்டு நிறுவனங்கள் — எல்லாரும் ஒரே நிஃப்டி 50-ல் வர்த்தகம் செய்கிறார்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "The Players", "ta": "வீரர்கள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "The Indian stock market has three main types of participants. Each brings different capital, goals, and influence. Understanding them helps you read why the market moves.",
+            "ta": "இந்திய பங்கு சந்தையில் மூன்று முக்கிய வகை பங்கேற்பாளர்கள் உள்ளனர். ஒவ்வொருவரும் வெவ்வேறு மூலதனம், நோக்கங்கள் மற்றும் செல்வாக்கு கொண்டுள்ளனர். இவர்களை புரிந்துகொள்வதன் மூலம் சந்தை ஏன் நகர்கிறது என்று படிக்கலாம்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Retail Investor", "ta": "சில்லறை முதலீட்டாளர்" },
+              "val": { "en": "Individuals like you — investing through Zerodha, Groww, or Upstox", "ta": "உங்களைப் போன்ற தனிநபர்கள் — Zerodha, Groww, Upstox மூலம் முதலீடு செய்பவர்கள்" }
+            },
+            {
+              "key": { "en": "FII / FPI", "ta": "FII / FPI" },
+              "val": { "en": "Foreign funds like BlackRock, Morgan Stanley investing in India from abroad", "ta": "BlackRock, Morgan Stanley போன்ற வெளிநாட்டு நிறுவனங்கள் இந்தியாவில் முதலீடு செய்கின்றன" }
+            },
+            {
+              "key": { "en": "DII", "ta": "DII" },
+              "val": { "en": "Indian institutions like LIC, SBI Mutual Fund investing domestic money", "ta": "LIC, SBI மியூச்சுவல் ஃபண்ட் போன்ற இந்திய நிறுவனங்கள் உள்நாட்டு பணத்தை முதலீடு செய்கின்றன" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "FII is the older term; SEBI now officially uses FPI (Foreign Portfolio Investor). In market conversations, both mean the same thing.",
+            "ta": "FII என்பது பழைய வார்த்தை; SEBI இப்போது FPI (Foreign Portfolio Investor) என்று அதிகாரப்பூர்வமாக சொல்கிறது. சந்தை பேச்சில் இரண்டும் ஒரே அர்த்தம்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Retail Investor", "ta": "சில்லறை முதலீட்டாளர்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "A retail investor is an individual who invests personal savings in stocks, mutual funds, or ETFs. Think of someone opening a Zerodha account and buying 10 shares of Reliance — that's you.",
+            "ta": "ஒரு சில்லறை முதலீட்டாளர் என்பவர் தனது சொந்த சேமிப்பை பங்குகள், மியூச்சுவல் ஃபண்ட் அல்லது ETF-ல் முதலீடு செய்பவர். Zerodha கணக்கு திறந்து 10 Reliance பங்குகள் வாங்குவது — இதுதான் நீங்கள்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Capital Size", "ta": "மூலதன அளவு" },
+              "val": { "en": "Small — typically ₹1,000 to a few lakhs", "ta": "சிறியது — பொதுவாக ₹1,000 முதல் சில லட்சம் வரை" }
+            },
+            {
+              "key": { "en": "Platforms Used", "ta": "பயன்படுத்தும் பிளாட்ஃபார்ம்" },
+              "val": { "en": "Zerodha, Groww, Upstox, Angel One", "ta": "Zerodha, Groww, Upstox, Angel One" }
+            },
+            {
+              "key": { "en": "Market Influence", "ta": "சந்தை செல்வாக்கு" },
+              "val": { "en": "Limited — one person cannot move the market", "ta": "குறைவு — ஒருவரால் சந்தையை நகர்த்த முடியாது" }
+            },
+            {
+              "key": { "en": "F&O Participation", "ta": "F&O பங்கேற்பு" },
+              "val": { "en": "~45% of NSE F&O volume — but 90% lose money (SEBI data)", "ta": "NSE F&O வால்யூமில் ~45% — ஆனால் 90% பேர் பணம் இழக்கிறார்கள் (SEBI தரவு)" }
+            }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": {
+            "en": "Retail traders dominate F&O volume, but SEBI data shows 9 out of 10 lose money. Discipline and risk management matter far more than capital size.",
+            "ta": "சில்லறை வர்த்தகர்கள் F&O வால்யூமில் அதிகமாக இருக்கிறார்கள், ஆனால் SEBI தரவு படி 10-ல் 9 பேர் பணம் இழக்கிறார்கள். அளவைவிட ஒழுக்கமும் ரிஸ்க் மேனேஜ்மென்டும் மிக முக்கியம்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "FII / FPI", "ta": "FII / FPI" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "FIIs are large global funds and banks that invest in Indian markets from overseas. They bring massive capital — and when they move, the entire Nifty feels it.",
+            "ta": "FIIகள் என்பவை வெளிநாட்டிலிருந்து இந்திய சந்தையில் முதலீடு செய்யும் பெரிய நிறுவனங்கள். இவை மிகவும் அதிக மூலதனம் கொண்டு வருகின்றன — இவை நகரும்போது Nifty முழுவதும் அசைகிறது."
+          }
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "₹70,000 Cr+", "ta": "₹70,000 கோடி+" },
+          "subtitle": { "en": "of Indian stocks held by FIIs at any given time", "ta": "எந்த நேரத்திலும் FII-கள் வைத்திருக்கும் இந்திய பங்குகள்" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Examples", "ta": "உதாரணங்கள்" },
+              "val": { "en": "BlackRock, Morgan Stanley, Fidelity, Goldman Sachs, Vanguard", "ta": "BlackRock, Morgan Stanley, Fidelity, Goldman Sachs, Vanguard" }
+            },
+            {
+              "key": { "en": "Capital Per Trade", "ta": "ஒரு வர்த்தகத்தில் மூலதனம்" },
+              "val": { "en": "Hundreds to thousands of crores", "ta": "நூற்றுக்கணக்கான முதல் ஆயிரக்கணக்கான கோடிகள்" }
+            },
+            {
+              "key": { "en": "When they Buy", "ta": "இவர்கள் வாங்கும்போது" },
+              "val": { "en": "Nifty typically rises — foreign confidence in India grows", "ta": "Nifty பொதுவாக உயரும் — இந்தியாவில் வெளிநாட்டு நம்பிக்கை அதிகரிக்கும்" }
+            },
+            {
+              "key": { "en": "When they Sell", "ta": "இவர்கள் விற்கும்போது" },
+              "val": { "en": "Nifty falls sharply — this is called an 'FII selloff'", "ta": "Nifty கடுமையாக விழும் — இதை 'FII selloff' என்று சொல்கிறார்கள்" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "In 2022, FIIs sold over ₹1.2 lakh crore of Indian stocks. Nifty fell more than 15% from its peak during that period.",
+            "ta": "2022-ல் FIIகள் ₹1.2 லட்சம் கோடிக்கும் அதிகமான இந்திய பங்குகளை விற்றனர். அந்த காலகட்டத்தில் Nifty அதன் உச்சத்திலிருந்து 15%-க்கும் அதிகமாக விழுந்தது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "Which of the following is an FII (Foreign Institutional Investor)?",
+        "ta": "கீழ்க்காணும் எது ஒரு FII (Foreign Institutional Investor)?"
+      },
+      "options": [
+        { "en": "LIC of India", "ta": "LIC of India" },
+        { "en": "SBI Mutual Fund", "ta": "SBI மியூச்சுவல் ஃபண்ட்" },
+        { "en": "BlackRock", "ta": "BlackRock" },
+        { "en": "Zerodha", "ta": "Zerodha" }
+      ],
+      "correct_index": 2,
+      "explanation": {
+        "en": "BlackRock is a US-based global asset manager investing in markets worldwide, including India — making it an FII. LIC and SBI MF are domestic institutions (DIIs), and Zerodha is a brokerage platform.",
+        "ta": "BlackRock என்பது அமெரிக்காவை தளமாகக் கொண்ட உலகளாவிய நிதி நிறுவனம் — இந்தியா உட்பட உலகெங்கும் முதலீடு செய்வதால் இது FII. LIC மற்றும் SBI MF உள்நாட்டு நிறுவனங்கள் (DII), Zerodha ஒரு தரகு நிறுவனம்."
+      },
+      "is_required": true,
+      "display_order": 5
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "DII", "ta": "DII" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "DIIs are large Indian institutions — mutual funds, insurance companies, pension funds — that invest in Indian markets using money collected from crores of Indian savers like you.",
+            "ta": "DII என்பவை பெரிய இந்திய நிறுவனங்கள் — மியூச்சுவல் ஃபண்ட், காப்பீட்டு நிறுவனங்கள், ஓய்வூதிய நிதிகள் — இவை உங்களைப் போன்ற கோடிக்கணக்கான இந்திய சேமிப்பாளர்களிடமிருந்து சேகரித்த பணத்தை முதலீடு செய்கின்றன."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Examples", "ta": "உதாரணங்கள்" },
+              "val": { "en": "LIC, SBI MF, HDFC AMC, ICICI Pru MF, NPS, EPFO", "ta": "LIC, SBI MF, HDFC AMC, ICICI Pru MF, NPS, EPFO" }
+            },
+            {
+              "key": { "en": "Source of Funds", "ta": "பணம் எங்கிருந்து வருகிறது" },
+              "val": { "en": "Your SIP payments, insurance premiums, PF contributions", "ta": "உங்கள் SIP தொகைகள், காப்பீட்டு பிரீமியங்கள், PF சந்தா" }
+            },
+            {
+              "key": { "en": "Role in Market", "ta": "சந்தையில் பங்கு" },
+              "val": { "en": "Counter-buy when FIIs sell — act as a stabilising force", "ta": "FIIகள் விற்கும்போது வாங்குகின்றன — சந்தையை நிலைப்படுத்தும் சக்தியாக செயல்படுகின்றன" }
+            },
+            {
+              "key": { "en": "Investment Style", "ta": "முதலீட்டு பாணி" },
+              "val": { "en": "Stable and long-term — not driven by global sentiment", "ta": "நிலையான மற்றும் நீண்டகால — உலகளாவிய உணர்வால் இயங்காது" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "When FIIs sold ₹1.2 lakh crore in 2022, DIIs bought ₹1.4 lakh crore — absorbing the panic and cushioning Nifty's fall. Your SIP was quietly fighting back.",
+            "ta": "2022-ல் FIIகள் ₹1.2 லட்சம் கோடி விற்றபோது, DIIகள் ₹1.4 லட்சம் கோடி வாங்கினார்கள் — பீதியை உள்வாங்கி Nifty வீழ்ச்சியை குறைத்தனர். உங்கள் SIP அமைதியாக திரும்பி போராடியது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "FII vs DII", "ta": "FII vs DII" },
+      "blocks": [
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "🌍",
+              "title": { "en": "FII Sells India", "ta": "FII இந்தியாவை விற்கிறது" },
+              "subtitle": { "en": "Capital exits → Rupee weakens → Nifty falls", "ta": "மூலதனம் வெளியேறுகிறது → ரூபாய் பலவீனமடைகிறது → Nifty விழுகிறது" },
+              "variant": "danger"
+            },
+            {
+              "emoji": "🏦",
+              "title": { "en": "DII Buys India", "ta": "DII இந்தியாவை வாங்குகிறது" },
+              "subtitle": { "en": "Domestic money steps in → Nifty stabilises", "ta": "உள்நாட்டு பணம் உள்ளே வருகிறது → Nifty நிலைப்படுகிறது" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "FII buying heavily", "ta": "FII அதிகமாக வாங்குகிறது" },
+              "val": { "en": "Strong bullish signal — foreign money is confident in India", "ta": "வலுவான புல்லிஷ் சிக்னல் — வெளிநாட்டு பணம் இந்தியாவில் நம்பிக்கை வைக்கிறது" }
+            },
+            {
+              "key": { "en": "FII selling heavily", "ta": "FII அதிகமாக விற்கிறது" },
+              "val": { "en": "Caution — market may correct 5–15%", "ta": "எச்சரிக்கை — சந்தை 5–15% திருத்தம் பெறலாம்" }
+            },
+            {
+              "key": { "en": "DII buying despite FII selling", "ta": "FII விற்கும்போதும் DII வாங்குகிறது" },
+              "val": { "en": "Domestic confidence — long-term bulls are accumulating", "ta": "உள்நாட்டு நம்பிக்கை — நீண்டகால புல்ஸ் குவிக்கிறார்கள்" }
+            },
+            {
+              "key": { "en": "Both buying together", "ta": "இரண்டும் சேர்ந்து வாங்குகின்றன" },
+              "val": { "en": "Very bullish — strong broad-based market rally", "ta": "மிகவும் புல்லிஷ் — வலுவான பரந்த சந்தை ரேலி" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "FIIs sell ₹50,000 crore worth of Indian stocks in a single month. What typically happens to Nifty?",
+        "ta": "FIIகள் ஒரே மாதத்தில் ₹50,000 கோடி மதிப்புள்ள இந்திய பங்குகளை விற்கின்றன. Nifty-க்கு பொதுவாக என்ன ஆகும்?"
+      },
+      "options": [
+        { "en": "Nifty rises sharply", "ta": "Nifty கடுமையாக உயரும்" },
+        { "en": "Nifty remains unchanged", "ta": "Nifty மாறாமல் இருக்கும்" },
+        { "en": "Nifty falls or comes under pressure", "ta": "Nifty விழும் அல்லது அழுத்தத்தில் வரும்" },
+        { "en": "Only small-cap stocks are affected", "ta": "ஸ்மால் கேப் பங்குகள் மட்டும் பாதிக்கப்படும்" }
+      ],
+      "correct_index": 2,
+      "explanation": {
+        "en": "Large FII selling reduces demand for Indian stocks and sends capital abroad, putting downward pressure on Nifty. As seen in 2022, ₹1.2 lakh crore of FII selling caused a 15%+ correction in Nifty.",
+        "ta": "பெரிய FII விற்பனை இந்திய பங்குகளுக்கான தேவையை குறைக்கிறது மற்றும் மூலதனத்தை வெளிநாட்டிற்கு அனுப்புகிறது — இது Nifty-யை கீழ் நோக்கி அழுத்துகிறது. 2022-ல் ₹1.2 லட்சம் கோடி FII விற்பனை Nifty-ல் 15%-க்கும் அதிகமான திருத்தத்தை ஏற்படுத்தியது."
+      },
+      "is_required": true,
+      "display_order": 8
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Track the Data", "ta": "தரவை கண்காணியுங்கள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "SEBI requires FIIs and DIIs to report their buy/sell activity every day. You can track this data for free and use it to read market sentiment before you trade.",
+            "ta": "SEBI, FII மற்றும் DII நிறுவனங்கள் தினமும் அவற்றின் வாங்கல்/விற்பனை செயல்பாட்டை அறிவிக்க வேண்டும் என்று கட்டாயப்படுத்துகிறது. இந்த தரவை இலவசமாக கண்காணித்து, வர்த்தகம் செய்வதற்கு முன் சந்தை உணர்வை படிக்கலாம்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "NSE Website", "ta": "NSE இணையதளம்" },
+              "val": { "en": "nseindia.com → Market Data → FII/DII Activity (free, daily)", "ta": "nseindia.com → Market Data → FII/DII Activity (இலவசம், தினமும்)" }
+            },
+            {
+              "key": { "en": "Moneycontrol App", "ta": "Moneycontrol App" },
+              "val": { "en": "Daily FII/DII flow report — free on app and website", "ta": "தினசரி FII/DII ஃப்ளோ ரிப்போர்ட் — app மற்றும் இணையதளத்தில் இலவசம்" }
+            },
+            {
+              "key": { "en": "What to Watch For", "ta": "எதை கவனிக்க வேண்டும்" },
+              "val": { "en": "Consecutive days of FII selling = caution; sustained FII buying = confidence", "ta": "தொடர் நாட்கள் FII விற்பனை = எச்சரிக்கை; தொடர் FII வாங்கல் = நம்பிக்கை" }
+            },
+            {
+              "key": { "en": "Retail Tip", "ta": "சில்லறை டிப்ஸ்" },
+              "val": { "en": "Don't fight the FII trend — flow with the smart money", "ta": "FII ட்ரெண்டுக்கு எதிராக போகாதீர்கள் — ஸ்மார்ட் மணியுடன் செல்லுங்கள்" }
+            }
+          ]
+        },
+        {
+          "type": "link",
+          "label": { "en": "View FII/DII Data on NSE", "ta": "NSE-ல் FII/DII தரவை பாருங்கள்" },
+          "description": { "en": "Official daily FII and DII buy/sell activity data from NSE India — updated every trading day.", "ta": "NSE India-யிலிருந்து அதிகாரப்பூர்வ தினசரி FII மற்றும் DII வாங்கல்/விற்பனை தரவு — ஒவ்வொரு வர்த்தக நாளும் புதுப்பிக்கப்படும்." },
+          "url": "https://www.nseindia.com/market-data/fii-dii-activity"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "When FIIs sell heavily in Indian markets, DIIs always prevent Nifty from falling.",
+        "ta": "FIIகள் இந்திய சந்தையில் அதிகமாக விற்கும்போது, DIIகள் எப்போதும் Nifty விழாமல் தடுக்கும்."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "DIIs often buy when FIIs sell and help cushion the fall, but they cannot always prevent Nifty from declining. During COVID in March 2020 and during the 2022 global rate hike cycle, FII selling was large enough to cause significant market corrections despite DII support.",
+        "ta": "FIIகள் விற்கும்போது DIIகள் பெரும்பாலும் வாங்கி வீழ்ச்சியை குறைக்கின்றன, ஆனால் Nifty விழுவதை எப்போதும் தடுக்க முடியாது. மார்ச் 2020 COVID நேரத்திலும் 2022 உலகளாவிய வட்டி உயர்வு காலத்திலும், DII ஆதரவு இருந்தும் FII விற்பனை பெரும் திருத்தங்களை ஏற்படுத்தியது."
+      },
+      "is_required": true,
+      "display_order": 10
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

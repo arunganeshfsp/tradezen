@@ -1,0 +1,369 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🔢",
+      "heading": { "en": "P/E Ratio Explained", "ta": "P/E விகிதம் விளக்கம்" },
+      "description": { "en": "The most widely used valuation tool in stock markets — learn what it means, how to calculate it, and when not to trust it.", "ta": "பங்கு சந்தைகளில் மிகவும் அதிகமாக பயன்படுத்தப்படும் மதிப்பீட்டு கருவி — அர்த்தம், கணக்கீடு மற்றும் எப்போது நம்பக்கூடாது என்று கற்றுக்கொள்ளுங்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🏷️",
+      "title": { "en": "P/E is the price tag on a company's earnings", "ta": "P/E என்பது ஒரு நிறுவனத்தின் சம்பாத்தியத்தின் விலை பட்டை" },
+      "caption": { "en": "Are you paying ₹20 or ₹80 for every ₹1 the company earns? P/E answers that question.", "ta": "நிறுவனம் சம்பாதிக்கும் ஒவ்வொரு ₹1-க்கும் நீங்கள் ₹20 செலுத்துகிறீர்களா அல்லது ₹80 செலுத்துகிறீர்களா? P/E இந்த கேள்விக்கு பதில் சொல்கிறது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is P/E?", "ta": "P/E என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "The Price-to-Earnings (P/E) ratio tells you how much investors are willing to pay for every ₹1 of a company's annual earnings. A P/E of 25 means the market pays ₹25 for each ₹1 the company earns per year.",
+            "ta": "Price-to-Earnings (P/E) விகிதம் ஒரு நிறுவனத்தின் ஆண்டு சம்பாத்தியத்தின் ஒவ்வொரு ₹1-க்கும் முதலீட்டாளர்கள் எவ்வளவு செலுத்த தயாராக இருக்கிறார்கள் என்று சொல்கிறது. P/E 25 என்றால் நிறுவனம் சம்பாதிக்கும் ஒவ்வொரு ₹1-க்கும் சந்தை ₹25 செலுத்துகிறது என்று அர்த்தம்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Full Name", "ta": "முழு பெயர்" },
+              "val": { "en": "Price-to-Earnings Ratio", "ta": "விலை-சம்பாத்தியம் விகிதம்" }
+            },
+            {
+              "key": { "en": "Formula", "ta": "சூத்திரம்" },
+              "val": { "en": "Current Share Price ÷ EPS (Earnings Per Share)", "ta": "தற்போதைய பங்கு விலை ÷ EPS (பங்குக்கு சம்பாத்தியம்)" }
+            },
+            {
+              "key": { "en": "Also Called", "ta": "வேறு பெயர்கள்" },
+              "val": { "en": "P/E Multiple, Earnings Multiple, Price Multiple", "ta": "P/E மல்டிபிள், வருவாய் மல்டிபிள், விலை மல்டிபிள்" }
+            },
+            {
+              "key": { "en": "What It Measures", "ta": "என்ன அளவிடுகிறது" },
+              "val": { "en": "How expensive or cheap a stock is relative to its current earnings", "ta": "ஒரு பங்கு தற்போதைய சம்பாத்தியத்துடன் ஒப்பிட்டு எவ்வளவு விலையுயர்ந்ததா அல்லது மலிவானதா என்று" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "Think of P/E like a flat's price-per-sqft. Two flats may cost the same total, but one gives better value per square foot. Similarly, P/E shows how much you pay per rupee of a company's earnings.",
+            "ta": "P/E-ஐ ஒரு அடுக்குமாடியின் சதுர அடி விலை மாதிரி நினையுங்கள். இரண்டு குடியிருப்புகள் மொத்தத்தில் ஒரே விலையில் இருக்கலாம், ஆனால் ஒன்று சதுர அடிக்கு சிறந்த மதிப்பு தரலாம். அதே மாதிரி, P/E ஒரு நிறுவனத்தின் சம்பாத்தியத்தின் ஒவ்வொரு ரூபாய்க்கும் எவ்வளவு செலுத்துகிறீர்கள் என்று காட்டுகிறது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "P/E Calculation", "ta": "P/E கணக்கீடு" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Step-by-Step: Infosys", "ta": "படிப்படியாக: Infosys" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Share Price (CMP)", "ta": "பங்கு விலை (CMP)" },
+              "val": { "en": "₹1,500", "ta": "₹1,500" }
+            },
+            {
+              "key": { "en": "Annual EPS", "ta": "ஆண்டு EPS" },
+              "val": { "en": "₹62 (Net Profit ÷ Total Shares Outstanding)", "ta": "₹62 (நிகர லாபம் ÷ மொத்த பங்குகள்)" }
+            },
+            {
+              "key": { "en": "P/E Ratio", "ta": "P/E விகிதம்" },
+              "val": { "en": "₹1,500 ÷ ₹62 ≈ 24x — investors pay ₹24 per ₹1 of Infosys earnings", "ta": "₹1,500 ÷ ₹62 ≈ 24x — முதலீட்டாளர்கள் Infosys சம்பாத்தியத்தின் ஒவ்வொரு ₹1-க்கும் ₹24 செலுத்துகிறார்கள்" }
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "text": { "en": "Step-by-Step: HDFC Bank", "ta": "படிப்படியாக: HDFC Bank" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Share Price (CMP)", "ta": "பங்கு விலை (CMP)" },
+              "val": { "en": "₹1,700", "ta": "₹1,700" }
+            },
+            {
+              "key": { "en": "Annual EPS", "ta": "ஆண்டு EPS" },
+              "val": { "en": "₹85 (Net Profit ÷ Total Shares Outstanding)", "ta": "₹85 (நிகர லாபம் ÷ மொத்த பங்குகள்)" }
+            },
+            {
+              "key": { "en": "P/E Ratio", "ta": "P/E விகிதம்" },
+              "val": { "en": "₹1,700 ÷ ₹85 ≈ 20x — investors pay ₹20 per ₹1 of HDFC Bank earnings", "ta": "₹1,700 ÷ ₹85 ≈ 20x — முதலீட்டாளர்கள் HDFC Bank சம்பாத்தியத்தின் ஒவ்வொரு ₹1-க்கும் ₹20 செலுத்துகிறார்கள்" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "You don't need to calculate EPS manually — every trading app and Screener.in shows both EPS and P/E directly on the stock's page.",
+            "ta": "EPS-ஐ கைமுறையாக கணக்கிட வேண்டியதில்லை — ஒவ்வொரு trading app மற்றும் Screener.in-லும் பங்கின் பக்கத்தில் EPS மற்றும் P/E இரண்டும் நேரடியாக காட்டப்படுகின்றன."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A stock is trading at ₹900 and its annual EPS is ₹30. What is its P/E ratio?",
+        "ta": "ஒரு பங்கு ₹900-க்கு வர்த்தகமாகிறது மற்றும் அதன் ஆண்டு EPS ₹30. அதன் P/E விகிதம் என்ன?"
+      },
+      "options": [
+        { "en": "3x", "ta": "3x" },
+        { "en": "30x", "ta": "30x" },
+        { "en": "270x", "ta": "270x" },
+        { "en": "0.03x", "ta": "0.03x" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "P/E = Share Price ÷ EPS = ₹900 ÷ ₹30 = 30x. This means investors are paying ₹30 for every ₹1 the company earns annually. Whether 30x is cheap or expensive depends on the sector, growth rate, and what peers are trading at.",
+        "ta": "P/E = பங்கு விலை ÷ EPS = ₹900 ÷ ₹30 = 30x. முதலீட்டாளர்கள் நிறுவனம் ஆண்டுக்கு சம்பாதிக்கும் ஒவ்வொரு ₹1-க்கும் ₹30 செலுத்துகிறார்கள் என்று அர்த்தம். 30x மலிவானதா அல்லது விலையுயர்ந்ததா என்பது துறை, வளர்ச்சி விகிதம் மற்றும் போட்டியாளர்கள் எந்த விலையில் வர்த்தகமாகிறார்கள் என்பதை பொறுத்தது."
+      },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Reading P/E", "ta": "P/E படிப்பது" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "There is no universal 'good' or 'bad' P/E. What it really tells you is how much expectation — and how much hope — the market has baked into a stock's price.",
+            "ta": "எல்லாவற்றிற்கும் பொருந்தும் 'நல்ல' அல்லது 'கெட்ட' P/E இல்லை. இது உண்மையில் சந்தை ஒரு பங்கின் விலையில் எவ்வளவு எதிர்பார்ப்பை — எவ்வளவு நம்பிக்கையை — பதித்திருக்கிறது என்று சொல்கிறது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Low P/E (< 15x)", "ta": "குறைந்த P/E (< 15x)" },
+              "val": { "en": "Cheap relative to earnings — could be undervalued, or market expects slow/no growth", "ta": "சம்பாத்தியத்துடன் ஒப்பிட்டு மலிவு — மதிப்பிழந்திருக்கலாம், அல்லது சந்தை மெதுவான/இல்லா வளர்ச்சியை எதிர்பார்க்கிறது" }
+            },
+            {
+              "key": { "en": "Fair P/E (15–25x)", "ta": "நியாயமான P/E (15–25x)" },
+              "val": { "en": "Fairly valued for a stable, growing business — typical range for Nifty 50 stocks", "ta": "நிலையான, வளரும் வியாபாரத்திற்கு நியாயமான மதிப்பு — Nifty 50 பங்குகளுக்கான வழக்கமான வரம்பு" }
+            },
+            {
+              "key": { "en": "High P/E (25–50x)", "ta": "அதிக P/E (25–50x)" },
+              "val": { "en": "Market expects strong future earnings growth — investors paying a premium for potential", "ta": "சந்தை வலுவான எதிர்கால வருவாய் வளர்ச்சியை எதிர்பார்க்கிறது — முதலீட்டாளர்கள் திறனுக்கு பிரீமியம் செலுத்துகிறார்கள்" }
+            },
+            {
+              "key": { "en": "Very High P/E (> 50x)", "ta": "மிக அதிக P/E (> 50x)" },
+              "val": { "en": "Extremely high expectations — any earnings miss can cause a sharp fall", "ta": "மிகவும் அதிக எதிர்பார்ப்புகள் — சிறிய வருவாய் ஏமாற்றமும் கூர்மையான வீழ்ச்சியை ஏற்படுத்தலாம்" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "Nifty 50's long-term average P/E is ~20x. When it crosses 25x, markets are considered expensive. Below 15x has historically been a strong buying opportunity — as seen in March 2020 (COVID crash) when Nifty P/E briefly touched 17x.",
+            "ta": "Nifty 50-ன் நீண்டகால சராசரி P/E ~20x. இது 25x-ஐ கடக்கும்போது சந்தை விலையுயர்ந்ததாக கருதப்படுகிறது. 15x-க்கு கீழ் வரலாற்று ரீதியாக வலுவான வாங்கும் வாய்ப்பாக இருந்திருக்கிறது — மார்ச் 2020 (COVID வீழ்ச்சி) நேரத்தில் Nifty P/E சிறிது நேரம் 17x-ஐ தொட்டதில் காணலாம்."
+          }
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "~22x", "ta": "~22x" },
+          "subtitle": { "en": "Nifty 50 average P/E in FY24 — slightly above historical mean, reflecting growth optimism", "ta": "FY24-ல் Nifty 50 சராசரி P/E — வரலாற்று சராசரியை விட சிறிது அதிகம், வளர்ச்சி நம்பிக்கையை பிரதிபலிக்கிறது" }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Trailing vs Forward", "ta": "ட்ரெய்லிங் vs ஃபார்வர்ட்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "There are two versions of P/E — one looks backward at actual earnings, the other looks forward at estimated future earnings. Both are useful, but for different purposes.",
+            "ta": "P/E-ன் இரண்டு வகைகள் உள்ளன — ஒன்று கடந்த கால உண்மையான சம்பாத்தியத்தை பார்க்கிறது, மற்றொன்று எதிர்காலத்தில் மதிப்பிடப்பட்ட சம்பாத்தியத்தை பார்க்கிறது. இரண்டும் உபயோகமானவை, ஆனால் வெவ்வேறு நோக்கங்களுக்கு."
+          }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "📋",
+              "title": { "en": "Trailing P/E (TTM)", "ta": "ட்ரெய்லிங் P/E (TTM)" },
+              "subtitle": { "en": "Based on actual earnings from last 12 months — factual and reliable", "ta": "கடந்த 12 மாத உண்மையான சம்பாத்தியத்தை அடிப்படையாகக் கொண்டது — உண்மையானது மற்றும் நம்பகமானது" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "🔭",
+              "title": { "en": "Forward P/E", "ta": "ஃபார்வர்ட் P/E" },
+              "subtitle": { "en": "Based on analyst estimates for next 12 months — forward-looking but uncertain", "ta": "அடுத்த 12 மாத ஆய்வாளர் மதிப்பீடுகளை அடிப்படையாகக் கொண்டது — முன்னோக்கி பார்க்கும் ஆனால் நிச்சயமற்றது" },
+              "variant": "neutral"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Trailing P/E", "ta": "ட்ரெய்லிங் P/E" },
+              "val": { "en": "Uses actual reported EPS from past 4 quarters (TTM = Trailing Twelve Months)", "ta": "கடந்த 4 காலாண்டுகளிலிருந்து உண்மையில் அறிவிக்கப்பட்ட EPS பயன்படுத்துகிறது (TTM = கடந்த பன்னிரண்டு மாதங்கள்)" }
+            },
+            {
+              "key": { "en": "Forward P/E", "ta": "ஃபார்வர்ட் P/E" },
+              "val": { "en": "Uses analyst earnings estimates for the next 4 quarters — more optimistic by nature", "ta": "அடுத்த 4 காலாண்டுகளுக்கான ஆய்வாளர் வருவாய் மதிப்பீடுகளை பயன்படுத்துகிறது — இயற்கையில் அதிக நம்பிக்கையானது" }
+            },
+            {
+              "key": { "en": "Trailing > Forward", "ta": "ட்ரெய்லிங் > ஃபார்வர்ட்" },
+              "val": { "en": "Earnings expected to grow — today's price becomes cheaper relative to future earnings", "ta": "சம்பாத்தியம் வளரும் என்று எதிர்பார்க்கப்படுகிறது — இன்றைய விலை எதிர்கால சம்பாத்தியத்துடன் ஒப்பிட்டு மலிவாகிறது" }
+            },
+            {
+              "key": { "en": "Trailing < Forward", "ta": "ட்ரெய்லிங் < ஃபார்வர்ட்" },
+              "val": { "en": "Earnings expected to fall — today's price becomes more expensive relative to future earnings", "ta": "சம்பாத்தியம் குறையும் என்று எதிர்பார்க்கப்படுகிறது — இன்றைய விலை எதிர்கால சம்பாத்தியத்துடன் ஒப்பிட்டு விலையுயர்ந்ததாகிறது" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Most apps and Screener.in show Trailing P/E by default. When analysts say 'consensus P/E,' they usually refer to Forward P/E based on their earnings estimates.",
+            "ta": "பெரும்பாலான apps மற்றும் Screener.in இயல்பாக Trailing P/E காட்டுகின்றன. ஆய்வாளர்கள் 'consensus P/E' என்று சொல்லும்போது பொதுவாக அவர்களின் வருவாய் மதிப்பீடுகளை அடிப்படையாக கொண்ட Forward P/E-ஐ குறிக்கிறார்கள்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A stock has a Trailing P/E of 40x and a Forward P/E of 25x. What does this most likely indicate?",
+        "ta": "ஒரு பங்கின் Trailing P/E 40x மற்றும் Forward P/E 25x. இது என்னை குறிக்கிறது?"
+      },
+      "options": [
+        { "en": "The company's earnings are expected to fall sharply next year", "ta": "நிறுவனத்தின் சம்பாத்தியம் அடுத்த ஆண்டு கடுமையாக குறையும் என்று எதிர்பார்க்கப்படுகிறது" },
+        { "en": "Analysts expect strong earnings growth, making the stock cheaper on a forward basis", "ta": "ஆய்வாளர்கள் வலுவான வருவாய் வளர்ச்சியை எதிர்பார்க்கிறார்கள், இதனால் முன்னோக்கி அடிப்படையில் பங்கு மலிவாகிறது" },
+        { "en": "The P/E ratio is irrelevant when it is above 30x", "ta": "P/E விகிதம் 30x-க்கு மேல் இருக்கும்போது பொருத்தமற்றது" },
+        { "en": "The stock is currently trading below its fair value", "ta": "பங்கு தற்போது அதன் நியாயமான மதிப்பிற்கு கீழே வர்த்தகமாகிறது" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "When Forward P/E (25x) is significantly lower than Trailing P/E (40x), analysts are projecting strong earnings growth in the next year. As earnings rise, the P/E naturally falls — making today's price look more reasonable in the future. This is typical of high-growth companies where current earnings don't yet reflect full earning potential.",
+        "ta": "Forward P/E (25x) Trailing P/E (40x)-ஐ விட கணிசமாக குறைவாக இருக்கும்போது, ஆய்வாளர்கள் அடுத்த ஆண்டில் வலுவான வருவாய் வளர்ச்சியை கணிக்கிறார்கள். சம்பாத்தியம் அதிகரிக்கும்போது P/E இயற்கையாக குறைகிறது — இன்றைய விலை எதிர்காலத்தில் மிகவும் நியாயமானதாக தெரியும். தற்போதைய சம்பாத்தியம் முழு சம்பாதிக்கும் திறனை பிரதிபலிக்காத அதிக வளர்ச்சி நிறுவனங்களுக்கு இது பொதுவானது."
+      },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Sector P/E & Limits", "ta": "துறை P/E & வரம்புகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Never compare P/E across different sectors. Each industry has its own normal P/E range based on its growth rate, capital intensity, and business model stability.",
+            "ta": "வெவ்வேறு துறைகளில் P/E-ஐ ஒருபோதும் ஒப்பிடாதீர்கள். ஒவ்வொரு தொழிலுக்கும் அதன் வளர்ச்சி விகிதம், மூலதன தீவிரம் மற்றும் வியாபார மாதிரி நிலைத்தன்மையை பொறுத்து சொந்தமான இயல்பான P/E வரம்பு இருக்கிறது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "IT (TCS, Infosys, Wipro)", "ta": "IT (TCS, Infosys, Wipro)" },
+              "val": { "en": "22–30x — premium for consistent growth, high margins, asset-light model", "ta": "22–30x — நிலையான வளர்ச்சி, அதிக மார்ஜின், சொத்து குறைந்த மாதிரிக்கு பிரீமியம்" }
+            },
+            {
+              "key": { "en": "Banking (HDFC Bank, Kotak)", "ta": "வங்கி (HDFC Bank, Kotak)" },
+              "val": { "en": "15–25x — stable but capital-intensive and heavily regulated", "ta": "15–25x — நிலையான ஆனால் மூலதன தீவிரமான மற்றும் அதிக ஒழுங்குமுறை கொண்டது" }
+            },
+            {
+              "key": { "en": "FMCG (HUL, Nestle)", "ta": "FMCG (HUL, Nestle)" },
+              "val": { "en": "50–70x — premium for recession-proof, consumer staple businesses with pricing power", "ta": "50–70x — பொருளாதார மந்தம் எதிர்க்கும், விலையிடல் சக்தி கொண்ட நுகர்வோர் அத்தியாவசிய வியாபாரங்களுக்கு பிரீமியம்" }
+            },
+            {
+              "key": { "en": "Steel / Metals (Tata Steel, JSW)", "ta": "எஃகு / உலோகம் (Tata Steel, JSW)" },
+              "val": { "en": "5–12x — cyclical, earnings swing wildly with commodity prices", "ta": "5–12x — சுழற்சி, கமாடிட்டி விலைகளுடன் சம்பாத்தியம் கடுமையாக மாறும்" }
+            },
+            {
+              "key": { "en": "Pharma (Sun Pharma, Dr Reddy's)", "ta": "பார்மா (Sun Pharma, Dr Reddy's)" },
+              "val": { "en": "20–35x — growth premium for patent pipeline and global market expansion", "ta": "20–35x — காப்புரிமை வரிசை மற்றும் உலக சந்தை விரிவாக்கத்திற்கு வளர்ச்சி பிரீமியம்" }
+            }
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "headline",
+          "text": { "en": "When P/E Is Misleading", "ta": "P/E தவறான திசை காட்டும்போது" }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Loss-making companies have no P/E — cannot be calculated when EPS is negative", "ta": "நஷ்டத்தில் இயங்கும் நிறுவனங்களுக்கு P/E இல்லை — EPS எதிர்மறையாக இருக்கும்போது கணக்கிட முடியாது" },
+            { "en": "One-time gains inflate EPS — P/E looks artificially low, giving a false 'cheap' signal", "ta": "ஒரு முறை ஆதாயங்கள் EPS-ஐ உயர்த்துகின்றன — P/E செயற்கையாக குறைவாக தெரிகிறது, தவறான 'மலிவான' சமிக்ஞை கொடுக்கிறது" },
+            { "en": "One-time losses deflate EPS — P/E looks artificially high, scaring investors away", "ta": "ஒரு முறை நஷ்டங்கள் EPS-ஐ குறைக்கின்றன — P/E செயற்கையாக அதிகமாக தெரிகிறது, முதலீட்டாளர்களை பயமுறுத்துகிறது" },
+            { "en": "Cyclical companies at peak earnings may show low P/E — but earnings could collapse next year", "ta": "உச்ச சம்பாத்தியத்தில் சுழற்சி நிறுவனங்கள் குறைந்த P/E காட்டலாம் — ஆனால் அடுத்த ஆண்டு சம்பாத்தியம் வீழலாம்" }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": {
+            "en": "A steel or cement company at 5x P/E may look incredibly cheap — but if it's at the peak of a commodity cycle, earnings could halve next year. Always use P/E alongside other metrics like P/B, EV/EBITDA, and earnings growth rate.",
+            "ta": "5x P/E-ல் இருக்கும் எஃகு அல்லது சிமெண்ட் நிறுவனம் மிகவும் மலிவாக தெரியலாம் — ஆனால் கமாடிட்டி சுழற்சியின் உச்சத்தில் இருந்தால் அடுத்த ஆண்டு சம்பாத்தியம் பாதியாகலாம். P/E-ஐ எப்போதும் P/B, EV/EBITDA மற்றும் வருவாய் வளர்ச்சி விகிதம் போன்ற பிற அளவீடுகளுடன் பயன்படுத்துங்கள்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "A stock with a P/E of 5x is always cheaper and better value than a stock with a P/E of 40x.",
+        "ta": "P/E 5x உள்ள பங்கு P/E 40x உள்ள பங்கை விட எப்போதும் மலிவானதும் சிறந்த மதிப்பும் கொண்டது."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "P/E must always be compared within the same sector and with full context. A steel company at 5x P/E near the peak of a commodity cycle may be dangerous if earnings are about to collapse. A high-growth IT company at 40x P/E may be completely justified if earnings are growing 25–30% annually. Sector norms, growth rate, and earnings quality all matter as much as the number itself.",
+        "ta": "P/E-ஐ எப்போதும் ஒரே துறையில் மற்றும் முழு சூழல் அடிப்படையில் ஒப்பிட வேண்டும். கமாடிட்டி சுழற்சியின் உச்சத்தில் 5x P/E-ல் உள்ள எஃகு நிறுவனம் சம்பாத்தியம் வீழ்ந்து ஆபத்தாகலாம். ஆண்டுக்கு 25–30% சம்பாத்தியம் வளரும் அதிக வளர்ச்சி IT நிறுவனத்திற்கு 40x P/E முற்றிலும் நியாயமாக இருக்கலாம். துறை நெறிமுறைகள், வளர்ச்சி விகிதம் மற்றும் வருவாய் தரம் அனைத்தும் எண்ணளவு அளவுக்கே முக்கியம்."
+      },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

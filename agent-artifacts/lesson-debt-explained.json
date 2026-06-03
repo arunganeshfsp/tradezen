@@ -1,0 +1,309 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🏦",
+      "heading": { "en": "Debt Explained", "ta": "கடன் விளக்கம்" },
+      "description": { "en": "Learn how companies borrow, what makes debt dangerous, and the key ratios every investor should check.", "ta": "நிறுவனங்கள் எப்படி கடன் வாங்குகின்றன, கடன் எப்போது ஆபத்தானது, மற்றும் ஒவ்வொரு முதலீட்டாளரும் சரிபார்க்க வேண்டிய முக்கிய விகிதங்கள் என்று கற்றுக்கொள்ளுங்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "⚖️",
+      "title": { "en": "Debt is a tool — the question is who's holding it", "ta": "கடன் ஒரு கருவி — யார் பயன்படுத்துகிறார்கள் என்பதுதான் கேள்வி" },
+      "caption": { "en": "The right amount of debt fuels growth. Too much becomes a burden that crushes profit.", "ta": "சரியான அளவு கடன் வளர்ச்சியை ஊக்குவிக்கும். அதிகமாகி விட்டால் லாபத்தை நசுக்கும் சுமையாகிவிடும்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is Debt?", "ta": "கடன் என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Debt is money a company borrows from banks, financial institutions, or the public — and promises to repay with interest. It is recorded as a liability on the Balance Sheet and the interest cost appears in the P&L as Finance Cost.",
+            "ta": "கடன் என்பது ஒரு நிறுவனம் வங்கிகள், நிதி நிறுவனங்கள் அல்லது பொதுமக்களிடமிருந்து கடன் வாங்கி வட்டியுடன் திரும்பி செலுத்துவதாக வாக்களிக்கும் பணம். இது Balance Sheet-ல் கடன் என்று பதிவு செய்யப்படுகிறது, வட்டி செலவு P&L-ல் Finance Cost ஆக தெரிகிறது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Why Companies Borrow", "ta": "ஏன் கடன் வாங்குகிறார்கள்" },
+              "val": { "en": "To fund expansion, buy equipment, build factories, or bridge short-term cash flow gaps", "ta": "விரிவாக்கம், உபகரணங்கள், தொழிற்சாலைகள் கட்ட அல்லது குறுகிய கால பண ஓட்ட இடைவெளியை நிரப்ப" }
+            },
+            {
+              "key": { "en": "Cost of Debt", "ta": "கடனின் செலவு" },
+              "val": { "en": "Interest rate paid — typically 7–12% for Indian companies depending on credit rating", "ta": "செலுத்தப்படும் வட்டி விகிதம் — கடன் மதிப்பீட்டை பொறுத்து இந்திய நிறுவனங்களுக்கு பொதுவாக 7–12%" }
+            },
+            {
+              "key": { "en": "Alternative to Debt", "ta": "கடனுக்கு மாற்று" },
+              "val": { "en": "Issuing new shares (equity) — no repayment needed, but existing shareholders get diluted", "ta": "புதிய பங்குகள் வெளியிடுவது (ஈக்விட்டி) — திரும்ப செலுத்த வேண்டியதில்லை, ஆனால் இருக்கும் பங்குதாரர்களின் பங்கு குறையும்" }
+            },
+            {
+              "key": { "en": "On the Balance Sheet", "ta": "Balance Sheet-ல்" },
+              "val": { "en": "Listed under Liabilities — split into current (short-term) and non-current (long-term)", "ta": "கடன்கள் பிரிவில் பட்டியலிடப்படுகிறது — நடப்பு (குறுகியகால) மற்றும் நடப்பில்லாத (நீண்டகால) என பிரிக்கப்பட்டுள்ளது" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Borrowing isn't always bad. HDFC Bank uses deposits — a form of debt — to fund loans and earn the interest spread. The key is how productively the borrowed money is deployed.",
+            "ta": "கடன் வாங்குவது எப்போதும் மோசமானதல்ல. HDFC Bank வைப்புத்தொகையை — ஒரு வகை கடன் — கடன்களை நிதியளிக்கவும் வட்டி வருமானம் சம்பாதிக்கவும் பயன்படுத்துகிறது. கடன் வாங்கிய பணம் எவ்வளவு உற்பத்தியாக பயன்படுத்தப்படுகிறது என்பதுதான் முக்கியம்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Types of Debt", "ta": "கடன் வகைகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Not all debt carries the same risk. The tenure, security, and structure of debt determine how much pressure it places on a company's cash flow.",
+            "ta": "எல்லா கடன்களும் ஒரே ரிஸ்க் கொண்டிருப்பதில்லை. கடனின் காலம், பாதுகாப்பு மற்றும் அமைப்பு அது நிறுவனத்தின் பண ஓட்டத்தில் எவ்வளவு அழுத்தம் கொடுக்கிறது என்று நிர்ணயிக்கிறது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Short-Term Debt", "ta": "குறுகிய கால கடன்" },
+              "val": { "en": "Due within 1 year — working capital loans, overdrafts, commercial paper", "ta": "1 ஆண்டுக்குள் திரும்ப செலுத்த வேண்டியது — வர்க்கிங் கேப்பிட்டல் கடன்கள், ஓவர்டிராஃப்ட்" }
+            },
+            {
+              "key": { "en": "Long-Term Debt", "ta": "நீண்டகால கடன்" },
+              "val": { "en": "Due after 1 year — term loans, bonds, NCDs (Non-Convertible Debentures)", "ta": "1 ஆண்டுக்கு பிறகு திரும்ப செலுத்த வேண்டியது — டேர்ம் லோன்கள், பாண்டுகள், NCD" }
+            },
+            {
+              "key": { "en": "Secured Debt", "ta": "பாதுகாப்பான கடன்" },
+              "val": { "en": "Backed by collateral (factory, land, machinery) — lower interest rate", "ta": "பிணையம் (தொழிற்சாலை, நிலம், இயந்திரம்) மூலம் பாதுகாக்கப்பட்டது — குறைந்த வட்டி விகிதம்" }
+            },
+            {
+              "key": { "en": "Unsecured Debt", "ta": "பாதுகாப்பற்ற கடன்" },
+              "val": { "en": "No collateral — higher interest rate, greater risk for the lender", "ta": "பிணையம் இல்லை — அதிக வட்டி விகிதம், கடன் வழங்குபவருக்கு அதிக ரிஸ்க்" }
+            },
+            {
+              "key": { "en": "Bonds / NCDs", "ta": "பாண்டுகள் / NCD" },
+              "val": { "en": "Debt raised from the public — company pays fixed interest and returns principal at maturity", "ta": "பொதுமக்களிடமிருந்து திரட்டப்படும் கடன் — நிறுவனம் நிலையான வட்டி செலுத்தி முதிர்வில் அசலை திரும்ப தரும்" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A company has a working capital loan due in 8 months and a 5-year term loan taken to build a new factory. How are these classified?",
+        "ta": "ஒரு நிறுவனத்திற்கு 8 மாதத்தில் திரும்ப செலுத்த வேண்டிய வர்க்கிங் கேப்பிட்டல் கடன் மற்றும் புதிய தொழிற்சாலை கட்ட எடுத்த 5 ஆண்டு டேர்ம் லோன் இருக்கிறது. இவை எப்படி வகைப்படுத்தப்படும்?"
+      },
+      "options": [
+        { "en": "Both are long-term debt", "ta": "இரண்டும் நீண்டகால கடன்" },
+        { "en": "Both are short-term debt", "ta": "இரண்டும் குறுகிய கால கடன்" },
+        { "en": "Working capital = short-term; factory loan = long-term", "ta": "வர்க்கிங் கேப்பிட்டல் = குறுகிய கால; தொழிற்சாலை கடன் = நீண்டகால" },
+        { "en": "Working capital = long-term; factory loan = short-term", "ta": "வர்க்கிங் கேப்பிட்டல் = நீண்டகால; தொழிற்சாலை கடன் = குறுகிய கால" }
+      ],
+      "correct_index": 2,
+      "explanation": {
+        "en": "Debt due within 1 year is short-term (the 8-month working capital loan). Debt due after 1 year is long-term (the 5-year factory loan). This matters because short-term debt creates immediate cash pressure — it must be repaid or refinanced soon.",
+        "ta": "1 ஆண்டுக்குள் செலுத்த வேண்டியது குறுகிய கால கடன் (8 மாத வர்க்கிங் கேப்பிட்டல் கடன்). 1 ஆண்டுக்கு பிறகு செலுத்த வேண்டியது நீண்டகால கடன் (5 ஆண்டு தொழிற்சாலை கடன்). குறுகிய கால கடன் உடனடி பண அழுத்தத்தை உருவாக்குகிறது — விரைவில் திரும்ப செலுத்தப்பட வேண்டும் அல்லது புதுப்பிக்கப்பட வேண்டும்."
+      },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Debt Metrics", "ta": "கடன் அளவீடுகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Three ratios will tell you almost everything you need to know about whether a company's debt is manageable or tipping towards danger.",
+            "ta": "மூன்று விகிதங்கள் ஒரு நிறுவனத்தின் கடன் கட்டுப்படியானதா அல்லது ஆபத்து நோக்கி சாய்கிறதா என்று தெரிய தேவையான கிட்டத்தட்ட அனைத்தையும் சொல்லும்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Debt-to-Equity (D/E) Ratio", "ta": "கடன்-ஈக்விட்டி விகிதம்" },
+              "val": { "en": "Total Debt ÷ Shareholders' Equity. <1x = conservative, 1–2x = moderate, >3x = risky", "ta": "மொத்த கடன் ÷ பங்குதாரர் ஈக்விட்டி. <1x = கவலையில்லை, 1–2x = மிதமானது, >3x = ரிஸ்கி" }
+            },
+            {
+              "key": { "en": "Interest Coverage Ratio", "ta": "வட்டி கவரேஜ் விகிதம்" },
+              "val": { "en": "EBIT ÷ Interest Expense. >3x = safe, 1.5–3x = watch closely, <1.5x = danger zone", "ta": "EBIT ÷ வட்டி செலவு. >3x = பாதுகாப்பு, 1.5–3x = கவனமாக கண்காணி, <1.5x = ஆபத்து மண்டலம்" }
+            },
+            {
+              "key": { "en": "Net Debt", "ta": "நிகர கடன்" },
+              "val": { "en": "Total Debt − Cash & Equivalents. Shows actual debt burden after offsetting cash on hand", "ta": "மொத்த கடன் − பணம் மற்றும் இணைகள். கையில் உள்ள பணத்தை கழித்த பிறகு உண்மையான கடன் சுமையை காட்டுகிறது" }
+            },
+            {
+              "key": { "en": "Debt-to-EBITDA", "ta": "கடன்-EBITDA விகிதம்" },
+              "val": { "en": "Total Debt ÷ EBITDA. Shows how many years of operating profit needed to clear all debt", "ta": "மொத்த கடன் ÷ EBITDA. அனைத்து கடனையும் அடைக்க எத்தனை ஆண்டு செயல்பாட்டு லாபம் தேவை என்று காட்டுகிறது" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Find all four ratios on Screener.in under the 'Ratios' tab for any listed company — free and updated every quarter.",
+            "ta": "எந்த பட்டியலிடப்பட்ட நிறுவனத்திற்கும் Screener.in-ல் 'Ratios' tab-ல் நான்கு விகிதங்களையும் பாருங்கள் — இலவசம், ஒவ்வொரு காலாண்டும் புதுப்பிக்கப்படும்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Good vs Bad Debt", "ta": "நல்ல vs கெட்ட கடன்" },
+      "blocks": [
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "💚",
+              "title": { "en": "Good Debt", "ta": "நல்ல கடன்" },
+              "subtitle": { "en": "Borrowed to grow — returns exceed the cost of borrowing", "ta": "வளர்ச்சிக்கு கடன் — கடன் செலவை விட வருவாய் அதிகம்" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "🔴",
+              "title": { "en": "Bad Debt", "ta": "கெட்ட கடன்" },
+              "subtitle": { "en": "Borrowed to survive — paying interest without generating growth", "ta": "உயிர் வாழ்வதற்கு கடன் — வளர்ச்சியில்லாமல் வட்டி செலுத்துகிறது" },
+              "variant": "danger"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Good Debt Example", "ta": "நல்ல கடன் உதாரணம்" },
+              "val": { "en": "Tata Steel borrows ₹5,000 Cr to build a plant → generates ₹1,500 Cr extra EBITDA per year", "ta": "Tata Steel தொழிற்சாலை கட்ட ₹5,000 கோடி கடன் வாங்குகிறது → ஆண்டுக்கு ₹1,500 கோடி கூடுதல் EBITDA உருவாக்குகிறது" }
+            },
+            {
+              "key": { "en": "Bad Debt Example", "ta": "கெட்ட கடன் உதாரணம்" },
+              "val": { "en": "Vodafone Idea carries ₹2 lakh crore+ debt while losing subscribers and revenue every quarter", "ta": "Vodafone Idea ஒவ்வொரு காலாண்டும் வாடிக்கையாளர்களையும் வருவாயையும் இழந்தாலும் ₹2 லட்சம் கோடி+ கடன் சுமக்கிறது" }
+            },
+            {
+              "key": { "en": "Debt-Funded Dividend", "ta": "கடன் மூல டிவிடெண்ட்" },
+              "val": { "en": "Borrowing money to pay shareholders — a red flag of weak underlying cash generation", "ta": "பங்குதாரர்களுக்கு செலுத்த கடன் வாங்குவது — பலவீனமான உள்ளார்ந்த பண உருவாக்கத்தின் சிவப்பு கொடி" }
+            },
+            {
+              "key": { "en": "Zero-Debt Champions", "ta": "கடன் இல்லா சாம்பியன்கள்" },
+              "val": { "en": "Infosys, TCS, Hindustan Zinc — generate so much cash they have no need to borrow", "ta": "Infosys, TCS, Hindustan Zinc — இவை மிகவும் அதிக பணம் சம்பாதிக்கின்றன, கடன் தேவையே இல்லை" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A company has EBIT of ₹500 crore and Interest Expense of ₹400 crore. What is its Interest Coverage Ratio, and what does it signal?",
+        "ta": "ஒரு நிறுவனத்தின் EBIT ₹500 கோடி மற்றும் வட்டி செலவு ₹400 கோடி. அதன் வட்டி கவரேஜ் விகிதம் என்ன, அது என்ன சமிக்ஞை காட்டுகிறது?"
+      },
+      "options": [
+        { "en": "1.25x — dangerously low, company barely covers its interest payments", "ta": "1.25x — ஆபத்தான அளவில் குறைவு, நிறுவனம் வட்டியை辛கஷ்டப்பட்டு செலுத்துகிறது" },
+        { "en": "5x — very safe, plenty of cushion above interest costs", "ta": "5x — மிகவும் பாதுகாப்பு, வட்டி செலவுக்கு மேல் நிறைய இடம்" },
+        { "en": "0.8x — company cannot cover its interest payments at all", "ta": "0.8x — நிறுவனம் வட்டியை கட்டவே முடியாது" },
+        { "en": "8x — very healthy coverage with strong profit buffer", "ta": "8x — வலுவான லாப இடையகத்துடன் மிகவும் ஆரோக்கியமான கவரேஜ்" }
+      ],
+      "correct_index": 0,
+      "explanation": {
+        "en": "Interest Coverage = EBIT ÷ Interest = ₹500 Cr ÷ ₹400 Cr = 1.25x. This is dangerously low — the company earns just ₹1.25 for every ₹1 of interest it owes. Any drop in operating profit could make it unable to service its debt. Analysts look for at least 3x as a comfortable minimum.",
+        "ta": "வட்டி கவரேஜ் = EBIT ÷ வட்டி = ₹500 கோடி ÷ ₹400 கோடி = 1.25x. இது ஆபத்தான அளவில் குறைவு — நிறுவனம் செலுத்த வேண்டிய ஒவ்வொரு ₹1 வட்டிக்கும் வெறும் ₹1.25 மட்டுமே சம்பாதிக்கிறது. செயல்பாட்டு லாபம் சிறிது குறைந்தாலும் கடனை சேவிக்க முடியாமல் போகலாம். ஆய்வாளர்கள் குறைந்தது 3x-ஐ வசதியான குறைந்தபட்சமாக பார்க்கிறார்கள்."
+      },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Debt Red Flags", "ta": "கடன் ஆபத்து சமிக்ஞைகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Heavy debt alone isn't always the problem — it becomes dangerous when a company can no longer comfortably service it. These are the warning signs to watch for before investing.",
+            "ta": "அதிக கடன் மட்டும் எப்போதும் பிரச்னையல்ல — ஒரு நிறுவனம் அதை வசதியாக சேவிக்க முடியாமல் போகும்போது ஆபத்தாகிறது. முதலீடு செய்வதற்கு முன் கவனிக்க வேண்டிய எச்சரிக்கை சமிக்ஞைகள் இவை."
+          }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "D/E ratio above 3x with declining revenue — debt growing while business shrinks", "ta": "வருவாய் குறையும் போது D/E 3x-க்கு மேல் — வியாபாரம் சுருங்க கடன் வளர்கிறது" },
+            { "en": "Interest Coverage below 1.5x — profit barely covers interest, nothing left for growth", "ta": "வட்டி கவரேஜ் 1.5x-க்கு கீழ் — லாபம் வட்டியை கஷ்டப்பட்டு செலுத்துகிறது, வளர்ச்சிக்கு எதுவும் இல்லை" },
+            { "en": "Borrowing to repay old loans — a debt trap of rolling over liabilities", "ta": "பழைய கடனை அடைக்க புதிய கடன் — கடன்களை உருட்டும் கடன் பொறி" },
+            { "en": "Promoter shares pledged as collateral — founder is personally borrowing against their own stake", "ta": "ப்ரோமோட்டர் பங்குகள் பிணையமாக வைக்கப்பட்டுள்ளன — நிறுவனர் தன் சொந்த பங்கிற்கு எதிராக கடன் வாங்குகிறார்" },
+            { "en": "Debt rising while operating cash flow is falling — company cannot generate cash to repay", "ta": "கடன் அதிகரிக்க செயல்பாட்டு பண ஓட்டம் குறைகிறது — நிறுவனம் திரும்ப செலுத்த பணம் உருவாக்க முடியவில்லை" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "DHFL borrowed aggressively and diverted funds — when real estate slowed, it could not repay ₹90,000+ crore and collapsed. Vodafone Idea's ₹2 lakh crore+ debt load has made a full recovery nearly impossible despite regulatory relief.",
+            "ta": "DHFL ஆக்ரோஷமாக கடன் வாங்கி நிதியை திசை திருப்பியது — ரியல் எஸ்டேட் மெதுவானபோது ₹90,000+ கோடி திரும்ப செலுத்த முடியாமல் திவாலானது. Vodafone Idea-வின் ₹2 லட்சம் கோடி+ கடன் சுமை ஒழுங்குமுறை நிவாரணம் இருந்தாலும் முழு மீட்சியை கிட்டத்தட்ட சாத்தியமற்றதாக ஆக்கியுள்ளது."
+          }
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Quick test: Is the company's Return on Capital Employed (ROCE) higher than its interest rate? If ROCE < cost of debt, the company is destroying shareholder value by borrowing.",
+            "ta": "விரைவு சரிபார்ப்பு: நிறுவனத்தின் Return on Capital Employed (ROCE) அதன் வட்டி விகிதத்தை விட அதிகமா? ROCE < கடன் செலவு என்றால், நிறுவனம் கடன் வாங்குவதன் மூலம் பங்குதாரர் மதிப்பை அழிக்கிறது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "A company with zero debt on its balance sheet is always a better investment than a company that carries some debt.",
+        "ta": "Balance Sheet-ல் கடன் இல்லாத ஒரு நிறுவனம் சில கடன் வைத்திருக்கும் நிறுவனத்தை விட எப்போதும் சிறந்த முதலீடு."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Zero debt is safe but not always optimal. A company that borrows at 8% to generate 20% returns on that capital is creating significant value for shareholders. The question is not whether debt exists, but whether returns on borrowed capital exceed the cost of borrowing. Infrastructure companies often need debt to build roads or airports — and that debt can be very productive.",
+        "ta": "கடன் இல்லாமல் இருப்பது பாதுகாப்பானது ஆனால் எப்போதும் சிறந்ததல்ல. 8%-க்கு கடன் வாங்கி அந்த மூலதனத்தில் 20% வருவாய் ஈட்டும் நிறுவனம் பங்குதாரர்களுக்கு கணிசமான மதிப்பை உருவாக்குகிறது. கடன் இருக்கிறதா என்பதல்ல கேள்வி — கடன் மூலதனத்தில் வருவாய் கடன் செலவை மீறுகிறதா என்பதுதான். சாலைகள் அல்லது விமான நிலையங்கள் கட்ட உள்கட்டமைப்பு நிறுவனங்கள் பெரும்பாலும் கடன் தேவைப்படுகின்றன — அந்த கடன் மிகவும் உற்பத்தியாக இருக்கலாம்."
+      },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

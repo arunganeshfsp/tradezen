@@ -1,0 +1,330 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "📈",
+      "heading": { "en": "Basic Stock Information", "ta": "பங்கு பற்றிய அடிப்படை தகவல்கள்" },
+      "description": { "en": "Learn how to read a stock, what the numbers mean, and what moves the price.", "ta": "ஒரு பங்கை எப்படி படிப்பது, எண்கள் என்னை குறிக்கின்றன, விலை ஏன் மாறுகிறது என்று கற்று." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🔍",
+      "title": { "en": "Every stock tells a story", "ta": "ஒவ்வொரு பங்கும் ஒரு கதை சொல்கிறது" },
+      "caption": { "en": "Price · Market Cap · P/E · 52-week range — four numbers that reveal a company's market story.", "ta": "விலை · மார்க்கெட் கேப் · P/E · 52-வார வரம்பு — நான்கு எண்கள், ஒரு நிறுவனத்தின் சந்தை கதையை வெளிப்படுத்துகின்றன." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is a Stock?", "ta": "பங்கு என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "When you buy a stock, you become a part-owner of that company. If you own 100 shares of Reliance Industries out of its 676 crore total shares, you hold a tiny but real piece of one of India's biggest companies.",
+            "ta": "நீங்கள் ஒரு பங்கை வாங்கும்போது, அந்த நிறுவனத்தின் பகுதி உரிமையாளராகிறீர்கள். Reliance Industries-ன் 676 கோடி பங்குகளில் 100 பங்குகள் வைத்திருந்தால், இந்தியாவின் மிகப் பெரிய நிறுவனங்களில் ஒன்றின் சிறிய ஆனால் உண்மையான பகுதியை வைத்திருக்கிறீர்கள்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Stock / Share", "ta": "பங்கு / ஷேர்" },
+              "val": { "en": "A unit of ownership in a company", "ta": "ஒரு நிறுவனத்தில் உரிமையின் ஒரு அலகு" }
+            },
+            {
+              "key": { "en": "Equity", "ta": "ஈக்விட்டி" },
+              "val": { "en": "Another name for stocks — you hold 'equity' in the company", "ta": "பங்குகளுக்கான மற்றொரு பெயர் — நிறுவனத்தில் 'ஈக்விட்டி' வைத்திருக்கிறீர்கள்" }
+            },
+            {
+              "key": { "en": "Listed Stock", "ta": "லிஸ்டட் பங்கு" },
+              "val": { "en": "A company whose shares are traded on NSE or BSE", "ta": "NSE அல்லது BSE-ல் பங்குகள் வர்த்தகமாகும் நிறுவனம்" }
+            },
+            {
+              "key": { "en": "Shareholder", "ta": "பங்குதாரர்" },
+              "val": { "en": "Anyone who holds at least 1 share of the company", "ta": "நிறுவனத்தின் குறைந்தது 1 பங்காவது வைத்திருப்பவர்" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Owning a stock gives you rights — including the right to receive dividends and vote on key company decisions at the AGM (Annual General Meeting).",
+            "ta": "பங்கு வைத்திருப்பது உங்களுக்கு உரிமைகள் தருகிறது — டிவிடெண்ட் பெறுவதற்கும், AGM-ல் (Annual General Meeting) முக்கிய நிறுவன முடிவுகளில் வாக்களிக்கவும் உரிமை இருக்கும்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Key Numbers", "ta": "முக்கிய எண்கள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Every stock has a set of standard numbers visible on any trading app. Knowing what each one means helps you make informed decisions.",
+            "ta": "ஒவ்வொரு பங்கிலும் எந்த trading app-லும் தெரியும் சில நிலையான எண்கள் இருக்கும். ஒவ்வொன்றும் என்னை குறிக்கிறது என்று தெரிந்துகொள்வது சரியான முடிவுகள் எடுக்க உதவும்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "CMP (Current Market Price)", "ta": "CMP (தற்போதைய சந்தை விலை)" },
+              "val": { "en": "The live price at which the stock trades right now — e.g., ₹2,950 for Reliance", "ta": "இப்போது பங்கு வர்த்தகமாகும் நேரடி விலை — உதா: Reliance ₹2,950" }
+            },
+            {
+              "key": { "en": "Market Cap", "ta": "மார்க்கெட் கேப்" },
+              "val": { "en": "Total market value = Price × Total shares. Reliance ~₹20 lakh crore", "ta": "மொத்த சந்தை மதிப்பு = விலை × மொத்த பங்குகள். Reliance ~₹20 லட்சம் கோடி" }
+            },
+            {
+              "key": { "en": "52-Week High / Low", "ta": "52-வார உயர் / தாழ்" },
+              "val": { "en": "Highest and lowest price the stock traded in the past 52 weeks", "ta": "கடந்த 52 வாரங்களில் பங்கு வர்த்தகமான மிக உயர்ந்த மற்றும் மிக தாழ்ந்த விலை" }
+            },
+            {
+              "key": { "en": "Volume", "ta": "வால்யூம்" },
+              "val": { "en": "Number of shares traded today — high volume means strong interest", "ta": "இன்று வர்த்தகமான பங்குகளின் எண்ணிக்கை — அதிக வால்யூம் = அதிக ஆர்வம்" }
+            },
+            {
+              "key": { "en": "Face Value", "ta": "முக மதிப்பு (Face Value)" },
+              "val": { "en": "Original issue price per share (usually ₹1 or ₹10) — not the market price", "ta": "ஒரு பங்கின் ஆரம்ப வெளியீட்டு விலை (பொதுவாக ₹1 அல்லது ₹10) — இது சந்தை விலை அல்ல" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Face value and market price are completely different. Infosys has a face value of ₹5 but trades at ₹1,500+. Don't confuse them.",
+            "ta": "முக மதிப்பும் சந்தை விலையும் முற்றிலும் வேறானவை. Infosys-ன் முக மதிப்பு ₹5, ஆனால் ₹1,500+-க்கு மேல் வர்த்தகமாகிறது. குழப்பிக்கொள்ளாதீர்கள்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A stock is trading at ₹500 and has 10 crore shares outstanding. What is its Market Capitalisation?",
+        "ta": "ஒரு பங்கு ₹500-க்கு வர்த்தகமாகிறது மற்றும் 10 கோடி பங்குகள் உள்ளன. அதன் Market Capitalisation என்ன?"
+      },
+      "options": [
+        { "en": "₹500 crore", "ta": "₹500 கோடி" },
+        { "en": "₹5,000 crore", "ta": "₹5,000 கோடி" },
+        { "en": "₹50 crore", "ta": "₹50 கோடி" },
+        { "en": "₹500", "ta": "₹500" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Market Cap = Current Price × Total Shares Outstanding. ₹500 × 10 crore shares = ₹5,000 crore. This is how the total market value of a company is calculated.",
+        "ta": "Market Cap = தற்போதைய விலை × மொத்த பங்குகள். ₹500 × 10 கோடி பங்குகள் = ₹5,000 கோடி. இப்படித்தான் ஒரு நிறுவனத்தின் மொத்த சந்தை மதிப்பு கணக்கிடப்படுகிறது."
+      },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Valuation Basics", "ta": "மதிப்பீட்டு அடிப்படைகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Price alone doesn't tell you if a stock is cheap or expensive. Valuation ratios help you compare what you're paying versus what the company actually earns.",
+            "ta": "விலை மட்டும் பார்த்தால் ஒரு பங்கு மலிவானதா அல்லது விலையுயர்ந்ததா என்று சொல்ல முடியாது. மதிப்பீட்டு விகிதங்கள் நீங்கள் செலுத்துவதை நிறுவனம் சம்பாதிப்பதுடன் ஒப்பிட உதவுகின்றன."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "P/E Ratio", "ta": "P/E விகிதம்" },
+              "val": { "en": "Price ÷ EPS. Nifty 50 avg ~20x. Higher = pricier, lower = cheaper relative to earnings", "ta": "விலை ÷ EPS. Nifty 50 சராசரி ~20x. அதிகமாக = விலை அதிகம், குறைவாக = சம்பாத்தியத்துடன் ஒப்பிட்டு மலிவு" }
+            },
+            {
+              "key": { "en": "EPS (Earnings Per Share)", "ta": "EPS (பங்குக்கு சம்பாத்தியம்)" },
+              "val": { "en": "Net profit ÷ Total shares — shows how much the company earns per share", "ta": "நிகர லாபம் ÷ மொத்த பங்குகள் — ஒரு பங்குக்கு நிறுவனம் எவ்வளவு சம்பாதிக்கிறது என்று காட்டுகிறது" }
+            },
+            {
+              "key": { "en": "Dividend Yield", "ta": "டிவிடெண்ட் யீல்ட்" },
+              "val": { "en": "Annual dividend ÷ Stock price × 100 — income return from holding the stock", "ta": "ஆண்டு டிவிடெண்ட் ÷ பங்கு விலை × 100 — பங்கு வைத்திருப்பதில் கிடைக்கும் வருமான வருவாய்" }
+            },
+            {
+              "key": { "en": "Book Value", "ta": "புக் வேல்யூ" },
+              "val": { "en": "Net assets of company per share. Price-to-Book (P/B) shows how much premium you pay over assets", "ta": "ஒரு பங்குக்கு நிறுவனத்தின் நிகர சொத்துகள். P/B விகிதம் சொத்துகளுக்கு மேல் எவ்வளவு பிரீமியம் செலுத்துகிறீர்கள் என்று காட்டுகிறது" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "A high P/E isn't always bad — fast-growing companies like Zomato trade at high P/E. Always compare P/E within the same sector. Never compare an IT stock's P/E with a banking stock.",
+            "ta": "அதிக P/E எப்போதும் மோசமானதல்ல — Zomato போன்ற வேகமாக வளரும் நிறுவனங்கள் அதிக P/E-ல் வர்த்தகமாகும். P/E-ஐ எப்போதும் ஒரே துறையில் ஒப்பிடுங்கள். IT பங்கின் P/E-ஐ வங்கிப் பங்குடன் ஒப்பிடாதீர்கள்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Price Movers", "ta": "விலையை நகர்த்துவது" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "A stock price changes every second during market hours — driven by supply and demand. But what triggers that supply and demand?",
+            "ta": "சந்தை நேரத்தில் பங்கு விலை ஒவ்வொரு வினாடியும் மாறுகிறது — கிரயம் மற்றும் வரவால் இயக்கப்படுகிறது. ஆனால் அந்த கிரயம் மற்றும் வரவை தூண்டுவது என்ன?"
+          }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Quarterly earnings — profit beat = price up; earnings miss = price down", "ta": "காலாண்டு வருவாய் — லாபம் எதிர்பார்ப்பை மீறினால் விலை உயரும்; குறைந்தால் விலை விழும்" },
+            { "en": "FII / DII flows — large institutional buying or selling moves the whole market", "ta": "FII / DII ஃப்ளோ — பெரிய நிறுவன வாங்கல் அல்லது விற்பனை சந்தையை முழுவதும் நகர்த்தும்" },
+            { "en": "Sector news — RBI rate cut boosts banking stocks; oil price rise impacts HPCL, IOC", "ta": "துறை செய்திகள் — RBI வட்டி குறைத்தால் வங்கிப் பங்குகள் உயரும்; எண்ணெய் விலை உயர்ந்தால் HPCL, IOC பாதிக்கும்" },
+            { "en": "Global cues — US Fed rate decisions and Nasdaq moves affect Nifty and IT stocks", "ta": "உலகளாவிய குறிப்புகள் — US Fed வட்டி முடிவுகள் மற்றும் Nasdaq நகர்வு Nifty மற்றும் IT பங்குகளை பாதிக்கும்" },
+            { "en": "Management guidance — CEO forecasting strong growth drives investor buying", "ta": "மேலாண்மை வழிகாட்டுதல் — CEO வலுவான வளர்ச்சியை கணித்தால் முதலீட்டாளர்கள் வாங்குவார்கள்" },
+            { "en": "Promoter activity — founders buying more shares signals confidence in the company", "ta": "ப்ரோமோட்டர் செயல்பாடு — நிறுவனர்கள் மேலும் பங்குகள் வாங்கினால் நிறுவனத்தில் நம்பிக்கை இருப்பதாக அர்த்தம்" }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "Tata Motors rose 8% in a single day when it reported record JLR sales. Infosys fell 12% in one session when it cut its revenue guidance — price reacts fast to new information.",
+            "ta": "Tata Motors JLR-ல் சாதனை விற்பனையை அறிவித்த நாள் ஒரே நாளில் 8% உயர்ந்தது. Infosys வருவாய் வழிகாட்டுதலை குறைத்த ஒரே நாளில் 12% விழுந்தது — விலை புதிய தகவலுக்கு வேகமாக செயல்படுகிறது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "Infosys reports quarterly results and cuts its revenue guidance for the full year. What is most likely to happen to its stock price?",
+        "ta": "Infosys காலாண்டு முடிவுகளை அறிவித்து ஆண்டு முழுவதும் வருவாய் வழிகாட்டுதலை குறைக்கிறது. அதன் பங்கு விலைக்கு என்ன ஆகும்?"
+      },
+      "options": [
+        { "en": "Stock price rises sharply", "ta": "பங்கு விலை கடுமையாக உயரும்" },
+        { "en": "Stock price falls", "ta": "பங்கு விலை விழும்" },
+        { "en": "Stock price is unaffected", "ta": "பங்கு விலை மாறாது" },
+        { "en": "Only the P/E ratio changes, not the price", "ta": "P/E விகிதம் மட்டும் மாறும், விலை மாறாது" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "When a company lowers its future earnings guidance, investors reduce their expectations for profitability. This drops demand for the stock and typically causes the price to fall sharply — Infosys has seen this happen multiple times after guidance cuts.",
+        "ta": "ஒரு நிறுவனம் எதிர்கால வருவாய் வழிகாட்டுதலை குறைக்கும்போது, முதலீட்டாளர்கள் லாபம் பற்றிய எதிர்பார்ப்பை குறைக்கிறார்கள். இது பங்கு வேண்டும் என்ற தேவையை குறைக்கிறது மற்றும் விலை கூர்மையாக விழுகிறது — Infosys வழிகாட்டுதல் குறைத்த பிறகு பலமுறை இப்படி நடந்தது."
+      },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Circuits & Research", "ta": "சர்க்யூட் & ஆராய்ச்சி" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "SEBI sets circuit limits — daily price bands that prevent extreme swings caused by panic or manipulation.",
+            "ta": "SEBI சர்க்யூட் வரம்புகளை நிர்ணயிக்கிறது — பீதி அல்லது சூழ்ச்சியால் ஏற்படும் கடுமையான நகர்வுகளை தடுக்கும் தினசரி விலை வரம்புகள்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Upper Circuit", "ta": "அப்பர் சர்க்யூட்" },
+              "val": { "en": "Maximum price rise allowed today — e.g., 10% above previous close", "ta": "இன்று அனுமதிக்கப்பட்ட அதிகபட்ச விலை உயர்வு — உதா: முந்தைய மூடலிலிருந்து 10% மேல்" }
+            },
+            {
+              "key": { "en": "Lower Circuit", "ta": "லோயர் சர்க்யூட்" },
+              "val": { "en": "Maximum price fall allowed today — e.g., 10% below previous close", "ta": "இன்று அனுமதிக்கப்பட்ட அதிகபட்ச விலை வீழ்ச்சி — உதா: முந்தைய மூடலிலிருந்து 10% கீழ்" }
+            },
+            {
+              "key": { "en": "Circuit Bands", "ta": "சர்க்யூட் வரம்புகள்" },
+              "val": { "en": "2%, 5%, 10%, or 20% — set by SEBI based on the stock's liquidity", "ta": "2%, 5%, 10%, அல்லது 20% — பங்கின் லிக்விடிட்டியை பொறுத்து SEBI நிர்ணயிக்கிறது" }
+            },
+            {
+              "key": { "en": "No Circuit Stocks", "ta": "சர்க்யூட் இல்லாத பங்குகள்" },
+              "val": { "en": "Nifty 50 stocks (Reliance, TCS, HDFC Bank) — large-caps trade freely with no daily limit", "ta": "Nifty 50 பங்குகள் (Reliance, TCS, HDFC Bank) — லார்ஜ் கேப்கள் தினசரி வரம்பில்லாமல் சுதந்திரமாக வர்த்தகமாகும்" }
+            }
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "headline",
+          "text": { "en": "Where to Research Stocks (Free)", "ta": "பங்குகளை ஆராய எங்கே போவது (இலவசம்)" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "NSE India", "ta": "NSE India" },
+              "val": { "en": "nseindia.com — official price data, shareholding, and corporate filings", "ta": "nseindia.com — அதிகாரப்பூர்வ விலை தரவு, பங்குவைத்திருப்பு மற்றும் கார்ப்பரேட் ஃபைலிங்" }
+            },
+            {
+              "key": { "en": "Screener.in", "ta": "Screener.in" },
+              "val": { "en": "Best free tool — 10 years of financials, P/E history, and peer comparison", "ta": "சிறந்த இலவச கருவி — 10 ஆண்டு நிதி தரவு, P/E வரலாறு மற்றும் போட்டி ஒப்பீடு" }
+            },
+            {
+              "key": { "en": "Zerodha Kite / Groww", "ta": "Zerodha Kite / Groww" },
+              "val": { "en": "Built-in fundamentals tab on every stock page — quick ratios at a glance", "ta": "ஒவ்வொரு பங்கு பக்கத்திலும் built-in fundamentals tab — விரைவான விகிதங்கள் ஒரே பார்வையில்" }
+            }
+          ]
+        },
+        {
+          "type": "link",
+          "label": { "en": "Research Any Stock Free on Screener", "ta": "Screener-ல் இலவசமாக பங்கு ஆராயுங்கள்" },
+          "description": { "en": "India's most popular free stock research tool — 10 years of financials, ratios, and peer comparisons for every listed company.", "ta": "இந்தியாவின் மிகவும் பிரபலமான இலவச பங்கு ஆராய்ச்சி கருவி — ஒவ்வொரு லிஸ்டட் நிறுவனத்திற்கும் 10 ஆண்டு நிதி தரவு, விகிதங்கள் மற்றும் போட்டி ஒப்பீடு." },
+          "url": "https://www.screener.in"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "Nifty 50 large-cap stocks like Reliance and TCS have the same 5% circuit limit as small-cap stocks.",
+        "ta": "Reliance மற்றும் TCS போன்ற Nifty 50 லார்ஜ் கேப் பங்குகளுக்கு ஸ்மால் கேப் பங்குகளைப் போலவே 5% சர்க்யூட் வரம்பு இருக்கிறது."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "SEBI does not apply circuit limits to Nifty 50 index stocks. Large-caps like Reliance, TCS, and HDFC Bank can theoretically move any percentage in a single day. Circuit limits of 2%, 5%, 10%, or 20% apply only to mid-cap and small-cap stocks with lower liquidity.",
+        "ta": "SEBI, Nifty 50 இண்டெக்ஸ் பங்குகளுக்கு சர்க்யூட் வரம்புகளை பயன்படுத்துவதில்லை. Reliance, TCS, HDFC Bank போன்ற லார்ஜ் கேப்கள் ஒரே நாளில் எந்த சதவீதமும் நகரலாம். 2%, 5%, 10%, அல்லது 20% சர்க்யூட் வரம்புகள் குறைவான லிக்விடிட்டி உள்ள மிட் கேப் மற்றும் ஸ்மால் கேப் பங்குகளுக்கு மட்டுமே பொருந்தும்."
+      },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

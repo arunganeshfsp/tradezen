@@ -1,0 +1,326 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "📊",
+      "heading": { "en": "Company Results Explained", "ta": "நிறுவன முடிவுகள் விளக்கம்" },
+      "description": { "en": "Understand quarterly earnings — the numbers that can send a stock up 10% or crash it in minutes.", "ta": "காலாண்டு வருவாயை புரிந்துகொள்ளுங்கள் — ஒரு பங்கை நிமிடங்களில் 10% உயர்த்தவோ அல்லது வீழ்த்தவோ கூடிய எண்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "📋",
+      "title": { "en": "Results day = judgement day", "ta": "முடிவு நாள் = தீர்ப்பு நாள்" },
+      "caption": { "en": "Every 3 months, companies reveal the truth — did they grow, stagnate, or shrink?", "ta": "ஒவ்வொரு 3 மாதத்திலும் நிறுவனங்கள் உண்மையை வெளிப்படுத்துகின்றன — வளர்ந்தார்களா, நின்றார்களா, அல்லது சுருங்கினார்களா?" }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Quarterly Results", "ta": "காலாண்டு முடிவுகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Every company listed on NSE or BSE must publish its financial results every 3 months. SEBI mandates this to ensure transparency for investors. These are called quarterly results or earnings.",
+            "ta": "NSE அல்லது BSE-ல் பட்டியலிடப்பட்ட ஒவ்வொரு நிறுவனமும் ஒவ்வொரு 3 மாதத்திலும் தனது நிதி முடிவுகளை வெளியிட வேண்டும். முதலீட்டாளர்களுக்கு வெளிப்படைத்தன்மை உறுதி செய்ய SEBI இதை கட்டாயமாக்கியுள்ளது. இவை காலாண்டு முடிவுகள் அல்லது வருவாய் என்று அழைக்கப்படுகின்றன."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Q1", "ta": "Q1" },
+              "val": { "en": "April – June (results published by July–August)", "ta": "ஏப்ரல் – ஜூன் (முடிவுகள் ஜூலை–ஆகஸ்ட்டில் வெளியிடப்படும்)" }
+            },
+            {
+              "key": { "en": "Q2", "ta": "Q2" },
+              "val": { "en": "July – September (results published by October–November)", "ta": "ஜூலை – செப்டம்பர் (முடிவுகள் அக்டோபர்–நவம்பரில் வெளியிடப்படும்)" }
+            },
+            {
+              "key": { "en": "Q3", "ta": "Q3" },
+              "val": { "en": "October – December (results published by January–February)", "ta": "அக்டோபர் – டிசம்பர் (முடிவுகள் ஜனவரி–பிப்ரவரியில் வெளியிடப்படும்)" }
+            },
+            {
+              "key": { "en": "Q4 / Annual", "ta": "Q4 / வருடாந்திர" },
+              "val": { "en": "January – March (full year results published by April–May)", "ta": "ஜனவரி – மார்ச் (முழு ஆண்டு முடிவுகள் ஏப்ரல்–மே-ல் வெளியிடப்படும்)" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Results are published on NSE and BSE websites within 45 days of quarter end. You can also find them on Screener.in or the company's own investor relations page.",
+            "ta": "காலாண்டு முடிந்த 45 நாட்களுக்குள் NSE மற்றும் BSE இணையதளங்களில் முடிவுகள் வெளியிடப்படும். Screener.in அல்லது நிறுவனத்தின் investor relations பக்கத்திலும் பார்க்கலாம்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "3 Statements", "ta": "3 நிதி அறிக்கைகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Every quarterly result contains three core financial documents. You don't need to master all three — but knowing what each one tells you is the foundation of reading results.",
+            "ta": "ஒவ்வொரு காலாண்டு முடிவிலும் மூன்று முக்கிய நிதி ஆவணங்கள் இருக்கும். மூன்றையும் முழுமையாக புரிந்துகொள்ள வேண்டியதில்லை — ஆனால் ஒவ்வொன்றும் என்ன சொல்கிறது என்று தெரிவது முடிவுகளை படிக்கும் அடிப்படை."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "P&L Statement", "ta": "P&L அறிக்கை" },
+              "val": { "en": "Shows Revenue, Expenses, and Net Profit — did the company make money this quarter?", "ta": "வருவாய், செலவுகள் மற்றும் நிகர லாபம் காட்டுகிறது — இந்த காலாண்டில் நிறுவனம் பணம் சம்பாதித்ததா?" }
+            },
+            {
+              "key": { "en": "Balance Sheet", "ta": "இருப்புநிலை குறிப்பு" },
+              "val": { "en": "Shows Assets, Liabilities, and Equity — what the company owns and owes at a specific date", "ta": "சொத்துகள், கடன்கள் மற்றும் ஈக்விட்டி காட்டுகிறது — குறிப்பிட்ட தேதியில் நிறுவனம் என்ன வைத்திருக்கிறது, என்ன கடன்பட்டிருக்கிறது" }
+            },
+            {
+              "key": { "en": "Cash Flow Statement", "ta": "பண ஓட்ட அறிக்கை" },
+              "val": { "en": "Shows actual cash in and out — is the company generating real cash or just paper profits?", "ta": "உண்மையான பண வரவு மற்றும் செலவைக் காட்டுகிறது — நிறுவனம் உண்மையான பணம் சம்பாதிக்கிறதா அல்லது வெறும் காகித லாபமா?" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "For beginners, start with the P&L. Revenue and Net Profit are the two numbers that move stock prices the most on results day.",
+            "ta": "தொடக்கநிலையினருக்கு, P&L-லில் தொடங்குங்கள். வருவாய் மற்றும் நிகர லாபம் — இந்த இரண்டு எண்கள்தான் முடிவு நாளில் பங்கு விலையை அதிகமாக நகர்த்துகின்றன."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "Which financial statement shows whether a company made a profit or loss in a quarter?",
+        "ta": "எந்த நிதி அறிக்கை ஒரு காலாண்டில் நிறுவனம் லாபம் சம்பாதித்ததா அல்லது நஷ்டம் அடைந்ததா என்று காட்டுகிறது?"
+      },
+      "options": [
+        { "en": "Balance Sheet", "ta": "இருப்புநிலை குறிப்பு" },
+        { "en": "P&L Statement (Income Statement)", "ta": "P&L அறிக்கை (வருமான அறிக்கை)" },
+        { "en": "Cash Flow Statement", "ta": "பண ஓட்ட அறிக்கை" },
+        { "en": "Shareholding Pattern", "ta": "பங்கு வைத்திருப்பு வடிவம்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "The P&L Statement (Profit & Loss or Income Statement) records all revenues and expenses for the quarter and shows the final Net Profit or Net Loss. This is the first document investors look at on results day.",
+        "ta": "P&L அறிக்கை (லாப & நஷ்ட அல்லது வருமான அறிக்கை) காலாண்டின் அனைத்து வருவாய் மற்றும் செலவுகளை பதிவு செய்து இறுதி நிகர லாபம் அல்லது நிகர நஷ்டத்தைக் காட்டுகிறது. முடிவு நாளில் முதலீட்டாளர்கள் முதலில் பார்க்கும் ஆவணம் இதுவே."
+      },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Key Metrics", "ta": "முக்கிய அளவீடுகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "When results are announced, focus on these five numbers. Together, they reveal whether the business is genuinely growing or just surviving.",
+            "ta": "முடிவுகள் அறிவிக்கப்படும்போது இந்த ஐந்து எண்களில் கவனம் செலுத்துங்கள். இவை சேர்ந்து வியாபாரம் உண்மையிலேயே வளருகிறதா அல்லது வெறுமனே உயிர் வாழ்கிறதா என்று வெளிப்படுத்துகின்றன."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Revenue (Topline)", "ta": "வருவாய் (டாப்லைன்)" },
+              "val": { "en": "Total income from core business operations — how much did the company sell?", "ta": "முக்கிய வியாபார செயல்பாடுகளில் இருந்து மொத்த வருமானம் — நிறுவனம் எவ்வளவு விற்றது?" }
+            },
+            {
+              "key": { "en": "Net Profit (Bottomline)", "ta": "நிகர லாபம் (பாட்டம்லைன்)" },
+              "val": { "en": "What remains after all expenses, interest, and taxes — the actual earnings", "ta": "அனைத்து செலவுகள், வட்டி மற்றும் வரிகளுக்கு பிறகு மிஞ்சுவது — உண்மையான சம்பாத்தியம்" }
+            },
+            {
+              "key": { "en": "EBITDA", "ta": "EBITDA" },
+              "val": { "en": "Operating profit before interest, tax, depreciation — measures core business efficiency", "ta": "வட்டி, வரி, தேய்மானத்திற்கு முன் செயல்பாட்டு லாபம் — முக்கிய வியாபார திறனை அளவிடுகிறது" }
+            },
+            {
+              "key": { "en": "EPS (Earnings Per Share)", "ta": "EPS (பங்குக்கு சம்பாத்தியம்)" },
+              "val": { "en": "Net Profit ÷ Total Shares — shows profit earned per share (used to compute P/E)", "ta": "நிகர லாபம் ÷ மொத்த பங்குகள் — ஒரு பங்குக்கு சம்பாதிக்கப்பட்ட லாபம் (P/E கணக்கிட பயன்படுகிறது)" }
+            },
+            {
+              "key": { "en": "Net Profit Margin", "ta": "நிகர லாப மார்ஜின்" },
+              "val": { "en": "Net Profit ÷ Revenue × 100 — higher margin means a more efficient business", "ta": "நிகர லாபம் ÷ வருவாய் × 100 — அதிக மார்ஜின் = மிகவும் திறமையான வியாபாரம்" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "Reliance Q2 FY24: Revenue ₹2.3 lakh crore, Net Profit ₹19,878 crore, Net Margin ~8.6%. For a large conglomerate across oil, retail, and telecom, this margin is considered solid.",
+            "ta": "Reliance Q2 FY24: வருவாய் ₹2.3 லட்சம் கோடி, நிகர லாபம் ₹19,878 கோடி, நிகர மார்ஜின் ~8.6%. எண்ணெய், சில்லறை மற்றும் தொலைத்தொடர்பு என பல துறைகளில் இருக்கும் ஒரு பெரிய நிறுவனத்திற்கு இந்த மார்ஜின் திடமானதாக கருதப்படுகிறது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Beat vs Miss", "ta": "பீட் vs மிஸ்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "The market doesn't react to how much profit a company made — it reacts to whether that profit was better or worse than what analysts expected. This is called an earnings beat or earnings miss.",
+            "ta": "சந்தை ஒரு நிறுவனம் எவ்வளவு லாபம் சம்பாதித்தது என்று செயல்படுவதில்லை — அந்த லாபம் ஆய்வாளர்கள் எதிர்பார்த்ததை விட அதிகமா அல்லது குறைவா என்று செயல்படுகிறது. இதை earnings beat அல்லது earnings miss என்று சொல்கிறார்கள்."
+          }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "🟢",
+              "title": { "en": "Earnings Beat", "ta": "எர்னிங்ஸ் பீட்" },
+              "subtitle": { "en": "Results better than estimates → stock gaps up at open", "ta": "முடிவுகள் மதிப்பீடுகளை விட அதிகம் → பங்கு திறப்பில் கேப்-அப் ஆகும்" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "🔴",
+              "title": { "en": "Earnings Miss", "ta": "எர்னிங்ஸ் மிஸ்" },
+              "subtitle": { "en": "Results below estimates → stock gaps down at open", "ta": "முடிவுகள் மதிப்பீடுகளை விட குறைவு → பங்கு திறப்பில் கேப்-டவுன் ஆகும்" },
+              "variant": "danger"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Earnings Beat", "ta": "எர்னிங்ஸ் பீட்" },
+              "val": { "en": "Company reports higher revenue/profit than analyst consensus → price typically rises", "ta": "நிறுவனம் ஆய்வாளர் கணிப்பை விட அதிக வருவாய்/லாபம் அறிவிக்கிறது → விலை பொதுவாக உயரும்" }
+            },
+            {
+              "key": { "en": "In-Line Result", "ta": "எதிர்பார்ப்புக்கு ஒத்த முடிவு" },
+              "val": { "en": "Meets expectations — price may not move much either way", "ta": "எதிர்பார்ப்பை பூர்த்தி செய்கிறது — விலை அதிகமாக மாறாமல் இருக்கலாம்" }
+            },
+            {
+              "key": { "en": "Earnings Miss", "ta": "எர்னிங்ஸ் மிஸ்" },
+              "val": { "en": "Results below estimates — price falls, sometimes sharply", "ta": "மதிப்பீடுகளை விட குறைவான முடிவுகள் — விலை விழும், சில நேரங்களில் கடுமையாக" }
+            },
+            {
+              "key": { "en": "Guidance Cut", "ta": "வழிகாட்டுதல் குறைப்பு" },
+              "val": { "en": "Even a profit beat can cause a fall if next quarter guidance is cut (seen with Wipro, Infosys)", "ta": "அடுத்த காலாண்டு வழிகாட்டுதல் குறைத்தால் லாபம் அதிகமாகியும் விலை விழலாம் (Wipro, Infosys-ல் பார்த்திருக்கிறோம்)" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "TCS reports quarterly net profit of ₹12,000 crore. Analysts had estimated ₹13,500 crore. What is most likely to happen to TCS stock?",
+        "ta": "TCS காலாண்டு நிகர லாபமாக ₹12,000 கோடி அறிவிக்கிறது. ஆய்வாளர்கள் ₹13,500 கோடி மதிப்பிட்டிருந்தார்கள். TCS பங்குக்கு என்ன ஆகும்?"
+      },
+      "options": [
+        { "en": "TCS rises sharply — profit is still high", "ta": "TCS கூர்மையாக உயரும் — லாபம் இன்னும் அதிகமாக இருக்கிறது" },
+        { "en": "TCS falls — results missed analyst estimates", "ta": "TCS விழும் — முடிவுகள் ஆய்வாளர் மதிப்பீட்டை தவறவிட்டது" },
+        { "en": "TCS remains unchanged — profit is positive", "ta": "TCS மாறாமல் இருக்கும் — லாபம் நேர்மறையாக இருக்கிறது" },
+        { "en": "Only TCS dividend changes, not the price", "ta": "TCS டிவிடெண்ட் மட்டும் மாறும், விலை மாறாது" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Markets react to expectations, not just absolute numbers. TCS earned ₹12,000 crore — still very profitable — but missing the analyst estimate of ₹13,500 crore is an 'earnings miss.' Disappointed investors sell, causing the stock to fall despite positive earnings.",
+        "ta": "சந்தைகள் எதிர்பார்ப்புகளுக்கு செயல்படுகின்றன, வெறும் எண்களுக்கு மட்டுமல்ல. TCS ₹12,000 கோடி சம்பாதித்தது — இன்னும் மிகவும் லாபகரமாக இருக்கிறது — ஆனால் ₹13,500 கோடி ஆய்வாளர் மதிப்பீட்டை தவறவிட்டது 'earnings miss'. ஏமாறிய முதலீட்டாளர்கள் விற்கிறார்கள், எனவே நேர்மறை வருவாய் இருந்தாலும் பங்கு விழுகிறது."
+      },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Reading Results", "ta": "முடிவுகளை படிப்பது" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Two Ways to Compare a Result", "ta": "ஒரு முடிவை ஒப்பிட இரண்டு வழிகள்" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "YoY (Year-on-Year)", "ta": "YoY (ஆண்டுக்கு ஆண்டு)" },
+              "val": { "en": "Q2 FY25 vs Q2 FY24 — same quarter last year. Most reliable growth measure", "ta": "Q2 FY25 vs Q2 FY24 — கடந்த ஆண்டின் அதே காலாண்டு. மிக நம்பகமான வளர்ச்சி அளவீடு" }
+            },
+            {
+              "key": { "en": "QoQ (Quarter-on-Quarter)", "ta": "QoQ (காலாண்டுக்கு காலாண்டு)" },
+              "val": { "en": "Q2 FY25 vs Q1 FY25 — previous quarter. Useful but can be misleading due to seasonality", "ta": "Q2 FY25 vs Q1 FY25 — முந்தைய காலாண்டு. பயனுள்ளது ஆனால் பருவகால காரணங்களால் தவறான படிப்பை தரலாம்" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "For most businesses, YoY is more meaningful. A retail company like DMart always does better in Q3 (festive season) — comparing to Q2 would look misleadingly strong.",
+            "ta": "பெரும்பாலான வியாபாரங்களுக்கு YoY மிகவும் அர்த்தமுள்ளது. DMart போன்ற சில்லறை நிறுவனம் Q3-ல் (திருவிழா காலம்) எப்போதும் சிறப்பாக செயல்படும் — Q2-உடன் ஒப்பிட்டால் தவறான வலிமையான தோற்றம் கொடுக்கும்."
+          }
+        },
+        {
+          "type": "headline",
+          "text": { "en": "Quick Checklist for Any Result", "ta": "எந்த முடிவுக்கும் விரைவான சரிபார்ப்பு பட்டியல்" }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Is revenue growing YoY? (even 5–10% is healthy)", "ta": "வருவாய் YoY-ல் வளருகிறதா? (5–10% கூட நல்லதுதான்)" },
+            { "en": "Is net profit growing faster than revenue? (margin expansion = great sign)", "ta": "நிகர லாபம் வருவாயை விட வேகமாக வளருகிறதா? (மார்ஜின் விரிவாக்கம் = மிகவும் நல்ல அறிகுறி)" },
+            { "en": "Is EBITDA margin stable or improving quarter after quarter?", "ta": "EBITDA மார்ஜின் காலாண்டுக்கு காலாண்டு நிலையாக அல்லது மேம்பட்டு இருக்கிறதா?" },
+            { "en": "Did the company beat or miss analyst estimates?", "ta": "நிறுவனம் ஆய்வாளர் மதிப்பீட்டை மீறியதா அல்லது தவறவிட்டதா?" },
+            { "en": "What is the management saying about next quarter? (guidance)", "ta": "அடுத்த காலாண்டைப் பற்றி மேலாண்மை என்ன சொல்கிறது? (வழிகாட்டுதல்)" }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "A company reporting a net profit of ₹500 crore is guaranteed to see its stock price rise on results day.",
+        "ta": "₹500 கோடி நிகர லாபம் அறிவிக்கும் ஒரு நிறுவனத்தின் பங்கு விலை முடிவு நாளில் நிச்சயமாக உயரும்."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Stock prices react to expectations, not just absolute profit. If analysts expected ₹700 crore and the company reports ₹500 crore, it is an earnings miss — the stock will likely fall despite being profitable. A profitable result below estimates almost always causes a selloff.",
+        "ta": "பங்கு விலைகள் எதிர்பார்ப்புகளுக்கு செயல்படுகின்றன, வெறும் லாபத்திற்கு மட்டுமல்ல. ஆய்வாளர்கள் ₹700 கோடி மதிப்பிட்டு நிறுவனம் ₹500 கோடி அறிவித்தால், அது earnings miss — லாபகரமாக இருந்தாலும் பங்கு விழும். மதிப்பீட்டை விட குறைவான லாபகரமான முடிவு கிட்டத்தட்ட எப்போதும் விற்பனையை ஏற்படுத்துகிறது."
+      },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

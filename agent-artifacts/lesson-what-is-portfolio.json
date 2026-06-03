@@ -1,0 +1,248 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "💼",
+      "heading": { "en": "What is a Portfolio?", "ta": "போர்ட்ஃபோலியோ என்றால் என்ன?" },
+      "description": { "en": "A portfolio is more than just a list of stocks. It is your financial plan in action — built to grow wealth while managing risk.", "ta": "ஒரு போர்ட்ஃபோலியோ வெறும் பங்குகளின் பட்டியல் மட்டுமல்ல. இது நடைமுறையில் உள்ள உங்கள் நிதி திட்டம் — ஆபத்தை நிர்வகித்துக்கொண்டே செல்வத்தை வளர்க்க கட்டப்பட்டது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🧺",
+      "title": { "en": "Don't put all your eggs in one basket.", "ta": "எல்லா முட்டைகளையும் ஒரே கூடையில் வைக்காதீர்கள்." },
+      "caption": { "en": "A well-built portfolio spreads investments across different assets — so one bad day cannot wipe everything out.", "ta": "நன்கு கட்டப்பட்ட போர்ட்ஃபோலியோ முதலீடுகளை வேறு வேறு சொத்துகளில் பரப்புகிறது — எனவே ஒரு மோசமான நாள் எல்லாவற்றையும் அழிக்க முடியாது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is a Portfolio?", "ta": "போர்ட்ஃபோலியோ என்னவென்று" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Your Complete Collection of Investments", "ta": "உங்கள் முழு முதலீட்டு தொகுப்பு" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "A portfolio is the complete collection of all your financial investments — stocks, mutual funds, ETFs, gold, FDs, bonds, and any other asset you own. Every investor has one, whether they realise it or not. Your portfolio is your financial engine — it works for you even while you sleep.", "ta": "ஒரு போர்ட்ஃபோலியோ என்பது உங்கள் அனைத்து நிதி முதலீடுகளின் முழு தொகுப்பு — பங்குகள், மியூச்சுவல் ஃபண்டுகள், ETF, தங்கம், FD, பத்திரங்கள் மற்றும் நீங்கள் வைத்திருக்கும் வேறு எந்த சொத்தும். ஒவ்வொரு முதலீட்டாளரிடமும் ஒன்று உள்ளது, அவர்கள் உணர்கிறார்களோ இல்லையோ. உங்கள் போர்ட்ஃபோலியோ உங்கள் நிதி எஞ்சின் — நீங்கள் தூங்கும்போதும் கூட உங்களுக்காக வேலை செய்கிறது." }
+        },
+        {
+          "type": "bullet_list",
+          "items": [
+            { "en": "Can include stocks, mutual funds, ETFs, gold, FDs, and bonds", "ta": "பங்குகள், மியூச்சுவல் ஃபண்டுகள், ETF, தங்கம், FD மற்றும் பத்திரங்கள் சேர்க்கலாம்" },
+            { "en": "Each investment plays a role — growth, safety, or steady income", "ta": "ஒவ்வொரு முதலீடும் ஒரு பாத்திரம் வகிக்கிறது — வளர்ச்சி, பாதுகாப்பு அல்லது நிலையான வருமானம்" },
+            { "en": "Should match your goals, risk tolerance, and time horizon", "ta": "உங்கள் இலக்குகள், ஆபத்து சகிப்புத்தன்மை மற்றும் காலகட்டத்திற்கு பொருந்த வேண்டும்" },
+            { "en": "Even a single Nifty 50 SIP is the beginning of a portfolio", "ta": "ஒரே ஒரு நிஃப்டி 50 SIP கூட ஒரு போர்ட்ஃபோலியோவின் தொடக்கம்" }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "A beginner with just one Nifty 50 index fund SIP already owns a portfolio — that single fund automatically holds 50 companies across multiple sectors.", "ta": "வெறும் ஒரே நிஃப்டி 50 இண்டெக்ஸ் ஃபண்ட் SIP கொண்ட ஒரு தொடக்கக்காரர் ஏற்கனவே ஒரு போர்ட்ஃபோலியோவை சொந்தமாக்கியுள்ளார் — அந்த ஒரு ஃபண்டு பல துறைகளில் உள்ள 50 நிறுவனங்களை தானாக வைத்திருக்கிறது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Diversification", "ta": "பல்வகைமயமாக்கல்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "Never Put All Eggs in One Basket", "ta": "எல்லா முட்டைகளையும் ஒரே கூடையில் வைக்காதீர்கள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Diversification means spreading investments across different assets, sectors, and companies — so that if one falls, others hold steady or rise. It is the single most important free risk-management tool available to every investor.", "ta": "பல்வகைமயமாக்கல் என்பது வேறு வேறு சொத்துகள், துறைகள் மற்றும் நிறுவனங்களில் முதலீடுகளை பரப்புவது — எனவே ஒன்று வீழ்ந்தால், மற்றவை நிலையாக நிற்கும் அல்லது ஏரும். இது ஒவ்வொரு முதலீட்டாளருக்கும் கிடைக்கும் ஒரே ஒரு முக்கியமான இலவச ஆபத்து நிர்வாக கருவி." }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "⚠️",
+              "title": { "en": "Concentrated", "ta": "செறிவூட்டப்பட்ட" },
+              "subtitle": { "en": "All in one stock or sector — one bad quarter can destroy years of gains", "ta": "ஒரே பங்கு அல்லது துறையில் — ஒரு மோசமான காலாண்டு பல ஆண்டு ஆதாயங்களை அழிக்கலாம்" },
+              "variant": "danger"
+            },
+            {
+              "emoji": "✅",
+              "title": { "en": "Diversified", "ta": "பல்வகைமயமாக்கப்பட்ட" },
+              "subtitle": { "en": "Spread across sectors, assets, companies — one fall doesn't sink the whole portfolio", "ta": "துறைகள், சொத்துகள், நிறுவனங்களில் பரவியது — ஒரு வீழ்ச்சி முழு போர்ட்ஃபோலியோவையும் மூழ்கடிக்காது" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "100% in one stock", "ta": "ஒரே பங்கில் 100%" }, "val": { "en": "If it falls 40%, your portfolio falls 40%", "ta": "அது 40% வீழ்ந்தால், உங்கள் போர்ட்ஃபோலியோ 40% வீழும்" } },
+            { "key": { "en": "Spread across 10 Nifty stocks", "ta": "10 நிஃப்டி பங்குகளில் பரவியது" }, "val": { "en": "One stock falling 40% impacts portfolio only ~4%", "ta": "ஒரு பங்கு 40% வீழ்வது போர்ட்ஃபோலியோவை ~4% மட்டுமே பாதிக்கும்" } },
+            { "key": { "en": "Add gold, FD, and debt fund", "ta": "தங்கம், FD மற்றும் டெட் ஃபண்ட் சேர்க்கவும்" }, "val": { "en": "Creates a cushion during stock market crashes", "ta": "பங்குச் சந்தை வீழ்ச்சியில் ஒரு தலையணை உருவாக்குகிறது" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "During the 2020 COVID crash, concentrated all-equity portfolios fell 50–60%. Diversified portfolios with gold and debt fell only 20–25% — and recovered much faster.", "ta": "2020 கோவிட் வீழ்ச்சியின்போது, செறிவூட்டப்பட்ட அனைத்து-பங்கு போர்ட்ஃபோலியோக்கள் 50–60% வீழ்ந்தன. தங்கம் மற்றும் டெட் கொண்ட பல்வகைமயமாக்கப்பட்ட போர்ட்ஃபோலியோக்கள் 20–25% மட்டுமே வீழ்ந்தன — மிகவும் வேகமாக மீண்டும் வந்தன." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "An investor puts 100% of their savings into a single IT company's stock. If that stock falls 50%, how much does their portfolio lose?", "ta": "ஒரு முதலீட்டாளர் தங்கள் சேமிப்பு 100%-ஐ ஒரே IT நிறுவனத்தின் பங்கில் வைக்கிறார். அந்த பங்கு 50% வீழ்ந்தால், அவர்களின் போர்ட்ஃபோலியோ எவ்வளவு இழக்கும்?" },
+      "options": [
+        { "en": "About 5% — other investments cushion the fall", "ta": "சுமார் 5% — மற்ற முதலீடுகள் வீழ்ச்சியை தணிக்கின்றன" },
+        { "en": "About 25% — the broader market absorbs part of the loss", "ta": "சுமார் 25% — பரந்த சந்தை நஷ்டத்தின் ஒரு பகுதியை உறிஞ்சுகிறது" },
+        { "en": "About 50% — the entire portfolio falls with the stock", "ta": "சுமார் 50% — முழு போர்ட்ஃபோலியோவும் பங்குடன் வீழும்" },
+        { "en": "Nothing — a single stock cannot affect the whole portfolio", "ta": "எதுவும் இல்லை — ஒரு பங்கு முழு போர்ட்ஃபோலியோவையும் பாதிக்க முடியாது" }
+      ],
+      "correct_index": 2,
+      "explanation": { "en": "When 100% of savings are in one stock, the portfolio's fate is completely tied to that single company. A 50% fall in the stock means a 50% fall in the entire portfolio. This is exactly why diversification exists — spreading across multiple stocks and asset classes protects you from any single investment destroying your wealth.", "ta": "100% சேமிப்பு ஒரே பங்கில் இருக்கும்போது, போர்ட்ஃபோலியோவின் தலைவிதி அந்த ஒரே நிறுவனத்துடன் முற்றிலும் பிணைக்கப்பட்டுள்ளது. பங்கில் 50% வீழ்வது முழு போர்ட்ஃபோலியோவிலும் 50% வீழ்வைத்தான் பொருளாகும். இதனால்தான் பல்வகைமயமாக்கல் உள்ளது — பல பங்குகள் மற்றும் சொத்து வகைகளில் பரவுவது எந்த ஒரு முதலீடும் உங்கள் செல்வத்தை அழிக்காமல் பாதுகாக்கிறது." },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Asset Classes", "ta": "சொத்து வகைகள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "The Building Blocks of a Portfolio", "ta": "போர்ட்ஃபோலியோவின் கட்டுமான தொகுதிகள்" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "A portfolio can hold different types of investments called asset classes. Each behaves differently in different market conditions — some rise when others fall. Combining them wisely reduces overall risk while keeping your growth potential strong.", "ta": "ஒரு போர்ட்ஃபோலியோ சொத்து வகைகள் என்று அழைக்கப்படும் வெவ்வேறு வகையான முதலீடுகளை வைத்திருக்கலாம். ஒவ்வொன்றும் வேவ்வேறு சந்தை நிலைகளில் வேவ்வேறாக செயல்படுகின்றன — சிலவற்றில் மற்றவை வீழும்போது ஏறும். அவற்றை புத்திசாலித்தனமாக இணைப்பது ஒட்டுமொத்த ஆபத்தை குறைக்கும், வளர்ச்சி திறனை வலுவாக வைக்கும்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Equity (stocks / mutual funds)", "ta": "பங்கு (பங்குகள் / மியூச்சுவல் ஃபண்டுகள்)" }, "val": { "en": "High growth, high risk — best for long-term goals", "ta": "அதிக வளர்ச்சி, அதிக ஆபத்து — நீண்டகால இலக்குகளுக்கு சிறந்தது" } },
+            { "key": { "en": "Debt (FD, bonds, debt funds)", "ta": "கடன் (FD, பத்திரங்கள், டெட் ஃபண்டுகள்)" }, "val": { "en": "Stable income, low risk — protects your capital", "ta": "நிலையான வருமானம், குறைந்த ஆபத்து — உங்கள் முதலீட்டு தொகையை பாதுகாக்கிறது" } },
+            { "key": { "en": "Gold (ETF / Sovereign Gold Bond)", "ta": "தங்கம் (ETF / சார்பு தங்க பத்திரம்)" }, "val": { "en": "Hedge against inflation and market crises", "ta": "பணவீக்கம் மற்றும் சந்தை நெருக்கடிகளுக்கு எதிரான பாதுகாப்பு" } },
+            { "key": { "en": "Real estate", "ta": "ரியல் எஸ்டேட்" }, "val": { "en": "Long-term appreciation — but low liquidity", "ta": "நீண்டகால மதிப்பு ஏற்றம் — ஆனால் குறைந்த திரவத்தன்மை" } },
+            { "key": { "en": "Cash / liquid funds", "ta": "பணம் / லிக்விட் ஃபண்டுகள்" }, "val": { "en": "Emergency reserve — safe and instantly accessible", "ta": "அவசர நிதி — பாதுகாப்பான மற்றும் உடனடியாக அணுகக்கூடியது" } }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "A simple beginner portfolio: 70% Nifty 50 index fund + 20% FD or debt fund + 10% gold ETF. This single combination gives growth, safety, and a crisis buffer.", "ta": "ஒரு எளிய தொடக்கக்கார போர்ட்ஃபோலியோ: 70% நிஃப்டி 50 இண்டெக்ஸ் ஃபண்ட் + 20% FD அல்லது டெட் ஃபண்ட் + 10% கோல்ட் ETF. இந்த ஒரு கலவை வளர்ச்சி, பாதுகாப்பு மற்றும் நெருக்கடி தலையணை தருகிறது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Measuring Performance", "ta": "செயல்திறனை அளவிடுதல்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "How Do You Know If You're Doing Well?", "ta": "நீங்கள் சிறப்பாக செய்கிறீர்களா என்று எப்படி தெரியும்?" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Tracking portfolio performance tells you whether your investments are on course to meet your goals. The key is not just how much you made — but how much you made compared to the risk you took and the benchmark.", "ta": "போர்ட்ஃபோலியோ செயல்திறனை கண்காணிப்பது உங்கள் முதலீடுகள் உங்கள் இலக்குகளை சந்திக்க பாதையில் இருக்கின்றனவா என்று சொல்கிறது. முக்கியம் நீங்கள் எவ்வளவு சம்பாதித்தீர்கள் என்பது மட்டும் அல்ல — நீங்கள் எடுத்த ஆபத்து மற்றும் அளவுகோலுடன் ஒப்பிடும்போது எவ்வளவு சம்பாதித்தீர்கள் என்பதும்." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "CAGR", "ta": "CAGR" }, "val": { "en": "Annual growth rate your portfolio delivered — best for lump sum investments", "ta": "உங்கள் போர்ட்ஃபோலியோ வழங்கிய வருடாந்திர வளர்ச்சி விகிதம் — ஒட்டுமொத்த முதலீடுகளுக்கு சிறந்தது" } },
+            { "key": { "en": "XIRR", "ta": "XIRR" }, "val": { "en": "Best metric for SIP portfolios — accounts for different investment dates", "ta": "SIP போர்ட்ஃபோலியோக்களுக்கான சிறந்த அளவீடு — வேறு வேறு முதலீட்டு தேதிகளை கணக்கிடுகிறது" } },
+            { "key": { "en": "Absolute return", "ta": "முழுமையான வருமானம்" }, "val": { "en": "Total % gain — useful for short-term comparisons", "ta": "மொத்த % ஆதாயம் — குறுகிய கால ஒப்பீடுகளுக்கு பயனுள்ளது" } },
+            { "key": { "en": "Benchmark comparison", "ta": "அளவுகோல் ஒப்பீடு" }, "val": { "en": "Always compare your CAGR to Nifty 50's CAGR", "ta": "உங்கள் CAGR-ஐ நிஃப்டி 50-இன் CAGR-உடன் எப்போதும் ஒப்பிடுங்கள்" } }
+          ]
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "Beat the Benchmark", "ta": "அளவுகோலை மிஞ்சுங்கள்" },
+          "subtitle": { "en": "If your portfolio CAGR is higher than Nifty 50's CAGR, you have outperformed the market", "ta": "உங்கள் போர்ட்ஃபோலியோ CAGR நிஃப்டி 50-இன் CAGR-ஐ விட அதிகமாக இருந்தால், நீங்கள் சந்தையை மிஞ்சியிருக்கிறீர்கள்" }
+        },
+        {
+          "type": "callout-note",
+          "text": { "en": "If Nifty 50 returned 14% CAGR over 5 years and your portfolio gave 10%, the market beat you — even if your absolute returns look impressive. Always benchmark your performance.", "ta": "5 ஆண்டுகளில் நிஃப்டி 50 14% CAGR திரும்பியும் உங்கள் போர்ட்ஃபோலியோ 10% கொடுத்தால், சந்தை உங்களை மிஞ்சியது — உங்கள் முழுமையான வருமானம் ஈர்க்கமாக தோன்றினாலும். உங்கள் செயல்திறனை எப்போதும் அளவுகோலிடுங்கள்." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": { "en": "You have been investing ₹5,000 every month via SIP for 3 years. Which metric best measures the annual return on your portfolio?", "ta": "3 ஆண்டுகளாக SIP வழியாக ஒவ்வொரு மாதமும் ₹5,000 முதலீடு செய்கிறீர்கள். உங்கள் போர்ட்ஃபோலியோவின் வருடாந்திர வருமானத்தை சிறந்தாக அளவிடும் அளவீடு எது?" },
+      "options": [
+        { "en": "Simple interest — easy to calculate", "ta": "தனி வட்டி — கணக்கிட எளிதானது" },
+        { "en": "Absolute return — total gain as a percentage", "ta": "முழுமையான வருமானம் — சதவீதமாக மொத்த ஆதாயம்" },
+        { "en": "CAGR — works best for a single lump sum investment", "ta": "CAGR — ஒரே தொகை முதலீட்டிற்கு சிறப்பாக வேலை செய்கிறது" },
+        { "en": "XIRR — accounts for each SIP instalment on its actual date", "ta": "XIRR — ஒவ்வொரு SIP தவணையையும் அதன் உண்மையான தேதியில் கணக்கிடுகிறது" }
+      ],
+      "correct_index": 3,
+      "explanation": { "en": "XIRR (Extended Internal Rate of Return) is designed for portfolios where money is invested at different points in time — exactly like a monthly SIP. Each ₹5,000 instalment was invested on a different date and has been invested for a different duration. XIRR accounts for all of this and gives you the true annualised return. CAGR assumes a single investment at one point in time.", "ta": "XIRR (நீட்டிக்கப்பட்ட உள் வருவாய் விகிதம்) வெவ்வேறு நேரங்களில் பணம் முதலீடு செய்யப்படும் போர்ட்ஃபோலியோக்களுக்காக வடிவமைக்கப்பட்டுள்ளது — சரியாக மாதாந்திர SIP போல். ஒவ்வொரு ₹5,000 தவணையும் வேவ்வேறு தேதியில் முதலீடு செய்யப்பட்டது மற்றும் வேவ்வேறு காலத்திற்கு முதலீடு செய்யப்பட்டுள்ளது. XIRR இவை அனைத்தையும் கணக்கிட்டு உண்மையான வருடாந்திர வருமானம் தருகிறது. CAGR ஒரே நேரத்தில் ஒரே தொகை முதலீடு என்று கருதுகிறது." },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Common Mistakes", "ta": "பொதுவான தவறுகள்" },
+      "blocks": [
+        {
+          "type": "headline",
+          "text": { "en": "What Beginners Get Wrong About Portfolios", "ta": "போர்ட்ஃபோலியோவைப் பற்றி தொடக்கக்காரர்கள் தவறாக புரிந்துகொள்வது" }
+        },
+        {
+          "type": "paragraph",
+          "text": { "en": "Building a portfolio is easy to start — but easy to get wrong. These silent mistakes quietly damage your returns year after year without you noticing until it is too late.", "ta": "ஒரு போர்ட்ஃபோலியோவை கட்டுவது தொடங்க எளிது — ஆனால் தவறாக செய்வதும் எளிது. இந்த மௌன தவறுகள் நீங்கள் கவனிக்காமலேயே ஆண்டுக்காண்டு உங்கள் வருமானத்தை அமைதியாக சேதப்படுத்துகின்றன." }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            { "key": { "en": "Too many stocks (over-diversification)", "ta": "அதிக பங்குகள் (அதிக பல்வகைமயமாக்கல்)" }, "val": { "en": "40+ stocks adds complexity, not extra safety — 15–20 is enough", "ta": "40+ பங்குகள் சிக்கலை சேர்க்கும், கூடுதல் பாதுகாப்பை அல்ல — 15–20 போதும்" } },
+            { "key": { "en": "Checking portfolio every day", "ta": "தினமும் போர்ட்ஃபோலியோ பார்ப்பது" }, "val": { "en": "Triggers emotional decisions — review quarterly instead", "ta": "உணர்ச்சிகரமான முடிவுகளை தூண்டுகிறது — காலாண்டுக்கு ஒருமுறை மதிப்பாய்வு செய்யுங்கள்" } },
+            { "key": { "en": "Ignoring asset allocation with age", "ta": "வயதுடன் சொத்து ஒதுக்கீட்டை புறக்கணிப்பது" }, "val": { "en": "All-equity at 60 is dangerous — shift to more debt as you age", "ta": "60 வயதில் அனைத்தும் பங்கு ஆபத்தானது — வயதாகும்போது அதிக கடனுக்கு மாறுங்கள்" } },
+            { "key": { "en": "Chasing last year's top performer", "ta": "கடந்த ஆண்டின் சிறந்த செயல்திறனை துரத்துவது" }, "val": { "en": "Past returns do not predict future results — ever", "ta": "கடந்தகால வருமானம் எதிர்கால முடிவுகளை கணிக்காது — ஒருபோதும்" } },
+            { "key": { "en": "Never rebalancing the portfolio", "ta": "போர்ட்ஃபோலியோவை ஒருபோதும் மீண்டும் சமன் செய்யாமல் இருப்பது" }, "val": { "en": "If equity grows to 90%, you are over-exposed — rebalance once a year", "ta": "பங்கு 90%-க்கு வளர்ந்தால், நீங்கள் அதிக ஆபத்தில் உள்ளீர்கள் — ஆண்டுக்கு ஒருமுறை மீண்டும் சமன் செய்யுங்கள்" } }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": { "en": "Owning 50+ individual stocks means you are running a poorly managed mutual fund. A single Nifty 50 index fund does the same job cheaper, better, and with far less effort.", "ta": "50+ தனி பங்குகளை வைத்திருப்பது என்பது மோசமாக நிர்வகிக்கப்படும் மியூச்சுவல் ஃபண்டை இயக்குவதை பொருள்படுகிறது. ஒரே நிஃப்டி 50 இண்டெக்ஸ் ஃபண்ட் அதே வேலையை குறைந்த செலவில், சிறப்பாக, மிகவும் குறைந்த முயற்சியில் செய்கிறது." }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": { "en": "A portfolio that holds stocks from only one sector — for example, all IT companies — is considered well-diversified.", "ta": "ஒரே துறையிலிருந்து மட்டும் பங்குகளை வைத்திருக்கும் போர்ட்ஃபோலியோ — உதாரணமாக, அனைத்தும் IT நிறுவனங்கள் — நன்கு பல்வகைமயமாக்கப்பட்டதாக கருதப்படுகிறது." },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": { "en": "False. Holding multiple stocks from only one sector is called sector concentration — not diversification. If the IT sector faces headwinds (like rising US recession fears or visa restrictions), all your stocks fall together. True diversification means spreading across sectors like IT, banking, FMCG, pharma, and energy — and also across asset classes like equity, gold, and debt.", "ta": "பொய். ஒரே துறையிலிருந்து பல பங்குகளை வைத்திருப்பது துறை செறிவு என்று அழைக்கப்படுகிறது — பல்வகைமயமாக்கல் அல்ல. IT துறை தலைவலிகளை சந்தித்தால் (அமெரிக்க மந்த அச்சம் அல்லது விசா கட்டுப்பாடுகள் போல), உங்கள் அனைத்து பங்குகளும் சேர்ந்து வீழும். உண்மையான பல்வகைமயமாக்கல் என்பது IT, வங்கி, FMCG, மருந்து, ஆற்றல் போன்ற துறைகளிலும் — மற்றும் பங்கு, தங்கம், கடன் போன்ற சொத்து வகைகளிலும் பரவுவது." },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

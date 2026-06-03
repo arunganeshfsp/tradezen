@@ -1,0 +1,331 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "💰",
+      "heading": { "en": "Revenue Explained", "ta": "வருவாய் விளக்கம்" },
+      "description": { "en": "Understand what revenue is, why it's called the topline, and what it tells you about a company's health.", "ta": "வருவாய் என்றால் என்ன, ஏன் 'டாப்லைன்' என்று சொல்கிறார்கள், அது ஒரு நிறுவனத்தின் நிலை பற்றி என்ன சொல்கிறது என்று புரிந்துகொள்ளுங்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🏪",
+      "title": { "en": "Revenue is the door, profit is the window", "ta": "வருவாய் கதவு, லாபம் ஜன்னல்" },
+      "caption": { "en": "Everything a company earns from its business — before a single rupee of expenses is deducted.", "ta": "ஒரு ரூபாய் செலவு கழிக்கப்படுவதற்கு முன் நிறுவனம் தன் வியாபாரத்தில் சம்பாதிக்கும் அனைத்தும்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is Revenue?", "ta": "வருவாய் என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Revenue is the total money a company earns from selling its products or services — before deducting any expenses. It sits at the very top of the P&L Statement, which is why it is called the 'topline.'",
+            "ta": "வருவாய் என்பது ஒரு நிறுவனம் தன் தயாரிப்புகள் அல்லது சேவைகளை விற்று சம்பாதிக்கும் மொத்த பணம் — எந்த செலவும் கழிக்கப்படுவதற்கு முன். இது P&L அறிக்கையின் மிக மேலே இருக்கிறது, அதனால் இதை 'டாப்லைன்' என்று சொல்கிறார்கள்."
+          }
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "Think of it like your chai shop: sell 500 cups at ₹20 each → Revenue = ₹10,000. It doesn't matter what you spent on milk or rent — revenue is just what came in.",
+            "ta": "உங்கள் டீக்கடை மாதிரி நினையுங்கள்: 500 கப் ₹20-க்கு விற்றீர்கள் → வருவாய் = ₹10,000. பால், சர்க்கரை, வாடகை என்ன செலவழித்தீர்கள் என்று முக்கியமில்லை — வருவாய் என்பது வந்தது மட்டுமே."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Also Called", "ta": "வேறு பெயர்கள்" },
+              "val": { "en": "Topline, Sales, Turnover, Income from Operations", "ta": "டாப்லைன், விற்பனை, டர்னோவர், செயல்பாட்டு வருமானம்" }
+            },
+            {
+              "key": { "en": "Where It Appears", "ta": "எங்கே தெரியும்" },
+              "val": { "en": "First line of the P&L Statement in every quarterly result", "ta": "ஒவ்வொரு காலாண்டு முடிவிலும் P&L அறிக்கையின் முதல் வரி" }
+            },
+            {
+              "key": { "en": "What It Measures", "ta": "என்ன அளவிடுகிறது" },
+              "val": { "en": "Total business activity — how much the company sold this period", "ta": "மொத்த வியாபார செயல்பாடு — இந்த காலகட்டத்தில் நிறுவனம் எவ்வளவு விற்றது" }
+            },
+            {
+              "key": { "en": "Why It Matters", "ta": "ஏன் முக்கியம்" },
+              "val": { "en": "Revenue growth shows whether the business is expanding or shrinking", "ta": "வருவாய் வளர்ச்சி வியாபாரம் விரிவடைகிறதா அல்லது சுருங்குகிறதா என்று காட்டுகிறது" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Revenue Types", "ta": "வருவாய் வகைகள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Not all money a company receives counts as true 'revenue.' Companies report two distinct types, and knowing the difference helps you analyse results correctly.",
+            "ta": "ஒரு நிறுவனம் பெறும் அனைத்து பணமும் உண்மையான 'வருவாய்' என்று கணக்கில் எடுக்கப்படுவதில்லை. நிறுவனங்கள் இரண்டு வகையான வருவாயை அறிவிக்கின்றன — வித்தியாசம் தெரிந்தால் முடிவுகளை சரியாக பகுப்பாய்வு செய்யலாம்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Operating Revenue", "ta": "செயல்பாட்டு வருவாய்" },
+              "val": { "en": "Income from the company's core business. TCS earns from IT services; Reliance from oil, retail, and telecom", "ta": "நிறுவனத்தின் முக்கிய வியாபாரத்திலிருந்து வருமானம். TCS IT சேவைகளிலிருந்து; Reliance எண்ணெய், சில்லறை, தொலைத்தொடர்பிலிருந்து" }
+            },
+            {
+              "key": { "en": "Other Income", "ta": "பிற வருமானம்" },
+              "val": { "en": "Non-core earnings — interest on cash deposits, profit from asset sales, forex gains", "ta": "முக்கியமற்ற வருமானம் — வங்கி வட்டி, சொத்து விற்பனை லாபம், அந்நிய செலாவணி ஆதாயம்" }
+            },
+            {
+              "key": { "en": "Total Revenue", "ta": "மொத்த வருவாய்" },
+              "val": { "en": "Operating Revenue + Other Income — the combined top number in quarterly results", "ta": "செயல்பாட்டு வருவாய் + பிற வருமானம் — காலாண்டு முடிவுகளில் மேலே தெரியும் இணைந்த எண்" }
+            }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": {
+            "en": "Always focus on Operating Revenue growth, not Other Income. A company showing revenue growth only from one-time asset sales or interest income is not truly growing its business.",
+            "ta": "எப்போதும் செயல்பாட்டு வருவாய் வளர்ச்சியில் கவனம் வையுங்கள், பிற வருமானத்தில் அல்ல. ஒரு முறை சொத்து விற்பனை அல்லது வட்டி வருமானத்தால் மட்டும் வருவாய் வளர்ச்சி காட்டும் நிறுவனம் உண்மையில் வளரவில்லை."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "TCS earns ₹60,000 crore from IT services and ₹800 crore from interest on its cash deposits. What is TCS's Operating Revenue?",
+        "ta": "TCS IT சேவைகளிலிருந்து ₹60,000 கோடியும் பண வைப்பு வட்டியிலிருந்து ₹800 கோடியும் சம்பாதிக்கிறது. TCS-ன் செயல்பாட்டு வருவாய் என்ன?"
+      },
+      "options": [
+        { "en": "₹60,800 crore (both combined)", "ta": "₹60,800 கோடி (இரண்டும் சேர்த்து)" },
+        { "en": "₹60,000 crore (IT services only)", "ta": "₹60,000 கோடி (IT சேவைகள் மட்டும்)" },
+        { "en": "₹800 crore (interest income only)", "ta": "₹800 கோடி (வட்டி வருமானம் மட்டும்)" },
+        { "en": "Cannot be calculated from this data", "ta": "இந்த தரவிலிருந்து கணக்கிட முடியாது" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Operating Revenue is income from the core business only — for TCS, that's IT services: ₹60,000 crore. The ₹800 crore from interest is 'Other Income,' not core revenue. Always separate these when analysing a company's true business growth.",
+        "ta": "செயல்பாட்டு வருவாய் என்பது முக்கிய வியாபாரத்திலிருந்து மட்டுமே வரும் வருமானம் — TCS-க்கு அது IT சேவைகள்: ₹60,000 கோடி. வட்டியிலிருந்து வரும் ₹800 கோடி 'பிற வருமானம்', முக்கிய வருவாய் அல்ல. ஒரு நிறுவனத்தின் உண்மையான வியாபார வளர்ச்சியை பகுப்பாய்வு செய்யும்போது இவற்றை எப்போதும் பிரித்துப் பாருங்கள்."
+      },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Revenue vs Profit", "ta": "வருவாய் vs லாபம்" },
+      "blocks": [
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "💰",
+              "title": { "en": "Revenue (Topline)", "ta": "வருவாய் (டாப்லைன்)" },
+              "subtitle": { "en": "Everything earned — before any expenses are deducted", "ta": "சம்பாதித்தது அனைத்தும் — எந்த செலவும் கழிக்கப்படுவதற்கு முன்" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "🏦",
+              "title": { "en": "Net Profit (Bottomline)", "ta": "நிகர லாபம் (பாட்டம்லைன்)" },
+              "subtitle": { "en": "What remains after all costs, interest, and tax", "ta": "அனைத்து செலவுகள், வட்டி மற்றும் வரிக்கு பிறகு மிஞ்சுவது" },
+              "variant": "gain"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Revenue and profit are often confused. A company can have very high revenue but low profit — or modest revenue with high profit. Neither number alone tells the full story.",
+            "ta": "வருவாயும் லாபமும் பெரும்பாலும் குழப்பிக்கொள்ளப்படுகின்றன. ஒரு நிறுவனத்திற்கு மிக அதிக வருவாய் ஆனால் குறைந்த லாபம் இருக்கலாம் — அல்லது மிதமான வருவாயுடன் அதிக லாபம் இருக்கலாம். ஒரே ஒரு எண் முழுமையான கதையை சொல்வதில்லை."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "High Revenue, Low Profit", "ta": "அதிக வருவாய், குறைந்த லாபம்" },
+              "val": { "en": "Thin margins — common in retail and telecom. Jio had zero profit for years while growing fast", "ta": "மெல்லிய மார்ஜின் — சில்லறை மற்றும் தொலைத்தொடர்பில் பொதுவானது. Jio வேகமாக வளர்ந்தபோது வருடக்கணக்கில் லாபம் இல்லாமல் இருந்தது" }
+            },
+            {
+              "key": { "en": "High Revenue, High Profit", "ta": "அதிக வருவாய், அதிக லாபம்" },
+              "val": { "en": "Ideal scenario — scale with efficiency. TCS and HDFC Bank are strong examples", "ta": "சிறந்த சூழ்நிலை — திறனுடன் அளவு. TCS மற்றும் HDFC Bank வலுவான உதாரணங்கள்" }
+            },
+            {
+              "key": { "en": "Revenue Declining", "ta": "வருவாய் குறைகிறது" },
+              "val": { "en": "Warning signal — business may be losing customers or market share", "ta": "எச்சரிக்கை சமிக்ஞை — வியாபாரம் வாடிக்கையாளர்களை அல்லது சந்தை பங்கை இழக்கலாம்" }
+            },
+            {
+              "key": { "en": "Profit Without Revenue Growth", "ta": "வருவாய் வளர்ச்சியில்லா லாபம்" },
+              "val": { "en": "Unsustainable long-term — cost-cutting can only go so far", "ta": "நீண்டகாலத்தில் நிலைத்திருக்காது — செலவு குறைப்பை ஒரு எல்லை வரைதான் செய்யலாம்" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Revenue Growth", "ta": "வருவாய் வளர்ச்சி" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Revenue growth (YoY) is one of the first things analysts check in a quarterly result. It reveals whether demand for the company's product is rising, flat, or falling.",
+            "ta": "வருவாய் வளர்ச்சி (YoY) ஒரு காலாண்டு முடிவில் ஆய்வாளர்கள் முதலில் சரிபார்க்கும் விஷயங்களில் ஒன்று. நிறுவனத்தின் தயாரிப்புகளுக்கான தேவை அதிகரிக்கிறதா, நிலையாக இருக்கிறதா, அல்லது குறைகிறதா என்று காட்டுகிறது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "15–25%+ YoY", "ta": "15–25%+ YoY" },
+              "val": { "en": "High growth — typical of IT, pharma, FMCG companies in expansion phase", "ta": "அதிக வளர்ச்சி — விரிவாக்க கட்டத்தில் IT, பார்மா, FMCG நிறுவனங்களுக்கு பொதுவானது" }
+            },
+            {
+              "key": { "en": "8–15% YoY", "ta": "8–15% YoY" },
+              "val": { "en": "Steady growth — healthy for mature businesses like Nestle India or HUL", "ta": "நிலையான வளர்ச்சி — Nestle India அல்லது HUL போன்ற முதிர்ந்த நிறுவனங்களுக்கு ஆரோக்கியமானது" }
+            },
+            {
+              "key": { "en": "0–8% YoY", "ta": "0–8% YoY" },
+              "val": { "en": "Slow growth — may signal market saturation or pricing pressure", "ta": "மெதுவான வளர்ச்சி — சந்தை நிறைவு அல்லது விலை அழுத்தத்தின் அறிகுறியாக இருக்கலாம்" }
+            },
+            {
+              "key": { "en": "Negative YoY", "ta": "எதிர்மறை YoY" },
+              "val": { "en": "Revenue contraction — serious concern, investigate the cause before investing", "ta": "வருவாய் சுருக்கம் — கடுமையான கவலை, முதலீடு செய்வதற்கு முன் காரணத்தை ஆராயுங்கள்" }
+            }
+          ]
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "18%", "ta": "18%" },
+          "subtitle": { "en": "Average revenue growth of Nifty 50 companies in FY24 — a strong broad-based year", "ta": "FY24-ல் Nifty 50 நிறுவனங்களின் சராசரி வருவாய் வளர்ச்சி — ஒரு வலுவான பரந்த ஆண்டு" }
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "30% revenue growth looks great — but check the source. Did it come from organic demand, a price hike, an acquisition, or a new product launch? The quality of growth matters as much as the number.",
+            "ta": "30% வருவாய் வளர்ச்சி அருமையாக தெரிகிறது — ஆனால் மூலத்தை சரிபாருங்கள். இது இயற்கையான தேவையிலிருந்தா, விலை உயர்விலிருந்தா, கையகப்படுத்தலிலிருந்தா, அல்லது புதிய தயாரிப்பிலிருந்தா? வளர்ச்சியின் தரம் எண்ணளவு மட்டும் முக்கியம்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "Infosys Q2 FY25 revenue grows 3% YoY while net profit grows 11% YoY. What does this most likely indicate?",
+        "ta": "Infosys Q2 FY25 வருவாய் 3% YoY வளர்கிறது, நிகர லாபம் 11% YoY வளர்கிறது. இது என்னை குறிக்கிறது?"
+      },
+      "options": [
+        { "en": "Infosys is losing customers rapidly", "ta": "Infosys வாடிக்கையாளர்களை வேகமாக இழக்கிறது" },
+        { "en": "Infosys improved margins and profitability despite slow revenue growth", "ta": "மெதுவான வருவாய் வளர்ச்சியிலும் Infosys மார்ஜின் மற்றும் லாபத்தை மேம்படுத்தியது" },
+        { "en": "Revenue and profit always grow at the same rate", "ta": "வருவாயும் லாபமும் எப்போதும் ஒரே விகிதத்தில் வளரும்" },
+        { "en": "Infosys should be avoided as an investment", "ta": "Infosys-ல் முதலீடு செய்வதை தவிர்க்க வேண்டும்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "When net profit grows faster than revenue, it means the company improved its operating efficiency or reduced costs — expanding its profit margins. Slow revenue growth is worth monitoring, but strong profit growth on thin revenue growth is often a positive signal of a leaner, more efficient business.",
+        "ta": "நிகர லாபம் வருவாயை விட வேகமாக வளரும்போது, நிறுவனம் செயல்பாட்டு திறனை மேம்படுத்தியது அல்லது செலவுகளை குறைத்தது என்று அர்த்தம் — லாப மார்ஜின் விரிவடைகிறது. மெதுவான வருவாய் வளர்ச்சி கவனிக்க வேண்டியது, ஆனால் மெல்லிய வருவாய் வளர்ச்சியில் வலுவான லாப வளர்ச்சி பெரும்பாலும் மேலும் திறமையான வியாபாரத்தின் நேர்மறையான அறிகுறி."
+      },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Segment Revenue", "ta": "பிரிவு வருவாய்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Large companies operate across multiple businesses. SEBI requires them to break down their revenue by segment, so investors can see which part of the business is actually driving growth.",
+            "ta": "பெரிய நிறுவனங்கள் பல வியாபாரங்களில் செயல்படுகின்றன. முதலீட்டாளர்கள் வியாபாரத்தின் எந்த பகுதி உண்மையில் வளர்ச்சியை ஓட்டுகிறது என்று பார்க்க வசதியாக SEBI நிறுவனங்களை பிரிவு வாரியாக வருவாயை வெளியிட கட்டாயமாக்கியுள்ளது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Reliance Industries", "ta": "Reliance Industries" },
+              "val": { "en": "O2C (oil & chemicals) + Retail (JioMart) + Digital (Jio) + New Energy", "ta": "O2C (எண்ணெய் & கெமிக்கல்) + சில்லறை (JioMart) + டிஜிட்டல் (Jio) + புதிய ஆற்றல்" }
+            },
+            {
+              "key": { "en": "TCS", "ta": "TCS" },
+              "val": { "en": "BFSI (banking/finance) + Manufacturing + Retail + Communications + Others", "ta": "BFSI (வங்கி/நிதி) + உற்பத்தி + சில்லறை + தகவல்தொடர்பு + மற்றவை" }
+            },
+            {
+              "key": { "en": "ITC", "ta": "ITC" },
+              "val": { "en": "Cigarettes + FMCG + Hotels + Agribusiness + Paperboards", "ta": "சிகரெட் + FMCG + ஹோட்டல்கள் + விவசாயம் + காகிதம்" }
+            },
+            {
+              "key": { "en": "Why It Matters", "ta": "ஏன் முக்கியம்" },
+              "val": { "en": "Total revenue can grow even if a key segment is shrinking — only segment data reveals this", "ta": "ஒரு முக்கிய பிரிவு சுருங்கிக்கொண்டிருந்தாலும் மொத்த வருவாய் வளரலாம் — பிரிவு தரவு மட்டுமே இதை வெளிப்படுத்தும்" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "Reliance Retail revenue grew 17% YoY in FY24, while its O2C segment grew only 1%. Without segment data, you'd completely miss where the real growth story was.",
+            "ta": "FY24-ல் Reliance Retail வருவாய் 17% YoY வளர்ந்தது, O2C பிரிவு 1% மட்டுமே வளர்ந்தது. பிரிவு தரவு இல்லாமல், உண்மையான வளர்ச்சி கதை எங்கு இருக்கிறது என்று முற்றிலும் தவறிவிடுவீர்கள்."
+          }
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "On Screener.in, look under 'Quarterly Results' and scroll down for the segment breakdown. On Zerodha Kite, check the company's latest exchange filing for segment details.",
+            "ta": "Screener.in-ல் 'Quarterly Results' கீழே பிரிவு முறிவுக்கு திரும்புங்கள். Zerodha Kite-ல் பிரிவு விவரங்களுக்கு நிறுவனத்தின் சமீபத்திய exchange filing சரிபாருங்கள்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "A company with ₹10,000 crore in revenue but zero net profit is a failing business and should always be avoided as an investment.",
+        "ta": "₹10,000 கோடி வருவாய் இருந்தும் நிகர லாபம் பூஜ்யமாக இருக்கும் நிறுவனம் தோல்வியடைந்த வியாபாரம் — முதலீட்டிலிருந்து எப்போதும் தவிர்க்க வேண்டும்."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Revenue without profit is common in high-growth phases. Reliance Jio had zero or negative profits for years while aggressively building its subscriber base. The key questions are: is revenue growing fast, is there a clear path to profitability, and is the business model sound? Zero profit alone doesn't mean avoid.",
+        "ta": "வருவாய் இருந்தும் லாபம் இல்லாமல் இருப்பது அதிக வளர்ச்சி கட்டங்களில் பொதுவானது. Reliance Jio வருடக்கணக்கில் லாபம் இல்லாமல் அல்லது நஷ்டத்தில் இருந்தாலும் தொடர்ப்பினர்களை வேகமாக கட்டியது. முக்கிய கேள்விகள்: வருவாய் வேகமாக வளருகிறதா, லாபத்திற்கான தெளிவான வழி இருக்கிறதா, வியாபார மாதிரி சரியானதா? வெறும் பூஜ்ய லாபம் தவிர்க்க வேண்டும் என்று அர்த்தமில்லை."
+      },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

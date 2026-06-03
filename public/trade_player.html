@@ -2135,7 +2135,13 @@ function _ncAnalyse(idx) {
   const abs = Math.abs(bias);
   const outcome  = abs <= 1 ? 'ind' : bias > 0 ? 'bull' : 'bear';
   const strength = abs >= 4 ? 'Strong' : abs >= 2 ? 'Moderate' : 'Weak';
-  return { outcome, strength, reasons: reasons.slice(0, 4) };
+
+  // Sort: outcome-supporting bullets first, conflicting ones last
+  const _dir = { bull: 1, neut: 0, bear: -1 };
+  const _od  = outcome === 'bull' ? 1 : outcome === 'bear' ? -1 : 0;
+  if (_od !== 0) reasons.sort((a, b) => (_dir[b.cls] - _dir[a.cls]) * _od);
+
+  return { outcome, strength, bias, reasons: reasons.slice(0, 4) };
 }
 
 function _ncActual(idx) {
@@ -2904,6 +2910,7 @@ function _ncRender() {
   _tpNccGuess = null; _tpNccRevealed = false;
   var idx      = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
   var analysis = (typeof _ncAnalyse === 'function') ? _ncAnalyse(idx) : null;
+  // Guessing only makes sense in replay where the next candle already exists
   var canGuess = _mode === 'replay' && idx < _candles.length - 1;
 
   if (canGuess) {
@@ -2914,8 +2921,15 @@ function _ncRender() {
         }).join('')
       + '</div>';
   } else {
+    // Live mode or last replay candle — show the context read directly
     _tpNccSetHint(hint, analysis);
-    body.innerHTML = _tpNccBodyHtml(analysis, null);
+    if (analysis) {
+      body.innerHTML = _tpNccBodyHtml(analysis, null);
+    } else {
+      // No dominance data yet (session just started or signal engine warming up)
+      body.innerHTML = '<div style="color:var(--tz-fg-3);font-size:12px;padding:4px 0">Waiting for candle data from signal engine…</div>';
+      if (hint) hint.innerHTML = '';
+    }
   }
   body.classList.add('tp-rise');
 }
@@ -2925,7 +2939,7 @@ function _tpNccSetHint(hint, a) {
   if (!a) { hint.innerHTML = ''; return; }
   var sm = { bull: { label: 'Buyers Likely', col: 'var(--tz-gain)', emoji: '🟢' }, bear: { label: 'Sellers Likely', col: 'var(--tz-loss)', emoji: '🔴' }, ind: { label: 'Indecision', col: 'var(--tz-warning)', emoji: '🟡' } };
   var o    = sm[a.outcome] || sm.ind;
-  var conf = Math.round(Math.min(94, Math.max(45, Math.abs(a.bias || 0) / 6 * 100)));
+  var conf = Math.min(94, Math.round(50 + Math.abs(a.bias || 0) * 8));
   hint.innerHTML = '<span style="color:' + o.col + ';font:700 12px/1 var(--tz-font-ui)">' + o.emoji + ' ' + o.label + '</span>'
     + '<span style="color:var(--tz-fg-3);font:500 11px/1 var(--tz-font-mono)">' + conf + '% · ' + (a.strength || 'weak').toUpperCase() + '</span>';
 }

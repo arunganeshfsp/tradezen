@@ -1,0 +1,349 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "🏆",
+      "heading": { "en": "Profit Explained", "ta": "லாபம் விளக்கம்" },
+      "description": { "en": "From gross profit to net profit — learn the profit ladder and what each step tells you about a company.", "ta": "மொத்த லாபத்திலிருந்து நிகர லாபம் வரை — லாப படிகள் மற்றும் ஒவ்வொரு படியும் ஒரு நிறுவனத்தைப் பற்றி என்ன சொல்கிறது என்று கற்றுக்கொள்ளுங்கள்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🪜",
+      "title": { "en": "Revenue enters at the top, profit survives at the bottom", "ta": "வருவாய் மேலே நுழைகிறது, லாபம் கீழே உயிர் வாழ்கிறது" },
+      "caption": { "en": "Every rupee of revenue passes through costs, interest, and taxes before it becomes net profit.", "ta": "வருவாயின் ஒவ்வொரு ரூபாயும் நிகர லாபமாக மாறுவதற்கு முன் செலவுகள், வட்டி மற்றும் வரிகள் வழியாக கடந்து செல்கிறது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is Profit?", "ta": "லாபம் என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Profit is what remains after a company subtracts all its costs from its revenue. It appears at the bottom of the P&L Statement — which is why it is called the 'bottomline.'",
+            "ta": "நிறுவனம் தன் வருவாயிலிருந்து அனைத்து செலவுகளையும் கழித்த பிறகு மிஞ்சுவதே லாபம். இது P&L அறிக்கையின் கீழே தெரிகிறது — அதனால் இதை 'பாட்டம்லைன்' என்று சொல்கிறார்கள்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Also Called", "ta": "வேறு பெயர்கள்" },
+              "val": { "en": "Bottomline, Earnings, Net Income, PAT (Profit After Tax)", "ta": "பாட்டம்லைன், வருவாய், நிகர வருமானம், PAT (வரிக்கு பிறகு லாபம்)" }
+            },
+            {
+              "key": { "en": "Formula", "ta": "சூத்திரம்" },
+              "val": { "en": "Revenue − All Expenses = Profit (or Net Loss, if negative)", "ta": "வருவாய் − அனைத்து செலவுகள் = லாபம் (எதிர்மறையாக இருந்தால் நிகர நஷ்டம்)" }
+            },
+            {
+              "key": { "en": "Why It Matters", "ta": "ஏன் முக்கியம்" },
+              "val": { "en": "Profit shows whether a business creates real value — not just activity or sales", "ta": "லாபம் ஒரு வியாபாரம் உண்மையான மதிப்பை உருவாக்குகிறதா என்று காட்டுகிறது — வெறும் செயல்பாடு அல்லது விற்பனை அல்ல" }
+            },
+            {
+              "key": { "en": "Sustainable Profit", "ta": "நிலையான லாபம்" },
+              "val": { "en": "Comes from core recurring business — not one-time asset sales or tax credits", "ta": "முக்கிய தொடர் வியாபாரத்திலிருந்து வருகிறது — ஒரு முறை சொத்து விற்பனை அல்லது வரி சலுகைகளிலிருந்து அல்ல" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "A company can have high revenue and still report a net loss if costs exceed earnings. Reliance Jio operated at a loss for years while intentionally building its subscriber base — and eventually became one of India's most profitable businesses.",
+            "ta": "ஒரு நிறுவனத்திற்கு அதிக வருவாய் இருந்தாலும் செலவுகள் வருவாயை மீறினால் நிகர நஷ்டம் அறிவிக்கலாம். Reliance Jio வேண்டுமென்றே தன் பயனர்களை கட்டியதால் வருடக்கணக்கில் நஷ்டத்தில் இயங்கியது — இறுதியில் இந்தியாவின் மிகவும் லாபகரமான வியாபாரங்களில் ஒன்றாக ஆனது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Profit Ladder", "ta": "லாப படிக்கட்டு" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Profit is not a single number — it is calculated at four stages as different cost layers are removed from revenue. Each stage gives analysts a different view of the business.",
+            "ta": "லாபம் ஒரே ஒரு எண் அல்ல — வெவ்வேறு செலவு அடுக்குகள் வருவாயிலிருந்து நீக்கப்படும்போது நான்கு நிலைகளில் கணக்கிடப்படுகிறது. ஒவ்வொரு நிலையும் ஆய்வாளர்களுக்கு வியாபாரத்தைப் பற்றிய வெவ்வேறு பார்வையை தருகிறது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Gross Profit", "ta": "மொத்த லாபம்" },
+              "val": { "en": "Revenue − Cost of Goods Sold (COGS). Shows basic production profitability", "ta": "வருவாய் − பொருட்களின் விற்பனை செலவு (COGS). அடிப்படை உற்பத்தி லாபத்தை காட்டுகிறது" }
+            },
+            {
+              "key": { "en": "EBITDA", "ta": "EBITDA" },
+              "val": { "en": "Gross Profit − Operating Expenses (salaries, rent, admin). Core operating profit", "ta": "மொத்த லாபம் − செயல்பாட்டு செலவுகள் (சம்பளம், வாடகை, நிர்வாகம்). முக்கிய செயல்பாட்டு லாபம்" }
+            },
+            {
+              "key": { "en": "EBIT", "ta": "EBIT" },
+              "val": { "en": "EBITDA − Depreciation & Amortisation. Operating profit after accounting for asset wear", "ta": "EBITDA − தேய்மானம் மற்றும் கடன்தீர்வு. சொத்து தேய்மானத்தை கணக்கிட்ட பிறகு செயல்பாட்டு லாபம்" }
+            },
+            {
+              "key": { "en": "Net Profit (PAT)", "ta": "நிகர லாபம் (PAT)" },
+              "val": { "en": "EBIT − Interest − Income Tax. The final profit belonging entirely to shareholders", "ta": "EBIT − வட்டி − வருமான வரி. பங்குதாரர்களுக்கு முழுவதுமாக சேரும் இறுதி லாபம்" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "TCS FY24: Revenue ₹2.4 lakh crore → Gross Profit ~₹1.1 lakh crore → EBITDA ~₹72,000 Cr → Net Profit ₹46,099 Cr. Each step removes one more cost layer.",
+            "ta": "TCS FY24: வருவாய் ₹2.4 லட்சம் கோடி → மொத்த லாபம் ~₹1.1 லட்சம் கோடி → EBITDA ~₹72,000 கோடி → நிகர லாபம் ₹46,099 கோடி. ஒவ்வொரு படியும் இன்னொரு செலவு அடுக்கை நீக்குகிறது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A company has Revenue of ₹10,000 crore and Cost of Goods Sold (COGS) of ₹6,000 crore. What is its Gross Profit?",
+        "ta": "ஒரு நிறுவனத்தின் வருவாய் ₹10,000 கோடி மற்றும் பொருட்களின் விற்பனை செலவு (COGS) ₹6,000 கோடி. அதன் மொத்த லாபம் என்ன?"
+      },
+      "options": [
+        { "en": "₹16,000 crore", "ta": "₹16,000 கோடி" },
+        { "en": "₹4,000 crore", "ta": "₹4,000 கோடி" },
+        { "en": "₹6,000 crore", "ta": "₹6,000 கோடி" },
+        { "en": "₹10,000 crore", "ta": "₹10,000 கோடி" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Gross Profit = Revenue − Cost of Goods Sold. ₹10,000 Cr − ₹6,000 Cr = ₹4,000 Cr. This is the profit before deducting operating expenses, depreciation, interest, and taxes — the first rung of the profit ladder.",
+        "ta": "மொத்த லாபம் = வருவாய் − பொருட்களின் விற்பனை செலவு. ₹10,000 கோடி − ₹6,000 கோடி = ₹4,000 கோடி. செயல்பாட்டு செலவுகள், தேய்மானம், வட்டி மற்றும் வரிகளை கழிப்பதற்கு முன்னுள்ள லாபம் இது — லாப படிக்கட்டின் முதல் படி."
+      },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Profit Margins", "ta": "லாப மார்ஜின்கள்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "A margin converts profit into a percentage of revenue — letting you compare companies of very different sizes on equal terms. A ₹500 Cr profit means more for a ₹1,000 Cr company than for a ₹50,000 Cr one.",
+            "ta": "மார்ஜின் என்பது லாபத்தை வருவாயின் சதவீதமாக மாற்றுகிறது — மிகவும் வேறுபட்ட அளவுகளில் உள்ள நிறுவனங்களை சமான அடிப்படையில் ஒப்பிட உதவுகிறது. ₹500 கோடி லாபம் ₹50,000 கோடி நிறுவனத்திற்கு விட ₹1,000 கோடி நிறுவனத்திற்கு அதிக அர்த்தம் உடையது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Gross Margin", "ta": "மொத்த மார்ஜின்" },
+              "val": { "en": "Gross Profit ÷ Revenue × 100 — shows efficiency in producing the product or service", "ta": "மொத்த லாபம் ÷ வருவாய் × 100 — தயாரிப்பு அல்லது சேவையை உற்பத்தி செய்வதில் திறனை காட்டுகிறது" }
+            },
+            {
+              "key": { "en": "EBITDA Margin", "ta": "EBITDA மார்ஜின்" },
+              "val": { "en": "EBITDA ÷ Revenue × 100 — most-watched by analysts for core operating efficiency", "ta": "EBITDA ÷ வருவாய் × 100 — முக்கிய செயல்பாட்டு திறனுக்காக ஆய்வாளர்கள் அதிகமாக கவனிக்கும்" }
+            },
+            {
+              "key": { "en": "Net Profit Margin", "ta": "நிகர லாப மார்ஜின்" },
+              "val": { "en": "Net Profit ÷ Revenue × 100 — final profitability after every cost, interest, and tax", "ta": "நிகர லாபம் ÷ வருவாய் × 100 — அனைத்து செலவுகள், வட்டி மற்றும் வரிக்கு பிறகு இறுதி லாபம்" }
+            }
+          ]
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "20–26%", "ta": "20–26%" },
+          "subtitle": { "en": "Net profit margin of TCS and Infosys — exceptionally high for any industry globally", "ta": "TCS மற்றும் Infosys-ன் நிகர லாப மார்ஜின் — உலகளவில் எந்த தொழிலிலும் விதிவிலக்கான அளவு அதிகம்" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "IT Services (TCS, Infosys)", "ta": "IT சேவைகள் (TCS, Infosys)" },
+              "val": { "en": "Net Margin 20–26% — very high, asset-light business model", "ta": "நிகர மார்ஜின் 20–26% — மிகவும் அதிகம், சொத்து குறைந்த வியாபார மாதிரி" }
+            },
+            {
+              "key": { "en": "FMCG (HUL, Nestle)", "ta": "FMCG (HUL, Nestle)" },
+              "val": { "en": "Net Margin 12–20% — healthy, driven by strong brand pricing power", "ta": "நிகர மார்ஜின் 12–20% — ஆரோக்கியமானது, வலுவான பிராண்ட் விலையிடல் சக்தியால் இயங்குகிறது" }
+            },
+            {
+              "key": { "en": "Retail (DMart, Reliance Retail)", "ta": "சில்லறை (DMart, Reliance Retail)" },
+              "val": { "en": "Net Margin 3–7% — thin margins, high-volume business model", "ta": "நிகர மார்ஜின் 3–7% — மெல்லிய மார்ஜின், அதிக அளவு வியாபார மாதிரி" }
+            },
+            {
+              "key": { "en": "Steel / Commodities", "ta": "எஃகு / கமாடிட்டி" },
+              "val": { "en": "Net Margin 2–10% — cyclical, swings with global commodity prices", "ta": "நிகர மார்ஜின் 2–10% — சுழற்சி, உலக கமாடிட்டி விலைகளுடன் மாறுகிறது" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Profit Killers", "ta": "லாபத்தை அழிப்பவை" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Between revenue and net profit, five major cost layers strip away the money. Understanding each one helps you pinpoint where a company is losing efficiency.",
+            "ta": "வருவாய்க்கும் நிகர லாபத்திற்கும் இடையில் ஐந்து முக்கிய செலவு அடுக்குகள் பணத்தை உறிஞ்சுகின்றன. ஒவ்வொன்றையும் புரிந்துகொள்வது ஒரு நிறுவனம் எங்கு திறனை இழக்கிறது என்று கண்டுபிடிக்க உதவுகிறது."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Cost of Goods Sold (COGS)", "ta": "COGS" },
+              "val": { "en": "Raw materials, manufacturing cost — the direct cost of making what you sell", "ta": "மூலப்பொருட்கள், உற்பத்தி செலவு — நீங்கள் விற்பதை தயாரிக்கும் நேரடி செலவு" }
+            },
+            {
+              "key": { "en": "Operating Expenses (OpEx)", "ta": "செயல்பாட்டு செலவுகள்" },
+              "val": { "en": "Salaries, rent, marketing, admin — cost of running the business day-to-day", "ta": "சம்பளம், வாடகை, சந்தைப்படுத்தல், நிர்வாகம் — தினசரி வியாபாரம் நடத்தும் செலவு" }
+            },
+            {
+              "key": { "en": "Depreciation & Amortisation", "ta": "தேய்மானம்" },
+              "val": { "en": "Accounting cost of asset wear-and-tear — no cash actually leaves the company", "ta": "சொத்துகளின் தேய்மான கணக்கு செலவு — உண்மையில் நிறுவனத்திலிருந்து பணம் வெளியேறுவதில்லை" }
+            },
+            {
+              "key": { "en": "Interest (Finance Cost)", "ta": "வட்டி செலவு" },
+              "val": { "en": "Cost of borrowing — high debt = heavy interest = much lower net profit", "ta": "கடன் வாங்கும் செலவு — அதிக கடன் = அதிக வட்டி = மிகவும் குறைந்த நிகர லாபம்" }
+            },
+            {
+              "key": { "en": "Income Tax", "ta": "வருமான வரி" },
+              "val": { "en": "Tax on profits paid to the government — base rate ~25% for Indian companies", "ta": "லாபத்தில் அரசாங்கத்திற்கு செலுத்தும் வரி — இந்திய நிறுவனங்களுக்கு அடிப்படை விகிதம் ~25%" }
+            }
+          ]
+        },
+        {
+          "type": "callout-warning",
+          "text": {
+            "en": "A company with heavy debt pays large interest charges every quarter. This can turn an otherwise profitable business into a loss-maker — always check the Debt-to-Equity ratio before investing.",
+            "ta": "அதிக கடன் உள்ள நிறுவனம் ஒவ்வொரு காலாண்டும் பெரிய வட்டி கட்டணம் செலுத்துகிறது. இது லாபகரமான வியாபாரத்தையும் நஷ்ட நிறுவனமாக மாற்றலாம் — முதலீடு செய்வதற்கு முன் Debt-to-Equity விகிதத்தை எப்போதும் சரிபாருங்கள்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A company has an EBITDA margin of 30% but a net profit margin of only 8%. What is the most likely reason for this large gap?",
+        "ta": "ஒரு நிறுவனத்தின் EBITDA மார்ஜின் 30% ஆனால் நிகர லாப மார்ஜின் 8% மட்டுமே. இந்த பெரிய இடைவெளிக்கு மிக அதிக சாத்தியமான காரணம் என்ன?"
+      },
+      "options": [
+        { "en": "The company has very high revenue", "ta": "நிறுவனத்திற்கு மிகவும் அதிக வருவாய் இருக்கிறது" },
+        { "en": "High depreciation, interest on debt, or tax is consuming the operating profit", "ta": "அதிக தேய்மானம், கடன் வட்டி அல்லது வரி செயல்பாட்டு லாபத்தை உறிஞ்சுகிறது" },
+        { "en": "EBITDA and net profit mean the same thing", "ta": "EBITDA மற்றும் நிகர லாபம் ஒரே அர்த்தம்" },
+        { "en": "The company is not paying any dividends this quarter", "ta": "நிறுவனம் இந்த காலாண்டில் டிவிடெண்ட் செலுத்தவில்லை" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "The gap between EBITDA (30%) and net margin (8%) means 22% of revenue is being consumed by depreciation, interest, and taxes before reaching net profit. This is common in capital-heavy industries like telecom, steel, or infrastructure — where companies carry large assets and significant debt.",
+        "ta": "EBITDA (30%) மற்றும் நிகர மார்ஜின் (8%) இடையில் உள்ள இடைவெளி என்னவென்றால் வருவாயின் 22% நிகர லாபத்தை சேருவதற்கு முன் தேய்மானம், வட்டி மற்றும் வரிகளால் உறிஞ்சப்படுகிறது. பெரிய சொத்துகள் மற்றும் கணிசமான கடன்கள் சுமக்கும் தொலைத்தொடர்பு, எஃகு அல்லது உள்கட்டமைப்பு போன்ற மூலதன சுமை தொழில்களில் இது பொதுவானது."
+      },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Profit Quality", "ta": "லாபத்தின் தரம்" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Not all profit is equal. Two companies can report identical net profit — but one is genuinely earning it every quarter while the other is boosting numbers with one-time windfalls or accounting adjustments.",
+            "ta": "எல்லா லாபமும் சமம் அல்ல. இரண்டு நிறுவனங்கள் ஒரே நிகர லாபம் அறிவிக்கலாம் — ஆனால் ஒன்று ஒவ்வொரு காலாண்டும் உண்மையில் சம்பாதிக்கிறது, மற்றொன்று ஒரு முறை ஆதாயங்கள் அல்லது கணக்கு சரிசெய்தல்களால் எண்களை உயர்த்துகிறது."
+          }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "💚",
+              "title": { "en": "High-Quality Profit", "ta": "உயர் தர லாபம்" },
+              "subtitle": { "en": "Recurring, from core business, backed by strong operating cash flow", "ta": "தொடர்ச்சியான, முக்கிய வியாபாரத்திலிருந்து, வலுவான செயல்பாட்டு பண ஓட்டத்தால் ஆதரிக்கப்படுகிறது" },
+              "variant": "gain"
+            },
+            {
+              "emoji": "🔴",
+              "title": { "en": "Low-Quality Profit", "ta": "குறைந்த தர லாபம்" },
+              "subtitle": { "en": "One-time asset sales, accounting adjustments, tax credits — won't repeat", "ta": "ஒரு முறை சொத்து விற்பனை, கணக்கு சரிசெய்தல், வரி சலுகை — மீண்டும் வராது" },
+              "variant": "danger"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "One-Time Gain", "ta": "ஒரு முறை ஆதாயம்" },
+              "val": { "en": "Company sells a factory or land for ₹500 Cr profit — boosts PAT this year but will not repeat", "ta": "நிறுவனம் ஒரு தொழிற்சாலை அல்லது நிலத்தை ₹500 கோடி லாபத்திற்கு விற்கிறது — இந்த ஆண்டு PAT உயர்கிறது ஆனால் மீண்டும் வராது" }
+            },
+            {
+              "key": { "en": "Deferred Tax Benefit", "ta": "ஒத்திவைக்கப்பட்ட வரி நன்மை" },
+              "val": { "en": "Tax accounting adjustment that flatters this quarter's profit — purely on paper", "ta": "இந்த காலாண்டு லாபத்தை அழகாக காட்டும் வரி கணக்கு சரிசெய்தல் — வெறும் காகிதத்தில் மட்டுமே" }
+            },
+            {
+              "key": { "en": "Cash Flow Check", "ta": "பண ஓட்ட சரிபார்ப்பு" },
+              "val": { "en": "If PAT is ₹1,000 Cr but Operating Cash Flow is ₹200 Cr — question the profit quality", "ta": "PAT ₹1,000 கோடி ஆனால் செயல்பாட்டு பண ஓட்டம் ₹200 கோடி மட்டுமே — லாபத்தின் தரத்தை கேள்வி கேளுங்கள்" }
+            },
+            {
+              "key": { "en": "Recurring Profit", "ta": "தொடர் லாபம்" },
+              "val": { "en": "Same core business consistently generating profit quarter after quarter — highest quality", "ta": "காலாண்டுக்கு காலாண்டு நிலையாக லாபம் ஈட்டும் அதே முக்கிய வியாபாரம் — மிகவும் உயர்ந்த தரம்" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "Always cross-check: is Operating Cash Flow (Cash Flow Statement) close to Net Profit (P&L)? A large gap between the two is a red flag for profit quality.",
+            "ta": "எப்போதும் குறுக்கு சரிபார்க்கவும்: செயல்பாட்டு பண ஓட்டம் (Cash Flow அறிக்கை) நிகர லாபத்திற்கு (P&L) அருகில் இருக்கிறதா? இரண்டுக்கும் இடையே பெரிய இடைவெளி லாப தரத்திற்கு சிவப்பு கொடி."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "A company that earns ₹2,000 crore profit by selling one of its factories has higher-quality earnings than a company that earns ₹2,000 crore from its regular business operations.",
+        "ta": "தன் தொழிற்சாலைகளில் ஒன்றை விற்று ₹2,000 கோடி லாபம் சம்பாதிக்கும் நிறுவனம், வழக்கமான வியாபார செயல்பாட்டிலிருந்து ₹2,000 கோடி சம்பாதிக்கும் நிறுவனத்தை விட உயர்ந்த தர வருவாயை கொண்டுள்ளது."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "Profit from selling a factory is a one-time, non-recurring gain — it will not appear in next quarter's results. Earnings from regular operations are recurring and repeatable every quarter. Analysts and investors always value recurring operational profit higher than one-time asset sales when assessing earnings quality.",
+        "ta": "தொழிற்சாலை விற்பனையிலிருந்து வரும் லாபம் ஒரு முறை, மீண்டும் வராத ஆதாயம் — அடுத்த காலாண்டு முடிவுகளில் தெரியாது. வழக்கமான செயல்பாடுகளிலிருந்து வரும் வருவாய் ஒவ்வொரு காலாண்டும் மீண்டும் மீண்டும் வரும். வருவாய் தரத்தை மதிப்பிடும்போது ஆய்வாளர்கள் மற்றும் முதலீட்டாளர்கள் ஒரு முறை சொத்து விற்பனையை விட தொடர் செயல்பாட்டு லாபத்திற்கு எப்போதும் அதிக மதிப்பளிக்கிறார்கள்."
+      },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]

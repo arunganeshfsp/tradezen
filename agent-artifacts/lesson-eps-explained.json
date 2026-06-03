@@ -1,0 +1,378 @@
+[
+  {
+    "kind": "card",
+    "data": {
+      "type": "cover",
+      "emoji": "💹",
+      "heading": { "en": "EPS Explained", "ta": "EPS விளக்கம்" },
+      "description": { "en": "Earnings Per Share — the single number that drives P/E ratios, stock prices, and long-term investor returns.", "ta": "பங்குக்கு சம்பாத்தியம் — P/E விகிதங்கள், பங்கு விலைகள் மற்றும் நீண்டகால முதலீட்டாளர் வருவாயை இயக்கும் ஒரே எண்." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "visual",
+      "emoji": "🍰",
+      "title": { "en": "EPS is your slice of the company's profit", "ta": "EPS என்பது நிறுவனத்தின் லாபத்தில் உங்கள் துண்டு" },
+      "caption": { "en": "The bigger the profit slice per share, the more valuable each share you hold becomes over time.", "ta": "ஒரு பங்குக்கு லாப துண்டு எவ்வளவு பெரியதோ, காலப்போக்கில் நீங்கள் வைத்திருக்கும் ஒவ்வொரு பங்கும் அவ்வளவு மதிப்புள்ளதாகிறது." }
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "What Is EPS?", "ta": "EPS என்றால் என்ன?" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Earnings Per Share (EPS) measures how much profit a company generates for each share outstanding. It is the foundation of the P/E ratio and one of the most closely watched numbers in stock analysis.",
+            "ta": "Earnings Per Share (EPS) ஒரு நிறுவனம் ஒவ்வொரு நிலுவை பங்கிற்கும் எவ்வளவு லாபம் ஈட்டுகிறது என்று அளவிடுகிறது. இது P/E விகிதத்தின் அடித்தளம் மற்றும் பங்கு பகுப்பாய்வில் மிகவும் கவனமாக கவனிக்கப்படும் எண்களில் ஒன்று."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Full Name", "ta": "முழு பெயர்" },
+              "val": { "en": "Earnings Per Share", "ta": "பங்குக்கு சம்பாத்தியம்" }
+            },
+            {
+              "key": { "en": "Formula", "ta": "சூத்திரம்" },
+              "val": { "en": "Net Profit (PAT) ÷ Total Shares Outstanding", "ta": "நிகர லாபம் (PAT) ÷ மொத்த நிலுவை பங்குகள்" }
+            },
+            {
+              "key": { "en": "What It Measures", "ta": "என்ன அளவிடுகிறது" },
+              "val": { "en": "How much of the company's annual profit belongs to each individual share", "ta": "நிறுவனத்தின் ஆண்டு லாபத்தில் ஒவ்வொரு தனிப்பட்ட பங்கிற்கும் எவ்வளவு சேரும்" }
+            },
+            {
+              "key": { "en": "Where to Find It", "ta": "எங்கே காண்பது" },
+              "val": { "en": "P&L Statement, quarterly results summary, Screener.in, any trading app", "ta": "P&L அறிக்கை, காலாண்டு முடிவு சுருக்கம், Screener.in, எந்த trading app-லும்" }
+            },
+            {
+              "key": { "en": "Why Investors Watch It", "ta": "ஏன் முதலீட்டாளர்கள் கவனிக்கிறார்கள்" },
+              "val": { "en": "Rising EPS = growing earnings per share = foundation for long-term price appreciation", "ta": "EPS உயர்வு = பங்குக்கு வளரும் சம்பாத்தியம் = நீண்டகால விலை உயர்விற்கான அடிப்படை" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "EPS is always reported per share — not as a total. If Infosys earns ₹26,248 crore net profit and has 424 crore shares outstanding, its EPS = ₹26,248 Cr ÷ 424 Cr = ₹61.9 per share.",
+            "ta": "EPS எப்போதும் பங்குக்கு அறிவிக்கப்படுகிறது — மொத்தமாக அல்ல. Infosys ₹26,248 கோடி நிகர லாபம் சம்பாதித்து 424 கோடி பங்குகள் நிலுவையில் இருந்தால், EPS = ₹26,248 கோடி ÷ 424 கோடி = ₹61.9 பங்குக்கு."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "EPS Calculation", "ta": "EPS கணக்கீடு" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Let's calculate EPS for two Nifty 50 companies using their actual FY24 annual figures:",
+            "ta": "இரண்டு Nifty 50 நிறுவனங்களின் உண்மையான FY24 ஆண்டு புள்ளிவிவரங்களை பயன்படுத்தி EPS கணக்கிடுவோம்:"
+          }
+        },
+        {
+          "type": "headline",
+          "text": { "en": "Infosys FY24", "ta": "Infosys FY24" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Net Profit (PAT)", "ta": "நிகர லாபம் (PAT)" },
+              "val": { "en": "₹26,248 crore", "ta": "₹26,248 கோடி" }
+            },
+            {
+              "key": { "en": "Shares Outstanding", "ta": "நிலுவை பங்குகள்" },
+              "val": { "en": "~424 crore shares", "ta": "~424 கோடி பங்குகள்" }
+            },
+            {
+              "key": { "en": "EPS", "ta": "EPS" },
+              "val": { "en": "₹26,248 Cr ÷ 424 Cr ≈ ₹61.9 per share", "ta": "₹26,248 கோடி ÷ 424 கோடி ≈ ₹61.9 பங்குக்கு" }
+            }
+          ]
+        },
+        {
+          "type": "headline",
+          "text": { "en": "TCS FY24", "ta": "TCS FY24" }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Net Profit (PAT)", "ta": "நிகர லாபம் (PAT)" },
+              "val": { "en": "₹46,099 crore", "ta": "₹46,099 கோடி" }
+            },
+            {
+              "key": { "en": "Shares Outstanding", "ta": "நிலுவை பங்குகள்" },
+              "val": { "en": "~365 crore shares", "ta": "~365 கோடி பங்குகள்" }
+            },
+            {
+              "key": { "en": "EPS", "ta": "EPS" },
+              "val": { "en": "₹46,099 Cr ÷ 365 Cr ≈ ₹126.3 per share", "ta": "₹46,099 கோடி ÷ 365 கோடி ≈ ₹126.3 பங்குக்கு" }
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "TCS has a much higher EPS (₹126) than Infosys (₹62) — but this doesn't make TCS automatically 'better.' TCS's share price is also higher. The P/E ratio is what normalises both companies for a fair comparison.",
+            "ta": "TCS-ன் EPS (₹126) Infosys-ஐ (₹62) விட மிகவும் அதிகம் — ஆனால் இது TCS-ஐ தானாகவே 'சிறந்தது' ஆக்குவதில்லை. TCS-ன் பங்கு விலையும் அதிகம். P/E விகிதம்தான் இரண்டு நிறுவனங்களையும் நியாயமான ஒப்பீட்டிற்கு சமன்படுத்துகிறது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A company reports a Net Profit of ₹4,500 crore and has 150 crore shares outstanding. What is its EPS?",
+        "ta": "ஒரு நிறுவனம் ₹4,500 கோடி நிகர லாபம் அறிவிக்கிறது மற்றும் 150 கோடி பங்குகள் நிலுவையில் உள்ளன. அதன் EPS என்ன?"
+      },
+      "options": [
+        { "en": "₹675 per share", "ta": "₹675 பங்குக்கு" },
+        { "en": "₹4,500 per share", "ta": "₹4,500 பங்குக்கு" },
+        { "en": "₹30 per share", "ta": "₹30 பங்குக்கு" },
+        { "en": "₹0.03 per share", "ta": "₹0.03 பங்குக்கு" }
+      ],
+      "correct_index": 2,
+      "explanation": {
+        "en": "EPS = Net Profit ÷ Total Shares Outstanding = ₹4,500 Cr ÷ 150 Cr = ₹30 per share. This means every single share of the company represents ₹30 of the company's annual profit. If the stock trades at ₹600, its P/E would be 600 ÷ 30 = 20x.",
+        "ta": "EPS = நிகர லாபம் ÷ மொத்த நிலுவை பங்குகள் = ₹4,500 கோடி ÷ 150 கோடி = ₹30 பங்குக்கு. இது நிறுவனத்தின் ஒவ்வொரு பங்கும் நிறுவனத்தின் ஆண்டு லாபத்தில் ₹30 குறிக்கிறது என்று அர்த்தம். பங்கு ₹600-க்கு வர்த்தகமாகினால், P/E = 600 ÷ 30 = 20x ஆகும்."
+      },
+      "is_required": true,
+      "display_order": 4
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "Basic vs Diluted", "ta": "அடிப்படை vs நீர்க்கப்பட்ட" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Companies report two versions of EPS. The difference comes from potential future shares that could be created from employee stock options (ESOPs), convertible bonds, or warrants.",
+            "ta": "நிறுவனங்கள் EPS-ன் இரண்டு பதிப்புகளை அறிவிக்கின்றன. வித்தியாசம் எங்கிருந்து வருகிறதென்றால் பணியாளர் பங்கு விருப்பங்கள் (ESOPs), மாற்றக்கூடிய பத்திரங்கள் அல்லது வாரண்டுகளிலிருந்து எதிர்காலத்தில் உருவாகக்கூடிய பங்குகளிலிருந்து."
+          }
+        },
+        {
+          "type": "compare",
+          "cols": [
+            {
+              "emoji": "📊",
+              "title": { "en": "Basic EPS", "ta": "அடிப்படை EPS" },
+              "subtitle": { "en": "Net Profit ÷ current shares only — simpler, slightly higher number", "ta": "நிகர லாபம் ÷ தற்போதைய பங்குகள் மட்டும் — எளிமையானது, சிறிது அதிகமான எண்" },
+              "variant": "neutral"
+            },
+            {
+              "emoji": "🔍",
+              "title": { "en": "Diluted EPS", "ta": "நீர்க்கப்பட்ட EPS" },
+              "subtitle": { "en": "Net Profit ÷ (current + all potential future shares) — conservative, more accurate", "ta": "நிகர லாபம் ÷ (தற்போதைய + அனைத்து சாத்தியமான எதிர்கால பங்குகள்) — கவலையான, மிகவும் துல்லியமான" },
+              "variant": "neutral"
+            }
+          ]
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Basic EPS", "ta": "அடிப்படை EPS" },
+              "val": { "en": "Uses only shares currently outstanding — the standard headline number in results", "ta": "தற்போது நிலுவையில் உள்ள பங்குகள் மட்டும் பயன்படுத்துகிறது — முடிவுகளில் நிலையான தலைப்பு எண்" }
+            },
+            {
+              "key": { "en": "Diluted EPS", "ta": "நீர்க்கப்பட்ட EPS" },
+              "val": { "en": "Includes potential shares from ESOPs, convertible bonds, and warrants — more conservative", "ta": "ESOPs, மாற்றக்கூடிய பத்திரங்கள் மற்றும் வாரண்டுகளிலிருந்து சாத்தியமான பங்குகளை சேர்க்கிறது — மிகவும் கவலையான" }
+            },
+            {
+              "key": { "en": "Which to Use", "ta": "எதை பயன்படுத்த வேண்டும்" },
+              "val": { "en": "Always use Diluted EPS for analysis — it reflects the full long-term ownership picture", "ta": "பகுப்பாய்விற்கு எப்போதும் நீர்க்கப்பட்ட EPS பயன்படுத்துங்கள் — முழு நீண்டகால உரிமை படத்தை பிரதிபலிக்கிறது" }
+            },
+            {
+              "key": { "en": "When the Gap Is Large", "ta": "இடைவெளி பெரியதாக இருக்கும்போது" },
+              "val": { "en": "Startups and ESOP-heavy companies can see Diluted EPS significantly lower than Basic EPS", "ta": "ஸ்டார்ட்-அப்கள் மற்றும் ESOP-அதிகமான நிறுவனங்களில் நீர்க்கப்பட்ட EPS அடிப்படை EPS-ஐ விட கணிசமாக குறைவாக இருக்கலாம்" }
+            }
+          ]
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "For large Indian companies like TCS, Infosys, or Reliance, the difference between Basic and Diluted EPS is usually less than 1–2%. For companies with heavy ESOP programmes, it can be 5–10% lower.",
+            "ta": "TCS, Infosys அல்லது Reliance போன்ற பெரிய இந்திய நிறுவனங்களுக்கு அடிப்படை மற்றும் நீர்க்கப்பட்ட EPS இடையே வித்தியாசம் பொதுவாக 1–2%-க்கும் குறைவாக இருக்கும். கனமான ESOP திட்டங்கள் கொண்ட நிறுவனங்களுக்கு 5–10% குறைவாக இருக்கலாம்."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "EPS Growth", "ta": "EPS வளர்ச்சி" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "Year-on-year EPS growth is one of the most watched metrics by fund managers. Consistent EPS growth signals a healthy expanding business — and is what ultimately drives long-term stock price appreciation.",
+            "ta": "ஆண்டுக்கு ஆண்டு EPS வளர்ச்சி ஃபண்ட் மேனேஜர்களால் மிகவும் கவனமாக கண்காணிக்கப்படும் அளவீடுகளில் ஒன்று. நிலையான EPS வளர்ச்சி ஆரோக்கியமான விரிவடைகிற வியாபாரத்தை சமிக்ஞை காட்டுகிறது — நீண்டகால பங்கு விலை உயர்வை இறுதியில் இயக்குவது இதுவே."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Strong Growth (>20% YoY)", "ta": "வலுவான வளர்ச்சி (>20% YoY)" },
+              "val": { "en": "Fast-growing business — market often rewards with a higher P/E multiple", "ta": "வேகமாக வளரும் வியாபாரம் — சந்தை பெரும்பாலும் அதிக P/E மல்டிபிளுடன் வெகுமதி தருகிறது" }
+            },
+            {
+              "key": { "en": "Steady Growth (10–20% YoY)", "ta": "நிலையான வளர்ச்சி (10–20% YoY)" },
+              "val": { "en": "Healthy and sustainable — typical of quality Nifty 50 companies like HDFC Bank, Asian Paints", "ta": "ஆரோக்கியமான மற்றும் நிலைத்திருக்கக்கூடியது — HDFC Bank, Asian Paints போன்ற தரமான Nifty 50 நிறுவனங்களுக்கு பொதுவானது" }
+            },
+            {
+              "key": { "en": "Flat EPS (0–10% YoY)", "ta": "தட்டையான EPS (0–10% YoY)" },
+              "val": { "en": "Business may be stagnating — investigate whether it's temporary or structural", "ta": "வியாபாரம் தேங்கலாம் — தற்காலிகமா அல்லது கட்டமைப்பு ரீதியிலா என்று ஆராயுங்கள்" }
+            },
+            {
+              "key": { "en": "Declining EPS", "ta": "குறையும் EPS" },
+              "val": { "en": "Earnings shrinking — serious concern, usually followed by stock price weakness", "ta": "சம்பாத்தியம் சுருங்குகிறது — கடுமையான கவலை, பொதுவாக பங்கு விலை பலவீனம் தொடரும்" }
+            },
+            {
+              "key": { "en": "EPS Growth > Revenue Growth", "ta": "EPS வளர்ச்சி > வருவாய் வளர்ச்சி" },
+              "val": { "en": "Margins improving — company becoming more efficient, highest quality signal", "ta": "மார்ஜின் மேம்படுகிறது — நிறுவனம் மிகவும் திறமையாகிறது, மிக உயர்ந்த தர சமிக்ஞை" }
+            }
+          ]
+        },
+        {
+          "type": "badge-highlight",
+          "text": { "en": "15–18%", "ta": "15–18%" },
+          "subtitle": { "en": "TCS 10-year EPS CAGR — consistent compounding that built enormous shareholder wealth", "ta": "TCS 10 ஆண்டு EPS CAGR — பங்குதாரர்களுக்கு மிகவும் அதிக செல்வத்தை உருவாக்கிய நிலையான கம்பவுண்டிங்" }
+        },
+        {
+          "type": "callout-note",
+          "text": {
+            "en": "If a company's EPS grows 15% every year for 10 years, the EPS compounds to roughly 4x the starting value. In quality businesses, the stock price tends to follow EPS over the long run.",
+            "ta": "ஒரு நிறுவனத்தின் EPS 10 ஆண்டுகள் ஆண்டுக்கு 15% வளர்ந்தால், EPS தொடக்க மதிப்பின் சுமார் 4 மடங்காக கம்பவுண்ட் ஆகிறது. தரமான வியாபாரங்களில் பங்கு விலை நீண்டகாலத்தில் EPS-ஐ பின்பற்றுகிறது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "mcq",
+      "question": {
+        "en": "A company's EPS last year was ₹50. This year it is ₹60. What is the YoY EPS growth rate?",
+        "ta": "கடந்த ஆண்டு ஒரு நிறுவனத்தின் EPS ₹50 ஆக இருந்தது. இந்த ஆண்டு ₹60 ஆக உள்ளது. YoY EPS வளர்ச்சி விகிதம் என்ன?"
+      },
+      "options": [
+        { "en": "10% (₹60 − ₹50 = ₹10, divided by ₹100)", "ta": "10% (₹60 − ₹50 = ₹10, ₹100-ஆல் வகுத்தால்)" },
+        { "en": "20% (₹10 gain on ₹50 base)", "ta": "20% (₹50 அடிப்படையில் ₹10 ஆதாயம்)" },
+        { "en": "60% (₹60 ÷ ₹100 × 100)", "ta": "60% (₹60 ÷ ₹100 × 100)" },
+        { "en": "120% (₹60 ÷ ₹50 × 100)", "ta": "120% (₹60 ÷ ₹50 × 100)" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "EPS Growth % = (New EPS − Old EPS) ÷ Old EPS × 100 = (₹60 − ₹50) ÷ ₹50 × 100 = ₹10 ÷ ₹50 × 100 = 20%. Always divide by the base year (old) value — not by 100 or the new value. A 20% YoY EPS growth rate is considered healthy and strong for a large-cap company.",
+        "ta": "EPS வளர்ச்சி % = (புதிய EPS − பழைய EPS) ÷ பழைய EPS × 100 = (₹60 − ₹50) ÷ ₹50 × 100 = ₹10 ÷ ₹50 × 100 = 20%. எப்போதும் தளஆண்டு (பழைய) மதிப்பால் வகுக்கவும் — 100 அல்லது புதிய மதிப்பால் அல்ல. 20% YoY EPS வளர்ச்சி விகிதம் ஒரு லார்ஜ் கேப் நிறுவனத்திற்கு ஆரோக்கியமான மற்றும் வலுவான வளர்ச்சியாக கருதப்படுகிறது."
+      },
+      "is_required": true,
+      "display_order": 7
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "content",
+      "pill": { "en": "EPS & Price", "ta": "EPS & விலை" },
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "EPS doesn't always reflect the true state of the business. Several corporate actions can make EPS look better or worse than underlying earnings deserve.",
+            "ta": "EPS எப்போதும் வியாபாரத்தின் உண்மையான நிலையை பிரதிபலிப்பதில்லை. பல கார்ப்பரேட் நடவடிக்கைகள் EPS-ஐ உள்ளார்ந்த சம்பாத்தியத்திற்கு தகுதியான விட சிறப்பாகவோ அல்லது மோசமாகவோ காட்டலாம்."
+          }
+        },
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": { "en": "Share Buybacks", "ta": "பங்கு மீள்கொள்முதல்" },
+              "val": { "en": "Company buys back its own shares → fewer shares → EPS rises even if net profit stays flat", "ta": "நிறுவனம் தன் சொந்த பங்குகளை திரும்ப வாங்குகிறது → பங்குகள் குறைகின்றன → நிகர லாபம் நிலையாக இருந்தாலும் EPS உயர்கிறது" }
+            },
+            {
+              "key": { "en": "New Share Issuance", "ta": "புதிய பங்கு வெளியீடு" },
+              "val": { "en": "Company issues new shares → more shares outstanding → EPS dilutes even if profit rises", "ta": "நிறுவனம் புதிய பங்குகள் வெளியிடுகிறது → அதிக பங்குகள் நிலுவை → லாபம் உயர்ந்தாலும் EPS நீர்க்கப்படுகிறது" }
+            },
+            {
+              "key": { "en": "One-Time Gains", "ta": "ஒரு முறை ஆதாயங்கள்" },
+              "val": { "en": "Big one-time profit artificially boosts EPS this year — will not repeat next year", "ta": "பெரிய ஒரு முறை லாபம் இந்த ஆண்டு EPS-ஐ செயற்கையாக உயர்த்துகிறது — அடுத்த ஆண்டு மீண்டும் வராது" }
+            },
+            {
+              "key": { "en": "One-Time Losses", "ta": "ஒரு முறை நஷ்டங்கள்" },
+              "val": { "en": "Write-offs or impairments depress EPS temporarily — may not reflect ongoing operations", "ta": "எழுதி அழித்தல் அல்லது குறைப்புகள் EPS-ஐ தற்காலிகமாக குறைக்கின்றன — நடந்துகொண்டிருக்கும் செயல்பாடுகளை பிரதிபலிக்காமல் போகலாம்" }
+            }
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "headline",
+          "text": { "en": "How EPS Drives Stock Price Over Time", "ta": "EPS காலப்போக்கில் பங்கு விலையை எப்படி இயக்குகிறது" }
+        },
+        {
+          "type": "paragraph",
+          "text": {
+            "en": "In the long run, stock prices follow EPS. Quality businesses that consistently grow EPS tend to see their stock price compound in line — or even faster, as P/E expands with growing investor confidence.",
+            "ta": "நீண்டகாலத்தில் பங்கு விலைகள் EPS-ஐ பின்பற்றுகின்றன. தொடர்ந்து EPS வளர்க்கும் தரமான வியாபாரங்கள் தங்கள் பங்கு விலை அதனுடன் இணைந்து — அல்லது முதலீட்டாளர் நம்பிக்கை வளரும்போது P/E விரிவடைந்து இன்னும் வேகமாக — கம்பவுண்ட் ஆவதை பார்க்கின்றன."
+          }
+        },
+        {
+          "type": "callout",
+          "text": {
+            "en": "Bajaj Finance EPS grew from ~₹12 in FY14 to ~₹340 in FY24 — roughly 28x in 10 years. The stock rose from ~₹200 to ~₹7,000 over the same period. EPS led the way; price followed faithfully.",
+            "ta": "Bajaj Finance EPS FY14-ல் ~₹12-லிருந்து FY24-ல் ~₹340-க்கு வளர்ந்தது — 10 ஆண்டுகளில் சுமார் 28 மடங்கு. அதே காலகட்டத்தில் பங்கு ~₹200-லிருந்து ~₹7,000-க்கு உயர்ந்தது. EPS வழி காட்டியது; விலை நம்பகமாக பின்பற்றியது."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "kind": "quiz",
+    "data": {
+      "quiz_type": "tf",
+      "question": {
+        "en": "If a company's EPS rises from ₹10 to ₹15, it must mean the company's net profit has increased.",
+        "ta": "ஒரு நிறுவனத்தின் EPS ₹10-லிருந்து ₹15-க்கு உயர்ந்தால், நிறுவனத்தின் நிகர லாபம் அதிகரித்திருக்க வேண்டும்."
+      },
+      "options": [
+        { "en": "True", "ta": "உண்மை" },
+        { "en": "False", "ta": "பொய்" }
+      ],
+      "correct_index": 1,
+      "explanation": {
+        "en": "EPS = Net Profit ÷ Shares Outstanding. EPS can rise even if net profit stays flat — if the company reduces shares through a buyback. Example: ₹100 Cr profit ÷ 10 Cr shares = ₹10 EPS. After buyback (6.67 Cr shares): ₹100 Cr ÷ 6.67 Cr = ₹15 EPS. Same profit, fewer shares, higher EPS. This is why analysts prefer EPS growth driven by genuine profit growth over buybacks alone.",
+        "ta": "EPS = நிகர லாபம் ÷ நிலுவை பங்குகள். நிகர லாபம் நிலையாக இருந்தாலும் EPS உயரலாம் — நிறுவனம் மீள்கொள்முதல் மூலம் பங்குகளை குறைத்தால். உதாரணம்: ₹100 கோடி லாபம் ÷ 10 கோடி பங்குகள் = ₹10 EPS. மீள்கொள்முதலுக்கு பிறகு (6.67 கோடி பங்குகள்): ₹100 கோடி ÷ 6.67 கோடி = ₹15 EPS. ஒரே லாபம், குறைந்த பங்குகள், அதிக EPS. அதனால்தான் ஆய்வாளர்கள் மீள்கொள்முதல் மட்டுமல்லாமல் உண்மையான லாப வளர்ச்சியால் இயக்கப்படும் EPS வளர்ச்சியை விரும்புகிறார்கள்."
+      },
+      "is_required": true,
+      "display_order": 9
+    }
+  },
+  {
+    "kind": "card",
+    "data": {
+      "type": "result"
+    }
+  }
+]
