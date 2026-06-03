@@ -2615,6 +2615,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var seeking = false;
     function doSeek(e) {
       if (!_candles.length) return;
+      if (_mode === 'live') _enterReplay(_candles.length - 1);
       var r = track.getBoundingClientRect();
       var pct = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
       _rpIdx = Math.round(pct * (_candles.length - 1));
@@ -2678,19 +2679,47 @@ function _tpUpdateModeBadge() {
 
 // ── _tpSetMode (override) ──────────────────────────────────────────────────────
 function _tpSetMode(mode) {
-  var isReplay = mode === 'replay' || !!_histDate;
-  var hasData  = _candles.length > 0;
+  var hasData = _candles.length > 0;
   var row = document.getElementById('tp-scrubber-row');
-  if (row) row.style.display = isReplay ? '' : 'none';
-  // Step/seek controls only in replay; play button enabled whenever candles exist
+  // Show scrubber and enable transport whenever candles exist — live mode included,
+  // clicking any step button auto-switches to replay (see rpFirst/rpStep/rpLast below)
+  if (row) row.style.display = hasData ? '' : 'none';
   ['tp-first-btn','tp-prev-btn','tp-next-btn','tp-last-btn'].forEach(function(id) {
-    var el = document.getElementById(id); if (el) el.disabled = !isReplay;
+    var el = document.getElementById(id); if (el) el.disabled = !hasData;
   });
   var playBtn = document.getElementById('tp-play-btn');
-  if (playBtn) playBtn.disabled = !(isReplay || hasData);
+  if (playBtn) playBtn.disabled = !hasData;
   _tpUpdateModeBadge();
   _tpUpdatePlayBtn();
   _tpSyncChip();
+}
+
+// Lightweight live→replay transition that avoids a redundant rpRender call.
+// Used by step functions and scrubber so we only render once with the right index.
+function _enterReplay(targetIdx) {
+  stopLivePoll();
+  rpStop();
+  _mode = 'replay';
+  if (targetIdx !== undefined) _rpIdx = targetIdx;
+  _tpSetMode('replay');
+  rpInitSlider();
+}
+
+// ── Step functions (override) — auto-enter replay when called from live mode ──
+function rpFirst() {
+  if (_mode === 'live' && _candles.length > 0) _enterReplay(0);
+  else _rpIdx = 0;
+  rpRender();
+}
+function rpStep(n) {
+  if (_mode === 'live' && _candles.length > 0) _enterReplay(_candles.length - 1);
+  _rpIdx = Math.max(0, Math.min(_rpIdx + n, _candles.length - 1));
+  rpRender();
+}
+function rpLast() {
+  if (_mode === 'live' && _candles.length > 0) _enterReplay(_candles.length - 1);
+  else _rpIdx = _candles.length - 1;
+  rpRender();
 }
 
 // ── Player bar ─────────────────────────────────────────────────────────────────
