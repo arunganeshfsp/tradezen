@@ -266,6 +266,30 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 @keyframes cpPop{0%{transform:scale(0.95);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
 .cp-pop{animation:cpPop .35s ease}
 
+/* ── CRT TRAP CARD ── */
+.crt-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .4s}
+.crt-card.crt-bearish{border-color:rgba(231,76,60,0.45)}
+.crt-card.crt-bullish{border-color:rgba(46,204,113,0.45)}
+.crt-card.crt-clean-bull{border-color:rgba(46,204,113,0.25)}
+.crt-card.crt-clean-bear{border-color:rgba(231,76,60,0.25)}
+.crt-head{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.crt-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);flex:1}
+.crt-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:10px;border:1px solid}
+.crt-badge.cb-bear{color:var(--red);border-color:rgba(231,76,60,0.35);background:rgba(231,76,60,0.08)}
+.crt-badge.cb-bull{color:var(--green);border-color:rgba(46,204,113,0.35);background:rgba(46,204,113,0.08)}
+.crt-badge.cb-form{color:var(--muted);border-color:var(--border);background:transparent}
+.crt-levels{display:flex;gap:14px;padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+.crt-lv{display:flex;flex-direction:column;gap:2px}
+.crt-lv-k{font-size:9px;letter-spacing:.5px;color:var(--muted)}
+.crt-lv-v{font-size:11px;font-weight:600}
+.crt-inner{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.crt-row-k{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.crt-row-v{font-size:12px;color:var(--dim);line-height:1.65}
+.crt-learn{background:var(--bg3);border-left:2px solid var(--accent);border-radius:0 6px 6px 0;padding:8px 10px}
+.crt-learn-k{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.crt-learn-v{font-size:11px;color:var(--dim);line-height:1.6}
+.crt-no-orb{padding:16px;text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.6}
+
 /* ── POST-GAME SUMMARY ── */
 .pg-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
 .pg-head{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
@@ -697,6 +721,19 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </div>
       <div id="cp-body" class="sec-body">
         <div style="text-align:center;padding:16px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Waiting for data…</div>
+      </div>
+    </div>
+
+    <!-- CRT TRAP ANALYSIS -->
+    <div class="crt-card" id="crt-card" data-sec>
+      <div class="crt-head sec-hdr" onclick="toggleSec(this)">
+        <span id="crt-icon" style="font-size:15px;flex-shrink:0">📐</span>
+        <span class="crt-lbl">CRT Analysis</span>
+        <span class="crt-badge cb-form" id="crt-badge">—</span>
+        <span class="sec-chev">▾</span>
+      </div>
+      <div id="crt-body" class="sec-body">
+        <div class="crt-no-orb">Waiting for OR levels…<br><span style="font-size:10px;opacity:.6">Enable ORB on the chart to activate.</span></div>
       </div>
     </div>
 
@@ -1608,6 +1645,9 @@ function updatePanel(candle) {
   const _cpIdx  = _mode === 'replay' ? _rpIdx : _candles.length - 1;
   const _cpPrev = _cpIdx > 0 ? _candles[_cpIdx - 1] : null;
   renderPatternCard(detectCandlePattern(candle, _cpPrev), _mode === 'live');
+
+  // CRT trap analysis
+  updateCrtCard(candle);
 }
 
 function fmtVol(v) {
@@ -2353,6 +2393,96 @@ function showMarketClosed(msg) {
   showClosedHub(msg);
 }
 
+// ─── CRT Trap Analysis ───────────────────────────────────────────────────────
+
+const _CRT = {
+  BEARISH_CRT: {
+    icon: '🔻', cardCls: 'crt-bearish', badgeCls: 'cb-bear', badge: 'BEARISH TRAP',
+    happened: (c, o) => `Price moved above OR High (${o.high}) reaching ${c.high.toFixed(0)}, then closed back below at ${c.close.toFixed(0)}.`,
+    means:    ()     => `The upside breakout attempt was absorbed. Price returned inside the opening range — the move above the high attracted momentum, then reversed.`,
+    learn:    ()     => `When price spikes above a key level and closes back inside, the boundary acted as resistance rather than a launch point — often called a liquidity sweep.`,
+  },
+  BULLISH_CRT: {
+    icon: '🔺', cardCls: 'crt-bullish', badgeCls: 'cb-bull', badge: 'BULLISH TRAP',
+    happened: (c, o) => `Price dipped below OR Low (${o.low}) to ${c.low.toFixed(0)}, then closed back above at ${c.close.toFixed(0)}.`,
+    means:    ()     => `The downside breakdown attempt was rejected. Price snapped back above the opening range — the move below the low flushed weaker positions before recovering.`,
+    learn:    ()     => `When price sweeps below a key level and closes back above, the boundary acted as a demand zone rather than a breakdown point.`,
+  },
+  CLEAN_BULL: {
+    icon: '⬆', cardCls: 'crt-clean-bull', badgeCls: 'cb-bull', badge: 'BREAKOUT UP',
+    happened: (c, o) => `Price closed at ${c.close.toFixed(0)}, above OR High (${o.high}), without first sweeping OR Low.`,
+    means:    ()     => `The opening range high was cleared without a prior trap. No sweep pattern is present — the move above the range appears directional.`,
+    learn:    ()     => `A clean close above the opening range (no prior sweep) tends to reflect directional strength rather than a liquidity-driven reversal setup.`,
+  },
+  CLEAN_BEAR: {
+    icon: '⬇', cardCls: 'crt-clean-bear', badgeCls: 'cb-bear', badge: 'BREAKDOWN',
+    happened: (c, o) => `Price closed at ${c.close.toFixed(0)}, below OR Low (${o.low}), without first spiking above OR High.`,
+    means:    ()     => `The opening range low was broken without a prior trap. No sweep pattern is present — the move below the range appears directional.`,
+    learn:    ()     => `A clean close below the opening range (no prior sweep) tends to reflect directional weakness rather than a liquidity-driven reversal setup.`,
+  },
+  FORMING: {
+    icon: '📐', cardCls: '', badgeCls: 'cb-form', badge: 'FORMING',
+    happened: (c, o) => `Price is within the opening range (${o.low} – ${o.high}). Current close: ${c.close.toFixed(0)}.`,
+    means:    (c, o) => {
+      const mid = (o.high + o.low) / 2;
+      return `No OR boundary has been tested yet. Price is in the ${c.close >= mid ? 'upper' : 'lower'} half of the range — CRT patterns form when candles interact with OR High or OR Low.`;
+    },
+    learn:    ()     => `The Opening Range (first 15 min of the session) creates reference boundaries for CRT analysis. Watch for sweeps of OR High or OR Low on subsequent candles.`,
+  },
+};
+
+function _crtDetect(candle, orb) {
+  const h = candle.high, l = candle.low, c = candle.close;
+  const oh = orb.high,   ol = orb.low;
+  if (h > oh && c < oh) return 'BEARISH_CRT';
+  if (l < ol && c > ol) return 'BULLISH_CRT';
+  if (c > oh)           return 'CLEAN_BULL';
+  if (c < ol)           return 'CLEAN_BEAR';
+  return 'FORMING';
+}
+
+function updateCrtCard(candle) {
+  const card  = document.getElementById('crt-card');
+  const body  = document.getElementById('crt-body');
+  const icon  = document.getElementById('crt-icon');
+  const badge = document.getElementById('crt-badge');
+  if (!card || !body) return;
+
+  if (!_orbData || _orbData.high == null) {
+    body.innerHTML = '<div class="crt-no-orb">OR levels not loaded.<br><span style="font-size:10px;opacity:.6">Enable ORB on the chart to activate CRT analysis.</span></div>';
+    card.className  = 'crt-card';
+    icon.textContent = '📐';
+    badge.textContent = '—'; badge.className = 'crt-badge cb-form';
+    return;
+  }
+
+  const state = _crtDetect(candle, _orbData);
+  const t     = _CRT[state];
+  const o     = _orbData;
+
+  card.className    = 'crt-card' + (t.cardCls ? ' ' + t.cardCls : '');
+  icon.textContent  = t.icon;
+  badge.textContent = t.badge;
+  badge.className   = 'crt-badge ' + t.badgeCls;
+
+  const rangeHtml = `
+    <div class="crt-levels">
+      <div class="crt-lv"><span class="crt-lv-k">OR HIGH</span><span class="crt-lv-v" style="color:var(--accent)">${o.high}</span></div>
+      <div class="crt-lv"><span class="crt-lv-k">OR LOW</span><span class="crt-lv-v" style="color:var(--accent)">${o.low}</span></div>
+      <div class="crt-lv" style="margin-left:auto"><span class="crt-lv-k">RANGE</span><span class="crt-lv-v" style="color:var(--dim)">${(o.high - o.low).toFixed(0)} pts</span></div>
+    </div>`;
+
+  body.innerHTML = rangeHtml + `
+    <div class="crt-inner">
+      <div><div class="crt-row-k">What happened</div><div class="crt-row-v">${t.happened(candle, o)}</div></div>
+      <div><div class="crt-row-k">What it means</div><div class="crt-row-v">${typeof t.means === 'function' ? t.means(candle, o) : t.means}</div></div>
+      <div class="crt-learn">
+        <div class="crt-learn-k">Learn</div>
+        <div class="crt-learn-v">${t.learn()}</div>
+      </div>
+    </div>`;
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('resize', _resizeChart);
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && _isFullscreen) toggleFullscreen(); });
@@ -2371,5 +2501,8 @@ reload();
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
+<div style="text-align:center;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);border-top:1px solid var(--border);margin-top:8px">
+  For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+</div>
 </body>
 </html>

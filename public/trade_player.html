@@ -8,6 +8,31 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/css/trade-player.css">
+<style>
+/* ── CRT Trap Analysis (Levels tab) ───────────────────────── */
+.tp-crt-card{background:var(--tz-surface-2);border:1px solid var(--tz-border);border-radius:var(--tz-radius-md);overflow:hidden;transition:border-color .4s;margin-top:4px}
+.tp-crt-card.bull{border-color:var(--tz-gain)}
+.tp-crt-card.bear{border-color:var(--tz-loss)}
+.tp-crt-card.bull-soft{border-color:rgba(46,204,113,.28)}
+.tp-crt-card.bear-soft{border-color:rgba(231,76,60,.22)}
+.tp-crt-head{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--tz-border)}
+.tp-crt-state{font:700 13px/1 var(--tz-font-display);color:var(--tz-fg-1);flex:1}
+.tp-crt-chip{font:600 9px/1 var(--tz-font-mono);letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:var(--tz-radius-full);border:1px solid}
+.tp-crt-chip.bull{color:var(--tz-gain);border-color:rgba(46,204,113,.35);background:var(--tz-gain-dim)}
+.tp-crt-chip.bear{color:var(--tz-loss);border-color:rgba(231,76,60,.3);background:var(--tz-loss-dim)}
+.tp-crt-chip.neut{color:var(--tz-fg-3);border-color:var(--tz-border);background:transparent}
+.tp-crt-or{display:flex;gap:12px;padding:8px 12px;background:var(--tz-surface);border-bottom:1px solid var(--tz-border)}
+.tp-crt-or-item{display:flex;flex-direction:column;gap:3px}
+.tp-crt-or-k{font:600 9px/1 var(--tz-font-mono);letter-spacing:.5px;color:var(--tz-fg-3)}
+.tp-crt-or-v{font:600 11px/1 var(--tz-font-mono);color:var(--tz-accent-1)}
+.tp-crt-rows{padding:10px 12px;display:flex;flex-direction:column;gap:9px}
+.tp-crt-row-k{font:600 9px/1 var(--tz-font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--tz-fg-3);margin-bottom:3px}
+.tp-crt-row-v{font:400 12px/1.6 var(--tz-font-ui);color:var(--tz-fg-2)}
+.tp-crt-learn{border-left:2px solid var(--tz-accent-1);background:var(--tz-surface);border-radius:0 var(--tz-radius-sm) var(--tz-radius-sm) 0;padding:8px 10px}
+.tp-crt-learn-k{font:600 9px/1 var(--tz-font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--tz-accent-1);margin-bottom:3px}
+.tp-crt-learn-v{font:400 11px/1.6 var(--tz-font-ui);color:var(--tz-fg-2)}
+.tp-crt-no-orb{padding:14px 12px;text-align:center;font:400 11px/1.6 var(--tz-font-mono);color:var(--tz-fg-3)}
+</style>
 </head>
 <body>
 
@@ -168,6 +193,22 @@
             <div><span class="tp-label">VWAP</span><div id="tp-levels-vwap"></div></div>
             <div><span class="tp-label">Central Pivot Range</span><div id="tp-levels-cpr"></div></div>
             <div><span class="tp-label">Opening Range</span><div id="tp-levels-orb"></div></div>
+            <div style="margin-top:16px">
+              <span class="tp-label">CRT Trap Analysis</span>
+              <div class="tp-crt-card neut" id="tp-crt-card">
+                <div class="tp-crt-head">
+                  <span id="tp-crt-icon" style="font-size:14px;flex-shrink:0">📐</span>
+                  <span class="tp-crt-state" id="tp-crt-state">—</span>
+                  <span class="tp-crt-chip neut" id="tp-crt-chip">—</span>
+                </div>
+                <div id="tp-crt-body">
+                  <div class="tp-crt-no-orb">Enable ORB on chart to activate CRT analysis.</div>
+                </div>
+              </div>
+              <div style="margin-top:10px;font:400 10px/1.5 var(--tz-font-mono);color:var(--tz-fg-3);text-align:center">
+                For educational purposes only. Not investment advice.
+              </div>
+            </div>
           </div>
 
         </div>
@@ -1350,6 +1391,9 @@ function updatePanel(candle) {
 
   // Next Candle Context card
   _ncRender();
+
+  // CRT trap analysis (Levels tab)
+  _tpCrtUpdate(candle);
 }
 
 function fmtVol(v) {
@@ -2044,6 +2088,92 @@ function clearError() {
 
 function showMarketClosed(msg) {
   showClosedHub(msg);
+}
+
+// ─── CRT Trap Analysis ───────────────────────────────────────────────────────
+
+var _TP_CRT = {
+  BEARISH_CRT: {
+    icon:'🔻', cardCls:'bear', chipCls:'bear', chip:'BEARISH TRAP', state:'Bearish CRT Trap',
+    happened: function(c,o){ return 'Price moved above OR High ('+o.high+') to '+c.high.toFixed(0)+', then closed back below at '+c.close.toFixed(0)+'.'; },
+    means:    function()   { return 'The upside breakout attempt was absorbed. Price returned inside the opening range — the sweep above OR High attracted momentum, then reversed.'; },
+    learn:    function()   { return 'When price spikes above a key level and closes back inside, the boundary acted as resistance rather than a launch point — a classic liquidity sweep.'; },
+  },
+  BULLISH_CRT: {
+    icon:'🔺', cardCls:'bull', chipCls:'bull', chip:'BULLISH TRAP', state:'Bullish CRT Trap',
+    happened: function(c,o){ return 'Price dipped below OR Low ('+o.low+') to '+c.low.toFixed(0)+', then closed back above at '+c.close.toFixed(0)+'.'; },
+    means:    function()   { return 'The downside breakdown attempt was rejected. Price snapped back above the opening range — the move below OR Low flushed positions before recovering.'; },
+    learn:    function()   { return 'When price sweeps below a key level and closes back above, the boundary acted as a demand zone rather than a breakdown point.'; },
+  },
+  CLEAN_BULL: {
+    icon:'⬆', cardCls:'bull-soft', chipCls:'bull', chip:'BREAKOUT UP', state:'Clean Bullish Breakout',
+    happened: function(c,o){ return 'Price closed at '+c.close.toFixed(0)+', above OR High ('+o.high+'), without first sweeping OR Low.'; },
+    means:    function()   { return 'The opening range high was cleared without a prior sweep. The move above the range appears directional, not trap-driven.'; },
+    learn:    function()   { return 'A clean close above the opening range (no prior sweep) tends to reflect directional strength rather than a liquidity-driven reversal setup.'; },
+  },
+  CLEAN_BEAR: {
+    icon:'⬇', cardCls:'bear-soft', chipCls:'bear', chip:'BREAKDOWN', state:'Clean Bearish Breakdown',
+    happened: function(c,o){ return 'Price closed at '+c.close.toFixed(0)+', below OR Low ('+o.low+'), without first spiking above OR High.'; },
+    means:    function()   { return 'The opening range low was broken without a prior sweep. The move below the range appears directional, not trap-driven.'; },
+    learn:    function()   { return 'A clean close below the opening range (no prior sweep) tends to reflect directional weakness rather than a liquidity-driven reversal setup.'; },
+  },
+  FORMING: {
+    icon:'📐', cardCls:'neut', chipCls:'neut', chip:'FORMING', state:'OR Range Active',
+    happened: function(c,o){ return 'Price is within the opening range ('+o.low+' – '+o.high+'). Current close: '+c.close.toFixed(0)+'.'; },
+    means:    function(c,o){ var mid=(o.high+o.low)/2; return 'No OR boundary has been tested yet. Price is in the '+(c.close>=mid?'upper':'lower')+' half of the range — CRT patterns form when price interacts with OR High or OR Low.'; },
+    learn:    function()   { return 'The Opening Range (first 15 min) creates reference boundaries for CRT analysis. Watch for sweeps of OR High or OR Low on subsequent candles.'; },
+  },
+};
+
+function _tpCrtDetect(candle, orb) {
+  var h=candle.high, l=candle.low, c=candle.close, oh=orb.high, ol=orb.low;
+  if (h > oh && c < oh) return 'BEARISH_CRT';
+  if (l < ol && c > ol) return 'BULLISH_CRT';
+  if (c > oh)           return 'CLEAN_BULL';
+  if (c < ol)           return 'CLEAN_BEAR';
+  return 'FORMING';
+}
+
+function _tpCrtUpdate(candle) {
+  var card = document.getElementById('tp-crt-card');
+  var body = document.getElementById('tp-crt-body');
+  var icon = document.getElementById('tp-crt-icon');
+  var stEl = document.getElementById('tp-crt-state');
+  var chip = document.getElementById('tp-crt-chip');
+  if (!card || !body) return;
+
+  if (!_orbData || _orbData.high == null) {
+    body.innerHTML = '<div class="tp-crt-no-orb">Enable ORB on chart to activate CRT analysis.</div>';
+    card.className = 'tp-crt-card neut';
+    if (icon) icon.textContent = '📐';
+    if (stEl) stEl.textContent = 'OR levels not loaded';
+    if (chip) { chip.textContent = '—'; chip.className = 'tp-crt-chip neut'; }
+    return;
+  }
+
+  var state = _tpCrtDetect(candle, _orbData);
+  var t = _TP_CRT[state];
+  var o = _orbData;
+
+  card.className   = 'tp-crt-card ' + t.cardCls;
+  icon.textContent = t.icon;
+  stEl.textContent = t.state;
+  chip.textContent = t.chip;
+  chip.className   = 'tp-crt-chip ' + t.chipCls;
+
+  var means = typeof t.means === 'function' ? t.means(candle, o) : t.means;
+
+  body.innerHTML =
+    '<div class="tp-crt-or">'
+    + '<div class="tp-crt-or-item"><span class="tp-crt-or-k">OR HIGH</span><span class="tp-crt-or-v">'+o.high+'</span></div>'
+    + '<div class="tp-crt-or-item"><span class="tp-crt-or-k">OR LOW</span><span class="tp-crt-or-v">'+o.low+'</span></div>'
+    + '<div class="tp-crt-or-item" style="margin-left:auto"><span class="tp-crt-or-k">RANGE</span><span class="tp-crt-or-v" style="color:var(--tz-fg-3)">'+(o.high-o.low).toFixed(0)+' pts</span></div>'
+    + '</div>'
+    + '<div class="tp-crt-rows">'
+    + '<div><div class="tp-crt-row-k">What happened</div><div class="tp-crt-row-v">'+t.happened(candle,o)+'</div></div>'
+    + '<div><div class="tp-crt-row-k">What it means</div><div class="tp-crt-row-v">'+means+'</div></div>'
+    + '<div class="tp-crt-learn"><div class="tp-crt-learn-k">Learn</div><div class="tp-crt-learn-v">'+t.learn()+'</div></div>'
+    + '</div>';
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
