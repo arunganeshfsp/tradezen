@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stock Health Story — TradeZen</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="tradezen.css">
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
@@ -167,7 +169,26 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 </head>
 <body>
 
-<div id="nav-placeholder"></div>
+<nav class="tz-nav">
+  <div class="tz-nav-inner">
+    <a href="/" class="tz-logo">
+      <img src="/app-icon.svg" width="28" height="28" style="border-radius:7px" alt="">
+      <span class="tz-logo-text">Trade<span>Zen</span></span>
+    </a>
+    <div class="tz-nav-links">
+      <a href="/trade_flow.html">Trade Flow</a>
+      <a href="/options_analysis.html">Options</a>
+      <a href="/cpr_monitor.html">CPR</a>
+      <a href="/fno_scanner.html">F&amp;O</a>
+      <a href="/stock_movers.html">Movers</a>
+      <a href="/market_psychology.html">TradeFun</a>
+      <a href="/swing_trading.html">Swing</a>
+      <a href="/stock_health.html" class="tz-active">Stock Health</a>
+      <a href="/learn/">Learn</a>
+    </div>
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border,#333);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim,#9ba3bf);transition:border-color .15s;padding:0;flex-shrink:0;margin-left:auto"></button>
+  </div>
+</nav>
 
 <div class="page">
 

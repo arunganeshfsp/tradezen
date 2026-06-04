@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Market Profile | TradeZen</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" href="/favicon.png">
 <style>
 :root{
   --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
@@ -27,7 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 /* ── NAV ── */
 nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
 .brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
-.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff}
+.logo{width:30px;height:30px;border-radius:6px;}
 .nav-links{display:flex;gap:2px;flex-wrap:wrap}
 .nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
 .nl:hover{color:var(--text);background:var(--bg3)}
@@ -134,18 +136,17 @@ footer{border-top:1px solid var(--border);padding:20px 28px;text-align:center;fo
 
 <!-- ── NAV ── -->
 <nav>
-  <a href="index.html" class="brand"><div class="logo">TZ</div>TradeZen</a>
+  <a href="/" class="brand"><img class="logo" src="/app-icon.svg" alt="">TradeZen</a>
   <div class="nav-links" id="navLinks">
-    <a href="butterfly_straddle_tamil.html" class="nl">🦋 Butterfly</a>
-    <a href="index.html#buying"   class="nl">📈 Buying</a>
-    <a href="index.html#selling"  class="nl">📉 Selling</a>
-    <a href="swing_trading.html"  class="nl">🌊 Swing</a>
-    <a href="fno_signal.html"     class="nl">📡 F&amp;O</a>
-    <a href="trade_flow.html"     class="nl">🧭 Flow</a>
-    <a href="cpr_monitor.html"    class="nl">📐 CPR</a>
-    <a href="market_profile.html"       class="nl on">📊 Profile</a>
-    <a href="market_profile_tamil.html" class="nl">📖 Tutorial</a>
-    <a href="index.html"                class="nl">🏠 Home</a>
+    <a href="/trade_flow.html"       class="nl">Trade Flow</a>
+    <a href="/options_analysis.html" class="nl">Options</a>
+    <a href="/cpr_monitor.html"      class="nl">CPR</a>
+    <a href="/fno_scanner.html"      class="nl">F&amp;O</a>
+    <a href="/stock_movers.html"     class="nl">Movers</a>
+    <a href="/market_psychology.html" class="nl">TradeFun</a>
+    <a href="/swing_trading.html"    class="nl">Swing</a>
+    <a href="/market_profile.html"   class="nl on">Market Profile</a>
+    <a href="/learn/"                class="nl">Learn</a>
   </div>
   <div class="nav-r">
     <span class="nav-badge">LIVE · SEBI 2026</span>

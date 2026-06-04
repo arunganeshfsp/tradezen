@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stock Options Analysis | TradeZen</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" href="/favicon.png">
 <style>
 :root{
   --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
@@ -23,7 +25,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:0}
 .brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:24px}
-.logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.logo{width:28px;height:28px;border-radius:6px;}
 .nav-links{display:flex;gap:2px}
 .nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
 .nl:hover,.nl.on{color:#fff;background:var(--bg3)}
@@ -188,13 +190,17 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 <body>
 
 <nav>
-  <a class="brand" href="/"><span class="logo">TZ</span>&nbsp;TradeZen</a>
+  <a class="brand" href="/"><img class="logo" src="/app-icon.svg" alt="">&nbsp;TradeZen</a>
   <div class="nav-links" id="navLinks">
     <a class="nl" href="/trade_flow.html">Trade Flow</a>
-    <a class="nl" href="/fno_scanner.html">F&amp;O Scanner</a>
-    <a class="nl on" href="/stock_options.html">Stock Options</a>
-    <a class="nl" href="/options_analysis.html">Index Options</a>
+    <a class="nl" href="/options_analysis.html">Options</a>
+    <a class="nl" href="/cpr_monitor.html">CPR</a>
+    <a class="nl" href="/fno_scanner.html">F&amp;O</a>
+    <a class="nl" href="/stock_movers.html">Movers</a>
     <a class="nl" href="/market_psychology.html">TradeFun</a>
+    <a class="nl" href="/swing_trading.html">Swing</a>
+    <a class="nl on" href="/stock_options.html">Stock Options</a>
+    <a class="nl" href="/learn/">Learn</a>
   </div>
   <div class="nav-r">
     <span id="engineStatus" style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;opacity:.3;animation:pulse 1.4s infinite" title="Engine status"></span>

@@ -234,7 +234,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .notif-btn-dismiss{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer}
 footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .fbrand{display:flex;align-items:center;gap:8px}
-.flogo{width:26px;height:26px;border-radius:5px;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.flogo{width:26px;height:26px;border-radius:5px;}
 .fbrand span{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
 .fnote{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
 .fnote em{color:var(--yellow);font-style:normal}
@@ -285,6 +285,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 @media(max-width:768px){.alog-tip{display:none}.alog-table th:nth-child(4),.alog-table td:nth-child(4){display:none}}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/png" href="/favicon.png" />
 <link rel="stylesheet" href="css/halo-tokens.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
@@ -798,7 +799,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 </div>
 
 <footer>
-  <div class="fbrand"><div class="flogo">TZ</div><span>TradeZen</span></div>
+  <div class="fbrand"><img class="flogo" src="/app-icon.svg" alt=""><span>TradeZen</span></div>
   <div class="fnote">Nifty50 · CPR + ORB Framework · <em>SEBI 2026</em> · தமிழில் விளக்கம்</div>
   <div class="fnote" style="font-size:10px;">© 2026 · Educational purposes only · நிதி ஆலோசனை அல்ல</div>
 </footer>
@@ -3075,7 +3076,7 @@ function _fireAlert(lvl, ltp, dist, rising = true) {
   _logAlert(lvl, ltp, dist, dir);
 
   if (Notification.permission === 'granted') {
-    new Notification('TradeZen Alert', { body: notifBody, icon: '/favicon.ico', tag: lvl.name });
+    new Notification('TradeZen Alert', { body: notifBody, icon: '/favicon.png', tag: lvl.name });
   }
 }
 
