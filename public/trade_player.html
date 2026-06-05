@@ -2105,17 +2105,17 @@ var _TP_CRT = {
     means:    function()   { return 'The downside breakdown attempt was rejected. Price snapped back above the opening range — the move below OR Low flushed positions before recovering.'; },
     learn:    function()   { return 'When price sweeps below a key level and closes back above, the boundary acted as a demand zone rather than a breakdown point.'; },
   },
-  CLEAN_BULL: {
-    icon:'⬆', cardCls:'bull-soft', chipCls:'bull', chip:'BREAKOUT UP', state:'Clean Bullish Breakout',
-    happened: function(c,o){ return 'Price closed at '+c.close.toFixed(0)+', above OR High ('+o.high+'), without first sweeping OR Low.'; },
-    means:    function()   { return 'The opening range high was cleared without a prior sweep. The move above the range appears directional, not trap-driven.'; },
-    learn:    function()   { return 'A clean close above the opening range (no prior sweep) tends to reflect directional strength rather than a liquidity-driven reversal setup.'; },
+  ABOVE_OR: {
+    icon:'↑', cardCls:'neut', chipCls:'neut', chip:'ABOVE OR', state:'Above OR High',
+    happened: function(c,o){ return 'Price closed at '+c.close.toFixed(0)+', above OR High ('+o.high+'). No sweep-and-rejection on this candle.'; },
+    means:    function(c,o){ return 'Price is holding above the opening range — a directional position, not a CRT trap. A trap would require a wick above OR High ('+o.high+') with the candle closing back inside the range.'; },
+    learn:    function()   { return 'CRT traps require two things on the same candle: a wick that crosses the OR boundary AND a close back inside. A close that simply stays outside the range is not a trap — it is price in extension.'; },
   },
-  CLEAN_BEAR: {
-    icon:'⬇', cardCls:'bear-soft', chipCls:'bear', chip:'BREAKDOWN', state:'Clean Bearish Breakdown',
-    happened: function(c,o){ return 'Price closed at '+c.close.toFixed(0)+', below OR Low ('+o.low+'), without first spiking above OR High.'; },
-    means:    function()   { return 'The opening range low was broken without a prior sweep. The move below the range appears directional, not trap-driven.'; },
-    learn:    function()   { return 'A clean close below the opening range (no prior sweep) tends to reflect directional weakness rather than a liquidity-driven reversal setup.'; },
+  BELOW_OR: {
+    icon:'↓', cardCls:'neut', chipCls:'neut', chip:'BELOW OR', state:'Below OR Low',
+    happened: function(c,o){ return 'Price closed at '+c.close.toFixed(0)+', below OR Low ('+o.low+'). No sweep-and-rejection on this candle.'; },
+    means:    function(c,o){ return 'Price is holding below the opening range — a directional position, not a CRT trap. A trap would require a wick below OR Low ('+o.low+') with the candle closing back inside the range.'; },
+    learn:    function()   { return 'CRT traps require two things on the same candle: a wick that crosses the OR boundary AND a close back inside. A close that simply stays outside the range is not a trap — it is price in extension.'; },
   },
   FORMING: {
     icon:'📐', cardCls:'neut', chipCls:'neut', chip:'FORMING', state:'OR Range Active',
@@ -2129,8 +2129,8 @@ function _tpCrtDetect(candle, orb) {
   var h=candle.high, l=candle.low, c=candle.close, oh=orb.high, ol=orb.low;
   if (h > oh && c < oh) return 'BEARISH_CRT';
   if (l < ol && c > ol) return 'BULLISH_CRT';
-  if (c > oh)           return 'CLEAN_BULL';
-  if (c < ol)           return 'CLEAN_BEAR';
+  if (c > oh)           return 'ABOVE_OR';
+  if (c < ol)           return 'BELOW_OR';
   return 'FORMING';
 }
 

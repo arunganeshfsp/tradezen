@@ -270,8 +270,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .crt-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .4s}
 .crt-card.crt-bearish{border-color:rgba(231,76,60,0.45)}
 .crt-card.crt-bullish{border-color:rgba(46,204,113,0.45)}
-.crt-card.crt-clean-bull{border-color:rgba(46,204,113,0.25)}
-.crt-card.crt-clean-bear{border-color:rgba(231,76,60,0.25)}
 .crt-head{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
 .crt-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);flex:1}
 .crt-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:10px;border:1px solid}
@@ -2408,17 +2406,17 @@ const _CRT = {
     means:    ()     => `The downside breakdown attempt was rejected. Price snapped back above the opening range — the move below the low flushed weaker positions before recovering.`,
     learn:    ()     => `When price sweeps below a key level and closes back above, the boundary acted as a demand zone rather than a breakdown point.`,
   },
-  CLEAN_BULL: {
-    icon: '⬆', cardCls: 'crt-clean-bull', badgeCls: 'cb-bull', badge: 'BREAKOUT UP',
-    happened: (c, o) => `Price closed at ${c.close.toFixed(0)}, above OR High (${o.high}), without first sweeping OR Low.`,
-    means:    ()     => `The opening range high was cleared without a prior trap. No sweep pattern is present — the move above the range appears directional.`,
-    learn:    ()     => `A clean close above the opening range (no prior sweep) tends to reflect directional strength rather than a liquidity-driven reversal setup.`,
+  ABOVE_OR: {
+    icon: '↑', cardCls: '', badgeCls: 'cb-form', badge: 'ABOVE OR',
+    happened: (c, o) => `Price closed at ${c.close.toFixed(0)}, above OR High (${o.high}). No sweep-and-rejection on this candle.`,
+    means:    (c, o) => `Price is holding above the opening range. This is a directional position, not a CRT trap. A trap would require a wick above OR High (${o.high}) with the candle closing back inside the range.`,
+    learn:    ()     => `CRT traps require two things on the same candle: a wick that crosses the OR boundary AND a close back inside. A close that simply stays outside the range is not a trap — it is just price in extension.`,
   },
-  CLEAN_BEAR: {
-    icon: '⬇', cardCls: 'crt-clean-bear', badgeCls: 'cb-bear', badge: 'BREAKDOWN',
-    happened: (c, o) => `Price closed at ${c.close.toFixed(0)}, below OR Low (${o.low}), without first spiking above OR High.`,
-    means:    ()     => `The opening range low was broken without a prior trap. No sweep pattern is present — the move below the range appears directional.`,
-    learn:    ()     => `A clean close below the opening range (no prior sweep) tends to reflect directional weakness rather than a liquidity-driven reversal setup.`,
+  BELOW_OR: {
+    icon: '↓', cardCls: '', badgeCls: 'cb-form', badge: 'BELOW OR',
+    happened: (c, o) => `Price closed at ${c.close.toFixed(0)}, below OR Low (${o.low}). No sweep-and-rejection on this candle.`,
+    means:    (c, o) => `Price is holding below the opening range. This is a directional position, not a CRT trap. A trap would require a wick below OR Low (${o.low}) with the candle closing back inside the range.`,
+    learn:    ()     => `CRT traps require two things on the same candle: a wick that crosses the OR boundary AND a close back inside. A close that simply stays outside the range is not a trap — it is just price in extension.`,
   },
   FORMING: {
     icon: '📐', cardCls: '', badgeCls: 'cb-form', badge: 'FORMING',
@@ -2436,8 +2434,8 @@ function _crtDetect(candle, orb) {
   const oh = orb.high,   ol = orb.low;
   if (h > oh && c < oh) return 'BEARISH_CRT';
   if (l < ol && c > ol) return 'BULLISH_CRT';
-  if (c > oh)           return 'CLEAN_BULL';
-  if (c < ol)           return 'CLEAN_BEAR';
+  if (c > oh)           return 'ABOVE_OR';
+  if (c < ol)           return 'BELOW_OR';
   return 'FORMING';
 }
 
