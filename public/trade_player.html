@@ -35,6 +35,34 @@
 .tp-crt-learn-k{font:600 9px/1 var(--tz-font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--tz-accent-1);margin-bottom:3px}
 .tp-crt-learn-v{font:400 11px/1.6 var(--tz-font-ui);color:var(--tz-fg-2)}
 .tp-crt-no-orb{padding:14px 12px;text-align:center;font:400 11px/1.6 var(--tz-font-mono);color:var(--tz-fg-3)}
+
+/* ── CRT Log tab ──────────────────────────────────────────────── */
+.tp-crtlog-ctrl{display:flex;align-items:center;gap:8px;padding-bottom:10px;
+  border-bottom:1px solid var(--tz-border);margin-bottom:4px}
+.tp-crtlog-count{font:600 10px/1 var(--tz-font-mono);color:var(--tz-fg-3);letter-spacing:.08em}
+.tp-crtlog-or{display:flex;gap:14px;padding:7px 0 10px;border-bottom:1px solid var(--tz-border);
+  font:600 10px/1 var(--tz-font-mono);color:var(--tz-fg-3);margin-bottom:4px}
+.tp-crtlog-or b{color:var(--tz-accent-1);font-weight:600}
+.tp-crtlog-body{display:flex;flex-direction:column;gap:0;overflow-y:auto;max-height:480px}
+.tp-crtlog-body::-webkit-scrollbar{width:4px}
+.tp-crtlog-body::-webkit-scrollbar-thumb{background:var(--tz-border-strong);border-radius:2px}
+.tp-crtlog-empty{padding:20px 0;text-align:center;font:400 11px/1.6 var(--tz-font-mono);color:var(--tz-fg-3)}
+.tp-crtlog-row{display:grid;grid-template-columns:36px 1fr auto;align-items:center;
+  gap:8px;padding:8px 0;border-bottom:1px solid var(--tz-border)}
+.tp-crtlog-row:last-child{border-bottom:none}
+.tp-crtlog-t{font:600 10px/1 var(--tz-font-mono);color:var(--tz-fg-3)}
+.tp-crtlog-mid{display:flex;flex-direction:column;gap:4px}
+.tp-crtlog-badge{font:600 9px/1 var(--tz-font-mono);letter-spacing:.6px;text-transform:uppercase;
+  padding:2px 7px;border-radius:var(--tz-radius-full);border:1px solid;width:fit-content}
+.tp-crtlog-badge.bull{color:var(--tz-gain);border-color:rgba(46,204,113,.3);background:var(--tz-gain-dim)}
+.tp-crtlog-badge.bear{color:var(--tz-loss);border-color:rgba(231,76,60,.25);background:var(--tz-loss-dim)}
+.tp-crtlog-badge.neut{color:var(--tz-fg-3);border-color:var(--tz-border);background:transparent}
+.tp-crtlog-ohlc{display:flex;gap:6px;font:400 10px/1 var(--tz-font-mono);align-items:center;flex-wrap:wrap}
+.tp-crtlog-ohlc .lk{color:var(--tz-fg-3);font-size:9px;margin-right:1px}
+.tp-crtlog-outcome{font:700 12px/1 var(--tz-font-mono);min-width:46px;text-align:right}
+.tp-crtlog-outcome.up{color:var(--tz-gain)}
+.tp-crtlog-outcome.dn{color:var(--tz-loss)}
+.tp-crtlog-outcome.flat{color:var(--tz-fg-3)}
 </style>
 </head>
 <body>
@@ -135,6 +163,9 @@
           <button class="tp-sidebar-tab" onclick="tpTabSwitch('levels',this)">
             <span id="tp-tab-icon-levels"></span>Levels
           </button>
+          <button class="tp-sidebar-tab" onclick="tpTabSwitch('crtlog',this)">
+            <span id="tp-tab-icon-crtlog"></span>Log
+          </button>
         </div>
         <div class="tp-sidebar-body tp-scroll">
 
@@ -211,6 +242,24 @@
               <div style="margin-top:10px;font:400 10px/1.5 var(--tz-font-mono);color:var(--tz-fg-3);text-align:center">
                 For educational purposes only. Not investment advice.
               </div>
+            </div>
+          </div>
+
+          <!-- CRT LOG tab -->
+          <div class="tp-tab-pane" id="tp-tab-crtlog" style="display:none">
+            <div class="tp-crtlog-or" id="tp-crtlog-or" style="display:none">
+              <span>OR High: <b id="tp-crtlog-orh">—</b></span>
+              <span>OR Low: <b id="tp-crtlog-orl">—</b></span>
+            </div>
+            <div class="tp-crtlog-ctrl">
+              <span class="tp-crtlog-count" id="tp-crtlog-count">0 candles</span>
+              <div style="margin-left:auto;display:flex;gap:6px">
+                <button class="tp-btn tp-btn-ghost" onclick="tpCrtLogExport()" style="padding:4px 10px;font-size:11px">↓ CSV</button>
+                <button class="tp-btn tp-btn-ghost" onclick="tpCrtLogClear()"  style="padding:4px 10px;font-size:11px">Clear</button>
+              </div>
+            </div>
+            <div class="tp-crtlog-body" id="tp-crtlog-body">
+              <div class="tp-crtlog-empty">Step through candles in replay mode to build the log.</div>
             </div>
           </div>
 
@@ -528,6 +577,7 @@ function setMode(mode) {
 
 // ─── Load ─────────────────────────────────────────────────────────────────────
 async function reload() {
+  tpCrtLogClear();
   stopLivePoll();
   rpStop();
   setChartLoading();
@@ -2093,6 +2143,122 @@ function showMarketClosed(msg) {
   showClosedHub(msg);
 }
 
+// ─── CRT Log ─────────────────────────────────────────────────────────────────
+
+var _crtLog         = [];
+var _crtLoggedIdxs  = new Set();
+
+var _CRT_BADGE = {
+  BEARISH_CRT: { label: '🔻 BEARISH TRAP', cls: 'bear' },
+  BULLISH_CRT: { label: '🔺 BULLISH TRAP', cls: 'bull' },
+  ABOVE_OR:    { label: '↑ ABOVE OR',     cls: 'neut' },
+  BELOW_OR:    { label: '↓ BELOW OR',     cls: 'neut' },
+  FORMING:     { label: '📐 FORMING',     cls: 'neut' },
+};
+
+function _tpCrtLogEntry(candle, state, orb, candleIdx) {
+  if (_crtLoggedIdxs.has(candleIdx)) return;
+  _crtLoggedIdxs.add(candleIdx);
+
+  var d = new Date(candle.time * 1000);
+  var t = String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
+
+  var next = _candles[candleIdx + 1] || null;
+  var nextDiff = next ? (next.close - candle.close) : null;
+
+  _crtLog.push({
+    idx:    candleIdx,
+    time:   t,
+    state:  state,
+    open:   candle.open,
+    high:   candle.high,
+    low:    candle.low,
+    close:  candle.close,
+    orHigh: orb.high,
+    orLow:  orb.low,
+    sweepAbove: state === 'BEARISH_CRT' ? (candle.high - orb.high).toFixed(1) : null,
+    sweepBelow: state === 'BULLISH_CRT' ? (orb.low  - candle.low).toFixed(1)  : null,
+    nextDiff: nextDiff,
+  });
+
+  _tpCrtLogRender();
+}
+
+function _tpCrtLogRender() {
+  var body  = document.getElementById('tp-crtlog-body');
+  var count = document.getElementById('tp-crtlog-count');
+  var orRow = document.getElementById('tp-crtlog-or');
+  if (!body) return;
+
+  var n = _crtLog.length;
+  if (count) count.textContent = n + ' candle' + (n !== 1 ? 's' : '');
+
+  if (_orbData && _orbData.high != null && orRow) {
+    orRow.style.display = '';
+    var orh = document.getElementById('tp-crtlog-orh');
+    var orl = document.getElementById('tp-crtlog-orl');
+    if (orh) orh.textContent = _orbData.high;
+    if (orl) orl.textContent = _orbData.low;
+  }
+
+  if (!n) {
+    body.innerHTML = '<div class="tp-crtlog-empty">Step through candles in replay mode to build the log.</div>';
+    return;
+  }
+
+  body.innerHTML = _crtLog.slice().reverse().map(function(e) {
+    var b = _CRT_BADGE[e.state] || { label: e.state, cls: 'neut' };
+    var bullish = e.close >= e.open;
+
+    var sweepHtml = '';
+    if (e.sweepAbove != null) sweepHtml = '<span style="color:var(--tz-loss);font:600 10px/1 var(--tz-font-mono)">↑' + e.sweepAbove + ' pts</span>';
+    if (e.sweepBelow != null) sweepHtml = '<span style="color:var(--tz-gain);font:600 10px/1 var(--tz-font-mono)">↓' + e.sweepBelow + ' pts</span>';
+
+    var outcomeHtml = '<span class="tp-crtlog-outcome flat">—</span>';
+    if (e.nextDiff != null) {
+      var cls  = e.nextDiff > 0 ? 'up' : e.nextDiff < 0 ? 'dn' : 'flat';
+      var sign = e.nextDiff > 0 ? '+' : '';
+      outcomeHtml = '<span class="tp-crtlog-outcome ' + cls + '">' + sign + e.nextDiff.toFixed(0) + '</span>';
+    }
+
+    return '<div class="tp-crtlog-row">'
+      + '<div class="tp-crtlog-t">' + e.time + '</div>'
+      + '<div class="tp-crtlog-mid">'
+      +   '<span class="tp-crtlog-badge ' + b.cls + '">' + b.label + '</span>'
+      +   '<div class="tp-crtlog-ohlc">'
+      +     '<span class="lk">H</span><span style="color:var(--tz-gain)">' + e.high.toFixed(0) + '</span>'
+      +     '<span class="lk">L</span><span style="color:var(--tz-loss)">' + e.low.toFixed(0) + '</span>'
+      +     '<span class="lk">C</span><span style="color:' + (bullish ? 'var(--tz-gain)' : 'var(--tz-loss)') + '">' + e.close.toFixed(0) + '</span>'
+      +     (sweepHtml ? sweepHtml : '')
+      +   '</div>'
+      + '</div>'
+      + outcomeHtml
+      + '</div>';
+  }).join('');
+}
+
+function tpCrtLogExport() {
+  if (!_crtLog.length) return;
+  var hdr = 'Time,State,Open,High,Low,Close,OR High,OR Low,Sweep (pts),Next Candle (pts)\n';
+  var rows = _crtLog.map(function(e) {
+    var sweep = e.sweepAbove != null ? '+' + e.sweepAbove : e.sweepBelow != null ? '-' + e.sweepBelow : '';
+    var next  = e.nextDiff != null ? (e.nextDiff >= 0 ? '+' : '') + e.nextDiff.toFixed(1) : '';
+    return [e.time, e.state, e.open.toFixed(2), e.high.toFixed(2), e.low.toFixed(2),
+            e.close.toFixed(2), e.orHigh, e.orLow, sweep, next].join(',');
+  }).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(hdr + rows);
+  var dateStr = _histDate || new Date().toISOString().slice(0,10);
+  a.download = 'crt_log_' + _sym + '_' + dateStr + '.csv';
+  a.click();
+}
+
+function tpCrtLogClear() {
+  _crtLog = [];
+  _crtLoggedIdxs = new Set();
+  _tpCrtLogRender();
+}
+
 // ─── CRT Trap Analysis ───────────────────────────────────────────────────────
 
 var _TP_CRT = {
@@ -2157,6 +2323,11 @@ function _tpCrtUpdate(candle) {
   var state = _tpCrtDetect(candle, _orbData);
   var t = _TP_CRT[state];
   var o = _orbData;
+
+  // Log entry — only in replay mode so each candle is logged once
+  if (_mode === 'replay') {
+    _tpCrtLogEntry(candle, state, o, _rpIdx);
+  }
 
   card.className   = 'tp-crt-card ' + t.cardCls;
   icon.textContent = t.icon;
@@ -3036,12 +3207,12 @@ function _tpSidebarUpdate(candle) {
 function tpTabSwitch(tab, btn) {
   document.querySelectorAll('.tp-sidebar-tab').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
-  ['pulse', 'candle', 'levels'].forEach(function(t) {
+  ['pulse', 'candle', 'levels', 'crtlog'].forEach(function(t) {
     var el = document.getElementById('tp-tab-' + t);
     if (el) el.style.display = t === tab ? '' : 'none';
   });
-  var icons = { pulse: 'brain', candle: 'candle', levels: 'target' };
-  ['pulse', 'candle', 'levels'].forEach(function(t) {
+  var icons = { pulse: 'brain', candle: 'candle', levels: 'target', crtlog: 'book' };
+  ['pulse', 'candle', 'levels', 'crtlog'].forEach(function(t) {
     var ic = document.getElementById('tp-tab-icon-' + t);
     if (ic) ic.innerHTML = _icon(icons[t], 14, t === tab ? 'var(--tp-cyan)' : 'currentColor');
   });
