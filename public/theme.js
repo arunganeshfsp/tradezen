@@ -5,7 +5,7 @@
 
   function _applyIconTheme(mode) {
     document.querySelectorAll('[data-app-logo]').forEach(function (img) {
-      img.src = mode === 'light' ? '/app-icon-light.svg' : '/app-icon.svg';
+      img.src = mode === 'light' ? '/favicon-light.svg' : '/favicon.svg';
     });
   }
 
@@ -44,11 +44,16 @@
 
   // ── Favicon ────────────────────────────────────────────────────────────
   if (!document.querySelector('link[rel~="icon"]')) {
-    var lnk = document.createElement('link');
-    lnk.rel  = 'icon';
-    lnk.type = 'image/png';
-    lnk.href = '/favicon.png';
-    document.head.appendChild(lnk);
+    [
+      { rel:'icon', type:'image/svg+xml', href:'/favicon.svg',       media:'(prefers-color-scheme: dark)' },
+      { rel:'icon', type:'image/svg+xml', href:'/favicon-light.svg', media:'(prefers-color-scheme: light)' },
+      { rel:'icon', type:'image/png',     href:'/favicon-32x32.png', sizes:'32x32' },
+      { rel:'icon', type:'image/png',     href:'/favicon-16x16.png', sizes:'16x16' },
+    ].forEach(function(a) {
+      var l = document.createElement('link');
+      Object.keys(a).forEach(function(k){ l[k] = a[k]; });
+      document.head.appendChild(l);
+    });
   }
 
   // ── Inject lang button + apply lang on DOMContentLoaded ────────────────
