@@ -3703,6 +3703,52 @@ def report_delete(date: str):
 # CPR Levels — multi-timeframe, multi-symbol CPR for the CPR Monitor page
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ── CPR levels cache (keyed by period so OHLC isn't re-fetched intraday) ─────
+_cpr_cache: dict = {}
+
+
+def _compute_atr(df, periods: int = 14) -> float | None:
+    """Simple average true range over up to `periods` bars.
+    Always called on daily 1-month bars for scale consistency across timeframes.
+    """
+    try:
+        if len(df) < 3:
+            return None
+        h = df["High"].values.astype(float)
+        l = df["Low"].values.astype(float)
+        c = df["Close"].values.astype(float)
+        tr = [max(h[i] - l[i], abs(h[i] - c[i-1]), abs(l[i] - c[i-1]))
+              for i in range(1, len(h))]
+        n = min(periods, len(tr))
+        return round(float(sum(tr[-n:]) / n), 2)
+    except Exception:
+        return None
+
+
+def _cpr_cache_key(symbol: str, timeframe: str, today_ist) -> tuple:
+    import datetime as _dt
+    if timeframe == "daily":
+        return (symbol.upper(), "daily", str(today_ist))
+    elif timeframe == "weekly":
+        week_start = today_ist - _dt.timedelta(days=today_ist.weekday())
+        return (symbol.upper(), "weekly", str(week_start))
+    elif timeframe == "monthly":
+        return (symbol.upper(), "monthly", f"{today_ist.year}-{today_ist.month:02d}")
+    return (symbol.upper(), timeframe, str(today_ist))
+
+
+def _evict_cpr_cache(today_ist) -> None:
+    import datetime as _dt
+    week_start = today_ist - _dt.timedelta(days=today_ist.weekday())
+    month_key  = f"{today_ist.year}-{today_ist.month:02d}"
+    stale = [k for k in _cpr_cache
+             if (k[1] == "daily"   and k[2] != str(today_ist))
+             or (k[1] == "weekly"  and k[2] != str(week_start))
+             or (k[1] == "monthly" and k[2] != month_key)]
+    for k in stale:
+        del _cpr_cache[k]
+
+
 def _calc_cpr(H: float, L: float, C: float) -> dict:
     PP    = round((H + L + C) / 3, 2)
     _bc   = round((H + L) / 2, 2)
@@ -3734,7 +3780,27 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
     is_nifty = symbol.upper() in ("NIFTY", "^NSEI", "NIFTY50")
     yf_sym   = "^NSEI" if is_nifty else f"{symbol.upper()}.NS"
 
+    # ── Serve from cache when available (LTP still recomputed live) ───────────
+    _evict_cpr_cache(today)
+    cache_key = _cpr_cache_key(symbol, timeframe, today)
+    if cache_key in _cpr_cache:
+        cached = _cpr_cache[cache_key]
+        ltp = None
+        if is_nifty:
+            spot = market_state.get(SPOT_TOKEN)
+            if spot and spot.get("price"):
+                ltp = round(float(spot["price"]), 2)
+        if ltp is None:
+            try:
+                intra = yf.Ticker(yf_sym).history(period="1d", interval="1m")
+                if not intra.empty:
+                    ltp = round(float(intra["Close"].iloc[-1]), 2)
+            except Exception:
+                pass
+        return {**cached, "ltp": ltp}
+
     try:
+        # ── Fetch prev-period OHLC (logic unchanged) ──────────────────────────
         if timeframe == "daily":
             if is_nifty and trade_flow_data.get("prev_ohlc"):
                 ohlc_src   = trade_flow_data["prev_ohlc"]
@@ -3746,7 +3812,7 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
                 past = df[df.index.date < today]
                 if past.empty:
                     return {"error": "No previous day data available"}
-                row  = past.iloc[-1]
+                row        = past.iloc[-1]
                 H, L, C    = float(row.High), float(row.Low), float(row.Close)
                 date_label = past.index[-1].strftime("%Y-%m-%d")
 
@@ -3759,7 +3825,7 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
             past_weeks  = df[df.index.date < week_start]
             if past_weeks.empty:
                 past_weeks = df.iloc[:-1]
-            row  = past_weeks.iloc[-1]
+            row        = past_weeks.iloc[-1]
             H, L, C    = float(row.High), float(row.Low), float(row.Close)
             date_label = "W/E " + past_weeks.index[-1].strftime("%d %b %Y")
 
@@ -3772,7 +3838,7 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
             past_months = df[df.index.date < month_start]
             if past_months.empty:
                 past_months = df.iloc[:-1]
-            row  = past_months.iloc[-1]
+            row        = past_months.iloc[-1]
             H, L, C    = float(row.High), float(row.Low), float(row.Close)
             date_label = past_months.index[-1].strftime("%b %Y")
 
@@ -3781,6 +3847,19 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
 
         cpr = _calc_cpr(H, L, C)
 
+        # ── ATR on daily 1-month bars — used by frontend as a proximity scale unit.
+        # Always daily bars regardless of CPR timeframe so the unit is consistent.
+        # NIFTY ~24000: daily ATR ≈ 200 pts. Fallback: 1% of close.
+        atr: float = round(C * 0.01, 2)
+        try:
+            atr_df   = yf.Ticker(yf_sym).history(period="1mo", interval="1d")
+            computed = _compute_atr(atr_df)
+            if computed:
+                atr = computed
+        except Exception:
+            pass
+
+        # ── LTP ───────────────────────────────────────────────────────────────
         ltp = None
         if is_nifty:
             spot = market_state.get(SPOT_TOKEN)
@@ -3794,13 +3873,16 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
             except Exception:
                 pass
 
-        return {
+        # ── Cache fixed data (ltp excluded — changes every call) ──────────────
+        payload = {
             "symbol":    symbol.upper(),
             "timeframe": timeframe,
             "ohlc":      {"high": round(H, 2), "low": round(L, 2), "close": round(C, 2), "date": date_label},
             "cpr":       cpr,
-            "ltp":       ltp,
+            "atr":       atr,
         }
+        _cpr_cache[cache_key] = payload
+        return {**payload, "ltp": ltp}
 
     except Exception as e:
         log.error(f"[CPR-LEVELS] {symbol}/{timeframe}: {e}")
@@ -3835,7 +3917,7 @@ def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
             df = yf.Ticker(yf_sym).history(period="1d", interval="5m")
             df = df.dropna()
             if df.empty:
-                return {"candles": [], "interval": "5m", "count": 0}
+                return {"candles": [], "interval": "5m", "count": 0, "data_source": "yfinance", "as_of": None}
             try:
                 df.index = df.index.tz_convert("Asia/Kolkata")
                 df = df.between_time("09:15", "15:30")
@@ -3850,14 +3932,16 @@ def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
                     "low":   round(float(row["Low"]),   2),
                     "close": round(float(row["Close"]), 2),
                 })
-            return {"candles": candles, "interval": "5m", "count": len(candles)}
+            as_of_utc = (candles[-1]["time"] - _IST_OFF) if candles else None
+            return {"candles": candles, "interval": "5m", "count": len(candles),
+                    "data_source": "yfinance", "as_of": as_of_utc}
 
         else:
             period = "3mo" if timeframe == "monthly" else "1mo"
             df = yf.Ticker(yf_sym).history(period=period, interval="1d")
             df = df.dropna()
             if df.empty:
-                return {"candles": [], "interval": "1d", "count": 0}
+                return {"candles": [], "interval": "1d", "count": 0, "data_source": "yfinance", "as_of": None}
             try:
                 df.index = df.index.normalize()
             except Exception:
@@ -3881,11 +3965,14 @@ def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
                     })
                 except Exception:
                     pass
-            return {"candles": candles, "interval": "1d", "count": len(candles)}
+            as_of_utc = candles[-1]["time"] if candles else None  # daily bars: UTC midnight epoch
+            return {"candles": candles, "interval": "1d", "count": len(candles),
+                    "data_source": "yfinance", "as_of": as_of_utc}
 
     except Exception as e:
         log.error(f"[CANDLES-FOR-CPR] {symbol}/{timeframe}: {e}")
-        return {"candles": [], "interval": "5m", "count": 0, "error": str(e)}
+        return {"candles": [], "interval": "5m", "count": 0,
+                "data_source": "yfinance", "as_of": None, "error": str(e)}
 
 
 @app.get("/candles-for-cpr")
@@ -3895,7 +3982,8 @@ async def candles_for_cpr(symbol: str = "NIFTY", timeframe: str = "daily"):
         return await loop.run_in_executor(None, _candles_for_cpr_sync, symbol, timeframe)
     except Exception as e:
         log.error(f"[CANDLES-FOR-CPR] endpoint error: {e}")
-        return {"candles": [], "interval": "5m", "count": 0, "error": str(e)}
+        return {"candles": [], "interval": "5m", "count": 0,
+                "data_source": "yfinance", "as_of": None, "error": str(e)}
 
 
 # ── Node management (called by launcher when Node is offline) ──────────────────
