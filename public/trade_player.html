@@ -2149,11 +2149,13 @@ var _crtLog         = [];
 var _crtLoggedIdxs  = new Set();
 
 var _CRT_BADGE = {
-  BEARISH_CRT: { label: '🔻 BEARISH TRAP', cls: 'bear' },
-  BULLISH_CRT: { label: '🔺 BULLISH TRAP', cls: 'bull' },
-  ABOVE_OR:    { label: '↑ ABOVE OR',     cls: 'neut' },
-  BELOW_OR:    { label: '↓ BELOW OR',     cls: 'neut' },
-  FORMING:     { label: '📐 FORMING',     cls: 'neut' },
+  BEARISH_CRT:  { label: '🔻 BEARISH TRAP',  cls: 'bear' },
+  BULLISH_CRT:  { label: '🔺 BULLISH TRAP',  cls: 'bull' },
+  SHALLOW_BEAR: { label: '〰 SHALLOW ↑',     cls: 'neut' },
+  SHALLOW_BULL: { label: '〰 SHALLOW ↓',     cls: 'neut' },
+  ABOVE_OR:     { label: '↑ ABOVE OR',       cls: 'neut' },
+  BELOW_OR:     { label: '↓ BELOW OR',       cls: 'neut' },
+  FORMING:      { label: '📐 FORMING',       cls: 'neut' },
 };
 
 function _tpCrtLogEntry(candle, state, orb, candleIdx) {
@@ -2163,8 +2165,20 @@ function _tpCrtLogEntry(candle, state, orb, candleIdx) {
   var d = new Date(candle.time * 1000);
   var t = String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
 
-  var next = _candles[candleIdx + 1] || null;
+  var next     = _candles[candleIdx + 1] || null;
   var nextDiff = next ? (next.close - candle.close) : null;
+
+  // Count consecutive candles before this one that were outside OR (context warning)
+  var extCount = 0;
+  if (state === 'BEARISH_CRT' || state === 'BULLISH_CRT' || state === 'SHALLOW_BULL' || state === 'SHALLOW_BEAR') {
+    for (var i = candleIdx - 1; i >= Math.max(0, candleIdx - 12); i--) {
+      var pc = _candles[i];
+      if (!pc) break;
+      var ps = _tpCrtDetect(pc, orb);
+      if (ps === 'BELOW_OR' || ps === 'ABOVE_OR') extCount++;
+      else break;
+    }
+  }
 
   _crtLog.push({
     idx:    candleIdx,
@@ -2176,9 +2190,10 @@ function _tpCrtLogEntry(candle, state, orb, candleIdx) {
     close:  candle.close,
     orHigh: orb.high,
     orLow:  orb.low,
-    sweepAbove: state === 'BEARISH_CRT' ? (candle.high - orb.high).toFixed(1) : null,
-    sweepBelow: state === 'BULLISH_CRT' ? (orb.low  - candle.low).toFixed(1)  : null,
-    nextDiff: nextDiff,
+    sweepAbove: (state === 'BEARISH_CRT' || state === 'SHALLOW_BEAR') ? (candle.high - orb.high).toFixed(1) : null,
+    sweepBelow: (state === 'BULLISH_CRT' || state === 'SHALLOW_BULL') ? (orb.low  - candle.low).toFixed(1)  : null,
+    nextDiff:   nextDiff,
+    extCount:   extCount,
   });
 
   _tpCrtLogRender();
@@ -2206,20 +2221,27 @@ function _tpCrtLogRender() {
     return;
   }
 
-  body.innerHTML = _crtLog.slice().reverse().map(function(e) {
-    var b = _CRT_BADGE[e.state] || { label: e.state, cls: 'neut' };
+  // Sort newest-first for display
+  var sorted = _crtLog.slice().sort(function(a,b){ return b.idx - a.idx; });
+
+  body.innerHTML = sorted.map(function(e) {
+    var b       = _CRT_BADGE[e.state] || { label: e.state, cls: 'neut' };
     var bullish = e.close >= e.open;
 
     var sweepHtml = '';
-    if (e.sweepAbove != null) sweepHtml = '<span style="color:var(--tz-loss);font:600 10px/1 var(--tz-font-mono)">↑' + e.sweepAbove + ' pts</span>';
-    if (e.sweepBelow != null) sweepHtml = '<span style="color:var(--tz-gain);font:600 10px/1 var(--tz-font-mono)">↓' + e.sweepBelow + ' pts</span>';
+    if (e.sweepAbove != null) sweepHtml = '<span style="color:var(--tz-loss);font:600 10px/1 var(--tz-font-mono)">↑' + e.sweepAbove + 'pts</span>';
+    if (e.sweepBelow != null) sweepHtml = '<span style="color:var(--tz-gain);font:600 10px/1 var(--tz-font-mono)">↓' + e.sweepBelow + 'pts</span>';
 
     var outcomeHtml = '<span class="tp-crtlog-outcome flat">—</span>';
     if (e.nextDiff != null) {
-      var cls  = e.nextDiff > 0 ? 'up' : e.nextDiff < 0 ? 'dn' : 'flat';
+      var ocls = e.nextDiff > 0 ? 'up' : e.nextDiff < 0 ? 'dn' : 'flat';
       var sign = e.nextDiff > 0 ? '+' : '';
-      outcomeHtml = '<span class="tp-crtlog-outcome ' + cls + '">' + sign + e.nextDiff.toFixed(0) + '</span>';
+      outcomeHtml = '<span class="tp-crtlog-outcome ' + ocls + '">' + sign + e.nextDiff.toFixed(0) + '</span>';
     }
+
+    var contextNote = (e.extCount >= 5)
+      ? '<span style="font:400 9px/1 var(--tz-font-mono);color:var(--tz-warning);margin-top:2px;display:block">⚠ ' + e.extCount + ' candles in extension</span>'
+      : '';
 
     return '<div class="tp-crtlog-row">'
       + '<div class="tp-crtlog-t">' + e.time + '</div>'
@@ -2229,8 +2251,9 @@ function _tpCrtLogRender() {
       +     '<span class="lk">H</span><span style="color:var(--tz-gain)">' + e.high.toFixed(0) + '</span>'
       +     '<span class="lk">L</span><span style="color:var(--tz-loss)">' + e.low.toFixed(0) + '</span>'
       +     '<span class="lk">C</span><span style="color:' + (bullish ? 'var(--tz-gain)' : 'var(--tz-loss)') + '">' + e.close.toFixed(0) + '</span>'
-      +     (sweepHtml ? sweepHtml : '')
+      +     sweepHtml
       +   '</div>'
+      +   contextNote
       + '</div>'
       + outcomeHtml
       + '</div>';
@@ -2239,12 +2262,14 @@ function _tpCrtLogRender() {
 
 function tpCrtLogExport() {
   if (!_crtLog.length) return;
-  var hdr = 'Time,State,Open,High,Low,Close,OR High,OR Low,Sweep (pts),Next Candle (pts)\n';
-  var rows = _crtLog.map(function(e) {
-    var sweep = e.sweepAbove != null ? '+' + e.sweepAbove : e.sweepBelow != null ? '-' + e.sweepBelow : '';
-    var next  = e.nextDiff != null ? (e.nextDiff >= 0 ? '+' : '') + e.nextDiff.toFixed(1) : '';
+  var hdr = 'Time,State,Open,High,Low,Close,OR High,OR Low,Sweep (pts),Next Candle (pts),Context\n';
+  // Sort chronologically for the CSV (oldest first)
+  var rows = _crtLog.slice().sort(function(a,b){ return a.idx - b.idx; }).map(function(e) {
+    var sweep   = e.sweepAbove != null ? '+' + e.sweepAbove : e.sweepBelow != null ? '-' + e.sweepBelow : '';
+    var next    = e.nextDiff  != null ? (e.nextDiff >= 0 ? '+' : '') + e.nextDiff.toFixed(1) : '';
+    var context = e.extCount  >= 5   ? e.extCount + ' candles in extension' : '';
     return [e.time, e.state, e.open.toFixed(2), e.high.toFixed(2), e.low.toFixed(2),
-            e.close.toFixed(2), e.orHigh, e.orLow, sweep, next].join(',');
+            e.close.toFixed(2), e.orHigh, e.orLow, sweep, next, context].join(',');
   }).join('\n');
   var a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(hdr + rows);
@@ -2292,12 +2317,27 @@ var _TP_CRT = {
     means:    function(c,o){ var mid=(o.high+o.low)/2; return 'No OR boundary has been tested yet. Price is in the '+(c.close>=mid?'upper':'lower')+' half of the range — CRT patterns form when price interacts with OR High or OR Low.'; },
     learn:    function()   { return 'The Opening Range (first 15 min) creates reference boundaries for CRT analysis. Watch for sweeps of OR High or OR Low on subsequent candles.'; },
   },
+  SHALLOW_BULL: {
+    icon:'〰', cardCls:'neut', chipCls:'neut', chip:'SHALLOW ↓', state:'Shallow Sweep — Low',
+    happened: function(c,o){ return 'Price dipped below OR Low ('+o.low+') by only '+( o.low - c.low ).toFixed(1)+' pts, then closed back above at '+c.close.toFixed(0)+'. Sweep too shallow.'; },
+    means:    function()   { return 'The wick below OR Low was smaller than 10% of the OR range — not enough liquidity was taken to qualify as a genuine CRT trap. These shallow pokes tend to be noise rather than reversals.'; },
+    learn:    function()   { return 'A meaningful CRT trap requires a sweep of at least 10% of the opening range. Small wicks that barely breach the boundary are often just price testing the level, not a genuine liquidity grab.'; },
+  },
+  SHALLOW_BEAR: {
+    icon:'〰', cardCls:'neut', chipCls:'neut', chip:'SHALLOW ↑', state:'Shallow Sweep — High',
+    happened: function(c,o){ return 'Price moved above OR High ('+o.high+') by only '+(c.high - o.high).toFixed(1)+' pts, then closed back below at '+c.close.toFixed(0)+'. Sweep too shallow.'; },
+    means:    function()   { return 'The wick above OR High was smaller than 10% of the OR range — not enough to qualify as a genuine CRT trap. Shallow pokes above OR High are often just stops being hunted on a very small scale.'; },
+    learn:    function()   { return 'A meaningful CRT trap requires a sweep of at least 10% of the opening range. Small wicks that barely breach the boundary are often just price testing the level, not a genuine liquidity grab.'; },
+  },
 };
 
 function _tpCrtDetect(candle, orb) {
   var h=candle.high, l=candle.low, c=candle.close, oh=orb.high, ol=orb.low;
-  if (h > oh && c < oh) return 'BEARISH_CRT';
-  if (l < ol && c > ol) return 'BULLISH_CRT';
+  // Minimum sweep = 10% of OR range, floor of 5 pts
+  var minSweep = Math.max(5, (oh - ol) * 0.10);
+
+  if (h > oh && c < oh) return (h - oh) >= minSweep ? 'BEARISH_CRT' : 'SHALLOW_BEAR';
+  if (l < ol && c > ol) return (ol - l)  >= minSweep ? 'BULLISH_CRT' : 'SHALLOW_BULL';
   if (c > oh)           return 'ABOVE_OR';
   if (c < ol)           return 'BELOW_OR';
   return 'FORMING';
