@@ -461,6 +461,7 @@ let _gen        = 0;        // incremented on every resetAndReload; guards stale
 let _running    = true;
 let _pollTimer  = null;
 let _levelInterval = null;
+let _chartLines = [];   // tracks active price lines so they can be removed on redraw
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -1193,13 +1194,18 @@ function initChart(candles) {
 
 function drawChartLines() {
   if (!_candleSerie || !_levels) return;
+
+  _chartLines.forEach(l => _candleSerie.removePriceLine(l));
+  _chartLines = [];
+
   const { tc, bc, pp, r1, r2, r3, s1, s2, s3, cam } = _levels;
   const LS = LightweightCharts.LineStyle;
   const legend = [];
 
   function pl(price, color, title, style, width) {
     if (price == null) return;
-    _candleSerie.createPriceLine({ price, color, lineWidth: width || 1, lineStyle: style, axisLabelVisible: true, title });
+    const line = _candleSerie.createPriceLine({ price, color, lineWidth: width || 1, lineStyle: style, axisLabelVisible: true, title });
+    _chartLines.push(line);
     legend.push({ color, title, price });
   }
 
