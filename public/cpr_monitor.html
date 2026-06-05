@@ -455,6 +455,8 @@ let _filterType = 'all';
 let _virginCPR  = true;
 let _breakoutDir  = null;   // 'bull' | 'bear'
 let _breakoutTime = null;   // candle.time at breakout (replaces array index for robustness)
+let _camH3Armed = true;     // false after H3 fires; re-arms when price moves > NEAR_LEVEL away
+let _camL3Armed = true;     // same for L3
 let _gen        = 0;        // incremented on every resetAndReload; guards stale in-flight fetches
 let _running    = true;
 let _pollTimer  = null;
@@ -689,7 +691,7 @@ function detectEvents(candles, lv) {
       if (curr.low <= tc && curr.high >= bc) {
         _virginCPR = false;
         document.getElementById('virginBadge').style.display = 'none';
-        document.getElementById('virginBanner').classList.add('hidden');
+        document.getElementById('virginBanner').style.display = 'none';
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'VIRGIN_CPR', price: curr.close, direction: 'Watch', confidence: 'High',
@@ -773,15 +775,23 @@ function detectEvents(candles, lv) {
       }
     } else {
       // ── Priority 6: Camarilla — only fires when no CPR event on this candle ─
-      // CAM_OFFSET window: price approaching from outside (low wick near L3 / high wick near H3).
-      // H4/L4 breaks require body confirmation (same as CPR breakouts).
-      if (curr.low <= l3 + CAM_OFFSET && curr.low >= l3 - NEAR_LEVEL && curr.close > l3) {
+      // H3/L3: armed-flag cooldown prevents repeated signals when price oscillates
+      // at the same level. Re-arms once price moves > NEAR_LEVEL away.
+      // H4/L4: natural single-fire (prev/curr cross); body confirmation required.
+
+      // Re-arm if price has moved away from either mean-reversion level
+      if (Math.abs(curr.close - h3) > NEAR_LEVEL) _camH3Armed = true;
+      if (Math.abs(curr.close - l3) > NEAR_LEVEL) _camL3Armed = true;
+
+      if (_camL3Armed && curr.low <= l3 + CAM_OFFSET && curr.low >= l3 - NEAR_LEVEL && curr.close > l3) {
+        _camL3Armed = false;
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CAMARILLA_L3', price: curr.close, direction: 'Buy', confidence: 'Medium',
           reason: `Bounce off Camarilla L3 (${fmt(l3)}) support — mean reversion long`
         });
-      } else if (curr.high >= h3 - CAM_OFFSET && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
+      } else if (_camH3Armed && curr.high >= h3 - CAM_OFFSET && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
+        _camH3Armed = false;
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CAMARILLA_H3', price: curr.close, direction: 'Sell', confidence: 'Medium',
@@ -1419,6 +1429,8 @@ function resetAndReload() {
   _virginCPR    = true;
   _breakoutDir  = null;
   _breakoutTime = null;
+  _camH3Armed   = true;
+  _camL3Armed   = true;
   _filterType   = 'all';
 
   // Reset UI elements
