@@ -125,7 +125,7 @@ body.fs-lock{overflow:hidden}
 .ind-tooltip{position:fixed;z-index:600;max-width:280px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 13px;font-size:11px;color:var(--text);line-height:1.55;display:none;box-shadow:0 6px 24px rgba(0,0,0,0.5)}
 
 /* ── PSYCHOLOGY PANELS ── */
-.psych-sidebar{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+.psych-sidebar{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:900px){.psych-sidebar{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.psych-sidebar{grid-template-columns:1fr}}
 
@@ -562,56 +562,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
   </div>
 
-  <!-- POST-GAME SUMMARY (inside left column, shown once candles are loaded) -->
-  <div id="postgame-wrap" style="display:none">
-    <div class="pg-card" data-sec>
-      <div class="pg-head sec-hdr" onclick="toggleSec(this)">
-        <span class="pg-head-icon">📋</span>
-        <span class="pg-head-title">Trading Diary</span>
-        <span class="pg-head-sub">Today's Summary</span>
-        <span class="sec-chev" style="margin-left:8px">▾</span>
-      </div>
-      <div class="sec-body" id="pg-body"></div>
-    </div>
-  </div>
-
-  <!-- DAY STORY VIEWER (inside left column, fills vertical gap, sidebar stays visible) -->
-  <div class="story-viewer-wrap" id="story-viewer-wrap" style="display:none">
-    <div class="story-viewer" data-sec>
-      <div class="sv-header sec-hdr" onclick="toggleSec(this)">
-        <span class="sv-header-icon">📖</span>
-        <span class="sv-header-title">Today's Market Story</span>
-        <span class="sv-header-meta" id="sv-meta"></span>
-        <span class="sec-chev" style="margin-left:10px">▾</span>
-      </div>
-      <div class="sv-body sec-body">
-        <div class="sv-nav-group">
-          <button class="sv-nav sv-skip" id="sv-first" onclick="storyFirst();event.stopPropagation()" title="First moment">&#x23EE;</button>
-          <button class="sv-nav" id="sv-prev" onclick="storyPrev();event.stopPropagation()" title="Previous">&#8592;</button>
-        </div>
-        <div class="sv-main">
-          <div class="sv-act" id="sv-act"></div>
-          <div class="sv-entry" id="sv-entry">
-            <div class="sv-entry-top">
-              <span class="sv-time" id="sv-time"></span>
-              <span class="sv-emoji" id="sv-emoji"></span>
-            </div>
-            <div class="sv-text" id="sv-text"></div>
-          </div>
-          <div class="sv-footer">
-            <span class="sv-counter" id="sv-counter"></span>
-            <button class="sv-chart-btn" onclick="storyJumpToChart();event.stopPropagation()" title="Jump to this candle on the chart">&#128205; See on chart</button>
-            <div class="sv-dots" id="sv-dots"></div>
-          </div>
-        </div>
-        <div class="sv-nav-group sv-nav-right">
-          <button class="sv-nav" id="sv-next" onclick="storyNext();event.stopPropagation()" title="Next">&#8594;</button>
-          <button class="sv-nav sv-skip" id="sv-last" onclick="storyLast();event.stopPropagation()" title="Last moment">&#x23ED;</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   </div><!-- /chart-col -->
 
   <!-- Indicator info tooltip -->
@@ -740,6 +690,56 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
 
   </div><!-- /psych-sidebar -->
+
+  <!-- TRADING DIARY + DAY STORY — full width at the bottom -->
+  <div id="postgame-wrap" style="display:none">
+    <div class="pg-card" data-sec>
+      <div class="pg-head sec-hdr" onclick="toggleSec(this)">
+        <span class="pg-head-icon">📋</span>
+        <span class="pg-head-title">Trading Diary</span>
+        <span class="pg-head-sub">Today's Summary</span>
+        <span class="sec-chev" style="margin-left:8px">▾</span>
+      </div>
+      <div class="sec-body" id="pg-body"></div>
+    </div>
+  </div>
+
+  <div class="story-viewer-wrap" id="story-viewer-wrap" style="display:none">
+    <div class="story-viewer" data-sec>
+      <div class="sv-header sec-hdr" onclick="toggleSec(this)">
+        <span class="sv-header-icon">📖</span>
+        <span class="sv-header-title">Today's Market Story</span>
+        <span class="sv-header-meta" id="sv-meta"></span>
+        <span class="sec-chev" style="margin-left:10px">▾</span>
+      </div>
+      <div class="sv-body sec-body">
+        <div class="sv-nav-group">
+          <button class="sv-nav sv-skip" id="sv-first" onclick="storyFirst();event.stopPropagation()" title="First moment">&#x23EE;</button>
+          <button class="sv-nav" id="sv-prev" onclick="storyPrev();event.stopPropagation()" title="Previous">&#8592;</button>
+        </div>
+        <div class="sv-main">
+          <div class="sv-act" id="sv-act"></div>
+          <div class="sv-entry" id="sv-entry">
+            <div class="sv-entry-top">
+              <span class="sv-time" id="sv-time"></span>
+              <span class="sv-emoji" id="sv-emoji"></span>
+            </div>
+            <div class="sv-text" id="sv-text"></div>
+          </div>
+          <div class="sv-footer">
+            <span class="sv-counter" id="sv-counter"></span>
+            <button class="sv-chart-btn" onclick="storyJumpToChart();event.stopPropagation()" title="Jump to this candle on the chart">&#128205; See on chart</button>
+            <div class="sv-dots" id="sv-dots"></div>
+          </div>
+        </div>
+        <div class="sv-nav-group sv-nav-right">
+          <button class="sv-nav" id="sv-next" onclick="storyNext();event.stopPropagation()" title="Next">&#8594;</button>
+          <button class="sv-nav sv-skip" id="sv-last" onclick="storyLast();event.stopPropagation()" title="Last moment">&#x23ED;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /main-wrap -->
 
 <!-- REPLAY CONTROLS -->
