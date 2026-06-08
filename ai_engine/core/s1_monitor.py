@@ -30,7 +30,8 @@ class S1StrategyMonitor:
         self.session_start_time = None
 
     def check_s1_setup(self, nifty_price: float, candles: pd.DataFrame,
-                       vix: float, current_time: datetime) -> Dict[str, Any]:
+                       vix: float, current_time: datetime,
+                       rsi_override: float = None) -> Dict[str, Any]:
         result = {
             'signal': None,
             'conditions': {
@@ -78,8 +79,13 @@ class S1StrategyMonitor:
             close = candles['close']
             ema9  = float(calculate_ema(close, 9).iloc[-1])
             ema21 = float(calculate_ema(close, 21).iloc[-1])
-            rsi_raw = float(calculate_rsi(close, 14).iloc[-1])
-            rsi = None if math.isnan(rsi_raw) else rsi_raw
+            # Use caller-supplied RSI when available (pre-computed from 5-day history
+            # for Wilder warm-up accuracy); fall back to today-only calculation
+            if rsi_override is not None:
+                rsi = rsi_override
+            else:
+                rsi_raw = float(calculate_rsi(close, 14).iloc[-1])
+                rsi = None if math.isnan(rsi_raw) else rsi_raw
         except Exception as e:
             print(f"[S1] Indicator calculation failed: {e}")
             return result

@@ -1216,24 +1216,37 @@ def _s1_monitor_state() -> dict:
     import yfinance as yf
 
     try:
-        # Fetch 5-min candles for the current day (from 9:15 AM)
+        from core.indicators.ema import calculate_ema
+        from core.indicators.rsi import calculate_rsi
+
+        IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+        today_date = _dt.datetime.now(IST).date()
+
+        # Fetch 5 days of 5-min data so Wilder RSI has enough history to converge.
+        # (RSI seeded on only today's ~35 candles diverges from TradingView by 5–10 pts.)
         ticker = yf.Ticker("^NSEI")
-        df_5m = ticker.history(period="1d", interval="5m")
-        if df_5m.empty:
+        df_raw = ticker.history(period="5d", interval="5m")
+        if df_raw.empty:
             return {"error": "No 5-min data available", "status": "offline"}
 
-        # Convert to IST
-        df_5m.index = df_5m.index.tz_convert("Asia/Kolkata")
-        df_5m = df_5m[["Open", "High", "Low", "Close", "Volume"]].dropna()
+        df_raw.index = df_raw.index.tz_convert("Asia/Kolkata")
+        df_raw = df_raw[["Open", "High", "Low", "Close", "Volume"]].dropna()
+        df_raw.columns = ['open', 'high', 'low', 'close', 'volume']
 
-        # Filter for today's trading hours (9:15 AM - 3:30 PM)
-        df_5m = df_5m.between_time("09:15", "15:30")
+        # All 5 days filtered to trading hours — used only for RSI warm-up
+        df_all = df_raw.between_time("09:15", "15:30")
 
-        if df_5m.empty:
+        # Today's candles only — used for OR formation, EMA, chart, and price logic
+        df_today = df_all[df_all.index.date == today_date]
+
+        if df_today.empty:
             return {"error": "Market hours data not available", "status": "offline"}
 
-        # Normalize column names for S1 monitor
-        df_5m.columns = ['open', 'high', 'low', 'close', 'volume']
+        # Pre-compute RSI on full 5-day series so Wilder's smoothing is fully settled
+        rsi_full = calculate_rsi(df_all['close'], 14)
+        rsi_today_vals = rsi_full[rsi_full.index.date == today_date]
+        latest_rsi_raw = float(rsi_full.iloc[-1]) if len(rsi_full) > 0 else None
+        rsi_override = latest_rsi_raw if latest_rsi_raw is not None and not math.isnan(latest_rsi_raw) else None
 
         # Get live price
         spot = market_state.get(SPOT_TOKEN)
@@ -1250,79 +1263,66 @@ def _s1_monitor_state() -> dict:
         except:
             india_vix = None
 
-        # Run S1 monitor
+        # Run S1 monitor — today's candles for OR/EMA/price, rsi_override from 5-day history
         s1_monitor = S1StrategyMonitor()
         result = s1_monitor.check_s1_setup(
             nifty_price=nifty_price,
-            candles=df_5m,
+            candles=df_today,
             vix=india_vix or 20,
-            current_time=datetime.now(_dt.timezone(_dt.timedelta(hours=5, minutes=30)))
+            current_time=datetime.now(IST),
+            rsi_override=rsi_override,
         )
 
         result['status'] = 'online'
         result['nifty_price'] = round(nifty_price, 2)
         result['india_vix'] = round(india_vix, 2) if india_vix else None
         result['timestamp'] = datetime.now().isoformat()
-        result['candles_count'] = len(df_5m)
+        result['candles_count'] = len(df_today)
 
         # ────────────────────────────────────────────────────────────────────
         # Generate chart data (candles + indicators for lightweight-charts)
         # ────────────────────────────────────────────────────────────────────
         try:
-            from core.indicators.ema import calculate_ema
-            from core.indicators.rsi import calculate_rsi
+            close_today = df_today['close']
+            ema9_series  = calculate_ema(close_today, 9)
+            ema21_series = calculate_ema(close_today, 21)
+            # Use today's slice of the already-computed 5-day RSI series
+            rsi_vals = rsi_today_vals.values
 
-            close = df_5m['close']
-            ema9_series = calculate_ema(close, 9)
-            ema21_series = calculate_ema(close, 21)
-            rsi_series = calculate_rsi(close, 14)
+            chart_candles, chart_ema9, chart_ema21, chart_rsi = [], [], [], []
 
-            # Convert candles to lightweight-charts format
-            chart_candles = []
-            chart_ema9 = []
-            chart_ema21 = []
-            chart_rsi = []
+            IST_OFFSET = 19800  # +5h30m in seconds — shifts UTC epoch to IST for chart display
 
-            IST_OFFSET = 19800  # +5h30m in seconds — shifts UTC timestamps to IST for chart display
+            for idx, (ts, row) in enumerate(df_today.iterrows()):
+                t = int(ts.timestamp()) + IST_OFFSET
 
-            for idx, (ts, row) in enumerate(df_5m.iterrows()):
-                # Unix timestamp in seconds + IST offset for correct chart time display
-                time = int(ts.timestamp()) + IST_OFFSET
-
-                # Candlestick
                 chart_candles.append({
-                    'time': time,
-                    'open': round(float(row['open']), 2),
-                    'high': round(float(row['high']), 2),
-                    'low': round(float(row['low']), 2),
+                    'time': t,
+                    'open':  round(float(row['open']),  2),
+                    'high':  round(float(row['high']),  2),
+                    'low':   round(float(row['low']),   2),
                     'close': round(float(row['close']), 2),
                 })
 
-                # EMA lines
                 if idx < len(ema9_series):
-                    ema9_val = float(ema9_series.iloc[idx])
-                    chart_ema9.append({'time': time, 'value': round(ema9_val, 2)})
+                    chart_ema9.append({'time': t, 'value': round(float(ema9_series.iloc[idx]), 2)})
 
                 if idx < len(ema21_series):
-                    ema21_val = float(ema21_series.iloc[idx])
-                    chart_ema21.append({'time': time, 'value': round(ema21_val, 2)})
+                    chart_ema21.append({'time': t, 'value': round(float(ema21_series.iloc[idx]), 2)})
 
-                if idx < len(rsi_series):
-                    rsi_val = float(rsi_series.iloc[idx])
-                    if not math.isnan(rsi_val):
-                        chart_rsi.append({'time': time, 'value': round(rsi_val, 2)})
-
-            latest_rsi_raw = float(rsi_series.iloc[-1]) if len(rsi_series) > 0 else None
-            latest_rsi = round(latest_rsi_raw, 2) if latest_rsi_raw is not None and not math.isnan(latest_rsi_raw) else None
+                if idx < len(rsi_vals):
+                    rv = float(rsi_vals[idx])
+                    if not math.isnan(rv):
+                        chart_rsi.append({'time': t, 'value': round(rv, 2)})
 
             result['chart_data'] = {
-                'candles': chart_candles,
-                'ema9': chart_ema9,
-                'ema21': chart_ema21,
-                'rsi': chart_rsi,
-                'latest_ema9': round(float(ema9_series.iloc[-1]), 2) if len(ema9_series) > 0 else None,
+                'candles':     chart_candles,
+                'ema9':        chart_ema9,
+                'ema21':       chart_ema21,
+                'rsi':         chart_rsi,
+                'latest_ema9':  round(float(ema9_series.iloc[-1]),  2) if len(ema9_series)  > 0 else None,
                 'latest_ema21': round(float(ema21_series.iloc[-1]), 2) if len(ema21_series) > 0 else None,
-                'latest_rsi': latest_rsi,
+                'latest_rsi':   round(rsi_override, 2) if rsi_override is not None else None,
             }
 
         except Exception as e:
