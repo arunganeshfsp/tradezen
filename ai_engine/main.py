@@ -1256,7 +1256,7 @@ def _s1_monitor_state() -> dict:
             nifty_price=nifty_price,
             candles=df_5m,
             vix=india_vix or 20,
-            current_time=datetime.now()
+            current_time=datetime.now(_dt.timezone(_dt.timedelta(hours=5, minutes=30)))
         )
 
         result['status'] = 'online'
@@ -1309,7 +1309,11 @@ def _s1_monitor_state() -> dict:
 
                 if idx < len(rsi_series):
                     rsi_val = float(rsi_series.iloc[idx])
-                    chart_rsi.append({'time': time, 'value': round(rsi_val, 2)})
+                    if not math.isnan(rsi_val):
+                        chart_rsi.append({'time': time, 'value': round(rsi_val, 2)})
+
+            latest_rsi_raw = float(rsi_series.iloc[-1]) if len(rsi_series) > 0 else None
+            latest_rsi = round(latest_rsi_raw, 2) if latest_rsi_raw is not None and not math.isnan(latest_rsi_raw) else None
 
             result['chart_data'] = {
                 'candles': chart_candles,
@@ -1318,7 +1322,7 @@ def _s1_monitor_state() -> dict:
                 'rsi': chart_rsi,
                 'latest_ema9': round(float(ema9_series.iloc[-1]), 2) if len(ema9_series) > 0 else None,
                 'latest_ema21': round(float(ema21_series.iloc[-1]), 2) if len(ema21_series) > 0 else None,
-                'latest_rsi': round(float(rsi_series.iloc[-1]), 2) if len(rsi_series) > 0 else None,
+                'latest_rsi': latest_rsi,
             }
 
         except Exception as e:
@@ -1365,7 +1369,7 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
         price = float(info.last_price) if hasattr(info, 'last_price') and info.last_price else float(df_5m['close'].iloc[-1])
 
         monitor = StockOptionsMonitor(symbol)
-        result = monitor.check_setup(price=price, candles=df_5m, current_time=datetime.now())
+        result = monitor.check_setup(price=price, candles=df_5m, current_time=datetime.now(_dt.timezone(_dt.timedelta(hours=5, minutes=30))))
 
         result['status'] = 'online'
         result['price'] = round(price, 2)
