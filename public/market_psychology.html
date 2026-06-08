@@ -78,8 +78,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 @keyframes pulseAnim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 
 /* ── MAIN LAYOUT ── */
-.main-wrap{max-width:1240px;margin:0 auto;padding:24px 28px 80px;display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
-@media(max-width:1000px){.main-wrap{grid-template-columns:1fr}}
+.main-wrap{max-width:1240px;margin:0 auto;padding:24px 28px 80px;display:flex;flex-direction:column;gap:20px}
 @media(max-width:600px){.main-wrap{padding:16px 16px 80px}}
 .chart-col{display:flex;flex-direction:column;gap:16px;min-width:0}
 
@@ -125,8 +124,10 @@ body.fs-lock{overflow:hidden}
 /* ─── Info tooltip ─── */
 .ind-tooltip{position:fixed;z-index:600;max-width:280px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 13px;font-size:11px;color:var(--text);line-height:1.55;display:none;box-shadow:0 6px 24px rgba(0,0,0,0.5)}
 
-/* ── PSYCHOLOGY SIDEBAR ── */
-.psych-sidebar{display:flex;flex-direction:column;gap:14px}
+/* ── PSYCHOLOGY PANELS ── */
+.psych-sidebar{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+@media(max-width:900px){.psych-sidebar{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.psych-sidebar{grid-template-columns:1fr}}
 
 /* ── DOMINANCE METER ── */
 .dom-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:16px}
