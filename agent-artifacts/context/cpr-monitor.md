@@ -87,3 +87,10 @@ Three rules added 2026-06-09 to kill false/contradictory alerts:
 - `_virginCPR` is determined client-side by checking if any fetched candle has high ≥ TC or low ≤ BC.
 - Weekly/monthly timeframes use daily candles (not intraday) — `_candles` array content changes accordingly.
 - Side effect of rule 1: a gap-up open above TC that later falls back fires no BREAKOUT_FAILURE — intentional, there was no breakout to fail.
+- SEBI compliance (2026-06-09): all user-facing directive language removed across the page.
+  - Alert `direction` values: `'Bullish'`/`'Bearish'`/`'Watch'` (was Buy/Sell). CSS classes `dir-buy`/`dir-sell` kept for green/red styling — internal names only.
+  - Active Signals: Mean Reversion status `BULLISH EDGE`/`BEARISH EDGE` (was BUY/SELL ZONE); level chips `Lower edge`/`Upper edge` (was Buy/Sell); Camarilla msgs use "bullish/bearish reference, invalidation …" (was "buy/sell with SL …").
+  - Reason strings: "bullish/bearish continuation setup", "bullish/bearish mean-reversion setup", "strong bullish/bearish trend continuation" (was long/short).
+  - Trade Plan: "Reference Zone" label + "… retest reference" notes (was "Entry Zone" / "… breakout entry").
+  - Disclaimer added at the bottom of `.alert-section` (was missing — mandatory per CLAUDE.md).
+  - Internal JS identifiers `entry`/`entryVal`/`entryNote` retained — not rendered.

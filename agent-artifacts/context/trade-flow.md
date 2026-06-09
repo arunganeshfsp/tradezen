@@ -1,13 +1,28 @@
 # Context: trade-flow
 
 **File:** `public/trade_flow.html`  
-**Last updated:** 2026-05-23
+**Last updated:** 2026-06-09
 
 ---
 
 ## Purpose
 
 Pre-market + intraday bias dashboard. Walks traders through a 6-step framework: GIFT Nifty gap → CPR width → scenario → opening price → ORB → live signal. Steps auto-advance based on market phase.
+
+---
+
+## SEBI Compliance Reframe (2026-06-09)
+
+Full educational reframe of all user-facing directive language (English + Tamil). Per CLAUDE.md, this is an educational tool, not advice. Key conventions now used throughout:
+
+- **Buy/Sell/Long/Short directives → descriptive bias:** `Bullish`/`Bearish`/`Watch`. "buy opportunity" → "bullish reference zone"; "Enter Long" / "Long entry" → "bullish trigger" / "bullish setup".
+- **Triggers/exits framed as premise, not orders:** "ENTRY NOW" → "TRIGGER ACTIVE — … SETUP"; "STOP LOSS HIT — EXIT NOW" → "INVALIDATION LEVEL REACHED"; "BIAS BROKEN — EXIT" → "PREMISE INVALIDATED"; "FALSE BREAKOUT — EXIT" → "PREMISE FAILED".
+- **Risk-management terms:** "SL" → "Invalidation"; "book 50%" → "first reference"; "trail SL/stop → entry" → "trail invalidation to breakeven"; "Entry Zone" → "Reference Zone".
+- **Position sizing → conviction:** "FULL/HALF POSITION", "REDUCED SIZE" → "FULL/HALF/LOW CONVICTION"; "NO TRADE" → "NO SETUP"; "SKIP / REDUCE SIZE" → "STAND ASIDE / LOW CONVICTION".
+- **Hero title:** "Trade Entry Flow" → "Trade Decision Flow".
+- **Disclaimer:** footer now carries the full mandated line.
+
+**Important — `_getCprDirection()` internal enum is unchanged:** it still returns `dir: 'LONG' | 'SHORT' | 'WATCH'`. These tokens drive CSS classes (`.alog-dir.LONG`, `.alog-stat.long`), alert-log storage, filters, and outcome evaluation. A `DIR_LABEL = { LONG:'BULLISH', SHORT:'BEARISH', WATCH:'WATCH' }` map (defined just before `_fireAlert`) converts them to compliant labels at the three display sites only (toast, browser notification, alert-log row). Do NOT rename the enum — it would break CSS/storage/filters. Only the displayed text is mapped.
 
 ---
 

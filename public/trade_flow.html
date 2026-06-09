@@ -377,7 +377,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 <div class="hero">
   <div class="hero-glow"></div>
   <div class="htag">🧭 Trade Decision Framework · வர்த்தக முடிவு வழிகாட்டி</div>
-  <h1>Pre-Market to<br><em>Trade Entry Flow</em></h1>
+  <h1>Pre-Market to<br><em>Trade Decision Flow</em></h1>
   <p class="hero-ta">8:45 AM முதல் 9:30 AM வரை — ஒவ்வொரு நடவடிக்கையும் live data-உடன்</p>
 
   <!-- Live status bar -->
@@ -513,22 +513,22 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
   <div id="verdict-bull" class="verdict v-bull" style="display:none">
     <div class="v-icon">✅</div>
     <div>
-      <div class="v-title vt-bull">HIGH PROBABILITY LONG</div>
-      <div class="v-sub">ORB ✅ + CPR ✅ + Volume ✅<br><span style="font-family:'Tiro Tamil',serif">மூன்றும் சேர்ந்தால் → Long எடுங்கள்!</span></div>
+      <div class="v-title vt-bull">HIGH-ALIGNMENT BULLISH SETUP</div>
+      <div class="v-sub">ORB ✅ + CPR ✅ + Volume ✅<br><span style="font-family:'Tiro Tamil',serif">மூன்றும் சேர்ந்தால் → வலுவான bullish setup!</span></div>
     </div>
   </div>
   <div id="verdict-bear" class="verdict v-bear" style="display:none">
     <div class="v-icon">✅</div>
     <div>
-      <div class="v-title vt-bear">HIGH PROBABILITY SHORT</div>
-      <div class="v-sub">ORB ✅ + CPR ✅ + Volume ✅<br><span style="font-family:'Tiro Tamil',serif">மூன்றும் சேர்ந்தால் → Short எடுங்கள்!</span></div>
+      <div class="v-title vt-bear">HIGH-ALIGNMENT BEARISH SETUP</div>
+      <div class="v-sub">ORB ✅ + CPR ✅ + Volume ✅<br><span style="font-family:'Tiro Tamil',serif">மூன்றும் சேர்ந்தால் → வலுவான bearish setup!</span></div>
     </div>
   </div>
   <div id="verdict-skip" class="verdict v-skip" style="display:none">
     <div class="v-icon">❌</div>
     <div>
-      <div class="v-title vt-skip">SKIP / REDUCE SIZE</div>
-      <div class="v-sub">ORB ≠ CPR direction conflict<br><span style="font-family:'Tiro Tamil',serif">திசை முரண்பட்டால் → Trade வேண்டாம்</span></div>
+      <div class="v-title vt-skip">STAND ASIDE / LOW CONVICTION</div>
+      <div class="v-sub">ORB ≠ CPR direction conflict<br><span style="font-family:'Tiro Tamil',serif">திசை முரண்பட்டால் → setup வேண்டாம்</span></div>
     </div>
   </div>
 
@@ -593,9 +593,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
       <table class="compare-table" style="margin-bottom:16px">
         <thead><tr><th>CPR Width</th><th>Type</th><th>Expected Day</th><th>Strategy</th></tr></thead>
         <tbody>
-          <tr><td style="color:var(--green)">&lt;40 pts</td><td>Narrow</td><td>Strong trend</td><td>Trade breakout aggressively</td></tr>
+          <tr><td style="color:var(--green)">&lt;40 pts</td><td>Narrow</td><td>Strong trend</td><td>Breakout setups in focus</td></tr>
           <tr><td style="color:var(--yellow)">40–80 pts</td><td>Moderate</td><td>Mixed</td><td>Confirm with ORB</td></tr>
-          <tr><td style="color:var(--red)">&gt;80 pts</td><td>Wide</td><td>Sideways/choppy</td><td>Reduce size or avoid</td></tr>
+          <tr><td style="color:var(--red)">&gt;80 pts</td><td>Wide</td><td>Sideways/choppy</td><td>Low conviction — observe only</td></tr>
         </tbody>
       </table>
       <div id="s2-analysis"></div>
@@ -721,7 +721,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
       </div>
       <div class="tip-strip">
         <div class="tip-lbl">💡 Opening Rule Summary</div>
-        Above TC → 🟢 Look for Longs only &nbsp;|&nbsp; Inside CPR → ⚠️ Wait &nbsp;|&nbsp; Below BC → 🔴 Look for Shorts only
+        Above TC → 🟢 Study bullish setups only &nbsp;|&nbsp; Inside CPR → ⚠️ Wait &nbsp;|&nbsp; Below BC → 🔴 Study bearish setups only
       </div>
     </div>
   </div>
@@ -776,13 +776,13 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
       <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;
                   letter-spacing:1px;color:var(--red);margin-bottom:14px">⛔ HARD NO'S — Never Break These</div>
       <div style="display:flex;flex-direction:column;gap:9px">
-        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never go <strong style="color:var(--green)">Long</strong> if open was <strong>below BC</strong> — CPR bias is bearish</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never go <strong style="color:var(--red)">Short</strong> if open was <strong>above TC</strong> — CPR bias is bullish</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never enter if lean score &lt; 3 — conflict day, no edge</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never trade if VIX &gt; 25 — moves are random, not directional</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Never trade if ORB range &gt; 200 pts — too wide, whipsaw risk</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">No re-entry after SL hit — one trade per side per day</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">No positions held overnight — exit all by 3:15 PM</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">A <strong style="color:var(--green)">bullish</strong> setup doesn't apply if open was <strong>below BC</strong> — CPR bias is bearish</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">A <strong style="color:var(--red)">bearish</strong> setup doesn't apply if open was <strong>above TC</strong> — CPR bias is bullish</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">No edge if lean score &lt; 3 — conflict day</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Stand aside if VIX &gt; 25 — moves are random, not directional</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Skip if ORB range &gt; 200 pts — too wide, whipsaw risk</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">One setup per side per day — no re-engagement after invalidation</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>🚫</span><span style="color:var(--dim)">Intraday study only — nothing carried overnight, flat by 3:15 PM</span></div>
       </div>
     </div>
 
@@ -792,13 +792,13 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
       <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;
                   letter-spacing:1px;color:var(--green);margin-bottom:14px">✅ QUICK RULES — Always Follow</div>
       <div style="display:flex;flex-direction:column;gap:9px">
-        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Wait for <strong>full 5-min candle close</strong> beyond ORB level before entering</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">SL = <strong>opposite side of ORB</strong> (bull entry → SL at ORB Low)</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Book <strong>50% at T1 (R1/S1)</strong> — lock profit, reduce risk</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Move SL to <strong>entry (breakeven)</strong> after T1 hit — rest rides free</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Full position only on <strong>full bull/bear</strong> day + VIX &lt; 16 + narrow CPR</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Conditional setup → <strong>half position</strong> (50%) by default</span></div>
-        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">VIX 20–25 → cut size to <strong>25%</strong> regardless of scenario</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Wait for <strong>full 5-min candle close</strong> beyond ORB level before a setup is valid</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Invalidation = <strong>opposite side of ORB</strong> (bullish setup → invalidation at ORB Low)</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">First reference <strong>T1 (R1/S1)</strong> — partial milestone, reduces risk</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Move invalidation to <strong>breakeven</strong> after T1 — rest rides free</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Full conviction only on <strong>full bull/bear</strong> day + VIX &lt; 16 + narrow CPR</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">Conditional setup → <strong>half conviction</strong> (50%) by default</span></div>
+        <div style="display:flex;gap:10px;font-size:13px"><span>📌</span><span style="color:var(--dim)">VIX 20–25 → reduce conviction to <strong>25%</strong> regardless of scenario</span></div>
       </div>
     </div>
 
@@ -841,8 +841,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 
 <footer>
   <div class="fbrand"><img class="flogo" src="/app-icon.svg" alt=""><span>TradeZen</span></div>
-  <div class="fnote">Nifty50 · CPR + ORB Framework · <em>SEBI 2026</em> · தமிழில் விளக்கம்</div>
-  <div class="fnote" style="font-size:10px;">© 2026 · Educational purposes only · நிதி ஆலோசனை அல்ல</div>
+  <div class="fnote">Nifty50 · CPR + ORB Framework · தமிழில் விளக்கம்</div>
+  <div class="fnote" style="font-size:10px;">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading. · நிதி ஆலோசனை அல்ல</div>
 </footer>
 
 <script>
@@ -1304,15 +1304,15 @@ function renderStep3(d) {
     return;
   }
   const levels = [
-    { lbl:'R3', price:cpr.r3, bar:'linear-gradient(90deg,var(--cyan),var(--green))', bg:'rgba(0,212,255,0.08)', bc:'rgba(0,212,255,0.25)',   col:'var(--cyan)',   desc:'Extended bull target 3' },
-    { lbl:'R2', price:cpr.r2, bar:'linear-gradient(90deg,var(--green),#27ae60)',     bg:'rgba(46,204,113,0.08)', bc:'rgba(46,204,113,0.2)',   col:'var(--green)', desc:'Bull target 2' },
-    { lbl:'R1', price:cpr.r1, bar:'var(--green)',                                    bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'Bull target 1' },
+    { lbl:'R3', price:cpr.r3, bar:'linear-gradient(90deg,var(--cyan),var(--green))', bg:'rgba(0,212,255,0.08)', bc:'rgba(0,212,255,0.25)',   col:'var(--cyan)',   desc:'Extended bullish reference 3' },
+    { lbl:'R2', price:cpr.r2, bar:'linear-gradient(90deg,var(--green),#27ae60)',     bg:'rgba(46,204,113,0.08)', bc:'rgba(46,204,113,0.2)',   col:'var(--green)', desc:'Bullish reference 2' },
+    { lbl:'R1', price:cpr.r1, bar:'var(--green)',                                    bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'Bullish reference 1' },
     { lbl:'TC', price:cpr.tc, bar:'rgba(46,204,113,0.5)',                            bg:'rgba(46,204,113,0.06)', bc:'rgba(46,204,113,0.15)', col:'var(--green)', desc:'CPR upper' },
     { lbl:'PP', price:cpr.pp, bar:'var(--yellow)',                                   bg:'rgba(245,166,35,0.08)', bc:'rgba(245,166,35,0.2)',  col:'var(--yellow)',desc:'Pivot magnet' },
     { lbl:'BC', price:cpr.bc, bar:'rgba(231,76,60,0.5)',                             bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'CPR lower' },
-    { lbl:'S1', price:cpr.s1, bar:'var(--red)',                                      bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'Bear target 1' },
-    { lbl:'S2', price:cpr.s2, bar:'linear-gradient(90deg,var(--red),#c0392b)',       bg:'rgba(231,76,60,0.08)', bc:'rgba(231,76,60,0.2)',    col:'var(--red)',   desc:'Bear target 2' },
-    { lbl:'S3', price:cpr.s3, bar:'linear-gradient(90deg,#c0392b,#922b21)',          bg:'rgba(231,76,60,0.10)', bc:'rgba(231,76,60,0.3)',    col:'var(--red)',   desc:'Extended bear target 3' },
+    { lbl:'S1', price:cpr.s1, bar:'var(--red)',                                      bg:'rgba(231,76,60,0.06)', bc:'rgba(231,76,60,0.15)',   col:'var(--red)',   desc:'Bearish reference 1' },
+    { lbl:'S2', price:cpr.s2, bar:'linear-gradient(90deg,var(--red),#c0392b)',       bg:'rgba(231,76,60,0.08)', bc:'rgba(231,76,60,0.2)',    col:'var(--red)',   desc:'Bearish reference 2' },
+    { lbl:'S3', price:cpr.s3, bar:'linear-gradient(90deg,#c0392b,#922b21)',          bg:'rgba(231,76,60,0.10)', bc:'rgba(231,76,60,0.3)',    col:'var(--red)',   desc:'Extended bearish reference 3' },
   ];
   // ── CPR panel ──
   let html = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
@@ -1410,19 +1410,19 @@ function renderStep4(d) {
     posLabel = `<span class="dv-green">Open ${fmtDiff(open.vs_tc)} ABOVE TC ✅</span>`;
     checks = `
       <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text">Opening <strong>above TC</strong> = CPR band is now support below. Market will try to stay above TC all day.</div></div>
-      <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text ta">${fmt(open.price)}-ல் திறப்பு → TC (${fmt(cpr.tc)})-க்கு ${fmtDiff(open.vs_tc)} மேலே. <strong style="color:var(--green)">வலுவான ஏற்ற நாள்</strong> உறுதி. Long trades மட்டும்.</div></div>`;
+      <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text ta">${fmt(open.price)}-ல் திறப்பு → TC (${fmt(cpr.tc)})-க்கு ${fmtDiff(open.vs_tc)} மேலே. <strong style="color:var(--green)">வலுவான ஏற்ற நாள்</strong> உறுதி. Bullish setups மட்டும் கவனிக்கவும்.</div></div>`;
   } else if (open.position === 'below_bc') {
     boxClass = 'sb-bear';
     posLabel = `<span class="dv-red">Open ${fmtDiff(open.vs_bc)} BELOW BC ✅</span>`;
     checks = `
       <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text">Opening <strong>below BC</strong> = CPR band is now resistance above. Market will try to stay below BC all day.</div></div>
-      <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text ta">${fmt(open.price)}-ல் திறப்பு → BC (${fmt(cpr.bc)})-க்கு கீழே. <strong style="color:var(--red)">வலுவான இறக்க நாள்</strong> உறுதி. Short trades மட்டும்.</div></div>`;
+      <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text ta">${fmt(open.price)}-ல் திறப்பு → BC (${fmt(cpr.bc)})-க்கு கீழே. <strong style="color:var(--red)">வலுவான இறக்க நாள்</strong> உறுதி. Bearish setups மட்டும் கவனிக்கவும்.</div></div>`;
   } else {
     boxClass = 'sb-neutral';
     posLabel = `<span class="dv-yellow">INSIDE CPR BAND ⚠️</span>`;
     checks = `
-      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text">Opening <strong>inside CPR</strong> (${fmt(cpr.bc)}–${fmt(cpr.tc)}) = choppy, indecisive day. No clear bias. Wait for price to exit CPR before trading.</div></div>
-      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text ta">${fmt(open.price)} → CPR-க்குள் திறப்பு. <strong style="color:var(--yellow)">திசை தெரியவில்லை.</strong> CPR-ஐ உடைத்து வெளியே சென்ற பிறகே trade எடுங்கள்.</div></div>`;
+      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text">Opening <strong>inside CPR</strong> (${fmt(cpr.bc)}–${fmt(cpr.tc)}) = choppy, indecisive day. No clear bias. Wait for price to exit CPR before a setup forms.</div></div>
+      <div class="chk warn"><span class="chk-icon">⚠️</span><div class="chk-text ta">${fmt(open.price)} → CPR-க்குள் திறப்பு. <strong style="color:var(--yellow)">திசை தெரியவில்லை.</strong> CPR-ஐ உடைத்து வெளியே சென்ற பிறகே setup உருவாகும்.</div></div>`;
   }
 
   el.innerHTML = `
@@ -1518,15 +1518,15 @@ function renderStep5(d) {
       <div class="data-row"><span class="dr-label">ORB Range</span><span class="dr-val dv-yellow">${fmt(orb.range)} pts</span></div>
       <div class="data-row"><span class="dr-label">ORB vs CPR</span><span class="dr-val">${orbNote}</span></div>
       ${isBull ? `
-      <div class="data-row"><span class="dr-label">T1 — CPR R1</span><span class="dr-val dv-green">${fmt(cpr.r1)} · book 50%</span></div>
-      <div class="data-row"><span class="dr-label">T2 — CPR R2</span><span class="dr-val dv-green">${fmt(cpr.r2)} · trail stop → entry</span></div>
+      <div class="data-row"><span class="dr-label">T1 — CPR R1</span><span class="dr-val dv-green">${fmt(cpr.r1)} · first reference</span></div>
+      <div class="data-row"><span class="dr-label">T2 — CPR R2</span><span class="dr-val dv-green">${fmt(cpr.r2)} · trail to breakeven</span></div>
       <div class="data-row"><span class="dr-label">T3 — ORB ext</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.t3_bull)}</span></div>
-      <div class="data-row"><span class="dr-label">SL (ORB Low)</span><span class="dr-val dv-red">${fmt(orb.sl_bull)} — opposite ORB side</span></div>
+      <div class="data-row"><span class="dr-label">Invalidation (ORB Low)</span><span class="dr-val dv-red">${fmt(orb.sl_bull)} — opposite ORB side</span></div>
       ` : isBear ? `
-      <div class="data-row"><span class="dr-label">T1 — CPR S1</span><span class="dr-val dv-red">${fmt(cpr.s1)} · book 50%</span></div>
-      <div class="data-row"><span class="dr-label">T2 — CPR S2</span><span class="dr-val dv-red">${fmt(cpr.s2)} · trail stop → entry</span></div>
+      <div class="data-row"><span class="dr-label">T1 — CPR S1</span><span class="dr-val dv-red">${fmt(cpr.s1)} · first reference</span></div>
+      <div class="data-row"><span class="dr-label">T2 — CPR S2</span><span class="dr-val dv-red">${fmt(cpr.s2)} · trail to breakeven</span></div>
       <div class="data-row"><span class="dr-label">T3 — ORB ext</span><span class="dr-val" style="color:var(--cyan)">${fmt(orb.t3_bear)}</span></div>
-      <div class="data-row"><span class="dr-label">SL (ORB High)</span><span class="dr-val dv-green">${fmt(orb.sl_bear)} — opposite ORB side</span></div>
+      <div class="data-row"><span class="dr-label">Invalidation (ORB High)</span><span class="dr-val dv-green">${fmt(orb.sl_bear)} — opposite ORB side</span></div>
       ` : `
       <div class="data-row"><span class="dr-label">Conflict</span><span class="dr-val dv-yellow">ORB direction unclear</span></div>
       `}
@@ -1540,9 +1540,9 @@ function calcPositionSize(d) {
   const orb = d && d.orb;
 
   if (!orb || sc === 'skip' || sc === 'unknown')
-    return { pct: 0, label: 'NO TRADE', color: 'var(--yellow)', rows: [] };
+    return { pct: 0, label: 'NO SETUP', color: 'var(--yellow)', rows: [] };
   if (vix > 25)
-    return { pct: 0, label: 'NO TRADE', color: 'var(--red)', rows: [{ icon:'🛑', text:`VIX ${vix} > 25 — too volatile, skip all setups` }] };
+    return { pct: 0, label: 'NO SETUP', color: 'var(--red)', rows: [{ icon:'🛑', text:`VIX ${vix} > 25 — too volatile, stand aside` }] };
 
   const isFull = (sc === 'bull' || sc === 'bear');
   let pct = isFull ? 75 : 50;
@@ -1586,9 +1586,9 @@ function calcPositionSize(d) {
   pct = Math.min(100, Math.max(25, pct));
 
   let label, color;
-  if (pct >= 75)      { label = `${pct}% — FULL POSITION`;  color = 'var(--green)'; }
-  else if (pct >= 50) { label = `${pct}% — HALF POSITION`;  color = 'var(--yellow)'; }
-  else                { label = `${pct}% — REDUCED SIZE`;   color = 'var(--red)'; }
+  if (pct >= 75)      { label = `${pct}% — FULL CONVICTION`;  color = 'var(--green)'; }
+  else if (pct >= 50) { label = `${pct}% — HALF CONVICTION`;  color = 'var(--yellow)'; }
+  else                { label = `${pct}% — LOW CONVICTION`;   color = 'var(--red)'; }
 
   return { pct, label, color, rows };
 }
@@ -1644,7 +1644,7 @@ function renderPosSize(d) {
                 border:1px solid ${ps.pct===0?'rgba(231,76,60,0.3)':ps.pct>=75?'rgba(46,204,113,0.3)':'rgba(255,193,7,0.3)'}">
       <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:${ps.color}">${ps.label}</div>
       ${ps.pct>0?`<div style="font-size:11px;color:var(--muted);margin-top:2px">
-        Book 50% at T1 (${d&&d.scenario&&d.scenario.includes('bear')?'S1':'R1'}) → move SL to entry → hold for T2
+        First reference at T1 (${d&&d.scenario&&d.scenario.includes('bear')?'S1':'R1'}) → move invalidation to breakeven → hold for T2
       </div>`:''}
     </div>
   </div>`;
@@ -1654,9 +1654,9 @@ function renderPosSize(d) {
 function _istRisk() {
   const ist  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
   const mins = ist.getHours() * 60 + ist.getMinutes();
-  if (mins >= 555 && mins < 575) return { level:'danger', window:'9:15–9:35 AM', reason:'ORB still forming — most stop-hunts happen here. Wait until 9:35 AM before entering.' };
-  if (mins >= 720 && mins < 780) return { level:'warn',   window:'12:00–1:00 PM', reason:'Lunch hour — thin liquidity, frequent whipsaws. Widen buffer or skip.' };
-  if (mins >= 900 && mins < 930) return { level:'warn',   window:'3:00–3:30 PM',  reason:'Last 30 min — expiry pinning. Avoid new entries, only manage open trades.' };
+  if (mins >= 555 && mins < 575) return { level:'danger', window:'9:15–9:35 AM', reason:'ORB still forming — most stop-hunts happen here. Wait until 9:35 AM before a setup is valid.' };
+  if (mins >= 720 && mins < 780) return { level:'warn',   window:'12:00–1:00 PM', reason:'Lunch hour — thin liquidity, frequent whipsaws. Widen buffer or stand aside.' };
+  if (mins >= 900 && mins < 930) return { level:'warn',   window:'3:00–3:30 PM',  reason:'Last 30 min — expiry pinning. Fresh setups unreliable, only observe open studies.' };
   return null;
 }
 
@@ -1676,17 +1676,17 @@ function _pcrWarning(dir) {
     </div>`,
   };
   if (against) return {
-    title: 'MODERATE ' + (dir === 'bull' ? 'LONG' : 'SHORT'),
+    title: 'MODERATE ' + (dir === 'bull' ? 'BULLISH' : 'BEARISH'),
     banner: `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;margin-bottom:10px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace">
       <span style="font-size:16px;line-height:1.4">⚠️</span>
-      <div><strong style="color:#f87171">OI Bias Against</strong> — PCR ${pcr} (${dir==='bull'?'Bearish':'Bullish'} bias). Wait for candle close ${dir==='bull'?'above entry':'below entry'} before entering. Reduce size.</div>
+      <div><strong style="color:#f87171">OI Bias Against</strong> — PCR ${pcr} (${dir==='bull'?'Bearish':'Bullish'} bias). Setup needs a candle close ${dir==='bull'?'above the trigger':'below the trigger'} to confirm. Lower conviction.</div>
     </div>`,
   };
   if (mild) return {
     title: null,
     banner: `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;margin-bottom:10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace">
       <span style="font-size:16px;line-height:1.4">⚠️</span>
-      <div><strong style="color:#fbbf24">OI Mildly Against</strong> — PCR ${pcr}. Consider smaller position size or wait for confirmation candle.</div>
+      <div><strong style="color:#fbbf24">OI Mildly Against</strong> — PCR ${pcr}. Consider lower conviction or wait for a confirmation candle.</div>
     </div>`,
   };
   return { banner: '', title: null };
@@ -1722,32 +1722,32 @@ function renderFalseBreakoutGuard(orb, cpr, sc) {
       color: 'var(--cyan)',
       title: 'Wait for 5-min candle CLOSE — not a wick',
       body: `A wick above ORB High${orbRef!=null?' ('+fmt(orbRef)+')':''} means nothing. Price must <strong>close</strong> a full 5-min candle above it. Wicks are bait.`,
-      ta: 'Candle close இல்லாமல் entry வேண்டாம் — wick தட்டினால் false breakout.'
+      ta: 'Candle close இல்லாமல் setup உறுதியில்லை — wick தட்டினால் false breakout.'
     },
     {
       icon: '2',
       color: 'var(--yellow)',
       title: orbRef!=null
-        ? `Entry buffer — ${isBull?'above':'below'} ${fmt(bufLevel)} (ORB ${isBull?'High':'Low'} ${isBull?'+':'-'} ${buf} pts)`
-        : 'Entry buffer — add 15–20 pts beyond ORB level',
-      body: `Market makers sweep stops at the exact ORB level. Enter only after NIFTY sustains <strong>${buf} pts beyond ORB</strong> for one full candle close. Reduces entries but filters most fakeouts.`,
-      ta: `ORB level-ல் உடனே enter வேண்டாம் — ${buf} pts தாண்டி close ஆனால் மட்டுமே.`
+        ? `Trigger buffer — ${isBull?'above':'below'} ${fmt(bufLevel)} (ORB ${isBull?'High':'Low'} ${isBull?'+':'-'} ${buf} pts)`
+        : 'Trigger buffer — add 15–20 pts beyond ORB level',
+      body: `Market makers sweep stops at the exact ORB level. A setup confirms only after NIFTY sustains <strong>${buf} pts beyond ORB</strong> for one full candle close. Fewer signals but filters most fakeouts.`,
+      ta: `ORB level-ல் உடனே setup உறுதியில்லை — ${buf} pts தாண்டி close ஆனால் மட்டுமே.`
     },
     {
       icon: '3',
       color: 'var(--accent)',
-      title: 'Retest entry — best risk:reward',
-      body: `After the breakout candle closes above ORB, <strong>wait for a pullback to ORB level</strong>. If it holds (doesn't close back below), enter there. Better price, natural SL, much tighter risk.`,
-      ta: 'Breakout-க்கு பிறகு ORB level-க்கு pullback வந்தால் hold ஆனால் enter — இது best entry.'
+      title: 'Retest reference — best risk:reward',
+      body: `After the breakout candle closes above ORB, <strong>watch for a pullback to ORB level</strong>. If it holds (doesn't close back below), the setup is cleaner there. Better price, natural invalidation, much tighter risk.`,
+      ta: 'Breakout-க்கு பிறகு ORB level-க்கு pullback வந்து hold ஆனால் — இது சிறந்த reference.'
     },
     {
       icon: '4',
       color: orbRef!=null ? (isBull?'var(--red)':'var(--green)') : 'var(--red)',
-      title: 'SL: use NIFTY price level — NOT option premium %',
+      title: 'Invalidation: use NIFTY price level — NOT option premium %',
       body: orbRef!=null
-        ? `Your 10% option SL = ~25–30 pts move in NIFTY. That's within normal noise. Instead: <strong>exit if NIFTY closes a 5-min candle back ${isBull?'below':'above'} ORB ${isBull?'High':'Low'} (${fmt(orbRef)})</strong>. The ORB level is your real SL.`
-        : `A 10% option premium SL = ~25–30 pts NIFTY move — sits exactly in stop-hunt range. Use the ORB level as your SL on the underlying, not a % of option premium.`,
-      ta: `10% premium SL தவறு — NIFTY ${isBull?fmt(orbRef)+' க்கு கீழே':''}${isBear?fmt(orbRef)+' க்கு மேலே':''} close ஆனால் exit செய்யுங்கள்.`
+        ? `A 10% option premium move = ~25–30 pts move in NIFTY. That's within normal noise. Instead, the premise <strong>fails if NIFTY closes a 5-min candle back ${isBull?'below':'above'} ORB ${isBull?'High':'Low'} (${fmt(orbRef)})</strong>. The ORB level is the real invalidation.`
+        : `A 10% option premium move = ~25–30 pts NIFTY move — sits exactly in stop-hunt range. Use the ORB level as the invalidation on the underlying, not a % of option premium.`,
+      ta: `10% premium-ஐ invalidation-ஆக எடுப்பது தவறு — NIFTY ${isBull?fmt(orbRef)+' க்கு கீழே':''}${isBear?fmt(orbRef)+' க்கு மேலே':''} close ஆனால் premise தவறு.`
     },
   ];
 
@@ -1820,11 +1820,11 @@ function renderStep6(d) {
     const exitSig = orb.exit_signal;
     const bullExit = exitSig && exitSig.endsWith('_bull');
     const EXIT_BULL = {
-      stop_hit_bull:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',    sub: 'Price hit stop level — mandatory exit' },
-      bias_broken_bull:    { icon: '⚠️', title: 'BULLISH BIAS BROKEN — EXIT',  sub: 'Price fell below CPR TC — bullish premise invalidated' },
-      false_breakout_bull: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',       sub: 'Price back below ORB High — breakout failed' },
+      stop_hit_bull:       { icon: '🛑', title: 'INVALIDATION LEVEL REACHED',  sub: 'Price hit the invalidation level — setup no longer valid' },
+      bias_broken_bull:    { icon: '⚠️', title: 'BULLISH PREMISE INVALIDATED',  sub: 'Price fell below CPR TC — bullish premise broken' },
+      false_breakout_bull: { icon: '🔄', title: 'FALSE BREAKOUT — PREMISE FAILED', sub: 'Price back below ORB High — breakout failed' },
     };
-    const ex = bullExit ? (EXIT_BULL[exitSig] || { icon: '⚠️', title: 'EXIT SIGNAL', sub: 'Review position' }) : null;
+    const ex = bullExit ? (EXIT_BULL[exitSig] || { icon: '⚠️', title: 'INVALIDATION SIGNAL', sub: 'Premise under review' }) : null;
     el.innerHTML = `
       ${bullExit ? `<div class="trigger-banner" style="background:rgba(231,76,60,0.18);border-color:rgba(231,76,60,0.5)">
         <span style="font-size:22px">${ex.icon}</span>
@@ -1841,25 +1841,25 @@ function renderStep6(d) {
       <div class="checklist">
         <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>Gap Up</strong> → Bullish pre-market signal</div></div>
         <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} above TC (${fmt(cpr.tc)}) → Bullish</div></div>
-        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>ORB</strong> — Both H&L above TC. Close above ORB High with volume → Entry</div></div>
+        <div class="chk pass"><span class="chk-icon">✅</span><div class="chk-text"><strong>ORB</strong> — Both H&L above TC. Close above ORB High with volume → bullish trigger</div></div>
       </div>
       ${(() => { const w = _pcrWarning('bull'); return bullExit ? '' : w.banner; })()}
       <div class="final-result fr-bull" style="${bullExit?'opacity:0.6':''}">
         <div class="fr-icon">${bullExit?'🚫':'🚀'}</div>
         <div class="fr-title" style="color:${bullExit?'var(--red)':'var(--green)'}">
-          ${bullExit ? 'HIGH PROBABILITY LONG — EXITED' : (_pcrWarning('bull').title || 'HIGH PROBABILITY LONG')}
+          ${bullExit ? 'HIGH-ALIGNMENT BULLISH SETUP — INVALIDATED' : (_pcrWarning('bull').title || 'HIGH-ALIGNMENT BULLISH SETUP')}
         </div>
-        <div class="fr-sub">${bullExit?'Trade invalidated — position should be closed':'All 3 signals aligned — Enter Long confidently'}</div>
-        <div class="fr-ta">${bullExit?'தவறான breakout → Long வெளியேறுங்கள்':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Long எடுங்கள்'}</div>
+        <div class="fr-sub">${bullExit?'Setup invalidated — premise broken':'All 3 signals aligned — strong bullish setup'}</div>
+        <div class="fr-ta">${bullExit?'தவறான breakout → bullish premise தவறு':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → வலுவான bullish setup'}</div>
         <div class="fr-chips">
           ${(() => {
             const bt = _bullTargets(orb.high, cpr, orb);
             return `
-          <span class="fr-chip fc-bull">Entry above: ${fmt(orb.high)}</span>
-          <span class="fr-chip fc-bull">T1 ${bt.t1 ? bt.t1.lbl+': '+fmt(bt.t1.val) : 'ext: '+fmt(bt.t3)} · book 50%</span>
-          <span class="fr-chip fc-bull">T2 ${bt.t2 ? bt.t2.lbl+': '+fmt(bt.t2.val) : 'ext: '+fmt(bt.t3)} · trail SL</span>
+          <span class="fr-chip fc-bull">Trigger above: ${fmt(orb.high)}</span>
+          <span class="fr-chip fc-bull">T1 ${bt.t1 ? bt.t1.lbl+': '+fmt(bt.t1.val) : 'ext: '+fmt(bt.t3)} · first reference</span>
+          <span class="fr-chip fc-bull">T2 ${bt.t2 ? bt.t2.lbl+': '+fmt(bt.t2.val) : 'ext: '+fmt(bt.t3)} · trail invalidation</span>
           <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3 ext: ${fmt(orb.t3_bull)}</span>
-          <span class="fr-chip" style="background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)">SL ORB Low: ${fmt(orb.sl_bull)}</span>`;
+          <span class="fr-chip" style="background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3)">Invalidation ORB Low: ${fmt(orb.sl_bull)}</span>`;
           })()}
         </div>
       </div>
@@ -1874,11 +1874,11 @@ function renderStep6(d) {
     const exitSig = orb.exit_signal;
     const bearExit = exitSig && exitSig.endsWith('_bear');
     const EXIT_BEAR = {
-      stop_hit_bear:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',   sub: 'Price hit stop level — mandatory exit' },
-      bias_broken_bear:    { icon: '⚠️', title: 'BEARISH BIAS BROKEN — EXIT', sub: 'Price rose above CPR BC — bearish premise invalidated' },
-      false_breakout_bear: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',      sub: 'Price back above ORB Low — breakdown failed' },
+      stop_hit_bear:       { icon: '🛑', title: 'INVALIDATION LEVEL REACHED',  sub: 'Price hit the invalidation level — setup no longer valid' },
+      bias_broken_bear:    { icon: '⚠️', title: 'BEARISH PREMISE INVALIDATED', sub: 'Price rose above CPR BC — bearish premise broken' },
+      false_breakout_bear: { icon: '🔄', title: 'FALSE BREAKOUT — PREMISE FAILED', sub: 'Price back above ORB Low — breakdown failed' },
     };
-    const ex = bearExit ? (EXIT_BEAR[exitSig] || { icon: '⚠️', title: 'EXIT SIGNAL', sub: 'Review position' }) : null;
+    const ex = bearExit ? (EXIT_BEAR[exitSig] || { icon: '⚠️', title: 'INVALIDATION SIGNAL', sub: 'Premise under review' }) : null;
     el.innerHTML = `
       ${bearExit ? `<div class="trigger-banner" style="background:rgba(231,76,60,0.18);border-color:rgba(231,76,60,0.5)">
         <span style="font-size:22px">${ex.icon}</span>
@@ -1895,25 +1895,25 @@ function renderStep6(d) {
       <div class="checklist">
         <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>Gap Down</strong> → Bearish pre-market signal</div></div>
         <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>CPR</strong> — Open ${open?fmt(open.price):'—'} below BC (${fmt(cpr.bc)}) → Bearish</div></div>
-        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>ORB</strong> — Both H&L below BC. Close below ORB Low with volume → Short entry</div></div>
+        <div class="chk fail"><span class="chk-icon">🔴</span><div class="chk-text"><strong>ORB</strong> — Both H&L below BC. Close below ORB Low with volume → bearish trigger</div></div>
       </div>
       ${(() => { const w = _pcrWarning('bear'); return bearExit ? '' : w.banner; })()}
       <div class="final-result fr-bear" style="${bearExit?'opacity:0.6':''}">
         <div class="fr-icon">${bearExit?'🚫':'📉'}</div>
         <div class="fr-title" style="color:${bearExit?'var(--red)':'var(--red)'}">
-          ${bearExit ? 'HIGH PROBABILITY SHORT — EXITED' : (_pcrWarning('bear').title || 'HIGH PROBABILITY SHORT')}
+          ${bearExit ? 'HIGH-ALIGNMENT BEARISH SETUP — INVALIDATED' : (_pcrWarning('bear').title || 'HIGH-ALIGNMENT BEARISH SETUP')}
         </div>
-        <div class="fr-sub">${bearExit?'Trade invalidated — position should be closed':'All 3 signals aligned — Enter Short confidently'}</div>
-        <div class="fr-ta">${bearExit?'தவறான breakdown → Short வெளியேறுங்கள்':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → Short எடுங்கள்'}</div>
+        <div class="fr-sub">${bearExit?'Setup invalidated — premise broken':'All 3 signals aligned — strong bearish setup'}</div>
+        <div class="fr-ta">${bearExit?'தவறான breakdown → bearish premise தவறு':'மூன்று சமிக்ஞைகளும் ஒரே திசையில் → வலுவான bearish setup'}</div>
         <div class="fr-chips">
           ${(() => {
             const bt = _bearTargets(orb.low, cpr, orb);
             return `
-          <span class="fr-chip fc-bear">Entry below: ${fmt(orb.low)}</span>
-          <span class="fr-chip fc-bear">T1 ${bt.t1 ? bt.t1.lbl+': '+fmt(bt.t1.val) : 'ext: '+fmt(bt.t3)} · book 50%</span>
-          <span class="fr-chip fc-bear">T2 ${bt.t2 ? bt.t2.lbl+': '+fmt(bt.t2.val) : 'ext: '+fmt(bt.t3)} · trail SL</span>
+          <span class="fr-chip fc-bear">Trigger below: ${fmt(orb.low)}</span>
+          <span class="fr-chip fc-bear">T1 ${bt.t1 ? bt.t1.lbl+': '+fmt(bt.t1.val) : 'ext: '+fmt(bt.t3)} · first reference</span>
+          <span class="fr-chip fc-bear">T2 ${bt.t2 ? bt.t2.lbl+': '+fmt(bt.t2.val) : 'ext: '+fmt(bt.t3)} · trail invalidation</span>
           <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3 ext: ${fmt(orb.t3_bear)}</span>
-          <span class="fr-chip" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)">SL ORB High: ${fmt(orb.sl_bear)}</span>`;
+          <span class="fr-chip" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3)">Invalidation ORB High: ${fmt(orb.sl_bear)}</span>`;
           })()}
         </div>
       </div>
@@ -1938,18 +1938,18 @@ function renderStep6(d) {
     const t3    = isCBear ? orb.t3_bear  : orb.t3_bull;
     const sl    = isCBear ? orb.sl_bear  : orb.sl_bull;
     const clr   = isCBear ? 'var(--red)'   : 'var(--green)';
-    const dir   = isCBear ? 'SHORT'         : 'LONG';
+    const dir   = isCBear ? 'BEARISH'       : 'BULLISH';
     const arrow = isCBear ? '📉'            : '🚀';
     const frCls = isCBear ? 'fr-bear'       : 'fr-bull';
     const chipCls = isCBear ? 'fc-bear'     : 'fc-bull';
 
     const EXIT_LABELS = {
-      stop_hit_bull:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',       sub: 'Price below SL level — mandatory exit, cut the position',                    ta: 'SL தாண்டியது → உடனே வெளியேறுங்கள்' },
-      bias_broken_bull:    { icon: '⚠️', title: 'BULLISH BIAS BROKEN — EXIT',     sub: 'Price fell below CPR TC — bullish premise invalidated',                      ta: 'CPR TC-ஐ உடைத்தது → Long premise தவறு, Exit செய்யுங்கள்' },
-      false_breakout_bull: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',          sub: 'Price back below ORB High — breakout failed, exit to avoid reversal loss',   ta: 'ORB High-ஐ திரும்பக் கடந்தது → False breakout, வெளியேறுங்கள்' },
-      stop_hit_bear:       { icon: '🛑', title: 'STOP LOSS HIT — EXIT NOW',       sub: 'Price above SL level — mandatory exit, cut the position',                    ta: 'SL தாண்டியது → உடனே வெளியேறுங்கள்' },
-      bias_broken_bear:    { icon: '⚠️', title: 'BEARISH BIAS BROKEN — EXIT',    sub: 'Price rose above CPR BC — bearish premise invalidated',                      ta: 'CPR BC-ஐ உடைத்தது → Short premise தவறு, Exit செய்யுங்கள்' },
-      false_breakout_bear: { icon: '🔄', title: 'FALSE BREAKOUT — EXIT',          sub: 'Price back above ORB Low — breakdown failed, exit to avoid reversal loss',   ta: 'ORB Low-ஐ திரும்பக் கடந்தது → False breakout, வெளியேறுங்கள்' },
+      stop_hit_bull:       { icon: '🛑', title: 'INVALIDATION LEVEL REACHED',     sub: 'Price below the invalidation level — setup no longer valid',                 ta: 'Invalidation தாண்டியது → setup செல்லாது' },
+      bias_broken_bull:    { icon: '⚠️', title: 'BULLISH PREMISE INVALIDATED',    sub: 'Price fell below CPR TC — bullish premise broken',                           ta: 'CPR TC-ஐ உடைத்தது → bullish premise தவறு' },
+      false_breakout_bull: { icon: '🔄', title: 'FALSE BREAKOUT — PREMISE FAILED', sub: 'Price back below ORB High — breakout failed, premise no longer holds',       ta: 'ORB High-ஐ திரும்பக் கடந்தது → false breakout, premise தவறு' },
+      stop_hit_bear:       { icon: '🛑', title: 'INVALIDATION LEVEL REACHED',     sub: 'Price above the invalidation level — setup no longer valid',                 ta: 'Invalidation தாண்டியது → setup செல்லாது' },
+      bias_broken_bear:    { icon: '⚠️', title: 'BEARISH PREMISE INVALIDATED',   sub: 'Price rose above CPR BC — bearish premise broken',                           ta: 'CPR BC-ஐ உடைத்தது → bearish premise தவறு' },
+      false_breakout_bear: { icon: '🔄', title: 'FALSE BREAKOUT — PREMISE FAILED', sub: 'Price back above ORB Low — breakdown failed, premise no longer holds',       ta: 'ORB Low-ஐ திரும்பக் கடந்தது → false breakout, premise தவறு' },
     };
 
     let triggerBanner;
@@ -1970,7 +1970,7 @@ function renderStep6(d) {
            <span style="font-size:20px">${arrow}</span>
            <div>
              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px">
-               TRIGGER ACTIVE — ${dir} ENTRY NOW
+               TRIGGER ACTIVE — ${dir} SETUP
              </div>
              <div style="font-size:12px;opacity:.8">
                Price ${isCBear?'broke below ORB Low':'broke above ORB High'} (${fmt(triggerPrice)})
@@ -2024,33 +2024,33 @@ function renderStep6(d) {
         <div class="fr-icon">${relevantExit ? '🚫' : arrow}</div>
         <div class="fr-title" style="color:${relevantExit?'var(--red)':clr}">
           ${relevantExit
-            ? `CONDITIONAL ${dir} — EXITED`
+            ? `CONDITIONAL ${dir} SETUP — INVALIDATED`
             : triggered
-              ? `✅ CONDITIONAL ${dir} — TRIGGERED`
+              ? `✅ CONDITIONAL ${dir} SETUP — TRIGGERED`
               : `⚡ CONDITIONAL ${dir} SETUP`}
         </div>
         <div class="fr-sub">
           ${relevantExit
-            ? 'Trade invalidated — position should be closed'
+            ? 'Setup invalidated — premise broken'
             : triggered
-              ? `Trigger confirmed — Enter ${dir} with reduced size (½ position)`
-              : `Enter only after price ${isCBear?'closes below':'closes above'} ${fmt(triggerPrice)}`}
+              ? `Trigger confirmed — ${dir} setup, half conviction (½)`
+              : `Setup valid only after price ${isCBear?'closes below':'closes above'} ${fmt(triggerPrice)}`}
         </div>
         <div class="fr-ta">
           ${relevantExit
-            ? (isCBear ? 'தவறான breakdown → Short வெளியேறுங்கள்' : 'தவறான breakout → Long வெளியேறுங்கள்')
+            ? (isCBear ? 'தவறான breakdown → bearish premise தவறு' : 'தவறான breakout → bullish premise தவறு')
             : isCBear
-              ? 'ORB Low உடைந்தால் Short எடுங்கள் — reduced size'
-              : 'ORB High உடைந்தால் Long எடுங்கள் — reduced size'}
+              ? 'ORB Low உடைந்தால் bearish setup — half conviction'
+              : 'ORB High உடைந்தால் bullish setup — half conviction'}
         </div>
         <div class="fr-chips">
           <span class="fr-chip ${chipCls}">Trigger: ${fmt(triggerPrice)}</span>
-          <span class="fr-chip ${chipCls}">T1 ${isCBear?'S1':'R1'}: ${cpr?(isCBear?fmt(cpr.s1):fmt(cpr.r1)):'—'} · book 50%</span>
-          <span class="fr-chip ${chipCls}">T2 ${isCBear?'S2':'R2'}: ${cpr?(isCBear?fmt(cpr.s2):fmt(cpr.r2)):'—'} · trail SL</span>
+          <span class="fr-chip ${chipCls}">T1 ${isCBear?'S1':'R1'}: ${cpr?(isCBear?fmt(cpr.s1):fmt(cpr.r1)):'—'} · first reference</span>
+          <span class="fr-chip ${chipCls}">T2 ${isCBear?'S2':'R2'}: ${cpr?(isCBear?fmt(cpr.s2):fmt(cpr.r2)):'—'} · trail invalidation</span>
           <span class="fr-chip" style="background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">T3 ext: ${fmt(t3)}</span>
           <span class="fr-chip" style="background:${isCBear?'rgba(46,204,113,0.15)':'rgba(231,76,60,0.15)'};
                 color:${isCBear?'var(--green)':'var(--red)'};
-                border:1px solid ${isCBear?'rgba(46,204,113,0.3)':'rgba(231,76,60,0.3)'}">SL ${isCBear?'ORB High':'ORB Low'}: ${fmt(sl)}</span>
+                border:1px solid ${isCBear?'rgba(46,204,113,0.3)':'rgba(231,76,60,0.3)'}">Invalidation ${isCBear?'ORB High':'ORB Low'}: ${fmt(sl)}</span>
         </div>
       </div>
       ${renderFalseBreakoutGuard(orb, cpr, sc)}
@@ -2072,11 +2072,11 @@ function renderStep6(d) {
     </div>
     <div class="final-result fr-skip">
       <div class="fr-icon">🚫</div>
-      <div class="fr-title" style="color:var(--yellow)">SKIP TRADE / REDUCE SIZE</div>
+      <div class="fr-title" style="color:var(--yellow)">STAND ASIDE / LOW CONVICTION</div>
       <div class="fr-sub">No dominant lean — true conflict day</div>
-      <div class="fr-ta">திசை தெரியவில்லை → Trade தவிர்க்கவும்</div>
+      <div class="fr-ta">திசை தெரியவில்லை → setup தவிர்க்கவும்</div>
       <div class="fr-chips">
-        <span class="fr-chip fc-yellow">No Trade</span>
+        <span class="fr-chip fc-yellow">No Setup</span>
         <span class="fr-chip fc-yellow">Capital Preserved ✅</span>
       </div>
     </div>`;
@@ -2140,7 +2140,7 @@ function renderVix(d) {
 
   const zoneMap = {
     very_low: { bg:'rgba(91,138,245,0.08)', bc:'rgba(91,138,245,0.25)',
-      msg: 'Range-bound day likely. Premiums are cheap — good for buying strategies. ORB range may be small.',
+      msg: 'Range-bound day likely. Premiums are cheap — favours option-buying study. ORB range may be small.',
       ta:  'ஏற்ற இறக்கம் குறைவு. Market sideways போகலாம்.' },
     low:      { bg:'var(--green-bg)', bc:'rgba(46,204,113,0.25)',
       msg: 'Low volatility — moderate trending day possible. Standard ORB targets valid.',
@@ -2149,11 +2149,11 @@ function renderVix(d) {
       msg: 'Normal volatility — standard CPR + ORB strategy applies. Use T1, T2 as targets.',
       ta:  'வழக்கமான நிலை. CPR + ORB strategy சரியாக செயல்படும்.' },
     elevated: { bg:'rgba(245,166,35,0.1)', bc:'rgba(245,166,35,0.3)',
-      msg: 'Elevated fear — expect larger candles and wider swings. Consider T2 / T3. Tighten stop if entering late.',
-      ta:  'Volatility அதிகம். Targets விரிவாக இருக்கும். ஜாக்கிரதையாக trade எடுங்கள்.' },
+      msg: 'Elevated fear — expect larger candles and wider swings. Consider T2 / T3. Tighten invalidation if a setup forms late.',
+      ta:  'Volatility அதிகம். Targets விரிவாக இருக்கும். ஜாக்கிரதையாக setup கவனிக்கவும்.' },
     high:     { bg:'var(--red-bg)', bc:'rgba(231,76,60,0.3)',
-      msg: 'High fear — market is panicking. Whipsaws are frequent. Reduce size or avoid. Only take high-conviction setups.',
-      ta:  'சந்தை அச்சத்தில் உள்ளது. Size குறைக்கவும் அல்லது trade தவிர்க்கவும்.' },
+      msg: 'High fear — market is panicking. Whipsaws are frequent. Lower conviction or stand aside. Only high-conviction setups.',
+      ta:  'சந்தை அச்சத்தில் உள்ளது. Conviction குறைக்கவும் அல்லது setup தவிர்க்கவும்.' },
   };
   const z = zoneMap[lbl.zone] || zoneMap.normal;
 
@@ -2176,7 +2176,7 @@ function renderVix(d) {
         <tr style="${vix >= 13 && vix < 16 ? 'background:rgba(46,204,113,0.06)' : ''}"><td style="color:var(--green)">13–16</td><td>Low</td><td>Moderate trend day</td></tr>
         <tr style="${vix >= 16 && vix < 20 ? 'background:rgba(245,166,35,0.06)' : ''}"><td style="color:var(--yellow)">16–20</td><td>Normal</td><td>Standard ORB strategy</td></tr>
         <tr style="${vix >= 20 && vix < 25 ? 'background:rgba(245,166,35,0.08)' : ''}"><td style="color:var(--yellow)">20–25</td><td>Elevated</td><td>Larger swings, extend targets</td></tr>
-        <tr style="${vix >= 25 ? 'background:rgba(231,76,60,0.06)' : ''}"><td style="color:var(--red)">&gt;25</td><td>High Fear</td><td>Reduce size or avoid</td></tr>
+        <tr style="${vix >= 25 ? 'background:rgba(231,76,60,0.06)' : ''}"><td style="color:var(--red)">&gt;25</td><td>High Fear</td><td>Low conviction — observe only</td></tr>
       </tbody>
     </table>`;
 }
@@ -2696,13 +2696,13 @@ function renderIv(d) {
                   : 'var(--muted)';
 
   const advice = d.status === 'CHEAP'
-    ? 'Options are cheap — buying calls/puts has edge. Good time to enter directional trades.'
+    ? 'Options are cheap — long option premium has a study edge here. Directional setups are favoured.'
     : d.status === 'FAIR'
-    ? 'Premium is fair. Normal buying — enter with standard size, watch for post-entry IV crush.'
+    ? 'Premium is fair. Standard conditions — watch for IV crush once a move plays out.'
     : d.status === 'ELEVATED'
-    ? 'Premium is elevated. Buying options is risky — IV crush after the move will hurt P&L. Consider spreads or reduced size.'
+    ? 'Premium is elevated. Long options are risky — IV crush after the move will hurt P&L. Spreads or lower conviction are worth studying.'
     : d.status === 'EXPENSIVE'
-    ? 'Premium is very expensive. Option buyers are at a disadvantage. Prefer selling strategies or wait for IV to cool down.'
+    ? 'Premium is very expensive. Option buyers are at a disadvantage. Premium-selling structures or waiting for IV to cool are worth studying.'
     : '';
 
   const skewAdvice = d.skew_label === 'BEARISH'
@@ -2964,137 +2964,137 @@ function _getCprDirection(lvl, ltp, cpr, rising = true) {
     // ── CPR Band ─────────────────────────────────────────────────────────────
     case 'TC':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'TC support test — bull day. Dip to TC is buy opportunity. Break below TC → exit signal.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'TC failing as support on bear day. Break below TC → Short signal.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'TC support test. Hold above TC → Long. Break below TC → Bearish shift.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'TC support test — bull day. Dip to TC is a bullish reference zone. Break below TC → premise weakens.' };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'TC failing as support on bear day. Break below TC → bearish signal.' };
+        return             { dir:'WATCH', icon:'🟡', tip:'TC support test. Hold above TC → bullish. Break below TC → bearish shift.' };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Approaching TC on bull day — likely to break out. Close above TC → Long entry.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Approaching TC on bull day — likely to break out. Close above TC → bullish trigger.' };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through TC — bull momentum at risk. Hold TC on close or bias shifts neutral.' };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'TC resistance — bear day. Rejection likely. Only Long on strong close above TC.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'Key decision at TC. Close above TC → Long. Rejection → Short.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'TC resistance — bear day. Rejection likely. Bullish only on a strong close above TC.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Key decision at TC. Close above TC → bullish. Rejection → bearish.' };
       }
 
     case 'BC':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'BC support test — bull day. Hold above BC → Long valid. Break below BC is a bearish warning.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'BC breakdown approaching — bear day. Break below BC → Strong Short signal.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'BC support test. Hold → Long. Break below BC → Short trigger.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'BC support test — bull day. Hold above BC → bullish premise valid. Break below BC is a bearish warning.' };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'BC breakdown approaching — bear day. Break below BC → strong bearish signal.' };
+        return             { dir:'WATCH', icon:'🟡', tip:'BC support test. Hold → bullish. Break below BC → bearish signal.' };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below BC but bull day — bear trap possible. Reclaim of BC → Long recovery signal.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below BC but bull day — bear trap possible. Reclaim of BC → bullish recovery signal.' };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through BC on bull day — bearish warning. Watch for reversal candle.' };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'BC acting as resistance — bear day. Rejection at BC → Short continuation.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'Testing BC from below. Break above BC → Bear trap → Long. Rejection → Short continues.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'BC acting as resistance — bear day. Rejection at BC → bearish continuation.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Testing BC from below. Break above BC → bear trap → bullish. Rejection → bearish continues.' };
       }
 
     case 'PP':
-      if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Pivot Point — bull day. Hold above PP → Long stays valid. Break below PP → momentum weakens.' };
-      if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Pivot Point — bear day. PP acting as resistance. Rejection → Short. Break above PP → cover shorts.' };
+      if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Pivot Point — bull day. Hold above PP → bullish premise holds. Break below PP → momentum weakens.' };
+      if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Pivot Point — bear day. PP acting as resistance. Rejection → bearish. Break above PP → bearish premise weakens.' };
       return             { dir:'WATCH', icon:'🟡', tip:'Pivot Point — key directional divider. Above PP = bullish bias. Below PP = bearish bias.' };
 
     // ── Resistance pivots ─────────────────────────────────────────────────────
     case 'R1': case 'R2': case 'R3':
       if (above) {
         // Retesting Rn as support after breakout
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`${n} retest as support — bull day. Dip to ${n} is buy opportunity. Break below → pullback deepens.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → Short. Break below → Short momentum.` };
-        return             { dir:'WATCH', icon:'🟡', tip:`${n} pivot. Hold above → Long. Break below → Short.` };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`${n} retest as support — bull day. Dip to ${n} is a bullish reference zone. Break below → pullback deepens.` };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → bearish. Break below → bearish momentum.` };
+        return             { dir:'WATCH', icon:'🟡', tip:`${n} pivot. Hold above → bullish. Break below → bearish.` };
       } else {
         // Below Rn — approaching from below OR declining back through
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:`Approaching ${n} on bull day — likely to break. First touch may see brief rejection — wait for candle close above ${n} before entering Long.` };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:`Approaching ${n} on bull day — likely to break. First touch may see brief rejection — wait for candle close above ${n} before a bullish setup.` };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:`Declining back below ${n} on bull day — momentum fading. Wait for price to stabilise and reclaim ${n}.` };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:`${n} resistance — bear day. Rejection expected. Wait for rejection candle before shorting.` };
-        return                         { dir:'WATCH', icon:'🟡', tip:`Approaching ${n} resistance. Breakout above → Long. Rejection → Short reversal.` };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:`${n} resistance — bear day. Rejection expected. Wait for a rejection candle before a bearish setup.` };
+        return                         { dir:'WATCH', icon:'🟡', tip:`Approaching ${n} resistance. Breakout above → bullish. Rejection → bearish reversal.` };
       }
 
     // ── Support pivots ────────────────────────────────────────────────────────
     case 'S1': case 'S2': case 'S3':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`${n} support test — bull day. Bounce likely. Hold at ${n} → Long continuation.` };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`Approaching ${n} on bear day — likely to break. First touch may see brief bounce — wait for candle close below ${n} before shorting.` };
-        return             { dir:'WATCH', icon:'🟡', tip:`${n} support test. Hold → Long bounce. Break below → Short momentum.` };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:`${n} support test — bull day. Bounce likely. Hold at ${n} → bullish continuation.` };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:`Approaching ${n} on bear day — likely to break. First touch may see brief bounce — wait for candle close below ${n} before a bearish setup.` };
+        return             { dir:'WATCH', icon:'🟡', tip:`${n} support test. Hold → bullish bounce. Break below → bearish momentum.` };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:`Reclaiming ${n} on bull day. Break back above ${n} → Recovery Long signal.` };
-        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:`Declining below ${n} on bull day — unusual weakness. Wait for stabilisation before entry.` };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → Short continuation.` };
-        return                         { dir:'WATCH', icon:'🟡', tip:`Below ${n} — retesting as resistance. Break above → Recovery. Rejection → Short continues.` };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:`Reclaiming ${n} on bull day. Break back above ${n} → bullish recovery signal.` };
+        if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:`Declining below ${n} on bull day — unusual weakness. Wait for stabilisation before a setup forms.` };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:`${n} now resistance — bear day. Rejection at ${n} → bearish continuation.` };
+        return                         { dir:'WATCH', icon:'🟡', tip:`Below ${n} — retesting as resistance. Break above → recovery. Rejection → bearish continues.` };
       }
 
     // ── ORB levels ────────────────────────────────────────────────────────────
     case 'ORB High':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Above ORB High — bull trend day confirmed. Any pullback to ORB H is a buy opportunity.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Above ORB High but bear day — possible false breakout. Break back below ORB H → Short.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Above ORB High — trend day up. Hold above ORB H → Long. Break back below → reversal.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Above ORB High — bull trend day confirmed. Any pullback to ORB H is a bullish reference zone.' };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Above ORB High but bear day — possible false breakout. Break back below ORB H → bearish.' };
+        return             { dir:'WATCH', icon:'🟡', tip:'Above ORB High — trend day up. Hold above ORB H → bullish. Break back below → reversal.' };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching ORB High — likely breakout. Close above ORB H → Long trend day.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching ORB High — likely breakout. Close above ORB H → bullish trend day.' };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'ORB High lost on pullback — bull momentum weakening. Watch for reclaim above ORB H or support at lower levels.' };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB High is upside cap. Rejection at ORB H → Short. Only Long on strong volume break.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching ORB High. Breakout above → LONG trend day. Rejection → stay flat or Short.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB High is upside cap. Rejection at ORB H → bearish. Bullish only on a strong volume break.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching ORB High. Breakout above → bullish trend day. Rejection → stay flat or bearish.' };
       }
 
     case 'ORB Low':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day — ORB Low is key support. Hold above ORB L → Long. Break below is a strong bearish warning.' };
-        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB Low breakdown approaching. Break below ORB L → Short trend day signal.' };
-        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near ORB Low. Break below confirms Short trend day.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching ORB Low. Break below → SHORT trend day. Hold → potential reversal Long.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day — ORB Low is key support. Hold above ORB L → bullish. Break below is a strong bearish warning.' };
+        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Bear day — ORB Low breakdown approaching. Break below ORB L → bearish trend day signal.' };
+        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near ORB Low. Break below confirms bearish trend day.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching ORB Low. Break below → bearish trend day. Hold → potential bullish reversal.' };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below ORB Low but bull day — potential bear trap. Reclaim of ORB L → Strong recovery Long.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below ORB Low but bull day — potential bear trap. Reclaim of ORB L → strong bullish recovery.' };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining below ORB Low on bull day — bull scenario at risk. Watch for recovery or trend reversal.' };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Below ORB Low — bear trend day confirmed. ORB L now resistance. Short continuation.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Below ORB Low — bear trend day confirmed. ORB L now resistance. Bearish continuation.' };
         return                         { dir:'WATCH', icon:'🟡', tip:'Below ORB Low — bearish. Bounce back to ORB L may face resistance.' };
       }
 
     // ── Market Profile ────────────────────────────────────────────────────────
     case 'VAH':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Above VAH — bull range expansion. VAH now strong support. Dip to VAH → buy.' };
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Above VAH but bear day — fade the move. Break back below VAH → Short.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Above VAH — bull range expansion. VAH now strong support. Dip to VAH → bullish reference.' };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Above VAH but bear day — fade the move. Break back below VAH → bearish.' };
         return             { dir:'WATCH', icon:'🟡', tip:'Above VAH — watch for acceptance. VAH now support. Break below VAH → fade signal.' };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching VAH — likely breakout. Close above VAH → Long continuation.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day approaching VAH — likely breakout. Close above VAH → bullish continuation.' };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through VAH on bull day — momentum weakening. Wait for stabilisation or hold above VAH.' };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'VAH resistance — bear day. Rejection expected at VAH. Short on failure.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'VAH resistance. Break above with volume → Long. Rejection at VAH → Short.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'VAH resistance — bear day. Rejection expected at VAH. Bearish on failure.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'VAH resistance. Break above with volume → bullish. Rejection at VAH → bearish.' };
       }
 
     case 'VAL':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'VAL support test — bull day. Bounce likely. Hold at VAL → Long continuation.' };
-        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Approaching VAL breakdown — bear day. Break below VAL → Short extension.' };
-        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near VAL support. Break below → Short extension.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'VAL support test. Hold → Long bounce. Break below → Short momentum.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'VAL support test — bull day. Bounce likely. Hold at VAL → bullish continuation.' };
+        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Approaching VAL breakdown — bear day. Break below VAL → bearish extension.' };
+        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near VAL support. Break below → bearish extension.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'VAL support test. Hold → bullish bounce. Break below → bearish momentum.' };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below VAL but bull day — bear range may be overdone. Reclaim of VAL → Long.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Below VAL but bull day — bear range may be overdone. Reclaim of VAL → bullish.' };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining below VAL on bull day — unusual weakness. Watch for reversal candle.' };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Below VAL — bear range expansion. VAL now resistance. Short continuation.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Below VAL — bear range expansion. VAL now resistance. Bearish continuation.' };
         return                         { dir:'WATCH', icon:'🟡', tip:'Below VAL — bearish. Bounce to VAL may face resistance.' };
       }
 
     case 'POC':
-      if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Point of Control — high volume zone. Bull day: POC is a buy zone on dips.' };
-      if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Point of Control — high volume zone. Bear day: POC is a sell zone on bounces.' };
+      if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Point of Control — high volume zone. Bull day: POC is a bullish reference on dips.' };
+      if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Point of Control — high volume zone. Bear day: POC is a bearish reference on bounces.' };
       return             { dir:'WATCH', icon:'🟡', tip:'Point of Control — highest volume zone. Strong price magnet. Watch for acceptance or reversal.' };
 
     case 'IB H':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Above IB High — bull trend day confirmed. IB H now support. Pullback to IB H → buy.' };
-        return             { dir:'WATCH', icon:'🟡', tip:'Above IB High — trend day up. Hold above IB H → Long. Break back below → day turning range.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Above IB High — bull trend day confirmed. IB H now support. Pullback to IB H → bullish reference.' };
+        return             { dir:'WATCH', icon:'🟡', tip:'Above IB High — trend day up. Hold above IB H → bullish. Break back below → day turning range.' };
       } else {
-        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day — approaching IB High. Breakout above IB H → Long trend day confirmed.' };
+        if (isBull && rising)  return { dir:'LONG',  icon:'🟢', tip:'Bull day — approaching IB High. Breakout above IB H → bullish trend day confirmed.' };
         if (isBull && falling) return { dir:'WATCH', icon:'🟡', tip:'Declining through IB High on bull day — range day likely. Watch for new directional move.' };
-        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Bear day — IB High caps upside. Rejection at IB H → Short. Range-bound day likely.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching IB High. Breakout → LONG trend day. Rejection → range-bound day.' };
+        if (isBear) return             { dir:'SHORT', icon:'🔴', tip:'Bear day — IB High caps upside. Rejection at IB H → bearish. Range-bound day likely.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching IB High. Breakout → bullish trend day. Rejection → range-bound day.' };
       }
 
     case 'IB L':
       if (above) {
-        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day — IB Low is key support. Hold → Long. Break below IB L is a strong bearish warning.' };
-        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Bear day — IB Low breakdown approaching. Break below IB L → Short trend day.' };
-        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near IB Low. Break below confirms Short trend day.' };
-        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching IB Low. Break below → SHORT trend day. Hold → range-bound day.' };
+        if (isBull) return { dir:'LONG',  icon:'🟢', tip:'Bull day — IB Low is key support. Hold → bullish. Break below IB L is a strong bearish warning.' };
+        if (isBear && falling) return { dir:'SHORT', icon:'🔴', tip:'Bear day — IB Low breakdown approaching. Break below IB L → bearish trend day.' };
+        if (isBear) return             { dir:'WATCH', icon:'🟡', tip:'Bear day near IB Low. Break below confirms bearish trend day.' };
+        return                         { dir:'WATCH', icon:'🟡', tip:'Approaching IB Low. Break below → bearish trend day. Hold → range-bound day.' };
       } else {
-        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Below IB Low — bear trend day confirmed. IB L now resistance. Short continuation.' };
+        if (isBear) return { dir:'SHORT', icon:'🔴', tip:'Below IB Low — bear trend day confirmed. IB L now resistance. Bearish continuation.' };
         return             { dir:'WATCH', icon:'🟡', tip:'Below IB Low — bearish. Bounce back to IB L may face resistance.' };
       }
 
@@ -3103,6 +3103,9 @@ function _getCprDirection(lvl, ltp, cpr, rising = true) {
   }
 }
 
+// Internal enum LONG/SHORT/WATCH drives CSS + logging; displayed as compliant labels.
+const DIR_LABEL = { LONG: 'BULLISH', SHORT: 'BEARISH', WATCH: 'WATCH' };
+
 function _fireAlert(lvl, ltp, dist, rising = true) {
   const levelColor = { resistance:'#f87171', support:'#4ade80', cpr:'#fbbf24', mp:'#00d4ff', orb:'#a78bfa' }[lvl.type] || '#fff';
   const emoji      = { resistance:'🔴', support:'🟢', cpr:'🟡', mp:'🔵', orb:'🟣' }[lvl.type] || '⚪';
@@ -3110,7 +3113,7 @@ function _fireAlert(lvl, ltp, dist, rising = true) {
   const dir        = _getCprDirection(lvl, ltp, cpr, rising);
   const dirColor   = dir.dir === 'LONG' ? '#4ade80' : dir.dir === 'SHORT' ? '#f87171' : '#fbbf24';
   const headline   = `NIFTY ${ltp} — ${emoji} ${lvl.name} (${lvl.price}) · ${dist.toFixed(0)} pts away`;
-  const notifBody  = `${headline}\n${dir.icon} ${dir.dir}: ${dir.tip}`;
+  const notifBody  = `${headline}\n${dir.icon} ${DIR_LABEL[dir.dir]||dir.dir}: ${dir.tip}`;
 
   _playAlertSound(lvl.type);
   _showAlertToast(headline, dir, levelColor, dirColor, 9000);
@@ -3136,7 +3139,7 @@ function _showAlertToast(headline, dir, levelColor, dirColor, duration = 9000) {
     <div style="display:flex;align-items:flex-start;gap:7px;padding:6px 9px;background:${dirColor}14;border:1px solid ${dirColor}30;border-radius:6px">
       <span style="font-size:15px;line-height:1.3;flex-shrink:0">${dir.icon}</span>
       <div>
-        <span style="color:${dirColor};font-weight:700;font-size:11px;letter-spacing:1.2px">${dir.dir}</span>
+        <span style="color:${dirColor};font-weight:700;font-size:11px;letter-spacing:1.2px">${DIR_LABEL[dir.dir]||dir.dir}</span>
         <div style="color:#9ba3bf;font-size:11px;margin-top:2px;font-family:'DM Sans',sans-serif;line-height:1.45">${dir.tip}</div>
       </div>
     </div>
@@ -3272,8 +3275,8 @@ function _renderLog() {
 
   document.getElementById('alogStats').innerHTML = `
     <span class="alog-stat total">📊 ${count} total</span>
-    <span class="alog-stat long">🟢 ${longs} LONG</span>
-    <span class="alog-stat short">🔴 ${shorts} SHORT</span>
+    <span class="alog-stat long">🟢 ${longs} BULLISH</span>
+    <span class="alog-stat short">🔴 ${shorts} BEARISH</span>
     <span class="alog-stat watch">🟡 ${watch} WATCH</span>
     ${hotLevel ? `<span class="alog-stat hot">🔥 ${hotLevel} ×${levelFreq[hotLevel]}</span>` : ''}
     ${accPct !== null ? `<span class="alog-stat acc">🎯 ${accPct}% accuracy <span style="font-size:10px;opacity:.7">(${hits}/${hits+misses} eval)</span></span>` : ''}
@@ -3308,7 +3311,7 @@ function _renderLog() {
         <td class="alog-ltp">${e.ltp.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${e.levelPrice.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
         <td class="alog-pts" style="color:${ptsColor}">${e.dist} pts</td>
-        <td><span class="alog-dir ${e.dir}">${e.dir}</span></td>
+        <td><span class="alog-dir ${e.dir}">${DIR_LABEL[e.dir]||e.dir}</span></td>
         <td>${outcomeHtml(e)}</td>
         <td class="alog-tip" title="${e.tip}">${e.tip}</td>
       </tr>`;

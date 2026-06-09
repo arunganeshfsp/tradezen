@@ -428,6 +428,9 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
       </div>
     </div>
   </div>
+  <div style="margin-top:12px;text-align:center;font-size:11px;color:var(--muted);line-height:1.5">
+    For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+  </div>
 </div><!-- /alert-section -->
 
 <script>
@@ -709,7 +712,7 @@ function detectEvents(candles, lv) {
       _breakoutDir = 'bull'; _breakoutTime = curr.time;
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
-        type: 'CPR_BREAKOUT', price: curr.close, direction: 'Buy',
+        type: 'CPR_BREAKOUT', price: curr.close, direction: 'Bullish',
         confidence: bodyPct > 0.65 ? 'High' : 'Medium',
         reason: `Strong close above TC (${fmt(tc)}) — bullish breakout confirmed (body ${Math.round(bodyPct*100)}%)`
       });
@@ -718,7 +721,7 @@ function detectEvents(candles, lv) {
       _breakoutDir = 'bear'; _breakoutTime = curr.time;
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
-        type: 'CPR_BREAKOUT', price: curr.close, direction: 'Sell',
+        type: 'CPR_BREAKOUT', price: curr.close, direction: 'Bearish',
         confidence: bodyPct > 0.65 ? 'High' : 'Medium',
         reason: `Strong close below BC (${fmt(bc)}) — bearish breakout confirmed (body ${Math.round(bodyPct*100)}%)`
       });
@@ -726,7 +729,7 @@ function detectEvents(candles, lv) {
       // Priority 3: Breakout failure (bull) — only fires after a confirmed CPR_BREAKOUT
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
-        type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Sell', confidence: 'High',
+        type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Bearish', confidence: 'High',
         reason: `Rejected above TC (${fmt(tc)}) — bull trap, price back inside CPR`
       });
       _breakoutDir = null; _breakoutTime = null;
@@ -734,7 +737,7 @@ function detectEvents(candles, lv) {
       // Priority 3: Breakout failure (bear) — only fires after a confirmed CPR_BREAKOUT
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
-        type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Buy', confidence: 'High',
+        type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Bullish', confidence: 'High',
         reason: `Rejected below BC (${fmt(bc)}) — bear trap, price back inside CPR`
       });
       _breakoutDir = null; _breakoutTime = null;
@@ -742,14 +745,14 @@ function detectEvents(candles, lv) {
       // Priority 4: Reversal into CPR from above
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
-        type: 'REVERSAL_CPR', price: curr.close, direction: 'Sell', confidence: 'Medium',
+        type: 'REVERSAL_CPR', price: curr.close, direction: 'Bearish', confidence: 'Medium',
         reason: `Price crossed into CPR from above — possible bearish trend reversal`
       });
     } else if (prev.close < bc - cprW && currInsideCPR) {
       // Priority 4: Reversal into CPR from below
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
-        type: 'REVERSAL_CPR', price: curr.close, direction: 'Buy', confidence: 'Medium',
+        type: 'REVERSAL_CPR', price: curr.close, direction: 'Bullish', confidence: 'Medium',
         reason: `Price crossed into CPR from below — possible bullish trend reversal`
       });
     } else if (_breakoutDir === 'bull' && _breakoutTime !== null && curr.time > _breakoutTime + INTERVAL) {
@@ -758,8 +761,8 @@ function detectEvents(candles, lv) {
       if (retestTC) {
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
-          type: 'CPR_RETEST', price: curr.close, direction: 'Buy', confidence: 'High',
-          reason: `Bullish retest of TC (${fmt(tc)}) holding — continuation long setup confirmed`
+          type: 'CPR_RETEST', price: curr.close, direction: 'Bullish', confidence: 'High',
+          reason: `Bullish retest of TC (${fmt(tc)}) holding — bullish continuation setup confirmed`
         });
         _breakoutDir = null; _breakoutTime = null;
       }
@@ -769,8 +772,8 @@ function detectEvents(candles, lv) {
       if (retestBC) {
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
-          type: 'CPR_RETEST', price: curr.close, direction: 'Sell', confidence: 'High',
-          reason: `Bearish retest of BC (${fmt(bc)}) holding — continuation short setup confirmed`
+          type: 'CPR_RETEST', price: curr.close, direction: 'Bearish', confidence: 'High',
+          reason: `Bearish retest of BC (${fmt(bc)}) holding — bearish continuation setup confirmed`
         });
         _breakoutDir = null; _breakoutTime = null;
       }
@@ -791,27 +794,27 @@ function detectEvents(candles, lv) {
         _camL3Armed = false;
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
-          type: 'CAMARILLA_L3', price: curr.close, direction: 'Buy', confidence: 'Medium',
-          reason: `Bounce off Camarilla L3 (${fmt(l3)}) support — mean reversion long`
+          type: 'CAMARILLA_L3', price: curr.close, direction: 'Bullish', confidence: 'Medium',
+          reason: `Bounce off Camarilla L3 (${fmt(l3)}) support — bullish mean-reversion setup`
         });
       } else if (_camH3Armed && _breakoutDir !== 'bull' && curr.high >= h3 - CAM_OFFSET && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
         _camH3Armed = false;
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
-          type: 'CAMARILLA_H3', price: curr.close, direction: 'Sell', confidence: 'Medium',
-          reason: `Rejection at Camarilla H3 (${fmt(h3)}) resistance — mean reversion short`
+          type: 'CAMARILLA_H3', price: curr.close, direction: 'Bearish', confidence: 'Medium',
+          reason: `Rejection at Camarilla H3 (${fmt(h3)}) resistance — bearish mean-reversion setup`
         });
       } else if (curr.close > h4 && prev.close <= h4 && bodyPct >= CONFIRM_BODY) {
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
-          type: 'CAMARILLA_H4_BREAK', price: curr.close, direction: 'Buy', confidence: 'High',
-          reason: `Breakout above Camarilla H4 (${fmt(h4)}) — strong trend continuation long (body ${Math.round(bodyPct*100)}%)`
+          type: 'CAMARILLA_H4_BREAK', price: curr.close, direction: 'Bullish', confidence: 'High',
+          reason: `Breakout above Camarilla H4 (${fmt(h4)}) — strong bullish trend continuation (body ${Math.round(bodyPct*100)}%)`
         });
       } else if (curr.close < l4 && prev.close >= l4 && bodyPct >= CONFIRM_BODY) {
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
-          type: 'CAMARILLA_L4_BREAK', price: curr.close, direction: 'Sell', confidence: 'High',
-          reason: `Breakdown below Camarilla L4 (${fmt(l4)}) — strong trend continuation short (body ${Math.round(bodyPct*100)}%)`
+          type: 'CAMARILLA_L4_BREAK', price: curr.close, direction: 'Bearish', confidence: 'High',
+          reason: `Breakdown below Camarilla L4 (${fmt(l4)}) — strong bearish trend continuation (body ${Math.round(bodyPct*100)}%)`
         });
       }
     }
@@ -1004,10 +1007,10 @@ function renderSignals(ltp) {
 
   // Mean Reversion
   const mrStatus = inside
-    ? (nearBC ? 'BUY ZONE' : nearTC ? 'SELL ZONE' : 'WAIT')
+    ? (nearBC ? 'BULLISH EDGE' : nearTC ? 'BEARISH EDGE' : 'WAIT')
     : 'INACTIVE';
-  const mrCls = mrStatus === 'BUY ZONE' ? 'conf-high' : mrStatus === 'SELL ZONE' ? 'conf-low' : 'conf-med';
-  const mrColor = mrStatus === 'BUY ZONE' ? 'var(--green)' : mrStatus === 'SELL ZONE' ? 'var(--red)' : 'var(--muted)';
+  const mrCls = mrStatus === 'BULLISH EDGE' ? 'conf-high' : mrStatus === 'BEARISH EDGE' ? 'conf-low' : 'conf-med';
+  const mrColor = mrStatus === 'BULLISH EDGE' ? 'var(--green)' : mrStatus === 'BEARISH EDGE' ? 'var(--red)' : 'var(--muted)';
   html += `<div class="sig-card">
     <div class="sig-head">
       <span class="sig-name">↕ Mean Reversion (CPR)</span>
@@ -1015,15 +1018,15 @@ function renderSignals(ltp) {
     </div>
     <div class="sig-body" style="color:${mrColor}">
       ${inside
-        ? (nearBC ? `Price near BC (${fmt(bc)}) — Buy opportunity with tight SL below BC`
-          : nearTC ? `Price near TC (${fmt(tc)}) — Sell opportunity with tight SL above TC`
-          : `Price inside CPR — wait for edge (BC ${fmt(bc)} · TC ${fmt(tc)})`)
+        ? (nearBC ? `Price near BC (${fmt(bc)}) — bullish edge zone, invalidation below BC`
+          : nearTC ? `Price near TC (${fmt(tc)}) — bearish edge zone, invalidation above TC`
+          : `Price inside CPR — observe for an edge (BC ${fmt(bc)} · TC ${fmt(tc)})`)
         : `Price outside CPR — mean reversion not active`}
     </div>
     <div class="sig-levels">
-      <span class="sig-lv">Buy: ${fmt(bc)}</span>
+      <span class="sig-lv">Lower edge: ${fmt(bc)}</span>
       <span class="sig-lv">PP: ${fmt(pp)}</span>
-      <span class="sig-lv">Sell: ${fmt(tc)}</span>
+      <span class="sig-lv">Upper edge: ${fmt(tc)}</span>
     </div>
   </div>`;
 
@@ -1031,10 +1034,10 @@ function renderSignals(ltp) {
   const camStatus = nearL3 ? 'L3 SUPPORT' : nearH3 ? 'H3 RESIST' : ltp > h4 ? 'H4 BREAK' : ltp < l4 ? 'L4 BREAK' : 'WATCHING';
   const camCls = (camStatus === 'L3 SUPPORT' || camStatus === 'H4 BREAK') ? 'conf-high'
                : (camStatus === 'H3 RESIST' || camStatus === 'L4 BREAK')  ? 'conf-low' : 'conf-med';
-  const camMsg = camStatus === 'L3 SUPPORT' ? `Near L3 (${fmt(l3)}) — buy with SL below L4`
-               : camStatus === 'H3 RESIST'  ? `Near H3 (${fmt(h3)}) — sell with SL above H4`
-               : camStatus === 'H4 BREAK'   ? `Above H4 (${fmt(h4)}) — breakout long signal`
-               : camStatus === 'L4 BREAK'   ? `Below L4 (${fmt(l4)}) — breakdown short signal`
+  const camMsg = camStatus === 'L3 SUPPORT' ? `Near L3 (${fmt(l3)}) — bullish reference, invalidation below L4`
+               : camStatus === 'H3 RESIST'  ? `Near H3 (${fmt(h3)}) — bearish reference, invalidation above H4`
+               : camStatus === 'H4 BREAK'   ? `Above H4 (${fmt(h4)}) — bullish breakout setup`
+               : camStatus === 'L4 BREAK'   ? `Below L4 (${fmt(l4)}) — bearish breakdown setup`
                : 'No Camarilla signal active';
   html += `<div class="sig-card">
     <div class="sig-head">
@@ -1103,7 +1106,7 @@ function renderFeed() {
   }
 
   feed.innerHTML = filtered.map(a => {
-    const dirCls  = a.direction === 'Buy' ? 'dir-buy' : a.direction === 'Sell' ? 'dir-sell' : 'dir-buy';
+    const dirCls  = a.direction === 'Bullish' ? 'dir-buy' : a.direction === 'Bearish' ? 'dir-sell' : 'dir-buy';
     const confCls = a.confidence === 'High' ? 'conf-high' : a.confidence === 'Medium' ? 'conf-med' : 'conf-low';
     return `<div class="alert-item type-${a.type}">
       <div class="ai-time">${a.time}</div>
@@ -1277,9 +1280,9 @@ function updateChartMarkers() {
     .sort((a, b) => a.rawTime - b.rawTime)
     .map(a => ({
       time:     a.rawTime,
-      position: a.direction === 'Buy' || a.direction === 'Watch' ? 'belowBar' : 'aboveBar',
+      position: a.direction === 'Bullish' || a.direction === 'Watch' ? 'belowBar' : 'aboveBar',
       color:    MARKER_COLORS[a.type] || '#9ba3bf',
-      shape:    a.direction === 'Buy' || a.direction === 'Watch' ? 'arrowUp' : 'arrowDown',
+      shape:    a.direction === 'Bullish' || a.direction === 'Watch' ? 'arrowUp' : 'arrowDown',
       text:     MARKER_LABELS[a.type] || a.type,
       size:     1,
     }));
@@ -1319,11 +1322,11 @@ function renderTradePlan(ltp) {
     biasColor = 'var(--green)'; biasArrow = '▲'; biasLabel = 'BULLISH';
     biasSub = 'Price above TC — upside momentum';
     invalidVal = fmt(bc); invalidNote = 'Close below BC';
-    // Entry: TC is the pullback target. When ltp is already well above TC, compute R/R
+    // Reference: TC is the pullback level. When ltp is already well above TC, compute R/R
     // from live ltp so the displayed ratio is realistic, not hypothetical.
     const entry = ltp;
     entryVal  = fmt(tc);
-    entryNote = ltp > tc ? `TC pullback · live: ${fmt(ltp)}` : 'TC retest / breakout entry';
+    entryNote = ltp > tc ? `TC pullback · live: ${fmt(ltp)}` : 'TC retest reference';
     if (r1 && r2) {
       t1Val = fmt(r1); t1RR = r1 > entry ? ((r1 - entry) / risk).toFixed(1) + '×' : '—';
       t2Val = fmt(r2); t2RR = r2 > entry ? ((r2 - entry) / risk).toFixed(1) + '×' : '—';
@@ -1335,7 +1338,7 @@ function renderTradePlan(ltp) {
     invalidVal = fmt(tc); invalidNote = 'Close above TC';
     const entry = ltp;
     entryVal  = fmt(bc);
-    entryNote = ltp < bc ? `BC bounce target · live: ${fmt(ltp)}` : 'BC retest / breakdown entry';
+    entryNote = ltp < bc ? `BC bounce level · live: ${fmt(ltp)}` : 'BC retest reference';
     if (s1 && s2) {
       t1Val = fmt(s1); t1RR = s1 < entry ? ((entry - s1) / risk).toFixed(1) + '×' : '—';
       t2Val = fmt(s2); t2RR = s2 < entry ? ((entry - s2) / risk).toFixed(1) + '×' : '—';
@@ -1364,7 +1367,7 @@ function renderTradePlan(ltp) {
     </div>
     <div class="tp-grid">
       <div class="tp-cell">
-        <div class="tp-cell-label">Entry Zone</div>
+        <div class="tp-cell-label">Reference Zone</div>
         <div class="tp-cell-val">${entryVal}</div>
         <div class="tp-cell-note">${entryNote}</div>
       </div>
