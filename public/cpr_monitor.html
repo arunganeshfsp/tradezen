@@ -722,35 +722,35 @@ function detectEvents(candles, lv) {
         confidence: bodyPct > 0.65 ? 'High' : 'Medium',
         reason: `Strong close below BC (${fmt(bc)}) — bearish breakout confirmed (body ${Math.round(bodyPct*100)}%)`
       });
-    } else if (prevAboveTC && (currInsideCPR || currBelowBC)) {
-      // Priority 3: Breakout failure (bull)
+    } else if (_breakoutDir === 'bull' && prevAboveTC && (currInsideCPR || currBelowBC)) {
+      // Priority 3: Breakout failure (bull) — only fires after a confirmed CPR_BREAKOUT
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Sell', confidence: 'High',
         reason: `Rejected above TC (${fmt(tc)}) — bull trap, price back inside CPR`
       });
-      _breakoutDir = null;
-    } else if (prevBelowBC && (currInsideCPR || currAboveTC)) {
-      // Priority 3: Breakout failure (bear)
+      _breakoutDir = null; _breakoutTime = null;
+    } else if (_breakoutDir === 'bear' && prevBelowBC && (currInsideCPR || currAboveTC)) {
+      // Priority 3: Breakout failure (bear) — only fires after a confirmed CPR_BREAKOUT
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'BREAKOUT_FAILURE', price: curr.close, direction: 'Buy', confidence: 'High',
         reason: `Rejected below BC (${fmt(bc)}) — bear trap, price back inside CPR`
       });
-      _breakoutDir = null;
+      _breakoutDir = null; _breakoutTime = null;
     } else if (prev.close > tc + cprW && currInsideCPR) {
       // Priority 4: Reversal into CPR from above
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'REVERSAL_CPR', price: curr.close, direction: 'Sell', confidence: 'Medium',
-        reason: `Price crossed into CPR from above — possible bullish trend reversal`
+        reason: `Price crossed into CPR from above — possible bearish trend reversal`
       });
     } else if (prev.close < bc - cprW && currInsideCPR) {
       // Priority 4: Reversal into CPR from below
       events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'REVERSAL_CPR', price: curr.close, direction: 'Buy', confidence: 'Medium',
-        reason: `Price crossed into CPR from below — possible bearish trend reversal`
+        reason: `Price crossed into CPR from below — possible bullish trend reversal`
       });
     } else if (_breakoutDir === 'bull' && _breakoutTime !== null && curr.time > _breakoutTime + INTERVAL) {
       // Priority 5: Bullish retest — at least one full candle after breakout
