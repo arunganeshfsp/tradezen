@@ -1,7 +1,7 @@
 # Context: cpr-monitor
 
 **File:** `public/cpr_monitor.html`  
-**Last updated:** 2026-05-23
+**Last updated:** 2026-06-09
 
 ---
 
@@ -71,8 +71,19 @@ Computed in `calcCamarilla()` from `_prevDay` — not fetched from server.
 
 ---
 
+## Alert Noise Suppression (detectEvents)
+
+The state machine in `detectEvents()` is a single `if/else-if` chain per candle, so at most one CPR event fires per candle (Virgin CPR is a separate one-time `if`). Priority: BREAKOUT > BREAKOUT_FAILURE > REVERSAL > RETEST > Camarilla.
+
+Three rules added 2026-06-09 to kill false/contradictory alerts:
+
+1. **BREAKOUT_FAILURE requires a prior confirmed breakout.** Gated on `_breakoutDir === 'bull'`/`'bear'`. Without this, price merely drifting back below TC (when it opened above TC, never having a body-confirmed breakout) fired phantom "bull trap" failures.
+2. **Camarilla H3 (short) / L3 (long) are suppressed against an active breakout.** H3 needs `_breakoutDir !== 'bull'`, L3 needs `_breakoutDir !== 'bear'` — prevents shorting into a bull breakout / longing into a bear breakdown. `_breakoutDir` clears on failure or retest, so mean-reversion re-enables once the breakout resolves.
+3. **REVERSAL reason text corrected** — "from above → bearish reversal" (Sell), "from below → bullish reversal" (Buy). Previously swapped.
+
 ## Known Caveats
 
 - Camarilla H4/L4 are the key S1-monitor trigger levels — computed identically in both pages.
 - `_virginCPR` is determined client-side by checking if any fetched candle has high ≥ TC or low ≤ BC.
 - Weekly/monthly timeframes use daily candles (not intraday) — `_candles` array content changes accordingly.
+- Side effect of rule 1: a gap-up open above TC that later falls back fires no BREAKOUT_FAILURE — intentional, there was no breakout to fail.

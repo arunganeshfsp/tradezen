@@ -784,14 +784,17 @@ function detectEvents(candles, lv) {
       if (Math.abs(curr.close - h3) > NEAR_LEVEL) _camH3Armed = true;
       if (Math.abs(curr.close - l3) > NEAR_LEVEL) _camL3Armed = true;
 
-      if (_camL3Armed && curr.low <= l3 + CAM_OFFSET && curr.low >= l3 - NEAR_LEVEL && curr.close > l3) {
+      // Counter-trend mean-reversion (H3 short / L3 long) is suppressed while a
+      // CPR breakout is active in the opposite direction — avoids shorting into a
+      // bull breakout or longing into a bear breakdown.
+      if (_camL3Armed && _breakoutDir !== 'bear' && curr.low <= l3 + CAM_OFFSET && curr.low >= l3 - NEAR_LEVEL && curr.close > l3) {
         _camL3Armed = false;
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CAMARILLA_L3', price: curr.close, direction: 'Buy', confidence: 'Medium',
           reason: `Bounce off Camarilla L3 (${fmt(l3)}) support — mean reversion long`
         });
-      } else if (_camH3Armed && curr.high >= h3 - CAM_OFFSET && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
+      } else if (_camH3Armed && _breakoutDir !== 'bull' && curr.high >= h3 - CAM_OFFSET && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
         _camH3Armed = false;
         events.push({
           time: formatTime(curr.time), rawTime: curr.time,
