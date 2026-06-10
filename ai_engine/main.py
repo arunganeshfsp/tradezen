@@ -1348,6 +1348,16 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
     from core.stock_monitor import StockOptionsMonitor
     import yfinance as yf
 
+    import math
+
+    def _f(v):
+        """float → JSON-safe rounded value; NaN/Inf → None."""
+        try:
+            f = float(v)
+            return None if (math.isnan(f) or math.isinf(f)) else round(f, 2)
+        except Exception:
+            return None
+
     symbol = symbol.upper().strip()
 
     try:
@@ -1368,18 +1378,29 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
         last_date = df_5m.index[-1].date()
         df_5m = df_5m[df_5m.index.date == last_date]
 
-        # Live price
-        info = ticker.fast_info
-        price = float(info.last_price) if hasattr(info, 'last_price') and info.last_price else float(df_5m['close'].iloc[-1])
+        # Live price — fast_info.last_price can be NaN; always fall back to last candle
+        price = float(df_5m['close'].iloc[-1])
+        try:
+            lp = float(getattr(ticker.fast_info, 'last_price', None) or 0)
+            if lp > 0 and not math.isnan(lp):
+                price = lp
+        except Exception:
+            pass
 
         monitor = StockOptionsMonitor(symbol)
         result = monitor.check_setup(price=price, candles=df_5m, current_time=datetime.now(_dt.timezone(_dt.timedelta(hours=5, minutes=30))))
 
         result['status'] = 'online'
-        result['price'] = round(price, 2)
+        result['price'] = _f(price)
         result['symbol'] = symbol
         result['timestamp'] = datetime.now().isoformat()
         result['candles_count'] = len(df_5m)
+
+        # Sanitize indicator floats so JSON serialisation never sees NaN
+        ind = result.get('indicators', {})
+        for k in list(ind.keys()):
+            if isinstance(ind[k], float):
+                ind[k] = _f(ind[k])
 
         # Chart data
         try:
@@ -1395,23 +1416,26 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
 
             for idx, (ts, row) in enumerate(df_5m.iterrows()):
                 t = int(ts.timestamp())
-                chart_candles.append({'time': t, 'open': round(float(row['open']), 2),
-                                       'high': round(float(row['high']), 2),
-                                       'low': round(float(row['low']), 2),
-                                       'close': round(float(row['close']), 2)})
-                if idx < len(ema9_s):
-                    chart_ema9.append({'time': t, 'value': round(float(ema9_s.iloc[idx]), 2)})
-                if idx < len(ema21_s):
-                    chart_ema21.append({'time': t, 'value': round(float(ema21_s.iloc[idx]), 2)})
-                if idx < len(rsi_s):
-                    chart_rsi.append({'time': t, 'value': round(float(rsi_s.iloc[idx]), 2)})
+                chart_candles.append({'time': t, 'open': _f(row['open']),
+                                       'high': _f(row['high']),
+                                       'low': _f(row['low']),
+                                       'close': _f(row['close'])})
+                v9 = _f(ema9_s.iloc[idx]) if idx < len(ema9_s) else None
+                v21 = _f(ema21_s.iloc[idx]) if idx < len(ema21_s) else None
+                vr = _f(rsi_s.iloc[idx]) if idx < len(rsi_s) else None
+                if v9 is not None:
+                    chart_ema9.append({'time': t, 'value': v9})
+                if v21 is not None:
+                    chart_ema21.append({'time': t, 'value': v21})
+                if vr is not None:
+                    chart_rsi.append({'time': t, 'value': vr})
 
             result['chart_data'] = {
                 'candles': chart_candles, 'ema9': chart_ema9,
                 'ema21': chart_ema21, 'rsi': chart_rsi,
-                'latest_ema9': round(float(ema9_s.iloc[-1]), 2) if len(ema9_s) > 0 else None,
-                'latest_ema21': round(float(ema21_s.iloc[-1]), 2) if len(ema21_s) > 0 else None,
-                'latest_rsi': round(float(rsi_s.iloc[-1]), 2) if len(rsi_s) > 0 else None,
+                'latest_ema9': _f(ema9_s.iloc[-1]) if len(ema9_s) > 0 else None,
+                'latest_ema21': _f(ema21_s.iloc[-1]) if len(ema21_s) > 0 else None,
+                'latest_rsi': _f(rsi_s.iloc[-1]) if len(rsi_s) > 0 else None,
             }
         except Exception as e:
             print(f"[StockMonitor] Chart error: {e}")
