@@ -177,12 +177,13 @@ class AIService {
         try {
             const res = await axios.get(`${AI_ENGINE_URL}/stock-monitor`, {
                 params: { symbol },
-                timeout: 10000
+                timeout: 30000
             });
             return res.data;
         } catch (err) {
+            const reason = err.code === 'ECONNABORTED' ? 'Request timed out — yfinance slow' : 'Python engine unreachable';
             console.error("Stock monitor error:", err.message);
-            return { status: "error", error: "Python engine unreachable" };
+            return { status: "error", error: reason };
         }
     }
 

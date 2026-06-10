@@ -1352,7 +1352,7 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
 
     try:
         ticker = yf.Ticker(f"{symbol}.NS")
-        df_5m = ticker.history(period="5d", interval="5m")
+        df_5m = ticker.history(period="2d", interval="5m")
         if df_5m.empty:
             return {"error": f"No data for {symbol}", "status": "offline"}
 
