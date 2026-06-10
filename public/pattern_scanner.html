@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern Scanner | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --cyan:#00d4ff;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 28px;gap:0}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;text-decoration:none;margin-right:28px}
+.logo{width:32px;height:32px;border-radius:7px}
+.nav-links{display:flex;gap:2px;flex-wrap:wrap}
+.nl{padding:5px 12px;border-radius:var(--r2);font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all .15s}
+.nl:hover,.nl.on{color:var(--text);background:var(--bg3)}
+.nav-r{margin-left:auto}
+
+.hero{padding:36px 28px 28px;border-bottom:1px solid var(--border);background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.15) 0%,transparent 65%),var(--bg)}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,4vw,38px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:6px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
+.page{max-width:1100px;margin:0 auto;padding:32px 28px 80px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media(max-width:860px){.page{grid-template-columns:1fr}}
+
+/* Upload zone */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--r);padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg1);position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(124,106,247,0.06)}
+.upload-zone.has-image{padding:0;border-style:solid;border-color:var(--border2);overflow:hidden}
+.upload-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+.upload-title{font-family:'Syne',sans-serif;font-weight:700;color:var(--text);margin-bottom:6px}
+.upload-hint{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+#fileInput{display:none}
+#previewCanvas{display:none;width:100%;border-radius:var(--r);background:var(--bg3)}
+.upload-zone.has-image #previewCanvas{display:block}
+.upload-zone.has-image .upload-placeholder{display:none}
+
+.scan-btn{width:100%;margin-top:14px;padding:12px;background:linear-gradient(135deg,var(--accent),#5b8af5);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border:none;border-radius:var(--r2);cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.scan-btn:hover{opacity:.85}
+.scan-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.reupload-btn{position:absolute;top:10px;right:10px;padding:5px 10px;background:rgba(0,0,0,0.6);color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:10px;border:1px solid var(--border);border-radius:var(--r2);cursor:pointer;display:none;transition:all .15s}
+.upload-zone.has-image .reupload-btn{display:block}
+.reupload-btn:hover{color:var(--text)}
+
+/* Candle preview strip */
+.candle-strip{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-top:16px}
+.strip-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.strip-candles{display:flex;gap:8px;align-items:flex-end;min-height:60px;padding:4px 0}
+.candle-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+.candle-wick{width:2px;background:var(--dim);border-radius:1px}
+.candle-body{width:100%;border-radius:2px;min-height:4px}
+.candle-body.bull{background:var(--green)}
+.candle-body.bear{background:var(--red)}
+.candle-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px}
+
+/* Result panel */
+.result-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.rp-head{background:var(--bg3);padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.rp-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex:1}
+.rp-body{padding:16px}
+
+.state-empty{text-align:center;padding:40px 20px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px}
+.state-empty .ei{font-size:36px;margin-bottom:10px;opacity:.3}
+
+/* Pattern cards */
+.pat-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;transition:border-color .2s}
+.pat-card:last-child{margin-bottom:0}
+.pat-card.bullish{border-left:3px solid var(--green)}
+.pat-card.bearish{border-left:3px solid var(--red)}
+.pat-card.neutral{border-left:3px solid var(--yellow)}
+.pat-card.continuation{border-left:3px solid var(--accent)}
+.pat-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.pat-name{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;flex:1}
+.pat-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}
+.pat-badge.bullish{background:var(--green-bg);color:var(--green);border:1px solid rgba(46,204,113,.25)}
+.pat-badge.bearish{background:var(--red-bg);color:var(--red);border:1px solid rgba(231,76,60,.25)}
+.pat-badge.neutral{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(245,166,35,.25)}
+.pat-badge.continuation{background:rgba(124,106,247,0.1);color:var(--accent);border:1px solid rgba(124,106,247,.25)}
+.pat-conf{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)}
+.pat-desc{font-size:12px;color:var(--dim);line-height:1.55;margin-bottom:8px}
+.pat-meta{display:flex;gap:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.pat-meta span{display:flex;align-items:center;gap:4px}
+
+/* Confidence bar */
+.conf-bar{height:4px;background:var(--bg3);border-radius:2px;margin-top:8px;overflow:hidden}
+.conf-fill{height:100%;border-radius:2px;transition:width .4s}
+.conf-fill.bullish{background:var(--green)}
+.conf-fill.bearish{background:var(--red)}
+.conf-fill.neutral{background:var(--yellow)}
+.conf-fill.continuation{background:var(--accent)}
+
+/* Manual input fallback */
+.manual-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:16px}
+.ms-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.candle-inputs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.ci-group{display:flex;flex-direction:column;gap:4px}
+.ci-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase}
+.ci-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--r2);padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;width:100%;outline:none}
+.ci-input:focus{border-color:var(--accent)}
+.add-candle-btn,.clear-btn{padding:6px 12px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+.add-candle-btn{background:rgba(124,106,247,0.1);border:1px solid var(--accent);color:var(--accent)}
+.add-candle-btn:hover{background:rgba(124,106,247,0.2)}
+.clear-btn{background:transparent;border:1px solid var(--border);color:var(--dim);margin-left:6px}
+.clear-btn:hover{border-color:var(--red);color:var(--red)}
+.manual-queue{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;min-height:24px}
+.mq-chip{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);color:var(--dim);cursor:pointer}
+.mq-chip.bull-chip{border-color:rgba(46,204,113,.3);color:var(--green)}
+.mq-chip.bear-chip{border-color:rgba(231,76,60,.3);color:var(--red)}
+
+footer{border-top:1px solid var(--border);padding:12px 28px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+</style>
+<link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="brand"><img class="logo" src="/app-icon.svg" alt="">TradeZen</a>
+  <div class="nav-links">
+    <a class="nl" href="/trade_flow.html">Trade Flow</a>
+    <a class="nl" href="/options_analysis.html">Options</a>
+    <a class="nl" href="/cpr_monitor.html">CPR</a>
+    <a class="nl" href="/fno_scanner.html">F&amp;O</a>
+    <a class="nl" href="/stock_movers.html">Movers</a>
+    <a class="nl on" href="/market_psychology.html">TradeFun</a>
+    <a class="nl" href="/swing_trading.html">Swing</a>
+    <a class="nl" href="/stock_s1_monitor.html">S1</a>
+    <a class="nl" href="/pattern_scanner.html">Patterns</a>
+    <a class="nl" href="/learn/">Learn</a>
+  </div>
+  <div class="nav-r">
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="background:none;border:1px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--dim);padding:0"></button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="htag">📊 CANDLESTICK PATTERN SCANNER</div>
+  <h1>Upload Chart → <em>Identify Pattern</em></h1>
+  <p class="hero-sub">Upload any candlestick screenshot — browser analyses pixel shapes and identifies the pattern. No data sent to any server.</p>
+</div>
+
+<div class="page">
+
+  <!-- LEFT: Upload + Manual -->
+  <div>
+    <div class="upload-zone" id="uploadZone" onclick="triggerUpload()">
+      <div class="upload-placeholder">
+        <div class="upload-icon">📷</div>
+        <div class="upload-title">Drop chart screenshot here</div>
+        <div class="upload-hint" style="margin-top:4px">PNG · JPG · WebP — any chart app</div>
+      </div>
+      <canvas id="previewCanvas"></canvas>
+      <button class="reupload-btn" onclick="resetUpload(event)">✕ Change</button>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(this.files[0])">
+
+    <button class="scan-btn" id="scanBtn" onclick="runScan()" disabled>Scan for Patterns</button>
+
+    <!-- Extracted candles preview -->
+    <div class="candle-strip" id="candleStrip" style="display:none">
+      <div class="strip-title">Extracted Candles (<span id="candleCount">0</span>)</div>
+      <div class="strip-candles" id="stripCandles"></div>
+    </div>
+
+    <!-- Manual entry fallback -->
+    <div class="manual-section">
+      <div class="ms-title">Manual Entry — or add candles by hand</div>
+      <div class="candle-inputs">
+        <div class="ci-group"><div class="ci-label">Open</div><input class="ci-input" id="mOpen" type="number" placeholder="100"></div>
+        <div class="ci-group"><div class="ci-label">High</div><input class="ci-input" id="mHigh" type="number" placeholder="110"></div>
+        <div class="ci-group"><div class="ci-label">Low</div><input class="ci-input" id="mLow" type="number" placeholder="95"></div>
+        <div class="ci-group"><div class="ci-label">Close</div><input class="ci-input" id="mClose" type="number" placeholder="105"></div>
+      </div>
+      <button class="add-candle-btn" onclick="addManualCandle()">+ Add Candle</button>
+      <button class="clear-btn" onclick="clearManual()">Clear</button>
+      <div class="manual-queue" id="manualQueue"></div>
+      <button class="scan-btn" id="manualScanBtn" onclick="runManualScan()" style="margin-top:10px" disabled>Scan Manual Candles</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div>
+    <div class="result-panel">
+      <div class="rp-head">
+        <span style="font-size:18px">🔍</span>
+        <span class="rp-title">Pattern Analysis</span>
+        <span id="patCount" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)"></span>
+      </div>
+      <div class="rp-body" id="resultBody">
+        <div class="state-empty">
+          <div class="ei">📈</div>
+          <div>Upload a chart screenshot or enter candle values to detect patterns</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</footer>
+
+<script>
+// ── State ───────────────────────────────────────────────────────────────────
+let extractedCandles = [];  // from image
+let manualCandles    = [];  // from form
+
+// ── Upload handling ──────────────────────────────────────────────────────────
+function triggerUpload() {
+  if (!document.getElementById('uploadZone').classList.contains('has-image'))
+    document.getElementById('fileInput').click();
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.getElementById('previewCanvas');
+      const MAX = 600;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      document.getElementById('uploadZone').classList.add('has-image');
+      document.getElementById('scanBtn').disabled = false;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetUpload(e) {
+  e.stopPropagation();
+  document.getElementById('uploadZone').classList.remove('has-image');
+  document.getElementById('scanBtn').disabled = true;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('candleStrip').style.display = 'none';
+  extractedCandles = [];
+  showEmptyState();
+}
+
+// Drag & drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) handleFile(f);
+});
+
+// ── Canvas-based candle extraction ───────────────────────────────────────────
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch(max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
+function classifyPixel(r, g, b, bgL) {
+  const { h, s, l } = rgbToHsl(r, g, b);
+  // Skip near-background
+  if (s < 15 && Math.abs(l - bgL) < 20) return 'bg';
+  // Skip very dark or very bright near neutral
+  if (s < 12) return 'bg';
+  // Green hue range (bull)
+  if (h >= 80 && h <= 170) return 'bull';
+  // Red hue range (bear) — includes magenta-red
+  if (h <= 20 || h >= 330) return 'bear';
+  // Cyan / teal (some brokers use teal for bull)
+  if (h >= 170 && h <= 200 && s > 30) return 'bull';
+  // Orange-red
+  if (h > 20 && h < 45 && s > 50) return 'bear';
+  return 'other';
+}
+
+function extractCandlesFromCanvas() {
+  const canvas = document.getElementById('previewCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const px = ctx.getImageData(0, 0, W, H).data;
+
+  // Sample background brightness from 4 corners
+  let bgL = 0;
+  [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
+    const i = (y*W+x)*4;
+    bgL += rgbToHsl(px[i], px[i+1], px[i+2]).l;
+  });
+  bgL /= 4;
+
+  // Per-column analysis
+  const cols = [];
+  for (let x = 0; x < W; x++) {
+    let bull = 0, bear = 0, other = 0;
+    let minY = H, maxY = 0;
+    let bodyMinY = H, bodyMaxY = 0;
+
+    for (let y = 0; y < H; y++) {
+      const i = (y*W+x)*4;
+      const type = classifyPixel(px[i], px[i+1], px[i+2], bgL);
+      if (type === 'bull' || type === 'bear') {
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        if (type === 'bull') { bull++; if(y<bodyMinY) bodyMinY=y; if(y>bodyMaxY) bodyMaxY=y; }
+        else                 { bear++; if(y<bodyMinY) bodyMinY=y; if(y>bodyMaxY) bodyMaxY=y; }
+      } else if (type === 'other') other++;
+    }
+
+    const total = bull + bear;
+    if (total >= 3) {
+      cols.push({ x, bull, bear, total, minY, maxY, bodyMinY, bodyMaxY,
+                  type: bull >= bear ? 'bull' : 'bear' });
+    }
+  }
+
+  if (cols.length === 0) return [];
+
+  // Cluster adjacent same-type columns into candle groups
+  const groups = [];
+  let cur = null;
+  for (const col of cols) {
+    if (!cur) { cur = { ...col, cols: [col] }; continue; }
+    const gap = col.x - cur.x;
+    if (gap <= 4 && col.type === cur.type) {
+      cur.cols.push(col);
+      cur.x = col.x;
+      cur.minY   = Math.min(cur.minY, col.minY);
+      cur.maxY   = Math.max(cur.maxY, col.maxY);
+      cur.bodyMinY = Math.min(cur.bodyMinY, col.bodyMinY);
+      cur.bodyMaxY = Math.max(cur.bodyMaxY, col.bodyMaxY);
+      cur.bull += col.bull; cur.bear += col.bear;
+    } else {
+      groups.push(cur);
+      cur = { ...col, cols: [col] };
+    }
+  }
+  if (cur) groups.push(cur);
+
+  // Filter tiny groups (noise) — keep groups with width >= 2 columns
+  const valid = groups.filter(g => g.cols.length >= 2);
+  if (valid.length === 0) return [];
+
+  // Convert Y positions to relative OHLC (invert Y: top = high)
+  const allMinY = Math.min(...valid.map(g => g.minY));
+  const allMaxY = Math.max(...valid.map(g => g.maxY));
+  const yRange = allMaxY - allMinY || 1;
+
+  function yToPrice(y) { return 100 - ((y - allMinY) / yRange * 100); }
+
+  return valid.map(g => {
+    const isBull = g.type === 'bull';
+    const high   = yToPrice(g.minY);
+    const low    = yToPrice(g.maxY);
+    const bTop   = yToPrice(g.bodyMinY);
+    const bBot   = yToPrice(g.bodyMaxY);
+    const open   = isBull ? bBot : bTop;
+    const close  = isBull ? bTop : bBot;
+    return { open, high, low, close, isBull };
+  });
+}
+
+// ── Pattern Detection Engine ─────────────────────────────────────────────────
+function body(c)  { const r=c.high-c.low; return r?Math.abs(c.close-c.open)/r:0; }
+function uShadow(c){ const r=c.high-c.low; return r?(c.high-Math.max(c.open,c.close))/r:0; }
+function lShadow(c){ const r=c.high-c.low; return r?(Math.min(c.open,c.close)-c.low)/r:0; }
+function isBull(c){ return c.close >= c.open; }
+
+const PATTERN_DEFS = [
+  // ── Single candle ──────────────────────────────────────────────────────────
+  {
+    name:'Doji', type:'single', signal:'neutral', candles:1,
+    desc:'Open and close are nearly equal. Classic indecision candle — neither bulls nor bears in control. Often precedes a reversal.',
+    reliability:'Medium', followThrough:'Wait for next candle direction',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)<0.08 && (c.high-c.low)>0;
+    }
+  },
+  {
+    name:'Long-Legged Doji', type:'single', signal:'neutral', candles:1,
+    desc:'Doji with very long upper and lower shadows. Extreme indecision — large range but market closed almost where it opened.',
+    reliability:'Medium', followThrough:'Significant reversal possible',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)<0.08 && uShadow(c)>0.35 && lShadow(c)>0.35;
+    }
+  },
+  {
+    name:'Dragonfly Doji', type:'single', signal:'bullish', candles:1,
+    desc:'Open, close, and high at the same level with long lower shadow. Strong bullish signal — sellers pushed price down but buyers reclaimed all losses.',
+    reliability:'High', followThrough:'Watch for gap-up or strong next candle',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)<0.08 && lShadow(c)>0.6 && uShadow(c)<0.1;
+    }
+  },
+  {
+    name:'Gravestone Doji', type:'single', signal:'bearish', candles:1,
+    desc:'Open, close, and low at same level with long upper shadow. Strong bearish signal — buyers pushed price up but sellers drove it all the way back.',
+    reliability:'High', followThrough:'Watch for gap-down or strong bearish candle',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)<0.08 && uShadow(c)>0.6 && lShadow(c)<0.1;
+    }
+  },
+  {
+    name:'Hammer', type:'single', signal:'bullish', candles:1,
+    desc:'Small body near top, long lower shadow (≥2× body). Bullish reversal signal. Sellers dominated but buyers fought back strongly.',
+    reliability:'High', followThrough:'Confirm with bullish candle next',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)>0.08 && lShadow(c)>=0.55 && uShadow(c)<0.15;
+    }
+  },
+  {
+    name:'Inverted Hammer', type:'single', signal:'bullish', candles:1,
+    desc:'Small body near bottom, long upper shadow. Buyers attempted to push price higher. Bullish only with confirmation.',
+    reliability:'Medium', followThrough:'Needs bullish gap or candle to confirm',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)>0.08 && uShadow(c)>=0.55 && lShadow(c)<0.15 && isBull(c);
+    }
+  },
+  {
+    name:'Shooting Star', type:'single', signal:'bearish', candles:1,
+    desc:'Small body near bottom, long upper shadow (≥2× body). Classic bearish reversal after an uptrend. Buyers failed to hold gains.',
+    reliability:'High', followThrough:'Confirm with bearish candle next',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)>0.08 && uShadow(c)>=0.55 && lShadow(c)<0.15 && !isBull(c);
+    }
+  },
+  {
+    name:'Hanging Man', type:'single', signal:'bearish', candles:1,
+    desc:'Like a hammer but appears after an uptrend. Small body, long lower shadow. Warning that selling pressure is building.',
+    reliability:'Medium', followThrough:'Bearish confirmation needed',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)>0.08 && lShadow(c)>=0.55 && uShadow(c)<0.15 && !isBull(c);
+    }
+  },
+  {
+    name:'Bullish Marubozu', type:'single', signal:'bullish', candles:1,
+    desc:'Full bull body with no (or tiny) shadows. Buyers in complete control from open to close. Strong momentum candle.',
+    reliability:'High', followThrough:'Trend likely continues bullish',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)>0.85 && isBull(c);
+    }
+  },
+  {
+    name:'Bearish Marubozu', type:'single', signal:'bearish', candles:1,
+    desc:'Full bear body with no (or tiny) shadows. Sellers in complete control. Strong bearish momentum — no recovery attempted.',
+    reliability:'High', followThrough:'Trend likely continues bearish',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)>0.85 && !isBull(c);
+    }
+  },
+  {
+    name:'Spinning Top', type:'single', signal:'neutral', candles:1,
+    desc:'Small body with roughly equal upper and lower shadows. Balance between buyers and sellers. Often seen before a reversal or pause.',
+    reliability:'Low', followThrough:'Watch next candle for direction clue',
+    detect(cs){
+      const c=cs[cs.length-1];
+      return body(c)>0.08 && body(c)<0.35 && uShadow(c)>0.25 && lShadow(c)>0.25;
+    }
+  },
+  // ── Two candle ──────────────────────────────────────────────────────────────
+  {
+    name:'Bullish Engulfing', type:'two', signal:'bullish', candles:2,
+    desc:'Large bull candle fully covers the previous bear candle. Strong reversal signal — buying overwhelmed prior selling in one session.',
+    reliability:'High', followThrough:'Strong — especially with volume spike',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      return !isBull(p) && isBull(c) && c.open<=p.close && c.close>=p.open && body(c)>0.4;
+    }
+  },
+  {
+    name:'Bearish Engulfing', type:'two', signal:'bearish', candles:2,
+    desc:'Large bear candle fully covers the previous bull candle. Strong bearish reversal — selling swamped prior buying in a single session.',
+    reliability:'High', followThrough:'Strong — especially at resistance',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      return isBull(p) && !isBull(c) && c.open>=p.close && c.close<=p.open && body(c)>0.4;
+    }
+  },
+  {
+    name:'Bullish Harami', type:'two', signal:'bullish', candles:2,
+    desc:'Small bull candle contained inside the prior large bear candle. "Harami" means pregnant in Japanese. Selling momentum is slowing.',
+    reliability:'Medium', followThrough:'Needs confirmation candle',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      return !isBull(p) && isBull(c) && c.open>p.close && c.close<p.open && body(p)>0.4;
+    }
+  },
+  {
+    name:'Bearish Harami', type:'two', signal:'bearish', candles:2,
+    desc:'Small bear candle contained inside the prior large bull candle. Buying momentum is stalling — potential reversal forming.',
+    reliability:'Medium', followThrough:'Needs bearish follow-through',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      return isBull(p) && !isBull(c) && c.open<p.close && c.close>p.open && body(p)>0.4;
+    }
+  },
+  {
+    name:'Tweezer Bottom', type:'two', signal:'bullish', candles:2,
+    desc:'Two candles with matching lows — one bear, one bull. Support held precisely at the same level twice. Buyers defending.',
+    reliability:'Medium', followThrough:'Stronger at key support levels',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      return !isBull(p) && isBull(c) && Math.abs(p.low-c.low)/(p.high-p.low+0.001)<0.05;
+    }
+  },
+  {
+    name:'Tweezer Top', type:'two', signal:'bearish', candles:2,
+    desc:'Two candles with matching highs — one bull, one bear. Resistance held at the same level twice. Sellers defending.',
+    reliability:'Medium', followThrough:'Stronger at key resistance levels',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      return isBull(p) && !isBull(c) && Math.abs(p.high-c.high)/(p.high-p.low+0.001)<0.05;
+    }
+  },
+  {
+    name:'Piercing Line', type:'two', signal:'bullish', candles:2,
+    desc:'Bear candle followed by bull candle that opens below prior low but closes above midpoint. Bullish reversal — buyers seized control mid-session.',
+    reliability:'High', followThrough:'Confirm with continued buying',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      const mid=(p.open+p.close)/2;
+      return !isBull(p) && isBull(c) && c.open<p.low && c.close>mid && c.close<p.open;
+    }
+  },
+  {
+    name:'Dark Cloud Cover', type:'two', signal:'bearish', candles:2,
+    desc:'Bull candle followed by bear candle that opens above prior high but closes below midpoint. Bearish reversal — sellers took over mid-session.',
+    reliability:'High', followThrough:'Confirm with continued selling',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      const mid=(p.open+p.close)/2;
+      return isBull(p) && !isBull(c) && c.open>p.high && c.close<mid && c.close>p.open;
+    }
+  },
+  // ── Three candle ────────────────────────────────────────────────────────────
+  {
+    name:'Morning Star', type:'three', signal:'bullish', candles:3,
+    desc:'Bear candle → small indecision candle → strong bull candle closing above midpoint of first. Classic 3-candle bullish reversal. Highly reliable.',
+    reliability:'Very High', followThrough:'High confidence reversal',
+    detect(cs){
+      if(cs.length<3) return false;
+      const [a,b,c]=cs.slice(-3);
+      const mid=(a.open+a.close)/2;
+      return !isBull(a) && body(b)<0.25 && isBull(c) && c.close>mid && body(a)>0.3;
+    }
+  },
+  {
+    name:'Evening Star', type:'three', signal:'bearish', candles:3,
+    desc:'Bull candle → small indecision candle → strong bear candle closing below midpoint of first. Classic 3-candle bearish reversal. Highly reliable.',
+    reliability:'Very High', followThrough:'High confidence reversal',
+    detect(cs){
+      if(cs.length<3) return false;
+      const [a,b,c]=cs.slice(-3);
+      const mid=(a.open+a.close)/2;
+      return isBull(a) && body(b)<0.25 && !isBull(c) && c.close<mid && body(a)>0.3;
+    }
+  },
+  {
+    name:'Three White Soldiers', type:'three', signal:'bullish', candles:3,
+    desc:'Three consecutive bullish candles, each opening within prior body and closing higher. Sustained buying pressure — strong trend reversal or continuation.',
+    reliability:'Very High', followThrough:'Strong multi-session buying',
+    detect(cs){
+      if(cs.length<3) return false;
+      const [a,b,c]=cs.slice(-3);
+      return isBull(a)&&isBull(b)&&isBull(c) &&
+             b.open>a.open && b.open<a.close &&
+             c.open>b.open && c.open<b.close &&
+             c.close>b.close && b.close>a.close &&
+             body(a)>0.4 && body(b)>0.4 && body(c)>0.4;
+    }
+  },
+  {
+    name:'Three Black Crows', type:'three', signal:'bearish', candles:3,
+    desc:'Three consecutive bearish candles, each opening within prior body and closing lower. Persistent selling — strong bearish reversal signal.',
+    reliability:'Very High', followThrough:'Strong multi-session selling',
+    detect(cs){
+      if(cs.length<3) return false;
+      const [a,b,c]=cs.slice(-3);
+      return !isBull(a)&&!isBull(b)&&!isBull(c) &&
+             b.open<a.open && b.open>a.close &&
+             c.open<b.open && c.open>b.close &&
+             c.close<b.close && b.close<a.close &&
+             body(a)>0.4 && body(b)>0.4 && body(c)>0.4;
+    }
+  },
+  {
+    name:'Morning Doji Star', type:'three', signal:'bullish', candles:3,
+    desc:'Bearish candle → Doji → Bullish candle. Stronger version of Morning Star — the Doji makes the indecision even clearer.',
+    reliability:'Very High', followThrough:'Stronger than Morning Star',
+    detect(cs){
+      if(cs.length<3) return false;
+      const [a,b,c]=cs.slice(-3);
+      const mid=(a.open+a.close)/2;
+      return !isBull(a) && body(b)<0.08 && isBull(c) && c.close>mid;
+    }
+  },
+  {
+    name:'Evening Doji Star', type:'three', signal:'bearish', candles:3,
+    desc:'Bullish candle → Doji → Bearish candle. Very reliable bearish reversal — the Doji highlights the precise turning point.',
+    reliability:'Very High', followThrough:'Stronger than Evening Star',
+    detect(cs){
+      if(cs.length<3) return false;
+      const [a,b,c]=cs.slice(-3);
+      const mid=(a.open+a.close)/2;
+      return isBull(a) && body(b)<0.08 && !isBull(c) && c.close<mid;
+    }
+  },
+  {
+    name:'Inside Bar', type:'three', signal:'continuation', candles:2,
+    desc:'Second candle\'s high and low are fully within the first. Consolidation / indecision. A breakout in either direction is likely next.',
+    reliability:'Medium', followThrough:'Breakout direction = trade bias',
+    detect(cs){
+      if(cs.length<2) return false;
+      const [p,c]=cs.slice(-2);
+      return c.high<p.high && c.low>p.low;
+    }
+  },
+];
+
+function detectPatterns(candles) {
+  const results = [];
+  for (const def of PATTERN_DEFS) {
+    if (candles.length < def.candles) continue;
+    if (def.detect(candles)) {
+      const conf = calcConfidence(def, candles);
+      results.push({ ...def, confidence: conf });
+    }
+  }
+  // Sort: higher confidence first
+  return results.sort((a,b) => b.confidence - a.confidence);
+}
+
+function calcConfidence(def, candles) {
+  const c  = candles[candles.length-1];
+  const p  = candles.length > 1 ? candles[candles.length-2] : null;
+  let score = 60;
+
+  // Larger body = more conviction
+  score += body(c) * 20;
+  // Strong body on last candle
+  if (body(c) > 0.6) score += 10;
+  // Two/three candle patterns get a small boost
+  if (def.candles >= 2) score += 5;
+  if (def.candles >= 3) score += 5;
+  // Engulfing: more engulfing = higher confidence
+  if (p && def.signal === 'bullish' && c.close > p.open) score += 8;
+  if (p && def.signal === 'bearish' && c.close < p.open) score += 8;
+
+  return Math.min(97, Math.round(score));
+}
+
+// ── Run scan ─────────────────────────────────────────────────────────────────
+function runScan() {
+  extractedCandles = extractCandlesFromCanvas();
+  renderCandleStrip(extractedCandles);
+
+  if (extractedCandles.length < 1) {
+    showResult([], 'auto');
+    document.getElementById('resultBody').innerHTML = `
+      <div class="state-empty">
+        <div class="ei">⚠️</div>
+        <div style="margin-bottom:8px">Could not extract candles from this image.</div>
+        <div style="font-size:11px;color:var(--muted)">Try a cleaner chart with solid green/red candles, or use the Manual Entry section below.</div>
+      </div>`;
+    return;
+  }
+
+  const patterns = detectPatterns(extractedCandles);
+  showResult(patterns, 'auto');
+}
+
+function runManualScan() {
+  if (manualCandles.length === 0) return;
+  const patterns = detectPatterns(manualCandles);
+  showResult(patterns, 'manual');
+}
+
+// ── Manual entry ─────────────────────────────────────────────────────────────
+function addManualCandle() {
+  const o = parseFloat(document.getElementById('mOpen').value);
+  const h = parseFloat(document.getElementById('mHigh').value);
+  const l = parseFloat(document.getElementById('mLow').value);
+  const c = parseFloat(document.getElementById('mClose').value);
+  if ([o,h,l,c].some(isNaN) || h<l || h<Math.max(o,c) || l>Math.min(o,c)) {
+    alert('Check OHLC values — High must be highest, Low must be lowest.');
+    return;
+  }
+  manualCandles.push({ open:o, high:h, low:l, close:c, isBull: c>=o });
+  renderManualQueue();
+  ['mOpen','mHigh','mLow','mClose'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('manualScanBtn').disabled = false;
+}
+
+function clearManual() {
+  manualCandles = [];
+  renderManualQueue();
+  document.getElementById('manualScanBtn').disabled = true;
+}
+
+function renderManualQueue() {
+  const q = document.getElementById('manualQueue');
+  if (!manualCandles.length) { q.innerHTML = ''; return; }
+  q.innerHTML = manualCandles.map((c,i) =>
+    `<span class="mq-chip ${c.isBull?'bull-chip':'bear-chip'}" title="O:${c.open} H:${c.high} L:${c.low} C:${c.close}" onclick="removeManual(${i})">
+      ${c.isBull?'▲':'▼'} ${c.close.toFixed(1)} ✕
+    </span>`
+  ).join('');
+}
+
+function removeManual(i) {
+  manualCandles.splice(i, 1);
+  renderManualQueue();
+  if (!manualCandles.length) document.getElementById('manualScanBtn').disabled = true;
+}
+
+// ── Candle strip ─────────────────────────────────────────────────────────────
+function renderCandleStrip(candles) {
+  const strip = document.getElementById('candleStrip');
+  if (!candles.length) { strip.style.display='none'; return; }
+  strip.style.display = 'block';
+  document.getElementById('candleCount').textContent = candles.length;
+
+  const maxH = Math.max(...candles.map(c=>c.high));
+  const minL = Math.min(...candles.map(c=>c.low));
+  const range = maxH - minL || 1;
+  const SCALE = 80; // px
+
+  document.getElementById('stripCandles').innerHTML = candles.map((c,i) => {
+    const totalH = ((c.high - c.low) / range * SCALE);
+    const bodyH  = Math.max(2, (Math.abs(c.close - c.open) / range * SCALE));
+    const wickTop = ((c.high - Math.max(c.open,c.close)) / range * SCALE);
+    const bodyBot = ((Math.min(c.open,c.close) - c.low) / range * SCALE);
+    return `<div class="candle-col" style="min-width:20px">
+      <div class="candle-wick" style="height:${wickTop}px"></div>
+      <div class="candle-body ${c.isBull?'bull':'bear'}" style="height:${bodyH}px"></div>
+      <div class="candle-wick" style="height:${bodyBot}px"></div>
+      <div class="candle-label">${i+1}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Results rendering ─────────────────────────────────────────────────────────
+function showEmptyState() {
+  document.getElementById('patCount').textContent = '';
+  document.getElementById('resultBody').innerHTML = `
+    <div class="state-empty">
+      <div class="ei">📈</div>
+      <div>Upload a chart screenshot or enter candle values to detect patterns</div>
+    </div>`;
+}
+
+function showResult(patterns, source) {
+  const countEl = document.getElementById('patCount');
+  const body = document.getElementById('resultBody');
+
+  if (!patterns.length) {
+    countEl.textContent = 'No match';
+    body.innerHTML = `
+      <div class="state-empty">
+        <div class="ei">🤔</div>
+        <div style="margin-bottom:6px">No standard pattern detected in last ${source==='auto'?extractedCandles.length:manualCandles.length} candle(s).</div>
+        <div style="font-size:11px;color:var(--muted)">Pattern may be mid-formation, or candle count too low for multi-candle patterns.</div>
+      </div>`;
+    return;
+  }
+
+  countEl.textContent = `${patterns.length} pattern${patterns.length>1?'s':''} found`;
+  body.innerHTML = patterns.map(p => {
+    const sigClass = p.signal;
+    const sigLabel = p.signal === 'bullish' ? 'Bullish Setup' :
+                     p.signal === 'bearish' ? 'Bearish Setup' :
+                     p.signal === 'continuation' ? 'Continuation' : 'Neutral';
+    return `
+    <div class="pat-card ${sigClass}">
+      <div class="pat-head">
+        <span class="pat-name">${p.name}</span>
+        <span class="pat-badge ${sigClass}">${sigLabel}</span>
+        <span class="pat-conf">${p.confidence}%</span>
+      </div>
+      <div class="pat-desc">${p.desc}</div>
+      <div class="pat-meta">
+        <span>📊 ${p.type==='single'?'1-candle':p.type==='two'?'2-candle':'3-candle'}</span>
+        <span>⭐ ${p.reliability} reliability</span>
+        <span>➡ ${p.followThrough}</span>
+      </div>
+      <div class="conf-bar"><div class="conf-fill ${sigClass}" style="width:${p.confidence}%"></div></div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
