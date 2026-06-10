@@ -695,7 +695,7 @@ def get_trade_flow():
     Returns live trade flow data for the Nifty Trade Flow decision framework.
     Covers 3 phases: Pre-Market (CPR + GIFT gap), 9:15 open, ORB (9:30+).
     """
-    global market_state, trade_flow_data
+    global market_state, trade_flow_data, chain_map
 
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     h, m = now_ist.hour, now_ist.minute
@@ -837,6 +837,48 @@ def get_trade_flow():
             "sl_bear": round(orb["low"] + 20, 2),
         }
 
+    # ── PCR from live chain_map (total across all strikes) ───────────────────
+    oi_sentiment = None
+    try:
+        total_ce_oi = total_pe_oi = 0
+        for row in chain_map:
+            ce_tok = str(row["ce"]["token"])
+            pe_tok = str(row["pe"]["token"])
+            ce_oi  = (market_state.data.get(ce_tok) or {}).get("oi") or 0
+            pe_oi  = (market_state.data.get(pe_tok) or {}).get("oi") or 0
+            total_ce_oi += ce_oi
+            total_pe_oi += pe_oi
+        if total_ce_oi > 0 and total_pe_oi > 0:
+            pcr_val = round(total_pe_oi / total_ce_oi, 2)
+            if pcr_val > 1.3:
+                pcr_label = "BULLISH"
+            elif pcr_val < 0.7:
+                pcr_label = "BEARISH"
+            else:
+                pcr_label = "NEUTRAL"
+            oi_sentiment = {
+                "pcr":          pcr_val,
+                "label":        pcr_label,
+                "total_pe_oi":  total_pe_oi,
+                "total_ce_oi":  total_ce_oi,
+            }
+    except Exception:
+        pass
+
+    # Incorporate PCR into straddle lean as Factor 4 (if ORB straddles CPR)
+    if oi_sentiment and orb_data and orb_data.get("vs_cpr") == "straddles":
+        p = oi_sentiment["pcr"]
+        if p > 1.5:    lean_scores["bull"] += 2
+        elif p > 1.3:  lean_scores["bull"] += 1
+        elif p < 0.5:  lean_scores["bear"] += 2
+        elif p < 0.7:  lean_scores["bear"] += 1
+        # Re-evaluate lean with updated scores
+        if lean_scores["bear"] >= 3 and lean_scores["bear"] > lean_scores["bull"]:
+            orb_data["straddle_lean"] = "bear_lean"
+        elif lean_scores["bull"] >= 3 and lean_scores["bull"] > lean_scores["bear"]:
+            orb_data["straddle_lean"] = "bull_lean"
+        orb_data["lean_scores"] = lean_scores
+
     # ── Auto scenario determination ───────────────────────────────────────────
     scenario = "unknown"
     if open_data and orb_data:
@@ -862,17 +904,18 @@ def get_trade_flow():
             scenario = "skip"
 
     return {
-        "phase":       phase,
-        "time_ist":    now_ist.strftime("%H:%M:%S"),
-        "date":        now_ist.strftime("%Y-%m-%d"),
-        "prev_day":    prev,
-        "gift_nifty":  trade_flow_data.get("gift_nifty"),
-        "india_vix":   trade_flow_data.get("india_vix"),
-        "cpr":         cpr,
-        "nifty_open":  open_data,
-        "orb":         orb_data,
-        "nifty_ltp":   effective_ltp,
-        "scenario":    scenario,
+        "phase":         phase,
+        "time_ist":      now_ist.strftime("%H:%M:%S"),
+        "date":          now_ist.strftime("%Y-%m-%d"),
+        "prev_day":      prev,
+        "gift_nifty":    trade_flow_data.get("gift_nifty"),
+        "india_vix":     trade_flow_data.get("india_vix"),
+        "cpr":           cpr,
+        "nifty_open":    open_data,
+        "orb":           orb_data,
+        "nifty_ltp":     effective_ltp,
+        "scenario":      scenario,
+        "oi_sentiment":  oi_sentiment,
     }
 
 

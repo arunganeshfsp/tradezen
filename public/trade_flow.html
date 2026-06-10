@@ -426,6 +426,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
   <button class="sc-btn" id="btn-cond-bull" onclick="setScenario('conditional_bull')" style="display:none">⚡ Conditional Bull</button>
   <button class="sc-btn" id="btn-skip" onclick="setScenario('skip')">🟡 Skip Trade</button>
   <span class="auto-tag" id="auto-tag" style="display:none">AUTO</span>
+  <span id="pcr-chip" style="display:none;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid;letter-spacing:.06em;margin-left:4px"></span>
 </div>
 
 <!-- MAIN -->
@@ -2395,6 +2396,7 @@ async function fetchFlowData() {
 
     updateHero(d);
     renderFlowData(d);
+    _updatePcrChip(d.oi_sentiment);
     _checkPriceAlerts(d.nifty_ltp);
     _evaluatePendingAlerts(d.nifty_ltp);
 
@@ -2798,6 +2800,22 @@ async function _fetchIvSilent() {
     // Update OI panel if chart is open
     _renderOiPanel(d);
   } catch (_) {}
+}
+
+function _updatePcrChip(oi) {
+  const chip = document.getElementById('pcr-chip');
+  if (!chip) return;
+  if (!oi || oi.pcr == null) { chip.style.display = 'none'; return; }
+  chip.style.display = '';
+  const colors = {
+    BULLISH: { bg: 'rgba(74,222,128,.12)', color: '#4ade80', border: 'rgba(74,222,128,.35)' },
+    BEARISH: { bg: 'rgba(248,113,113,.12)', color: '#f87171', border: 'rgba(248,113,113,.35)' },
+    NEUTRAL: { bg: 'rgba(255,255,255,.06)', color: 'var(--muted)', border: 'rgba(255,255,255,.12)' },
+  }[oi.label] || {};
+  chip.textContent         = `PCR ${oi.pcr.toFixed(2)} · OI ${oi.label}`;
+  chip.style.background    = colors.bg;
+  chip.style.color         = colors.color;
+  chip.style.borderColor   = colors.border;
 }
 
 function _renderOiPanel(d) {
