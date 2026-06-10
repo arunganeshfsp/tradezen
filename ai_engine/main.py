@@ -1352,7 +1352,7 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
 
     try:
         ticker = yf.Ticker(f"{symbol}.NS")
-        df_5m = ticker.history(period="1d", interval="5m")
+        df_5m = ticker.history(period="5d", interval="5m")
         if df_5m.empty:
             return {"error": f"No data for {symbol}", "status": "offline"}
 
@@ -1363,6 +1363,10 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
 
         if df_5m.empty:
             return {"error": "Market hours data not available", "status": "offline"}
+
+        # Use only the most recent trading session (handles pre-market / post-market)
+        last_date = df_5m.index[-1].date()
+        df_5m = df_5m[df_5m.index.date == last_date]
 
         # Live price
         info = ticker.fast_info
@@ -1387,11 +1391,10 @@ def get_stock_monitor(symbol: str = "RELIANCE"):
             ema21_s = calculate_ema(close, 21)
             rsi_s = calculate_rsi(close, 14)
 
-            IST_OFFSET = 19800
             chart_candles, chart_ema9, chart_ema21, chart_rsi = [], [], [], []
 
             for idx, (ts, row) in enumerate(df_5m.iterrows()):
-                t = int(ts.timestamp()) + IST_OFFSET
+                t = int(ts.timestamp())
                 chart_candles.append({'time': t, 'open': round(float(row['open']), 2),
                                        'high': round(float(row['high']), 2),
                                        'low': round(float(row['low']), 2),

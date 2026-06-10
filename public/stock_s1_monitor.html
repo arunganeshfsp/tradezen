@@ -337,9 +337,7 @@ document.title = `${symbol} Monitor | TradeZen`;
 // Session state
 function getSession() {
   const now = new Date();
-  const h = (now.getUTCHours() + 5) % 24;
-  const m = (now.getUTCMinutes() + 30) % 60;
-  const mins = h * 60 + m;
+  const mins = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
   if (mins < 9 * 60) return { status: 'MARKET CLOSED', color: '#4a5070', cd: countdown(9 * 60, mins), event: 'to Pre-Market' };
   if (mins < 9 * 60 + 15) return { status: 'PRE-MARKET', color: '#f5a623', cd: countdown(9 * 60 + 15, mins), event: 'to Market Open' };
   if (mins < 15 * 60 + 30) return { status: 'LIVE TRADING', color: '#2ecc71', cd: countdown(15 * 60 + 30, mins), event: 'to Market Close' };
@@ -525,9 +523,18 @@ async function fetchData() {
   try {
     const res = await fetch(`/api/stock-monitor?symbol=${symbol}`);
     const data = await res.json();
-    if (data.error) { console.warn('[Monitor]', data.error); return; }
+    if (data.error) {
+      document.getElementById('priceVal').textContent = 'Offline';
+      document.getElementById('symVal').textContent = `${symbol} — ${data.error}`;
+      console.warn('[Monitor]', data.error);
+      return;
+    }
+    document.getElementById('symVal').textContent = symbol;
     updateAll(data);
-  } catch(e) { console.error('[Monitor]', e); }
+  } catch(e) {
+    document.getElementById('priceVal').textContent = 'Error';
+    console.error('[Monitor]', e);
+  }
 }
 
 function toggleLog() {
