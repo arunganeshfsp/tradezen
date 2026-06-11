@@ -1244,7 +1244,7 @@ function buildRsiChart() {
   _rsiSeries.createPriceLine({ price: 70, color: 'rgba(231,76,60,0.55)', lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: 'OB' });
   _rsiSeries.createPriceLine({ price: 30, color: 'rgba(46,204,113,0.55)', lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: 'OS' });
   _rsiSeries.createPriceLine({ price: 50, color: 'rgba(155,163,191,0.2)', lineWidth: 1, lineStyle: LS.Dotted, axisLabelVisible: false });
-  const rsiData = _calcRSIData(_candles);
+  const rsiData = _candles.filter(c => c.rsi != null).map(c => ({ time: c.time, value: c.rsi }));
   _rsiSeries.setData(rsiData);
   _rsiChart.timeScale().fitContent();
   if (rsiData.length) document.getElementById('rsi-val').textContent = rsiData[rsiData.length - 1].value.toFixed(1);
@@ -1336,10 +1336,10 @@ function chartUpdateLast(candle) {
   // EMA live update
   if (_ema9Series  && _indState.ema9)  { const d = _calcEMAData(_candles, 9);  if (d.length) _ema9Series.update(d[d.length-1]); }
   if (_ema21Series && _indState.ema21) { const d = _calcEMAData(_candles, 21); if (d.length) _ema21Series.update(d[d.length-1]); }
-  // RSI live update
+  // RSI live update — value comes from server (pre-warmed on 5-day history)
   if (_rsiChart && _indState.rsi) {
-    const d = _calcRSIData(_candles);
-    if (d.length) { _rsiSeries.update(d[d.length-1]); document.getElementById('rsi-val').textContent = d[d.length-1].value.toFixed(1); }
+    const lc = _candles[_candles.length - 1];
+    if (lc && lc.rsi != null) { _rsiSeries.update({ time: lc.time, value: lc.rsi }); document.getElementById('rsi-val').textContent = lc.rsi.toFixed(1); }
   }
   // MACD live update
   if (_macdChart && _indState.macd) {

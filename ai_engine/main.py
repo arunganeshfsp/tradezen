@@ -2414,27 +2414,40 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
         if now - cached_ts < _PSYCH_CACHE_TTL:
             return cached_data
 
-    yf_sym, yf_period = _YF_SYMBOLS.get(symbol, "^NSEI"), "1d"
-    yf_interval, yf_period = _INTERVAL_MAP.get(interval, ("5m", "1d"))
+    yf_sym = _YF_SYMBOLS.get(symbol, "^NSEI")
+    yf_interval, _ = _INTERVAL_MAP.get(interval, ("5m", "1d"))
+    # Fetch multi-day data so Wilder RSI has enough history to converge.
+    # 1m: max 7d; 5m/15m: 5d is sufficient (~300 bars for Wilder seed).
+    warmup_period = "7d" if yf_interval == "1m" else "5d"
 
-    df = yf.Ticker(yf_sym).history(period=yf_period, interval=yf_interval)
-    if df.empty:
+    df_all = yf.Ticker(yf_sym).history(period=warmup_period, interval=yf_interval)
+    if df_all.empty:
         return {"error": "No intraday data — market closed or holiday", "candles": [], "market_closed": True}
 
     try:
-        df.index = df.index.tz_convert("Asia/Kolkata")
+        df_all.index = df_all.index.tz_convert("Asia/Kolkata")
     except Exception:
         pass
 
-    df = df[["Open", "High", "Low", "Close", "Volume"]].dropna()
+    df_all = df_all[["Open", "High", "Low", "Close", "Volume"]].dropna()
 
     # Require today's IST date — reject stale bars from previous sessions / holidays
     now_ist   = datetime.utcnow() + timedelta(hours=5, minutes=30)
     today_ist = now_ist.date()
 
-    if df.empty or df.index[-1].date() != today_ist:
+    if df_all.empty or df_all.index[-1].date() != today_ist:
         return {"error": "No trading session today — market closed or holiday", "candles": [], "market_closed": True}
 
+    # Pre-compute RSI on full multi-day series (trading hours) so Wilder is properly seeded
+    try:
+        from core.indicators.rsi import calculate_rsi as _calc_rsi
+        df_session = df_all.between_time("09:15", "15:30")
+        _rsi_full  = _calc_rsi(df_session["Close"], 14)
+    except Exception:
+        _rsi_full = None
+
+    # Today's candles only for OHLCV / VWAP / Supertrend display
+    df = df_all[df_all.index.date == today_ist]
     try:
         df = df.between_time("09:15", "15:30")
     except Exception:
@@ -2486,6 +2499,15 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
 
         ts_ist = int(row.name.timestamp()) + IST_OFFSET
 
+        # RSI from pre-warmed 5-day series; None if not yet converged
+        rsi_val = None
+        if _rsi_full is not None:
+            ts_key = row.name
+            if ts_key in _rsi_full.index:
+                rv = float(_rsi_full.loc[ts_key])
+                if not math.isnan(rv):
+                    rsi_val = round(rv, 2)
+
         candle = {
             "time":           ts_ist,
             "open":           round(o, 2),
@@ -2497,6 +2519,7 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
             "supertrend":     round(float(st["value"]), 2) if st.get("value") else None,
             "supertrend_dir": st["direction"],
             "dominance":      dom,
+            "rsi":            rsi_val,
         }
         candles_out.append(candle)
         history.append({"score": dom["score"], "components": dom["components"]})
