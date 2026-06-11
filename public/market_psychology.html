@@ -1087,6 +1087,7 @@ async function fetchAndDrawOrb() {
     if (!d.orb || d.orb.high == null) return;
     _orbData = d.orb;
     drawOrbLines();
+    if (_candles.length) updateCrtCard(_candles[_candles.length - 1]);
   } catch(e) {}
 }
 
