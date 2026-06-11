@@ -106,6 +106,18 @@ class StockOptionsMonitor:
             'vol_spike': vol_spike,
         }
 
+        # ── Directional bias (visible before full signal fires) ────────────
+        ce_pts = int(ema9 > ema21) + int(rsi > 55) + int(price > self.or_high)
+        pe_pts = int(ema9 < ema21) + int(rsi < 45) + int(price < self.or_low)
+        if ce_pts >= 2 and ce_pts > pe_pts:
+            direction = 'CE'
+        elif pe_pts >= 2 and pe_pts > ce_pts:
+            direction = 'PE'
+        else:
+            direction = None
+        result['direction'] = direction
+        result['direction_scores'] = {'ce': ce_pts, 'pe': pe_pts}
+
         # ── CE Check ───────────────────────────────────────────────────────
         ce = self._check_ce(price, ema9, ema21, rsi, vol_spike, current_time, result)
         if ce:

@@ -318,6 +318,56 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 .alog-outcome.pending{background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
 .alog-empty{padding:28px;text-align:center;color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace}
 @media(max-width:768px){.alog-tip{display:none}.alog-table th:nth-child(4),.alog-table td:nth-child(4){display:none}}
+
+/* ── LIGHT THEME ─────────────────────────────────────── */
+:root[data-theme="light"]{
+  --bg:#f8fafc; --bg1:#ffffff; --bg2:#f1f5f9; --bg3:#e2e8f0; --bg4:#cbd5e1;
+  --border:#e2e8f0; --border2:#cbd5e1;
+  --accent:#5B4FD4; --blue:#2563eb;
+  --green:#16a34a; --green2:#15803d;
+  --green-bg:rgba(22,163,74,0.10); --green-border:rgba(22,163,74,0.25);
+  --red:#dc2626; --red2:#b91c1c;
+  --red-bg:rgba(220,38,38,0.10); --red-border:rgba(220,38,38,0.25);
+  --yellow:#d97706; --yellow-bg:rgba(217,119,6,0.10); --yellow-border:rgba(217,119,6,0.25);
+  --cyan:#0284c7;
+  --text:#0f172a; --dim:#334155; --muted:#64748b;
+}
+/* Nav */
+:root[data-theme="light"] nav{background:rgba(248,250,252,0.97)}
+:root[data-theme="light"] .nav-links{background:rgba(248,250,252,0.98)}
+:root[data-theme="light"] .brand{color:var(--text)}
+:root[data-theme="light"] .nl.on{color:var(--accent);background:rgba(91,79,212,0.08)}
+/* Hero */
+:root[data-theme="light"] .hero{background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(91,79,212,0.06) 0%,transparent 65%),var(--bg)}
+:root[data-theme="light"] .hero h1{color:var(--text)}
+/* Phase / step */
+:root[data-theme="light"] .ph-time{color:var(--text)}
+/* Detail card */
+:root[data-theme="light"] .dc-title{color:var(--text)}
+/* Scenario boxes */
+:root[data-theme="light"] .sb-title{color:var(--text)}
+:root[data-theme="light"] .sb-neutral{background:rgba(37,99,235,0.06);border-color:var(--blue)}
+/* Data rows */
+:root[data-theme="light"] .data-row{border-bottom-color:var(--border)}
+/* Compare table */
+:root[data-theme="light"] .compare-table th{background:var(--bg3);color:var(--muted)}
+:root[data-theme="light"] .compare-table td{border-bottom-color:var(--border)}
+:root[data-theme="light"] .compare-table tr:hover td{background:var(--bg2)}
+/* Footer */
+:root[data-theme="light"] footer{background:var(--bg2);border-top-color:var(--border)}
+:root[data-theme="light"] .fbrand span{color:var(--dim)}
+/* Chart OI panel */
+:root[data-theme="light"] #chart-oi-panel{background:var(--bg2)}
+:root[data-theme="light"] #chart-legend{background:var(--bg2)}
+/* Alert log */
+:root[data-theme="light"] .alog-panel{background:var(--bg1)}
+:root[data-theme="light"] .alog-head:hover{background:var(--bg2)}
+:root[data-theme="light"] .alog-stats{background:var(--bg2)}
+:root[data-theme="light"] .alog-table th{background:var(--bg2)}
+:root[data-theme="light"] .alog-table tr:hover td{background:var(--bg2)}
+/* Inline color:#fff overrides — static + JS-generated */
+:root[data-theme="light"] span[style*="color:#fff"],
+:root[data-theme="light"] div[style*="color:#fff"]{color:var(--text) !important}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">

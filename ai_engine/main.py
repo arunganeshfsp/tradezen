@@ -1322,6 +1322,24 @@ def _s1_monitor_state() -> dict:
         result['timestamp'] = datetime.now().isoformat()
         result['candles_count'] = len(df_today)
 
+        # Directional bias (visible before full signal fires)
+        ind = result.get('indicators', {})
+        _ema9  = ind.get('ema9',  0) or 0
+        _ema21 = ind.get('ema21', 0) or 0
+        _rsi   = rsi_override or ind.get('rsi', 50) or 50
+        _or_h  = ind.get('or_high', 0) or 0
+        _or_l  = ind.get('or_low',  0) or 0
+        ce_pts = int(_ema9 > _ema21) + int(_rsi > 55) + int(_or_h > 0 and nifty_price > _or_h)
+        pe_pts = int(_ema9 < _ema21) + int(_rsi < 45) + int(_or_l > 0 and nifty_price < _or_l)
+        if ce_pts >= 2 and ce_pts > pe_pts:
+            _dir = 'CE'
+        elif pe_pts >= 2 and pe_pts > ce_pts:
+            _dir = 'PE'
+        else:
+            _dir = None
+        result['direction'] = _dir
+        result['direction_scores'] = {'ce': ce_pts, 'pe': pe_pts}
+
         # ────────────────────────────────────────────────────────────────────
         # Generate chart data (candles + indicators for lightweight-charts)
         # ────────────────────────────────────────────────────────────────────
