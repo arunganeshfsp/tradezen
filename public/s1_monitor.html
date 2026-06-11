@@ -689,16 +689,14 @@ const LIVE_END = 13 * 60;             // 1:00 PM
 
 function getSessionStatus() {
   const now = new Date();
-  const istHours = (now.getUTCHours() + 5) % 24;
-  const istMinutes = (now.getUTCMinutes() + 30) % 60;
-  const totalMinutes = istHours * 60 + istMinutes;
-  const dayOfWeek = (now.getUTCDay() + 1) % 7; // IST offset
+  const totalMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+  const isWeekday = now.getUTCDay() >= 1 && now.getUTCDay() <= 5;
 
   if (totalMinutes < PRE_MARKET_START) {
     return { status: 'MARKET CLOSED', color: '#4a5070', countdown: calculateCountdown(PRE_MARKET_START, totalMinutes), event: 'to Pre-Market' };
   } else if (totalMinutes < PRE_MARKET_END) {
     return { status: 'PRE-MARKET', color: '#f5a623', countdown: calculateCountdown(LIVE_START, totalMinutes), event: 'to Market Open' };
-  } else if (totalMinutes < LIVE_END && (dayOfWeek === 3 || dayOfWeek === 4)) {
+  } else if (totalMinutes < LIVE_END && isWeekday) {
     return { status: 'LIVE TRADING', color: '#2ecc71', countdown: calculateCountdown(LIVE_END, totalMinutes), event: 'to Hard Exit' };
   } else {
     return { status: 'POST-MARKET', color: '#e74c3c', countdown: calculateCountdown(PRE_MARKET_START + 1440, totalMinutes), event: 'to Next Day' };
