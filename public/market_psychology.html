@@ -196,9 +196,14 @@ body.fs-lock{overflow:hidden}
 .ci-vol-bar-wrap{flex:1;background:var(--bg3);border-radius:3px;height:5px;overflow:hidden}
 .ci-vol-bar{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
 
+/* ── CANDLE HISTORY + BUYERS/SELLERS ROW ── */
+.hist-dom-row{display:flex;gap:16px;align-items:flex-start}
+.hist-dom-row .hist-section{flex:1;min-width:0}
+.hist-dom-row .dom-card{flex-shrink:0;width:220px}
+@media(max-width:700px){.hist-dom-row{flex-direction:column}.hist-dom-row .dom-card{width:100%}}
+
 /* ── CANDLE HISTORY STRIP ── */
 .hist-section{padding:0}
-@media(max-width:600px){.hist-section{padding:0}}
 .hist-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
 .hist-strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
 .hist-strip::-webkit-scrollbar{height:3px}
@@ -555,23 +560,21 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="chart-asof" id="chart-asof"></div>
   </div><!-- /chart-panel -->
 
-  <!-- CANDLE HISTORY (inside left column, fills gap below chart) -->
-  <div class="hist-section" data-sec>
-    <div class="hist-title sec-hdr" onclick="toggleSec(this)">Recent Candles <span class="sec-chev">▾</span></div>
-    <div class="sec-body">
-      <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
-    </div>
-  </div>
-
   </div><!-- /chart-col -->
 
   <!-- Indicator info tooltip -->
   <div id="ind-tooltip" class="ind-tooltip"></div>
 
-  <!-- PSYCHOLOGY SIDEBAR -->
-  <div class="psych-sidebar">
+  <!-- CANDLE HISTORY + BUYERS/SELLERS ROW -->
+  <div class="hist-dom-row">
 
-    <!-- DOMINANCE METER -->
+    <div class="hist-section" data-sec>
+      <div class="hist-title sec-hdr" onclick="toggleSec(this)">Recent Candles <span class="sec-chev">▾</span></div>
+      <div class="sec-body">
+        <div class="hist-strip" id="hist-strip"><span style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Loading…</span></div>
+      </div>
+    </div>
+
     <div class="dom-card" data-sec>
       <div class="dom-labels sec-hdr" onclick="toggleSec(this)">
         <span class="dom-lbl buy">BUYERS</span>
@@ -591,6 +594,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="dom-note">Buyer Aggression vs Seller Pressure — not exact volume</div>
       </div>
     </div>
+
+  </div><!-- /hist-dom-row -->
+
+  <!-- PSYCHOLOGY SIDEBAR -->
+  <div class="psych-sidebar">
 
     <!-- STATE + INSIGHT (grouped, collapsible) -->
     <div data-sec>
