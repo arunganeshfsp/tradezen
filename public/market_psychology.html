@@ -254,6 +254,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 @keyframes statePop{0%{transform:scale(0.97)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
 .state-pop{animation:statePop .3s ease}
 
+/* ── CANDLE PATTERN + CRT ROW (spans full sidebar width) ── */
+.cp-crt-row{grid-column:1/-1;display:flex;gap:14px}
+.cp-crt-row>*{flex:1;min-width:0}
+@media(max-width:600px){.cp-crt-row{flex-direction:column}}
+
 /* ── CANDLE PATTERN CARD ── */
 .cp-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;transition:border-color .4s}
 .cp-card.cp-bull{border-color:rgba(46,204,113,0.35)}
@@ -673,30 +678,33 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </div>
     </div>
 
-    <!-- CANDLE PATTERN -->
-    <div class="cp-card" id="cp-card" data-sec>
-      <div class="cp-head sec-hdr" onclick="toggleSec(this)">
-        <span class="cp-title">Candle Pattern</span>
-        <span class="cp-badge" id="cp-badge">—</span>
-        <span class="sec-chev">▾</span>
-      </div>
-      <div id="cp-body" class="sec-body">
-        <div style="text-align:center;padding:16px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Waiting for data…</div>
-      </div>
-    </div>
+    <!-- CANDLE PATTERN + CRT (full-width row) -->
+    <div class="cp-crt-row">
 
-    <!-- CRT TRAP ANALYSIS -->
-    <div class="crt-card" id="crt-card" data-sec>
-      <div class="crt-head sec-hdr" onclick="toggleSec(this)">
-        <span id="crt-icon" style="font-size:15px;flex-shrink:0">📐</span>
-        <span class="crt-lbl">CRT Analysis</span>
-        <span class="crt-badge cb-form" id="crt-badge">—</span>
-        <span class="sec-chev">▾</span>
+      <div class="cp-card" id="cp-card" data-sec>
+        <div class="cp-head sec-hdr" onclick="toggleSec(this)">
+          <span class="cp-title">Candle Pattern</span>
+          <span class="cp-badge" id="cp-badge">—</span>
+          <span class="sec-chev">▾</span>
+        </div>
+        <div id="cp-body" class="sec-body">
+          <div style="text-align:center;padding:16px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px">Waiting for data…</div>
+        </div>
       </div>
-      <div id="crt-body" class="sec-body">
-        <div class="crt-no-orb">Waiting for OR levels…<br><span style="font-size:10px;opacity:.6">Enable ORB on the chart to activate.</span></div>
+
+      <div class="crt-card" id="crt-card" data-sec>
+        <div class="crt-head sec-hdr" onclick="toggleSec(this)">
+          <span id="crt-icon" style="font-size:15px;flex-shrink:0">📐</span>
+          <span class="crt-lbl">CRT Analysis</span>
+          <span class="crt-badge cb-form" id="crt-badge">—</span>
+          <span class="sec-chev">▾</span>
+        </div>
+        <div id="crt-body" class="sec-body">
+          <div class="crt-no-orb">Waiting for OR levels…<br><span style="font-size:10px;opacity:.6">Enable ORB on the chart to activate.</span></div>
+        </div>
       </div>
-    </div>
+
+    </div><!-- /cp-crt-row -->
 
   </div><!-- /psych-sidebar -->
 
