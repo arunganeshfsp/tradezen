@@ -532,9 +532,15 @@ async function fetchScanner() {
       return;
     }
 
-    window._scanStocks = data.stocks;
+    const visibleStocks = data.stocks.filter(s => Math.abs(s.change_pct) >= 1);
+    window._scanStocks = visibleStocks;
 
-    tbody.innerHTML = data.stocks.map((s, i) => {
+    if (visibleStocks.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No stocks with ≥1% move right now</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = visibleStocks.map((s, i) => {
       const chgClass = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'dn' : 'flat';
       const chgSign  = s.change_pct > 0 ? '+' : '';
       const domClass = s.dominance === 'BUYER' ? 'dom-buyer' : 'dom-seller';

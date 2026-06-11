@@ -522,6 +522,7 @@ let _rpMs     = 1000;        // replay speed ms
 let _rpPlaying = false;
 let _lastCandleTime = 0;  // tracks completed-candle detection
 let _toastTimer = null;
+let _prevClose  = null;  // yesterday's close — used for day-change calculation
 
 // Indicator toggle state — true = visible
 const _indState = { vwap:true, st:true, vol:true, ema9:false, ema21:false, cpr:false, pivots:false, orb:false, rsi:false, macd:false };
@@ -580,6 +581,7 @@ async function reload() {
   tpCrtLogClear();
   stopLivePoll();
   rpStop();
+  _prevClose = null;
   setChartLoading();
   document.getElementById('chart-title').textContent = `${_sym} · ${_tf}`;
   clearError();
@@ -763,6 +765,7 @@ async function fetchAndDrawLevels() {
     const d   = await res.json();
     if (!d.cpr || !d.camarilla) return;
     _cprData = { cpr: d.cpr, cam: d.camarilla };
+    if (d.prev_close) _prevClose = d.prev_close;
     if (_indState.cpr || _indState.pivots) drawLevels();
     tryBuildStory();  // CPR data now available — rebuild story with full context
   } catch(e) {}
@@ -3124,8 +3127,9 @@ function tpSetSpeed(s, btn) {
 function _tpLiveUpdate(candle) {
   _tpScrubUpdate();
   if (candle && _candles.length > 1) {
-    var price = candle.close, first = _candles[0].open;
-    var chg = price - first, chgP = (chg / first) * 100;
+    var price = candle.close;
+    var base  = _prevClose || _candles[0].open;
+    var chg = price - base, chgP = (chg / base) * 100;
     var prEl = document.getElementById('tp-hero-price');
     var chEl = document.getElementById('tp-hero-change');
     var syEl = document.getElementById('tp-hero-sym');

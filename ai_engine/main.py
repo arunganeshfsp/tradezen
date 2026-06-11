@@ -2752,11 +2752,12 @@ async def psychology_levels(symbol: str = "NIFTY", date: str = None):
     except Exception:
         pass
     return {
-        "symbol": symbol.upper(),
-        "spot":   spot,
-        "cpr":    {"tc": tc, "pp": pp, "bc": bc, "r1": r1, "r2": r2, "s1": s1, "s2": s2},
-        "camarilla": cam,
-        "orb":    orb,
+        "symbol":     symbol.upper(),
+        "spot":       spot,
+        "prev_close": round(C, 2),
+        "cpr":        {"tc": tc, "pp": pp, "bc": bc, "r1": r1, "r2": r2, "s1": s1, "s2": s2},
+        "camarilla":  cam,
+        "orb":        orb,
     }
 
 
@@ -3040,29 +3041,32 @@ async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: i
 def _stock_indicators_sync(symbol: str) -> dict:
     import yfinance as yf
     import pandas as pd
+    import math
 
     ticker = symbol.upper() + ".NS"
     try:
-        df = yf.download(ticker, period="6mo", interval="1d", progress=False, auto_adjust=True)
+        df = yf.Ticker(ticker).history(period="6mo", interval="1d", auto_adjust=True)
         if df.empty or len(df) < 50:
             return {"error": f"Not enough data for {symbol}"}
 
-        closes  = df["Close"].squeeze().dropna().tolist()
-        volumes = df["Volume"].squeeze().dropna().tolist()
-        opens   = df["Open"].squeeze().dropna().tolist()
-        highs   = df["High"].squeeze().dropna().tolist()
-        lows    = df["Low"].squeeze().dropna().tolist()
+        closes  = df["Close"].dropna().tolist()
+        volumes = df["Volume"].dropna().tolist()
+        opens   = df["Open"].dropna().tolist()
+        highs   = df["High"].dropna().tolist()
+        lows    = df["Low"].dropna().tolist()
 
         # RSI(14)
         delta = pd.Series(closes).diff()
         gain  = delta.clip(lower=0).rolling(14).mean()
         loss  = (-delta.clip(upper=0)).rolling(14).mean()
-        rs_last = loss.iloc[-1]
-        if rs_last == 0:
+        rs_last = float(loss.iloc[-1])
+        if math.isnan(rs_last):
+            rsi_val = None
+        elif rs_last == 0:
             rsi_val = 100.0
         else:
-            rs = gain.iloc[-1] / rs_last
-            rsi_val = round(float(100 - 100 / (1 + rs)), 2)
+            rs = float(gain.iloc[-1]) / rs_last
+            rsi_val = round(100 - 100 / (1 + rs), 2) if not math.isnan(rs) else None
 
         # EMA trend
         s = pd.Series(closes)
@@ -3116,7 +3120,7 @@ def _stock_indicators_sync(symbol: str) -> dict:
             "ema20":        round(ema20, 2),
             "ema50":        round(ema50, 2),
             "volumeSignal": vol_signal,
-            "volume":       int(cur_vol),
+            "volume":       int(cur_vol) if cur_vol and not math.isnan(float(cur_vol)) else 0,
             "candlePattern":candle,
             "support":      support,
             "resistance":   resistance,
