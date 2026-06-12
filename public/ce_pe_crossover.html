@@ -638,30 +638,34 @@ function calc() {
   peDeltaEl.textContent = fmtPct(pePct);
   peDeltaEl.className   = 'delta-val ' + (pePct > 0 ? 'pos' : pePct < 0 ? 'neg' : 'zero');
 
+  const DOMINANCE = 15;
+  const spread    = cePct - pePct;   // positive = CE dominant, negative = PE dominant
+
   let signal = 'no-trade';
-  if (cePct > 10 && pePct < 0) signal = 'ce';
-  else if (pePct > 10 && cePct < 0) signal = 'pe';
+  if (spread > DOMINANCE && cePct > 0)   signal = 'ce';
+  else if (-spread > DOMINANCE && pePct > 0) signal = 'pe';
 
   if (signal === 'ce') {
     banner.className = 'signal-banner ce-active';
     signalTxt.textContent = 'CE SETUP ACTIVE ▲';
     signalTxt.className   = 'signal-text ce';
-    signalSub.textContent = 'Call premium expanding while put premium contracting — observe bullish setup';
+    signalSub.textContent = `CE dominance +${spread.toFixed(1)}% — call premium expanding, observe bullish setup`;
   } else if (signal === 'pe') {
     banner.className = 'signal-banner pe-active';
     signalTxt.textContent = 'PE SETUP ACTIVE ▼';
     signalTxt.className   = 'signal-text pe';
-    signalSub.textContent = 'Put premium expanding while call premium contracting — observe bearish setup';
+    signalSub.textContent = `PE dominance +${(-spread).toFixed(1)}% — put premium expanding, observe bearish setup`;
   } else {
     banner.className = 'signal-banner no-trade';
     signalTxt.textContent = 'NO TRADE SETUP';
     signalTxt.className   = 'signal-text nt';
+    const needed = DOMINANCE - Math.abs(spread);
     if (cePct > 0 && pePct > 0) {
-      signalSub.textContent = 'Both premiums expanding — no directional bias detected';
+      signalSub.textContent = `Both expanding — CE leads by ${spread.toFixed(1)}%, need ${needed.toFixed(1)}% more dominance`;
     } else if (cePct < 0 && pePct < 0) {
       signalSub.textContent = 'Both premiums contracting — range-bound or time decay';
     } else {
-      signalSub.textContent = 'CE ' + fmtPct(cePct) + ' / PE ' + fmtPct(pePct) + ' — crossover threshold not met';
+      signalSub.textContent = `Spread ${spread.toFixed(1)}% — need ±${DOMINANCE}% dominance for a setup`;
     }
   }
 
@@ -806,9 +810,10 @@ function logSnapshot() {
 
   const cePct  = ((ceCur - ceBase) / ceBase) * 100;
   const pePct  = ((peCur - peBase) / peBase) * 100;
+  const sp     = cePct - pePct;
   let signal   = 'NO TRADE';
-  if (cePct > 10 && pePct < 0)  signal = 'CE ▲';
-  else if (pePct > 10 && cePct < 0) signal = 'PE ▼';
+  if (sp > 15 && cePct > 0)   signal = 'CE ▲';
+  else if (-sp > 15 && pePct > 0) signal = 'PE ▼';
 
   const timeStr   = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
   const sym       = selectedIdx === 'nifty' ? 'NIFTY' : 'BANKNIFTY';
