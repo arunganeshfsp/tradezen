@@ -488,6 +488,7 @@ async function fetchFromChain(autoApply = false) {
     if (autoApply) {
       applyToCurrent();
       logSnapshot();
+      fetchVWAP(sym);
       document.getElementById('autoStatus').textContent = `Updated at ${t} · next in ${AUTO_SEC}s`;
       autoCountdown = AUTO_SEC;
     }
@@ -542,6 +543,18 @@ function applyToCurrent() {
   calc();
 }
 
+async function fetchVWAP(sym) {
+  try {
+    const data = await fetch(`/api/indicators/vwap?symbol=${sym}`).then(r => r.json());
+    if (data.error || !data.vwap_pos) return;
+    setVWAP(data.vwap_pos);
+    const hint = document.getElementById('spotHint');
+    const base = hint.textContent.split('·')[0].trim();
+    hint.textContent = `${base}  ·  VWAP ₹${data.vwap.toLocaleString('en-IN')} (${data.vwap_pos})`;
+    hint.style.color = 'var(--cyan)';
+  } catch(e) {}
+}
+
 async function fetchSpot() {
   const btn  = document.getElementById('fetchBtn');
   const hint = document.getElementById('spotHint');
@@ -559,12 +572,13 @@ async function fetchSpot() {
     hint.textContent = `Spot ${spot.toLocaleString('en-IN')} → ATM ${atm.toLocaleString('en-IN')}`;
     hint.style.color = 'var(--cyan)';
     calc();
+    fetchVWAP(selectedIdx === 'nifty' ? 'NIFTY' : 'BANKNIFTY');
   } catch (e) {
     hint.textContent = 'Could not fetch — enter strike manually';
     hint.style.color = 'var(--red)';
   } finally {
     btn.disabled    = false;
-    btn.textContent = 'Fetch Spot ↗';
+    btn.textContent = 'Spot ↗';
   }
 }
 

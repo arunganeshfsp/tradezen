@@ -1917,6 +1917,53 @@ async def indicators_snapshot():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# VWAP Quick — lightweight VWAP position for NIFTY or BANKNIFTY
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _vwap_quick_sync(symbol: str) -> dict:
+    import yfinance as yf
+    _INDEX = {"NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}
+    _PROXY = {"NIFTY": "NIFTYBEES.NS", "BANKNIFTY": "BANKBEES.NS"}
+    sym_up = symbol.upper()
+    ticker = _INDEX.get(sym_up, "^NSEI")
+    df = yf.Ticker(ticker).history(period="1d", interval="5m").dropna()
+    if len(df) < 5:
+        return {"error": "Insufficient candle data — market may be closed"}
+    close, high, low, vol = df["Close"], df["High"], df["Low"], df["Volume"]
+    # Index tickers return zero volume on yfinance — use ETF proxy
+    if float(vol.sum()) < 10 and sym_up in _PROXY:
+        try:
+            pf = yf.Ticker(_PROXY[sym_up]).history(period="1d", interval="5m").dropna()
+            if not pf.empty:
+                vol = pf["Volume"].reindex(df.index, fill_value=0)
+        except Exception:
+            pass
+    typical   = (high + low + close) / 3
+    total_vol = float(vol.sum())
+    spot      = float(close.iloc[-1])
+    vwap_val  = round(float((typical * vol).sum() / total_vol), 2) if total_vol > 0 else round(float(typical.mean()), 2)
+    diff_pct  = (spot - vwap_val) / vwap_val * 100 if vwap_val else 0
+    if abs(diff_pct) < 0.10:
+        vwap_pos = "at"
+    elif spot > vwap_val:
+        vwap_pos = "above"
+    else:
+        vwap_pos = "below"
+    return {"vwap": vwap_val, "spot": round(spot, 2), "vwap_pos": vwap_pos, "diff_pct": round(diff_pct, 2)}
+
+
+@app.get("/indicators/vwap")
+async def indicators_vwap_quick(symbol: str = "NIFTY"):
+    """Quick VWAP position check for NIFTY or BANKNIFTY — used by Osprey strategy."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, lambda: _vwap_quick_sync(symbol))
+    except Exception as e:
+        log.error(f"[VWAP-QUICK] {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Nifty Candles — today's 5-min OHLCV for the chart widget
 # ══════════════════════════════════════════════════════════════════════════════
 
