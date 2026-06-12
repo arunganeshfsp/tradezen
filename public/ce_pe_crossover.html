@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CE-PE Crossover Calculator | TradeZen</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/halo-tokens.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
@@ -193,9 +198,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </nav>
 
 <div class="hero">
-  <div class="hero-tag">&#9679; Options Signal Tool</div>
+  <div class="hero-tag" data-en="&#9679; Options Signal Tool" data-ta="&#9679; ஆப்ஷன் சிக்னல் கருவி">&#9679; Options Signal Tool</div>
   <h1>CE-PE <em>Crossover</em> Calculator</h1>
-  <p class="hero-sub">Compare 9:15 AM opening premiums to observe directional crossover setups — live on every keystroke</p>
+  <p class="hero-sub" data-en="Compare 9:15 AM opening premiums to observe directional crossover setups — live on every keystroke" data-ta="9:15 AM திறப்பு ப்ரீமியம்களை ஒப்பிட்டு திசை குறுக்கீடு அமைப்புகளை கவனிக்கவும்">Compare 9:15 AM opening premiums to observe directional crossover setups — live on every keystroke</p>
+  <div style="margin-top:14px">
+    <a href="/ce_pe_crossover_tutorial.html" target="_blank" class="btn btn-secondary btn-sm" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px" data-en="? Strategy Guide" data-ta="? உத்தி வழிகாட்டி">? Strategy Guide</a>
+  </div>
 </div>
 
 <div class="main">
@@ -203,10 +211,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
     <!-- INPUTS -->
     <div class="card-z">
-      <div class="card-title">9:15 AM Opening Reference</div>
+      <div class="card-title" data-en="9:15 AM Opening Reference" data-ta="9:15 AM தொடக்க குறிப்பு">9:15 AM Opening Reference</div>
       <div class="input-grid mb-4">
         <div class="field" style="grid-column:1/-1">
-          <label>Contract</label>
+          <label data-en="Contract" data-ta="ஒப்பந்தம்">Contract</label>
           <div class="atm-fetch-row">
             <div class="tog-group">
               <button class="tog active-idx" id="idxNifty" onclick="setIdx('nifty')">NIFTY</button>
@@ -235,12 +243,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </div>
         </div>
         <div class="field">
-          <label>CE Base Premium</label>
+          <label data-en="CE Base Premium" data-ta="CE அடிப்படை ப்ரீமியம்">CE Base Premium</label>
           <input type="number" id="ceBase" placeholder="e.g. 120" step="0.05" />
           <span class="field-hint">Call option premium at market open</span>
         </div>
         <div class="field">
-          <label>PE Base Premium</label>
+          <label data-en="PE Base Premium" data-ta="PE அடிப்படை ப்ரீமியம்">PE Base Premium</label>
           <input type="number" id="peBase" placeholder="e.g. 115" step="0.05" />
           <span class="field-hint">Put option premium at market open</span>
         </div>
@@ -256,14 +264,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
       <div class="sec-div" style="margin-top:20px"></div>
 
-      <div class="card-title">Current Premiums</div>
+      <div class="card-title" data-en="Current Premiums" data-ta="தற்போதைய ப்ரீமியம்கள்">Current Premiums</div>
       <div class="input-grid">
         <div class="field">
-          <label>Current CE Premium</label>
+          <label data-en="Current CE Premium" data-ta="தற்போதைய CE ப்ரீமியம்">Current CE Premium</label>
           <input type="number" id="ceCurrent" placeholder="e.g. 145" step="0.05" />
         </div>
         <div class="field">
-          <label>Current PE Premium</label>
+          <label data-en="Current PE Premium" data-ta="தற்போதைய PE ப்ரீமியம்">Current PE Premium</label>
           <input type="number" id="peCurrent" placeholder="e.g. 95" step="0.05" />
         </div>
       </div>
@@ -279,9 +287,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <!-- DELTA DISPLAY + VWAP -->
     <div class="card-z">
       <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
-        <div class="card-title mb-0">Premium Change from Open</div>
+        <div class="card-title mb-0" data-en="Premium Change from Open" data-ta="திறப்பிலிருந்து ப்ரீமியம் மாற்றம்">Premium Change from Open</div>
         <div class="vwap-row">
-          <span class="vwap-label">Spot vs VWAP</span>
+          <span class="vwap-label" data-en="Spot vs VWAP" data-ta="ஸ்பாட் vs VWAP">Spot vs VWAP</span>
           <div class="tog-group">
             <button class="tog" id="vwapAbove" onclick="setVWAP('above')">Above</button>
             <button class="tog" id="vwapAt"    onclick="setVWAP('at')">At</button>
@@ -307,7 +315,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
     <!-- SIGNAL BANNER -->
     <div class="signal-banner no-trade" id="signalBanner">
-      <div class="signal-label">Setup Signal</div>
+      <div class="signal-label" data-en="Setup Signal" data-ta="அமைப்பு சிக்னல்">Setup Signal</div>
       <div class="signal-text nt" id="signalText">AWAITING INPUT</div>
       <div class="signal-sub" id="signalSub">Enter all four premium values to detect a setup</div>
     </div>
@@ -315,7 +323,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <!-- DAY LOG -->
     <div class="card-z" id="dayLogCard" style="display:none">
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div class="card-title mb-0">Day Log — CE/PE % Track</div>
+        <div class="card-title mb-0" data-en="Day Log — CE/PE % Track" data-ta="நாள் பதிவு — CE/PE % கண்காணிப்பு">Day Log — CE/PE % Track</div>
         <div class="d-flex gap-2">
           <button class="tog" onclick="logSnapshot()">+ Log Reading</button>
           <button class="tog" onclick="clearLog()" style="color:var(--muted)">Clear</button>
@@ -348,7 +356,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <!-- PREMIUM CHART -->
     <div class="card-z" id="chartCard" style="display:none">
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div class="card-title mb-0">CE / PE Premium Chart</div>
+        <div class="card-title mb-0" data-en="CE / PE Premium Chart" data-ta="CE / PE ப்ரீமியம் விளக்கப்படம்">CE / PE Premium Chart</div>
         <div class="tog-group">
           <button class="tog active-idx" id="chartModeValue" onclick="setChartMode('value')">₹ Value</button>
           <button class="tog" id="chartModePct"  onclick="setChartMode('pct')">% Change</button>
@@ -371,7 +379,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <!-- REFERENCE LEVELS -->
     <div class="card-z" id="levelsCard" style="display:none">
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div class="card-title mb-0">Reference Levels</div>
+        <div class="card-title mb-0" data-en="Reference Levels" data-ta="குறிப்பு நிலைகள்">Reference Levels</div>
         <div class="atm-chip" id="atmChip" style="display:none"></div>
       </div>
       <div class="levels-grid">
@@ -395,7 +403,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
     <!-- RISK -->
     <div class="card-z" id="riskCard" style="display:none">
-      <div class="card-title">Risk Reference — 1 Lot (65 qty)</div>
+      <div class="card-title" data-en="Risk Reference — 1 Lot (65 qty)" data-ta="ஆபத்து குறிப்பு — 1 லாட் (65 qty)">Risk Reference — 1 Lot (65 qty)</div>
       <div class="risk-box" id="riskBox">
         <div class="risk-row">
           <span class="risk-lbl">Max Premium Loss if SL hit</span>

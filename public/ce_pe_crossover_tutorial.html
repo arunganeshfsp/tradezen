@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CE-PE Crossover Strategy Guide | TradeZen</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:15px;line-height:1.7}
+
+.hero{padding:48px 28px 40px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(46,204,113,0.10) 0%,transparent 65%),var(--bg)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--green);background:var(--green-bg);border:1px solid var(--green-border);padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,36px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:14px;color:var(--dim);max-width:500px;margin:0 auto 20px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--dim);background:var(--bg2);border:1px solid var(--border);padding:6px 16px;border-radius:20px;text-decoration:none;transition:all .15s}
+.back-btn:hover{color:var(--accent);border-color:var(--accent)}
+
+.container-t{max-width:780px;margin:0 auto;padding:0 24px 80px}
+
+.section{margin-top:52px}
+.sec-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.section h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:14px;color:var(--text)}
+.section p{color:var(--dim);margin-bottom:12px;font-size:14px}
+
+.divider{height:1px;background:var(--border);margin:48px 0 0}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.step{display:flex;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px 18px 18px 14px;align-items:flex-start}
+.step-num{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:var(--r2);width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-body h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--dim);margin:0;line-height:1.6}
+.step-body code{font-family:var(--mono);font-size:12px;background:var(--bg3);border:1px solid var(--border2);padding:1px 6px;border-radius:4px;color:var(--yellow)}
+
+/* Signal cards */
+.signals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+@media(max-width:520px){.signals{grid-template-columns:1fr}}
+.signal{border-radius:var(--r);padding:20px;border:1px solid}
+.signal.buy-ce{background:var(--green-bg);border-color:var(--green-border)}
+.signal.buy-pe{background:var(--red-bg);border-color:var(--red-border)}
+.signal-dir{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.signal.buy-ce .signal-dir{color:var(--green)}
+.signal.buy-pe .signal-dir{color:var(--red)}
+.signal h3{font-size:16px;font-weight:700;margin-bottom:12px;font-family:'Syne',sans-serif}
+.signal.buy-ce h3{color:var(--green)}
+.signal.buy-pe h3{color:var(--red)}
+.signal-conds{list-style:none;display:flex;flex-direction:column;gap:8px}
+.signal-conds li{font-family:var(--mono);font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px}
+.signal-conds li::before{content:'✓';font-size:11px;flex-shrink:0}
+.signal.buy-ce .signal-conds li::before{color:var(--green)}
+.signal.buy-pe .signal-conds li::before{color:var(--red)}
+
+/* Formula box */
+.formula-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:20px 24px;margin-top:18px}
+.formula-box .flbl{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.formula{font-family:var(--mono);font-size:14px;color:var(--yellow);line-height:2.2}
+.formula .cmt{color:var(--muted);font-size:12px}
+
+/* VWAP table */
+.vwap-tbl{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}
+.vwap-tbl th{font-family:var(--mono);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.vwap-tbl td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--dim);vertical-align:top}
+.vwap-tbl tr:last-child td{border-bottom:none}
+.vwap-tbl tr:hover td{background:var(--bg2)}
+.badge-t{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.badge-t.go{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.badge-t.skip{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.badge-t.warn{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+
+/* Risk calc */
+.calc-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-top:18px}
+.calc-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.calc-lbl{font-size:13px;color:var(--muted);flex-shrink:0}
+.calc-row input[type=range]{flex:1;accent-color:var(--accent);height:4px;cursor:pointer}
+.calc-val{font-family:var(--mono);font-size:13px;color:var(--text);min-width:72px;text-align:right}
+.calc-results{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+@media(max-width:480px){.calc-results{grid-template-columns:1fr 1fr}}
+.calc-result{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px}
+.calc-result .rl{font-size:11px;color:var(--muted);margin-bottom:4px}
+.calc-result .rv{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--text)}
+.calc-result.hi{border-color:var(--green-border);background:var(--green-bg)}
+.calc-result.hi .rv{color:var(--green)}
+.calc-result.hi .rl{color:rgba(46,204,113,0.6)}
+.calc-result.danger{border-color:var(--red-border);background:var(--red-bg)}
+.calc-result.danger .rv{color:var(--red)}
+.warn-box{margin-top:14px;padding:12px 16px;border-radius:var(--r2);font-size:13px;line-height:1.5;display:none}
+.warn-box.show{display:block}
+.warn-box.wy{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
+.warn-box.wr{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+
+/* Do/Don't */
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+@media(max-width:520px){.rules-grid{grid-template-columns:1fr}}
+.rules-col{border-radius:var(--r);padding:18px 20px;border:1px solid}
+.rules-col.do{background:var(--green-bg);border-color:var(--green-border)}
+.rules-col.dont{background:var(--red-bg);border-color:var(--red-border)}
+.rules-col h4{font-size:13px;font-weight:600;margin-bottom:12px;font-family:var(--mono);letter-spacing:1px}
+.rules-col.do h4{color:var(--green)}
+.rules-col.dont h4{color:var(--red)}
+.rules-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.rules-col ul li{font-size:13px;color:var(--dim);display:flex;gap:8px}
+.rules-col ul li::before{flex-shrink:0}
+.rules-col.do ul li::before{content:'✓';color:var(--green)}
+.rules-col.dont ul li::before{content:'✗';color:var(--red)}
+
+/* Checklist */
+.checklist{list-style:none;display:flex;flex-direction:column;gap:0;margin-top:18px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.checklist li{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;color:var(--dim);cursor:pointer;transition:background .15s;user-select:none}
+.checklist li:last-child{border-bottom:none}
+.checklist li:hover{background:var(--bg2)}
+.checklist li.checked{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--border2)}
+.chk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s}
+.checklist li.checked .chk{background:var(--green);border-color:var(--green);color:#000;font-size:11px}
+.checklist li.checked .chk::after{content:'✓'}
+.chk-text{flex:1;line-height:1.5}
+.chk-time{font-family:var(--mono);font-size:11px;color:var(--muted);flex-shrink:0;margin-top:2px}
+
+/* Chart scenarios */
+.chart-scenario{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-top:18px}
+.chart-scenario-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.scenario-badge{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.scenario-badge.win{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.scenario-badge.skip{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.chart-title{font-size:14px;font-weight:600;color:var(--text)}
+.chart-leg-row{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.chart-leg-row span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.leg-line{width:20px;height:2px;display:inline-block;border-radius:2px}
+.leg-box{width:12px;height:12px;border-radius:2px;display:inline-block}
+.chart-result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px}
+.crc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px}
+.crc.pos{border-color:var(--green-border);background:var(--green-bg)}
+.crc.neg{border-color:var(--red-border);background:var(--red-bg)}
+.crc .rl{font-size:11px;color:var(--muted);margin-bottom:3px}
+.crc.pos .rl{color:rgba(46,204,113,.6)}
+.crc .rv{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text)}
+.crc.pos .rv{color:var(--green)}
+.crc .rs{font-size:11px;color:var(--muted);margin-top:2px}
+.chart-note{margin-top:12px;padding:12px 14px;border-radius:var(--r2);font-size:13px;color:var(--dim);line-height:1.6;border:1px solid var(--border);background:var(--bg3)}
+.chart-note strong{color:var(--text)}
+.chart-note.warn{border-color:var(--red-border);background:var(--red-bg);color:var(--dim)}
+
+.disclaimer{font-size:11px;color:var(--muted);text-align:center;padding:16px 20px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);line-height:1.6;margin-top:48px}
+</style>
+</head>
+<body>
+
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <img src="/app-icon.svg" width="32" height="32" alt="TradeZen" style="border-radius:8px" data-app-logo />
+      <span>TradeZen</span>
+    </a>
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="/trade_flow.html">Trade Flow</a></li>
+      <li class="nav-item"><a class="nav-link" href="/options_analysis.html">Options</a></li>
+      <li class="nav-item"><a class="nav-link" href="/cpr_monitor.html">CPR</a></li>
+      <li class="nav-item"><a class="nav-link" href="/fno_scanner.html">F&amp;O</a></li>
+      <li class="nav-item"><a class="nav-link" href="/stock_movers.html">Movers</a></li>
+      <li class="nav-item"><a class="nav-link" href="/market_psychology.html">TradeFun</a></li>
+      <li class="nav-item"><a class="nav-link" href="/swing_trading.html">Swing</a></li>
+      <li class="nav-item"><a class="nav-link" href="/learn/">Learn</a></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display:none"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/></svg>
+        <svg data-icon="light" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
+      </button>
+      <a href="/ce_pe_crossover.html" class="btn btn-aurora btn-sm text-decoration-none" data-en="← Back to Tool" data-ta="← கருவிக்கு திரும்பு">← Back to Tool</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag" data-en="Osprey · S2 Strategy Guide" data-ta="ஆஸ்ப்ரே · S2 உத்தி வழிகாட்டி">Osprey · S2 Strategy Guide</div>
+  <h1>CE-PE <em>Crossover</em> Strategy</h1>
+  <p class="hero-sub" data-en="A rules-based system for Nifty/BankNifty option buying using premium momentum and VWAP confirmation." data-ta="ப்ரீமியம் மொமென்டம் மற்றும் VWAP உறுதிப்படுத்தல் மூலம் Nifty/BankNifty ஆப்ஷன் வாங்குவதற்கான விதிமுறை அமைப்பு.">A rules-based system for Nifty/BankNifty option buying using premium momentum and VWAP confirmation.</p>
+</div>
+
+<div class="container-t">
+
+  <!-- WHAT IS THIS -->
+  <div class="section">
+    <div class="sec-label" data-en="Overview" data-ta="மேலோட்டம்">Overview</div>
+    <h2 data-en="What this strategy does" data-ta="இந்த உத்தி என்ன செய்கிறது">What this strategy does</h2>
+    <p data-en="Every morning, the ATM Call (CE) and Put (PE) options open at a certain premium. As the market moves, one premium rises while the other falls. This strategy watches the speed of that change — and enters only when one side has clearly taken control." data-ta="ஒவ்வொரு காலையிலும், ATM Call (CE) மற்றும் Put (PE) ஆப்ஷன்கள் ஒரு குறிப்பிட்ட ப்ரீமியத்தில் திறக்கின்றன. சந்தை நகரும்போது, ஒரு ப்ரீமியம் உயர்கிறது மற்றொன்று வீழ்கிறது. இந்த உத்தி அந்த மாற்றத்தின் வேகத்தை கவனிக்கிறது.">Every morning, the ATM Call (CE) and Put (PE) options open at a certain premium. As the market moves, one premium rises while the other falls. This strategy watches the <em>speed</em> of that change — and enters only when one side has clearly taken control.</p>
+    <p data-en="You are not predicting direction. You are confirming it after the market has already shown its hand — then joining it." data-ta="நீங்கள் திசையை கணிக்கவில்லை. சந்தை ஏற்கனவே காட்டிய பிறகு அதை உறுதிப்படுத்துகிறீர்கள் — பிறகு அதில் இணைகிறீர்கள்.">You are not predicting direction. You are <strong>confirming</strong> it after the market has already shown its hand — then joining it.</p>
+  </div>
+
+  <!-- SETUP STEPS -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Setup" data-ta="அமைப்பு">Setup</div>
+    <h2 data-en="Before 9:15 AM — get ready" data-ta="காலை 9:15க்கு முன் — தயாராகுங்கள்">Before 9:15 AM — get ready</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3 data-en="Open the Osprey tool" data-ta="ஆஸ்ப்ரே கருவியை திறங்கள்">Open the Osprey tool</h3>
+          <p data-en="Go to CE-PE Crossover Calculator on TradeZen. Select NIFTY or BANKNIFTY. Choose the nearest weekly expiry from the dropdown." data-ta="TradeZen-ல் CE-PE குறுக்கீடு கணக்கியை திறங்கள். NIFTY அல்லது BANKNIFTY தேர்ந்தெடுங்கள். அருகிலுள்ள வாராந்திர முடிவு நாளை தேர்ந்தெடுங்கள்.">Go to <a href="/ce_pe_crossover.html" style="color:var(--accent)">CE-PE Crossover Calculator</a> on TradeZen. Select NIFTY or BANKNIFTY. Choose the nearest weekly expiry from the dropdown.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3 data-en="Fetch the ATM strike" data-ta="ATM ஸ்ட்ரைக் பெறுங்கள்">Fetch the ATM strike</h3>
+          <p data-en="Tap Spot ↗ to auto-fill the ATM strike rounded to the nearest 50 (Nifty) or 100 (BankNifty). Or type the strike manually — the field rounds automatically on blur." data-ta="ATM ஸ்ட்ரைக்கை நிரப்ப Spot ↗ அழுத்துங்கள் — Nifty-க்கு 50-க்கும் BankNifty-க்கு 100-க்கும் சுற்றப்படும். அல்லது கைமுறையாக ஸ்ட்ரைக் தட்டுங்கள்.">Tap <code>Spot ↗</code> to auto-fill the ATM strike rounded to the nearest 50 (Nifty) or 100 (BankNifty). Or type the strike manually — the field rounds automatically on blur.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3 data-en="Fetch live CE and PE premiums" data-ta="நேரடி CE மற்றும் PE ப்ரீமியம்களை பெறுங்கள்">Fetch live CE and PE premiums</h3>
+          <p data-en="Tap Chain ↗ — the tool pulls ATM CE and PE prices directly from the live options chain. Tap → Set as Base to lock the 9:15 AM opening prices. These are your reference for the entire day." data-ta="Chain ↗ அழுத்துங்கள் — கருவி நேரடி ஆப்ஷன் சங்கிலியிலிருந்து ATM CE மற்றும் PE விலைகளை பெறுகிறது. 9:15 AM திறப்பு விலைகளை பூட்ட → Set as Base அழுத்துங்கள்.">Tap <code>Chain ↗</code> — the tool pulls ATM CE and PE prices directly from the live options chain. Tap <code>→ Set as Base</code> to lock the 9:15 AM opening prices. These are your reference for the entire day.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3 data-en="Enable Auto Refresh" data-ta="தானியங்கி புதுப்பிப்பை இயக்குங்கள்">Enable Auto Refresh</h3>
+          <p data-en="Tap the Auto Refresh button — it fetches current CE/PE from the chain every 30 seconds, updates the chart, and auto-sets the VWAP position. No manual tracking needed during the session." data-ta="Auto Refresh பொத்தானை அழுத்துங்கள் — இது ஒவ்வொரு 30 வினாடிக்கும் சங்கிலியிலிருந்து CE/PE பெறுகிறது, விளக்கப்படத்தை புதுப்பிக்கிறது, மற்றும் VWAP நிலையை தானாக அமைக்கிறது.">Tap the <code>Auto Refresh</code> button — it fetches current CE/PE from the chain every 30 seconds, updates the chart, and auto-sets the VWAP position. No manual tracking needed during the session.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULA -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Calculation" data-ta="கணக்கீடு">Calculation</div>
+    <h2 data-en="The % change formula" data-ta="சதவீத மாற்ற சூத்திரம்">The % change formula</h2>
+    <p data-en="This is the only number you need to track. The tool calculates it live." data-ta="இது நீங்கள் கண்காணிக்க வேண்டிய ஒரே எண். கருவி இதை நேரடியாக கணக்கிடுகிறது.">This is the only number you need to track. The tool calculates it live.</p>
+    <div class="formula-box">
+      <div class="flbl">Formula</div>
+      <div class="formula">
+        % Change = ((Current Premium − 9:15 Premium) ÷ 9:15 Premium) × 100
+        <br><br>
+        <span class="cmt">— CE opens at ₹120. Current CE = ₹141.</span><br>
+        % Change = ((141 − 120) ÷ 120) × 100 = <strong style="color:var(--green)">+17.5%</strong>
+        <br><br>
+        <span class="cmt">— PE opens at ₹115. Current PE = ₹108.</span><br>
+        % Change = ((108 − 115) ÷ 115) × 100 = <strong style="color:var(--red)">−6.1%</strong><br><br>
+        <span class="cmt">→ CE dominance = 17.5 − (−6.1) = <strong style="color:var(--cyan)">+23.6%</strong> → CE setup fires ✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTRY SIGNALS -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Entry Rules" data-ta="நுழைவு விதிகள்">Entry Rules</div>
+    <h2 data-en="When to enter — the 15% dominance rule" data-ta="எப்போது நுழைவது — 15% ஆதிக்க விதி">When to enter — the 15% dominance rule</h2>
+    <p data-en="Both conditions must be met simultaneously. The 15% spread filters out false moves — small crossovers on choppy days won't trigger a setup." data-ta="இரண்டு நிபந்தனைகளும் ஒரே நேரத்தில் பூர்த்தி செய்யப்பட வேண்டும். 15% பரவல் தவறான நகர்வுகளை வடிகட்டுகிறது.">Both conditions must be met simultaneously. The 15% spread filters out false moves — small crossovers on choppy days won't trigger a setup.</p>
+    <div class="signals">
+      <div class="signal buy-ce">
+        <div class="signal-dir" data-en="Bullish setup" data-ta="ஏற்று அமைப்பு">Bullish setup</div>
+        <h3 data-en="CE Setup Active ▲" data-ta="CE அமைப்பு செயலில் ▲">CE Setup Active ▲</h3>
+        <ul class="signal-conds">
+          <li data-en="CE% − PE% &gt; +15%" data-ta="CE% − PE% &gt; +15%">CE% − PE% &gt; +15%</li>
+          <li data-en="CE % change &gt; 0" data-ta="CE % மாற்றம் &gt; 0">CE % change &gt; 0</li>
+          <li data-en="Spot above VWAP (confirm)" data-ta="ஸ்பாட் VWAP-க்கு மேல் (உறுதி)">Spot above VWAP (confirm)</li>
+          <li data-en="After 9:20 AM only" data-ta="காலை 9:20 மணிக்கு பிறகு மட்டும்">After 9:20 AM only</li>
+        </ul>
+      </div>
+      <div class="signal buy-pe">
+        <div class="signal-dir" data-en="Bearish setup" data-ta="இறக்க அமைப்பு">Bearish setup</div>
+        <h3 data-en="PE Setup Active ▼" data-ta="PE அமைப்பு செயலில் ▼">PE Setup Active ▼</h3>
+        <ul class="signal-conds">
+          <li data-en="PE% − CE% &gt; +15%" data-ta="PE% − CE% &gt; +15%">PE% − CE% &gt; +15%</li>
+          <li data-en="PE % change &gt; 0" data-ta="PE % மாற்றம் &gt; 0">PE % change &gt; 0</li>
+          <li data-en="Spot below VWAP (confirm)" data-ta="ஸ்பாட் VWAP-க்கு கீழ் (உறுதி)">Spot below VWAP (confirm)</li>
+          <li data-en="After 9:20 AM only" data-ta="காலை 9:20 மணிக்கு பிறகு மட்டும்">After 9:20 AM only</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:14px;font-size:13px;color:var(--muted)" data-en="The 15% dominance gap — not just the 10% winner threshold — is what distinguishes a committed move from noise. At 11% CE and −2% PE the spread is only 13%: the move hasn't committed. At 17% CE and −3% PE the spread is 20% — real money has taken a side." data-ta="15% ஆதிக்க இடைவெளி — வெறும் 10% வெற்றியாளர் வரம்பு மட்டுமல்ல — உண்மையான நகர்வையும் சத்தத்தையும் வேறுபடுத்துவது இதுதான்.">The 15% dominance gap — not just the winner's threshold — is what distinguishes a committed move from noise. At CE +11%, PE −2%, spread is 13%: the move hasn't committed. At CE +17%, PE −3%, spread is 20% — real money has taken a side.</p>
+  </div>
+
+  <!-- VWAP -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Confirmation" data-ta="உறுதிப்படுத்தல்">Confirmation</div>
+    <h2 data-en="The VWAP rule — never skip this" data-ta="VWAP விதி — இதை ஒருபோதும் தவிர்க்காதீர்கள்">The VWAP rule — never skip this</h2>
+    <p data-en="VWAP shows where the majority of today's volume has traded. The Osprey tool auto-detects VWAP position when you tap Spot ↗ or enable Auto Refresh." data-ta="VWAP இன்றைய பரிமாற்றத்தின் பெரும்பகுதி எங்கு நடைபெற்றது என்பதை காட்டுகிறது. Spot ↗ அழுத்தும்போது அல்லது Auto Refresh இயக்கும்போது VWAP நிலையை கருவி தானாக கண்டறிகிறது.">VWAP shows where the majority of today's volume has traded. The Osprey tool auto-detects VWAP position when you tap <code>Spot ↗</code> or enable Auto Refresh.</p>
+    <table class="vwap-tbl">
+      <thead>
+        <tr>
+          <th data-en="CE-PE Signal" data-ta="CE-PE சிக்னல்">CE-PE Signal</th>
+          <th data-en="Nifty vs VWAP" data-ta="Nifty vs VWAP">Nifty vs VWAP</th>
+          <th data-en="Decision" data-ta="முடிவு">Decision</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-en="CE dominance &gt; 15%" data-ta="CE ஆதிக்கம் &gt; 15%">CE dominance &gt; 15%</td>
+          <td data-en="Spot above VWAP" data-ta="ஸ்பாட் VWAP மேல்">Spot above VWAP</td>
+          <td><span class="badge-t go" data-en="Observe CE setup" data-ta="CE அமைப்பு கவனிக்க">Observe CE setup</span></td>
+        </tr>
+        <tr>
+          <td data-en="CE dominance &gt; 15%" data-ta="CE ஆதிக்கம் &gt; 15%">CE dominance &gt; 15%</td>
+          <td data-en="Spot below VWAP" data-ta="ஸ்பாட் VWAP கீழ்">Spot below VWAP</td>
+          <td><span class="badge-t skip" data-en="Skip — headwind" data-ta="தவிர்க்க — எதிர் காற்று">Skip — headwind</span></td>
+        </tr>
+        <tr>
+          <td data-en="PE dominance &gt; 15%" data-ta="PE ஆதிக்கம் &gt; 15%">PE dominance &gt; 15%</td>
+          <td data-en="Spot below VWAP" data-ta="ஸ்பாட் VWAP கீழ்">Spot below VWAP</td>
+          <td><span class="badge-t go" data-en="Observe PE setup" data-ta="PE அமைப்பு கவனிக்க">Observe PE setup</span></td>
+        </tr>
+        <tr>
+          <td data-en="PE dominance &gt; 15%" data-ta="PE ஆதிக்கம் &gt; 15%">PE dominance &gt; 15%</td>
+          <td data-en="Spot above VWAP" data-ta="ஸ்பாட் VWAP மேல்">Spot above VWAP</td>
+          <td><span class="badge-t skip" data-en="Skip — headwind" data-ta="தவிர்க்க — எதிர் காற்று">Skip — headwind</span></td>
+        </tr>
+        <tr>
+          <td data-en="Neither side dominant" data-ta="எந்த பக்கமும் ஆதிக்கமில்லை">Neither side dominant</td>
+          <td data-en="Any" data-ta="எதுவும்">Any</td>
+          <td><span class="badge-t warn" data-en="No trade — wait" data-ta="வர்த்தகமில்லை — காத்திருங்கள்">No trade — wait</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RISK CALCULATOR -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Risk Management" data-ta="ஆபத்து மேலாண்மை">Risk Management</div>
+    <h2 data-en="Size your trade before you enter" data-ta="நுழைவதற்கு முன் உங்கள் வர்த்தகத்தை அளவிடுங்கள்">Size your trade before you enter</h2>
+    <p data-en="Never enter without knowing your maximum loss in rupees. The Osprey tool shows this in the Risk Reference card. Use the calculator below to plan lot sizing." data-ta="ரூபாயில் உங்கள் அதிகபட்ச நஷ்டத்தை அறியாமல் நுழைக்கவேண்டாம். கீழே உள்ள கணக்கியை பயன்படுத்தி லாட் அளவை திட்டமிடுங்கள்.">Never enter without knowing your maximum loss in rupees. The Osprey tool shows this in the Risk Reference card. Use the calculator below to plan lot sizing.</p>
+    <div class="calc-card">
+      <div class="calc-row">
+        <span class="calc-lbl" data-en="Capital (₹)" data-ta="மூலதனம் (₹)">Capital (₹)</span>
+        <input type="range" id="capital" min="50000" max="500000" step="10000" value="100000">
+        <span class="calc-val" id="capitalVal">₹1,00,000</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-lbl" data-en="Risk %" data-ta="ஆபத்து %">Risk %</span>
+        <input type="range" id="riskpct" min="1" max="3" step="0.5" value="1">
+        <span class="calc-val" id="riskVal">1%</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-lbl" data-en="Entry premium (₹)" data-ta="நுழைவு ப்ரீமியம் (₹)">Entry premium (₹)</span>
+        <input type="range" id="premium" min="50" max="400" step="5" value="150">
+        <span class="calc-val" id="premiumVal">₹150</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-lbl" data-en="Stop loss %" data-ta="ஸ்டாப் லாஸ் %">Stop loss %</span>
+        <input type="range" id="slpct" min="20" max="50" step="5" value="30">
+        <span class="calc-val" id="slVal">30%</span>
+      </div>
+      <div class="calc-results">
+        <div class="calc-result hi">
+          <div class="rl" data-en="Max loss allowed" data-ta="அனுமதிக்கப்பட்ட அதிகபட்ச நஷ்டம்">Max loss allowed</div>
+          <div class="rv" id="maxLoss">₹1,000</div>
+        </div>
+        <div class="calc-result">
+          <div class="rl" data-en="Stop price" data-ta="ஸ்டாப் விலை">Stop price</div>
+          <div class="rv" id="stopPrice">₹105</div>
+        </div>
+        <div class="calc-result">
+          <div class="rl" data-en="Loss per lot (65)" data-ta="ஒரு லாட்டுக்கு நஷ்டம் (65)">Loss per lot (65)</div>
+          <div class="rv" id="lossPerLot">₹2,925</div>
+        </div>
+        <div class="calc-result">
+          <div class="rl" data-en="Lots you can trade" data-ta="நீங்கள் வர்த்தகம் செய்யக்கூடிய லாட்கள்">Lots you can trade</div>
+          <div class="rv" id="lotsAllowed">0</div>
+        </div>
+        <div class="calc-result">
+          <div class="rl" data-en="Capital needed (1 lot)" data-ta="தேவையான மூலதனம் (1 லாட்)">Capital needed (1 lot)</div>
+          <div class="rv" id="capitalNeeded">₹9,750</div>
+        </div>
+        <div class="calc-result">
+          <div class="rl" data-en="Target (+45%)" data-ta="இலக்கு (+45%)">Target (+45%)</div>
+          <div class="rv" id="targetPrice">₹218</div>
+        </div>
+      </div>
+      <div class="warn-box wy" id="warnYellow" data-en="One lot stop loss exceeds your risk limit. Consider paper trading until capital grows." data-ta="ஒரு லாட் ஸ்டாப் லாஸ் உங்கள் ஆபத்து வரம்பை மீறுகிறது. மூலதனம் வளரும் வரை காகித வர்த்தகத்தை பரிசீலியுங்கள்.">One lot stop loss exceeds your risk limit. Consider paper trading until capital grows.</div>
+      <div class="warn-box wr" id="warnRed" data-en="Capital is too small for even one lot with this risk rule. Paper trade only." data-ta="இந்த ஆபத்து விதியுடன் ஒரு லாட்டுக்கு கூட மூலதனம் மிகவும் சிறியது. காகித வர்த்தகம் மட்டுமே.">Capital is too small for even one lot with this risk rule. Paper trade only.</div>
+    </div>
+  </div>
+
+  <!-- EXIT RULES -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Exit Rules" data-ta="வெளியேறும் விதிகள்">Exit Rules</div>
+    <h2 data-en="When to get out" data-ta="எப்போது வெளியேறுவது">When to get out</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">T</div>
+        <div class="step-body">
+          <h3 data-en="Target exit — take profit" data-ta="இலக்கு வெளியேற்றம் — லாபம் எடுங்கள்">Target exit — take profit</h3>
+          <p data-en="When the premium has risen +40% to +45% from your entry, exit fully. The tool shows this in the Target Reference card. Theta erodes gains quickly if the move pauses." data-ta="ப்ரீமியம் உங்கள் நுழைவிலிருந்து +40% முதல் +45% வரை உயர்ந்தால், முழுமையாக வெளியேறுங்கள். நகர்வு நிறுத்தப்பட்டால் Theta ஆதாயங்களை விரைவாக அரிக்கும்.">When the premium has risen <code>+40% to +45%</code> from your entry, exit fully. The tool shows this in the Target Reference card. Theta erodes gains quickly if the move pauses.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">S</div>
+        <div class="step-body">
+          <h3 data-en="Stop loss — cut immediately" data-ta="ஸ்டாப் லாஸ் — உடனடியாக வெட்டுங்கள்">Stop loss — cut immediately</h3>
+          <p data-en="When the premium falls 30% below your entry, exit without hesitation. No averaging. The signal did not follow through — the thesis is broken." data-ta="ப்ரீமியம் உங்கள் நுழைவிலிருந்து 30% வீழ்ந்தால், தயக்கமின்றி வெளியேறுங்கள். சராசரிப்படுத்த வேண்டாம். சிக்னல் தொடரவில்லை.">When the premium falls <code>30%</code> below your entry, exit without hesitation. No averaging. The signal did not follow through — the thesis is broken.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">T</div>
+        <div class="step-body">
+          <h3 data-en="Time exit — hard close by 1 PM" data-ta="நேர வெளியேற்றம் — மதியம் 1 மணிக்கு கட்டாயமாக மூடுங்கள்">Time exit — hard close by 1 PM</h3>
+          <p data-en="Exit all positions by 1:00 PM, even if in profit or small loss. After 1 PM, theta decay accelerates and intraday moves become unpredictable." data-ta="மதியம் 1:00 மணிக்கு அனைத்து நிலைகளையும் வெளியேறுங்கள், லாபத்தில் இருந்தாலும் சரி. மதியம் 1 மணிக்கு பிறகு Theta சிதைவு துரிதப்படுகிறது.">Exit all positions by <code>1:00 PM</code>, even if in profit or small loss. After 1 PM, theta decay accelerates and intraday moves become unpredictable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DO / DON'T -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Discipline" data-ta="ஒழுக்கம்">Discipline</div>
+    <h2 data-en="Rules to live by" data-ta="கடைப்பிடிக்க வேண்டிய விதிகள்">Rules to live by</h2>
+    <div class="rules-grid">
+      <div class="rules-col do">
+        <h4 data-en="ALWAYS DO THIS" data-ta="எப்போதும் இதை செய்யுங்கள்">ALWAYS DO THIS</h4>
+        <ul>
+          <li data-en="Wait for 15% dominance spread before entering" data-ta="நுழைவதற்கு முன் 15% ஆதிக்க பரவலுக்கு காத்திருங்கள்">Wait for 15% dominance spread before entering</li>
+          <li data-en="Check VWAP before every entry" data-ta="ஒவ்வொரு நுழைவிற்கும் முன் VWAP சரிபாருங்கள்">Check VWAP before every entry</li>
+          <li data-en="Calculate lot size before placing order" data-ta="ஆர்டர் வைப்பதற்கு முன் லாட் அளவை கணக்கிடுங்கள்">Calculate lot size before placing order</li>
+          <li data-en="Wait until after 9:20 AM for any signal" data-ta="எந்த சிக்னலுக்கும் காலை 9:20 வரை காத்திருங்கள்">Wait until after 9:20 AM for any signal</li>
+          <li data-en="Exit by 1 PM regardless of position" data-ta="நிலை என்னவாக இருந்தாலும் மதியம் 1 மணிக்கு வெளியேறுங்கள்">Exit by 1 PM regardless of position</li>
+          <li data-en="Skip the day if VIX is above 20" data-ta="VIX 20-க்கு மேல் இருந்தால் அன்று தவிர்க்கவும்">Skip the day if VIX is above 20</li>
+        </ul>
+      </div>
+      <div class="rules-col dont">
+        <h4 data-en="NEVER DO THIS" data-ta="இதை ஒருபோதும் செய்யாதீர்கள்">NEVER DO THIS</h4>
+        <ul>
+          <li data-en="Enter when spread is under 15%" data-ta="பரவல் 15%-க்கு கீழ் இருக்கும்போது நுழைக்கவேண்டாம்">Enter when spread is under 15%</li>
+          <li data-en="Trade against VWAP direction" data-ta="VWAP திசைக்கு எதிராக வர்த்தகம் செய்யவேண்டாம்">Trade against VWAP direction</li>
+          <li data-en="Average down on a losing position" data-ta="நஷ்டமான நிலையில் சராசரிப்படுத்தவேண்டாம்">Average down on a losing position</li>
+          <li data-en="Move stop loss further to avoid a loss" data-ta="நஷ்டத்தை தவிர்க்க ஸ்டாப் லாஸை நகர்த்தவேண்டாம்">Move stop loss further to avoid a loss</li>
+          <li data-en="Take more than 2 trades in one day" data-ta="ஒரு நாளில் 2-க்கும் அதிகமான வர்த்தகங்கள் எடுக்கவேண்டாம்">Take more than 2 trades in one day</li>
+          <li data-en="Trade on expiry day" data-ta="முடிவு நாளில் வர்த்தகம் செய்யவேண்டாம்">Trade on expiry day</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY CHECKLIST -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Daily Routine" data-ta="தினசரி நடைமுறை">Daily Routine</div>
+    <h2 data-en="Morning checklist — tap to check off" data-ta="காலை சரிபார்ப்பு பட்டியல் — தட்டி குறிக்கவும்">Morning checklist — tap to check off</h2>
+    <ul class="checklist" id="checklist">
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Check India VIX — skip day if above 20" data-ta="India VIX சரிபாருங்கள் — 20-க்கு மேல் இருந்தால் அன்று தவிர்க்கவும்">Check India VIX — skip day if above 20</span><span class="chk-time">8:50 AM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Note GIFT Nifty implied gap direction" data-ta="GIFT Nifty இம்ப்ளைட் இடைவெளி திசையை குறிக்கவும்">Note GIFT Nifty implied gap direction</span><span class="chk-time">8:55 AM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Open Osprey tool — select index and expiry" data-ta="ஆஸ்ப்ரே கருவியை திறங்கள் — குறியீடு மற்றும் முடிவு நாளை தேர்ந்தெடுங்கள்">Open Osprey tool — select index and expiry</span><span class="chk-time">9:10 AM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Tap Spot ↗ to fetch ATM strike" data-ta="ATM ஸ்ட்ரைக் பெற Spot ↗ அழுத்துங்கள்">Tap Spot ↗ to fetch ATM strike</span><span class="chk-time">9:14 AM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Tap Chain ↗ then Set as Base to lock 9:15 premiums" data-ta="Chain ↗ அழுத்தி பிறகு Set as Base அழுத்தி 9:15 ப்ரீமியம்களை பூட்டுங்கள்">Tap Chain ↗ then Set as Base to lock 9:15 premiums</span><span class="chk-time">9:15 AM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Enable Auto Refresh — VWAP auto-detected" data-ta="Auto Refresh இயக்குங்கள் — VWAP தானாக கண்டறியப்படும்">Enable Auto Refresh — VWAP auto-detected</span><span class="chk-time">9:16 AM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Calculate lot size in Risk calculator — know your max loss" data-ta="ஆபத்து கணக்கியில் லாட் அளவை கணக்கிடுங்கள் — உங்கள் அதிகபட்ச நஷ்டத்தை அறிந்து கொள்ளுங்கள்">Calculate lot size in Risk calculator — know your max loss</span><span class="chk-time">9:20 AM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Wait patiently for 15% dominance signal — do not force a trade" data-ta="15% ஆதிக்க சிக்னலுக்கு பொறுமையாக காத்திருங்கள் — வர்த்தகத்தை கட்டாயப்படுத்தவேண்டாம்">Wait patiently for 15% dominance signal — do not force a trade</span><span class="chk-time">9:20–1:00 PM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Exit all open positions before 1 PM" data-ta="மதியம் 1 மணிக்கு முன் அனைத்து திறந்த நிலைகளையும் வெளியேறுங்கள்">Exit all open positions before 1 PM</span><span class="chk-time">by 1:00 PM</span></li>
+      <li onclick="toggle(this)"><span class="chk"></span><span class="chk-text" data-en="Log trade result — entry, exit, dominance spread at signal" data-ta="வர்த்தக முடிவை பதிவு செய்யுங்கள் — நுழைவு, வெளியேற்றம், சிக்னலில் ஆதிக்க பரவல்">Log trade result — entry, exit, dominance spread at signal</span><span class="chk-time">after close</span></li>
+    </ul>
+  </div>
+
+  <!-- EXAMPLE TRADE -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Example Trade" data-ta="எடுத்துக்காட்டு வர்த்தகம்">Example Trade</div>
+    <h2 data-en="What a good setup looks like" data-ta="ஒரு நல்ல அமைப்பு எப்படி தெரியும்">What a good setup looks like</h2>
+    <div class="formula-box">
+      <div class="flbl" data-en="Sample CE trade" data-ta="மாதிரி CE வர்த்தகம்">Sample CE trade</div>
+      <div class="formula" style="font-size:13px;line-height:2.2">
+        ATM strike: <strong style="color:var(--text)">23450</strong> &nbsp;·&nbsp; Index: NIFTY &nbsp;·&nbsp; Expiry: 16JUN2026<br>
+        <span class="cmt">9:15 CE premium: ₹98 &nbsp;|&nbsp; PE premium: ₹175</span><br><br>
+
+        At 10:20 AM (auto-refresh running):<br>
+        CE premium: ₹160 → <strong style="color:var(--green)">CE% = +63.3%</strong><br>
+        PE premium: ₹109 → <strong style="color:var(--red)">PE% = −37.7%</strong><br>
+        Dominance spread: 63.3 − (−37.7) = <strong style="color:var(--cyan)">+101%</strong> ✓<br>
+        Nifty vs VWAP: <strong style="color:var(--green)">Above</strong> ✓<br><br>
+
+        <span class="cmt">→ CE SETUP ACTIVE ▲ — observe bullish setup</span><br>
+        Reference entry: ₹160 &nbsp;·&nbsp; Stop reference: ₹160 × 0.70 = <strong style="color:var(--red)">₹112</strong><br>
+        Target reference: ₹160 × 1.45 = <strong style="color:var(--green)">₹232</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENARIOS -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-label" data-en="Example Charts" data-ta="எடுத்துக்காட்டு விளக்கப்படங்கள்">Example Charts</div>
+    <h2 data-en="Three situations you will face" data-ta="நீங்கள் சந்திக்கும் மூன்று சூழ்நிலைகள்">Three situations you will face</h2>
+
+    <!-- Scenario 1 -->
+    <div class="chart-scenario">
+      <div class="chart-scenario-header">
+        <span class="scenario-badge win" data-en="Scenario 1" data-ta="சூழ்நிலை 1">Scenario 1</span>
+        <span class="chart-title" data-en="CE trade — bullish day, 15% dominance met" data-ta="CE வர்த்தகம் — ஏற்று நாள், 15% ஆதிக்கம் எட்டியது">CE trade — bullish day, 15% dominance met</span>
+      </div>
+      <div class="chart-leg-row">
+        <span><span class="leg-line" style="background:var(--green)"></span><span data-en="CE % change" data-ta="CE % மாற்றம்">CE % change</span></span>
+        <span><span class="leg-line" style="background:var(--red)"></span><span data-en="PE % change" data-ta="PE % மாற்றம்">PE % change</span></span>
+        <span><span class="leg-box" style="background:rgba(245,166,35,0.2)"></span><span data-en="Signal zone" data-ta="சிக்னல் மண்டலம்">Signal zone</span></span>
+      </div>
+      <div style="position:relative;width:100%;height:240px"><canvas id="sc1"></canvas></div>
+      <div class="chart-result-grid">
+        <div class="crc"><div class="rl" data-en="Dominance at signal" data-ta="சிக்னலில் ஆதிக்கம்">Dominance at signal</div><div class="rv">+23%</div><div class="rs" data-en="CE +17%, PE −6%" data-ta="CE +17%, PE −6%">CE +17%, PE −6%</div></div>
+        <div class="crc"><div class="rl" data-en="Stop reference" data-ta="ஸ்டாப் குறிப்பு">Stop reference</div><div class="rv">₹108</div><div class="rs" data-en="−30% from entry" data-ta="நுழைவிலிருந்து −30%">−30% from entry</div></div>
+        <div class="crc"><div class="rl" data-en="Target reference" data-ta="இலக்கு குறிப்பு">Target reference</div><div class="rv">₹225</div><div class="rs" data-en="+45% · 11:50 AM" data-ta="+45% · காலை 11:50">+45% · 11:50 AM</div></div>
+        <div class="crc pos"><div class="rl" data-en="Result" data-ta="முடிவு">Result</div><div class="rv">+₹4,550</div><div class="rs" data-en="1 lot · 90 min" data-ta="1 லாட் · 90 நிமிடம்">1 lot · 90 min</div></div>
+      </div>
+      <div class="chart-note" data-en="CE crosses dominance threshold cleanly — spread exceeds 15% with CE positive and PE clearly negative. VWAP above confirms. Enter with a limit order at the current CE premium shown in the Osprey tool." data-ta="CE ஆதிக்க வரம்பை தெளிவாக கடக்கிறது — பரவல் 15%-ஐ தாண்டி CE நேர்மறை மற்றும் PE தெளிவாக எதிர்மறை. VWAP மேல் உறுதி செய்கிறது.">CE crosses dominance threshold cleanly — spread exceeds 15% with CE positive and PE clearly negative. VWAP above confirms. <strong>Enter with a limit order</strong> at the current CE premium shown in the Osprey tool.</div>
+    </div>
+
+    <!-- Scenario 2 -->
+    <div class="chart-scenario">
+      <div class="chart-scenario-header">
+        <span class="scenario-badge win" data-en="Scenario 2" data-ta="சூழ்நிலை 2">Scenario 2</span>
+        <span class="chart-title" data-en="PE trade — bearish day, 15% dominance met" data-ta="PE வர்த்தகம் — இறக்க நாள், 15% ஆதிக்கம் எட்டியது">PE trade — bearish day, 15% dominance met</span>
+      </div>
+      <div class="chart-leg-row">
+        <span><span class="leg-line" style="background:var(--green)"></span><span data-en="CE % change" data-ta="CE % மாற்றம்">CE % change</span></span>
+        <span><span class="leg-line" style="background:var(--red)"></span><span data-en="PE % change" data-ta="PE % மாற்றம்">PE % change</span></span>
+        <span><span class="leg-box" style="background:rgba(245,166,35,0.2)"></span><span data-en="Signal zone" data-ta="சிக்னல் மண்டலம்">Signal zone</span></span>
+      </div>
+      <div style="position:relative;width:100%;height:240px"><canvas id="sc2"></canvas></div>
+      <div class="chart-note" data-en="Mirror image of Scenario 1. PE dominates — buy PE, not CE. Nifty is below VWAP. Same 15% dominance rule, opposite direction. Same exit levels." data-ta="சூழ்நிலை 1-இன் கண்ணாடி உருவம். PE ஆதிக்கம் — PE வாங்கவும், CE அல்ல. Nifty VWAP-க்கு கீழ். அதே 15% ஆதிக்க விதி, எதிர் திசை.">Mirror image of Scenario 1. PE dominates — buy PE, not CE. Nifty is below VWAP. <strong>Same 15% dominance rule, opposite direction.</strong> Same exit levels.</div>
+    </div>
+
+    <!-- Scenario 3 -->
+    <div class="chart-scenario">
+      <div class="chart-scenario-header">
+        <span class="scenario-badge skip" data-en="Scenario 3" data-ta="சூழ்நிலை 3">Scenario 3</span>
+        <span class="chart-title" data-en="Choppy day — spread never reaches 15%" data-ta="ஒழுங்கற்ற நாள் — பரவல் 15%-ஐ அடைவதில்லை">Choppy day — spread never reaches 15%</span>
+      </div>
+      <div class="chart-leg-row">
+        <span><span class="leg-line" style="background:var(--green)"></span><span data-en="CE % change" data-ta="CE % மாற்றம்">CE % change</span></span>
+        <span><span class="leg-line" style="background:var(--red)"></span><span data-en="PE % change" data-ta="PE % மாற்றம்">PE % change</span></span>
+        <span><span class="leg-box" style="background:rgba(231,76,60,0.15)"></span><span data-en="False threshold" data-ta="தவறான வரம்பு">False threshold</span></span>
+      </div>
+      <div style="position:relative;width:100%;height:240px"><canvas id="sc3"></canvas></div>
+      <div class="chart-note warn" data-en="CE briefly touches +10% three times but spread never exceeds 15% — PE is not negative enough to give dominance. The tool shows 'Spread X% — need ±15% dominance'. The correct action: close the tool and do nothing. No trade is a valid outcome." data-ta="CE மூன்று முறை +10%-ஐ தொட்டாலும் பரவல் 15%-ஐ தாண்டவில்லை. கருவி 'Spread X% — need ±15% dominance' காட்டுகிறது. சரியான செயல்: கருவியை மூடுங்கள். வர்த்தகமில்லை என்பதும் ஒரு சரியான முடிவே.">CE briefly touches +10% three times but spread never exceeds 15% — PE is not negative enough to give dominance. The tool shows <em>"Spread X% — need ±15% dominance"</em>. The correct action: <strong>close the tool and do nothing.</strong> No trade is a valid outcome.</div>
+    </div>
+  </div>
+
+  <div class="disclaimer" data-en="For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading. Options trading involves significant risk of loss." data-ta="கல்வி நோக்கங்களுக்காக மட்டுமே. முதலீட்டு ஆலோசனை அல்ல. வர்த்தகம் செய்வதற்கு முன் SEBI-பதிவு செய்யப்பட்ட ஆலோசகரை அணுகவும். ஆப்ஷன் வர்த்தகம் கணிசமான இழப்பு அபாயத்தை உள்ளடக்கியது.">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading. Options trading involves significant risk of loss.</div>
+
+</div>
+
+<script src="js/theme.js" defer></script>
+<script src="halo-aurora.js" defer></script>
+
+<script>
+function toggle(li) { li.classList.toggle('checked'); }
+
+const capital  = document.getElementById('capital');
+const riskpct  = document.getElementById('riskpct');
+const premium  = document.getElementById('premium');
+const slpct    = document.getElementById('slpct');
+
+function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+function calcRisk() {
+  const cap  = +capital.value, rp = +riskpct.value;
+  const prem = +premium.value, sl = +slpct.value;
+  const maxLoss    = cap * rp / 100;
+  const stopPrice  = prem * (1 - sl / 100);
+  const lossPerLot = (prem - stopPrice) * 65;
+  const lots       = Math.floor(maxLoss / lossPerLot);
+  document.getElementById('capitalVal').textContent   = fmt(cap);
+  document.getElementById('riskVal').textContent      = rp + '%';
+  document.getElementById('premiumVal').textContent   = fmt(prem);
+  document.getElementById('slVal').textContent        = sl + '%';
+  document.getElementById('maxLoss').textContent      = fmt(maxLoss);
+  document.getElementById('stopPrice').textContent    = fmt(stopPrice);
+  document.getElementById('lossPerLot').textContent   = fmt(lossPerLot);
+  document.getElementById('lotsAllowed').textContent  = lots;
+  document.getElementById('capitalNeeded').textContent = fmt(prem * 65);
+  document.getElementById('targetPrice').textContent  = fmt(prem * 1.45);
+  const wy = document.getElementById('warnYellow');
+  const wr = document.getElementById('warnRed');
+  wy.classList.remove('show'); wr.classList.remove('show');
+  if (lots === 0) wr.classList.add('show');
+  else if (lossPerLot > maxLoss * 1.5) wy.classList.add('show');
+}
+[capital, riskpct, premium, slpct].forEach(el => el.addEventListener('input', calcRisk));
+calcRisk();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  const G = '#2ecc71', R = '#e74c3c', GRID = 'rgba(37,42,68,0.6)', TICK = '#4a5070';
+  const AMBER_BG = 'rgba(245,166,35,0.12)';
+
+  function baseOpts(yMin, yMax) {
+    return {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 0 },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,33,0.97)', borderColor: 'rgba(50,56,104,0.9)', borderWidth: 1, titleColor: '#9ba3bf', bodyColor: '#e8ecf4', titleFont: { family: "'JetBrains Mono',monospace", size: 10 }, bodyFont: { family: "'JetBrains Mono',monospace", size: 12 },
+        callbacks: { label: c => `  ${c.dataset.label}  ${c.parsed.y >= 0 ? '+' : ''}${c.parsed.y}%` } } },
+      scales: {
+        x: { grid: { color: GRID }, ticks: { color: TICK, font: { family: "'JetBrains Mono',monospace", size: 10 } } },
+        y: { grid: { color: GRID }, ticks: { color: TICK, font: { family: "'JetBrains Mono',monospace", size: 10 }, callback: v => (v >= 0 ? '+' : '') + v + '%' }, min: yMin, max: yMax }
+      }
+    };
+  }
+
+  function shadePlugin(pairs, color) {
+    return { id: 'shade', beforeDraw(c) {
+      const { ctx, chartArea: ca, scales } = c; if (!ca) return;
+      ctx.save();
+      pairs.forEach(p => {
+        ctx.fillStyle = color;
+        const x1 = scales.x.getPixelForValue(p[0]), x2 = scales.x.getPixelForValue(p[1]);
+        ctx.fillRect(x1, ca.top, x2 - x1, ca.bottom - ca.top);
+      });
+      ctx.restore();
+    }};
+  }
+
+  function domLinePlugin(threshold, color, label) {
+    return { id: 'dline', afterDraw(c) {
+      const { ctx, chartArea: ca, scales } = c; if (!ca) return;
+      const y = scales.y.getPixelForValue(threshold);
+      ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = color; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(ca.left, y); ctx.lineTo(ca.right, y); ctx.stroke();
+      ctx.setLineDash([]); ctx.fillStyle = color; ctx.font = "10px 'JetBrains Mono',monospace";
+      ctx.fillText(label, ca.left + 6, y - 4); ctx.restore();
+    }};
+  }
+
+  const L1 = ['9:15','9:30','9:45','10:00','10:15','10:20','10:30','10:45','11:00','11:15','11:30','11:45','11:50','12:00'];
+  const CE1 = [0,4,7,10,13,17,22,28,33,38,41,44,46,43];
+  const PE1 = [0,-3,-5,-7,-7,-8,-11,-15,-19,-22,-25,-27,-28,-26];
+
+  new Chart(document.getElementById('sc1'), {
+    type: 'line',
+    data: { labels: L1, datasets: [
+      { label:'CE %', data: CE1, borderColor: G, borderWidth: 2.5, pointRadius: 0, tension: 0.4 },
+      { label:'PE %', data: PE1, borderColor: R, borderWidth: 2, borderDash: [5,3], pointRadius: 0, tension: 0.4 }
+    ]},
+    options: baseOpts(-38, 58),
+    plugins: [shadePlugin([[5,6]], AMBER_BG), domLinePlugin(15, 'rgba(46,204,113,0.5)', '15% threshold')]
+  });
+
+  const L2 = ['9:15','9:30','9:40','9:45','10:00','10:15','10:30','10:45','11:00','11:15','11:30'];
+  const CE2 = [0,-3,-6,-9,-13,-17,-21,-24,-26,-24,-22];
+  const PE2 = [0, 4, 9,14, 20, 26, 33, 38, 43, 40, 36];
+
+  new Chart(document.getElementById('sc2'), {
+    type: 'line',
+    data: { labels: L2, datasets: [
+      { label:'CE %', data: CE2, borderColor: G, borderWidth: 2, pointRadius: 0, tension: 0.4 },
+      { label:'PE %', data: PE2, borderColor: R, borderWidth: 2.5, borderDash: [5,3], pointRadius: 0, tension: 0.4 }
+    ]},
+    options: baseOpts(-35, 55),
+    plugins: [shadePlugin([[3,4]], AMBER_BG), domLinePlugin(15, 'rgba(231,76,60,0.5)', '15% threshold')]
+  });
+
+  const L3 = ['9:15','9:30','9:45','10:00','10:15','10:30','10:45','11:00','11:15','11:30','11:45','12:00','12:15','12:30'];
+  const CE3 = [0,6,11,7,3,-2,4,10,6,2,8,12,8,5];
+  const PE3 = [0,-4,-3,2,6,11,5,-1,4,8,3,-2,2,5];
+
+  new Chart(document.getElementById('sc3'), {
+    type: 'line',
+    data: { labels: L3, datasets: [
+      { label:'CE %', data: CE3, borderColor: G, borderWidth: 2, pointRadius: 2, pointBackgroundColor: G, tension: 0.3 },
+      { label:'PE %', data: PE3, borderColor: R, borderWidth: 2, borderDash: [5,3], pointRadius: 2, pointBackgroundColor: R, tension: 0.3 }
+    ]},
+    options: baseOpts(-18, 24),
+    plugins: [shadePlugin([[2,3],[7,8],[11,12]], 'rgba(231,76,60,0.08)'), domLinePlugin(15, 'rgba(46,204,113,0.35)', '15% threshold')]
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -27,6 +27,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | indicators | `indicators.md` | active |
 | stock-analyser | `stock-analyser.md` | active |
 | stock-health | `stock-health.md` | active |
+| osprey-ce-pe | `osprey-ce-pe.md` | active |
 
 ---
 
