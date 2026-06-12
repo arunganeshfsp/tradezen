@@ -291,6 +291,29 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       </div>
     </div>
 
+    <!-- PREMIUM CHART -->
+    <div class="card-z" id="chartCard" style="display:none">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="card-title mb-0">CE / PE Premium Chart</div>
+        <div class="tog-group">
+          <button class="tog active-idx" id="chartModeValue" onclick="setChartMode('value')">₹ Value</button>
+          <button class="tog" id="chartModePct"  onclick="setChartMode('pct')">% Change</button>
+        </div>
+      </div>
+      <div style="position:relative;height:240px">
+        <canvas id="premiumChart"></canvas>
+      </div>
+      <div style="display:flex;gap:18px;align-items:center;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;flex-wrap:wrap">
+        <span style="color:var(--green);display:flex;align-items:center;gap:5px">
+          <span style="width:22px;height:2px;background:var(--green);display:inline-block;border-radius:1px;flex-shrink:0"></span>CE
+        </span>
+        <span style="color:var(--red);display:flex;align-items:center;gap:5px">
+          <span style="width:22px;height:2px;background:var(--red);display:inline-block;border-radius:1px;flex-shrink:0"></span>PE
+        </span>
+        <span id="vwapChartLabel" style="color:var(--muted);margin-left:auto"></span>
+      </div>
+    </div>
+
     <!-- REFERENCE LEVELS -->
     <div class="card-z" id="levelsCard" style="display:none">
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -337,6 +360,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="js/theme.js" defer></script>
 <script>
 let vwap = null;
@@ -379,6 +403,7 @@ function setVWAP(v) {
   document.getElementById('vwapAbove').className = 'tog' + (v === 'above' ? ' active-above' : '');
   document.getElementById('vwapAt').className    = 'tog' + (v === 'at'    ? ' active-at'    : '');
   document.getElementById('vwapBelow').className = 'tog' + (v === 'below' ? ' active-below' : '');
+  updateVwapBand();
   calc();
 }
 
@@ -582,7 +607,7 @@ function logSnapshot() {
   else if (pePct > 10 && cePct < 0) signal = 'PE ▼';
 
   const timeStr = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
-  dayLog.push({ time: timeStr, cePct: parseFloat(cePct.toFixed(2)), pePct: parseFloat(pePct.toFixed(2)), signal });
+  dayLog.push({ time: timeStr, cePct: parseFloat(cePct.toFixed(2)), pePct: parseFloat(pePct.toFixed(2)), ceCur: parseFloat(ceCur.toFixed(2)), peCur: parseFloat(peCur.toFixed(2)), signal, vwap: vwap });
 
   try {
     localStorage.setItem('osprey_log', JSON.stringify({ log: dayLog, date: new Date().toDateString() }));
@@ -640,6 +665,7 @@ function renderLog() {
     logSparkWrap.style.display = '';
     renderSpark();
   }
+  updateChart();
 }
 
 function renderSpark() {
@@ -670,6 +696,113 @@ function renderSpark() {
 
   document.getElementById('logSparkRange').textContent =
     `${dayLog[0].time} → ${dayLog[n-1].time}`;
+}
+
+// ── Premium chart ─────────────────────────────────────────────
+let premiumChart = null;
+let chartMode    = 'value';
+
+const vwapBgPlugin = {
+  id: 'vwapBg',
+  beforeDraw(chart) {
+    const { ctx, chartArea } = chart;
+    if (!chartArea || !vwap) return;
+    const fill = { above: 'rgba(46,204,113,0.05)', at: 'rgba(245,166,35,0.05)', below: 'rgba(231,76,60,0.05)' };
+    ctx.save();
+    ctx.fillStyle = fill[vwap] || 'transparent';
+    ctx.fillRect(chartArea.left, chartArea.top, chartArea.width, chartArea.height);
+    ctx.restore();
+  }
+};
+
+function initChart() {
+  const ctx = document.getElementById('premiumChart').getContext('2d');
+  premiumChart = new Chart(ctx, {
+    type: 'line',
+    plugins: [vwapBgPlugin],
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'CE', data: [], borderColor: '#2ecc71', backgroundColor: 'rgba(46,204,113,0.06)',
+          borderWidth: 2, pointRadius: 5, pointHoverRadius: 7, pointBorderColor: '#0e1020',
+          pointBorderWidth: 1.5, tension: 0.35, fill: false },
+        { label: 'PE', data: [], borderColor: '#e74c3c', backgroundColor: 'rgba(231,76,60,0.06)',
+          borderWidth: 2, pointRadius: 5, pointHoverRadius: 7, pointBorderColor: '#0e1020',
+          pointBorderWidth: 1.5, tension: 0.35, fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 280 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,16,33,0.97)', borderColor: 'rgba(50,56,104,0.9)', borderWidth: 1,
+          titleColor: '#9ba3bf', bodyColor: '#e8ecf4', padding: 10,
+          titleFont: { family: "'JetBrains Mono',monospace", size: 10 },
+          bodyFont:  { family: "'JetBrains Mono',monospace", size: 12 },
+          callbacks: {
+            label: c => chartMode === 'value'
+              ? `  ${c.dataset.label}  ₹${c.parsed.y.toFixed(2)}`
+              : `  ${c.dataset.label}  ${c.parsed.y >= 0 ? '+' : ''}${c.parsed.y.toFixed(2)}%`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid:  { color: 'rgba(37,42,68,0.55)' },
+          ticks: { color: '#4a5070', font: { family: "'JetBrains Mono',monospace", size: 10 } }
+        },
+        y: {
+          grid:  { color: 'rgba(37,42,68,0.55)' },
+          ticks: { color: '#4a5070', font: { family: "'JetBrains Mono',monospace", size: 10 },
+            callback: v => chartMode === 'value' ? '₹' + v : v + '%' }
+        }
+      }
+    }
+  });
+}
+
+function setChartMode(mode) {
+  chartMode = mode;
+  document.getElementById('chartModeValue').className = 'tog' + (mode === 'value' ? ' active-idx' : '');
+  document.getElementById('chartModePct').className   = 'tog' + (mode === 'pct'   ? ' active-idx' : '');
+  updateChart();
+}
+
+function updateChart() {
+  if (dayLog.length === 0) {
+    document.getElementById('chartCard').style.display = 'none';
+    if (premiumChart) { premiumChart.data.labels = []; premiumChart.data.datasets.forEach(d => d.data = []); premiumChart.update(); }
+    return;
+  }
+  document.getElementById('chartCard').style.display = '';
+  if (!premiumChart) initChart();
+
+  const labels  = dayLog.map(e => e.time);
+  const ceData  = dayLog.map(e => chartMode === 'value' ? (e.ceCur  ?? null) : e.cePct);
+  const peData  = dayLog.map(e => chartMode === 'value' ? (e.peCur  ?? null) : e.pePct);
+
+  // Marker colour: bright when VWAP agrees with this side, dimmed when it conflicts
+  const cePts = dayLog.map(e => !e.vwap ? '#2ecc71' : e.vwap === 'above' ? '#2ecc71' : e.vwap === 'at' ? '#f5a623' : 'rgba(46,204,113,0.35)');
+  const pePts = dayLog.map(e => !e.vwap ? '#e74c3c' : e.vwap === 'below' ? '#e74c3c' : e.vwap === 'at' ? '#f5a623' : 'rgba(231,76,60,0.35)');
+
+  premiumChart.data.labels = labels;
+  premiumChart.data.datasets[0].data = ceData;
+  premiumChart.data.datasets[0].pointBackgroundColor = cePts;
+  premiumChart.data.datasets[1].data = peData;
+  premiumChart.data.datasets[1].pointBackgroundColor = pePts;
+  premiumChart.options.scales.y.ticks.callback = v => chartMode === 'value' ? '₹' + v : v + '%';
+  updateVwapBand();
+  premiumChart.update();
+}
+
+function updateVwapBand() {
+  const el = document.getElementById('vwapChartLabel');
+  if (!el) return;
+  if (!vwap) { el.textContent = ''; return; }
+  const map = { above: ['▲ Spot above VWAP', 'var(--green)'], at: ['─ Spot at VWAP', 'var(--yellow)'], below: ['▼ Spot below VWAP', 'var(--red)'] };
+  [el.textContent, el.style.color] = map[vwap];
+  if (premiumChart) premiumChart.update();
 }
 
 // ── Current premiums persistence + staleness timer ────────────
