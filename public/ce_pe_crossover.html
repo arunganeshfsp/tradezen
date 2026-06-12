@@ -97,6 +97,36 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 .atm-chip{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);padding:4px 12px;border-radius:20px}
 
+.atm-fetch-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.atm-fetch-row input{flex:1;min-width:90px}
+.fetch-btn{padding:8px 14px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--cyan);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.fetch-btn:hover:not(:disabled){border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.fetch-btn:disabled{opacity:.45;cursor:not-allowed}
+.tog.active-idx{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.1)}
+
+.lock-bar{display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap}
+.lock-btn{padding:8px 16px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--accent);transition:all .15s;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.lock-btn:hover{border-color:var(--accent);background:rgba(124,106,247,0.08)}
+.lock-badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-border);padding:4px 12px;border-radius:20px}
+
+.log-table{border-collapse:collapse;width:100%}
+.log-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg3)}
+.log-table td{padding:9px 12px;border-bottom:1px solid var(--border)}
+.log-table tr:last-child td{border-bottom:none}
+.log-table tr:hover td{background:var(--bg3)}
+.log-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.delta-mini{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.delta-mini.pos{color:var(--green)}
+.delta-mini.neg{color:var(--red)}
+.delta-mini.zero{color:var(--muted)}
+.sig-mini{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.8px;padding:2px 8px;border-radius:10px}
+.sig-mini.ce{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.sig-mini.pe{color:var(--red);background:var(--red-bg);border:1px solid var(--red-border)}
+.sig-mini.nt{color:var(--yellow);background:var(--yellow-bg);border:1px solid var(--yellow-border)}
+.log-spark-wrap{background:var(--bg3);border-radius:var(--r2);padding:8px 12px;margin-bottom:14px;overflow:hidden}
+.log-spark-legend{display:flex;gap:16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px}
+.log-empty-hint{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:20px}
+
 .disclaimer{font-size:11px;color:var(--muted);text-align:center;padding:16px 20px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);line-height:1.6}
 </style>
 </head>
@@ -145,12 +175,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="card-z">
       <div class="card-title">9:15 AM Opening Reference</div>
       <div class="input-grid mb-4">
-        <div class="field">
+        <div class="field" style="grid-column:1/-1">
           <label>ATM Strike</label>
-          <input type="number" id="atmStrike" placeholder="e.g. 24500" />
-          <span class="field-hint">Nearest strike to spot price at 9:15 AM (optional)</span>
+          <div class="atm-fetch-row">
+            <div class="tog-group">
+              <button class="tog active-idx" id="idxNifty" onclick="setIdx('nifty')">NIFTY</button>
+              <button class="tog" id="idxBank" onclick="setIdx('banknifty')">BANK NF</button>
+            </div>
+            <input type="number" id="atmStrike" placeholder="e.g. 24500" />
+            <button class="fetch-btn" id="fetchBtn" onclick="fetchSpot()">Fetch Spot ↗</button>
+          </div>
+          <span class="field-hint" id="spotHint">Select index, then fetch current spot → nearest ATM (optional)</span>
         </div>
-        <div></div>
         <div class="field">
           <label>CE Base Premium</label>
           <input type="number" id="ceBase" placeholder="e.g. 120" step="0.05" />
@@ -163,7 +199,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </div>
       </div>
 
-      <div class="sec-div"></div>
+      <div class="lock-bar">
+        <button class="lock-btn" id="lockBtn" onclick="lockBase()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Set as 9:15 Base
+        </button>
+        <span class="lock-badge" id="lockBadge" style="display:none"></span>
+      </div>
+
+      <div class="sec-div" style="margin-top:20px"></div>
 
       <div class="card-title">Current Premiums</div>
       <div class="input-grid">
@@ -176,6 +220,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <input type="number" id="peCurrent" placeholder="e.g. 95" step="0.05" />
         </div>
       </div>
+      <div class="field-hint" id="currentHint" style="margin-top:10px;display:none"></div>
     </div>
 
     <!-- DELTA DISPLAY + VWAP -->
@@ -211,6 +256,39 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div class="signal-label">Setup Signal</div>
       <div class="signal-text nt" id="signalText">AWAITING INPUT</div>
       <div class="signal-sub" id="signalSub">Enter all four premium values to detect a setup</div>
+    </div>
+
+    <!-- DAY LOG -->
+    <div class="card-z" id="dayLogCard" style="display:none">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="card-title mb-0">Day Log — CE/PE % Track</div>
+        <div class="d-flex gap-2">
+          <button class="tog" onclick="logSnapshot()">+ Log Reading</button>
+          <button class="tog" onclick="clearLog()" style="color:var(--muted)">Clear</button>
+        </div>
+      </div>
+      <div class="log-spark-wrap" id="logSparkWrap" style="display:none">
+        <svg id="logSpark" width="100%" height="64" style="display:block;overflow:visible"></svg>
+        <div class="log-spark-legend">
+          <span style="color:var(--green)">── CE%</span>
+          <span style="color:var(--red)">── PE%</span>
+          <span id="logSparkRange"></span>
+        </div>
+      </div>
+      <div id="logTableWrap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>CE %</th>
+              <th>PE %</th>
+              <th>Signal</th>
+            </tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+        <div class="log-empty-hint" id="logEmptyHint">Tap "+ Log Reading" to capture a snapshot of CE/PE change</div>
+      </div>
     </div>
 
     <!-- REFERENCE LEVELS -->
@@ -262,6 +340,39 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <script src="js/theme.js" defer></script>
 <script>
 let vwap = null;
+let selectedIdx = 'nifty';
+
+function setIdx(v) {
+  selectedIdx = v;
+  document.getElementById('idxNifty').className = 'tog' + (v === 'nifty'      ? ' active-idx' : '');
+  document.getElementById('idxBank').className  = 'tog' + (v === 'banknifty'  ? ' active-idx' : '');
+}
+
+async function fetchSpot() {
+  const btn  = document.getElementById('fetchBtn');
+  const hint = document.getElementById('spotHint');
+  btn.disabled    = true;
+  btn.textContent = 'Fetching…';
+  try {
+    const res  = await fetch('/api/market-summary');
+    const data = await res.json();
+    const key  = selectedIdx === 'nifty' ? 'nifty' : 'banknifty';
+    if (!data[key] || data[key].error) throw new Error(data[key]?.error || 'No data');
+    const spot = data[key].ltp;
+    const step = selectedIdx === 'nifty' ? 50 : 100;
+    const atm  = Math.round(spot / step) * step;
+    document.getElementById('atmStrike').value = atm;
+    hint.textContent = `Spot ${spot.toLocaleString('en-IN')} → ATM ${atm.toLocaleString('en-IN')}`;
+    hint.style.color = 'var(--cyan)';
+    calc();
+  } catch (e) {
+    hint.textContent = 'Could not fetch — enter strike manually';
+    hint.style.color = 'var(--red)';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Fetch Spot ↗';
+  }
+}
 
 function setVWAP(v) {
   vwap = v;
@@ -401,9 +512,228 @@ function calc() {
   }
 }
 
-['ceBase', 'peBase', 'ceCurrent', 'peCurrent', 'atmStrike'].forEach(id => {
+['ceBase', 'peBase', 'atmStrike'].forEach(id => {
   document.getElementById(id).addEventListener('input', calc);
 });
+['ceCurrent', 'peCurrent'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { calc(); saveCurrentPremiums(); });
+});
+
+// ── Base lock ──────────────────────────────────────────────────
+function lockBase() {
+  const ceBase = document.getElementById('ceBase').value;
+  const peBase = document.getElementById('peBase').value;
+  if (!ceBase || !peBase || parseFloat(ceBase) <= 0 || parseFloat(peBase) <= 0) {
+    const badge = document.getElementById('lockBadge');
+    badge.textContent = '⚠ Enter base premiums first';
+    badge.style.display = 'inline-flex';
+    badge.style.color   = 'var(--yellow)';
+    badge.style.background = 'var(--yellow-bg)';
+    badge.style.borderColor = 'var(--yellow-border)';
+    return;
+  }
+  const timeStr = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+  try {
+    localStorage.setItem('osprey_base', JSON.stringify({
+      ceBase, peBase, time: timeStr, date: new Date().toDateString()
+    }));
+  } catch(e) {}
+  showLockBadge(timeStr);
+  document.getElementById('dayLogCard').style.display = '';
+}
+
+function showLockBadge(timeStr) {
+  const badge = document.getElementById('lockBadge');
+  badge.textContent    = '✓ Locked at ' + timeStr;
+  badge.style.display  = 'inline-flex';
+  badge.style.color    = 'var(--green)';
+  badge.style.background   = 'var(--green-bg)';
+  badge.style.borderColor  = 'var(--green-border)';
+}
+
+function restoreBase() {
+  try {
+    const raw = localStorage.getItem('osprey_base');
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.date !== new Date().toDateString()) { localStorage.removeItem('osprey_base'); return; }
+    document.getElementById('ceBase').value = saved.ceBase;
+    document.getElementById('peBase').value = saved.peBase;
+    showLockBadge(saved.time);
+    document.getElementById('dayLogCard').style.display = '';
+    calc();
+  } catch(e) {}
+}
+
+// ── Day log ────────────────────────────────────────────────────
+let dayLog = [];
+
+function logSnapshot() {
+  const ceBase = parseFloat(document.getElementById('ceBase').value);
+  const peBase = parseFloat(document.getElementById('peBase').value);
+  const ceCur  = parseFloat(document.getElementById('ceCurrent').value);
+  const peCur  = parseFloat(document.getElementById('peCurrent').value);
+  if (isNaN(ceBase) || isNaN(peBase) || isNaN(ceCur) || isNaN(peCur) || ceBase <= 0 || peBase <= 0) return;
+
+  const cePct  = ((ceCur - ceBase) / ceBase) * 100;
+  const pePct  = ((peCur - peBase) / peBase) * 100;
+  let signal   = 'NO TRADE';
+  if (cePct > 10 && pePct < 0)  signal = 'CE ▲';
+  else if (pePct > 10 && cePct < 0) signal = 'PE ▼';
+
+  const timeStr = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+  dayLog.push({ time: timeStr, cePct: parseFloat(cePct.toFixed(2)), pePct: parseFloat(pePct.toFixed(2)), signal });
+
+  try {
+    localStorage.setItem('osprey_log', JSON.stringify({ log: dayLog, date: new Date().toDateString() }));
+  } catch(e) {}
+  renderLog();
+}
+
+function clearLog() {
+  dayLog = [];
+  try { localStorage.removeItem('osprey_log'); } catch(e) {}
+  renderLog();
+}
+
+function restoreLog() {
+  try {
+    const raw = localStorage.getItem('osprey_log');
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.date !== new Date().toDateString()) { localStorage.removeItem('osprey_log'); return; }
+    dayLog = saved.log || [];
+    if (dayLog.length > 0) {
+      document.getElementById('dayLogCard').style.display = '';
+      renderLog();
+    }
+  } catch(e) {}
+}
+
+function renderLog() {
+  const logBody     = document.getElementById('logBody');
+  const logEmptyHint = document.getElementById('logEmptyHint');
+  const logSparkWrap = document.getElementById('logSparkWrap');
+
+  if (dayLog.length === 0) {
+    logBody.innerHTML = '';
+    logEmptyHint.style.display = '';
+    logSparkWrap.style.display = 'none';
+    return;
+  }
+  logEmptyHint.style.display = 'none';
+
+  logBody.innerHTML = dayLog.slice().reverse().map(e => {
+    const cc = e.cePct > 0 ? 'pos' : e.cePct < 0 ? 'neg' : 'zero';
+    const pc = e.pePct > 0 ? 'pos' : e.pePct < 0 ? 'neg' : 'zero';
+    const sc = e.signal === 'CE ▲' ? 'ce' : e.signal === 'PE ▼' ? 'pe' : 'nt';
+    const fmt = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+    return `<tr>
+      <td class="log-time">${e.time}</td>
+      <td class="delta-mini ${cc}">${fmt(e.cePct)}</td>
+      <td class="delta-mini ${pc}">${fmt(e.pePct)}</td>
+      <td><span class="sig-mini ${sc}">${e.signal}</span></td>
+    </tr>`;
+  }).join('');
+
+  if (dayLog.length >= 2) {
+    logSparkWrap.style.display = '';
+    renderSpark();
+  }
+}
+
+function renderSpark() {
+  const svg  = document.getElementById('logSpark');
+  const W    = svg.parentElement.clientWidth - 24 || 560;
+  const H    = 64;
+  const PAD  = { t: 10, r: 20, b: 10, l: 20 };
+  const cePcts = dayLog.map(e => e.cePct);
+  const pePcts = dayLog.map(e => e.pePct);
+  const allVals = [...cePcts, ...pePcts, 0];
+  const minV = Math.min(...allVals);
+  const maxV = Math.max(...allVals);
+  const range = maxV - minV || 1;
+  const n    = dayLog.length;
+  const xAt  = i => PAD.l + (i / (n - 1)) * (W - PAD.l - PAD.r);
+  const yAt  = v => PAD.t + (1 - (v - minV) / range) * (H - PAD.t - PAD.b);
+  const line = arr => arr.map((v, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
+  const zy   = yAt(0).toFixed(1);
+  const lx   = xAt(n - 1).toFixed(1);
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = `
+    <line x1="${PAD.l}" y1="${zy}" x2="${W - PAD.r}" y2="${zy}" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+    <path d="${line(cePcts)}" fill="none" stroke="#2ecc71" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${line(pePcts)}" fill="none" stroke="#e74c3c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lx}" cy="${yAt(cePcts[n-1]).toFixed(1)}" r="3" fill="#2ecc71"/>
+    <circle cx="${lx}" cy="${yAt(pePcts[n-1]).toFixed(1)}" r="3" fill="#e74c3c"/>`;
+
+  document.getElementById('logSparkRange').textContent =
+    `${dayLog[0].time} → ${dayLog[n-1].time}`;
+}
+
+// ── Current premiums persistence + staleness timer ────────────
+let lastUpdatedAt = null;
+let staleTimer    = null;
+
+function updateStaleHint() {
+  if (!lastUpdatedAt) return;
+  const hint    = document.getElementById('currentHint');
+  const elapsed = Math.floor((Date.now() - lastUpdatedAt) / 60000);
+  if (elapsed < 1) {
+    hint.textContent = 'Updated just now';
+    hint.style.color = 'var(--dim)';
+  } else if (elapsed < 5) {
+    hint.textContent = `Updated ${elapsed} min ago`;
+    hint.style.color = 'var(--dim)';
+  } else if (elapsed < 15) {
+    hint.textContent = `Updated ${elapsed} min ago — consider refreshing`;
+    hint.style.color = 'var(--yellow)';
+  } else {
+    hint.textContent = `Updated ${elapsed} min ago — values likely stale`;
+    hint.style.color = 'var(--red)';
+  }
+  hint.style.display = '';
+}
+
+function startStaleTimer() {
+  if (staleTimer) clearInterval(staleTimer);
+  updateStaleHint();
+  staleTimer = setInterval(updateStaleHint, 30000);
+}
+
+function saveCurrentPremiums() {
+  const ce = document.getElementById('ceCurrent').value;
+  const pe = document.getElementById('peCurrent').value;
+  if (!ce && !pe) return;
+  lastUpdatedAt = Date.now();
+  try {
+    localStorage.setItem('osprey_current', JSON.stringify({
+      ceCurrent: ce, peCurrent: pe,
+      savedAt: lastUpdatedAt, date: new Date().toDateString()
+    }));
+  } catch(e) {}
+  startStaleTimer();
+}
+
+function restoreCurrent() {
+  try {
+    const raw = localStorage.getItem('osprey_current');
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.date !== new Date().toDateString()) { localStorage.removeItem('osprey_current'); return; }
+    if (saved.ceCurrent) document.getElementById('ceCurrent').value = saved.ceCurrent;
+    if (saved.peCurrent) document.getElementById('peCurrent').value = saved.peCurrent;
+    lastUpdatedAt = saved.savedAt || Date.now();
+    startStaleTimer();
+    calc();
+  } catch(e) {}
+}
+
+// ── Init ───────────────────────────────────────────────────────
+restoreBase();
+restoreCurrent();
+restoreLog();
 </script>
 </body>
 </html>
