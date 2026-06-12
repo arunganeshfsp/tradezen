@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CE-PE Crossover Calculator | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+.hero{padding:40px 28px 32px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.12) 0%,transparent 65%),var(--bg)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:6px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
+.main{max-width:960px;margin:0 auto;padding:32px 24px 80px}
+
+.card-z{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.input-grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.field input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:16px;padding:10px 14px;border-radius:var(--r2);outline:none;transition:border .15s;width:100%}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--muted)}
+.field-hint{font-size:11px;color:var(--muted)}
+.sec-div{height:1px;background:var(--border);margin:20px 0}
+
+.vwap-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.vwap-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);flex-shrink:0}
+.tog-group{display:flex;gap:4px}
+.tog{padding:7px 18px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.tog:hover{color:var(--text)}
+.tog.active-above{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.tog.active-at{border-color:var(--yellow);color:var(--yellow);background:var(--yellow-bg)}
+.tog.active-below{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+
+.delta-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.delta-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
+.delta-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.delta-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600}
+.delta-val.pos{color:var(--green)}
+.delta-val.neg{color:var(--red)}
+.delta-val.zero{color:var(--muted)}
+
+.signal-banner{border-radius:var(--r);padding:28px;text-align:center;border:1px solid;transition:all .3s}
+.signal-banner.ce-active{background:rgba(46,204,113,0.08);border-color:rgba(46,204,113,0.35)}
+.signal-banner.pe-active{background:rgba(231,76,60,0.08);border-color:rgba(231,76,60,0.35)}
+.signal-banner.no-trade{background:var(--yellow-bg);border-color:var(--yellow-border)}
+.signal-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;color:var(--muted)}
+.signal-text{font-family:'Syne',sans-serif;font-size:clamp(20px,3vw,30px);font-weight:800;letter-spacing:1px}
+.signal-text.ce{color:var(--green)}
+.signal-text.pe{color:var(--red)}
+.signal-text.nt{color:var(--yellow)}
+.signal-sub{font-size:13px;color:var(--dim);margin-top:8px}
+
+.levels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:520px){.levels-grid{grid-template-columns:1fr}}
+.level-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
+.level-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.level-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600}
+.level-val.entry{color:var(--cyan)}
+.level-val.sl{color:var(--red)}
+.level-val.target{color:var(--green)}
+.level-desc{font-size:11px;color:var(--muted);margin-top:4px}
+
+.risk-box{background:var(--bg3);border-radius:var(--r2);padding:16px;border:1px solid var(--border)}
+.risk-box.warn{border-color:var(--red-border);background:var(--red-bg)}
+.risk-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.risk-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.risk-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--text)}
+.risk-warn-text{font-size:12px;color:var(--red);margin-top:8px}
+
+.vwap-notice{border-radius:var(--r2);padding:10px 14px;font-size:12px;display:none}
+.vwap-notice.show{display:block}
+.vwap-notice.agree{background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.25);color:var(--green)}
+.vwap-notice.warn{background:var(--yellow-bg);border:1px solid var(--yellow-border);color:var(--yellow)}
+
+.atm-chip{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);background:rgba(124,106,247,0.08);border:1px solid rgba(124,106,247,0.2);padding:4px 12px;border-radius:20px}
+
+.disclaimer{font-size:11px;color:var(--muted);text-align:center;padding:16px 20px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);line-height:1.6}
+</style>
+</head>
+<body>
+
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <img src="/app-icon.svg" width="32" height="32" alt="TradeZen" style="border-radius:8px" data-app-logo />
+      <span>TradeZen</span>
+    </a>
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="/trade_flow.html">Trade Flow</a></li>
+      <li class="nav-item"><a class="nav-link" href="/options_analysis.html">Options</a></li>
+      <li class="nav-item"><a class="nav-link" href="/cpr_monitor.html">CPR</a></li>
+      <li class="nav-item"><a class="nav-link" href="/fno_scanner.html">F&amp;O</a></li>
+      <li class="nav-item"><a class="nav-link" href="/stock_movers.html">Movers</a></li>
+      <li class="nav-item"><a class="nav-link" href="/market_psychology.html">TradeFun</a></li>
+      <li class="nav-item"><a class="nav-link" href="/swing_trading.html">Swing</a></li>
+      <li class="nav-item"><a class="nav-link" href="/learn/">Learn</a></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display:none"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/></svg>
+        <svg data-icon="light" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
+      </button>
+      <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag">&#9679; Options Signal Tool</div>
+  <h1>CE-PE <em>Crossover</em> Calculator</h1>
+  <p class="hero-sub">Compare 9:15 AM opening premiums to observe directional crossover setups — live on every keystroke</p>
+</div>
+
+<div class="main">
+  <div class="d-flex flex-column gap-4">
+
+    <!-- INPUTS -->
+    <div class="card-z">
+      <div class="card-title">9:15 AM Opening Reference</div>
+      <div class="input-grid mb-4">
+        <div class="field">
+          <label>ATM Strike</label>
+          <input type="number" id="atmStrike" placeholder="e.g. 24500" />
+          <span class="field-hint">Nearest strike to spot price at 9:15 AM (optional)</span>
+        </div>
+        <div></div>
+        <div class="field">
+          <label>CE Base Premium</label>
+          <input type="number" id="ceBase" placeholder="e.g. 120" step="0.05" />
+          <span class="field-hint">Call option premium at market open</span>
+        </div>
+        <div class="field">
+          <label>PE Base Premium</label>
+          <input type="number" id="peBase" placeholder="e.g. 115" step="0.05" />
+          <span class="field-hint">Put option premium at market open</span>
+        </div>
+      </div>
+
+      <div class="sec-div"></div>
+
+      <div class="card-title">Current Premiums</div>
+      <div class="input-grid">
+        <div class="field">
+          <label>Current CE Premium</label>
+          <input type="number" id="ceCurrent" placeholder="e.g. 145" step="0.05" />
+        </div>
+        <div class="field">
+          <label>Current PE Premium</label>
+          <input type="number" id="peCurrent" placeholder="e.g. 95" step="0.05" />
+        </div>
+      </div>
+    </div>
+
+    <!-- DELTA DISPLAY + VWAP -->
+    <div class="card-z">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+        <div class="card-title mb-0">Premium Change from Open</div>
+        <div class="vwap-row">
+          <span class="vwap-label">Spot vs VWAP</span>
+          <div class="tog-group">
+            <button class="tog" id="vwapAbove" onclick="setVWAP('above')">Above</button>
+            <button class="tog" id="vwapAt"    onclick="setVWAP('at')">At</button>
+            <button class="tog" id="vwapBelow" onclick="setVWAP('below')">Below</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="delta-row mb-3">
+        <div class="delta-box">
+          <div class="delta-lbl">CE Change %</div>
+          <div class="delta-val zero" id="ceDelta">—</div>
+        </div>
+        <div class="delta-box">
+          <div class="delta-lbl">PE Change %</div>
+          <div class="delta-val zero" id="peDelta">—</div>
+        </div>
+      </div>
+
+      <div class="vwap-notice" id="vwapNotice"></div>
+    </div>
+
+    <!-- SIGNAL BANNER -->
+    <div class="signal-banner no-trade" id="signalBanner">
+      <div class="signal-label">Setup Signal</div>
+      <div class="signal-text nt" id="signalText">AWAITING INPUT</div>
+      <div class="signal-sub" id="signalSub">Enter all four premium values to detect a setup</div>
+    </div>
+
+    <!-- REFERENCE LEVELS -->
+    <div class="card-z" id="levelsCard" style="display:none">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="card-title mb-0">Reference Levels</div>
+        <div class="atm-chip" id="atmChip" style="display:none"></div>
+      </div>
+      <div class="levels-grid">
+        <div class="level-box">
+          <div class="level-lbl">Reference Entry</div>
+          <div class="level-val entry" id="lvlEntry">—</div>
+          <div class="level-desc" id="lvlEntryDesc">Current premium — reference only</div>
+        </div>
+        <div class="level-box">
+          <div class="level-lbl">Stop Reference (−30%)</div>
+          <div class="level-val sl" id="lvlSL">—</div>
+          <div class="level-desc">Observe exit if premium drops here</div>
+        </div>
+        <div class="level-box">
+          <div class="level-lbl">Target Reference (+45%)</div>
+          <div class="level-val target" id="lvlTarget">—</div>
+          <div class="level-desc">Observe at this premium level</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RISK -->
+    <div class="card-z" id="riskCard" style="display:none">
+      <div class="card-title">Risk Reference — 1 Lot (65 qty)</div>
+      <div class="risk-box" id="riskBox">
+        <div class="risk-row">
+          <span class="risk-lbl">Max Premium Loss if SL hit</span>
+          <span class="risk-val" id="riskVal">—</span>
+        </div>
+        <div class="risk-warn-text" id="riskWarnText" style="display:none">
+          Max loss exceeds ₹2,000 — study lot sizing carefully before tracking this setup
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </div>
+
+  </div>
+</div>
+
+<script src="js/theme.js" defer></script>
+<script>
+let vwap = null;
+
+function setVWAP(v) {
+  vwap = v;
+  document.getElementById('vwapAbove').className = 'tog' + (v === 'above' ? ' active-above' : '');
+  document.getElementById('vwapAt').className    = 'tog' + (v === 'at'    ? ' active-at'    : '');
+  document.getElementById('vwapBelow').className = 'tog' + (v === 'below' ? ' active-below' : '');
+  calc();
+}
+
+function fmtPct(v) {
+  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+}
+
+function calc() {
+  const ceBase   = parseFloat(document.getElementById('ceBase').value);
+  const peBase   = parseFloat(document.getElementById('peBase').value);
+  const ceCur    = parseFloat(document.getElementById('ceCurrent').value);
+  const peCur    = parseFloat(document.getElementById('peCurrent').value);
+  const atmStr   = document.getElementById('atmStrike').value.trim();
+
+  const ceDeltaEl   = document.getElementById('ceDelta');
+  const peDeltaEl   = document.getElementById('peDelta');
+  const banner      = document.getElementById('signalBanner');
+  const signalTxt   = document.getElementById('signalText');
+  const signalSub   = document.getElementById('signalSub');
+  const levelsCard  = document.getElementById('levelsCard');
+  const riskCard    = document.getElementById('riskCard');
+  const vwapNotice  = document.getElementById('vwapNotice');
+
+  if (isNaN(ceBase) || isNaN(peBase) || isNaN(ceCur) || isNaN(peCur) || ceBase <= 0 || peBase <= 0) {
+    ceDeltaEl.textContent = '—'; ceDeltaEl.className = 'delta-val zero';
+    peDeltaEl.textContent = '—'; peDeltaEl.className = 'delta-val zero';
+    banner.className = 'signal-banner no-trade';
+    signalTxt.textContent = 'AWAITING INPUT'; signalTxt.className = 'signal-text nt';
+    signalSub.textContent = 'Enter all four premium values to detect a setup';
+    levelsCard.style.display = 'none';
+    riskCard.style.display   = 'none';
+    vwapNotice.className = 'vwap-notice';
+    return;
+  }
+
+  const cePct = ((ceCur - ceBase) / ceBase) * 100;
+  const pePct = ((peCur - peBase) / peBase) * 100;
+
+  ceDeltaEl.textContent = fmtPct(cePct);
+  ceDeltaEl.className   = 'delta-val ' + (cePct > 0 ? 'pos' : cePct < 0 ? 'neg' : 'zero');
+  peDeltaEl.textContent = fmtPct(pePct);
+  peDeltaEl.className   = 'delta-val ' + (pePct > 0 ? 'pos' : pePct < 0 ? 'neg' : 'zero');
+
+  let signal = 'no-trade';
+  if (cePct > 10 && pePct < 0) signal = 'ce';
+  else if (pePct > 10 && cePct < 0) signal = 'pe';
+
+  if (signal === 'ce') {
+    banner.className = 'signal-banner ce-active';
+    signalTxt.textContent = 'CE SETUP ACTIVE ▲';
+    signalTxt.className   = 'signal-text ce';
+    signalSub.textContent = 'Call premium expanding while put premium contracting — observe bullish setup';
+  } else if (signal === 'pe') {
+    banner.className = 'signal-banner pe-active';
+    signalTxt.textContent = 'PE SETUP ACTIVE ▼';
+    signalTxt.className   = 'signal-text pe';
+    signalSub.textContent = 'Put premium expanding while call premium contracting — observe bearish setup';
+  } else {
+    banner.className = 'signal-banner no-trade';
+    signalTxt.textContent = 'NO TRADE SETUP';
+    signalTxt.className   = 'signal-text nt';
+    if (cePct > 0 && pePct > 0) {
+      signalSub.textContent = 'Both premiums expanding — no directional bias detected';
+    } else if (cePct < 0 && pePct < 0) {
+      signalSub.textContent = 'Both premiums contracting — range-bound or time decay';
+    } else {
+      signalSub.textContent = 'CE ' + fmtPct(cePct) + ' / PE ' + fmtPct(pePct) + ' — crossover threshold not met';
+    }
+  }
+
+  // VWAP notice
+  if (vwap && signal !== 'no-trade') {
+    const disagree = (signal === 'ce' && vwap === 'below') || (signal === 'pe' && vwap === 'above');
+    const agree    = (signal === 'ce' && vwap === 'above') || (signal === 'pe' && vwap === 'below');
+    if (disagree) {
+      vwapNotice.textContent = signal === 'ce'
+        ? 'Spot is below VWAP — CE setup faces headwind; observe whether price reclaims VWAP first'
+        : 'Spot is above VWAP — PE setup faces headwind; observe whether price breaks below VWAP first';
+      vwapNotice.className = 'vwap-notice warn show';
+    } else if (agree) {
+      vwapNotice.textContent = signal === 'ce'
+        ? 'Spot above VWAP — CE setup aligns with VWAP position'
+        : 'Spot below VWAP — PE setup aligns with VWAP position';
+      vwapNotice.className = 'vwap-notice agree show';
+    } else {
+      vwapNotice.className = 'vwap-notice';
+    }
+  } else {
+    vwapNotice.className = 'vwap-notice';
+  }
+
+  // Levels + risk only when a signal is active
+  if (signal !== 'no-trade') {
+    const entry  = signal === 'ce' ? ceCur : peCur;
+    const sl     = entry * 0.70;
+    const target = entry * 1.45;
+    const maxLoss = (entry - sl) * 65;
+
+    levelsCard.style.display = '';
+    riskCard.style.display   = '';
+
+    document.getElementById('lvlEntry').textContent    = '₹' + entry.toFixed(2);
+    document.getElementById('lvlEntryDesc').textContent = signal === 'ce'
+      ? 'Current CE premium — reference only'
+      : 'Current PE premium — reference only';
+    document.getElementById('lvlSL').textContent     = '₹' + sl.toFixed(2);
+    document.getElementById('lvlTarget').textContent = '₹' + target.toFixed(2);
+
+    const atmChip = document.getElementById('atmChip');
+    if (atmStr) {
+      atmChip.textContent    = 'ATM ' + atmStr;
+      atmChip.style.display  = '';
+    } else {
+      atmChip.style.display  = 'none';
+    }
+
+    const riskBox      = document.getElementById('riskBox');
+    const riskWarnText = document.getElementById('riskWarnText');
+    document.getElementById('riskVal').textContent = '₹' + Math.round(maxLoss).toLocaleString('en-IN');
+
+    if (maxLoss > 2000) {
+      riskBox.className         = 'risk-box warn';
+      riskWarnText.style.display = '';
+    } else {
+      riskBox.className         = 'risk-box';
+      riskWarnText.style.display = 'none';
+    }
+  } else {
+    levelsCard.style.display = 'none';
+    riskCard.style.display   = 'none';
+  }
+}
+
+['ceBase', 'peBase', 'ceCurrent', 'peCurrent', 'atmStrike'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calc);
+});
+</script>
+</body>
+</html>

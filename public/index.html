@@ -37,6 +37,7 @@
     }
     .strategy-card.kf-card::before { background: radial-gradient(ellipse at top left, rgba(124,106,247,.14) 0%, transparent 65%); }
     .strategy-card.orca-card::before { background: radial-gradient(ellipse at top right, rgba(91,138,245,.14) 0%, transparent 65%); }
+    .strategy-card.osprey-card::before { background: radial-gradient(ellipse at bottom center, rgba(0,212,255,.12) 0%, transparent 65%); }
     .strategy-card:hover { border-color: var(--tz-border-strong); background: var(--tz-surface-2); transform: translateY(-3px); color: var(--tz-fg-1); }
     .strategy-card:hover::before { opacity: 1; }
     .strategy-icon {
@@ -45,6 +46,7 @@
     }
     .strategy-icon.kf { background: linear-gradient(135deg, rgba(124,106,247,.2), rgba(91,138,245,.12)); color: var(--tz-accent-1); }
     .strategy-icon.oc { background: linear-gradient(135deg, rgba(91,138,245,.2), rgba(52,211,153,.12)); color: var(--tz-accent-2); }
+    .strategy-icon.os { background: linear-gradient(135deg, rgba(0,212,255,.18), rgba(91,138,245,.10)); color: #00d4ff; }
     .strategy-eyebrow {
       display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px;
       font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
@@ -450,16 +452,16 @@
         </h2>
       </div>
       <p class="text-fg-2 m-0 small" style="max-width:380px"
-         data-en="Two named strategies — one built for intraday options, one for multi-day swing positions."
-         data-ta="இரண்டு மூலோபாயங்கள் — ஒன்று இன்ட்ராடே ஆப்ஷன்ஸ், மற்றொன்று ஸ்விங் நிலைகளுக்காக.">
-        Two named strategies — one built for intraday options, one for multi-day swing positions.
+         data-en="Three named strategies — intraday options, swing positions, and CE-PE crossover signals."
+         data-ta="மூன்று மூலோபாயங்கள் — இன்ட்ராடே ஆப்ஷன்ஸ், ஸ்விங், மற்றும் CE-PE கிராஸ்ஓவர்.">
+        Three named strategies — intraday options, swing positions, and CE-PE crossover signals.
       </p>
     </div>
 
     <div class="row g-4">
 
       <!-- King Fisher Strategy -->
-      <div class="col-md-6">
+      <div class="col-md-6 col-lg-4">
         <a href="/s1_monitor.html" class="strategy-card kf-card">
           <div class="strategy-icon kf">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -487,7 +489,7 @@
       </div>
 
       <!-- Orca Strategy -->
-      <div class="col-md-6">
+      <div class="col-md-6 col-lg-4">
         <a href="/swing_trading.html" class="strategy-card orca-card">
           <div class="strategy-icon oc">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
@@ -505,6 +507,34 @@
               <span class="tool-tag">Nifty 100</span>
               <span class="tool-tag">P&amp;L Tracker</span>
               <span class="tool-tag">Hold/Exit</span>
+            </div>
+            <span class="strategy-cta">
+              <span data-en="Launch" data-ta="தொடங்கு">Launch</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Osprey Strategy -->
+      <div class="col-md-6 col-lg-4">
+        <a href="/ce_pe_crossover.html" class="strategy-card osprey-card">
+          <div class="strategy-icon os">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 Q8 17 12 12 Q16 7 21 7"/><path d="M3 7 Q8 7 12 12 Q16 17 21 17"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>
+          </div>
+          <div class="strategy-eyebrow">S2 &nbsp;·&nbsp; OPTIONS CROSSOVER</div>
+          <h3 data-en="Osprey Strategy" data-ta="ஆஸ்பிரே மூலோபாயம்">Osprey Strategy</h3>
+          <p class="strategy-sub">CE-PE Premium Δ · VWAP Alignment · Risk Reference</p>
+          <p data-en="Tracks CE and PE premium change from the 9:15 AM open. When one side expands past +10% while the other contracts, the crossover signals a directional setup — with reference levels, stop reference, and risk estimate for one lot."
+             data-ta="9:15 AM திறப்பிலிருந்து CE மற்றும் PE பிரீமியம் மாற்றத்தை கண்காணிக்கிறது. ஒரு பக்கம் +10% தாண்டி மற்றொன்று குறையும்போது, கிராஸ்ஓவர் ஒரு திசை அமைப்பை குறிக்கிறது.">
+            Tracks CE and PE premium change from the 9:15 AM open. When one side expands past +10% while the other contracts, the crossover signals a directional setup — with reference levels, stop reference, and risk estimate for one lot.
+          </p>
+          <div class="strategy-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">CE-PE Δ</span>
+              <span class="tool-tag">VWAP</span>
+              <span class="tool-tag">Risk Ref</span>
+              <span class="tool-tag">Live Calc</span>
             </div>
             <span class="strategy-cta">
               <span data-en="Launch" data-ta="தொடங்கு">Launch</span>
@@ -594,6 +624,11 @@
             <a class="dash-nav-item" href="/s1_monitor.html">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               <span class="label">King Fisher</span>
+            </a>
+            <a class="dash-nav-item" href="/ce_pe_crossover.html">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14 Q7 14 10 10 Q13 6 17 6"/><path d="M3 6 Q7 6 10 10 Q13 14 17 14"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg>
+              <span class="label">Osprey</span>
+              <span class="badge-mini">NEW</span>
             </a>
             <a class="dash-nav-item" href="/learn/">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -976,6 +1011,7 @@
           <li><a href="/stock_movers.html">Market Movers</a></li>
           <li><a href="/swing_trading.html">Orca Strategy</a></li>
           <li><a href="/s1_monitor.html">King Fisher Strategy</a></li>
+          <li><a href="/ce_pe_crossover.html">Osprey Strategy</a></li>
         </ul>
       </div>
 
