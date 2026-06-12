@@ -487,6 +487,7 @@ async function fetchFromChain(autoApply = false) {
 
     if (autoApply) {
       applyToCurrent();
+      logSnapshot();
       document.getElementById('autoStatus').textContent = `Updated at ${t} · next in ${AUTO_SEC}s`;
       autoCountdown = AUTO_SEC;
     }
@@ -706,8 +707,21 @@ function calc() {
   }
 }
 
-['ceBase', 'peBase', 'atmStrike'].forEach(id => {
+['ceBase', 'peBase'].forEach(id => {
   document.getElementById(id).addEventListener('input', calc);
+});
+
+document.getElementById('atmStrike').addEventListener('input', calc);
+document.getElementById('atmStrike').addEventListener('blur', () => {
+  const raw  = parseFloat(document.getElementById('atmStrike').value);
+  if (isNaN(raw) || raw <= 0) return;
+  const step = selectedIdx === 'nifty' ? 50 : 100;
+  const atm  = Math.round(raw / step) * step;
+  document.getElementById('atmStrike').value = atm;
+  const hint = document.getElementById('spotHint');
+  hint.textContent = `${raw.toLocaleString('en-IN')} → ATM ${atm.toLocaleString('en-IN')}`;
+  hint.style.color = 'var(--cyan)';
+  calc();
 });
 ['ceCurrent', 'peCurrent'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => { calc(); saveCurrentPremiums(); });
@@ -781,6 +795,7 @@ function logSnapshot() {
   try {
     localStorage.setItem('osprey_log', JSON.stringify({ log: dayLog, date: new Date().toDateString() }));
   } catch(e) {}
+  document.getElementById('dayLogCard').style.display = '';
   renderLog();
 }
 
