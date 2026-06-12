@@ -102,7 +102,22 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 .disclaimer{margin-top:28px;text-align:center;font-size:11px;color:var(--muted);line-height:1.6}
 .table-wrap{overflow-x:auto}
-@media(max-width:600px){.pos-table th,.pos-table td{padding:8px 6px;font-size:11px}}
+
+/* Mobile: tables become stacked cards */
+.m-cards{display:none}
+.m-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
+.m-card .m-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.m-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.m-stat{display:flex;flex-direction:column;gap:2px}
+.m-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.m-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text)}
+.m-foot{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+@media(max-width:700px){
+  .table-wrap{display:none}
+  .m-cards{display:flex;flex-direction:column;gap:10px}
+  .side-btn{padding:14px 8px}
+  .place-btn{padding:16px}
+}
 </style>
 </head>
 <body>
@@ -301,6 +316,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </tbody>
         </table>
       </div>
+      <div class="m-cards" id="posCards">
+        <div class="empty-msg" data-en="No open positions" data-ta="திறந்த பொசிஷன்கள் இல்லை">No open positions</div>
+      </div>
     </div>
 
     <!-- PROGRESS CHART -->
@@ -331,6 +349,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </tbody>
         </table>
       </div>
+      <div class="m-cards" id="histCards">
+        <div class="empty-msg" data-en="No closed trades yet" data-ta="இன்னும் மூடிய வர்த்தகங்கள் இல்லை">No closed trades yet</div>
+      </div>
     </div>
 
     <p class="disclaimer"
@@ -350,8 +371,16 @@ let instrument = 'STOCK';
 let side       = 'BUY';
 let contracts  = [];
 let pnlChart   = null;
+let _lastPositions = [];
+let _lastHistory   = [];
 
 const fmt = n => n == null ? '—' : '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const T = (en, ta) => document.documentElement.getAttribute('data-lang') === 'ta' ? ta : en;
+
+window.onLangChange = () => {
+  renderPositions(_lastPositions);
+  renderHistory(_lastHistory);
+};
 
 function toast(msg, ok = true) {
   const t = document.getElementById('toast');
@@ -569,9 +598,13 @@ function setVal(id, v) {
 }
 
 function renderPositions(list) {
-  const body = document.getElementById('posBody');
+  _lastPositions = list;
+  const body  = document.getElementById('posBody');
+  const cards = document.getElementById('posCards');
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="8"><div class="empty-msg">No open positions</div></td></tr>';
+    const empty = `<div class="empty-msg">${T('No open positions', 'திறந்த பொசிஷன்கள் இல்லை')}</div>`;
+    body.innerHTML  = `<tr><td colspan="8">${empty}</td></tr>`;
+    cards.innerHTML = empty;
     return;
   }
   body.innerHTML = list.map(p => `
@@ -586,12 +619,31 @@ function renderPositions(list) {
       <td><button class="close-btn" onclick="closePosition(${p.id}, this)">Close</button></td>
     </tr>
   `).join('');
+  cards.innerHTML = list.map(p => `
+    <div class="m-card">
+      <div class="m-top">
+        <div>${describe(p)}</div>
+        <span class="badge-side ${p.side === 'BUY' ? 'buy' : 'sell'}">${p.side}</span>
+      </div>
+      <div class="m-stats">
+        <div class="m-stat"><span class="m-lbl">${T('Qty', 'அளவு')}</span><span class="m-val">${p.qty}</span></div>
+        <div class="m-stat"><span class="m-lbl">${T('Entry', 'நுழைவு')}</span><span class="m-val">${fmt(p.entry_price)}</span></div>
+        <div class="m-stat"><span class="m-lbl">LTP</span><span class="m-val">${p.ltp == null ? '—' : fmt(p.ltp)}</span></div>
+        <div class="m-stat"><span class="m-lbl">P&amp;L</span><span class="m-val ${pnlCls(p.pnl)}">${pnlTxt(p.pnl)}${p.pnl_pct == null ? '' : ` (${p.pnl_pct.toFixed(1)}%)`}</span></div>
+      </div>
+      <button class="close-btn w-100" onclick="closePosition(${p.id}, this)">${T('Close Position', 'பொசிஷனை மூடு')}</button>
+    </div>
+  `).join('');
 }
 
 function renderHistory(list) {
-  const body = document.getElementById('histBody');
+  _lastHistory = list;
+  const body  = document.getElementById('histBody');
+  const cards = document.getElementById('histCards');
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="7"><div class="empty-msg">No closed trades yet</div></td></tr>';
+    const empty = `<div class="empty-msg">${T('No closed trades yet', 'இன்னும் மூடிய வர்த்தகங்கள் இல்லை')}</div>`;
+    body.innerHTML  = `<tr><td colspan="7">${empty}</td></tr>`;
+    cards.innerHTML = empty;
     return;
   }
   body.innerHTML = list.map(p => `
@@ -604,6 +656,21 @@ function renderHistory(list) {
       <td class="${pnlCls(p.pnl)}">${pnlTxt(p.pnl)}</td>
       <td class="pos-sub">${p.exit_time || ''}</td>
     </tr>
+  `).join('');
+  cards.innerHTML = list.map(p => `
+    <div class="m-card">
+      <div class="m-top">
+        <div>${describe(p)}</div>
+        <span class="badge-side ${p.side === 'BUY' ? 'buy' : 'sell'}">${p.side}</span>
+      </div>
+      <div class="m-stats">
+        <div class="m-stat"><span class="m-lbl">${T('Qty', 'அளவு')}</span><span class="m-val">${p.qty}</span></div>
+        <div class="m-stat"><span class="m-lbl">${T('Entry', 'நுழைவு')}</span><span class="m-val">${fmt(p.entry_price)}</span></div>
+        <div class="m-stat"><span class="m-lbl">${T('Exit', 'வெளியேற்றம்')}</span><span class="m-val">${fmt(p.exit_price)}</span></div>
+        <div class="m-stat"><span class="m-lbl">P&amp;L</span><span class="m-val ${pnlCls(p.pnl)}">${pnlTxt(p.pnl)}</span></div>
+      </div>
+      <div class="m-foot">${T('Closed', 'மூடியது')}: ${p.exit_time || '—'}</div>
+    </div>
   `).join('');
 }
 

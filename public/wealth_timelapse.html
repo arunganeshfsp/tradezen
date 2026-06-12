@@ -98,6 +98,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .disclaimer{margin-top:28px;text-align:center;font-size:11px;color:var(--muted);line-height:1.6}
 .spin{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){
+  .hud>.d-flex{width:100%}
+  .play-btn{flex:1}
+  .sum-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>

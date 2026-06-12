@@ -44,7 +44,7 @@ Virtual portfolio simulator (tool #10, `public/paper_trading.html`). User places
 - Contract picker uses `/options/search` which only returns the nearest weekly or monthly expiry (existing limitation of `search_contracts`).
 - Expired option positions are not auto-settled; user must close manually (LTP will go stale/None after expiry).
 - `aiService.proxy()` behavior change affects all callers: Python 4xx now surfaces real error messages via thrown error with `.status`. Existing routes catch and return 500 with the message — an improvement, but note if debugging.
-- Frontend dynamic table cells are not Tamil-localized (numeric data); static labels carry `data-en`/`data-ta`.
+- **Mobile (added 2026-06-12):** below 700px the positions/history tables (`.table-wrap`) are hidden and replaced by stacked `.m-cards` — `renderPositions`/`renderHistory` render both layouts from the same data (`_lastPositions`/`_lastHistory` kept for re-render). Page now has the `T(en, ta)` helper + `window.onLangChange` (same pattern as wealth_timelapse) used for card labels and empty states. Toast messages remain EN-only — known gap if full localization is requested later.
 
 ## Open issues
 

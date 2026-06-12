@@ -1,6 +1,6 @@
 # Spec 2 — Company Money Machine
 
-**Status:** proposed
+**Status:** built (2026-06-12) — see `agent-artifacts/context/company-money-machine.md`
 **Page:** `public/company_money_machine.html`
 **Backend:** none for sandbox mode; real mode reuses `GET /api/stock/analyse/:symbol` (already exists — has revenue, net income, EPS, PE, ROE, dividend yield)
 **Lessons served:** Revenue Explained · Profit Explained · Debt Explained · EPS Explained · PE Ratio Explained · ROE & ROCE Basics · Dividend Explained

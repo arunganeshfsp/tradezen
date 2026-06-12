@@ -9,7 +9,7 @@ Specs are written **before** implementation (SDD). When a tool is built:
 | # | Spec | Lessons served | Effort | Status |
 |---|---|---|---|---|
 | 1 | [compounding-playground.md](compounding-playground.md) | 5 (Foundation) | Small — pure frontend | **built** |
-| 2 | [company-money-machine.md](company-money-machine.md) | 7 (Company Analysis) | Medium | proposed |
+| 2 | [company-money-machine.md](company-money-machine.md) | 7 (Company Analysis) | Medium | **built** |
 | 3 | [portfolio-mixer.md](portfolio-mixer.md) | 5 (Long-Term Investing) | Small-Medium — reuses timelapse API | proposed |
 | 4 | [price-discovery-game.md](price-discovery-game.md) | 3 (Stock Market Basics) | Medium | proposed |
 | 5 | [trader-vs-investor.md](trader-vs-investor.md) | 2 | Medium — needs careful SEBI framing | proposed |

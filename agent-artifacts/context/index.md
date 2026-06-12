@@ -31,6 +31,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | paper-trading | `paper-trading.md` | active |
 | wealth-timelapse | `wealth-timelapse.md` | active |
 | compounding-playground | `compounding-playground.md` | active |
+| company-money-machine | `company-money-machine.md` | active |
 
 ---
 

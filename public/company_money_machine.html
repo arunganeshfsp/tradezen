@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Money Machine | TradeZen</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--gold:#e8b339;--orange:#e87f39;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+.hero{padding:40px 28px 32px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.12) 0%,transparent 65%),var(--bg)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:6px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
+.main{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+.card-z{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+
+.mode-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tog{padding:8px 20px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.tog.active-idx{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.1)}
+.sym-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;padding:8px 14px;border-radius:var(--r2);outline:none;width:160px}
+.sym-input:focus{border-color:var(--accent)}
+.fetch-btn{padding:9px 16px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--cyan);transition:all .15s;white-space:nowrap}
+.fetch-btn:hover:not(:disabled){border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.fetch-btn:disabled{opacity:.45;cursor:not-allowed}
+.err-box{border-radius:var(--r2);padding:10px 14px;font-size:12px;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);display:none;margin-top:10px}
+
+.company-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.real-pill{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 10px;border-radius:12px;border:1px solid var(--cyan);color:var(--cyan);background:rgba(0,212,255,0.08)}
+
+/* Money flow */
+.flow-row{margin-bottom:18px}
+.flow-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.flow-lbl .amt{color:var(--text);letter-spacing:0}
+.bar-track{height:34px;border-radius:8px;background:var(--bg3);overflow:hidden;display:flex}
+.seg{height:100%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:rgba(0,0,0,0.75);white-space:nowrap;overflow:hidden;transition:width .5s ease}
+.seg.rev{background:var(--cyan)}
+.seg.varc{background:#e74c3c}
+.seg.fixc{background:var(--orange)}
+.seg.int{background:var(--yellow)}
+.seg.tax{background:#b07fe8}
+.seg.prof{background:var(--green)}
+.seg.divd{background:var(--gold)}
+.seg.ret{background:#1f9e57}
+.loss-chip{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);padding:6px 14px;border-radius:8px}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+.leg{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);display:flex;align-items:center;gap:5px}
+.leg .sw{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+.consequence{margin-top:16px;border-radius:var(--r2);padding:13px 16px;font-size:13px;line-height:1.55;border:1px solid;display:flex;gap:10px;align-items:flex-start}
+.consequence.ok{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.consequence.warn{background:var(--yellow-bg);border-color:var(--yellow-border);color:var(--yellow)}
+.consequence.bad{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+
+/* Dials */
+.dials{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:860px){.dials{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:540px){.dials{grid-template-columns:repeat(2,1fr)}}
+.dial{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px 10px;text-align:center}
+.dial.greyed{opacity:.4}
+.dial-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.dial svg{display:block;margin:0 auto 4px}
+.dial-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700}
+.dial-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;min-height:12px}
+
+/* Knobs */
+.fld{margin-bottom:16px}
+.fld:last-child{margin-bottom:0}
+.fld label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px;gap:8px}
+.fld label .v{color:var(--text);font-weight:600;letter-spacing:0;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.knob-note{font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:14px}
+
+.disclaimer{margin-top:28px;text-align:center;font-size:11px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <img src="/app-icon.svg" width="32" height="32" alt="TradeZen" style="border-radius:8px" data-app-logo />
+      <span>TradeZen</span>
+    </a>
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="/trade_flow.html">Trade Flow</a></li>
+      <li class="nav-item"><a class="nav-link" href="/options_analysis.html">Options</a></li>
+      <li class="nav-item"><a class="nav-link" href="/cpr_monitor.html">CPR</a></li>
+      <li class="nav-item"><a class="nav-link" href="/fno_scanner.html">F&amp;O</a></li>
+      <li class="nav-item"><a class="nav-link" href="/stock_movers.html">Movers</a></li>
+      <li class="nav-item"><a class="nav-link" href="/market_psychology.html">TradeFun</a></li>
+      <li class="nav-item"><a class="nav-link" href="/swing_trading.html">Swing</a></li>
+      <li class="nav-item"><a class="nav-link" href="/learn/">Learn</a></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display:none"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/></svg>
+        <svg data-icon="light" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
+      </button>
+      <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag" data-en="&#9679; What-If Lab" data-ta="&#9679; என்ன-என்றால் ஆய்வகம்">&#9679; What-If Lab</div>
+  <h1>Company <em>Money Machine</em></h1>
+  <p class="hero-sub" data-en="Revenue pours in, costs drain away, profit splits — turn the knobs and watch EPS, PE, ROE and ROCE come alive" data-ta="வருவாய் உள்ளே வருகிறது, செலவுகள் வடிகிறது, லாபம் பிரிகிறது — நாப்களை திருகி EPS, PE, ROE, ROCE உயிர்பெறுவதை பாருங்கள்">Revenue pours in, costs drain away, profit splits — turn the knobs and watch EPS, PE, ROE and ROCE come alive</p>
+</div>
+
+<div class="main">
+  <div class="d-flex flex-column gap-4">
+
+    <!-- MODE -->
+    <div class="card-z">
+      <div class="mode-row">
+        <button class="tog active-idx" id="togSand" onclick="setSandbox()" data-en="&#129529; Sandbox Company" data-ta="&#129529; மாதிரி நிறுவனம்">&#129529; Sandbox Company</button>
+        <span style="color:var(--muted);font-size:12px" data-en="or study a real one:" data-ta="அல்லது உண்மையான நிறுவனத்தை படிக்க:">or study a real one:</span>
+        <input type="text" id="realSym" class="sym-input" placeholder="TITAN" autocomplete="off">
+        <button class="fetch-btn" id="realBtn" onclick="loadReal()" data-en="&#8635; Load Real Company" data-ta="&#8635; உண்மை நிறுவனம் ஏற்று">&#8635; Load Real Company</button>
+      </div>
+      <div class="err-box" id="errBox"></div>
+    </div>
+
+    <div class="row g-4">
+      <!-- KNOBS -->
+      <div class="col-lg-4 order-2 order-lg-1" id="knobsCol">
+        <div class="card-z h-100">
+          <div class="card-title" data-en="The Knobs" data-ta="நாப்கள்">The Knobs</div>
+          <div class="fld">
+            <label><span data-en="Units Sold / Year" data-ta="ஆண்டு விற்பனை அளவு">Units Sold / Year</span><span class="v" id="vUnits"></span></label>
+            <input type="range" id="kUnits" min="10" max="500" step="10" value="100" oninput="onKnob()">
+          </div>
+          <div class="fld">
+            <label><span data-en="Price per Unit" data-ta="ஒரு யூனிட் விலை">Price per Unit</span><span class="v" id="vPrice"></span></label>
+            <input type="range" id="kPrice" min="10" max="500" step="5" value="100" oninput="onKnob()">
+          </div>
+          <div class="fld">
+            <label><span data-en="Cost per Unit" data-ta="ஒரு யூனிட் செலவு">Cost per Unit</span><span class="v" id="vCostU"></span></label>
+            <input type="range" id="kCostU" min="5" max="400" step="5" value="60" oninput="onKnob()">
+          </div>
+          <div class="fld">
+            <label><span data-en="Fixed Costs / Year" data-ta="ஆண்டு நிலையான செலவு">Fixed Costs / Year</span><span class="v" id="vFixed"></span></label>
+            <input type="range" id="kFixed" min="0" max="100" step="2" value="20" oninput="onKnob()">
+          </div>
+          <div class="fld">
+            <label><span data-en="Loan Taken (10% interest)" data-ta="கடன் (10% வட்டி)">Loan Taken (10% interest)</span><span class="v" id="vLoan"></span></label>
+            <input type="range" id="kLoan" min="0" max="200" step="5" value="0" oninput="onKnob()">
+          </div>
+          <div class="fld">
+            <label><span data-en="Number of Shares" data-ta="பங்குகளின் எண்ணிக்கை">Number of Shares</span><span class="v" id="vShares"></span></label>
+            <input type="range" id="kShares" min="0.5" max="10" step="0.5" value="1" oninput="onKnob()">
+          </div>
+          <div class="knob-note" data-en="Owners' money = ₹50 book value × shares" data-ta="உரிமையாளர் பணம் = ₹50 புத்தக மதிப்பு × பங்குகள்">Owners' money = ₹50 book value × shares</div>
+          <div class="fld">
+            <label><span data-en="Market Price per Share" data-ta="பங்கின் சந்தை விலை">Market Price per Share</span><span class="v" id="vSharePrice"></span></label>
+            <input type="range" id="kSharePrice" min="10" max="1000" step="5" value="300" oninput="onKnob()">
+          </div>
+          <div class="fld">
+            <label><span data-en="Dividend Payout" data-ta="டிவிடெண்ட் பங்களிப்பு">Dividend Payout</span><span class="v" id="vPayout"></span></label>
+            <input type="range" id="kPayout" min="0" max="100" step="5" value="30" oninput="onKnob()">
+          </div>
+        </div>
+      </div>
+
+      <!-- MACHINE -->
+      <div class="col-lg-8 order-1 order-lg-2">
+        <div class="d-flex flex-column gap-4">
+          <div class="card-z">
+            <div class="card-title" data-en="The Machine" data-ta="இயந்திரம்">The Machine</div>
+            <div class="company-name"><span id="coName">Chai Garam Ltd</span><span class="real-pill" id="realPill" style="display:none" data-en="REAL DATA · READ ONLY" data-ta="உண்மை தரவு · படிக்க மட்டும்">REAL DATA · READ ONLY</span></div>
+
+            <div class="flow-row">
+              <div class="flow-lbl"><span data-en="Revenue — money pouring in" data-ta="வருவாய் — உள்ளே வரும் பணம்">Revenue — money pouring in</span><span class="amt" id="amtRev"></span></div>
+              <div class="bar-track"><div class="seg rev" id="segRev" style="width:100%"></div></div>
+            </div>
+
+            <div class="flow-row">
+              <div class="flow-lbl"><span data-en="Where it goes" data-ta="அது எங்கே போகிறது">Where it goes</span><span class="amt" id="amtSplit"></span></div>
+              <div class="bar-track" id="splitTrack">
+                <div class="seg varc" id="segVar"></div>
+                <div class="seg fixc" id="segFix"></div>
+                <div class="seg int"  id="segInt"></div>
+                <div class="seg tax"  id="segTax"></div>
+                <div class="seg prof" id="segProf"></div>
+              </div>
+              <div class="legend" id="legSplit"></div>
+            </div>
+
+            <div class="flow-row" id="profitRow">
+              <div class="flow-lbl"><span data-en="Profit splits into" data-ta="லாபம் பிரிவது">Profit splits into</span><span class="amt" id="amtProfit"></span></div>
+              <div class="bar-track" id="profTrack" style="background:transparent">
+                <div class="seg divd" id="segDiv"></div>
+                <div class="seg ret"  id="segRet"></div>
+              </div>
+              <div class="legend" id="legProfit"></div>
+            </div>
+            <div id="lossWrap" style="display:none"><span class="loss-chip" id="lossChip"></span></div>
+
+            <div class="consequence ok" id="consBox"><span id="consText"></span></div>
+          </div>
+
+          <div class="card-z">
+            <div class="card-title" data-en="The Dials — what investors read" data-ta="டயல்கள் — முதலீட்டாளர்கள் படிப்பது">The Dials — what investors read</div>
+            <div class="dials">
+              <div class="dial" id="dialEpsBox">
+                <div class="dial-lbl">EPS</div>
+                <div class="dial-val" id="dialEps" style="margin-top:18px">—</div>
+                <div class="dial-sub" data-en="profit ÷ shares" data-ta="லாபம் ÷ பங்குகள்">profit ÷ shares</div>
+              </div>
+              <div class="dial" id="dialPeBox">
+                <div class="dial-lbl">PE</div>
+                <svg width="76" height="44" viewBox="0 0 76 44"><path d="M6 40 A32 32 0 0 1 70 40" fill="none" stroke="#20253e" stroke-width="7" stroke-linecap="round"/><path id="arcPe" d="M6 40 A32 32 0 0 1 70 40" fill="none" stroke="#2ecc71" stroke-width="7" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg>
+                <div class="dial-val" id="dialPe">—</div>
+                <div class="dial-sub" id="dialPeSub"></div>
+              </div>
+              <div class="dial" id="dialRoeBox">
+                <div class="dial-lbl">ROE</div>
+                <svg width="76" height="44" viewBox="0 0 76 44"><path d="M6 40 A32 32 0 0 1 70 40" fill="none" stroke="#20253e" stroke-width="7" stroke-linecap="round"/><path id="arcRoe" d="M6 40 A32 32 0 0 1 70 40" fill="none" stroke="#2ecc71" stroke-width="7" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg>
+                <div class="dial-val" id="dialRoe">—</div>
+                <div class="dial-sub" data-en="profit ÷ owners' money" data-ta="லாபம் ÷ உரிமையாளர் பணம்">profit ÷ owners' money</div>
+              </div>
+              <div class="dial" id="dialRoceBox">
+                <div class="dial-lbl">ROCE</div>
+                <svg width="76" height="44" viewBox="0 0 76 44"><path d="M6 40 A32 32 0 0 1 70 40" fill="none" stroke="#20253e" stroke-width="7" stroke-linecap="round"/><path id="arcRoce" d="M6 40 A32 32 0 0 1 70 40" fill="none" stroke="#2ecc71" stroke-width="7" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg>
+                <div class="dial-val" id="dialRoce">—</div>
+                <div class="dial-sub" data-en="op. profit ÷ all capital" data-ta="செயல் லாபம் ÷ மொத்த மூலதனம்">op. profit ÷ all capital</div>
+              </div>
+              <div class="dial" id="dialIcBox">
+                <div class="dial-lbl" data-en="INT. COVER" data-ta="வட்டி பாதுகாப்பு">INT. COVER</div>
+                <div class="dial-val" id="dialIc" style="margin-top:18px">—</div>
+                <div class="dial-sub" data-en="op. profit ÷ interest" data-ta="செயல் லாபம் ÷ வட்டி">op. profit ÷ interest</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="disclaimer"
+       data-en="Simplified teaching model (25% flat tax, fixed book value, no depreciation). Real-company numbers are best-effort from public data. For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading."
+       data-ta="எளிமைப்படுத்தப்பட்ட கற்றல் மாதிரி (25% வரி, நிலையான புத்தக மதிப்பு, தேய்மானம் இல்லை). உண்மை நிறுவன எண்கள் பொது தரவில் இருந்து தோராயமானவை. கல்வி நோக்கத்திற்காக மட்டுமே. முதலீட்டு ஆலோசனை அல்ல. வர்த்தகத்திற்கு முன் SEBI பதிவு பெற்ற ஆலோசகரை அணுகவும்.">
+      Simplified teaching model (25% flat tax, fixed book value, no depreciation). Real-company numbers are best-effort from public data. For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </p>
+
+  </div>
+</div>
+
+<script>
+const CR = 1e7;
+let _mode = 'sandbox';   // 'sandbox' | 'real'
+let _real = null;
+
+const T = (en, ta) => document.documentElement.getAttribute('data-lang') === 'ta' ? ta : en;
+const fmtCr = n => n == null ? '—' : '₹' + (n).toFixed(n >= 100 ? 0 : 1) + ' Cr';
+window.onLangChange = () => render();
+
+// PE bands — keep in sync with stock-analyser scorecard (stock-analyser.md)
+function peBand(pe) {
+  if (pe == null || pe <= 0) return { color: '#4a5070', label: ['—', '—'] };
+  if (pe < 15)  return { color: '#2ecc71', label: ['Cheap', 'மலிவு'] };
+  if (pe <= 25) return { color: '#00d4ff', label: ['Fair', 'நியாயம்'] };
+  if (pe <= 40) return { color: '#f5a623', label: ['Stretched', 'இறுக்கம்'] };
+  return { color: '#e74c3c', label: ['Expensive', 'விலை அதிகம்'] };
+}
+function rtnBand(v) {
+  if (v == null) return '#4a5070';
+  if (v >= 15) return '#2ecc71';
+  if (v >= 8)  return '#f5a623';
+  return '#e74c3c';
+}
+
+// ── Model ─────────────────────────────────────────────────────────────────────
+
+function computeSandbox() {
+  const unitsL  = +document.getElementById('kUnits').value;      // lakh units
+  const price   = +document.getElementById('kPrice').value;
+  const costU   = +document.getElementById('kCostU').value;
+  const fixedCr = +document.getElementById('kFixed').value;
+  const loanCr  = +document.getElementById('kLoan').value;
+  const sharesCr= +document.getElementById('kShares').value;
+  const sp      = +document.getElementById('kSharePrice').value;
+  const payout  = +document.getElementById('kPayout').value;
+
+  const revenue  = unitsL * 1e5 * price / CR;                    // ₹ Cr
+  const varCost  = unitsL * 1e5 * costU / CR;
+  const ebit     = revenue - varCost - fixedCr;
+  const interest = loanCr * 0.10;
+  const pbt      = ebit - interest;
+  const tax      = Math.max(pbt, 0) * 0.25;
+  const net      = pbt - tax;
+  const equityCr = sharesCr * 50;                                // ₹50 book value / share
+  const eps      = net * CR / (sharesCr * CR);                   // ₹ per share
+  const pe       = eps > 0 ? sp / eps : null;
+  const roe      = net > 0 ? net / equityCr * 100 : (net < 0 ? net / equityCr * 100 : 0);
+  const roce     = ebit / (equityCr + loanCr) * 100;
+  const icov     = interest > 0 ? ebit / interest : null;
+  const divPaid  = net > 0 ? net * payout / 100 : 0;
+  const retained = net > 0 ? net - divPaid : 0;
+
+  return { name: 'Chai Garam Ltd', revenue, varCost, fixedCr, interest, tax, net, ebit,
+           eps, pe, sp, roe, roce, icov, divPaid, retained, payout, loanCr, real: false };
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+function setSeg(id, pctOfRev, label) {
+  const el = document.getElementById(id);
+  const w = Math.max(0, pctOfRev);
+  el.style.width = w + '%';
+  el.textContent = w > 9 ? label : '';
+  el.title = label;
+}
+function setArc(id, frac, color) {
+  const arc = document.getElementById(id);
+  const f = Math.max(0, Math.min(1, frac ?? 0));
+  arc.style.transition = 'stroke-dashoffset .5s ease, stroke .3s';
+  arc.setAttribute('stroke-dashoffset', String(100.5 * (1 - f)));
+  arc.setAttribute('stroke', color);
+}
+function legendHtml(items) {
+  return items.map(([color, name, amt]) =>
+    `<span class="leg"><span class="sw" style="background:${color}"></span>${name}: ${fmtCr(amt)}</span>`).join('');
+}
+
+function render() {
+  const m = _mode === 'real' ? _real : computeSandbox();
+  if (!m) return;
+
+  // knob value labels (sandbox)
+  if (_mode === 'sandbox') {
+    document.getElementById('vUnits').textContent  = document.getElementById('kUnits').value + T(' lakh', ' லட்சம்');
+    document.getElementById('vPrice').textContent  = '₹' + document.getElementById('kPrice').value;
+    document.getElementById('vCostU').textContent  = '₹' + document.getElementById('kCostU').value;
+    document.getElementById('vFixed').textContent  = '₹' + document.getElementById('kFixed').value + ' Cr';
+    document.getElementById('vLoan').textContent   = '₹' + document.getElementById('kLoan').value + ' Cr';
+    document.getElementById('vShares').textContent = document.getElementById('kShares').value + ' Cr';
+    document.getElementById('vSharePrice').textContent = '₹' + document.getElementById('kSharePrice').value;
+    document.getElementById('vPayout').textContent = document.getElementById('kPayout').value + '%';
+  }
+
+  document.getElementById('coName').textContent = m.name;
+  document.getElementById('realPill').style.display = m.real ? '' : 'none';
+
+  // flow bars (everything % of revenue)
+  const rev = Math.max(m.revenue, 0.0001);
+  document.getElementById('amtRev').textContent = fmtCr(m.revenue);
+  document.getElementById('segRev').textContent = fmtCr(m.revenue);
+
+  const profPos = Math.max(m.net, 0);
+  const taxLbl = m.real ? T('Tax, interest & other', 'வரி, வட்டி, பிற') : T('Tax', 'வரி');
+  setSeg('segVar',  m.varCost  / rev * 100, T('Costs', 'செலவு'));
+  setSeg('segFix',  (m.fixedCr ?? 0) / rev * 100, T('Fixed', 'நிலை'));
+  setSeg('segInt',  m.interest / rev * 100, T('Interest', 'வட்டி'));
+  setSeg('segTax',  m.tax      / rev * 100, taxLbl);
+  setSeg('segProf', profPos    / rev * 100, T('Profit', 'லாபம்'));
+  document.getElementById('amtSplit').textContent = '';
+  document.getElementById('legSplit').innerHTML = legendHtml([
+    ['#e74c3c', T('Running costs', 'இயக்க செலவு'), m.varCost],
+    ['#e87f39', T('Fixed costs', 'நிலையான செலவு'), m.fixedCr ?? 0],
+    ['#f5a623', T('Interest', 'வட்டி'), m.interest],
+    ['#b07fe8', taxLbl, m.tax],
+    ['#2ecc71', T('Net profit', 'நிகர லாபம்'), m.net],
+  ].filter(([, , amt]) => !(m.real && amt === 0)));
+
+  // profit split row
+  const lossWrap = document.getElementById('lossWrap');
+  const profitRow = document.getElementById('profitRow');
+  if (m.net <= 0) {
+    profitRow.style.display = 'none';
+    lossWrap.style.display = '';
+    document.getElementById('lossChip').textContent =
+      T(`LOSS — the machine burns ${fmtCr(Math.abs(m.net))} a year`,
+        `நட்டம் — இயந்திரம் ஆண்டுக்கு ${fmtCr(Math.abs(m.net))} எரிக்கிறது`);
+  } else {
+    profitRow.style.display = '';
+    lossWrap.style.display = 'none';
+    document.getElementById('amtProfit').textContent = fmtCr(m.net);
+    const profW = profPos / rev * 100;
+    document.getElementById('profTrack').style.width = Math.max(profW, 12) + '%';
+    setSeg('segDiv', m.net > 0 ? m.divPaid / m.net * 100 : 0, T('Dividend', 'டிவிடெண்ட்'));
+    setSeg('segRet', m.net > 0 ? m.retained / m.net * 100 : 0, T('Kept to grow', 'வளர வைத்தது'));
+    document.getElementById('legProfit').innerHTML = legendHtml([
+      ['#e8b339', T('Dividend to shareholders', 'பங்குதாரர்களுக்கு டிவிடெண்ட்'), m.divPaid],
+      ['#1f9e57', T('Retained to grow the business', 'வணிகம் வளர வைத்தது'), m.retained],
+    ]);
+  }
+
+  // dials
+  const greyIf = (boxId, isGrey) => document.getElementById(boxId).classList.toggle('greyed', isGrey);
+  document.getElementById('dialEps').textContent = m.eps == null ? '—' : '₹' + m.eps.toFixed(1);
+  greyIf('dialEpsBox', m.eps == null);
+
+  const pb = peBand(m.pe);
+  document.getElementById('dialPe').textContent = m.pe == null ? '—' : m.pe.toFixed(1);
+  document.getElementById('dialPe').style.color = pb.color;
+  document.getElementById('dialPeSub').textContent = m.pe == null ? '' : T(pb.label[0], pb.label[1]);
+  setArc('arcPe', m.pe == null ? 0 : m.pe / 60, pb.color);
+  greyIf('dialPeBox', m.pe == null);
+
+  document.getElementById('dialRoe').textContent = m.roe == null ? '—' : m.roe.toFixed(1) + '%';
+  document.getElementById('dialRoe').style.color = rtnBand(m.roe);
+  setArc('arcRoe', m.roe == null ? 0 : m.roe / 40, rtnBand(m.roe));
+  greyIf('dialRoeBox', m.roe == null);
+
+  document.getElementById('dialRoce').textContent = m.roce == null ? '—' : m.roce.toFixed(1) + '%';
+  document.getElementById('dialRoce').style.color = rtnBand(m.roce);
+  setArc('arcRoce', m.roce == null ? 0 : m.roce / 40, rtnBand(m.roce));
+  greyIf('dialRoceBox', m.roce == null);
+
+  document.getElementById('dialIc').textContent =
+    m.real ? '—' : (m.icov == null ? T('No debt', 'கடன் இல்லை') : m.icov.toFixed(1) + '×');
+  document.getElementById('dialIc').style.color = m.icov == null ? 'var(--text)' : (m.icov < 2 ? '#e74c3c' : m.icov < 4 ? '#f5a623' : '#2ecc71');
+  greyIf('dialIcBox', m.real);
+
+  renderConsequence(m);
+}
+
+function renderConsequence(m) {
+  const box = document.getElementById('consBox');
+  const txt = document.getElementById('consText');
+  let cls = 'ok', msg;
+  if (m.net <= 0) {
+    cls = 'bad';
+    msg = T(`Costs exceed revenue — no profit means no EPS and no dividend. A machine like this survives only on borrowed time or borrowed money.`,
+            `செலவு வருவாயை தாண்டிவிட்டது — லாபம் இல்லை என்றால் EPS இல்லை, டிவிடெண்டும் இல்லை. இப்படிப்பட்ட இயந்திரம் கடன் பணத்தில் மட்டுமே உயிர் வாழும்.`);
+  } else if (m.icov != null && m.icov < 2) {
+    cls = 'bad';
+    const pct = Math.round(m.interest / m.ebit * 100);
+    msg = T(`The machine works mostly for the lender — interest eats ${pct}% of operating profit. Watch the ROE and ROCE gap widen.`,
+            `இயந்திரம் பெரும்பாலும் கடன் கொடுத்தவருக்காக வேலை செய்கிறது — செயல்பாட்டு லாபத்தில் ${pct}% வட்டி தின்கிறது. ROE மற்றும் ROCE இடைவெளி விரிவதை கவனியுங்கள்.`);
+  } else if (m.interest > 0 && m.icov >= 2) {
+    cls = 'warn';
+    const pct = Math.round(m.interest / m.ebit * 100);
+    msg = T(`Debt is fuel here — interest takes only ${pct}% of operating profit. Borrowing helps only while the business earns more than the loan costs.`,
+            `இங்கே கடன் எரிபொருள் — செயல்பாட்டு லாபத்தில் ${pct}% மட்டுமே வட்டி. வணிகம் கடன் செலவை விட அதிகம் ஈட்டும் வரை மட்டுமே கடன் உதவும்.`);
+  } else if (m.pe != null && m.pe > 40) {
+    cls = 'warn';
+    msg = T(`At ₹${Math.round(m.sp ?? 0)} a share, buyers pay ₹${m.pe.toFixed(0)} today for every ₹1 of yearly earnings — the market is assuming big growth ahead.`,
+            `ஒரு பங்கு ₹${Math.round(m.sp ?? 0)} என்றால், ஆண்டு வருவாயின் ஒவ்வொரு ₹1-க்கும் வாங்குபவர்கள் இன்று ₹${m.pe.toFixed(0)} கொடுக்கிறார்கள் — சந்தை பெரிய வளர்ச்சியை எதிர்பார்க்கிறது.`);
+  } else {
+    const marginPct = Math.round(m.net / m.revenue * 100);
+    msg = T(`Healthy machine: of every ₹100 that comes in, ₹${marginPct} survives as profit after all costs, interest and tax.`,
+            `ஆரோக்கியமான இயந்திரம்: உள்ளே வரும் ஒவ்வொரு ₹100-இலும், எல்லா செலவு, வட்டி, வரிக்கு பிறகு ₹${marginPct} லாபமாக மிஞ்சுகிறது.`);
+  }
+  box.className = 'consequence ' + cls;
+  txt.textContent = msg;
+}
+
+// ── Modes ─────────────────────────────────────────────────────────────────────
+
+function onKnob() { if (_mode === 'sandbox') render(); }
+
+function setSandbox() {
+  _mode = 'sandbox';
+  document.getElementById('togSand').classList.add('active-idx');
+  document.getElementById('knobsCol').style.opacity = '';
+  document.getElementById('knobsCol').style.pointerEvents = '';
+  showErr('');
+  render();
+}
+
+function showErr(msg) {
+  const b = document.getElementById('errBox');
+  b.textContent = msg; b.style.display = msg ? 'block' : 'none';
+}
+
+async function loadReal() {
+  const sym = document.getElementById('realSym').value.trim().toUpperCase();
+  if (!sym) return showErr(T('Enter an NSE symbol first', 'முதலில் NSE குறியீட்டை உள்ளிடவும்'));
+  const btn = document.getElementById('realBtn');
+  btn.disabled = true; showErr('');
+  try {
+    const r = await fetch(`/api/stock/analyse/${encodeURIComponent(sym)}`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    const annual = (d.results?.annual || []).filter(a => a.revenue != null && a.net_income != null)
+      .sort((a, b) => String(b.period).localeCompare(String(a.period)))[0];
+    if (!annual) throw new Error(T(`No annual results available for ${sym}`, `${sym}-க்கு ஆண்டு முடிவுகள் கிடைக்கவில்லை`));
+
+    const revenue = annual.revenue / CR;
+    const net     = annual.net_income / CR;
+    const opInc   = annual.operating_income != null ? annual.operating_income / CR : null;
+    const opCosts = opInc != null ? revenue - opInc : revenue - net;   // fallback lumps everything
+    const otherC  = opInc != null ? Math.max(opInc - net, 0) : 0;      // interest+tax+other
+    const f = d.fundamentals || {};
+    let divPaid = (f.dividend_yield_pct != null && f.market_cap != null)
+      ? f.dividend_yield_pct / 100 * f.market_cap / CR : null;
+    if (divPaid != null) divPaid = Math.min(divPaid, Math.max(net, 0));
+    const payout  = (divPaid != null && net > 0) ? Math.min(divPaid / net * 100, 100) : null;
+
+    _real = {
+      name: (d.company || sym) + ` — FY ${String(annual.period).slice(0, 4)}`,
+      real: true,
+      revenue, net, ebit: opInc ?? net,
+      varCost: opCosts, fixedCr: 0,
+      interest: 0, tax: otherC,                    // shown as one "taxes & other" drain
+      eps: f.eps ?? null, pe: f.pe ?? null, sp: d.price?.last ?? null,
+      roe: f.roe_pct ?? null, roce: null,          // ROCE not derivable — greys out
+      icov: null, loanCr: 1,
+      divPaid: divPaid ?? 0,
+      retained: Math.max((net > 0 ? net : 0) - (divPaid ?? 0), 0),
+      payout,
+    };
+    _mode = 'real';
+    document.getElementById('togSand').classList.remove('active-idx');
+    document.getElementById('knobsCol').style.opacity = '0.35';
+    document.getElementById('knobsCol').style.pointerEvents = 'none';
+    render();
+  } catch (e) { showErr(e.message); }
+  btn.disabled = false;
+}
+
+// Real-mode label tweak: tax segment carries "taxes & other" — handled in legend by render()
+render();
+</script>
+<script src="halo-aurora.js"></script>
+</body>
+</html>
