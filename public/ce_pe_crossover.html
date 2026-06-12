@@ -121,6 +121,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .cap-btn.current{color:var(--accent);border-color:rgba(124,106,247,0.3);background:rgba(124,106,247,0.08)}
 .cap-btn.current:hover{background:rgba(124,106,247,0.15)}
 
+.auto-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.auto-btn{padding:7px 16px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--dim);transition:all .15s;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.auto-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.auto-btn.live{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.auto-btn.live:hover{background:rgba(46,204,113,0.15)}
+.auto-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.auto-status{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+
 .lock-bar{display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap}
 .lock-btn{padding:8px 16px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--accent);transition:all .15s;display:flex;align-items:center;gap:6px;flex-shrink:0}
 .lock-btn:hover{border-color:var(--accent);background:rgba(124,106,247,0.08)}
@@ -253,6 +261,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <label>Current PE Premium</label>
           <input type="number" id="peCurrent" placeholder="e.g. 95" step="0.05" />
         </div>
+      </div>
+      <div class="auto-row">
+        <button class="auto-btn" id="autoRefreshBtn" onclick="toggleAutoRefresh()">
+          <span class="auto-dot"></span>Auto Refresh
+        </button>
+        <span class="auto-status" id="autoStatus">Off — tap to fetch CE/PE from chain every 30 s</span>
       </div>
       <div class="field-hint" id="currentHint" style="margin-top:10px;display:none"></div>
     </div>
@@ -424,8 +438,10 @@ async function loadExpiries() {
 
 // ── Chain fetch ────────────────────────────────────────────────
 let fetchedCE = null, fetchedPE = null;
+let autoRefreshOn = false, autoInterval = null, countdownTick = null, autoCountdown = 0;
+const AUTO_SEC = 30;
 
-async function fetchFromChain() {
+async function fetchFromChain(autoApply = false) {
   const btn    = document.getElementById('chainFetchBtn');
   const hint   = document.getElementById('spotHint');
   const sym    = selectedIdx === 'nifty' ? 'NIFTY' : 'BANKNIFTY';
@@ -435,7 +451,7 @@ async function fetchFromChain() {
   if (!expiry) {
     hint.textContent = 'Select an expiry first'; hint.style.color = 'var(--yellow)'; return;
   }
-  btn.disabled = true; btn.textContent = 'Fetching…';
+  if (!autoApply) { btn.disabled = true; btn.textContent = 'Fetching…'; }
 
   try {
     const data = await fetch(`/api/options/chain?symbol=${sym}&expiry=${expiry}`).then(r => r.json());
@@ -445,11 +461,9 @@ async function fetchFromChain() {
 
     let row;
     if (strike && !isNaN(strike)) {
-      // exact match first, then nearest
       row = chain.find(r => r.strike === strike)
          || chain.reduce((a, b) => Math.abs(b.strike - strike) < Math.abs(a.strike - strike) ? b : a);
     } else {
-      // no strike entered — use ATM from spot
       const spot = data.spot || (data.analytics && data.analytics.spot);
       if (spot) {
         row = chain.reduce((a, b) => Math.abs(b.strike - spot) < Math.abs(a.strike - spot) ? b : a);
@@ -459,8 +473,8 @@ async function fetchFromChain() {
       }
     }
 
-    const ceLTP = (row.ce  && row.ce.ltp  != null) ? row.ce.ltp  : null;
-    const peLTP = (row.pe  && row.pe.ltp  != null) ? row.pe.ltp  : null;
+    const ceLTP = (row.ce && row.ce.ltp != null) ? row.ce.ltp : null;
+    const peLTP = (row.pe && row.pe.ltp != null) ? row.pe.ltp : null;
     if (ceLTP == null && peLTP == null) throw new Error('No LTP data for this strike');
 
     fetchedCE = ceLTP; fetchedPE = peLTP;
@@ -470,11 +484,47 @@ async function fetchFromChain() {
     document.getElementById('previewTime').textContent = `${t}  ·  ${sym} ${row.strike}  ${expiry}`;
     document.getElementById('chainPreview').style.display = '';
     hint.textContent = `Chain OK — ${sym} ${row.strike} ${expiry}`; hint.style.color = 'var(--cyan)';
+
+    if (autoApply) {
+      applyToCurrent();
+      document.getElementById('autoStatus').textContent = `Updated at ${t} · next in ${AUTO_SEC}s`;
+      autoCountdown = AUTO_SEC;
+    }
   } catch(e) {
     hint.textContent = 'Chain fetch failed: ' + e.message; hint.style.color = 'var(--red)';
     document.getElementById('chainPreview').style.display = 'none';
+    if (autoApply) document.getElementById('autoStatus').textContent = `Fetch error at ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})} — retrying in ${AUTO_SEC}s`;
   } finally {
-    btn.disabled = false; btn.textContent = 'Chain ↗';
+    if (!autoApply) { btn.disabled = false; btn.textContent = 'Chain ↗'; }
+  }
+}
+
+function toggleAutoRefresh() {
+  const expiry = document.getElementById('expirySelect').value;
+  if (!expiry) {
+    document.getElementById('spotHint').textContent = 'Select an expiry before enabling auto refresh';
+    document.getElementById('spotHint').style.color = 'var(--yellow)';
+    return;
+  }
+  autoRefreshOn = !autoRefreshOn;
+  const btn = document.getElementById('autoRefreshBtn');
+  if (autoRefreshOn) {
+    btn.className = 'auto-btn live';
+    btn.innerHTML = '<span class="auto-dot"></span>LIVE';
+    fetchFromChain(true);
+    autoInterval  = setInterval(() => fetchFromChain(true), AUTO_SEC * 1000);
+    autoCountdown = AUTO_SEC;
+    clearInterval(countdownTick);
+    countdownTick = setInterval(() => {
+      autoCountdown = Math.max(0, autoCountdown - 1);
+      if (autoRefreshOn) document.getElementById('autoStatus').textContent = `Next fetch in ${autoCountdown}s`;
+    }, 1000);
+  } else {
+    btn.className = 'auto-btn';
+    btn.innerHTML = '<span class="auto-dot"></span>Auto Refresh';
+    clearInterval(autoInterval); autoInterval = null;
+    clearInterval(countdownTick); countdownTick = null;
+    document.getElementById('autoStatus').textContent = 'Off — tap to fetch CE/PE from chain every 30 s';
   }
 }
 
