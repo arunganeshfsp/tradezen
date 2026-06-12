@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compounding Playground | TradeZen</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+.hero{padding:40px 28px 32px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.12) 0%,transparent 65%),var(--bg)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:6px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
+.main{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+
+.card-z{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+
+.twin-col{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
+.twin-col.a{border-color:rgba(0,212,255,0.3)}
+.twin-col.b{border-color:rgba(124,106,247,0.3)}
+.twin-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.twin-name .dot{width:10px;height:10px;border-radius:50%}
+
+.fld{margin-bottom:14px}
+.fld:last-child{margin-bottom:0}
+.fld label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px}
+.fld label .v{color:var(--text);font-weight:600;letter-spacing:0}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.twin-col.a input[type=range]{accent-color:var(--cyan)}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip-btn{padding:5px 12px;border-radius:14px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.chip-btn:hover{color:var(--text)}
+.chip-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.1)}
+
+.tog{padding:7px 18px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.tog.active-idx{border-color:var(--yellow);color:var(--yellow);background:var(--yellow-bg)}
+
+.play-btn{padding:12px 28px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;background:linear-gradient(90deg,var(--accent),var(--blue));color:#fff;transition:opacity .15s}
+.play-btn:hover:not(:disabled){opacity:.88}
+.play-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.hud{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.hud-age{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;min-width:120px}
+.hud-chips{display:flex;gap:10px;flex-wrap:wrap}
+.hchip{display:flex;flex-direction:column;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 14px;min-width:130px}
+.hchip-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.hchip-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.hchip-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
+
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.sum-grid{grid-template-columns:1fr}}
+.sum-twin{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:18px}
+.sum-twin.winner{border-color:var(--green-border);background:var(--green-bg)}
+.sum-head{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sum-final{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;margin-bottom:12px}
+.bar-wrap{height:18px;border-radius:9px;background:var(--bg4);overflow:hidden;display:flex;margin-bottom:8px}
+.bar-dep{height:100%;background:var(--muted)}
+.bar-gro{height:100%}
+.bar-leg{display:flex;gap:16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);flex-wrap:wrap}
+.bar-leg .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+
+.lesson-box{margin-top:16px;border-radius:var(--r2);padding:14px 18px;font-size:13px;line-height:1.6;background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25);color:var(--dim)}
+.lesson-box strong{color:var(--accent)}
+
+.rate-note{font-size:11px;color:var(--muted);margin-top:6px}
+.disclaimer{margin-top:28px;text-align:center;font-size:11px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <img src="/app-icon.svg" width="32" height="32" alt="TradeZen" style="border-radius:8px" data-app-logo />
+      <span>TradeZen</span>
+    </a>
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="/trade_flow.html">Trade Flow</a></li>
+      <li class="nav-item"><a class="nav-link" href="/options_analysis.html">Options</a></li>
+      <li class="nav-item"><a class="nav-link" href="/cpr_monitor.html">CPR</a></li>
+      <li class="nav-item"><a class="nav-link" href="/fno_scanner.html">F&amp;O</a></li>
+      <li class="nav-item"><a class="nav-link" href="/stock_movers.html">Movers</a></li>
+      <li class="nav-item"><a class="nav-link" href="/market_psychology.html">TradeFun</a></li>
+      <li class="nav-item"><a class="nav-link" href="/swing_trading.html">Swing</a></li>
+      <li class="nav-item"><a class="nav-link" href="/learn/">Learn</a></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display:none"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/></svg>
+        <svg data-icon="light" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
+      </button>
+      <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag" data-en="&#9679; What-If Lab" data-ta="&#9679; என்ன-என்றால் ஆய்வகம்">&#9679; What-If Lab</div>
+  <h1>Compounding <em>Playground</em></h1>
+  <p class="hero-sub" data-en="The Twin Race: one starts small and early, one starts big and late — drag the sliders and watch which force wins" data-ta="இரட்டையர் பந்தயம்: ஒருவர் சிறிதாக முன்னதாக தொடங்குகிறார், மற்றவர் பெரிதாக தாமதமாக — ஸ்லைடர்களை இழுத்து எந்த சக்தி வெல்கிறது என்று பாருங்கள்">The Twin Race: one starts small and early, one starts big and late — drag the sliders and watch which force wins</p>
+</div>
+
+<div class="main">
+  <div class="d-flex flex-column gap-4">
+
+    <!-- CONTROLS -->
+    <div class="card-z">
+      <div class="card-title" data-en="Set Up the Twins" data-ta="இரட்டையர்களை அமைக்கவும்">Set Up the Twins</div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="twin-col a">
+            <div class="twin-name" style="color:var(--cyan)"><span class="dot" style="background:var(--cyan)"></span><span data-en="Twin A — early starter" data-ta="இரட்டையர் A — முன் தொடங்கியவர்">Twin A — early starter</span></div>
+            <div class="fld">
+              <label><span data-en="Start Age" data-ta="தொடக்க வயது">Start Age</span><span class="v" id="aAgeV">25</span></label>
+              <input type="range" id="aAge" min="18" max="50" value="25" oninput="onChange()">
+            </div>
+            <div class="fld">
+              <label><span data-en="Monthly Amount" data-ta="மாத தொகை">Monthly Amount</span><span class="v" id="aAmtV">₹2,000</span></label>
+              <input type="range" id="aAmt" min="500" max="50000" step="500" value="2000" oninput="onChange()">
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="twin-col b">
+            <div class="twin-name" style="color:var(--accent)"><span class="dot" style="background:var(--accent)"></span><span data-en="Twin B — late starter" data-ta="இரட்டையர் B — தாமதமாக தொடங்கியவர்">Twin B — late starter</span></div>
+            <div class="fld">
+              <label><span data-en="Start Age" data-ta="தொடக்க வயது">Start Age</span><span class="v" id="bAgeV">35</span></label>
+              <input type="range" id="bAge" min="18" max="55" value="35" oninput="onChange()">
+            </div>
+            <div class="fld">
+              <label><span data-en="Monthly Amount" data-ta="மாத தொகை">Monthly Amount</span><span class="v" id="bAmtV">₹4,000</span></label>
+              <input type="range" id="bAmt" min="500" max="50000" step="500" value="4000" oninput="onChange()">
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="twin-col">
+            <div class="twin-name" style="color:var(--dim)"><span data-en="Shared World" data-ta="பொது உலகம்">Shared World</span></div>
+            <div class="fld">
+              <label><span data-en="Assumed Annual Return" data-ta="கருதப்படும் ஆண்டு வருமானம்">Assumed Annual Return</span><span class="v" id="rateV">12%</span></label>
+              <input type="range" id="rate" min="4" max="18" step="0.5" value="12" oninput="onChange()">
+              <div class="chips">
+                <button class="chip-btn" data-r="7"  onclick="setRate(7, this)">FD 7%</button>
+                <button class="chip-btn on" data-r="12" onclick="setRate(12, this)" data-en="Index 12%" data-ta="இன்டெக்ஸ் 12%">Index 12%</button>
+                <button class="chip-btn" data-r="15" onclick="setRate(15, this)" data-en="Aggressive 15%" data-ta="தீவிர 15%">Aggressive 15%</button>
+              </div>
+              <div class="rate-note" data-en="Assumed rate, for study — not a prediction" data-ta="கல்விக்காக கருதப்பட்ட வருமானம் — கணிப்பு அல்ல">Assumed rate, for study — not a prediction</div>
+            </div>
+            <div class="fld">
+              <label><span data-en="End Age" data-ta="இறுதி வயது">End Age</span><span class="v" id="endAgeV">60</span></label>
+              <input type="range" id="endAge" min="40" max="70" value="60" oninput="onChange()">
+            </div>
+            <div class="fld">
+              <button class="tog w-100" id="inflTog" onclick="toggleInfl()" data-en="&#129689; Show idle-cash inflation line" data-ta="&#129689; வளராத பண பணவீக்க கோட்டை காட்டு">&#129689; Show idle-cash inflation line</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RACE -->
+    <div class="card-z">
+      <div class="card-title" data-en="The Race" data-ta="பந்தயம்">The Race</div>
+      <div class="hud">
+        <div class="hud-age" id="hudAge">—</div>
+        <div class="hud-chips">
+          <div class="hchip"><span class="hchip-lbl" style="color:var(--cyan)"><span class="hchip-dot" style="background:var(--cyan)"></span><span data-en="TWIN A" data-ta="இரட்டையர் A">TWIN A</span></span><span class="hchip-val" id="chipA">—</span></div>
+          <div class="hchip"><span class="hchip-lbl" style="color:var(--accent)"><span class="hchip-dot" style="background:var(--accent)"></span><span data-en="TWIN B" data-ta="இரட்டையர் B">TWIN B</span></span><span class="hchip-val" id="chipB">—</span></div>
+          <div class="hchip" id="chipInflWrap" style="display:none"><span class="hchip-lbl" style="color:var(--dim)"><span class="hchip-dot" style="background:var(--dim)"></span><span data-en="IDLE CASH" data-ta="வளராத பணம்">IDLE CASH</span></span><span class="hchip-val" id="chipInfl">—</span></div>
+        </div>
+        <button class="play-btn" id="playBtn" onclick="playRace()" data-en="&#9654; Play" data-ta="&#9654; இயக்கு">&#9654; Play</button>
+      </div>
+      <div style="height:320px"><canvas id="raceChart"></canvas></div>
+    </div>
+
+    <!-- END CARD -->
+    <div class="card-z" id="sumCard" style="display:none">
+      <div class="card-title" data-en="End of the Race" data-ta="பந்தயத்தின் முடிவு">End of the Race</div>
+      <div class="sum-grid" id="sumGrid"></div>
+      <div class="lesson-box" id="lessonBox"></div>
+    </div>
+
+    <p class="disclaimer"
+       data-en="Illustration with an assumed constant return — real investments fluctuate and can fall. Taxes and inflation (unless toggled) not included. For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading."
+       data-ta="மாறாத வருமானம் கருதி உருவாக்கப்பட்ட விளக்கப்படம் — உண்மையான முதலீடுகள் ஏற்ற இறக்கம் அடையும், சரியவும் செய்யும். வரிகள் சேர்க்கப்படவில்லை. கல்வி நோக்கத்திற்காக மட்டுமே. முதலீட்டு ஆலோசனை அல்ல. வர்த்தகத்திற்கு முன் SEBI பதிவு பெற்ற ஆலோசகரை அணுகவும்.">
+      Illustration with an assumed constant return — real investments fluctuate and can fall. Taxes and inflation (unless toggled) not included. For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </p>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+let _calc = null, _chart = null, _timer = null, _lastFrame = 0, _showInfl = false;
+
+const T = (en, ta) => document.documentElement.getAttribute('data-lang') === 'ta' ? ta : en;
+const fmtFull = n => '₹' + Math.round(n).toLocaleString('en-IN');
+function fmtBig(n) {
+  if (n == null) return '—';
+  if (Math.abs(n) >= 1e7) return '₹' + (n / 1e7).toFixed(2) + ' Cr';
+  if (Math.abs(n) >= 1e5) return '₹' + (n / 1e5).toFixed(2) + ' L';
+  return fmtFull(n);
+}
+
+window.onLangChange = () => {
+  if (!_calc) return;
+  setFrame(_lastFrame);
+  if (document.getElementById('sumCard').style.display !== 'none') renderSummary();
+};
+
+// ── Maths ─────────────────────────────────────────────────────────────────────
+
+function buildTwin(startAge, amount, ratePa, fromAge, endAge) {
+  // monthly compounding; first deposit lands in the exact month the twin's start age is reached
+  const months = (endAge - fromAge) * 12 + 1;
+  const r = ratePa / 100 / 12;
+  const value = [], deposited = [];
+  let bal = 0, dep = 0;
+  for (let m = 0; m < months; m++) {
+    const age = fromAge + m / 12;
+    if (age >= startAge) {
+      bal = bal * (1 + r) + amount;
+      dep += amount;
+    }
+    value.push(bal);
+    deposited.push(dep);
+  }
+  return { value, deposited };
+}
+
+function buildIdleCash(startAge, amount, fromAge, endAge, inflPa = 6) {
+  // each deposit kept as cash, deflated from its deposit month to "now"
+  const months = (endAge - fromAge) * 12 + 1;
+  const dm = Math.pow(1 + inflPa / 100, 1 / 12);
+  const out = [];
+  const depMonths = [];
+  for (let m = 0; m < months; m++) {
+    const age = fromAge + m / 12;
+    if (age >= startAge) depMonths.push(m);
+    let v = 0;
+    for (const j of depMonths) v += amount / Math.pow(dm, m - j);
+    out.push(v);
+  }
+  return out;
+}
+
+function readControls() {
+  const aAge = +document.getElementById('aAge').value;
+  let bAge   = +document.getElementById('bAge').value;
+  if (bAge < aAge) { bAge = aAge; document.getElementById('bAge').value = aAge; }
+  let endAge = +document.getElementById('endAge').value;
+  if (endAge <= bAge) { endAge = bAge + 5; document.getElementById('endAge').value = endAge; }
+  return {
+    aAge, bAge, endAge,
+    aAmt: +document.getElementById('aAmt').value,
+    bAmt: +document.getElementById('bAmt').value,
+    rate: +document.getElementById('rate').value,
+  };
+}
+
+function recompute() {
+  const c = readControls();
+  const from = Math.min(c.aAge, c.bAge);
+  const a = buildTwin(c.aAge, c.aAmt, c.rate, from, c.endAge);
+  const b = buildTwin(c.bAge, c.bAmt, c.rate, from, c.endAge);
+  const infl = _showInfl ? buildIdleCash(c.aAge, c.aAmt, from, c.endAge) : null;
+  const n = a.value.length;
+  const labels = Array.from({ length: n }, (_, m) => (from + m / 12).toFixed(2));
+  _calc = { ...c, from, n, labels, a, b, infl };
+
+  document.getElementById('aAgeV').textContent  = c.aAge;
+  document.getElementById('bAgeV').textContent  = c.bAge;
+  document.getElementById('aAmtV').textContent  = fmtFull(c.aAmt);
+  document.getElementById('bAmtV').textContent  = fmtFull(c.bAmt);
+  document.getElementById('rateV').textContent  = c.rate + '%';
+  document.getElementById('endAgeV').textContent = c.endAge;
+  document.getElementById('chipInflWrap').style.display = _showInfl ? '' : 'none';
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+
+function makeChart() {
+  if (_chart) _chart.destroy();
+  const ds = [
+    // deposited baselines (faint) then value lines filled down to them
+    { label: T('Twin A deposited', 'A டெபாசிட்'), data: [], borderColor: 'rgba(0,212,255,0.35)', borderWidth: 1, borderDash: [4, 4], pointRadius: 0, fill: false, tension: 0 },
+    { label: 'Twin A', data: [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.12)', borderWidth: 2.5, pointRadius: 0, fill: '-1', tension: 0.15 },
+    { label: T('Twin B deposited', 'B டெபாசிட்'), data: [], borderColor: 'rgba(124,106,247,0.35)', borderWidth: 1, borderDash: [4, 4], pointRadius: 0, fill: false, tension: 0 },
+    { label: 'Twin B', data: [], borderColor: '#7c6af7', backgroundColor: 'rgba(124,106,247,0.12)', borderWidth: 2.5, pointRadius: 0, fill: '-1', tension: 0.15 },
+  ];
+  if (_showInfl) ds.push({ label: T('Idle cash (6% inflation)', 'வளராத பணம் (6% பணவீக்கம்)'), data: [], borderColor: '#9ba3bf', borderWidth: 1.5, borderDash: [6, 5], pointRadius: 0, fill: false, tension: 0.15 });
+
+  _chart = new Chart(document.getElementById('raceChart'), {
+    type: 'line',
+    data: { labels: [], datasets: ds },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: {
+          title: items => T('Age ', 'வயது ') + Math.floor(+items[0].label),
+          label: c => `${c.dataset.label}: ${fmtBig(c.parsed.y)}`,
+        } } },
+      scales: {
+        x: { ticks: { color: '#4a5070', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 12,
+                      callback: function (v) { const l = +this.getLabelForValue(v); return Number.isInteger(l) ? l : ''; } },
+             grid: { color: 'rgba(37,42,68,0.5)' } },
+        y: { ticks: { color: '#9ba3bf', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtBig(v) },
+             grid: { color: 'rgba(37,42,68,0.5)' } },
+      },
+    },
+  });
+}
+
+function setFrame(i) {
+  _lastFrame = i;
+  const c = _calc;
+  _chart.data.labels = c.labels.slice(0, i + 1);
+  _chart.data.datasets[0].data = c.a.deposited.slice(0, i + 1);
+  _chart.data.datasets[1].data = c.a.value.slice(0, i + 1);
+  _chart.data.datasets[2].data = c.b.deposited.slice(0, i + 1);
+  _chart.data.datasets[3].data = c.b.value.slice(0, i + 1);
+  if (_showInfl && _chart.data.datasets[4]) _chart.data.datasets[4].data = c.infl.slice(0, i + 1);
+  _chart.update('none');
+
+  document.getElementById('hudAge').textContent = T('Age ', 'வயது ') + Math.floor(c.from + i / 12);
+  document.getElementById('chipA').textContent = fmtBig(c.a.value[i]);
+  document.getElementById('chipB').textContent = fmtBig(c.b.value[i]);
+  if (_showInfl) document.getElementById('chipInfl').textContent = fmtBig(c.infl[i]);
+}
+
+function stopTimer() { if (_timer) { clearInterval(_timer); _timer = null; } }
+
+function playRace() {
+  stopTimer();
+  document.getElementById('sumCard').style.display = 'none';
+  const n = _calc.n;
+  const interval = Math.min(120, Math.max(25, Math.round(12000 / n)));
+  let i = 0;
+  setFrame(0);
+  document.getElementById('playBtn').disabled = true;
+  _timer = setInterval(() => {
+    i = Math.min(i + 1, n - 1);
+    setFrame(i);
+    if (i >= n - 1) { stopTimer(); finishRace(); }
+  }, interval);
+}
+
+function onChange() {
+  stopTimer();
+  document.getElementById('playBtn').disabled = false;
+  document.getElementById('sumCard').style.display = 'none';
+  document.querySelectorAll('.chip-btn').forEach(b => b.classList.toggle('on', +b.dataset.r === +document.getElementById('rate').value));
+  recompute();
+  makeChart();
+  setFrame(_calc.n - 1);
+}
+
+function setRate(r, btn) {
+  document.getElementById('rate').value = r;
+  onChange();
+}
+
+function toggleInfl() {
+  _showInfl = !_showInfl;
+  document.getElementById('inflTog').classList.toggle('active-idx', _showInfl);
+  onChange();
+}
+
+// ── Summary ───────────────────────────────────────────────────────────────────
+
+function renderSummary() {
+  const c = _calc;
+  const last = c.n - 1;
+  const twins = [
+    { id: 'A', name: T('Twin A — early starter', 'இரட்டையர் A — முன் தொடங்கியவர்'), color: '#00d4ff',
+      final: c.a.value[last], dep: c.a.deposited[last] },
+    { id: 'B', name: T('Twin B — late starter', 'இரட்டையர் B — தாமதமாக தொடங்கியவர்'), color: '#7c6af7',
+      final: c.b.value[last], dep: c.b.deposited[last] },
+  ];
+  const maxFinal = Math.max(twins[0].final, twins[1].final, 1);
+  const winner = twins[0].final >= twins[1].final ? twins[0] : twins[1];
+
+  document.getElementById('sumGrid').innerHTML = twins.map(t => {
+    const growth = t.final - t.dep;
+    const wTotal = t.final / maxFinal * 100;
+    const wDep   = t.final > 0 ? t.dep / t.final * 100 : 0;
+    return `
+    <div class="sum-twin ${t === winner ? 'winner' : ''}">
+      <div class="sum-head" style="color:${t.color}">${t.name}${t === winner ? ' &#127942;' : ''}</div>
+      <div class="sum-final" style="color:${t.color}">${fmtBig(t.final)}</div>
+      <div class="bar-wrap" style="width:${Math.max(wTotal, 8)}%">
+        <div class="bar-dep" style="width:${wDep}%"></div>
+        <div class="bar-gro" style="width:${100 - wDep}%;background:${t.color}"></div>
+      </div>
+      <div class="bar-leg">
+        <span><span class="sw" style="background:var(--muted)"></span>${T('Deposited', 'டெபாசிட்')}: ${fmtBig(t.dep)}</span>
+        <span><span class="sw" style="background:${t.color}"></span>${T("Money's own earnings", 'பணம் ஈட்டியது')}: ${fmtBig(growth)} (${t.final > 0 ? Math.round(growth / t.final * 100) : 0}%)</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const yearsGap = c.bAge - c.aAge;
+  const A = twins[0], B = twins[1];
+  let lesson;
+  if (winner.id === 'A') {
+    lesson = A.dep <= B.dep
+      ? T(`<strong>Twin A deposited ${fmtBig(B.dep - A.dep)} less in total, yet finished ahead</strong> — the extra ${yearsGap} years did the work, not the money. Every year of waiting costs more than it looks.`,
+          `<strong>இரட்டையர் A மொத்தத்தில் ${fmtBig(B.dep - A.dep)} குறைவாக டெபாசிட் செய்தும் முன்னிலையில் முடித்தார்</strong> — பணம் அல்ல, கூடுதல் ${yearsGap} ஆண்டுகளே வேலை செய்தன. காத்திருக்கும் ஒவ்வொரு ஆண்டும் தோன்றுவதை விட அதிக விலை கொடுக்கிறது.`)
+      : T(`<strong>Twin A finished ahead</strong> — the ${yearsGap} extra years of compounding made the bigger difference. Notice how much of A's total is the money's own earnings, not deposits.`,
+          `<strong>இரட்டையர் A முன்னிலையில் முடித்தார்</strong> — கூட்டுவட்டியின் கூடுதல் ${yearsGap} ஆண்டுகளே பெரிய வித்தியாசத்தை உருவாக்கின. A-இன் மொத்தத்தில் எவ்வளவு பணம் ஈட்டியது என்பதை கவனியுங்கள்.`);
+  } else {
+    lesson = T(`<strong>Twin B caught up — but look at the price of starting late:</strong> B had to deposit ${fmtBig(B.dep)} against A's ${fmtBig(A.dep)} to get here. Starting late can be offset, only by depositing much more every month.`,
+               `<strong>இரட்டையர் B சமன் செய்தார் — ஆனால் தாமதத்தின் விலையை பாருங்கள்:</strong> A-இன் ${fmtBig(A.dep)}-க்கு எதிராக B ${fmtBig(B.dep)} டெபாசிட் செய்ய வேண்டியிருந்தது. தாமதமாக தொடங்குவதை ஈடுசெய்ய ஒவ்வொரு மாதமும் அதிகமாக போட்டே ஆக வேண்டும்.`);
+  }
+  if (_showInfl) {
+    const idleEnd = c.infl[last];
+    const idleDep = c.a.deposited[last];
+    const lossPct = idleDep > 0 ? Math.round((1 - idleEnd / idleDep) * 100) : 0;
+    lesson += T(` <br><br>The grey line is money that was saved but never grew — by age ${c.endAge} it buys <strong>${lossPct}% less</strong> than what was put in. Money that doesn't grow quietly shrinks.`,
+                ` <br><br>சாம்பல் கோடு சேமிக்கப்பட்டும் வளராத பணம் — வயது ${c.endAge}-இல் அது போட்ட பணத்தை விட <strong>${lossPct}% குறைவாகவே</strong> வாங்க முடியும். வளராத பணம் அமைதியாக சுருங்குகிறது.`);
+  }
+  document.getElementById('lessonBox').innerHTML = lesson;
+  document.getElementById('sumCard').style.display = '';
+}
+
+function finishRace() {
+  document.getElementById('playBtn').disabled = false;
+  renderSummary();
+  document.getElementById('sumCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+onChange();
+</script>
+<script src="halo-aurora.js"></script>
+</body>
+</html>
