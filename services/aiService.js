@@ -219,12 +219,19 @@ class AIService {
 
     // Generic proxy — used by options routes to forward arbitrary GET calls
     // path: "/options/context?symbol=NIFTY"
-    async proxy(method, path, timeoutMs = 30000) {
+    // data: optional JSON body for POST/PUT. Python error responses (4xx) are
+    // passed through with their status so the frontend can show the message.
+    async proxy(method, path, timeoutMs = 30000, data = undefined) {
         try {
-            const res = await axios({ method, url: `${AI_ENGINE_URL}${path}`, timeout: timeoutMs });
+            const res = await axios({ method, url: `${AI_ENGINE_URL}${path}`, timeout: timeoutMs, data });
             return res.data;
         } catch (err) {
             console.error(`AI proxy ${method} ${path} error:`, err.message);
+            if (err.response && err.response.data) {
+                const e = new Error(err.response.data.error || err.message);
+                e.status = err.response.status;
+                throw e;
+            }
             return { error: "Python engine unreachable" };
         }
     }

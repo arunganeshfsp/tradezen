@@ -3693,6 +3693,198 @@ def options_monitor(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Paper Trading — virtual portfolio simulator (stocks + option contracts)
+# ══════════════════════════════════════════════════════════════════════════════
+from execution.paper_trader import (
+    get_account     as _pt_account,
+    place_order     as _pt_place,
+    close_position  as _pt_close,
+    list_positions  as _pt_list,
+    unrealized_pnl  as _pt_mark,
+    reset_account   as _pt_reset,
+    DEFAULT_CAPITAL as _PT_DEFAULT_CAPITAL,
+)
+
+
+def _paper_stock_ltps(symbols: list) -> dict:
+    """LTPs for NSE stock symbols → {symbol: ltp}."""
+    from core.swing_analyzer import fetch_swing_prices
+    try:
+        return fetch_swing_prices(symbols).get("prices", {})
+    except Exception as e:
+        log.warning(f"paper stock ltp error: {e}")
+        return {}
+
+
+def _paper_option_ltps(tokens: list) -> dict:
+    """LTPs for NFO option tokens → {token: ltp}."""
+    from core.options.option_chain_fetcher import _batch_market_data
+    _s = smart or _get_smart()
+    if not _s:
+        return {}
+    try:
+        mdata = _batch_market_data(_s, [str(t) for t in tokens])
+        return {t: float(r["ltp"]) for t, r in mdata.items() if r.get("ltp") is not None}
+    except Exception as e:
+        log.warning(f"paper option ltp error: {e}")
+        return {}
+
+
+def _paper_ltp(instrument: str, symbol: str, token=None):
+    if instrument.upper() == "OPTION" and token:
+        return _paper_option_ltps([token]).get(str(token))
+    return _paper_stock_ltps([symbol.upper()]).get(symbol.upper())
+
+
+@app.get("/paper/account")
+def paper_account():
+    """Virtual account summary: cash, realized P&L, position counts."""
+    from storage.sqlite_store import get_conn
+    try:
+        return _pt_account(get_conn())
+    except Exception as e:
+        log.error(f"paper/account error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/paper/positions")
+def paper_positions():
+    """Open positions marked to live LTPs with unrealized P&L."""
+    from storage.sqlite_store import get_conn
+    try:
+        conn      = get_conn()
+        positions = _pt_list(conn, "OPEN")
+
+        stock_syms = sorted({p["symbol"] for p in positions if p["instrument"] == "STOCK"})
+        opt_tokens = sorted({p["token"]  for p in positions if p["instrument"] == "OPTION" and p["token"]})
+        stock_ltps = _paper_stock_ltps(stock_syms)   if stock_syms else {}
+        opt_ltps   = _paper_option_ltps(opt_tokens)  if opt_tokens else {}
+
+        total_unrealized = 0.0
+        priced = 0
+        for p in positions:
+            ltp = (opt_ltps.get(str(p["token"])) if p["instrument"] == "OPTION"
+                   else stock_ltps.get(p["symbol"]))
+            p.update(_pt_mark(p, ltp))
+            if p["pnl"] is not None:
+                total_unrealized += p["pnl"]
+                priced += 1
+
+        return {"positions": positions,
+                "unrealized_pnl": round(total_unrealized, 2),
+                "priced": priced, "count": len(positions)}
+    except Exception as e:
+        log.error(f"paper/positions error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/paper/history")
+def paper_history():
+    """Closed trades, most recent first."""
+    from storage.sqlite_store import get_conn
+    try:
+        return {"trades": _pt_list(get_conn(), "CLOSED")}
+    except Exception as e:
+        log.error(f"paper/history error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/paper/quote")
+def paper_quote(instrument: str, symbol: str = "", token: str = ""):
+    """Live LTP preview before placing a paper order."""
+    try:
+        ltp = _paper_ltp(instrument, symbol, token or None)
+        return {"instrument": instrument.upper(), "symbol": symbol.upper(),
+                "token": token or None, "ltp": ltp}
+    except Exception as e:
+        log.error(f"paper/quote error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/paper/order")
+def paper_order(payload: dict):
+    """
+    Place a simulated order. Body:
+      {instrument: STOCK|OPTION, symbol, side: BUY|SELL,
+       qty (stocks) | lots+lot_size (options),
+       token?, underlying?, expiry?, strike?, option_type?, price? (manual override)}
+    Executes at live LTP when price is omitted.
+    """
+    from storage.sqlite_store import get_conn
+    try:
+        instrument = (payload.get("instrument") or "").upper()
+        symbol     = (payload.get("symbol") or "").strip().upper()
+        if not symbol:
+            return JSONResponse(status_code=400, content={"error": "symbol is required"})
+
+        lots     = payload.get("lots")
+        lot_size = payload.get("lot_size")
+        if instrument == "OPTION":
+            if not lots or not lot_size:
+                return JSONResponse(status_code=400, content={"error": "lots and lot_size are required for options"})
+            qty = int(lots) * int(lot_size)
+        else:
+            qty = int(payload.get("qty") or 0)
+
+        price = payload.get("price")
+        price = float(price) if price else _paper_ltp(instrument, symbol, payload.get("token"))
+
+        result = _pt_place(
+            get_conn(),
+            instrument=instrument, symbol=symbol,
+            side=payload.get("side", ""), qty=qty, price=price,
+            token=payload.get("token"), underlying=payload.get("underlying"),
+            expiry=payload.get("expiry"), strike=payload.get("strike"),
+            option_type=payload.get("option_type"),
+            lots=int(lots) if lots else None,
+            lot_size=int(lot_size) if lot_size else None,
+        )
+        if "error" in result:
+            return JSONResponse(status_code=400, content=result)
+        return result
+    except Exception as e:
+        log.error(f"paper/order error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/paper/close/{trade_id}")
+def paper_close(trade_id: int, payload: dict = None):
+    """Close an open position at live LTP (or manual price override in body)."""
+    from storage.sqlite_store import get_conn
+    try:
+        conn = get_conn()
+        row = conn.execute(
+            "SELECT instrument, symbol, token FROM paper_trades WHERE id = ? AND status = 'OPEN'",
+            (trade_id,),
+        ).fetchone()
+        if not row:
+            return JSONResponse(status_code=404, content={"error": "Open position not found"})
+
+        price = (payload or {}).get("price")
+        price = float(price) if price else _paper_ltp(row["instrument"], row["symbol"], row["token"])
+
+        result = _pt_close(conn, trade_id, price)
+        if "error" in result:
+            return JSONResponse(status_code=400, content=result)
+        return result
+    except Exception as e:
+        log.error(f"paper/close error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/paper/reset")
+def paper_reset(payload: dict = None):
+    """Wipe all paper trades and restore virtual cash. Body: {capital?}"""
+    from storage.sqlite_store import get_conn
+    try:
+        capital = float((payload or {}).get("capital") or _PT_DEFAULT_CAPITAL)
+        return _pt_reset(get_conn(), capital)
+    except Exception as e:
+        log.error(f"paper/reset error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Daily Reports
 # ══════════════════════════════════════════════════════════════════════════════
 from storage.sqlite_store import list_reports, get_report, upsert_report, delete_report as _db_delete_report

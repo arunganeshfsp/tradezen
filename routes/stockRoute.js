@@ -764,6 +764,70 @@ router.get("/stock/reversal-check/:symbol", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// Paper Trading routes — virtual portfolio simulator
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── GET /api/paper/account ──────────────────────────────────────────────────
+router.get("/paper/account", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/paper/account", 8000);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+// ─── GET /api/paper/positions ────────────────────────────────────────────────
+// Open positions marked to live LTPs (stock + option batch lookups)
+router.get("/paper/positions", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/paper/positions", 20000);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+// ─── GET /api/paper/history ──────────────────────────────────────────────────
+router.get("/paper/history", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/paper/history", 8000);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+// ─── GET /api/paper/quote?instrument=STOCK&symbol=RELIANCE ───────────────────
+router.get("/paper/quote", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/paper/quote?${params}`, 15000);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+// ─── POST /api/paper/order ───────────────────────────────────────────────────
+// Body: { instrument, symbol, side, qty | lots+lot_size, token?, price?, ... }
+router.post("/paper/order", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/paper/order", 20000, req.body);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+// ─── POST /api/paper/close/:id ───────────────────────────────────────────────
+// Body: { price? }  — closes at live LTP when price omitted
+router.post("/paper/close/:id", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", `/paper/close/${req.params.id}`, 20000, req.body || {});
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+// ─── POST /api/paper/reset ───────────────────────────────────────────────────
+router.post("/paper/reset", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/paper/reset", 8000, req.body || {});
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
 // ─── GET /api/stock/health/:symbol ───────────────────────────────────────────
 // 4-persona fundamental health report (Stock Health Story tool)
 router.get("/stock/health/:symbol", async (req, res) => {
