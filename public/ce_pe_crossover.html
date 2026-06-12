@@ -99,10 +99,27 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 .atm-fetch-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .atm-fetch-row input{flex:1;min-width:90px}
+.expiry-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 10px;border-radius:var(--r2);outline:none;cursor:pointer;min-width:120px;flex-shrink:0}
+.expiry-select:focus{border-color:var(--accent)}
 .fetch-btn{padding:8px 14px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--cyan);transition:all .15s;white-space:nowrap;flex-shrink:0}
 .fetch-btn:hover:not(:disabled){border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.fetch-btn.chain-btn{color:var(--accent);border-color:rgba(124,106,247,0.35)}
+.fetch-btn.chain-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(124,106,247,0.08)}
 .fetch-btn:disabled{opacity:.45;cursor:not-allowed}
 .tog.active-idx{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.1)}
+.chain-preview{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:8px}
+.chain-preview-vals{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cp-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.cp-ce{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--green)}
+.cp-pe{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--red)}
+.cp-sep{color:var(--muted);font-size:12px}
+.cp-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.chain-preview-actions{display:flex;gap:8px;flex-wrap:wrap}
+.cap-btn{padding:6px 14px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;background:transparent}
+.cap-btn.base{color:var(--green);border-color:var(--green-border);background:var(--green-bg)}
+.cap-btn.base:hover{background:rgba(46,204,113,0.15)}
+.cap-btn.current{color:var(--accent);border-color:rgba(124,106,247,0.3);background:rgba(124,106,247,0.08)}
+.cap-btn.current:hover{background:rgba(124,106,247,0.15)}
 
 .lock-bar{display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap}
 .lock-btn{padding:8px 16px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--accent);transition:all .15s;display:flex;align-items:center;gap:6px;flex-shrink:0}
@@ -176,16 +193,33 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div class="card-title">9:15 AM Opening Reference</div>
       <div class="input-grid mb-4">
         <div class="field" style="grid-column:1/-1">
-          <label>ATM Strike</label>
+          <label>Contract</label>
           <div class="atm-fetch-row">
             <div class="tog-group">
               <button class="tog active-idx" id="idxNifty" onclick="setIdx('nifty')">NIFTY</button>
               <button class="tog" id="idxBank" onclick="setIdx('banknifty')">BANK NF</button>
             </div>
-            <input type="number" id="atmStrike" placeholder="e.g. 24500" />
-            <button class="fetch-btn" id="fetchBtn" onclick="fetchSpot()">Fetch Spot ↗</button>
+            <select id="expirySelect" class="expiry-select">
+              <option value="">Loading expiries…</option>
+            </select>
+            <input type="number" id="atmStrike" placeholder="Strike e.g. 24500" />
+            <button class="fetch-btn" id="fetchBtn" onclick="fetchSpot()" title="Fetch current spot → nearest strike">Spot ↗</button>
+            <button class="fetch-btn chain-btn" id="chainFetchBtn" onclick="fetchFromChain()">Chain ↗</button>
           </div>
-          <span class="field-hint" id="spotHint">Select index, then fetch current spot → nearest ATM (optional)</span>
+          <span class="field-hint" id="spotHint">Select expiry → fetch spot for ATM → Chain ↗ pulls live CE &amp; PE premiums</span>
+        </div>
+        <div class="chain-preview" id="chainPreview" style="display:none;grid-column:1/-1">
+          <div class="chain-preview-vals">
+            <span class="cp-lbl">Fetched</span>
+            <span class="cp-ce" id="previewCE">CE ₹—</span>
+            <span class="cp-sep">·</span>
+            <span class="cp-pe" id="previewPE">PE ₹—</span>
+            <span class="cp-time" id="previewTime"></span>
+          </div>
+          <div class="chain-preview-actions">
+            <button class="cap-btn base"    onclick="applyToBase()">→ Set as Base</button>
+            <button class="cap-btn current" onclick="applyToCurrent()">→ Update Current</button>
+          </div>
         </div>
         <div class="field">
           <label>CE Base Premium</label>
@@ -370,6 +404,91 @@ function setIdx(v) {
   selectedIdx = v;
   document.getElementById('idxNifty').className = 'tog' + (v === 'nifty'      ? ' active-idx' : '');
   document.getElementById('idxBank').className  = 'tog' + (v === 'banknifty'  ? ' active-idx' : '');
+  loadExpiries();
+}
+
+// ── Expiry loader ──────────────────────────────────────────────
+async function loadExpiries() {
+  const sym = selectedIdx === 'nifty' ? 'NIFTY' : 'BANKNIFTY';
+  const sel = document.getElementById('expirySelect');
+  sel.innerHTML = '<option value="">Loading…</option>';
+  try {
+    const data     = await fetch(`/api/options/expiries?symbol=${sym}`).then(r => r.json());
+    const expiries = Array.isArray(data) ? data : (data.expiries || []);
+    if (!expiries.length) { sel.innerHTML = '<option value="">No expiries found</option>'; return; }
+    sel.innerHTML = expiries.map((e, i) => `<option value="${e}"${i === 0 ? ' selected' : ''}>${e}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">Error — retry</option>';
+  }
+}
+
+// ── Chain fetch ────────────────────────────────────────────────
+let fetchedCE = null, fetchedPE = null;
+
+async function fetchFromChain() {
+  const btn    = document.getElementById('chainFetchBtn');
+  const hint   = document.getElementById('spotHint');
+  const sym    = selectedIdx === 'nifty' ? 'NIFTY' : 'BANKNIFTY';
+  const expiry = document.getElementById('expirySelect').value;
+  const strike = parseInt(document.getElementById('atmStrike').value);
+
+  if (!expiry) {
+    hint.textContent = 'Select an expiry first'; hint.style.color = 'var(--yellow)'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Fetching…';
+
+  try {
+    const data = await fetch(`/api/options/chain?symbol=${sym}&expiry=${expiry}`).then(r => r.json());
+    if (data.error) throw new Error(data.error);
+    const chain = data.chain || [];
+    if (!chain.length) throw new Error('Empty chain response');
+
+    let row;
+    if (strike && !isNaN(strike)) {
+      // exact match first, then nearest
+      row = chain.find(r => r.strike === strike)
+         || chain.reduce((a, b) => Math.abs(b.strike - strike) < Math.abs(a.strike - strike) ? b : a);
+    } else {
+      // no strike entered — use ATM from spot
+      const spot = data.spot || (data.analytics && data.analytics.spot);
+      if (spot) {
+        row = chain.reduce((a, b) => Math.abs(b.strike - spot) < Math.abs(a.strike - spot) ? b : a);
+        document.getElementById('atmStrike').value = row.strike;
+      } else {
+        row = chain[Math.floor(chain.length / 2)];
+      }
+    }
+
+    const ceLTP = (row.ce  && row.ce.ltp  != null) ? row.ce.ltp  : null;
+    const peLTP = (row.pe  && row.pe.ltp  != null) ? row.pe.ltp  : null;
+    if (ceLTP == null && peLTP == null) throw new Error('No LTP data for this strike');
+
+    fetchedCE = ceLTP; fetchedPE = peLTP;
+    const t = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('previewCE').textContent   = `CE ₹${ceLTP != null ? ceLTP.toFixed(2) : '—'}`;
+    document.getElementById('previewPE').textContent   = `PE ₹${peLTP != null ? peLTP.toFixed(2) : '—'}`;
+    document.getElementById('previewTime').textContent = `${t}  ·  ${sym} ${row.strike}  ${expiry}`;
+    document.getElementById('chainPreview').style.display = '';
+    hint.textContent = `Chain OK — ${sym} ${row.strike} ${expiry}`; hint.style.color = 'var(--cyan)';
+  } catch(e) {
+    hint.textContent = 'Chain fetch failed: ' + e.message; hint.style.color = 'var(--red)';
+    document.getElementById('chainPreview').style.display = 'none';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Chain ↗';
+  }
+}
+
+function applyToBase() {
+  if (fetchedCE != null) document.getElementById('ceBase').value = fetchedCE.toFixed(2);
+  if (fetchedPE != null) document.getElementById('peBase').value = fetchedPE.toFixed(2);
+  calc();
+}
+
+function applyToCurrent() {
+  if (fetchedCE != null) document.getElementById('ceCurrent').value = fetchedCE.toFixed(2);
+  if (fetchedPE != null) document.getElementById('peCurrent').value = fetchedPE.toFixed(2);
+  saveCurrentPremiums();
+  calc();
 }
 
 async function fetchSpot() {
@@ -867,6 +986,7 @@ function restoreCurrent() {
 restoreBase();
 restoreCurrent();
 restoreLog();
+loadExpiries();
 </script>
 </body>
 </html>
