@@ -4846,6 +4846,69 @@ async def stock_analyse(symbol: str):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Wealth Time-Lapse — monthly close series for the what-if compounding lab
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _timelapse_sync(symbol: str, start: str) -> dict:
+    """
+    Aligned monthly closes (dividend/split adjusted) for stock + Nifty + gold ETF.
+    All SIP/lumpsum/FD math happens client-side so sliders recompute instantly.
+    """
+    import yfinance as yf
+    import pandas as pd
+
+    sym    = symbol.upper().strip()
+    yf_sym = sym if sym.endswith(".NS") or sym.startswith("^") else f"{sym}.NS"
+
+    def _monthly_closes(ticker: str) -> "pd.Series":
+        try:
+            h = yf.Ticker(ticker).history(start=start, interval="1mo", auto_adjust=True)
+            if h.empty:
+                return pd.Series(dtype=float)
+            s = h["Close"].dropna()
+            s.index = pd.DatetimeIndex(s.index).strftime("%Y-%m")
+            return s[~s.index.duplicated(keep="last")]
+        except Exception as e:
+            log.warning(f"timelapse fetch {ticker}: {e}")
+            return pd.Series(dtype=float)
+
+    stock = _monthly_closes(yf_sym)
+    if stock.empty:
+        return {"error": f"No price history found for {sym} on NSE"}
+    nifty = _monthly_closes("^NSEI")
+    gold  = _monthly_closes("GOLDBEES.NS")   # gold ETF as rupee gold proxy
+
+    months = list(stock.index)
+    company = None
+    try:
+        company = yf.Ticker(yf_sym).info.get("longName")
+    except Exception:
+        pass
+
+    def _aligned(s):
+        return [round(float(s[m]), 4) if m in s.index else None for m in months]
+
+    return {
+        "symbol":  sym.replace(".NS", ""),
+        "company": company,
+        "months":  months,
+        "stock":   [round(float(v), 4) for v in stock.tolist()],
+        "nifty":   _aligned(nifty),
+        "gold":    _aligned(gold),
+    }
+
+
+@app.get("/stock/timelapse/{symbol}")
+async def stock_timelapse(symbol: str, start: str = "2007-01-01"):
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _timelapse_sync, symbol, start)
+    except Exception as e:
+        log.error(f"[TIMELAPSE] {symbol}: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Stock Health Story — 4-persona fundamental health report
 # ══════════════════════════════════════════════════════════════════════════════
 

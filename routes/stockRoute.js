@@ -742,6 +742,19 @@ router.get("/stock/analyse/:symbol", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/stock/timelapse/:symbol?start=2015-01-01 ───────────────────────
+// Monthly close series (stock + Nifty + gold ETF) for the Wealth Time-Lapse lab
+router.get("/stock/timelapse/:symbol", async (req, res) => {
+  try {
+    const symbol = req.params.symbol.toUpperCase().replace(/[^A-Z0-9\-\.&^]/g, "");
+    if (!symbol) return res.status(400).json({ error: "Symbol required" });
+    const params = new URLSearchParams();
+    if (req.query.start) params.set("start", req.query.start);
+    const data = await aiService.proxy("GET", `/stock/timelapse/${symbol}?${params}`, 45000);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
 // ─── GET /api/stock/reversal-scan ────────────────────────────────────────────
 // Scans a stock universe for the Peak→Support→Recovery reversal pattern
 router.get("/stock/reversal-scan", async (req, res) => {

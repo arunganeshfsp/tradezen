@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Time-Lapse | TradeZen</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
+<style>
+:root{
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);--green-border:rgba(46,204,113,0.25);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);--red-border:rgba(231,76,60,0.25);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
+  --cyan:#00d4ff;--gold:#e8b339;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+.hero{padding:40px 28px 32px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.12) 0%,transparent 65%),var(--bg)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:6px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim)}
+
+.main{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+
+.card-z{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.field input,.field select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;padding:10px 14px;border-radius:var(--r2);outline:none;transition:border .15s;width:100%}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--muted)}
+.field-hint{font-size:11px;color:var(--muted)}
+
+.tog-group{display:flex;gap:4px}
+.tog{padding:7px 18px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.tog:hover{color:var(--text)}
+.tog.active-idx{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.1)}
+
+.fetch-btn{padding:10px 18px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--cyan);transition:all .15s;white-space:nowrap}
+.fetch-btn:hover:not(:disabled){border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.fetch-btn:disabled{opacity:.45;cursor:not-allowed}
+
+.play-btn{padding:12px 28px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;background:linear-gradient(90deg,var(--accent),var(--blue));color:#fff;transition:opacity .15s}
+.play-btn:hover:not(:disabled){opacity:.88}
+.play-btn:disabled{opacity:.4;cursor:not-allowed}
+.skip-btn{padding:12px 20px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.skip-btn:hover:not(:disabled){color:var(--text);border-color:var(--text)}
+.skip-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.year-slider{width:100%;accent-color:var(--accent)}
+.slider-row{display:flex;align-items:center;gap:14px}
+.slider-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);min-width:52px;text-align:center}
+
+.hud{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.hud-month{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;min-width:110px}
+.hud-chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip{display:flex;flex-direction:column;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 14px;min-width:120px}
+.chip-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.chip-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chip-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
+
+.sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:860px){.sum-grid{grid-template-columns:repeat(2,1fr)}}
+.sum-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:16px;text-align:center}
+.sum-box.winner{border-color:var(--green-border);background:var(--green-bg)}
+.sum-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:6px}
+.sum-val{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:var(--text)}
+.sum-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:4px}
+.sum-sub.pos{color:var(--green)}
+.sum-sub.neg{color:var(--red)}
+
+.invested-strip{text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim);margin-bottom:16px}
+.invested-strip strong{color:var(--cyan)}
+
+.pain-stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+.pain-pill{font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 14px;border-radius:20px;border:1px solid var(--red-border);background:var(--red-bg);color:var(--red)}
+.lesson-box{margin-top:16px;border-radius:var(--r2);padding:14px 18px;font-size:13px;line-height:1.6;background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.25);color:var(--dim)}
+.lesson-box strong{color:var(--accent)}
+
+.err-box{border-radius:var(--r2);padding:12px 16px;font-size:13px;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);display:none}
+.empty-msg{text-align:center;color:var(--muted);font-size:13px;padding:40px 0}
+.disclaimer{margin-top:28px;text-align:center;font-size:11px;color:var(--muted);line-height:1.6}
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <img src="/app-icon.svg" width="32" height="32" alt="TradeZen" style="border-radius:8px" data-app-logo />
+      <span>TradeZen</span>
+    </a>
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="/trade_flow.html">Trade Flow</a></li>
+      <li class="nav-item"><a class="nav-link" href="/options_analysis.html">Options</a></li>
+      <li class="nav-item"><a class="nav-link" href="/cpr_monitor.html">CPR</a></li>
+      <li class="nav-item"><a class="nav-link" href="/fno_scanner.html">F&amp;O</a></li>
+      <li class="nav-item"><a class="nav-link" href="/stock_movers.html">Movers</a></li>
+      <li class="nav-item"><a class="nav-link" href="/market_psychology.html">TradeFun</a></li>
+      <li class="nav-item"><a class="nav-link" href="/swing_trading.html">Swing</a></li>
+      <li class="nav-item"><a class="nav-link" href="/learn/">Learn</a></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display:none"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/></svg>
+        <svg data-icon="light" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
+      </button>
+      <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag" data-en="&#9679; What-If Lab" data-ta="&#9679; என்ன-என்றால் ஆய்வகம்">&#9679; What-If Lab</div>
+  <h1>Wealth <em>Time-Lapse</em></h1>
+  <p class="hero-sub" data-en="Replay history: how a monthly SIP or one-time amount in any NSE stock would have grown — raced against Nifty 50, gold and a fixed deposit" data-ta="வரலாற்றை மீண்டும் இயக்குங்கள்: எந்த NSE பங்கிலும் மாதாந்திர SIP அல்லது ஒருமுறை தொகை எப்படி வளர்ந்திருக்கும் — நிஃப்டி 50, தங்கம், வைப்புத்தொகையுடன் ஒப்பீடு">Replay history: how a monthly SIP or one-time amount in any NSE stock would have grown — raced against Nifty 50, gold and a fixed deposit</p>
+</div>
+
+<div class="main">
+  <div class="d-flex flex-column gap-4">
+
+    <!-- CONTROLS -->
+    <div class="card-z">
+      <div class="card-title" data-en="Set Up the Experiment" data-ta="சோதனையை அமைக்கவும்">Set Up the Experiment</div>
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <div class="field">
+            <label data-en="NSE Symbol" data-ta="NSE குறியீடு">NSE Symbol</label>
+            <input type="text" id="symInput" placeholder="TITAN" value="TITAN" autocomplete="off">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <button class="fetch-btn w-100" id="loadBtn" onclick="loadData()" data-en="&#8635; Load History" data-ta="&#8635; வரலாற்றை ஏற்று">&#8635; Load History</button>
+        </div>
+        <div class="col-md-5">
+          <div class="field">
+            <label data-en="Start Year" data-ta="தொடக்க ஆண்டு">Start Year</label>
+            <div class="slider-row">
+              <input type="range" class="year-slider" id="yearSlider" min="2007" max="2024" value="2015" oninput="onControlsChange()">
+              <span class="slider-val" id="yearVal">2015</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="field">
+            <label data-en="Mode" data-ta="முறை">Mode</label>
+            <div class="tog-group">
+              <button class="tog active-idx" id="togSip" onclick="setMode('sip')" data-en="Monthly SIP" data-ta="மாதாந்திர SIP">Monthly SIP</button>
+              <button class="tog" id="togLump" onclick="setMode('lump')" data-en="One-time" data-ta="ஒருமுறை">One-time</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="field">
+            <label id="amtLabel" data-en="Amount per Month (₹)" data-ta="மாத தொகை (₹)">Amount per Month (₹)</label>
+            <input type="number" id="amtInput" value="5000" min="100" step="500" oninput="onControlsChange()">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="field">
+            <label data-en="FD Rate (% p.a.)" data-ta="FD வட்டி (% ஆண்டு)">FD Rate (% p.a.)</label>
+            <input type="number" id="fdInput" value="7" min="1" max="12" step="0.5" oninput="onControlsChange()">
+          </div>
+        </div>
+      </div>
+      <div class="err-box mt-3" id="errBox"></div>
+    </div>
+
+    <!-- RACE CHART -->
+    <div class="card-z" id="raceCard" style="display:none">
+      <div class="card-title" data-en="The Journey" data-ta="பயணம்">The Journey</div>
+
+      <div class="hud">
+        <div class="hud-month" id="hudMonth">—</div>
+        <div class="hud-chips">
+          <div class="chip"><span class="chip-lbl" style="color:var(--cyan)"><span class="chip-dot" style="background:var(--cyan)"></span><span id="chipStockName">STOCK</span></span><span class="chip-val" id="chipStock">—</span></div>
+          <div class="chip"><span class="chip-lbl" style="color:var(--accent)"><span class="chip-dot" style="background:var(--accent)"></span>NIFTY 50</span><span class="chip-val" id="chipNifty">—</span></div>
+          <div class="chip"><span class="chip-lbl" style="color:var(--gold)"><span class="chip-dot" style="background:var(--gold)"></span><span data-en="GOLD" data-ta="தங்கம்">GOLD</span></span><span class="chip-val" id="chipGold">—</span></div>
+          <div class="chip"><span class="chip-lbl" style="color:var(--dim)"><span class="chip-dot" style="background:var(--dim)"></span>FD</span><span class="chip-val" id="chipFd">—</span></div>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="play-btn" id="playBtn" onclick="playJourney()" data-en="&#9654; Play" data-ta="&#9654; இயக்கு">&#9654; Play</button>
+          <button class="skip-btn" id="skipBtn" onclick="skipToEnd()" data-en="Skip &#9197;" data-ta="இறுதிக்கு &#9197;">Skip &#9197;</button>
+        </div>
+      </div>
+
+      <div class="invested-strip" id="investedStrip"></div>
+      <div style="height:300px"><canvas id="raceChart"></canvas></div>
+
+      <div class="card-title" style="margin:22px 0 8px" data-en="Pain Meter — how far the stock sat below its peak" data-ta="வலி அளவி — உச்சத்திலிருந்து பங்கு எவ்வளவு கீழே இருந்தது">Pain Meter — how far the stock sat below its peak</div>
+      <div style="height:90px"><canvas id="painChart"></canvas></div>
+      <div class="pain-stats" id="painStats"></div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="card-z" id="sumCard" style="display:none">
+      <div class="card-title" data-en="End of the Journey" data-ta="பயணத்தின் முடிவு">End of the Journey</div>
+      <div class="sum-grid" id="sumGrid"></div>
+      <div class="lesson-box" id="lessonBox"></div>
+    </div>
+
+    <p class="disclaimer"
+       data-en="Historical simulation for study only — past performance does not repeat. Dividends approximated via adjusted prices; taxes, fees and inflation not included. For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading."
+       data-ta="கல்விக்கான வரலாற்று உருவகம் மட்டுமே — கடந்தகால செயல்திறன் மீண்டும் நிகழாது. வரி, கட்டணம், பணவீக்கம் சேர்க்கப்படவில்லை. கல்வி நோக்கத்திற்காக மட்டுமே. முதலீட்டு ஆலோசனை அல்ல. வர்த்தகத்திற்கு முன் SEBI பதிவு பெற்ற ஆலோசகரை அணுகவும்.">
+      Historical simulation for study only — past performance does not repeat. Dividends approximated via adjusted prices; taxes, fees and inflation not included. For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </p>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+let _raw    = null;     // {symbol, company, months, stock, nifty, gold}
+let _calc   = null;     // computed value series for current controls
+let _chart  = null;
+let _pain   = null;
+let _timer  = null;
+let _mode   = 'sip';
+
+const fmtFull = n => '₹' + Math.round(n).toLocaleString('en-IN');
+function fmtBig(n) {
+  if (n == null) return '—';
+  if (Math.abs(n) >= 1e7) return '₹' + (n / 1e7).toFixed(2) + ' Cr';
+  if (Math.abs(n) >= 1e5) return '₹' + (n / 1e5).toFixed(2) + ' L';
+  return fmtFull(n);
+}
+
+function showErr(msg) {
+  const b = document.getElementById('errBox');
+  b.textContent = msg; b.style.display = msg ? 'block' : 'none';
+}
+
+function setMode(m) {
+  _mode = m;
+  document.getElementById('togSip').classList.toggle('active-idx',  m === 'sip');
+  document.getElementById('togLump').classList.toggle('active-idx', m === 'lump');
+  const lbl = document.getElementById('amtLabel');
+  const amt = document.getElementById('amtInput');
+  if (m === 'sip')  { lbl.textContent = 'Amount per Month (₹)'; if (+amt.value >= 50000) amt.value = 5000; }
+  else              { lbl.textContent = 'One-time Amount (₹)';  if (+amt.value <  50000) amt.value = 100000; }
+  onControlsChange();
+}
+
+async function loadData() {
+  const sym = document.getElementById('symInput').value.trim().toUpperCase();
+  if (!sym) return showErr('Enter an NSE symbol first');
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">&#8635;</span> Loading…';
+  showErr('');
+  try {
+    const r = await fetch(`/api/stock/timelapse/${encodeURIComponent(sym)}?start=2007-01-01`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    if (!d.months || d.months.length < 24) throw new Error(`Not enough monthly history for ${sym} (need 2+ years)`);
+    _raw = d;
+    document.getElementById('chipStockName').textContent = d.symbol;
+    const firstYear = parseInt(d.months[0].slice(0, 4));
+    const lastYear  = parseInt(d.months[d.months.length - 1].slice(0, 4));
+    const slider = document.getElementById('yearSlider');
+    slider.min = firstYear;
+    slider.max = lastYear - 1;
+    if (+slider.value < firstYear || +slider.value > lastYear - 1) slider.value = Math.max(firstYear, 2015);
+    document.getElementById('yearVal').textContent = slider.value;
+    document.getElementById('raceCard').style.display = '';
+    onControlsChange();
+  } catch (e) { showErr(e.message); }
+  btn.disabled = false;
+  btn.innerHTML = '&#8635; Load History';
+}
+
+// ── Maths ─────────────────────────────────────────────────────────────────────
+
+function buildTrack(prices, amount, mode) {
+  // value series for investing `amount` into a price series (null-safe)
+  const n = prices.length;
+  const values = new Array(n).fill(null);
+  let units = 0, started = false;
+  for (let i = 0; i < n; i++) {
+    const p = prices[i];
+    if (p == null) { values[i] = started ? values[i - 1] : null; continue; }
+    if (mode === 'lump') {
+      if (!started) { units = amount / p; started = true; }
+    } else {
+      units += amount / p; started = true;
+    }
+    values[i] = units * p;
+  }
+  return values;
+}
+
+function buildFd(n, amount, mode, ratePa) {
+  const r = ratePa / 100 / 12;
+  const values = [];
+  let bal = 0;
+  for (let i = 0; i < n; i++) {
+    if (mode === 'lump') bal = (i === 0 ? amount : bal * (1 + r));
+    else                 bal = bal * (1 + r) + amount;
+    values.push(bal);
+  }
+  return values;
+}
+
+function investedSeries(n, amount, mode) {
+  return Array.from({ length: n }, (_, i) => mode === 'lump' ? amount : amount * (i + 1));
+}
+
+function xirr(values, amount, mode) {
+  // annualized money-weighted return via bisection
+  const n = values.length;
+  const fv = values[n - 1];
+  if (fv == null || n < 2) return null;
+  const f = (rate) => {
+    let s = 0;
+    if (mode === 'lump') s = amount * Math.pow(1 + rate, (n - 1) / 12);
+    else for (let i = 0; i < n; i++) s += amount * Math.pow(1 + rate, (n - 1 - i) / 12);
+    return s - fv;
+  };
+  let lo = -0.95, hi = 5;
+  if (f(lo) * f(hi) > 0) return null;
+  for (let k = 0; k < 80; k++) {
+    const mid = (lo + hi) / 2;
+    if (f(lo) * f(mid) <= 0) hi = mid; else lo = mid;
+  }
+  return ((lo + hi) / 2) * 100;
+}
+
+function drawdownSeries(prices) {
+  let peak = -Infinity;
+  return prices.map(p => {
+    if (p == null) return 0;
+    peak = Math.max(peak, p);
+    return (p / peak - 1) * 100;
+  });
+}
+
+function recompute() {
+  const startYear = document.getElementById('yearSlider').value;
+  const amount    = Math.max(+document.getElementById('amtInput').value || 0, 1);
+  const fdRate    = +document.getElementById('fdInput').value || 7;
+
+  const i0 = _raw.months.findIndex(m => m >= `${startYear}-01`);
+  const months = _raw.months.slice(i0);
+  const stockP = _raw.stock.slice(i0);
+  const niftyP = _raw.nifty.slice(i0);
+  const goldP  = _raw.gold.slice(i0);
+  const n = months.length;
+
+  _calc = {
+    months, amount, fdRate, n,
+    stock:    buildTrack(stockP, amount, _mode),
+    nifty:    buildTrack(niftyP, amount, _mode),
+    gold:     buildTrack(goldP,  amount, _mode),
+    fd:       buildFd(n, amount, _mode, fdRate),
+    invested: investedSeries(n, amount, _mode),
+    dd:       drawdownSeries(stockP),
+  };
+}
+
+// ── Chart + animation ─────────────────────────────────────────────────────────
+
+function makeCharts() {
+  const lineOpts = (ds) => ({
+    type: 'line',
+    data: { labels: [], datasets: ds },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmtBig(c.parsed.y)}` } } },
+      scales: {
+        x: { ticks: { color: '#4a5070', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 12 }, grid: { color: 'rgba(37,42,68,0.5)' } },
+        y: { ticks: { color: '#9ba3bf', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtBig(v) }, grid: { color: 'rgba(37,42,68,0.5)' } },
+      },
+    },
+  });
+
+  if (_chart) _chart.destroy();
+  _chart = new Chart(document.getElementById('raceChart'), lineOpts([
+    { label: _raw.symbol, data: [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.06)', borderWidth: 2.5, pointRadius: 0, fill: true,  tension: 0.2 },
+    { label: 'Nifty 50',  data: [], borderColor: '#7c6af7', borderWidth: 1.8, pointRadius: 0, fill: false, tension: 0.2 },
+    { label: 'Gold',      data: [], borderColor: '#e8b339', borderWidth: 1.8, pointRadius: 0, fill: false, tension: 0.2 },
+    { label: 'FD',        data: [], borderColor: '#9ba3bf', borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, fill: false, tension: 0.2 },
+  ]));
+
+  if (_pain) _pain.destroy();
+  _pain = new Chart(document.getElementById('painChart'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(231,76,60,0.55)', borderWidth: 0, barPercentage: 1, categoryPercentage: 1 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.parsed.y.toFixed(1)}% below peak` } } },
+      scales: {
+        x: { display: false },
+        y: { min: Math.min(-5, Math.floor(Math.min(...(_calc.dd)) / 10) * 10), max: 0,
+             ticks: { color: '#9ba3bf', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' },
+             grid: { color: 'rgba(37,42,68,0.5)' } },
+      },
+    },
+  });
+}
+
+function setFrame(i) {
+  // charts hold data up to index i
+  const c = _calc;
+  _chart.data.labels = c.months.slice(0, i + 1);
+  ['stock', 'nifty', 'gold', 'fd'].forEach((k, di) => {
+    _chart.data.datasets[di].data = c[k].slice(0, i + 1);
+  });
+  _chart.update('none');
+
+  _pain.data.labels = c.months.slice(0, i + 1);
+  _pain.data.datasets[0].data = c.dd.slice(0, i + 1);
+  _pain.update('none');
+
+  const [y, m] = c.months[i].split('-');
+  document.getElementById('hudMonth').textContent = `${m}/${y}`;
+  document.getElementById('chipStock').textContent = fmtBig(c.stock[i]);
+  document.getElementById('chipNifty').textContent = fmtBig(c.nifty[i]);
+  document.getElementById('chipGold').textContent  = fmtBig(c.gold[i]);
+  document.getElementById('chipFd').textContent    = fmtBig(c.fd[i]);
+  document.getElementById('investedStrip').innerHTML =
+    `Invested so far: <strong>${fmtBig(c.invested[i])}</strong>`;
+}
+
+function stopTimer() { if (_timer) { clearInterval(_timer); _timer = null; } }
+
+function playJourney() {
+  stopTimer();
+  document.getElementById('sumCard').style.display = 'none';
+  const n = _calc.n;
+  const step = n > 200 ? 2 : 1;
+  let i = 0;
+  setFrame(0);
+  document.getElementById('playBtn').disabled = true;
+  _timer = setInterval(() => {
+    i = Math.min(i + step, n - 1);
+    setFrame(i);
+    if (i >= n - 1) { stopTimer(); finishJourney(); }
+  }, 45);
+}
+
+function skipToEnd() {
+  stopTimer();
+  setFrame(_calc.n - 1);
+  finishJourney();
+}
+
+function onControlsChange() {
+  if (!_raw) return;
+  stopTimer();
+  document.getElementById('yearVal').textContent = document.getElementById('yearSlider').value;
+  document.getElementById('playBtn').disabled = false;
+  document.getElementById('sumCard').style.display = 'none';
+  recompute();
+  makeCharts();
+  setFrame(_calc.n - 1);   // show full picture immediately; Play re-animates
+}
+
+// ── Summary ───────────────────────────────────────────────────────────────────
+
+function painStats() {
+  const dd = _calc.dd;
+  let maxDd = 0, longest = 0, cur = 0;
+  for (const v of dd) {
+    maxDd = Math.min(maxDd, v);
+    if (v < -0.01) { cur++; longest = Math.max(longest, cur); } else cur = 0;
+  }
+  return { maxDd, longest };
+}
+
+function finishJourney() {
+  document.getElementById('playBtn').disabled = false;
+  const c = _calc;
+  const last = c.n - 1;
+  const invested = c.invested[last];
+  const tracks = [
+    { key: 'stock', name: _raw.symbol, color: 'var(--cyan)',   val: c.stock[last], rate: xirr(c.stock, c.amount, _mode) },
+    { key: 'nifty', name: 'Nifty 50',  color: 'var(--accent)', val: c.nifty[last], rate: xirr(c.nifty, c.amount, _mode) },
+    { key: 'gold',  name: 'Gold',      color: 'var(--gold)',   val: c.gold[last],  rate: xirr(c.gold,  c.amount, _mode) },
+    { key: 'fd',    name: `FD @ ${c.fdRate}%`, color: 'var(--dim)', val: c.fd[last], rate: c.fdRate },
+  ];
+  const best = tracks.reduce((a, b) => (b.val ?? -1) > (a.val ?? -1) ? b : a);
+
+  document.getElementById('sumGrid').innerHTML = tracks.map(t => `
+    <div class="sum-box ${t === best ? 'winner' : ''}">
+      <div class="sum-lbl"><span class="chip-dot" style="background:${t.color}"></span>${t.name}${t === best ? ' &#127942;' : ''}</div>
+      <div class="sum-val">${fmtBig(t.val)}</div>
+      <div class="sum-sub ${t.rate >= 0 ? 'pos' : 'neg'}">${t.rate == null ? '' : (t.key === 'fd' ? t.rate.toFixed(1) + '% p.a.' : t.rate.toFixed(1) + '% XIRR')}</div>
+    </div>
+  `).join('');
+
+  const { maxDd, longest } = painStats();
+  document.getElementById('painStats').innerHTML = `
+    <span class="pain-pill">Deepest fall: ${maxDd.toFixed(1)}% below peak</span>
+    <span class="pain-pill">Longest stretch below a peak: ${longest} months</span>
+  `;
+
+  const years = ((c.n - 1) / 12).toFixed(1);
+  const stockT = tracks[0], fdT = tracks[3];
+  let lesson;
+  if (best.key === 'stock') {
+    lesson = `<strong>${_raw.symbol}</strong> finished ahead over these ${years} years — but notice the Pain Meter: anyone on this journey sat through a ${Math.abs(maxDd).toFixed(0)}% fall and up to ${longest} months below a previous peak. The growth and the discomfort came as a package. Study whether you could have stayed the course.`;
+  } else if (stockT.val != null && fdT.val != null && stockT.val < fdT.val) {
+    lesson = `Over these ${years} years, a simple fixed deposit finished ahead of <strong>${_raw.symbol}</strong>. Not every stock rewards waiting — this is why studying business quality before tracking a stock matters more than the holding period alone.`;
+  } else {
+    lesson = `<strong>${best.name}</strong> finished ahead over these ${years} years, while ${_raw.symbol} went through a ${Math.abs(maxDd).toFixed(0)}% fall along the way. Diversification across asset types changed the journey more than the timing did. Compare a few different start years and observe how the ranking shifts.`;
+  }
+  document.getElementById('lessonBox').innerHTML = lesson;
+  document.getElementById('sumCard').style.display = '';
+  document.getElementById('sumCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+</script>
+<script src="halo-aurora.js"></script>
+</body>
+</html>

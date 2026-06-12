@@ -29,6 +29,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | stock-health | `stock-health.md` | active |
 | osprey-ce-pe | `osprey-ce-pe.md` | active |
 | paper-trading | `paper-trading.md` | active |
+| wealth-timelapse | `wealth-timelapse.md` | active |
 
 ---
 
