@@ -247,6 +247,15 @@ function fmtBig(n) {
   return fmtFull(n);
 }
 
+// i18n for JS-generated strings — halo-aurora.js handles data-en/data-ta elements
+const T = (en, ta) => document.documentElement.getAttribute('data-lang') === 'ta' ? ta : en;
+
+window.onLangChange = () => {
+  if (!_calc) return;
+  setFrame(_lastFrame);
+  if (document.getElementById('sumCard').style.display !== 'none') renderSummary();
+};
+
 function showErr(msg) {
   const b = document.getElementById('errBox');
   b.textContent = msg; b.style.display = msg ? 'block' : 'none';
@@ -258,23 +267,33 @@ function setMode(m) {
   document.getElementById('togLump').classList.toggle('active-idx', m === 'lump');
   const lbl = document.getElementById('amtLabel');
   const amt = document.getElementById('amtInput');
-  if (m === 'sip')  { lbl.textContent = 'Amount per Month (₹)'; if (+amt.value >= 50000) amt.value = 5000; }
-  else              { lbl.textContent = 'One-time Amount (₹)';  if (+amt.value <  50000) amt.value = 100000; }
+  if (m === 'sip')  {
+    lbl.dataset.en = 'Amount per Month (₹)';
+    lbl.dataset.ta = 'மாத தொகை (₹)';
+    if (+amt.value >= 50000) amt.value = 5000;
+  } else {
+    lbl.dataset.en = 'One-time Amount (₹)';
+    lbl.dataset.ta = 'ஒருமுறை தொகை (₹)';
+    if (+amt.value < 50000) amt.value = 100000;
+  }
+  lbl.textContent = T(lbl.dataset.en, lbl.dataset.ta);
   onControlsChange();
 }
 
 async function loadData() {
   const sym = document.getElementById('symInput').value.trim().toUpperCase();
-  if (!sym) return showErr('Enter an NSE symbol first');
+  if (!sym) return showErr(T('Enter an NSE symbol first', 'முதலில் NSE குறியீட்டை உள்ளிடவும்'));
   const btn = document.getElementById('loadBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin">&#8635;</span> Loading…';
+  btn.innerHTML = '<span class="spin">&#8635;</span> ' + T('Loading…', 'ஏற்றுகிறது…');
   showErr('');
   try {
     const r = await fetch(`/api/stock/timelapse/${encodeURIComponent(sym)}?start=2007-01-01`);
     const d = await r.json();
     if (d.error) throw new Error(d.error);
-    if (!d.months || d.months.length < 24) throw new Error(`Not enough monthly history for ${sym} (need 2+ years)`);
+    if (!d.months || d.months.length < 24)
+      throw new Error(T(`Not enough monthly history for ${sym} (need 2+ years)`,
+                        `${sym}-க்கு போதுமான மாதாந்திர வரலாறு இல்லை (2+ ஆண்டுகள் தேவை)`));
     _raw = d;
     document.getElementById('chipStockName').textContent = d.symbol;
     const firstYear = parseInt(d.months[0].slice(0, 4));
@@ -288,7 +307,7 @@ async function loadData() {
     onControlsChange();
   } catch (e) { showErr(e.message); }
   btn.disabled = false;
-  btn.innerHTML = '&#8635; Load History';
+  btn.innerHTML = T(btn.dataset.en, btn.dataset.ta);
 }
 
 // ── Maths ─────────────────────────────────────────────────────────────────────
@@ -412,7 +431,7 @@ function makeCharts() {
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
       plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: c => `${c.parsed.y.toFixed(1)}% below peak` } } },
+        tooltip: { callbacks: { label: c => T(`${c.parsed.y.toFixed(1)}% below peak`, `உச்சத்திலிருந்து ${c.parsed.y.toFixed(1)}% கீழே`) } } },
       scales: {
         x: { display: false },
         y: { min: Math.min(-5, Math.floor(Math.min(...(_calc.dd)) / 10) * 10), max: 0,
@@ -423,8 +442,11 @@ function makeCharts() {
   });
 }
 
+let _lastFrame = 0;
+
 function setFrame(i) {
   // charts hold data up to index i
+  _lastFrame = i;
   const c = _calc;
   _chart.data.labels = c.months.slice(0, i + 1);
   ['stock', 'nifty', 'gold', 'fd'].forEach((k, di) => {
@@ -443,7 +465,8 @@ function setFrame(i) {
   document.getElementById('chipGold').textContent  = fmtBig(c.gold[i]);
   document.getElementById('chipFd').textContent    = fmtBig(c.fd[i]);
   document.getElementById('investedStrip').innerHTML =
-    `Invested so far: <strong>${fmtBig(c.invested[i])}</strong>`;
+    T(`Invested so far: <strong>${fmtBig(c.invested[i])}</strong>`,
+      `இதுவரை முதலீடு: <strong>${fmtBig(c.invested[i])}</strong>`);
 }
 
 function stopTimer() { if (_timer) { clearInterval(_timer); _timer = null; } }
@@ -452,15 +475,16 @@ function playJourney() {
   stopTimer();
   document.getElementById('sumCard').style.display = 'none';
   const n = _calc.n;
-  const step = n > 200 ? 2 : 1;
+  // pace the whole journey to ~16s so each month is readable, whatever the span
+  const interval = Math.min(150, Math.max(70, Math.round(16000 / n)));
   let i = 0;
   setFrame(0);
   document.getElementById('playBtn').disabled = true;
   _timer = setInterval(() => {
-    i = Math.min(i + step, n - 1);
+    i = Math.min(i + 1, n - 1);
     setFrame(i);
     if (i >= n - 1) { stopTimer(); finishJourney(); }
-  }, 45);
+  }, interval);
 }
 
 function skipToEnd() {
@@ -492,16 +516,14 @@ function painStats() {
   return { maxDd, longest };
 }
 
-function finishJourney() {
-  document.getElementById('playBtn').disabled = false;
+function renderSummary() {
   const c = _calc;
   const last = c.n - 1;
-  const invested = c.invested[last];
   const tracks = [
-    { key: 'stock', name: _raw.symbol, color: 'var(--cyan)',   val: c.stock[last], rate: xirr(c.stock, c.amount, _mode) },
-    { key: 'nifty', name: 'Nifty 50',  color: 'var(--accent)', val: c.nifty[last], rate: xirr(c.nifty, c.amount, _mode) },
-    { key: 'gold',  name: 'Gold',      color: 'var(--gold)',   val: c.gold[last],  rate: xirr(c.gold,  c.amount, _mode) },
-    { key: 'fd',    name: `FD @ ${c.fdRate}%`, color: 'var(--dim)', val: c.fd[last], rate: c.fdRate },
+    { key: 'stock', name: _raw.symbol,                          color: 'var(--cyan)',   val: c.stock[last], rate: xirr(c.stock, c.amount, _mode) },
+    { key: 'nifty', name: T('Nifty 50', 'நிஃப்டி 50'),           color: 'var(--accent)', val: c.nifty[last], rate: xirr(c.nifty, c.amount, _mode) },
+    { key: 'gold',  name: T('Gold', 'தங்கம்'),                   color: 'var(--gold)',   val: c.gold[last],  rate: xirr(c.gold,  c.amount, _mode) },
+    { key: 'fd',    name: `FD @ ${c.fdRate}%`,                  color: 'var(--dim)',    val: c.fd[last],    rate: c.fdRate },
   ];
   const best = tracks.reduce((a, b) => (b.val ?? -1) > (a.val ?? -1) ? b : a);
 
@@ -509,28 +531,42 @@ function finishJourney() {
     <div class="sum-box ${t === best ? 'winner' : ''}">
       <div class="sum-lbl"><span class="chip-dot" style="background:${t.color}"></span>${t.name}${t === best ? ' &#127942;' : ''}</div>
       <div class="sum-val">${fmtBig(t.val)}</div>
-      <div class="sum-sub ${t.rate >= 0 ? 'pos' : 'neg'}">${t.rate == null ? '' : (t.key === 'fd' ? t.rate.toFixed(1) + '% p.a.' : t.rate.toFixed(1) + '% XIRR')}</div>
+      <div class="sum-sub ${t.rate >= 0 ? 'pos' : 'neg'}">${t.rate == null ? '' : (t.key === 'fd' ? t.rate.toFixed(1) + T('% p.a.', '% ஆண்டு') : t.rate.toFixed(1) + '% XIRR')}</div>
     </div>
   `).join('');
 
   const { maxDd, longest } = painStats();
   document.getElementById('painStats').innerHTML = `
-    <span class="pain-pill">Deepest fall: ${maxDd.toFixed(1)}% below peak</span>
-    <span class="pain-pill">Longest stretch below a peak: ${longest} months</span>
+    <span class="pain-pill">${T(`Deepest fall: ${maxDd.toFixed(1)}% below peak`,
+                                `ஆழமான வீழ்ச்சி: உச்சத்திலிருந்து ${maxDd.toFixed(1)}% கீழே`)}</span>
+    <span class="pain-pill">${T(`Longest stretch below a peak: ${longest} months`,
+                                `உச்சத்திற்கு கீழே நீண்ட காலம்: ${longest} மாதங்கள்`)}</span>
   `;
 
-  const years = ((c.n - 1) / 12).toFixed(1);
+  const years  = ((c.n - 1) / 12).toFixed(1);
+  const fallPc = Math.abs(maxDd).toFixed(0);
   const stockT = tracks[0], fdT = tracks[3];
   let lesson;
   if (best.key === 'stock') {
-    lesson = `<strong>${_raw.symbol}</strong> finished ahead over these ${years} years — but notice the Pain Meter: anyone on this journey sat through a ${Math.abs(maxDd).toFixed(0)}% fall and up to ${longest} months below a previous peak. The growth and the discomfort came as a package. Study whether you could have stayed the course.`;
+    lesson = T(
+      `<strong>${_raw.symbol}</strong> finished ahead over these ${years} years — but notice the Pain Meter: anyone on this journey sat through a ${fallPc}% fall and up to ${longest} months below a previous peak. The growth and the discomfort came as a package. Study whether you could have stayed the course.`,
+      `இந்த ${years} ஆண்டுகளில் <strong>${_raw.symbol}</strong> முன்னிலையில் முடிந்தது — ஆனால் வலி அளவியை கவனியுங்கள்: இந்த பயணத்தில் இருந்தவர் ${fallPc}% வீழ்ச்சியையும், முந்தைய உச்சத்திற்கு கீழே ${longest} மாதங்கள் வரையும் கடந்திருக்க வேண்டும். வளர்ச்சியும் கஷ்டமும் சேர்ந்தே வந்தன. இந்த பயணத்தில் நீங்கள் நிலைத்திருந்திருப்பீர்களா என்பதை சிந்தியுங்கள்.`);
   } else if (stockT.val != null && fdT.val != null && stockT.val < fdT.val) {
-    lesson = `Over these ${years} years, a simple fixed deposit finished ahead of <strong>${_raw.symbol}</strong>. Not every stock rewards waiting — this is why studying business quality before tracking a stock matters more than the holding period alone.`;
+    lesson = T(
+      `Over these ${years} years, a simple fixed deposit finished ahead of <strong>${_raw.symbol}</strong>. Not every stock rewards waiting — this is why studying business quality before tracking a stock matters more than the holding period alone.`,
+      `இந்த ${years} ஆண்டுகளில் சாதாரண வைப்புத்தொகையே <strong>${_raw.symbol}</strong>-ஐ விட முன்னிலையில் முடிந்தது. எல்லா பங்குகளும் காத்திருப்பிற்கு பலன் தருவதில்லை — அதனால்தான் ஒரு பங்கை கண்காணிக்கும் முன் வணிகத்தின் தரத்தை படிப்பது, வைத்திருக்கும் காலத்தை விட முக்கியம்.`);
   } else {
-    lesson = `<strong>${best.name}</strong> finished ahead over these ${years} years, while ${_raw.symbol} went through a ${Math.abs(maxDd).toFixed(0)}% fall along the way. Diversification across asset types changed the journey more than the timing did. Compare a few different start years and observe how the ranking shifts.`;
+    lesson = T(
+      `<strong>${best.name}</strong> finished ahead over these ${years} years, while ${_raw.symbol} went through a ${fallPc}% fall along the way. Diversification across asset types changed the journey more than the timing did. Compare a few different start years and observe how the ranking shifts.`,
+      `இந்த ${years} ஆண்டுகளில் <strong>${best.name}</strong> முன்னிலையில் முடிந்தது; வழியில் ${_raw.symbol} ${fallPc}% வீழ்ச்சியை சந்தித்தது. நேரத்தை விட சொத்து வகைகளில் பரவலாக்கமே பயணத்தை அதிகம் மாற்றியது. வெவ்வேறு தொடக்க ஆண்டுகளை ஒப்பிட்டு வரிசை எப்படி மாறுகிறது என்பதை கவனியுங்கள்.`);
   }
   document.getElementById('lessonBox').innerHTML = lesson;
   document.getElementById('sumCard').style.display = '';
+}
+
+function finishJourney() {
+  document.getElementById('playBtn').disabled = false;
+  renderSummary();
   document.getElementById('sumCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
