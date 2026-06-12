@@ -333,7 +333,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <table class="log-table">
           <thead>
             <tr>
-              <th>Time</th>
+              <th>Time / Contract</th>
               <th>CE %</th>
               <th>PE %</th>
               <th>Signal</th>
@@ -473,7 +473,7 @@ async function fetchFromChain(autoApply = false) {
       const spot = data.spot || (data.analytics && data.analytics.spot);
       if (spot) {
         row = chain.reduce((a, b) => Math.abs(b.strike - spot) < Math.abs(a.strike - spot) ? b : a);
-        document.getElementById('atmStrike').value = row.strike;
+        if (!autoApply) document.getElementById('atmStrike').value = row.strike;
       } else {
         row = chain[Math.floor(chain.length / 2)];
       }
@@ -810,8 +810,12 @@ function logSnapshot() {
   if (cePct > 10 && pePct < 0)  signal = 'CE ▲';
   else if (pePct > 10 && cePct < 0) signal = 'PE ▼';
 
-  const timeStr = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
-  dayLog.push({ time: timeStr, cePct: parseFloat(cePct.toFixed(2)), pePct: parseFloat(pePct.toFixed(2)), ceCur: parseFloat(ceCur.toFixed(2)), peCur: parseFloat(peCur.toFixed(2)), signal, vwap: vwap });
+  const timeStr   = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+  const sym       = selectedIdx === 'nifty' ? 'NIFTY' : 'BANKNIFTY';
+  const strike    = document.getElementById('atmStrike').value || '';
+  const expiry    = document.getElementById('expirySelect').value || '';
+  const contract  = [sym, strike, expiry].filter(Boolean).join(' ');
+  dayLog.push({ time: timeStr, cePct: parseFloat(cePct.toFixed(2)), pePct: parseFloat(pePct.toFixed(2)), ceCur: parseFloat(ceCur.toFixed(2)), peCur: parseFloat(peCur.toFixed(2)), signal, vwap: vwap, contract });
 
   try {
     localStorage.setItem('osprey_log', JSON.stringify({ log: dayLog, date: new Date().toDateString() }));
@@ -858,8 +862,9 @@ function renderLog() {
     const pc = e.pePct > 0 ? 'pos' : e.pePct < 0 ? 'neg' : 'zero';
     const sc = e.signal === 'CE ▲' ? 'ce' : e.signal === 'PE ▼' ? 'pe' : 'nt';
     const fmt = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+    const contractStr = e.contract ? `<div style="font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.5px">${e.contract}</div>` : '';
     return `<tr>
-      <td class="log-time">${e.time}</td>
+      <td class="log-time">${e.time}${contractStr}</td>
       <td class="delta-mini ${cc}">${fmt(e.cePct)}</td>
       <td class="delta-mini ${pc}">${fmt(e.pePct)}</td>
       <td><span class="sig-mini ${sc}">${e.signal}</span></td>
@@ -1067,6 +1072,20 @@ function restoreCurrent() {
     calc();
   } catch(e) {}
 }
+
+// ── Visibility: restart auto-refresh when tab returns to foreground ────────
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden || !autoRefreshOn) return;
+  clearInterval(autoInterval);
+  clearInterval(countdownTick);
+  fetchFromChain(true);
+  autoInterval  = setInterval(() => fetchFromChain(true), AUTO_SEC * 1000);
+  autoCountdown = AUTO_SEC;
+  countdownTick = setInterval(() => {
+    autoCountdown = Math.max(0, autoCountdown - 1);
+    if (autoRefreshOn) document.getElementById('autoStatus').textContent = `Next fetch in ${autoCountdown}s`;
+  }, 1000);
+});
 
 // ── Init ───────────────────────────────────────────────────────
 restoreBase();
