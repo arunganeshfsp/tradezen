@@ -188,6 +188,11 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-msg{margin-top:12px;font-size:13px}
 
+/* ── Autocomplete dropdown ─────────────────────────────────────────────────── */
+.ac-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);
+         font-size:12px;transition:background .12s}
+.ac-item:hover{background:var(--bg3)}
+
 /* ── Scan results ─────────────────────────────────────────────────────────── */
 .rec-card{border-radius:10px;padding:16px 18px;margin-bottom:12px}
 .rec-rank1{background:rgba(241,196,15,.08);border:1px solid rgba(241,196,15,.35)}
@@ -398,8 +403,11 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
       <select id="stockSelect">
         <option value="">-- Select from Nifty 50 + Next 50 --</option>
       </select>
-      <span style="color:var(--muted);font-size:12px">or</span>
-      <input id="customSymbol" placeholder="Type NSE symbol (e.g. RELIANCE)" maxlength="20">
+      <span style="color:var(--muted);font-size:12px">or type stock name</span>
+      <div style="position:relative;flex:1;min-width:160px">
+        <input id="customSymbol" placeholder="e.g. Reliance" maxlength="30" autocomplete="off">
+        <div id="analyseAC" style="position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:10;display:none"></div>
+      </div>
       <button class="btn-primary" id="analyseBtn" onclick="runAnalyse()">Analyse</button>
     </div>
   </div>
@@ -484,9 +492,12 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
       Typical scan: 60–120 seconds — includes a fundamental health check on the strongest candidates.
     </div>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--border);padding-top:14px">
-      <span style="font-size:12px;color:var(--dim)">or study one stock:</span>
-      <input id="revSymbol" placeholder="e.g. TCS" maxlength="20"
-             style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;width:160px">
+      <span style="font-size:12px;color:var(--dim)">or type a stock name:</span>
+      <div style="position:relative">
+        <input id="revSymbol" placeholder="e.g. Reliance" maxlength="30" autocomplete="off"
+               style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;width:160px">
+        <div id="revAC" style="position:absolute;top:100%;left:0;right:160px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:10;display:none;min-width:220px"></div>
+      </div>
       <button class="btn-outline" onclick="runReversalAnalyse()">Study setup</button>
     </div>
   </div>
@@ -526,9 +537,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
   <div class="card">
     <div class="card-title">Add Open Position</div>
     <div class="pos-form" id="addForm">
-      <div>
+      <div style="position:relative;flex:1;min-width:140px">
         <label>Symbol *</label>
-        <input id="p_symbol" placeholder="e.g. INFY">
+        <input id="p_symbol" placeholder="e.g. Infosys" autocomplete="off">
+        <div id="reviewAC" style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:10;display:none"></div>
       </div>
       <div>
         <label>Entry Price (₹) *</label>
@@ -1754,6 +1766,94 @@ async function runReversalScan() {
   }
 }
 
+// Autocomplete initialization on page load
+function initAutocomplate() {
+  if (typeof window.STOCKS === 'undefined') return; // stocks-list.js not loaded yet
+
+  // Analyse Stock tab
+  const analyseInput = document.getElementById('customSymbol');
+  const analyseAC = document.getElementById('analyseAC');
+  if (analyseInput && analyseAC) {
+    analyseInput.addEventListener('input', e => {
+      const query = e.target.value.trim().toLowerCase();
+      if (query.length === 0) { analyseAC.style.display = 'none'; return; }
+      const matches = window.STOCKS.filter(s =>
+        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
+      ).slice(0, 8);
+      if (matches.length === 0) {
+        analyseAC.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches</div>';
+        analyseAC.style.display = 'block';
+        return;
+      }
+      analyseAC.innerHTML = matches.map(s =>
+        `<div onclick="setSymbol('customSymbol','analyseAC','${s.code}')" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;"><strong>${s.name}</strong> <span style="color:var(--muted);font-size:10px">(${s.code})</span></div>`
+      ).join('');
+      analyseAC.style.display = 'block';
+    });
+    document.addEventListener('click', e => {
+      if (e.target !== analyseInput && !analyseAC.contains(e.target)) analyseAC.style.display = 'none';
+    });
+  }
+
+  // Reversal Radar tab
+  const revInput = document.getElementById('revSymbol');
+  const revAC = document.getElementById('revAC');
+  if (revInput && revAC) {
+    revInput.addEventListener('input', e => {
+      const query = e.target.value.trim().toLowerCase();
+      if (query.length === 0) { revAC.style.display = 'none'; return; }
+      const matches = window.STOCKS.filter(s =>
+        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
+      ).slice(0, 8);
+      if (matches.length === 0) {
+        revAC.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches</div>';
+        revAC.style.display = 'block';
+        return;
+      }
+      revAC.innerHTML = matches.map(s =>
+        `<div onclick="setSymbol('revSymbol','revAC','${s.code}')" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;"><strong>${s.name}</strong> <span style="color:var(--muted);font-size:10px">(${s.code})</span></div>`
+      ).join('');
+      revAC.style.display = 'block';
+    });
+    document.addEventListener('click', e => {
+      if (e.target !== revInput && !revAC.contains(e.target)) revAC.style.display = 'none';
+    });
+  }
+
+  // Review tab
+  const reviewInput = document.getElementById('p_symbol');
+  const reviewAC = document.getElementById('reviewAC');
+  if (reviewInput && reviewAC) {
+    reviewInput.addEventListener('input', e => {
+      const query = e.target.value.trim().toLowerCase();
+      if (query.length === 0) { reviewAC.style.display = 'none'; return; }
+      const matches = window.STOCKS.filter(s =>
+        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
+      ).slice(0, 8);
+      if (matches.length === 0) {
+        reviewAC.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches</div>';
+        reviewAC.style.display = 'block';
+        return;
+      }
+      reviewAC.innerHTML = matches.map(s =>
+        `<div onclick="setSymbol('p_symbol','reviewAC','${s.code}')" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;"><strong>${s.name}</strong> <span style="color:var(--muted);font-size:10px">(${s.code})</span></div>`
+      ).join('');
+      reviewAC.style.display = 'block';
+    });
+    document.addEventListener('click', e => {
+      if (e.target !== reviewInput && !reviewAC.contains(e.target)) reviewAC.style.display = 'none';
+    });
+  }
+}
+
+function setSymbol(inputId, acId, code) {
+  document.getElementById(inputId).value = code;
+  document.getElementById(acId).style.display = 'none';
+}
+
+// Initialize autocomplete when page loads
+document.addEventListener('DOMContentLoaded', initAutocomplate);
+
 async function runReversalAnalyse() {
   const sym = document.getElementById('revSymbol').value.trim().toUpperCase();
   if (!sym) { alert('Type a stock symbol to study.'); return; }
@@ -1776,6 +1876,7 @@ async function runReversalAnalyse() {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="stocks-list.js"></script>
 <script src="halo-aurora.js"></script>
 </body>
 </html>
