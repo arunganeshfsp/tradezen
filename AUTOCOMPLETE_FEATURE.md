@@ -6,11 +6,15 @@ Wherever a user types a stock symbol in the **Swing Trading** page, they can now
 
 ## Where it works
 
-**Three input fields now have autocomplete:**
+**Four pages now have autocomplete:**
 
+### Swing Trading page (swing_trading.html)
 1. **Analyse Stock tab** — "Type stock name" input
 2. **Reversal Radar tab** — "Type a stock name" input  
 3. **Portfolio Review tab** — "Symbol" input when adding a position
+
+### Stock Analyser page (stock-analyser.html)
+4. **Search input** — "Type stock name" input at the top
 
 ## How to use
 

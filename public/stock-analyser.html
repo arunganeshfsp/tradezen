@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="stocks-list.js"></script>
 
 <style>
 :root{
@@ -260,9 +261,12 @@ table.fin-tbl{width:100%;border-collapse:collapse;min-width:480px;}
     <p>Enter any NSE symbol to get a full fundamental + technical snapshot with a plain-English scorecard.</p>
   </div>
 
-  <div class="search-wrap">
-    <input id="symbolInput" class="search-input" type="text" placeholder="e.g. RELIANCE, INFY, TATACHEM"
-      autocomplete="off" autocapitalize="characters" spellcheck="false" />
+  <div class="search-wrap" style="position:relative">
+    <div style="flex:1;position:relative">
+      <input id="symbolInput" class="search-input" type="text" placeholder="Type stock name (e.g. Reliance, TCS)"
+        autocomplete="off" spellcheck="false" />
+      <div id="analyserAC" style="position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto;z-index:10;display:none;margin-top:-1px"></div>
+    </div>
     <button id="analyseBtn" class="search-btn">Analyse</button>
   </div>
 
@@ -272,8 +276,8 @@ table.fin-tbl{width:100%;border-collapse:collapse;min-width:480px;}
     <button class="qp" data-sym="INFY">INFY</button>
     <button class="qp" data-sym="TCS">TCS</button>
     <button class="qp" data-sym="HDFCBANK">HDFCBANK</button>
-    <button class="qp" data-sym="TATAMOTORS">TATAMOTORS</button>
-    <button class="qp" data-sym="ZOMATO">ZOMATO</button>
+    <button class="qp" data-sym="TMPV">TMPV</button>
+    <button class="qp" data-sym="ETERNAL">ETERNAL</button>
     <button class="qp" data-sym="ADANIENT">ADANIENT</button>
   </div>
 
@@ -877,6 +881,41 @@ async function doAnalyse() {
     btn.disabled = false;
   }
 }
+
+// Autocomplete initialization
+function initAnalyserAutocomplete() {
+  if (typeof window.STOCKS === 'undefined') return;
+  const input = document.getElementById('symbolInput');
+  const ac = document.getElementById('analyserAC');
+
+  input.addEventListener('input', e => {
+    const query = e.target.value.trim().toLowerCase();
+    if (query.length === 0) { ac.style.display = 'none'; return; }
+    const matches = window.STOCKS.filter(s =>
+      s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
+    ).slice(0, 8);
+    if (matches.length === 0) {
+      ac.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches</div>';
+      ac.style.display = 'block';
+      return;
+    }
+    ac.innerHTML = matches.map(s =>
+      `<div onclick="setAnalyserSymbol('${s.code}')" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;"><strong>${s.name}</strong> <span style="color:var(--muted);font-size:10px">(${s.code})</span></div>`
+    ).join('');
+    ac.style.display = 'block';
+  });
+  document.addEventListener('click', e => {
+    if (e.target !== input && !ac.contains(e.target)) ac.style.display = 'none';
+  });
+}
+
+function setAnalyserSymbol(code) {
+  document.getElementById('symbolInput').value = code;
+  document.getElementById('analyserAC').style.display = 'none';
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initAnalyserAutocomplete);
 
 const urlSym = new URLSearchParams(location.search).get('symbol');
 if (urlSym) { input.value = urlSym.toUpperCase(); doAnalyse(); }
