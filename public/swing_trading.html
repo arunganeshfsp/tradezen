@@ -1767,92 +1767,15 @@ async function runReversalScan() {
 }
 
 // Autocomplete initialization on page load
-function initAutocomplate() {
-  if (typeof window.STOCKS === 'undefined') return; // stocks-list.js not loaded yet
-
-  // Analyse Stock tab
-  const analyseInput = document.getElementById('customSymbol');
-  const analyseAC = document.getElementById('analyseAC');
-  if (analyseInput && analyseAC) {
-    analyseInput.addEventListener('input', e => {
-      const query = e.target.value.trim().toLowerCase();
-      if (query.length === 0) { analyseAC.style.display = 'none'; return; }
-      const matches = window.STOCKS.filter(s =>
-        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
-      ).slice(0, 8);
-      if (matches.length === 0) {
-        analyseAC.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches</div>';
-        analyseAC.style.display = 'block';
-        return;
-      }
-      analyseAC.innerHTML = matches.map(s =>
-        `<div onclick="setSymbol('customSymbol','analyseAC','${s.code}')" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;"><strong>${s.name}</strong> <span style="color:var(--muted);font-size:10px">(${s.code})</span></div>`
-      ).join('');
-      analyseAC.style.display = 'block';
-    });
-    document.addEventListener('click', e => {
-      if (e.target !== analyseInput && !analyseAC.contains(e.target)) analyseAC.style.display = 'none';
-    });
-  }
-
-  // Reversal Radar tab
-  const revInput = document.getElementById('revSymbol');
-  const revAC = document.getElementById('revAC');
-  if (revInput && revAC) {
-    revInput.addEventListener('input', e => {
-      const query = e.target.value.trim().toLowerCase();
-      if (query.length === 0) { revAC.style.display = 'none'; return; }
-      const matches = window.STOCKS.filter(s =>
-        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
-      ).slice(0, 8);
-      if (matches.length === 0) {
-        revAC.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches</div>';
-        revAC.style.display = 'block';
-        return;
-      }
-      revAC.innerHTML = matches.map(s =>
-        `<div onclick="setSymbol('revSymbol','revAC','${s.code}')" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;"><strong>${s.name}</strong> <span style="color:var(--muted);font-size:10px">(${s.code})</span></div>`
-      ).join('');
-      revAC.style.display = 'block';
-    });
-    document.addEventListener('click', e => {
-      if (e.target !== revInput && !revAC.contains(e.target)) revAC.style.display = 'none';
-    });
-  }
-
-  // Review tab
-  const reviewInput = document.getElementById('p_symbol');
-  const reviewAC = document.getElementById('reviewAC');
-  if (reviewInput && reviewAC) {
-    reviewInput.addEventListener('input', e => {
-      const query = e.target.value.trim().toLowerCase();
-      if (query.length === 0) { reviewAC.style.display = 'none'; return; }
-      const matches = window.STOCKS.filter(s =>
-        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
-      ).slice(0, 8);
-      if (matches.length === 0) {
-        reviewAC.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches</div>';
-        reviewAC.style.display = 'block';
-        return;
-      }
-      reviewAC.innerHTML = matches.map(s =>
-        `<div onclick="setSymbol('p_symbol','reviewAC','${s.code}')" style="padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;"><strong>${s.name}</strong> <span style="color:var(--muted);font-size:10px">(${s.code})</span></div>`
-      ).join('');
-      reviewAC.style.display = 'block';
-    });
-    document.addEventListener('click', e => {
-      if (e.target !== reviewInput && !reviewAC.contains(e.target)) reviewAC.style.display = 'none';
-    });
-  }
-}
-
-function setSymbol(inputId, acId, code) {
-  document.getElementById(inputId).value = code;
-  document.getElementById(acId).style.display = 'none';
+// Autocomplete initialization — uses API-based stock search
+function initAutocompleteFields() {
+  initStockAutocomplete('customSymbol', 'analyseAC');   // Analyse Stock tab
+  initStockAutocomplete('revSymbol', 'revAC');           // Reversal Radar tab
+  initStockAutocomplete('p_symbol', 'reviewAC');         // Review tab
 }
 
 // Initialize autocomplete when page loads
-document.addEventListener('DOMContentLoaded', initAutocomplate);
+document.addEventListener('DOMContentLoaded', initAutocompleteFields);
 
 async function runReversalAnalyse() {
   const sym = document.getElementById('revSymbol').value.trim().toUpperCase();

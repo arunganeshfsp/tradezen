@@ -536,6 +536,18 @@ router.get("/stocks/live-prices", async (req, res) => {
   }
 });
 
+// ─── GET /api/stocks/search?q=reliance ──────────────────────────────────────
+// Search NSE/BSE stocks by code or name (autocomplete)
+router.get("/stocks/search", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stocks/search?${params}`, 5000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/options/contract-history-nse ───────────────────────────────────
 router.get("/options/contract-history-nse", async (req, res) => {
   try {

@@ -3536,6 +3536,20 @@ def stocks_live_prices(index: str = "nifty50"):
         return {"error": str(e)}
 
 
+@app.get("/stocks/search")
+def stocks_search(q: str = "", limit: int = 8):
+    """Search for NSE/BSE stocks by code or name. Supports autocomplete."""
+    from stocks_data import search_stocks
+    if limit > 20:
+        limit = 20  # cap at 20 to avoid abuse
+    try:
+        results = search_stocks(q, limit)
+        return {"results": results, "count": len(results)}
+    except Exception as e:
+        log.error(f"stocks/search error: {e}")
+        return {"error": str(e), "results": [], "count": 0}
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Swing Trading (S4 framework) endpoints
 # ══════════════════════════════════════════════════════════════════════════════

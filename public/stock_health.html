@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="tradezen.css">
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
+<script src="stocks-list.js"></script>
 
 <style>
 :root{
@@ -207,10 +208,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
     </p>
   </div>
 
-  <div class="search-wrap">
-    <input id="symbolInput" class="search-input" type="text"
-      placeholder="e.g. RELIANCE, INFY, ZOMATO"
-      autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+  <div class="search-wrap" style="position:relative">
+    <div style="flex:1;position:relative">
+      <input id="symbolInput" class="search-input" type="text"
+        placeholder="Type stock name (e.g. Reliance, TCS)"
+        autocomplete="off" spellcheck="false"/>
+      <div id="healthAC" style="position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto;z-index:10;display:none;margin-top:-1px"></div>
+    </div>
     <button id="checkBtn" class="search-btn" data-en="Check Health" data-ta="நலன் பரிசோதி">Check Health</button>
   </div>
 
@@ -224,8 +228,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
     <button class="qp" data-sym="INFY">INFY</button>
     <button class="qp" data-sym="TCS">TCS</button>
     <button class="qp" data-sym="HDFCBANK">HDFCBANK</button>
-    <button class="qp" data-sym="ZOMATO">ZOMATO</button>
-    <button class="qp" data-sym="TATAMOTORS">TATAMOTORS</button>
+    <button class="qp" data-sym="ETERNAL">ETERNAL</button>
+    <button class="qp" data-sym="TMPV">TMPV</button>
     <button class="qp" data-sym="ADANIENT">ADANIENT</button>
   </div>
 
@@ -516,6 +520,11 @@ async function doCheck() {
 
 const urlSym = new URLSearchParams(location.search).get('symbol');
 if (urlSym) { input.value = urlSym.toUpperCase(); doCheck(); }
+
+// Initialize stock autocomplete
+document.addEventListener('DOMContentLoaded', () => {
+  initStockAutocomplete('symbolInput', 'healthAC');
+});
 </script>
 
 </body>
