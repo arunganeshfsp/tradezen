@@ -94,6 +94,18 @@ A 5th tab — **mean-reversion** counterpart to the trend-following 5-pillar eng
 - **i18n note:** this page predates the `T()`/`data-ta` JS-string i18n pattern; its dynamic tab content (Analyse/Scan) is English-only. The Reversal tab matches that (English dynamic strings; `data-en/data-ta` only on the static tab button) for consistency, rather than bolting a bilingual layer onto one tab.
 - **Validated 2026-06-13:** synthetic happy-path (28.9% fall + higher-low + reclaim → candidate, score 86.7, all 6 checks pass) and live yfinance (TCS −36.5% → `rejected` because the turn isn't confirmed; HINDUNILVR −20.5% → `watching`). Real fundamentals/sector/drawdown map correctly.
 
+## Data-accuracy fixes (2026-06-13)
+
+Audit of the Friday Scan (`scan_stocks`) and Screener (`screener.py`) found results were skewed/misleading. Fixed:
+
+- **Dead/renamed tickers silently dropped** (verified against live Yahoo). Corrected across `screener.py`, `swing_analyzer.py` (NIFTY50/NEXT50 + STOCK_INFO), `reversal_analyzer` (via shared lists) and the `swing_trading.html` dropdown: CUMMINS→CUMMINSIND, AMBUJACEMENT→AMBUJACEM, BERGER→BERGEPAINT, JUBILFOOD→JUBLFOOD, TVSMOTORS→TVSMOTOR, ZOMATO→ETERNAL, MCDOWELL-N→UNITDSPR, MINDA→UNOMINDA, MAZAGON→MAZDOCK, CHAMBAL→CHAMBLFERT, EMAMI→EMAMILTD, **TATAMOTORS→TMPV** (post-demerger; old symbol has no Yahoo data). **LTIM removed** — LTIMindtree has no Yahoo data under any symbol, so it's unusable in this Yahoo-fed app (NEXT50 is now 49). The Screener's "Screened N" count was inflated by these phantoms.
+- **`auto_adjust=True` → `auto_adjust=False`** (all three: `screener.py`, `swing_analyzer._fetch_stock_daily` + `scan_stocks`, `reversal_analyzer.scan_reversals`). Yahoo's adjusted Close is dividend-adjusted, which (a) made displayed LTP / "Prev High" not match the user's broker chart and (b) lowered historical highs → **false breakouts** for high-dividend stocks (measured ~10pp error on COALINDIA over 5y). Now uses raw split-adjusted `Close`. **Verified:** screener LTP == raw close for CANFINHOME (862.3) and ADANIPORTS (1812.9).
+- **"Multibagger" now multi-year** — was `period="1y"` (a 1-year 2× mislabelled as a multibagger). Now `period="5y"` with gain measured from the multi-year low; label/sub say "from multi-year low" / "5Y Low". Verified BHEL +800% from ₹42.
+- **`_col()` cross-contamination guard** — the old fallback returned the same field-series for every symbol when `yf.download` returned a flat (non-MultiIndex) frame. Now only honours flat columns when exactly one symbol was requested. Verified 6/6 distinct prices in a mixed scan. (Same guard applied to `reversal_analyzer`.)
+- **20-day volume baseline excludes today** — `volume.iloc[-21:]` → `[-21:-1]` in both scan and single-analyse, so today isn't folded into its own surge baseline.
+
+Note: the Reversal Radar now shares `auto_adjust=False`, so its drawdown-from-high is computed on raw prices too (slightly larger, broker-matching drawdowns than before).
+
 ## Known Caveats
 
 - Warning shown: "First run fetches ~59 days of 5m + 15m + 1H data from yfinance · takes 15–40 sec"

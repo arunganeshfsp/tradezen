@@ -24,7 +24,7 @@ NIFTY50 = [
     "INFY", "SBIN", "HINDUNILVR", "ITC", "LT",
     "KOTAKBANK", "AXISBANK", "BAJFINANCE", "WIPRO", "HCLTECH",
     "ONGC", "MARUTI", "NTPC", "M&M", "SUNPHARMA",
-    "TITAN", "POWERGRID", "TATAMOTORS", "ADANIENT", "ADANIPORTS",
+    "TITAN", "POWERGRID", "TMPV", "ADANIENT", "ADANIPORTS",
     "ULTRACEMCO", "BAJAJFINSV", "JSWSTEEL", "HINDALCO", "COALINDIA",
     "TATASTEEL", "NESTLEIND", "DIVISLAB", "TECHM", "CIPLA",
     "GRASIM", "ASIANPAINT", "BRITANNIA", "EICHERMOT", "HEROMOTOCO",
@@ -37,7 +37,7 @@ NIFTY_NEXT50 = [
     "CHOLAFIN", "COLPAL", "CONCOR", "DABUR", "DLF",
     "GAIL", "GODREJCP", "HAVELLS", "HINDZINC", "ICICIGI",
     "ICICIPRULI", "INDHOTEL", "INDUSTOWER", "IOC", "IRCTC",
-    "JINDALSTEL", "LICI", "LODHA", "LTIM", "LTTS",
+    "JINDALSTEL", "LICI", "LODHA", "LTTS",
     "LUPIN", "NAUKRI", "OBEROIRLTY", "OFSS", "PAGEIND",
     "PERSISTENT", "PIDILITIND", "PIIND", "POLYCAB", "RECLTD",
     "SAIL", "SRF", "TATAPOWER", "TIINDIA", "TORNTPHARM",
@@ -69,7 +69,7 @@ STOCK_INFO: dict[str, dict] = {
     "SUNPHARMA":  {"name": "Sun Pharmaceutical",         "sector": "Pharma"},
     "TITAN":      {"name": "Titan Company",              "sector": "Consumer"},
     "POWERGRID":  {"name": "Power Grid Corp",            "sector": "Energy"},
-    "TATAMOTORS": {"name": "Tata Motors",                "sector": "Auto"},
+    "TMPV":       {"name": "Tata Motors Passenger Vehicles", "sector": "Auto"},
     "ADANIENT":   {"name": "Adani Enterprises",          "sector": "Diversified"},
     "ADANIPORTS": {"name": "Adani Ports",                "sector": "Infrastructure"},
     "ULTRACEMCO": {"name": "UltraTech Cement",           "sector": "Cement"},
@@ -121,7 +121,6 @@ STOCK_INFO: dict[str, dict] = {
     "JINDALSTEL": {"name": "Jindal Steel",               "sector": "Metal"},
     "LICI":       {"name": "LIC India",                  "sector": "Insurance"},
     "LODHA":      {"name": "Lodha (Macrotech)",          "sector": "Realty"},
-    "LTIM":       {"name": "LTIMindtree",                "sector": "IT"},
     "LTTS":       {"name": "L&T Technology Services",   "sector": "IT"},
     "LUPIN":      {"name": "Lupin",                      "sector": "Pharma"},
     "NAUKRI":     {"name": "Info Edge (Naukri)",         "sector": "IT"},
@@ -312,7 +311,7 @@ def _fetch_stock_daily(symbol: str) -> tuple:
     import yfinance as yf
     yf_sym = symbol + ".NS"
     ticker = yf.Ticker(yf_sym)
-    daily  = ticker.history(period="1y", interval="1d", auto_adjust=True)
+    daily  = ticker.history(period="1y", interval="1d", auto_adjust=False)
 
     if daily.empty or len(daily) < 50:
         raise ValueError(f"Insufficient data for {symbol}")
@@ -570,7 +569,7 @@ def analyse_stock(symbol: str, capital: float = 75000, risk_pct: float = 2) -> d
         low_52w   = round(float(df["Low"].min()), 2)
 
         vol_today   = int(volume.iloc[-1])
-        vol_avg_20d = max(1, int(volume.iloc[-21:].mean()))
+        vol_avg_20d = max(1, int(volume.iloc[-21:-1].mean()))
         vol_ratio   = round(vol_today / vol_avg_20d * 100, 0)
 
         ref_idx      = -22 if len(close) >= 22 else 0
@@ -805,15 +804,22 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
     log.info(f"[SwingScan] batch-downloading {len(yf_syms)} symbols…")
     try:
         raw = yf.download(yf_syms, period="1y", interval="1d",
-                          auto_adjust=True, progress=False, threads=True)
+                          auto_adjust=False, progress=False, threads=True)
     except Exception as e:
         return {"error": f"Batch download failed: {e}"}
 
-    # Helper to extract a per-stock Series from MultiIndex download
+    # Helper to extract a per-stock Series from the MultiIndex (field, ticker) download.
+    # Flat columns only occur when a single ticker returned data — honour that case
+    # only when one symbol was requested, otherwise we'd hand every stock the same series.
     def _col(field: str, sym: str) -> pd.Series:
         try:
-            s = raw[field][sym] if (field, sym) in raw.columns or isinstance(raw.columns, pd.MultiIndex) else raw[field]
-            return s.dropna()
+            if isinstance(raw.columns, pd.MultiIndex):
+                if (field, sym) in raw.columns:
+                    return raw[field][sym].dropna()
+                return pd.Series(dtype=float)
+            if len(yf_syms) == 1 and field in raw.columns:
+                return raw[field].dropna()
+            return pd.Series(dtype=float)
         except Exception:
             return pd.Series(dtype=float)
 
@@ -835,7 +841,7 @@ def scan_stocks(symbols: list[str], capital: float = 75000, risk_pct: float = 2)
             ltp       = float(close.iloc[-1])
             ema50_val = float(calculate_ema(close, 50).iloc[-1])
             rsi_val   = float(calculate_rsi(close, 14).iloc[-1])
-            vol_avg20 = max(1, int(volume.iloc[-21:].mean()))
+            vol_avg20 = max(1, int(volume.iloc[-21:-1].mean()))
             vol_today = int(volume.iloc[-1])
 
             ref_idx      = -22 if len(close) >= 22 else 0

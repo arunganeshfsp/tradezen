@@ -39,18 +39,18 @@ _RAW_UNIVERSE: List[str] = [
     "ITC", "BHARTIARTL", "LT", "AXISBANK", "ASIANPAINT",
     "MARUTI", "SUNPHARMA", "TITAN", "NESTLEIND", "WIPRO",
     "ULTRACEMCO", "TECHM", "ONGC", "POWERGRID", "NTPC",
-    "TATAMOTORS", "BAJAJFINSV", "HCLTECH", "JSWSTEEL", "TATASTEEL",
+    "TMPV", "BAJAJFINSV", "HCLTECH", "JSWSTEEL", "TATASTEEL",
     "COALINDIA", "ADANIENT", "ADANIPORTS", "HINDALCO", "BPCL",
     "DRREDDY", "DIVISLAB", "CIPLA", "APOLLOHOSP", "INDUSINDBK",
     "GRASIM", "TATACONSUM", "BRITANNIA", "EICHERMOT", "BAJAJ-AUTO",
     "HEROMOTOCO", "SHRIRAMFIN", "BEL", "HDFCLIFE", "M&M",
     # ── IT & Tech ────────────────────────────────────────────────────────────
-    "LTIM", "MPHASIS", "PERSISTENT", "COFORGE", "KPITTECH",
-    "TATAELXSI", "OFSS", "NAUKRI", "ZOMATO", "NYKAA",
+    "MPHASIS", "PERSISTENT", "COFORGE", "KPITTECH",
+    "TATAELXSI", "OFSS", "NAUKRI", "ETERNAL", "NYKAA",
     # ── Capital Goods / Infra / Defence ──────────────────────────────────────
-    "SIEMENS", "ABB", "CUMMINS", "THERMAX", "HAL",
+    "SIEMENS", "ABB", "CUMMINSIND", "THERMAX", "HAL",
     "BHEL", "IRFC", "RVNL", "IRCTC", "HUDCO",
-    "MAZAGON", "COCHINSHIP", "GRSE",
+    "MAZDOCK", "COCHINSHIP", "GRSE",
     # ── Power & Renewables ───────────────────────────────────────────────────
     "NHPC", "SJVN", "CESC", "TORNTPOWER", "TATAPOWER",
     "ADANIGREEN", "ADANIPOWER",
@@ -58,17 +58,17 @@ _RAW_UNIVERSE: List[str] = [
     "VEDL", "HINDZINC", "NMDC", "SAIL", "NATIONALUM",
     # ── Building Materials / Chemicals ───────────────────────────────────────
     "APLAPOLLO", "ASTRAL", "SUPREMEIND", "DEEPAKNTR",
-    "PIIND", "UPL", "CHAMBAL", "COROMANDEL",
+    "PIIND", "UPL", "CHAMBLFERT", "COROMANDEL",
     # ── Pharma & Healthcare ──────────────────────────────────────────────────
     "LUPIN", "ALKEM", "IPCALAB", "LALPATHLAB",
     # ── FMCG & Consumer ──────────────────────────────────────────────────────
-    "MARICO", "GODREJCP", "EMAMI", "COLPAL", "DABUR",
-    "MCDOWELL-N", "RADICO",
+    "MARICO", "GODREJCP", "EMAMILTD", "COLPAL", "DABUR",
+    "UNITDSPR", "RADICO",
     # ── Retail / Fashion / Jewellery ─────────────────────────────────────────
     "TRENT", "DMART", "PAGEIND", "KALYANKJIL", "SENCO",
     # ── Auto & Ancillaries ───────────────────────────────────────────────────
-    "TVSMOTORS", "ASHOKLEY", "MOTHERSON", "BOSCHLTD", "MRF",
-    "EXIDEIND", "MINDA",
+    "TVSMOTOR", "ASHOKLEY", "MOTHERSON", "BOSCHLTD", "MRF",
+    "EXIDEIND", "UNOMINDA",
     # ── Financials / NBFCs / Insurance ───────────────────────────────────────
     "CHOLAFIN", "MUTHOOTFIN", "MANAPPURAM", "PNBHOUSING",
     "LICHSGFIN", "CANFINHOME", "BANDHANBNK", "FEDERALBNK",
@@ -77,11 +77,11 @@ _RAW_UNIVERSE: List[str] = [
     # ── Real Estate ──────────────────────────────────────────────────────────
     "DLF", "GODREJPROP", "PRESTIGE", "OBEROIRLTY",
     # ── Cement ───────────────────────────────────────────────────────────────
-    "SHREECEM", "AMBUJACEMENT", "ACC", "RAMCOCEM",
+    "SHREECEM", "AMBUJACEM", "ACC", "RAMCOCEM",
     # ── Paints ───────────────────────────────────────────────────────────────
-    "BERGER", "KANSAINER",
+    "BERGEPAINT", "KANSAINER",
     # ── QSR / Food ───────────────────────────────────────────────────────────
-    "JUBILFOOD", "DEVYANI",
+    "JUBLFOOD", "DEVYANI",
 ]
 
 # Deduplicate while preserving order
@@ -108,7 +108,7 @@ _CATEGORY_LABELS = {
 }
 
 _PERIOD_MAP = {
-    "multibagger": "1y",
+    "multibagger": "5y",
     "breakout_1y": "1y",
     "breakout_3y": "3y",
     "breakout_5y": "max",
@@ -151,7 +151,7 @@ def _score_stock(
         month_start = today.replace(day=1)
         lookback    = max((today - month_start).days, 5)
     elif category == "multibagger":
-        lookback = min(252, n - 1)
+        lookback = n - 1                 # gain measured from the multi-year low
     else:
         return None
 
@@ -189,8 +189,8 @@ def _score_stock(
             "symbol":       sym,
             "ltp":          round(curr, 2),
             "score":        score,
-            "label":        f"+{gain_pct:.0f}% from 52W low",
-            "sub":          f"52W Low ₹{hist_low:,.0f}",
+            "label":        f"+{gain_pct:.0f}% from multi-year low",
+            "sub":          f"5Y Low ₹{hist_low:,.0f}",
             "vol_ratio":    round(vol_ratio, 2),
             "above_200sma": momentum_pct > 0,
             "tag":          "MULTIBAGGER",
@@ -272,7 +272,7 @@ def run_screener(category: str) -> Dict[str, Any]:
             yf_syms,
             period=period,
             interval="1d",
-            auto_adjust=True,
+            auto_adjust=False,   # raw split-adjusted Close — matches broker prices, no false breakouts from dividend adjustment
             progress=False,
             threads=True,
             group_by="ticker",

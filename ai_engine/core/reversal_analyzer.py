@@ -414,15 +414,19 @@ def scan_reversals(symbols: list[str], capital: float = 75000, risk_pct: float =
     log.info(f"[ReversalScan] batch-downloading {len(yf_syms)} symbols…")
     try:
         raw = yf.download(yf_syms, period="1y", interval="1d",
-                          auto_adjust=True, progress=False, threads=True)
+                          auto_adjust=False, progress=False, threads=True)
     except Exception as e:
         return {"error": f"Batch download failed: {e}"}
 
     def _col(field: str, sym: str) -> pd.Series:
         try:
             if isinstance(raw.columns, pd.MultiIndex):
-                return raw[field][sym].dropna()
-            return raw[field].dropna()
+                if (field, sym) in raw.columns:
+                    return raw[field][sym].dropna()
+                return pd.Series(dtype=float)
+            if len(yf_syms) == 1 and field in raw.columns:
+                return raw[field].dropna()
+            return pd.Series(dtype=float)
         except Exception:
             return pd.Series(dtype=float)
 
