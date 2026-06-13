@@ -208,12 +208,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
     </p>
   </div>
 
-  <div class="search-wrap" style="position:relative">
-    <div style="flex:1;position:relative">
+  <div class="search-wrap">
+    <div style="position:relative;flex:1">
       <input id="symbolInput" class="search-input" type="text"
         placeholder="Type stock name (e.g. Reliance, TCS)"
         autocomplete="off" spellcheck="false"/>
-      <div id="healthAC" style="position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto;z-index:10;display:none;margin-top:-1px"></div>
+      <div id="healthAC" style="position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto;z-index:100;display:none;box-shadow:0 8px 20px rgba(0,0,0,0.3)"></div>
     </div>
     <button id="checkBtn" class="search-btn" data-en="Check Health" data-ta="நலன் பரிசோதி">Check Health</button>
   </div>
@@ -522,9 +522,13 @@ const urlSym = new URLSearchParams(location.search).get('symbol');
 if (urlSym) { input.value = urlSym.toUpperCase(); doCheck(); }
 
 // Initialize stock autocomplete
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initStockAutocomplete('symbolInput', 'healthAC');
+  });
+} else {
   initStockAutocomplete('symbolInput', 'healthAC');
-});
+}
 </script>
 
 </body>
