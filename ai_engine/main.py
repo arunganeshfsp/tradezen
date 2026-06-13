@@ -3577,6 +3577,30 @@ def swing_prices(symbols: str):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@app.get("/swing/reversal/analyse")
+def swing_reversal_analyse(symbol: str, capital: float = 75000, risk_pct: float = 2,
+                           min_fall: float = 15.0):
+    """Reversal Radar: confirmed-turn analysis for one fallen NSE stock."""
+    from core.reversal_analyzer import analyse_reversal
+    try:
+        return analyse_reversal(symbol.upper().strip(), capital, risk_pct, min_fall)
+    except Exception as e:
+        log.error(f"swing/reversal/analyse error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/swing/reversal/scan")
+def swing_reversal_scan(capital: float = 75000, risk_pct: float = 2,
+                        min_fall: float = 15.0, universe: str = "midcaps"):
+    """Reversal Radar batch scan: quality large/mid-caps showing a confirmed turn."""
+    from core.reversal_analyzer import scan_reversals, reversal_universe
+    try:
+        return scan_reversals(reversal_universe(universe), capital, risk_pct, min_fall)
+    except Exception as e:
+        log.error(f"swing/reversal/scan error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Cup & Handle Pattern Detection endpoints
 # ══════════════════════════════════════════════════════════════════════════════

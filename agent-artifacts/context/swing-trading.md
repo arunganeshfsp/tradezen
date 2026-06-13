@@ -81,6 +81,19 @@ All swing data fetched via `yfinance` (not SmartAPI). This means:
 
 ---
 
+## Reversal Radar tab (added 2026-06-13)
+
+A 5th tab — **mean-reversion** counterpart to the trend-following 5-pillar engine. Built because the S4 engine *rejects* fallen stocks (it requires price > EMA50, RSI 50–70, 15%+ above 52w low), so it could never surface "quality leader down 30% and turning" (the user's TCS example). Spec: `spec-kit/specs/reversal-radar.md`.
+
+- **Backend:** `ai_engine/core/reversal_analyzer.py` (new) — `analyse_reversal()` (single) + `scan_reversals()` (batch). Reuses `swing_analyzer` helpers (`STOCK_INFO`, `_fetch_*`, `_atr14`, `_position_size`, `_vix_zone`, `_CACHE`). Adds `MIDCAP_INFO`/`MIDCAP_SELECT` (~30 quality midcaps). Endpoints in `main.py`: `GET /swing/reversal/analyse`, `GET /swing/reversal/scan`. Node proxy: `/api/swing/reversal/*` (180s timeout on scan).
+- **Strategy (fixed "Confirmed turn", strict):** drawdown 15–65% off 52w high → at support (200-DMA / 52w-low band / prior pivot demand) → **confirmed = higher-low AND 20-DMA reclaim AND (RSI-turn OR MACD-up) AND volume confirmation**. Bonus: bullish RSI divergence, reversal candle. Buckets: `candidate` / `watching` / `rejected` / `not_fallen`.
+- **Fake-reversal rejections** (each surfaced as a teaching reason): still lower lows = knife; weak-volume bounce = dead-cat; below 20-DMA; >65% = structural; VIX ≥ 25 = stand aside.
+- **Fundamental gate (user-requested):** `_fetch_fundamentals()` via yfinance `.info` (ROE/D-E/earnings/margin → Strong/Healthy/Mixed/Caution), cached 1h. Runs only on the **top 12** chart candidates (the slow part). A confirmed chart turn in an unsound company is **demoted** candidate→watching ("possible value trap").
+- **Reversal Score (0–100):** confirmation 40 · support 20 · volume 15 · fundamentals 15 · sector 10.
+- **SEBI framing:** levels labelled *reference reversal* / *structure invalidation* / *prior supply*, never entry/exit. Disclaimer in the tab. Position size shown as "hypothetical study size".
+- **i18n note:** this page predates the `T()`/`data-ta` JS-string i18n pattern; its dynamic tab content (Analyse/Scan) is English-only. The Reversal tab matches that (English dynamic strings; `data-en/data-ta` only on the static tab button) for consistency, rather than bolting a bilingual layer onto one tab.
+- **Validated 2026-06-13:** synthetic happy-path (28.9% fall + higher-low + reclaim → candidate, score 86.7, all 6 checks pass) and live yfinance (TCS −36.5% → `rejected` because the turn isn't confirmed; HINDUNILVR −20.5% → `watching`). Real fundamentals/sector/drawdown map correctly.
+
 ## Known Caveats
 
 - Warning shown: "First run fetches ~59 days of 5m + 15m + 1H data from yfinance · takes 15–40 sec"

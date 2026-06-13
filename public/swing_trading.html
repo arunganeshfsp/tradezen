@@ -382,6 +382,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('analyse',this)">🔍 Analyse Stock</button>
   <button class="tab-btn" onclick="switchTab('scan',this)">📊 Friday Scan</button>
+  <button class="tab-btn" onclick="switchTab('reversal',this)" data-en="Reversal Radar" data-ta="திருப்பம் ரேடார்">Reversal Radar</button>
   <button class="tab-btn" onclick="switchTab('review',this)">📋 Portfolio Review</button>
   <button class="tab-btn" onclick="switchTab('screener',this)">📡 Screener</button>
 </div>
@@ -445,6 +446,75 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
   </div>
 
   <div id="scan-result" style="display:none"></div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: REVERSAL RADAR
+══════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="pane-reversal">
+
+  <div class="card" style="border-color:rgba(0,212,255,.25)">
+    <div class="card-title">Fallen-Leader Reversal Scanner</div>
+    <p style="font-size:12.5px;color:var(--dim);line-height:1.65;margin:0 0 14px">
+      Finds quality large &amp; mid-caps that have <strong style="color:var(--text)">fallen meaningfully from their high</strong>
+      and are showing a <strong style="color:var(--green)">confirmed turn</strong> — a higher low, a reclaim of the 20-day average,
+      momentum turning up, and real volume behind the move. It deliberately ignores stocks still making fresh lows
+      (falling knives) and bounces on thin volume (dead-cat bounces).
+    </p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+      <div class="cfg-field">
+        <label>Min fall from 52w high</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="revMinFall" type="range" min="10" max="50" step="5" value="15" style="width:150px"
+                 oninput="document.getElementById('revMinFallV').textContent=this.value">
+          <span style="font-family:var(--mono);font-size:13px;color:var(--cyan)"><span id="revMinFallV">15</span>%</span>
+        </div>
+      </div>
+      <div class="cfg-field">
+        <label>Universe</label>
+        <select id="revUniverse" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;color:var(--text);font-size:13px">
+          <option value="midcaps">Nifty 100 + quality midcaps (~130)</option>
+          <option value="nifty100">Nifty 100 large-caps only</option>
+        </select>
+      </div>
+      <button class="btn-primary" id="revScanBtn" onclick="runReversalScan()">Scan for reversals</button>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+      Typical scan: 60–120 seconds — includes a fundamental health check on the strongest candidates.
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--border);padding-top:14px">
+      <span style="font-size:12px;color:var(--dim)">or study one stock:</span>
+      <input id="revSymbol" placeholder="e.g. TCS" maxlength="20"
+             style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;width:160px">
+      <button class="btn-outline" onclick="runReversalAnalyse()">Study setup</button>
+    </div>
+  </div>
+
+  <div id="reversal-loading" style="display:none">
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <div class="loading-msg" id="reversal-loading-msg">Scanning for confirmed reversals…</div>
+    </div>
+  </div>
+
+  <div id="reversal-result" style="display:none"></div>
+
+  <div class="card" style="background:transparent;border-style:dashed;margin-top:4px">
+    <div style="font-size:11px;color:var(--muted);line-height:1.65;margin:0 0 8px;font-weight:600;letter-spacing:.4px">
+      What this tool can and cannot do
+    </div>
+    <ul style="font-size:11px;color:var(--muted);line-height:1.6;margin:0 0 10px;padding-left:18px">
+      <li>It waits for a <strong style="color:var(--dim)">confirmed turn</strong> — it flags a setup only <em>after</em> the bottom appears to be in, so it deliberately gives up the first few percent in exchange for avoiding falling knives.</li>
+      <li>It reads <strong style="color:var(--dim)">price, volume, financial health and sector trend</strong> — it does <em>not</em> read news, results announcements, or management events. Those still need your own judgement before acting.</li>
+      <li>A "confirmed" setup is not a certainty — reversals can still fail. The structure-invalidation level is where the idea would be considered wrong.</li>
+    </ul>
+    <p style="font-size:11px;color:var(--muted);line-height:1.65;margin:0">
+      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+      The levels shown are <em>reference</em> and <em>structure-invalidation</em> points for studying the setup —
+      not entry or exit signals.
+    </p>
+  </div>
 
 </div>
 
@@ -1501,6 +1571,208 @@ function _renderScreener(data) {
 
   document.getElementById('sc-cards').innerHTML = cards;
   document.getElementById('sc-results').style.display = '';
+}
+
+// ─── REVERSAL RADAR ─────────────────────────────────────────────────────────────
+const revScoreColor = s => s >= 70 ? 'var(--green)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+function revFundBadge(f) {
+  if (!f) return '';
+  const cls = {Strong:'badge-pass', Healthy:'badge-pass', Mixed:'badge-caution',
+               Caution:'badge-fail', Unknown:'badge-caution'}[f.rating] || 'badge-caution';
+  return `<span class="badge ${cls}">Financials: ${f.rating}</span>`;
+}
+
+function revChecklist(items) {
+  return `<div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">` +
+    items.map(it => `
+      <div class="qc-row" style="align-items:flex-start;flex-direction:column;gap:3px">
+        <span class="qc-label" style="font-weight:600;color:${it.pass ? 'var(--green)' : 'var(--muted)'}">
+          ${it.pass ? '✓' : '·'} ${it.label}</span>
+        <span style="font-size:10.5px;color:var(--muted);line-height:1.5">${it.note}</span>
+      </div>`).join('') + `</div>`;
+}
+
+function revLevels(sl) {
+  return `<div class="plan-grid" style="margin-top:8px">
+    <div class="plan-cell"><div class="plan-label">Reference reversal</div>
+      <div class="plan-val entry-val">${fmtRs(sl.reference_reversal)}</div>
+      <div class="plan-sub">support the turn began at</div></div>
+    <div class="plan-cell"><div class="plan-label">Structure invalidation</div>
+      <div class="plan-val sl-val">${fmtRs(sl.structure_invalidation)}</div>
+      <div class="plan-sub">thesis fails below this</div></div>
+    <div class="plan-cell"><div class="plan-label">Prior supply 1</div>
+      <div class="plan-val t1-val">${fmtRs(sl.prior_supply_1)}</div>
+      <div class="plan-sub">overhead resistance</div></div>
+    <div class="plan-cell"><div class="plan-label">Prior supply 2</div>
+      <div class="plan-val t2-val">${fmtRs(sl.prior_supply_2)}</div></div>
+    <div class="plan-cell"><div class="plan-label">Reward : Risk</div>
+      <div class="plan-val rr-val">1 : ${sl.rr}</div></div>
+  </div>`;
+}
+
+function revPosNote(rec) {
+  return `<div style="font-size:10.5px;color:var(--muted);margin-top:8px">
+    Hypothetical study size at ₹${cfgCapital().toLocaleString('en-IN')} capital / ${cfgRisk()}% risk:
+    <strong style="color:var(--text)">${rec.position.qty} shares</strong>
+    (≈ ₹${Math.round(rec.position.investment).toLocaleString('en-IN')})</div>`;
+}
+
+function reversalCard(rec, rankClass) {
+  const sc = rec.score != null ? rec.score : rec.base_score;
+  return `<div class="rec-card ${rankClass}">
+    <div class="rec-header">
+      <div>
+        <span class="rec-symbol">${rec.symbol}</span>
+        <span class="rec-name">${rec.name} · ${rec.sector}</span>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:${revScoreColor(sc)}">${Math.round(sc)}</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.5px">REVERSAL SCORE</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <span class="badge badge-fail" style="background:rgba(231,76,60,.12)">▼ ${rec.drawdown_pct}% from high</span>
+      <span class="badge badge-caution">${fmtRs(rec.ltp)}</span>
+      <span class="badge ${rec.sector_ctx.tailwind ? 'badge-pass' : 'badge-caution'}">Sector ${rec.sector_ctx.tailwind ? 'tailwind' : 'headwind'}</span>
+      ${revFundBadge(rec.fundamentals)}
+    </div>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:6px">${rec.reason}</div>
+    ${revChecklist(rec.checklist)}
+    <div class="card-title" style="margin-top:14px;margin-bottom:4px">Study levels</div>
+    ${revLevels(rec.study_levels)}
+    ${revPosNote(rec)}
+  </div>`;
+}
+
+function revMarketBar(m, extra) {
+  return `<div class="mkt-bar">
+    <span class="mkt-chip ${m.nifty_vs_ema50 === 'ABOVE' ? 'mkt-go' : 'mkt-caution'}">Nifty ${m.nifty_close} · ${m.nifty_vs_ema50} weekly EMA50</span>
+    <span class="mkt-chip ${m.vix < 16 ? 'mkt-go' : m.vix < 20 ? 'mkt-caution' : 'mkt-stop'}">India VIX ${m.vix} · ${m.vix_zone}</span>
+    ${extra || ''}
+  </div>`;
+}
+
+function renderReversalScan(d) {
+  let html = revMarketBar(d.market,
+    `<span class="mkt-chip mkt-info">Scanned ${d.total_scanned} · ${d.counts.candidates} confirmed · ${d.counts.watching} forming</span>`);
+
+  if (d.candidates.length) {
+    html += `<div class="card-title" style="margin:6px 0 10px">Confirmed reversal setups worth studying</div>`;
+    d.candidates.forEach((r, i) =>
+      html += reversalCard(r, i === 0 ? 'rec-rank1' : i === 1 ? 'rec-rank2' : 'rec-rank3'));
+  } else {
+    html += `<div class="card" style="text-align:center;color:var(--dim)">
+      No confirmed reversals in this universe right now — that's normal, confirmed turns are rare.
+      Check the "forming" list below, or lower the minimum fall.</div>`;
+  }
+
+  if (d.watching.length) {
+    html += `<div class="card-title" style="margin:18px 0 10px">Forming — fallen and basing, not yet confirmed</div>`;
+    html += `<div class="card">` + d.watching.map(r => `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div><span class="rec-symbol" style="font-size:14px">${r.symbol}</span>
+          <span class="rec-name">▼${r.drawdown_pct}% · ${r.sector}</span></div>
+        <span style="font-size:11px;color:var(--muted);text-align:right;max-width:58%">${r.reason}</span>
+      </div>`).join('') + `</div>`;
+  }
+
+  if (d.rejected && d.rejected.length) {
+    html += `<details style="margin-top:14px"><summary style="cursor:pointer;font-size:12px;color:var(--dim);padding:8px 0">
+      Why others were set aside (learn to spot fakes) — ${d.rejected.length}</summary>`;
+    html += `<div class="card" style="margin-top:8px">` + d.rejected.map(r => `
+      <div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span class="qc-label" style="font-weight:600">${r.symbol}</span>
+        <span style="font-size:11px;color:var(--muted);text-align:right;max-width:72%">${r.reason}</span>
+      </div>`).join('') + `</div></details>`;
+  }
+
+  const el = document.getElementById('reversal-result');
+  el.innerHTML = html;
+  el.style.display = '';
+}
+
+function renderReversalAnalyse(d) {
+  const labels = {candidate:'Confirmed reversal setup', watching:'Forming — not yet confirmed',
+                  rejected:'Not a valid reversal setup', not_fallen:'Not in a correction yet'};
+  const vClass = d.bucket === 'candidate' ? 'verdict-trade'
+               : d.bucket === 'watching' ? 'verdict-half' : 'verdict-notrade';
+
+  let html = revMarketBar(d.market);
+  html += `<div class="verdict-card ${vClass}">
+    <div class="verdict-title">${d.symbol} — ${labels[d.bucket] || d.bucket}</div>
+    <div class="verdict-sub">${d.reason}</div>
+    <div style="margin-top:10px">
+      <span class="badge badge-fail" style="background:rgba(231,76,60,.12)">▼ ${d.drawdown_pct}% from 52w high</span>
+      <span class="badge badge-caution" style="margin-left:6px">${fmtRs(d.ltp)}</span>
+      ${revFundBadge(d.fundamentals)}
+    </div>
+  </div>`;
+  html += `<div class="card"><div class="card-title">${d.sector_ctx.desc}</div>${revChecklist(d.checklist)}</div>`;
+  html += `<div class="card"><div class="card-title">Study levels</div>${revLevels(d.study_levels)}${revPosNote(d)}</div>`;
+
+  const el = document.getElementById('reversal-result');
+  el.innerHTML = html;
+  el.style.display = '';
+}
+
+async function runReversalScan() {
+  const btn = document.getElementById('revScanBtn');
+  document.getElementById('reversal-loading').style.display = '';
+  document.getElementById('reversal-result').style.display = 'none';
+  btn.disabled = true;
+  const minFall = document.getElementById('revMinFall').value;
+  const uni = document.getElementById('revUniverse').value;
+  const msgs = [
+    "Downloading 1-year data for the universe…",
+    "Measuring how far each stock has fallen from its high…",
+    "Checking for higher lows and 20-day-average reclaims…",
+    "Confirming momentum (RSI / MACD) and volume…",
+    "Running fundamental health check on the strongest candidates…",
+  ];
+  let mi = 0;
+  const msgEl = document.getElementById('reversal-loading-msg');
+  msgEl.textContent = msgs[0];
+  const t = setInterval(() => {
+    mi = (mi + 1) % msgs.length;
+    msgEl.innerHTML = msgs[mi] + '<br><span style="font-size:11px;color:var(--muted)">Please wait 60–120 seconds…</span>';
+  }, 8000);
+  try {
+    const r = await fetch(`/api/swing/reversal/scan?capital=${cfgCapital()}&risk_pct=${cfgRisk()}&min_fall=${minFall}&universe=${uni}`);
+    const d = await r.json();
+    clearInterval(t);
+    if (d.error) throw new Error(d.error);
+    renderReversalScan(d);
+  } catch (e) {
+    clearInterval(t);
+    const el = document.getElementById('reversal-result');
+    el.innerHTML = `<div class="card" style="color:var(--red)">Error: ${e.message}</div>`;
+    el.style.display = '';
+  } finally {
+    document.getElementById('reversal-loading').style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+async function runReversalAnalyse() {
+  const sym = document.getElementById('revSymbol').value.trim().toUpperCase();
+  if (!sym) { alert('Type a stock symbol to study.'); return; }
+  const minFall = document.getElementById('revMinFall').value;
+  document.getElementById('reversal-loading').style.display = '';
+  document.getElementById('reversal-loading-msg').textContent = 'Studying ' + sym + '…';
+  document.getElementById('reversal-result').style.display = 'none';
+  try {
+    const r = await fetch(`/api/swing/reversal/analyse?symbol=${sym}&capital=${cfgCapital()}&risk_pct=${cfgRisk()}&min_fall=${minFall}`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    renderReversalAnalyse(d);
+  } catch (e) {
+    const el = document.getElementById('reversal-result');
+    el.innerHTML = `<div class="card" style="color:var(--red)">Error: ${e.message}</div>`;
+    el.style.display = '';
+  } finally {
+    document.getElementById('reversal-loading').style.display = 'none';
+  }
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

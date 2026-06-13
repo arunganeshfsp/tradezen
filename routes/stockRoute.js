@@ -114,6 +114,26 @@ router.get("/swing/prices", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/swing/reversal/analyse?symbol=TCS&min_fall=15 ──────────────────
+// Reversal Radar: confirmed-turn analysis for one fallen stock
+router.get("/swing/reversal/analyse", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/swing/reversal/analyse?${params}`, 40000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── GET /api/swing/reversal/scan?min_fall=15&universe=midcaps ───────────────
+// Reversal Radar batch scan — may take 60–120 s (includes fundamental gate)
+router.get("/swing/reversal/scan", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/swing/reversal/scan?${params}`, 180000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── GET /api/s1-monitor ────────────────────────────────────────────────────────
 // Real-time S1 intraday strategy monitor (OR breakout + EMA cross + RSI confirmation)
 router.get("/s1-monitor", async (req, res) => {
