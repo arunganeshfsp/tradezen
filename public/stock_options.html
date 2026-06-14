@@ -94,8 +94,8 @@ select:focus,input:focus{border-color:var(--accent)}
 
 /* Inner wrapper — flex centering without left-cutoff on overflow */
 .strip-inner{
-  display:flex;gap:10px;align-items:flex-start;
-  min-width:min-content;margin:0 auto;
+  display:flex;gap:10px;align-items:stretch;
+  width:max-content;margin:0 auto;
 }
 
 .sb-section{
@@ -104,6 +104,7 @@ select:focus,input:focus{border-color:var(--accent)}
   border-radius:var(--r);
   padding:12px 14px;
   flex-shrink:0;
+  display:flex;flex-direction:column;
 }
 .sb-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
 
