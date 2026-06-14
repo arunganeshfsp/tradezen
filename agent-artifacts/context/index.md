@@ -32,6 +32,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | wealth-timelapse | `wealth-timelapse.md` | active |
 | compounding-playground | `compounding-playground.md` | active |
 | company-money-machine | `company-money-machine.md` | active |
+| stock-options-tutorial-tamil | `stock_options_tutorial_tamil.md` | active |
 
 ---
 

@@ -178,6 +178,15 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 .err-msg{color:var(--red);font-size:13px;background:var(--red-bg);border:1px solid rgba(231,76,60,.25);border-radius:var(--r2);padding:10px 14px;margin:8px 0}
 .notice{color:var(--yellow);font-size:12px;background:var(--yellow-bg);border:1px solid rgba(245,166,35,.2);border-radius:var(--r2);padding:8px 12px;margin:8px 0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── Hawk Spread ─────────────────────────────────────────────────────────── */
+.mode-btn{padding:7px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--bg3);color:var(--dim);transition:all .15s}
+.mode-btn.active{background:rgba(124,106,247,0.2);color:var(--accent)}
+.spread-sum{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px;margin-top:8px}
+.liq-flag{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:var(--r2);margin-top:6px;font-size:11px}
+.liq-ok{background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);color:var(--green)}
+.liq-warn{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.25);color:var(--yellow)}
+.liq-bad{background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);color:var(--red)}
+.bench-warn{background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);color:var(--red);font-size:11px;padding:8px 10px;border-radius:var(--r2);margin:4px 0}
 /* Contract History */
 .ch-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .ch-stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;flex:1;min-width:110px;text-align:center}
@@ -231,6 +240,20 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
     <select id="expirySelect" style="width:140px"><option value="">Loading…</option></select>
   </div>
   <div class="tb-field">
+    <label>Trade Mode</label>
+    <div class="dir-toggle">
+      <button class="mode-btn active" id="btnSpread" onclick="setMode('spread')">Spread</button>
+      <button class="mode-btn" id="btnSingle" onclick="setMode('single')">Single Leg</button>
+    </div>
+  </div>
+  <div class="tb-field" id="spreadTypeField">
+    <label>Spread Type</label>
+    <div class="dir-toggle">
+      <button class="mode-btn active" id="btnCallSpread" onclick="setSpreadType('CE')">Call</button>
+      <button class="mode-btn" id="btnPutSpread" onclick="setSpreadType('PE')">Put</button>
+    </div>
+  </div>
+  <div class="tb-field" id="directionField" style="display:none">
     <label>Direction</label>
     <div class="dir-toggle">
       <button class="dir-btn active-CE" id="btnCE" onclick="setDir('CE')">CE</button>
@@ -292,7 +315,34 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
       <div id="sigList"></div>
     </div>
 
-    <!-- Selected Strike -->
+    <!-- Spread Builder (Spread mode) -->
+    <div class="sb-section" id="spreadBuilderBox" style="display:none">
+      <div class="sb-title">Spread Builder</div>
+      <div id="benchWarn"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="tb-field">
+          <label>Buy Leg</label>
+          <select id="spreadLongStrike" style="width:100%;font-size:12px" onchange="onSpreadStrikeChange()">
+            <option value="">Run Analyze</option>
+          </select>
+        </div>
+        <div class="tb-field">
+          <label>Sell Leg</label>
+          <select id="spreadShortStrike" style="width:100%;font-size:12px" onchange="onSpreadStrikeChange()">
+            <option value="">Run Analyze</option>
+          </select>
+        </div>
+      </div>
+      <div id="spreadSummary"><div class="notice" style="margin:0">Run Analyze to load chain.</div></div>
+    </div>
+
+    <!-- Liquidity Gate (Spread mode) -->
+    <div class="sb-section" id="liquidityBox" style="display:none">
+      <div class="sb-title">Liquidity Gate</div>
+      <div id="liquidityContent"></div>
+    </div>
+
+    <!-- Selected Strike (Single Leg mode) -->
     <div class="sb-section" id="strikeBox" style="display:none">
       <div class="sb-title">Selected Strike</div>
       <div id="strikeContent"></div>
@@ -301,6 +351,10 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
     <!-- Risk Plan -->
     <div class="sb-section" id="riskBox" style="display:none">
       <div class="sb-title">Risk Plan</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <label style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--dim);white-space:nowrap">RISK UNIT ₹</label>
+        <input type="number" id="riskUnit" value="2500" min="500" step="500" style="width:100%;font-size:12px" onchange="onSpreadStrikeChange()">
+      </div>
       <div id="riskContent"></div>
     </div>
 
@@ -360,14 +414,17 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
       <div style="max-width:500px">
         <div class="sb-section" style="margin-bottom:14px">
           <div class="sb-title">Live Monitor Inputs</div>
+          <div id="monitorSpreadNote" style="display:none" class="notice" style="margin-bottom:8px">
+            Spread mode: enter net debit/credit as Entry LTP, current net spread value as Current LTP.
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
-            <div class="tb-field"><label>Entry LTP</label><input type="number" id="mEntry" placeholder="e.g. 120" style="width:100%"></div>
-            <div class="tb-field"><label>Current LTP</label><input type="number" id="mCurrent" placeholder="e.g. 145" style="width:100%"></div>
-            <div class="tb-field"><label>Stop Price</label><input type="number" id="mStop" placeholder="e.g. 72" style="width:100%"></div>
-            <div class="tb-field"><label>Target 1</label><input type="number" id="mT1" placeholder="e.g. 192" style="width:100%"></div>
-            <div class="tb-field"><label>Target 2</label><input type="number" id="mT2" placeholder="e.g. 264" style="width:100%"></div>
+            <div class="tb-field"><label>Entry LTP</label><input type="number" id="mEntry" placeholder="option LTP at entry" style="width:100%"></div>
+            <div class="tb-field"><label>Current LTP</label><input type="number" id="mCurrent" placeholder="current option LTP" style="width:100%"></div>
+            <div class="tb-field"><label>Stop Price</label><input type="number" id="mStop" placeholder="stop-loss level" style="width:100%"></div>
+            <div class="tb-field"><label>Target 1</label><input type="number" id="mT1" placeholder="target 1" style="width:100%"></div>
+            <div class="tb-field"><label>Target 2</label><input type="number" id="mT2" placeholder="target 2" style="width:100%"></div>
             <div class="tb-field"><label>Lots</label><input type="number" id="mLots" value="1" style="width:100%"></div>
-            <div class="tb-field"><label>Lot Size</label><input type="number" id="mLotSize" value="500" style="width:100%"></div>
+            <div class="tb-field"><label>Lot Size</label><input type="number" id="mLotSize" value="1" style="width:100%"></div>
             <div class="tb-field"><label>T1 Booked?</label>
               <select id="mT1Hit" style="width:100%"><option value="false">No</option><option value="true">Yes</option></select>
             </div>
@@ -521,9 +578,15 @@ function toggleNav(){document.getElementById('navLinks').classList.toggle('open'
 document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#navLinks .nl').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')))});
 
 const API = "/api";
-let direction = "CE";
-let chainData = null;
+let direction   = "CE";
+let tradeMode   = "spread";   // "spread" | "single"
+let spreadType  = "CE";       // CE = call spread, PE = put spread
+let chainData   = null;
 let analyticsData = null;
+let spreadData  = null;
+const RISK_UNIT_DEFAULT = 2500;
+// Stocks known to have poor liquidity or wide spreads — warn the user
+const BENCHED_NAMES = ["PREMIERENE", "JSWSTEEL"];
 
 // ── URL params — pre-fill from F&O Scanner ───────────────────────────────────
 (function initFromParams() {
@@ -555,6 +618,31 @@ function setDir(d) {
   direction = d;
   document.getElementById("btnCE").className = "dir-btn" + (d==="CE"?" active-CE":"");
   document.getElementById("btnPE").className = "dir-btn" + (d==="PE"?" active-PE":"");
+}
+
+// ── Trade Mode toggle (Spread / Single Leg) ──────────────────────────────────
+function setMode(mode) {
+  tradeMode = mode;
+  document.getElementById("btnSpread").className = "mode-btn" + (mode==="spread"?" active":"");
+  document.getElementById("btnSingle").className = "mode-btn" + (mode==="single"?" active":"");
+  document.getElementById("spreadTypeField").style.display  = mode==="spread" ? "" : "none";
+  document.getElementById("directionField").style.display   = mode==="single" ? "" : "none";
+  document.getElementById("spreadBuilderBox").style.display = (mode==="spread" && chainData) ? "" : "none";
+  document.getElementById("liquidityBox").style.display     = (mode==="spread" && spreadData) ? "" : "none";
+  document.getElementById("strikeBox").style.display        = (mode==="single" && chainData) ? "" : "none";
+  const note = document.getElementById("monitorSpreadNote");
+  if (note) note.style.display = mode==="spread" ? "" : "none";
+}
+
+// ── Spread type (Call Spread / Put Spread) ───────────────────────────────────
+function setSpreadType(t) {
+  spreadType = t;
+  direction  = t;
+  document.getElementById("btnCallSpread").className = "mode-btn" + (t==="CE"?" active":"");
+  document.getElementById("btnPutSpread").className  = "mode-btn" + (t==="PE"?" active":"");
+  document.getElementById("btnCE").className = "dir-btn" + (t==="CE"?" active-CE":"");
+  document.getElementById("btnPE").className = "dir-btn" + (t==="PE"?" active-PE":"");
+  if (chainData) populateSpreadSelectors();
 }
 
 // ── Tab switch ───────────────────────────────────────────────────────────────
@@ -646,6 +734,14 @@ async function runAnalysis() {
     document.getElementById("chainStatus").style.display="block"; return;
   }
   if (!symbol) { showErr("chainStatus","Enter a symbol."); document.getElementById("chainStatus").style.display="block"; return; }
+  // Benched name warning
+  if (BENCHED_NAMES.includes(symbol)) {
+    const bw = document.getElementById("benchWarn");
+    if (bw) bw.innerHTML = `<div class="bench-warn">⚠ ${symbol} is flagged for poor liquidity / wide spreads. Verify bid-ask before trading.</div>`;
+  } else {
+    const bw = document.getElementById("benchWarn");
+    if (bw) bw.innerHTML = "";
+  }
 
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
 
@@ -666,15 +762,27 @@ async function runAnalysis() {
     renderScore(score);
     renderChain(chain);
     renderAnalytics(chain.analytics, ctx, spot);
-    renderStrike(strike, chain.analytics);
-    if (strike && strike.ltp) {
-      const risk = await fetch(`${API}/options/risk?entry_ltp=${strike.ltp}&lot_size=${strike.lot_size||500}&direction=${direction}`).then(r=>r.json());
-      renderRisk(risk);
-      document.getElementById("mEntry").value  = strike.ltp;
-      document.getElementById("mStop").value   = risk.stop_price || "";
-      document.getElementById("mT1").value     = risk.target1_price || "";
-      document.getElementById("mT2").value     = risk.target2_price || "";
-      document.getElementById("mLotSize").value = strike.lot_size || 500;
+
+    if (tradeMode === "spread") {
+      // Spread mode: populate builder selectors; no single-leg risk call
+      populateSpreadSelectors();
+      document.getElementById("spreadBuilderBox").style.display = "";
+      document.getElementById("strikeBox").style.display = "none";
+      const lotSize = strike.lot_size || 1;
+      document.getElementById("mLotSize").value = lotSize;
+    } else {
+      // Single leg mode
+      renderStrike(strike, chain.analytics);
+      if (strike && strike.ltp) {
+        const lotSize = strike.lot_size || 1;
+        const risk = await fetch(`${API}/options/risk?entry_ltp=${strike.ltp}&lot_size=${lotSize}&direction=${direction}`).then(r=>r.json());
+        renderRisk(risk);
+        document.getElementById("mEntry").value   = strike.ltp;
+        document.getElementById("mStop").value    = risk.stop_price || "";
+        document.getElementById("mT1").value      = risk.target1_price || "";
+        document.getElementById("mT2").value      = risk.target2_price || "";
+        document.getElementById("mLotSize").value = lotSize;
+      }
     }
   } catch(e) { showErr("chainStatus","Analysis failed: "+e.message); }
 
@@ -768,14 +876,19 @@ function renderChain(data) {
   const spot = data.spot;
   const mp   = analytics.max_pain;
   document.getElementById("chainStatus").style.display = "none";
+  // Derive actual strike step from chain data (fixes index-calibrated 51/50 hardcodes)
+  const _strikes = chain.map(r=>r.strike).sort((a,b)=>a-b);
+  const _gaps = _strikes.slice(1).map((s,i)=>s-_strikes[i]);
+  const _step = _gaps.length ? Math.min(..._gaps) : 50;
+  const _atmTol = _step / 2 + 0.5;
   const barColor = {
     long_buildup:"var(--green)",short_buildup:"var(--red)",
     short_covering:"var(--cyan)",long_unwinding:"var(--orange)",unchanged:"var(--border2)",
   };
   document.getElementById("chainBody").innerHTML = chain.map(row=>{
     const strike = row.strike;
-    const isAtm  = spot && Math.abs(strike-spot) < 51;
-    const isMp   = mp  && Math.abs(strike-mp)   < 26;
+    const isAtm  = spot && Math.abs(strike-spot) < _atmTol;
+    const isMp   = mp  && Math.abs(strike-mp)   < _step/2 + 0.5;
     const ce = row.ce||{}, pe = row.pe||{};
     const ceSig = (ois[strike]||{}).ce||"unchanged";
     const peSig = (ois[strike]||{}).pe||"unchanged";
@@ -1003,16 +1116,16 @@ function onChExpiryChange() {
   const val = document.getElementById('chExpiry').value; // YYYY-MM-DD
   if (!val) return;
   const exp  = new Date(val + 'T00:00:00');
-  const dow  = exp.getDay(); // 0=Sun 1=Mon … 4=Thu
-  // Roll back to Monday of the expiry week
-  const mon  = new Date(exp);
-  mon.setDate(exp.getDate() - (dow === 0 ? 6 : dow - 1));
-  document.getElementById('chFromDate').value = mon.toISOString().slice(0, 10);
+  // Stock options are monthly — default From = ~28 calendar days before expiry
+  const from = new Date(exp);
+  from.setDate(exp.getDate() - 28);
+  document.getElementById('chFromDate').value = from.toISOString().slice(0, 10);
   document.getElementById('chToDate').value   = val;
-  // Auto-suggest ATM strike from current chain spot if available
-  if (chainData && chainData.spot_price) {
-    const step = chainData.spot_price > 10000 ? 50 : 5;
-    const atm  = Math.round(chainData.spot_price / step) * step;
+  // Auto-suggest ATM strike using actual chain step
+  const spot = (chainData && (chainData.spot || chainData.spot_price));
+  if (spot) {
+    const step = getChainStep();
+    const atm  = Math.round(spot / step) * step;
     if (!document.getElementById('chStrike').value)
       document.getElementById('chStrike').value = atm;
   }
@@ -1077,6 +1190,199 @@ async function loadContractHistory() {
   } catch(e) {
     document.getElementById('chTable').innerHTML = `<div class="err-msg">Failed: ${e.message}</div>`;
   } finally { btn.disabled=false; btn.innerHTML='Upload &amp; Analyse'; }
+}
+
+// ── Spread: chain step utility ────────────────────────────────────────────────
+function getChainStep() {
+  if (!chainData || !chainData.chain || chainData.chain.length < 2) return 50;
+  const s = chainData.chain.map(r=>r.strike).sort((a,b)=>a-b);
+  const gaps = s.slice(1).map((v,i)=>v-s[i]);
+  return Math.min(...gaps);
+}
+
+// ── Spread: populate strike selectors after chain loads ───────────────────────
+function populateSpreadSelectors() {
+  if (!chainData || !chainData.chain) return;
+  const chain = chainData.chain;
+  const spot  = chainData.spot || chainData.spot_price;
+  const sType = spreadType;
+
+  const rows = chain.filter(r => {
+    const leg = sType === "CE" ? r.ce : r.pe;
+    return leg && (leg.ltp || 0) > 0;
+  });
+
+  const opts = rows.map(r => `<option value="${r.strike}">${fmtN(r.strike)}</option>`).join("");
+  document.getElementById("spreadLongStrike").innerHTML  = opts;
+  document.getElementById("spreadShortStrike").innerHTML = opts;
+
+  // Default: long = ATM, short = 1 step OTM (debit spread convention)
+  if (rows.length >= 2 && spot) {
+    const atmRow = rows.reduce((a,b) => Math.abs(b.strike-spot)<Math.abs(a.strike-spot)?b:a);
+    const atmIdx = rows.findIndex(r=>r.strike===atmRow.strike);
+    if (sType === "CE") {
+      document.getElementById("spreadLongStrike").value  = rows[atmIdx]?.strike ?? "";
+      document.getElementById("spreadShortStrike").value = rows[Math.min(atmIdx+1,rows.length-1)]?.strike ?? "";
+    } else {
+      document.getElementById("spreadLongStrike").value  = rows[atmIdx]?.strike ?? "";
+      document.getElementById("spreadShortStrike").value = rows[Math.max(atmIdx-1,0)]?.strike ?? "";
+    }
+  }
+  onSpreadStrikeChange();
+}
+
+// ── Spread: recalculate when either strike selector changes ───────────────────
+function onSpreadStrikeChange() {
+  const longStrike  = parseFloat(document.getElementById("spreadLongStrike").value);
+  const shortStrike = parseFloat(document.getElementById("spreadShortStrike").value);
+  const lotSize     = parseInt(document.getElementById("mLotSize").value) || 1;
+  const riskUnit    = parseInt(document.getElementById("riskUnit").value) || RISK_UNIT_DEFAULT;
+
+  if (!longStrike || !shortStrike || longStrike === shortStrike) {
+    document.getElementById("spreadSummary").innerHTML = '<div class="notice" style="margin:0">Select two different strikes.</div>';
+    return;
+  }
+  const spread = calcSpread(longStrike, shortStrike, spreadType);
+  if (spread) {
+    spreadData = spread;
+    renderSpreadSummary(spread, lotSize, riskUnit);
+    document.getElementById("liquidityBox").style.display = "";
+    renderLiquidityGate(spread.longLeg, spread.shortLeg, lotSize,
+      Math.max(1, Math.floor(riskUnit / (spread.maxLoss * lotSize || 1))));
+  }
+}
+
+// ── Spread: pure client-side math from chainData ──────────────────────────────
+function calcSpread(longStrike, shortStrike, sType) {
+  if (!chainData || !chainData.chain) return null;
+  const getLeg = (strike) => {
+    const row = chainData.chain.find(r=>r.strike===strike);
+    if (!row) return null;
+    return sType === "CE" ? row.ce : row.pe;
+  };
+  const longLeg  = getLeg(longStrike);
+  const shortLeg = getLeg(shortStrike);
+  if (!longLeg || !shortLeg) return null;
+
+  const longLTP  = longLeg.ltp  || 0;
+  const shortLTP = shortLeg.ltp || 0;
+  const net   = longLTP - shortLTP;   // >0 = debit, <0 = credit
+  const width = Math.abs(longStrike - shortStrike);
+  let maxLoss, maxProfit, breakeven;
+  if (net >= 0) {
+    maxLoss   = net;
+    maxProfit = width - net;
+    breakeven = sType === "CE" ? longStrike + net : longStrike - net;
+  } else {
+    const credit = -net;
+    maxProfit = credit;
+    maxLoss   = width - credit;
+    breakeven = sType === "CE" ? shortStrike + credit : shortStrike - credit;
+  }
+  return { longStrike, shortStrike, sType, longLTP, shortLTP, net, width,
+           maxLoss, maxProfit, breakeven, isDebit: net >= 0, longLeg, shortLeg };
+}
+
+// ── Spread: render summary card + update Risk Plan ────────────────────────────
+function renderSpreadSummary(spread, lotSize, riskUnit) {
+  const maxLossOneLot = spread.maxLoss * lotSize;
+  let suggestedLots = maxLossOneLot > 0 ? Math.floor(riskUnit / maxLossOneLot) : 0;
+  const tooLarge    = suggestedLots < 1;
+
+  let lotHtml;
+  if (tooLarge) {
+    const maxWidth = riskUnit / lotSize;
+    lotHtml = `<div class="liq-flag liq-warn">⚠ 1 lot max loss ₹${fmtK(maxLossOneLot)} > risk unit ₹${fmtK(riskUnit)}.<br>Narrow spread to ≤ ${fmtN(maxWidth)} pts width for 1-lot fit.</div>`;
+    suggestedLots = 1;
+  } else {
+    const totalLoss = suggestedLots * maxLossOneLot;
+    lotHtml = `<div class="liq-flag liq-ok">✓ ${suggestedLots} lot${suggestedLots>1?"s":""} suggested — max loss ≈ ₹${fmtK(totalLoss)} (${(totalLoss/riskUnit).toFixed(1)}× unit)</div>`;
+  }
+
+  const netLabel = spread.isDebit ? "Debit" : "Credit";
+  const netColor = spread.isDebit ? "red"   : "green";
+
+  document.getElementById("spreadSummary").innerHTML = `
+    <div class="spread-sum">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted)">
+          ${spread.sType} SPREAD ${fmtN(spread.longStrike)} / ${fmtN(spread.shortStrike)}
+        </span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">${fmtN(spread.width)} pts wide</span>
+      </div>
+      <div class="sc-grid">
+        <div class="sc-item"><div class="k">Net ${netLabel}</div><div class="v ${netColor}">₹${fmtN(Math.abs(spread.net))}</div></div>
+        <div class="sc-item"><div class="k">Max Loss / lot</div><div class="v red">₹${fmtK(maxLossOneLot)}</div></div>
+        <div class="sc-item"><div class="k">Max Profit / lot</div><div class="v green">₹${fmtK(spread.maxProfit*lotSize)}</div></div>
+        <div class="sc-item"><div class="k">Breakeven</div><div class="v">${fmtN(spread.breakeven)}</div></div>
+        <div class="sc-item"><div class="k">Buy LTP</div><div class="v">${fmtN(spread.longLTP)}</div></div>
+        <div class="sc-item"><div class="k">Sell LTP</div><div class="v">${fmtN(spread.shortLTP)}</div></div>
+      </div>
+      ${lotHtml}
+    </div>`;
+
+  // Update Risk Plan for spread
+  renderSpreadRisk(spread, lotSize, suggestedLots, riskUnit);
+}
+
+// ── Spread: risk plan ─────────────────────────────────────────────────────────
+function renderSpreadRisk(spread, lotSize, lots, riskUnit) {
+  const box = document.getElementById("riskBox");
+  box.style.display = "block";
+  const totalLoss   = spread.maxLoss   * lotSize * lots;
+  const totalProfit = spread.maxProfit * lotSize * lots;
+  const units = riskUnit > 0 ? (totalLoss/riskUnit).toFixed(1) : "—";
+  document.getElementById("riskContent").innerHTML = `
+    <table class="risk-table">
+      <tr><td>Net ${spread.isDebit?"Debit":"Credit"}</td><td>₹${fmtN(Math.abs(spread.net))} / point</td></tr>
+      <tr><td>Lots × Size</td><td>${lots} × ${lotSize} = ${lots*lotSize} qty</td></tr>
+      <tr class="loss"><td>Max Loss</td><td>₹${fmtK(totalLoss)} (${units}× unit)</td></tr>
+      <tr class="win"><td>Max Profit</td><td>₹${fmtK(totalProfit)}</td></tr>
+      <tr><td>Breakeven</td><td>${fmtN(spread.breakeven)}</td></tr>
+      <tr><td>Spread Width</td><td>${fmtN(spread.width)} pts</td></tr>
+    </table>
+    <div style="font-size:10px;color:var(--muted);margin-top:8px">
+      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </div>`;
+}
+
+// ── Spread: liquidity gate — both legs bid-ask + 4-leg round-trip cost ────────
+const LIQ_THRESHOLD = 0.03; // 3% bid-ask spread = flag red
+function renderLiquidityGate(longLeg, shortLeg, lotSize, lots) {
+  const liqContent = document.getElementById("liquidityContent");
+  if (!liqContent || !longLeg || !shortLeg) return;
+
+  const legs = [
+    { label: "Buy Leg",  leg: longLeg  },
+    { label: "Sell Leg", leg: shortLeg },
+  ];
+
+  // Estimate per-leg crossing cost: half the bid-ask
+  const crossCost = legs.map(({leg}) => {
+    if (leg.bid != null && leg.ask != null) return (leg.ask - leg.bid) / 2;
+    if (leg.ltp && leg.spread_pct) return leg.ltp * leg.spread_pct / 2;
+    return 0;
+  });
+  // 4-leg round-trip: open (both legs) + close (both legs)
+  const rtCost = crossCost.reduce((a,b)=>a+b,0) * 2 * lotSize * lots;
+
+  const anyBad = legs.some(({leg}) => leg.spread_pct != null && leg.spread_pct > LIQ_THRESHOLD);
+  const flagCls = anyBad ? "liq-bad" : "liq-ok";
+
+  liqContent.innerHTML = legs.map(({label, leg}) => {
+    const spPct = leg.spread_pct != null ? (leg.spread_pct*100).toFixed(1)+"%" : "—";
+    const bad   = leg.spread_pct != null && leg.spread_pct > LIQ_THRESHOLD;
+    return `<div class="ctx-row">
+      <span class="ctx-key">${label}</span>
+      <span class="ctx-val ${bad?"red":""}">
+        ${fmtN(leg.ltp)} &nbsp;·&nbsp; B/A ${spPct}${bad?" ⚠":""}
+      </span>
+    </div>`;
+  }).join("") +
+  `<div class="liq-flag ${flagCls}">
+    ${anyBad ? "⚠" : "✓"} Est. 4-leg round-trip cost: <strong>₹${fmtK(rtCost)}</strong>
+    ${anyBad ? "<span style='font-size:10px'>Either leg has wide spread (>3%). Consider liquid ATM strikes.</span>" : ""}
+  </div>`;
 }
 
 function _renderChHistory(d) {

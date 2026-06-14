@@ -129,10 +129,26 @@ nav{position:sticky;top:0;z-index:200;background:rgba(6,7,15,0.95);backdrop-filt
 .mon-key{color:var(--dim);font-family:'Noto Sans Tamil',sans-serif}
 .mon-val{font-family:'JetBrains Mono',monospace;font-weight:700}
 
+/* Spread diagrams */
+.spread-legs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:500px){.spread-legs{grid-template-columns:1fr}}
+.leg-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.leg-card .leg-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;font-weight:700;margin-bottom:8px}
+.leg-card .leg-buy{color:var(--green)}.leg-card .leg-sell{color:var(--red)}
+.leg-card p{font-size:12px;color:var(--dim);margin:0;line-height:1.6;font-family:'Noto Sans Tamil',sans-serif}
+.spread-math{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;margin:12px 0;line-height:2}
+.math-row{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);padding:2px 0}
+.math-row:last-child{border:none;font-weight:700}
+.math-key{color:var(--dim)}
+.math-val{color:#fff}
+.math-val.green{color:var(--green)}.math-val.red{color:var(--red)}.math-val.yellow{color:var(--yellow)}
+.risk-unit-demo{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin:14px 0}
+.liq-demo-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.liq-demo-row:last-child{border:none}
+
 hr{border:none;border-top:1px solid var(--border);margin:40px 0}
 </style>
 <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
-<link rel="stylesheet" href="tutorial-halo.css">
 </head>
 <body>
 
@@ -155,7 +171,7 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
   <div class="hero">
     <div class="hero-tag">How to Use · பயன்பாட்டு வழிகாட்டி</div>
     <h1>Stock <em>Options</em> கருவி</h1>
-    <p>Option Chain, Max Pain, PCR, Trade Monitor, Contract History — இந்த கருவியை முழுமையாக பயன்படுத்த படிக்கவும்.</p>
+    <p>Hawk Spread (2-leg vertical spread), Risk Unit sizing, Liquidity Gate, Signal Score, Option Chain, Trade Monitor — இந்த கருவியை முழுமையாக பயன்படுத்த படிக்கவும்.</p>
     <a class="cta-btn" href="/stock_options.html">கருவியை திறக்கவும் →</a>
   </div>
 
@@ -163,15 +179,17 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
   <div class="toc">
     <h3>உள்ளடக்கம்</h3>
     <ol>
-      <li><a href="#s1">அமைப்பு — Symbol, Expiry, திசை</a></li>
-      <li><a href="#s2">Stock Trade Flow &amp; Market Context</a></li>
-      <li><a href="#s3">Signal Score (0–17)</a></li>
-      <li><a href="#s4">Option Chain படிக்கும் முறை</a></li>
-      <li><a href="#s5">Max Pain — என்ன? எப்படி பயன்படுத்துவது?</a></li>
-      <li><a href="#s6">PCR — Put-Call Ratio</a></li>
-      <li><a href="#s7">Trade Monitor — நேரடி கண்காணிப்பு</a></li>
-      <li><a href="#s8">Contract History — Theta Decay</a></li>
-      <li><a href="#s9">முழு Workflow உதாரணம்</a></li>
+      <li><a href="#s1">அமைப்பு — Symbol, Expiry, Trade Mode</a></li>
+      <li><a href="#s2">Hawk Spread Builder — 2-leg Vertical Spread</a></li>
+      <li><a href="#s3">Risk Unit — எவ்வளவு lots வாங்குவது?</a></li>
+      <li><a href="#s4">Liquidity Gate — இரு legs-ஐயும் சரிபார்</a></li>
+      <li><a href="#s5">Stock Trade Flow &amp; Market Context</a></li>
+      <li><a href="#s6">Signal Score (0–17)</a></li>
+      <li><a href="#s7">Option Chain படிக்கும் முறை</a></li>
+      <li><a href="#s8">Max Pain &amp; PCR</a></li>
+      <li><a href="#s9">Trade Monitor — நேரடி கண்காணிப்பு</a></li>
+      <li><a href="#s10">Contract History — Theta Decay</a></li>
+      <li><a href="#s11">முழு Spread Workflow உதாரணம்</a></li>
     </ol>
   </div>
 
@@ -181,75 +199,264 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
     <span class="section-anchor" id="s1"></span>
     <div class="section-header">
       <div class="section-num">1</div>
-      <h2>அமைப்பு — Symbol, Expiry, திசை</h2>
+      <h2>அமைப்பு — Symbol, Expiry, Trade Mode</h2>
     </div>
-    <p>பக்கத்தின் மேல் உள்ள toolbar-இல் மூன்று முக்கியமான inputs உள்ளன. இவற்றை சரியாக அமைத்த பின்னரே <strong>Analyze</strong> பொத்தான் அழுத்தவும்.</p>
+    <p>பக்கத்தின் மேல் toolbar-இல் முக்கியமான controls உள்ளன. இவற்றை சரியாக அமைத்த பின்னரே <strong>Analyze</strong> அழுத்தவும்.</p>
 
     <div class="steps">
       <div class="step">
         <div class="step-n">1</div>
         <div class="step-body">
           <div class="step-title">Stock Symbol உள்ளிடவும்</div>
-          <p>NSE-யில் பட்டியலிடப்பட்ட எந்த பங்கையும் உள்ளிடலாம். எ.கா: <strong>RELIANCE, TCS, NIFTY, BANKNIFTY, INFY, HDFCBANK</strong>. சின்னங்கள் எப்போதும் CAPITAL-இல் இருக்க வேண்டும்.</p>
+          <p>NSE-யில் பட்டியலிடப்பட்ட எந்த பங்கையும் உள்ளிடலாம். எ.கா: <strong>RELIANCE, TCS, INFY, HDFCBANK</strong>. சின்னங்கள் CAPITAL-இல் இருக்க வேண்டும். தட்டச்சு செய்யும்போது autocomplete பட்டியல் கிடைக்கும்.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">2</div>
         <div class="step-body">
           <div class="step-title">Expiry தேர்வு செய்யவும்</div>
-          <p>dropdown-இல் கிடைக்கும் expiry dates பட்டியலிலிருந்து தேர்வு செய்யவும். பொதுவாக <strong>நடப்பு மாத expiry</strong> (nearest expiry) தேர்வு செய்வது நல்லது. பங்குகளுக்கு monthly expiry மட்டுமே இருக்கும்; NIFTY, BANKNIFTY-க்கு weekly expiry கிடைக்கும்.</p>
+          <p>பங்குகளுக்கு <strong>monthly expiry மட்டுமே</strong> இருக்கும் (NIFTY போல் weekly இல்லை). நடப்பு மாத expiry பொதுவாக சிறந்தது — அதிக liquidity இருக்கும். Expiry list load ஆகவில்லை என்றால் "Refresh Expiries" அழுத்தவும்.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">3</div>
         <div class="step-body">
-          <div class="step-title">திசை — CE அல்லது PE</div>
-          <p><strong>CE (Call Option)</strong> = நீங்கள் விலை ஏறும் என்று நம்பும்போது வாங்குவது.<br><strong>PE (Put Option)</strong> = நீங்கள் விலை இறங்கும் என்று நம்பும்போது வாங்குவது.<br>இந்த திசை Signal Score-ஐயும் Strike Selection-ஐயும் நேரடியாக பாதிக்கும்.</p>
+          <div class="step-title">Trade Mode தேர்வு செய்யவும்</div>
+          <p><strong>Spread (default)</strong> — இரண்டு strikes வாங்கி/விற்று ஒரு limited-risk spread அமைக்கலாம். இதுவே Hawk strategy.<br><strong>Single Leg</strong> — பழைய முறை, ஒரே ஒரு option வாங்குவது. Risk plan மற்றும் Signal Score இயங்கும்.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">4</div>
         <div class="step-body">
+          <div class="step-title">Spread Type (Spread mode-இல் மட்டும்)</div>
+          <p><strong>Call Spread</strong> — விலை ஏறும் என்று நம்பும்போது (Bullish). ATM CE வாங்கி, OTM CE விற்பது.<br><strong>Put Spread</strong> — விலை இறங்கும் என்று நம்பும்போது (Bearish). ATM PE வாங்கி, OTM PE விற்பது.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">5</div>
+        <div class="step-body">
           <div class="step-title">Analyze அழுத்தவும்</div>
-          <p>இந்த பொத்தான் அழுத்திய பின், Option Chain, Max Pain, PCR, Signal Score, Strike Selection அனைத்தும் தானாக ஏற்றப்படும். சுமார் <strong>5–8 வினாடிகள்</strong> ஆகலாம்.</p>
+          <p>Option Chain, Signal Score, Max Pain, Strike selectors — அனைத்தும் ஏற்றப்படும். சுமார் <strong>5–10 வினாடிகள்</strong> ஆகலாம். Spread mode-இல் Spread Builder sidebar-இல் தோன்றும்.</p>
         </div>
       </div>
     </div>
 
-    <div class="info-box tip-box">
-      <span class="info-icon">💡</span>
-      <p><strong>Expiry இல்லை என்றால்:</strong> "Refresh Expiries" பொத்தான் அழுத்தவும். Engine offline ஆக இருந்தால், பக்கத்தின் மேல்-வலது மூலையில் உள்ள பச்சை dot மங்கலாக இருக்கும் — சர்வர் connection சரிபார்க்கவும்.</p>
+    <div class="info-box warn-box">
+      <span class="info-icon">⚠️</span>
+      <p><strong>PREMIERENE மற்றும் JSWSTEEL</strong> போன்ற பங்குகளை ஏற்றும்போது கருவி ஒரு எச்சரிக்கை காட்டும் — இவற்றில் bid-ask spread அதிகமாக இருப்பதால் spread cost கூடுதல் ஆகும். அனுபவம் வரும் வரை இவற்றை தவிர்க்கவும்.</p>
     </div>
   </div>
 
 
-  <!-- SECTION 2 -->
+  <!-- SECTION 2 — HAWK SPREAD -->
   <div class="section">
     <span class="section-anchor" id="s2"></span>
     <div class="section-header">
       <div class="section-num">2</div>
+      <h2>Hawk Spread Builder — 2-leg Vertical Spread</h2>
+    </div>
+    <p>Hawk Spread என்பது <strong>இரண்டு strikes-ஐ ஒரே நேரத்தில் trade செய்வது</strong> — ஒன்று வாங்கி, மற்றொன்று விற்பது. இதன் முக்கிய நன்மை: <strong>maximum loss கட்டுப்படுத்தப்பட்டிருக்கும்</strong> — Naked single option போல் unlimited loss இல்லை.</p>
+
+    <div class="spread-legs">
+      <div class="leg-card">
+        <div class="leg-title leg-buy">▲ BUY LEG (Long)</div>
+        <p>உங்கள் "directional bet". ATM அல்லது Slightly ITM strike. இதற்கு premium செலுத்துகிறோம்.</p>
+      </div>
+      <div class="leg-card">
+        <div class="leg-title leg-sell">▼ SELL LEG (Short)</div>
+        <p>OTM strike — premium வசூலிக்கிறோம். இது Buy Leg-இன் cost-ஐ குறைக்கிறது. ஆனால் profit-ஐயும் cap செய்கிறது.</p>
+      </div>
+    </div>
+
+    <p><strong>Call Spread (Bullish) — எப்படி செயல்படுகிறது:</strong></p>
+    <div class="diagram">
+      <div class="diagram-title">RELIANCE Call Spread உதாரணம் (Spot: ₹1,406)</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.2">
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="color:var(--green);font-weight:700">BUY</span>
+          <span style="color:var(--text)">RELIANCE 1,420 CE @ ₹42</span>
+          <span style="color:var(--muted)">(ATM — directional bet)</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="color:var(--red);font-weight:700">SELL</span>
+          <span style="color:var(--text)">RELIANCE 1,460 CE @ ₹18</span>
+          <span style="color:var(--muted)">(OTM — cost reducer)</span>
+        </div>
+        <div style="border-top:1px solid var(--border);margin:8px 0"></div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap">
+          <span>Net Debit = <strong style="color:var(--yellow)">₹42 − ₹18 = ₹24</strong></span>
+          <span>Width = <strong>1460 − 1420 = 40 pts</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <p><strong>கணக்கீடு (1 lot, Lot Size = 250):</strong></p>
+    <div class="spread-math">
+      <div class="math-row"><span class="math-key">Max Loss (worst case)</span><span class="math-val red">₹24 × 250 = ₹6,000</span></div>
+      <div class="math-row"><span class="math-key">Max Profit (best case)</span><span class="math-val green">(40 − 24) × 250 = ₹4,000</span></div>
+      <div class="math-row"><span class="math-key">Breakeven</span><span class="math-val yellow">1,420 + 24 = ₹1,444</span></div>
+      <div class="math-row"><span class="math-key">Expiry-இல் 1,420-க்கு கீழே: Loss</span><span class="math-val red">₹6,000 (full debit)</span></div>
+      <div class="math-row"><span class="math-key">Expiry-இல் 1,460-க்கு மேலே: Profit</span><span class="math-val green">₹4,000 (max profit)</span></div>
+    </div>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">💡</span>
+      <p><strong>Intraday use (Hawk style):</strong> கருவி intraday trade-ஐ கணக்கில் எடுத்து கட்டமைக்கப்பட்டுள்ளது. அதாவது, அன்று உள்ளிட்டு அன்று square off செய்வது. Spread-இன் net value (Long LTP − Short LTP) உயர்ந்தால் profit; குறைந்தால் loss. Full expiry வரை வைத்திருக்க வேண்டியதில்லை.</p>
+    </div>
+
+    <p><strong>Put Spread (Bearish):</strong> அதே logic — ATM PE வாங்கி (higher strike), OTM PE விற்று (lower strike). உதாரணம்: 1,420 PE வாங்கி, 1,380 PE விற்பது.</p>
+
+    <p><strong>Analyze அழுத்திய பின் Spread Builder இப்படி செயல்படும்:</strong></p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <div class="step-title">Buy Leg &amp; Sell Leg toanடுவாகத் தேர்வு ஆகும்</div>
+          <p>Chain data-இலிருந்து ATM = Buy Leg, அடுத்த OTM = Sell Leg என்று default set ஆகும். நீங்கள் மாற்றலாம் — dropdown-இல் வேறு strikes தேர்வு செய்யுங்கள்.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <div class="step-title">Spread Summary தோன்றும்</div>
+          <p>Net Debit/Credit, Max Loss per lot, Max Profit per lot, Breakeven — தானாக கணக்கிடப்படும். Chain-இல் உள்ள LTP-இலிருந்து client-side-இல் கணக்கிடப்படும்; கூடுதல் API call தேவையில்லை.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <div class="step-title">Risk Unit-க்கு ஏற்ப Lots பரிந்துரை</div>
+          <p>இடது sidebar-இல் "Risk Unit ₹" field-இல் உள்ள மதிப்பை பொருத்து, எத்தனை lots trade செய்யலாம் என்று கணக்கிடப்படும் (Section 3 பாருங்கள்).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECTION 3 — RISK UNIT -->
+  <div class="section">
+    <span class="section-anchor" id="s3"></span>
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Risk Unit — எவ்வளவு Lots வாங்குவது?</h2>
+    </div>
+    <p><strong>Risk Unit</strong> என்பது ஒரு trade-இல் நீங்கள் இழக்கத் தயாராக உள்ள அதிகபட்ச தொகை. Default: <strong>₹2,500</strong>. ஒவ்வொரு trader-இன் capital மற்றும் risk tolerance-ஐ பொருத்து இதை மாற்றலாம்.</p>
+
+    <div class="risk-unit-demo">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:10px">RISK UNIT CALCULATOR — உதாரணம்</div>
+      <div class="liq-demo-row">
+        <span style="color:var(--dim);font-size:13px;font-family:'Noto Sans Tamil',sans-serif">Risk Unit (உங்கள் trade-க்கான budget)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan)">₹2,500</span>
+      </div>
+      <div class="liq-demo-row">
+        <span style="color:var(--dim);font-size:13px;font-family:'Noto Sans Tamil',sans-serif">Max Loss per lot (spread math-இலிருந்து)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--red)">₹6,000</span>
+      </div>
+      <div class="liq-demo-row">
+        <span style="color:var(--dim);font-size:13px;font-family:'Noto Sans Tamil',sans-serif">Suggested Lots = floor(2500 / 6000)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--yellow)">0 lots ⚠</span>
+      </div>
+      <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.25);border-radius:6px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--yellow);font-family:'Noto Sans Tamil',sans-serif">
+        ⚠ 1 lot max loss (₹6,000) &gt; Risk Unit (₹2,500). Spread-ஐ குறுகியதாக செய்யவும் — 20 pts width-க்கு மாற்றினால் max loss ≈ ₹1,500 → 1 lot suitable.
+      </div>
+    </div>
+
+    <table class="sig-table">
+      <thead><tr><th>நிலை</th><th>என்ன செய்வது</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--green)">Suggested Lots ≥ 1</strong></td>
+          <td>அந்த lots-ஐ trade செய்யலாம். Max Loss = Lots × Max Loss per lot. ஒரு unit-க்கு எத்தனை times என்று காட்டப்படும் (எ.கா: "2 units").</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--yellow)">Suggested Lots = 0</strong> (1 lot > Risk Unit)</td>
+          <td>Spread-ஐ குறுகியதாக செய்யவும் (strike gap குறைக்கவும்). Max Loss per lot குறையும். கருவி "narrow to ≤ X pts" என்று சொல்லும்.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <span class="info-icon">📌</span>
+      <p><strong>Risk Unit எப்படி தீர்மானிப்பது:</strong> மொத்த capital-இன் 1–2% per trade என்று வைத்துக்கொள்ளுங்கள். Capital ₹1,00,000 என்றால் → Risk Unit = ₹1,000–₹2,000. ஒரே trade-இல் அதிகமாக risk எடுக்காதீர்கள். இது கல்வி நோக்கத்திற்கான ஆய்வுக் கருவி — trade முடிவுகளை SEBI-பதிவு பெற்ற ஆலோசகரிடம் உறுதிப்படுத்தவும்.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 4 — LIQUIDITY GATE -->
+  <div class="section">
+    <span class="section-anchor" id="s4"></span>
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Liquidity Gate — இரு Legs-ஐயும் சரிபார்</h2>
+    </div>
+    <p>Spread trade-இல் <strong>இரண்டு strikes-ஐயும்</strong> சரியான விலையில் execute செய்ய முடிய வேண்டும். ஒரு leg-இல் liquidity மோசமாக இருந்தால் — bid-ask gap அதிகமாக இருக்கும் — உண்மையான cost அதிகமாகும்.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Liquidity Gate — உதாரணக் காட்சி</div>
+      <div class="liq-demo-row">
+        <span style="color:var(--dim);font-size:13px;font-family:'Noto Sans Tamil',sans-serif">Buy Leg (1,420 CE)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green)">LTP ₹42 &nbsp;·&nbsp; Bid-Ask 1.8% ✓</span>
+      </div>
+      <div class="liq-demo-row">
+        <span style="color:var(--dim);font-size:13px;font-family:'Noto Sans Tamil',sans-serif">Sell Leg (1,460 CE)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--red)">LTP ₹18 &nbsp;·&nbsp; Bid-Ask 5.2% ⚠</span>
+      </div>
+      <div style="background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);border-radius:6px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--red);font-family:'Noto Sans Tamil',sans-serif">
+        ⚠ Sell Leg bid-ask spread 5.2% &gt; 3% threshold. ATM-க்கு நெருக்கமான strikes தேர்வு செய்யவும்.
+      </div>
+    </div>
+
+    <p><strong>4-Leg Round-Trip Cost என்ன?</strong></p>
+    <p>Spread trade-இல் நான்கு transactions உள்ளன: Open time-இல் Buy + Sell, Close time-இல் Sell + Buy. ஒவ்வொரு transaction-இலும் bid-ask gap "crossing cost" செலுத்துகிறோம். கருவி இந்த மொத்த friction cost-ஐ தோராயமாக காட்டும்.</p>
+
+    <div class="example-box">
+      <div class="ex-title">உதாரணம் — Round-Trip Cost</div>
+      <p>Buy Leg crossing cost = ₹0.38 (bid-ask half-spread) &nbsp;|&nbsp; Sell Leg = ₹0.47</p>
+      <p>2 × (0.38 + 0.47) × 250 lots = <span class="ex-val">₹425 est. friction</span></p>
+      <p>இது ₹4,000 max profit trade-இல் ~10.6% friction. Spread-ஐ ATM-க்கு நெருக்கமான strikes-இல் வைத்தால் இது குறையும்.</p>
+    </div>
+
+    <table class="sig-table">
+      <thead><tr><th>Bid-Ask Spread %</th><th>நிலை</th><th>செயல்</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono" style="color:var(--green)">&lt; 2%</span></td><td><span class="pass">✓ நல்ல liquidity</span></td><td>Trade செய்யலாம்</td></tr>
+        <tr><td><span class="mono" style="color:var(--yellow)">2–3%</span></td><td><span class="warn">⚡ கவனம்</span></td><td>Trade செய்யலாம், execution price சரிபார்க்கவும்</td></tr>
+        <tr><td><span class="mono" style="color:var(--red)">&gt; 3%</span></td><td><span class="fail">⚠ மோசமான liquidity</span></td><td>ATM strikes-க்கு மாறவும் அல்லது தவிர்க்கவும்</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box tip-box">
+      <span class="info-icon">💡</span>
+      <p><strong>Mid-cap stocks-இல் கவனம்:</strong> RELIANCE, TCS போன்ற large-caps-இல் liquidity நன்றாக இருக்கும். ஆனால் mid-cap stocks-இல் OTM strikes-இல் bid-ask gap அதிகமாக இருக்கும். இதனால் actual P&L paper calculation-இல் இருந்து வேறாக இருக்கும் — Liquidity Gate எச்சரிக்கை இதற்கே.</p>
+    </div>
+  </div>
+
+
+  <!-- SECTION 5 — TRADE FLOW -->
+  <div class="section">
+    <span class="section-anchor" id="s5"></span>
+    <div class="section-header">
+      <div class="section-num">5</div>
       <h2>Stock Trade Flow &amp; Market Context</h2>
     </div>
-    <p>இடது sidebar-இல் இரண்டு முக்கியமான பலகங்கள் உள்ளன — இவை அன்றாட trade முடிவுகளுக்கு வழிகாட்டும்.</p>
+    <p>இடது sidebar-இல் இரண்டு முக்கியமான பலகங்கள் உள்ளன — இவை Spread direction தேர்வுக்கு வழிகாட்டும்.</p>
 
     <p><strong>Stock Trade Flow</strong> என்பது CPR (Central Pivot Range) அடிப்படையில் இன்றைய சந்தை நிலையை காட்டுகிறது:</p>
 
     <table class="sig-table">
-      <thead><tr><th>காட்டி</th><th>விளக்கம்</th><th>பொருள்</th></tr></thead>
+      <thead><tr><th>காட்டி</th><th>விளக்கம்</th><th>Spread-க்கு பொருள்</th></tr></thead>
       <tbody>
-        <tr><td><span class="mono">TC (Top CPR)</span></td><td>நேற்றைய High, Low, Close-இலிருந்து கணக்கிடப்படும் மேல் pivot.</td><td>இதற்கு மேலே விலை இருந்தால் — <span class="pass">Bullish</span></td></tr>
-        <tr><td><span class="mono">PP (Pivot)</span></td><td>TC-க்கும் BC-க்கும் நடுவே உள்ள pivot magnet.</td><td>விலை இதை சுற்றி ஆடும்</td></tr>
-        <tr><td><span class="mono">BC (Bottom CPR)</span></td><td>CPR range-இன் கீழ் எல்லை.</td><td>இதற்கு கீழே விலை இருந்தால் — <span class="fail">Bearish</span></td></tr>
-        <tr><td><span class="mono">R1 / S1</span></td><td>முதல் resistance மற்றும் support நிலைகள்.</td><td>Target / Stop-loss reference</td></tr>
-        <tr><td><span class="mono">ORB H / L</span></td><td>9:15–9:30 opening range (High & Low).</td><td>Breakout திசையை உறுதி செய்ய</td></tr>
+        <tr><td><span class="mono">TC (Top CPR)</span></td><td>மேல் pivot</td><td>Spot &gt; TC → <span class="pass">Call Spread சாதகம்</span></td></tr>
+        <tr><td><span class="mono">PP (Pivot)</span></td><td>நடுவிலை magnet</td><td>Spot PP-ஐ சுற்றி இருந்தால் Neutral</td></tr>
+        <tr><td><span class="mono">BC (Bottom CPR)</span></td><td>கீழ் எல்லை</td><td>Spot &lt; BC → <span class="fail">Put Spread சாதகம்</span></td></tr>
+        <tr><td><span class="mono">ORB H / L</span></td><td>9:15–9:30 opening range</td><td>Breakout திசையை உறுதி செய்ய</td></tr>
       </tbody>
     </table>
 
     <div class="example-box">
       <div class="ex-title">உதாரணம் — RELIANCE, 14 மே 2026</div>
-      <p>நேற்றைய OHLC: High <span class="ex-val">1,410</span>, Low <span class="ex-val">1,380</span>, Close <span class="ex-val">1,402</span></p>
-      <p>கணக்கீடு: PP = (1410+1380+1402)/3 = <span class="ex-val">1,397.3</span> &nbsp;|&nbsp; TC = <span class="ex-val">1,402.3</span> &nbsp;|&nbsp; BC = <span class="ex-val">1,392.3</span></p>
-      <p>இன்று Spot = <span class="ex-val">1,406</span> — <span class="pass">▲ ABOVE TC — Bullish</span> என்று காண்பிக்கும். CE வாங்குவதற்கு சாதகமான நிலை.</p>
+      <p>TC = <span class="ex-val">1,402</span> &nbsp;|&nbsp; Spot = <span class="ex-val">1,406</span> → <span class="pass">▲ ABOVE TC — Bullish</span></p>
+      <p>ORB High = <span class="ex-val">1,408</span>, Spot &gt; ORB High — Breakout confirm. இந்நிலையில் <strong>Call Spread (Bullish)</strong> trade-க்கு CPR ஆதரவு உள்ளது.</p>
     </div>
 
     <p><strong>Market Context</strong> பலகம் பின்வரும் தரவை காட்டுகிறது:</p>
@@ -257,31 +464,31 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
       <thead><tr><th>காட்டி</th><th>விளக்கம்</th></tr></thead>
       <tbody>
         <tr><td><span class="mono">Spot</span></td><td>தற்போதைய சந்தை விலை (live LTP)</td></tr>
-        <tr><td><span class="mono">IV Rank</span></td><td>Implied Volatility நிலை — அதிகம் = premium விலை அதிகம், குறைவு = premium மலிவு</td></tr>
-        <tr><td><span class="mono">ATM IV</span></td><td>ATM strike-இன் உண்மையான IV சதவீதம்</td></tr>
-        <tr><td><span class="mono">PCR</span></td><td>Put-Call Ratio — சந்தை உணர்வை காட்டும் (பகுதி 6-இல் விரிவாக)</td></tr>
+        <tr><td><span class="mono">India VIX</span></td><td>Volatility அளவு — அதிகம் = premium விலை அதிகம், Spread net debit கூடும்</td></tr>
+        <tr><td><span class="mono">PDH / PDL</span></td><td>நேற்றைய High / Low — key reference levels</td></tr>
+        <tr><td><span class="mono">Day Bias</span></td><td>Technical indicators அடிப்படையில் BULLISH / BEARISH / NEUTRAL</td></tr>
       </tbody>
     </table>
   </div>
 
 
-  <!-- SECTION 3 -->
+  <!-- SECTION 6 — SIGNAL SCORE -->
   <div class="section">
-    <span class="section-anchor" id="s3"></span>
+    <span class="section-anchor" id="s6"></span>
     <div class="section-header">
-      <div class="section-num">3</div>
+      <div class="section-num">6</div>
       <h2>Signal Score (0–17)</h2>
     </div>
-    <p>Signal Score என்பது பல்வேறு technical காட்டிகளை ஒன்றிணைத்து, உங்கள் தேர்ந்தெடுத்த திசை (CE/PE) எவ்வளவு வலுவானது என்பதை 0–17 அளவில் காட்டும் ஒட்டுமொத்த மதிப்பீடு.</p>
+    <p>Signal Score என்பது 17 technical காட்டிகளின் ஒட்டுமொத்த மதிப்பீடு. <strong>Spread mode-இல் இந்த score Spread direction-ஐ confirm செய்ய பயன்படுகிறது</strong> — Call Spread நல்லதா PE spread நல்லதா என்பதற்கு.</p>
 
     <div class="score-bands">
       <div class="score-band" style="background:rgba(46,204,113,0.08);border-color:rgba(46,204,113,0.3)">
         <div class="range" style="color:var(--green)">14–17</div>
-        <div class="meaning">STRONG<br>நம்பிக்கையுடன் trade எடுக்கலாம்</div>
+        <div class="meaning">STRONG<br>Spread trade-க்கு நம்பிக்கை அதிகம்</div>
       </div>
       <div class="score-band" style="background:rgba(91,138,245,0.08);border-color:rgba(91,138,245,0.3)">
         <div class="range" style="color:var(--blue)">10–13</div>
-        <div class="meaning">MODERATE<br>trade எடுக்கலாம், அளவை குறைக்கவும்</div>
+        <div class="meaning">MODERATE<br>Trade எடுக்கலாம், Risk Unit குறைக்கவும்</div>
       </div>
       <div class="score-band" style="background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.3)">
         <div class="range" style="color:var(--yellow)">6–9</div>
@@ -289,43 +496,29 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
       </div>
       <div class="score-band" style="background:rgba(231,76,60,0.08);border-color:rgba(231,76,60,0.3)">
         <div class="range" style="color:var(--red)">0–5</div>
-        <div class="meaning">SKIP<br>trade வேண்டாம்</div>
+        <div class="meaning">SKIP<br>Trade வேண்டாம்</div>
       </div>
     </div>
 
-    <p>Score-இன் கீழே ஒவ்வொரு signal-ஐயும் பட்டியல் காண்பிக்கும். ✅ = காட்டி ஆதரிக்கிறது, ❌ = எதிர்க்கிறது.</p>
+    <p>Score-இன் கீழே ஒவ்வொரு signal-ஐயும் பட்டியல் காண்பிக்கும். ✅ = காட்டி ஆதரிக்கிறது, ❌ = எதிர்க்கிறது, <span style="color:var(--muted)">NO DATA</span> = தரவு கிடைக்கவில்லை.</p>
 
     <div class="info-box">
       <span class="info-icon">📌</span>
-      <p>Signal Score ஒரு <strong>வழிகாட்டி மட்டுமே</strong>. இது 14+ இருந்தாலும் market context (CPR, VIX, news) சரிபார்த்த பின்னரே trade எடுங்கள். Score மட்டுமே பார்த்து blind-ஆக trade வேண்டாம்.</p>
+      <p>Signal Score ஒரு <strong>வழிகாட்டி மட்டுமே</strong>. Score 14+ இருந்தாலும், Trade Flow, VIX, Max Pain சரிபார்த்த பின்னரே Spread அமைக்கவும். இது கல்வி நோக்கத்திற்கான ஆய்வுக் கருவி; SEBI-பதிவு பெற்ற ஆலோசகரிடம் உறுதிப்படுத்தவும்.</p>
     </div>
-
-    <p>Score-இன் கீழே <strong>Selected Strike</strong> பலகம் தானாக பரிந்துரைக்கப்பட்ட strike-ஐ காட்டும்:</p>
-
-    <table class="sig-table">
-      <thead><tr><th>தகவல்</th><th>விளக்கம்</th></tr></thead>
-      <tbody>
-        <tr><td><span class="mono">Strike</span></td><td>பரிந்துரைக்கப்பட்ட strike price (ATM அல்லது OTM)</td></tr>
-        <tr><td><span class="mono">LTP</span></td><td>தற்போதைய premium விலை</td></tr>
-        <tr><td><span class="mono">IV%</span></td><td>அந்த strike-இன் implied volatility</td></tr>
-        <tr><td><span class="mono">Delta</span></td><td>Spot ₹1 மாறும்போது option-இன் விலை எவ்வளவு மாறும்</td></tr>
-        <tr><td><span class="mono">Theta</span></td><td>ஒவ்வொரு நாளும் time decay-ஆல் இழக்கும் தொகை</td></tr>
-      </tbody>
-    </table>
-
-    <p><strong>Risk Plan</strong> பலகம் stop-loss மற்றும் target levels-ஐ தானாக கணக்கிட்டு காட்டும்:
-    Stop = Entry × 0.6 &nbsp;|&nbsp; T1 = Entry × 1.6 &nbsp;|&nbsp; T2 = Entry × 2.2</p>
   </div>
 
 
-  <!-- SECTION 4 -->
+  <!-- SECTION 7 — OPTION CHAIN -->
   <div class="section">
-    <span class="section-anchor" id="s4"></span>
+    <span class="section-anchor" id="s7"></span>
     <div class="section-header">
-      <div class="section-num">4</div>
+      <div class="section-num">7</div>
       <h2>Option Chain படிக்கும் முறை</h2>
     </div>
-    <p>Option Chain tab-இல் அனைத்து strikes-களுக்கும் CALL மற்றும் PUT தரவு பக்கவாட்டில் காட்டப்படும். <strong>ATM strike</strong> purple-ஆல் highlight ஆகும்; <strong>Max Pain strike</strong> மஞ்சள் MP badge-உடன் காட்டப்படும்.</p>
+    <p>Option Chain tab-இல் அனைத்து strikes-களுக்கும் CALL மற்றும் PUT தரவு காட்டப்படும். <strong>ATM strike</strong> purple-ஆல் highlight ஆகும்; <strong>Max Pain strike</strong> மஞ்சள் MP badge-உடன் காட்டப்படும்.</p>
+
+    <p><strong>Spread-ஐ Chain-ஓடு இணைத்து பாருங்கள்:</strong> Chain-இல் Buy Leg strike-இல் <span class="lbl lbl-green">long buildup</span> இருந்தால் — Call Spread-க்கு ஆதரவு. Sell Leg (OTM) strike-இல் <span class="lbl lbl-red">short buildup</span> இருந்தால் — அந்த level Writers பவர் காட்டுகின்றனர், Profit cap அங்கே நியாயமானது.</p>
 
     <div class="diagram">
       <div class="diagram-title">Option Chain — மாதிரி காட்சி (RELIANCE, Spot 1,406)</div>
@@ -333,304 +526,267 @@ hr{border:none;border-top:1px solid var(--border);margin:40px 0}
         <div class="chain-hdr ce">CALLS (CE)</div>
         <div class="chain-hdr">STRIKE</div>
         <div class="chain-hdr pe">PUTS (PE)</div>
-        <div class="cr"><div class="ce-col"><span class="lbl lbl-green">long buildup</span> &nbsp;42.5k &nbsp;18.3%</div><div class="st">1,380</div><div class="pe-col">21.4%&nbsp; 8,200&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
-        <div class="cr"><div class="ce-col"><span class="lbl lbl-green">long buildup</span> &nbsp;38.1k &nbsp;19.1%</div><div class="st">1,400</div><div class="pe-col">20.2%&nbsp; 6,100&nbsp; <span class="lbl lbl-cyan">short covering</span></div></div>
-        <div class="cr atm"><div class="ce-col"><span class="lbl lbl-yellow">long unwinding</span> 29.7k &nbsp;20.5%</div><div class="st">▶ 1,420 ◀</div><div class="pe-col">22.1%&nbsp; <span class="hi">51,200</span>&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
-        <div class="cr"><div class="ce-col"><span class="lbl lbl-red">short buildup</span> &nbsp;&nbsp;18.2k &nbsp;22.8%</div><div class="st mp-st">1,440 MP</div><div class="pe-col">25.4%&nbsp; 44,800&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
-        <div class="cr"><div class="ce-col"><span class="lbl lbl-red">short buildup</span> &nbsp;&nbsp;12.9k &nbsp;25.1%</div><div class="st">1,460</div><div class="pe-col">28.2%&nbsp; 38,500&nbsp; <span class="lbl lbl-cyan">short covering</span></div></div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-green">long buildup</span> &nbsp;42.5k</div><div class="st">1,380</div><div class="pe-col">8,200&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-green">long buildup</span> &nbsp;38.1k</div><div class="st">1,400</div><div class="pe-col">6,100&nbsp; <span class="lbl lbl-cyan">short covering</span></div></div>
+        <div class="cr atm"><div class="ce-col"><span class="lbl lbl-green">long buildup</span> 29.7k</div><div class="st">▶ 1,420 ◀</div><div class="pe-col"><span class="hi">51,200</span>&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-red">short buildup</span> 18.2k</div><div class="st mp-st">1,460 MP</div><div class="pe-col">44,800&nbsp; <span class="lbl lbl-red">short buildup</span></div></div>
+        <div class="cr"><div class="ce-col"><span class="lbl lbl-red">short buildup</span> 12.9k</div><div class="st">1,480</div><div class="pe-col">38,500&nbsp; <span class="lbl lbl-cyan">short covering</span></div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'Noto Sans Tamil',sans-serif">
+        1,420 CE — long buildup → <span style="color:var(--green)">Buy Leg சாதகம்</span> &nbsp;|&nbsp;
+        1,460 MP — short buildup by Writers → <span style="color:var(--yellow)">Sell Leg இங்கே சரியானது</span>
       </div>
     </div>
 
-    <p><strong>OI Signals (4 வகைகள்):</strong></p>
     <table class="sig-table">
-      <thead><tr><th>Signal</th><th>OI</th><th>விலை</th><th>என்ன நடக்கிறது</th><th>பொருள்</th></tr></thead>
+      <thead><tr><th>Signal</th><th>என்ன நடக்கிறது</th><th>Spread-க்கு பொருள்</th></tr></thead>
       <tbody>
-        <tr><td><span class="lbl lbl-green">long buildup</span></td><td>↑ அதிகம்</td><td>↑ ஏற்றம்</td><td>புதிய long positions சேர்க்கிறார்கள்</td><td><span class="pass">Bullish</span> — வாங்குவோர் அதிகம்</td></tr>
-        <tr><td><span class="lbl lbl-red">short buildup</span></td><td>↑ அதிகம்</td><td>↓ இறக்கம்</td><td>புதிய short positions சேர்க்கிறார்கள்</td><td><span class="fail">Bearish</span> — விற்பவர்கள் அதிகம்</td></tr>
-        <tr><td><span class="lbl lbl-cyan">short covering</span></td><td>↓ குறைவு</td><td>↑ ஏற்றம்</td><td>shorts திரும்ப வாங்குகிறார்கள்</td><td><span class="pass">Temporary Bullish</span> — விரைவில் முடியலாம்</td></tr>
-        <tr><td><span class="lbl lbl-yellow">long unwinding</span></td><td>↓ குறைவு</td><td>↓ இறக்கம்</td><td>longs விற்று வெளியேறுகிறார்கள்</td><td><span class="fail">Temporary Bearish</span></td></tr>
+        <tr><td><span class="lbl lbl-green">long buildup</span></td><td>OI↑ + Price↑ — Buyers அதிகம்</td><td><span class="pass">Buy Leg-க்கு சாதகம்</span></td></tr>
+        <tr><td><span class="lbl lbl-red">short buildup</span></td><td>OI↑ + Price↓ — Writers அதிகம்</td><td><span class="warn">Sell Leg இங்கே நியாயமானது</span></td></tr>
+        <tr><td><span class="lbl lbl-cyan">short covering</span></td><td>OI↓ + Price↑ — Shorts திரும்ப வாங்குகிறார்கள்</td><td>Temporary — உறுதிப்படுத்தி Spread அமைக்கவும்</td></tr>
+        <tr><td><span class="lbl lbl-yellow">long unwinding</span></td><td>OI↓ + Price↓ — Longs வெளியேறுகிறார்கள்</td><td>Direction மாறலாம், Spread-ஐ delay செய்யவும்</td></tr>
       </tbody>
     </table>
-
-    <div class="info-box tip-box">
-      <span class="info-icon">🔍</span>
-      <p><strong>Chain-ஐ எப்படி படிப்பது:</strong> ATM strike-க்கு அருகில் CE-இல் <span class="lbl lbl-red">short buildup</span> மற்றும் PE-இல் <span class="lbl lbl-red">short buildup</span> இருந்தால், சந்தை அந்த range-இல் உறைந்திருக்கும் (writers பவர் அதிகம்). ATM CE-இல் <span class="lbl lbl-green">long buildup</span> இருந்தால் — Bullish breakout வாய்ப்பு.</p>
-    </div>
   </div>
 
 
-  <!-- SECTION 5 -->
+  <!-- SECTION 8 — MAX PAIN & PCR -->
   <div class="section">
-    <span class="section-anchor" id="s5"></span>
+    <span class="section-anchor" id="s8"></span>
     <div class="section-header">
-      <div class="section-num">5</div>
-      <h2>Max Pain — என்ன? எப்படி பயன்படுத்துவது?</h2>
+      <div class="section-num">8</div>
+      <h2>Max Pain &amp; PCR</h2>
     </div>
-    <p><strong>Max Pain</strong> என்பது expiry நாளில் option writers (விற்பவர்கள்) அதிகபட்ச லாபம் பெறும் strike price. இந்த விலையில் அதிகமான options "worthless" ஆக expire ஆகும் — அதாவது buyers-க்கு அதிக loss; writers-க்கு அதிக gain.</p>
-
-    <div class="example-box">
-      <div class="ex-title">உதாரணம் — RELIANCE Max Pain</div>
-      <p>Spot இப்போது: <span class="ex-val">1,406</span> &nbsp;|&nbsp; Max Pain Strike: <span class="ex-val" style="color:var(--yellow)">1,440</span></p>
-      <p><strong>விளக்கம்:</strong> Expiry நாளில் RELIANCE 1,440-இல் close ஆனால், அதிகமான CE buyers மற்றும் PE buyers இரண்டும் loss-இல் expire ஆவார்கள். Institutional writers இதை நோக்கி விலையை இழுக்கும் சக்தி இருக்கும்.</p>
-      <p><strong>தற்போதைய நிலை:</strong> Spot (1,406) &lt; Max Pain (1,440) — விலை ஏற வாய்ப்பு அதிகம். CE வாங்குவதற்கு ஆதரவான signal.</p>
-    </div>
+    <p><strong>Max Pain</strong> என்பது expiry நாளில் option writers அதிக லாபம் பெறும் strike price. Spread-இல் இது <strong>Sell Leg எங்கே வைப்பது</strong> என்பதற்கு reference ஆக பயன்படுகிறது.</p>
 
     <table class="sig-table">
-      <thead><tr><th>நிலை</th><th>பொருள்</th><th>trade bias</th></tr></thead>
+      <thead><tr><th>நிலை</th><th>Spread-க்கு தாக்கம்</th></tr></thead>
       <tbody>
-        <tr><td>Spot &lt; Max Pain</td><td>விலை Max Pain-ஐ நோக்கி ஏற வாய்ப்பு</td><td><span class="pass">CE சாதகம்</span></td></tr>
-        <tr><td>Spot &gt; Max Pain</td><td>விலை Max Pain-ஐ நோக்கி இறங்க வாய்ப்பு</td><td><span class="fail">PE சாதகம்</span></td></tr>
-        <tr><td>Spot ≈ Max Pain</td><td>Expiry-க்கு அருகில் range-bound ஆக இருக்கும்</td><td><span class="warn">Straddle / காத்திரு</span></td></tr>
+        <tr><td>Spot &lt; Max Pain</td><td>விலை MP-ஐ நோக்கி ஏற வாய்ப்பு → <span class="pass">Call Spread Sell Leg-ஐ MP அருகில் வைக்கலாம்</span></td></tr>
+        <tr><td>Spot &gt; Max Pain</td><td>விலை MP-ஐ நோக்கி இறங்க வாய்ப்பு → <span class="fail">Put Spread சாதகம்</span></td></tr>
+        <tr><td>Spot ≈ Max Pain</td><td>Range-bound — Spread விரைவில் exit செய்யவும்</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>PCR (Put-Call Ratio) = மொத்த Put OI ÷ மொத்த Call OI</strong></p>
+    <table class="sig-table">
+      <thead><tr><th>PCR</th><th>சந்தை நிலை</th><th>Spread bias</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono" style="color:var(--red)">&gt; 1.5</span></td><td>Extreme bearishness</td><td><span class="pass">Contrarian → Call Spread சாதகம்</span></td></tr>
+        <tr><td><span class="mono" style="color:var(--yellow)">1.0–1.5</span></td><td>Neutral</td><td>Signal Score-உடன் சேர்த்து முடிவு எடுக்கவும்</td></tr>
+        <tr><td><span class="mono" style="color:var(--green)">0.7–1.0</span></td><td>Balanced</td><td>Call Spread moderate support</td></tr>
+        <tr><td><span class="mono" style="color:var(--red)">&lt; 0.7</span></td><td>Complacency</td><td><span class="fail">Contrarian → Put Spread சாதகம்</span></td></tr>
       </tbody>
     </table>
 
     <div class="info-box warn-box">
       <span class="info-icon">⚠️</span>
-      <p>Max Pain <strong>expiry நாளில் மட்டும்</strong> அதிக சக்தி வாய்ந்தது. Expiry-க்கு 2–3 வாரங்கள் முன்பு இருந்தால், இது வழிகாட்டியாக மட்டுமே பயன்படுத்தவும் — market catalyst-கள் அதை override செய்யலாம்.</p>
+      <p>Max Pain <strong>expiry நாளில் மட்டும்</strong> அதிக சக்தி வாய்ந்தது. 2–3 வாரங்கள் முன்பு இருந்தால் வழிகாட்டியாக மட்டுமே பயன்படுத்தவும். PCR ஒரு contrarian indicator — மக்கள் அதிகமாக PE வாங்கும்போது market திரும்பலாம்.</p>
     </div>
-
-    <p><strong>Max Pain &amp; PCR Tab-இல்</strong> கிடைக்கும் தரவு:</p>
-    <table class="sig-table">
-      <thead><tr><th>தரவு</th><th>விளக்கம்</th></tr></thead>
-      <tbody>
-        <tr><td><span class="mono">Max Pain Strike</span></td><td>writers சதகும் விலை — expiry pull target</td></tr>
-        <tr><td><span class="mono">Pain Distance</span></td><td>Spot-லிருந்து Max Pain எவ்வளவு தொலைவில் உள்ளது (points &amp; %)</td></tr>
-        <tr><td><span class="mono">CE OI vs PE OI</span></td><td>மொத்த CE OI vs PE OI — யார் அதிகம் உள்ளனர்</td></tr>
-        <tr><td><span class="mono">Max Pain Chart</span></td><td>ஒவ்வொரு strike-லும் writers pain visualization</td></tr>
-      </tbody>
-    </table>
   </div>
 
 
-  <!-- SECTION 6 -->
+  <!-- SECTION 9 — TRADE MONITOR -->
   <div class="section">
-    <span class="section-anchor" id="s6"></span>
+    <span class="section-anchor" id="s9"></span>
     <div class="section-header">
-      <div class="section-num">6</div>
-      <h2>PCR — Put-Call Ratio</h2>
+      <div class="section-num">9</div>
+      <h2>Trade Monitor — நேரடி கண்காணிப்பு</h2>
     </div>
-    <p><strong>PCR = மொத்த Put OI ÷ மொத்த Call OI</strong></p>
-    <p>இது சந்தையின் உணர்வை (sentiment) காட்டும் எளிமையான அளவீடு. அதிக PE OI = பயம் அதிகம் = contrarian bullish signal.</p>
-
-    <div class="diagram">
-      <div class="diagram-title">PCR விளக்கம்</div>
-      <table class="sig-table" style="margin:0">
-        <thead><tr><th>PCR மதிப்பு</th><th>சந்தை நிலை</th><th>trade bias</th></tr></thead>
-        <tbody>
-          <tr><td><span class="mono" style="color:var(--red)">&gt; 1.5</span></td><td>அதிக bearishness — PE writers அதிகம்</td><td><span class="pass">Contrarian Bullish</span> — இறக்கம் முடிவடையலாம்</td></tr>
-          <tr><td><span class="mono" style="color:var(--yellow)">1.0 – 1.5</span></td><td>சமச்சீர் — Neutral zone</td><td><span class="warn">Neutral</span> — திசை தெளிவில்லை</td></tr>
-          <tr><td><span class="mono" style="color:var(--green)">0.7 – 1.0</span></td><td>Balanced market</td><td><span class="pass">Moderate Bullish</span></td></tr>
-          <tr><td><span class="mono" style="color:var(--red)">&lt; 0.7</span></td><td>Complacency — CE writers அதிகம்</td><td><span class="fail">Contrarian Bearish</span> — ஏற்றம் முடிவடையலாம்</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="example-box">
-      <div class="ex-title">உதாரணம் — NIFTY PCR</div>
-      <p>CE OI = <span class="ex-val">82 லட்சம்</span> &nbsp;|&nbsp; PE OI = <span class="ex-val">1.12 கோடி</span></p>
-      <p>PCR = 1.12 / 0.82 = <span class="ex-val">1.37</span> — <span class="warn">Neutral to Slightly Bearish Sentiment</span></p>
-      <p>ஆனால் இது Contrarian-ஆக பார்த்தால்: அதிக PE OI = பயம் அதிகம் = <span class="pass">selling exhaustion வாய்ப்பு</span>. CPR மற்றும் Signal Score-உடன் இணைந்து confirm செய்யவும்.</p>
-    </div>
+    <p>Trade Monitor tab-இல் உங்கள் நிலையை உள்ளிட்டு <strong>Evaluate</strong> அழுத்தினால், HOLD / EXIT / TRAIL என்று சொல்லும்.</p>
 
     <div class="info-box">
       <span class="info-icon">📌</span>
-      <p>PCR <strong>ஒரு contrarian indicator</strong>. மக்கள் அதிகமாக PE வாங்கும்போது, சந்தை பலவீனமாக இல்லாமல் திரும்ப ஏறலாம். எந்த ஒரு indicator-ஐயும் தனியே நம்பாதீர்கள் — Signal Score-உடன் சேர்த்து பாருங்கள்.</p>
+      <p><strong>Spread mode-இல் Monitor பயன்படுத்தல்:</strong> Entry LTP-ஆக <strong>Net Debit</strong> (₹24 உதாரணத்தில்) உள்ளிடவும். Current LTP-ஆக <strong>தற்போதைய Spread-இன் net value</strong> (Long LTP − Short LTP) உள்ளிடவும். இதன் மூலம் P&amp;L சரியாக கணக்கிடப்படும்.</p>
     </div>
-  </div>
-
-
-  <!-- SECTION 7 -->
-  <div class="section">
-    <span class="section-anchor" id="s7"></span>
-    <div class="section-header">
-      <div class="section-num">7</div>
-      <h2>Trade Monitor — நேரடி கண்காணிப்பு</h2>
-    </div>
-    <p>Trade Monitor tab-இல் உங்கள் தற்போதைய நிலையை உள்ளிட்டு <strong>Evaluate</strong> பொத்தான் அழுத்தினால், கருவி HOLD / EXIT / TRAIL என்று சொல்லும்.</p>
 
     <div class="steps">
       <div class="step">
         <div class="step-n">1</div>
         <div class="step-body">
-          <div class="step-title">Entry LTP</div>
-          <p>நீங்கள் option வாங்கிய விலை. எ.கா: RELIANCE 1420 CE-ஐ <strong>₹85</strong>-க்கு வாங்கினீர்கள்.</p>
+          <div class="step-title">Entry LTP (Spread: Net Debit/Credit)</div>
+          <p>Single Leg: option வாங்கிய விலை. Spread: net debit (Buy LTP − Sell LTP at entry). எ.கா: ₹42 − ₹18 = <strong>₹24</strong>.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">2</div>
         <div class="step-body">
-          <div class="step-title">Current LTP</div>
-          <p>தற்போதைய சந்தை விலை. Market open ஆக இருந்தால் இது மாறிக்கொண்டே இருக்கும். எ.கா: <strong>₹112</strong>.</p>
+          <div class="step-title">Current LTP (Spread: current net value)</div>
+          <p>Single Leg: தற்போதைய option LTP. Spread: இப்போது Buy Leg LTP − Sell Leg LTP. எ.கா: ₹52 − ₹14 = <strong>₹38</strong> → Profit = (38−24) × 250 = ₹3,500.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">3</div>
         <div class="step-body">
-          <div class="step-title">Stop Price, T1, T2</div>
-          <p>Risk Plan பலகத்தில் இருந்து auto-fill ஆகும். அல்லது நீங்களாக இட்டுக்கொள்ளலாம். எ.கா: Stop = <strong>₹51</strong>, T1 = <strong>₹136</strong>, T2 = <strong>₹187</strong>.</p>
+          <div class="step-title">Stop, T1, T2</div>
+          <p>Risk Plan-இலிருந்து auto-fill ஆகும். Spread stop = entry net × 0.6; T1 = entry net × 1.6. நீங்களாக மாற்றலாம்.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">4</div>
         <div class="step-body">
           <div class="step-title">Lots &amp; Lot Size</div>
-          <p>நீங்கள் வாங்கிய lots எண்ணிக்கை மற்றும் அந்த பங்கின் lot size. RELIANCE lot size = 250. 2 lots வாங்கினீர்களா? <strong>2 lots × 250 = 500 shares</strong>.</p>
+          <p>Risk Unit calculator பரிந்துரைத்த lots உள்ளிடவும். Lot Size கருவி தானாக பங்கின் lot size-ஐ set செய்யும் (static 500 இல்லை).</p>
         </div>
       </div>
     </div>
 
-    <p style="margin-top:16px"><strong>முடிவு (Output) விளக்கம்:</strong></p>
-
     <div class="monitor-demo">
       <div class="mon-action HOLD">HOLD</div>
       <p style="font-size:12px;color:var(--dim);margin-bottom:12px;font-family:'Noto Sans Tamil',sans-serif">T1 அடையவில்லை, Stop-க்கு மேலே உள்ளது</p>
-      <div class="mon-row"><span class="mon-key">நிலையான P&L</span><span class="mon-val" style="color:var(--green)">+₹13,500</span></div>
-      <div class="mon-row"><span class="mon-key">நுழைவு விலை</span><span class="mon-val">₹85</span></div>
-      <div class="mon-row"><span class="mon-key">தற்போதைய விலை</span><span class="mon-val">₹112</span></div>
-      <div class="mon-row"><span class="mon-key">Stop</span><span class="mon-val" style="color:var(--red)">₹51</span></div>
-      <div class="mon-row"><span class="mon-key">T1</span><span class="mon-val" style="color:var(--green)">₹136</span></div>
+      <div class="mon-row"><span class="mon-key">Spread P&L (1 lot × 250)</span><span class="mon-val" style="color:var(--green)">+₹3,500</span></div>
+      <div class="mon-row"><span class="mon-key">Entry Net Debit</span><span class="mon-val">₹24</span></div>
+      <div class="mon-row"><span class="mon-key">Current Net Value</span><span class="mon-val">₹38</span></div>
+      <div class="mon-row"><span class="mon-key">Stop (net)</span><span class="mon-val" style="color:var(--red)">₹14</span></div>
+      <div class="mon-row"><span class="mon-key">T1 (net)</span><span class="mon-val" style="color:var(--green)">₹38.4</span></div>
     </div>
 
-    <table class="sig-table" style="margin-top:16px">
+    <table class="sig-table">
       <thead><tr><th>முடிவு</th><th>நிலை</th><th>செயல்</th></tr></thead>
       <tbody>
-        <tr><td><span class="HOLD" style="font-weight:700">HOLD</span></td><td>T1-க்கு கீழே, Stop-க்கு மேலே</td><td>position-ஐ வைத்திருங்கள்</td></tr>
-        <tr><td><span class="EXIT_T1" style="font-weight:700">EXIT T1</span></td><td>Current LTP ≥ T1</td><td>பாதி lot விற்று profit book செய்யுங்கள்</td></tr>
-        <tr><td><span class="EXIT_T2" style="font-weight:700">EXIT T2</span></td><td>T1 hit + Current LTP ≥ T2</td><td>மீதி lot விற்று முழு profit எடுங்கள்</td></tr>
-        <tr><td><span class="TRAIL" style="font-weight:700">TRAIL</span></td><td>T1 hit, இன்னும் running</td><td>Stop-ஐ Entry-க்கு மேலே நகர்த்துங்கள் (risk-free)</td></tr>
-        <tr><td><span class="EXIT_STOP" style="font-weight:700">EXIT STOP</span></td><td>Current LTP ≤ Stop</td><td>உடனே வெளியேறுங்கள் — loss cut</td></tr>
-        <tr><td><span class="EXIT_EOD" style="font-weight:700">EXIT EOD</span></td><td>2:55 PM கடந்துவிட்டது</td><td>intraday-ஆக இருந்தால் close செய்யுங்கள்</td></tr>
+        <tr><td><span class="HOLD" style="font-weight:700">HOLD</span></td><td>T1-க்கு கீழே, Stop-க்கு மேலே</td><td>position வைத்திருங்கள்</td></tr>
+        <tr><td><span class="EXIT_T1" style="font-weight:700">EXIT T1</span></td><td>Net Value ≥ T1</td><td>பாதி lots square off செய்யுங்கள்</td></tr>
+        <tr><td><span class="EXIT_T2" style="font-weight:700">EXIT T2</span></td><td>T1 hit + Net Value ≥ T2</td><td>மீதி lots முழுவதும் close</td></tr>
+        <tr><td><span class="TRAIL" style="font-weight:700">TRAIL</span></td><td>T1 hit, position running</td><td>Stop-ஐ entry-க்கு மேலே நகர்த்துங்கள்</td></tr>
+        <tr><td><span class="EXIT_STOP" style="font-weight:700">EXIT STOP</span></td><td>Net Value ≤ Stop</td><td>உடனே square off செய்யுங்கள்</td></tr>
+        <tr><td><span class="EXIT_EOD" style="font-weight:700">EXIT EOD</span></td><td>2:55 PM கடந்துவிட்டது</td><td>Hawk intraday strategy — EOD close கட்டாயம்</td></tr>
       </tbody>
     </table>
 
     <div class="info-box red-box">
       <span class="info-icon">🚨</span>
-      <p><strong>Stop-Loss கட்டாயம்:</strong> Trade Monitor "EXIT STOP" சொன்னால் உடனடியாக வெளியேறுங்கள். "இன்னும் கொஞ்சம் காத்திருக்கலாம்" என்று நினைக்காதீர்கள் — loss அதிகமாகும். Options-இல் time decay கூடுதல் risk சேர்க்கிறது.</p>
+      <p><strong>Hawk Spread Intraday Rule:</strong> இந்த strategy intraday-க்கு வடிவமைக்கப்பட்டுள்ளது. 2:55 PM-க்கு முன்பு square off செய்யவும் — max loss ஏற்கனவே கட்டுப்படுத்தப்பட்டிருந்தாலும், overnight holding gamma risk, news gap risk சேர்க்கும். இது கல்வி நோக்கத்திற்கான ஆய்வு மட்டுமே — SEBI-பதிவு பெற்ற ஆலோசகரிடம் உறுதிப்படுத்தவும்.</p>
     </div>
   </div>
 
 
-  <!-- SECTION 8 -->
+  <!-- SECTION 10 — CONTRACT HISTORY -->
   <div class="section">
-    <span class="section-anchor" id="s8"></span>
+    <span class="section-anchor" id="s10"></span>
     <div class="section-header">
-      <div class="section-num">8</div>
+      <div class="section-num">10</div>
       <h2>Contract History — Theta Decay</h2>
     </div>
-    <p>Contract History tab-இல் ஒரு குறிப்பிட்ட option contract-இன் கடந்த கால தரவை பார்க்கலாம். இது <strong>Theta Decay</strong> (time decay) எப்படி நடக்கிறது என்பதை காட்டுவதற்கு மிகவும் பயனுள்ளது.</p>
+    <p>Contract History tab-இல் ஒரு குறிப்பிட்ட option contract-இன் கடந்த கால tana data பார்க்கலாம். Spread-இன் Buy Leg எப்படி decay ஆகிறது என்பதை புரிந்துகொள்ள இது மிகவும் பயனுள்ளது.</p>
 
     <div class="steps">
       <div class="step">
         <div class="step-n">1</div>
         <div class="step-body">
           <div class="step-title">Strike மற்றும் Type தேர்வு</div>
-          <p>நீங்கள் ஆய்வு செய்ய விரும்பும் strike-ஐ உள்ளிடுங்கள். CE / PE toggle அழுத்துங்கள். எ.கா: NIFTY 24100 CE.</p>
+          <p>நீங்கள் ஆய்வு செய்ய விரும்பும் strike-ஐ உள்ளிடுங்கள். CE / PE toggle அழுத்துங்கள்.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">2</div>
         <div class="step-body">
           <div class="step-title">Expiry, From Date, To Date</div>
-          <p>Contract-இன் expiry date தேர்வு செய்யுங்கள். From Date = contract trading தொடங்கிய தேதி (பொதுவாக முந்தைய expiry). To Date = expiry date அல்லது இன்றைய தேதி.</p>
+          <p>பங்குகளுக்கு monthly expiry — From Date தானாக expiry-க்கு 28 நாட்கள் முன்பு set ஆகும் (weekly அல்ல). இது stock monthly contract-இன் முழு ஆயுளை cover செய்யும்.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-n">3</div>
         <div class="step-body">
           <div class="step-title">"Fetch from NSE" அழுத்தவும்</div>
-          <p>NSE API மூலம் நேரடியாக data ஏற்றப்படும். NSE API கிடைக்கவில்லை என்றால், <strong>Bhavcopy files fallback</strong> link-ஐ பயன்படுத்தி CSV file upload செய்யலாம்.</p>
+          <p>NSE API மூலம் data ஏற்றப்படும். தோல்வியடைந்தால் Bhavcopy CSV upload செய்யலாம்.</p>
         </div>
       </div>
     </div>
 
-    <p style="margin-top:16px"><strong>Chart-இல் காண்பிக்கப்படும் தரவு:</strong></p>
     <table class="sig-table">
       <thead><tr><th>காட்டி</th><th>விளக்கம்</th></tr></thead>
       <tbody>
-        <tr><td><span class="mono">Actual LTP</span> (purple)</td><td>ஒவ்வொரு நாளும் option-இன் closing price</td></tr>
-        <tr><td><span class="mono">Theoretical Decay</span> (orange)</td><td>Black-Scholes மாதிரி கணக்கிட்ட ideal decay — இது "நேர்மையான" decay path</td></tr>
-        <tr><td><span class="mono">IV%</span></td><td>ஒவ்வொரு நாளும் implied volatility சதவீதம்</td></tr>
+        <tr><td><span class="mono">Actual LTP</span> (purple)</td><td>ஒவ்வொரு நாளும் option closing price</td></tr>
+        <tr><td><span class="mono">Theoretical Decay</span> (orange)</td><td>Black-Scholes ideal decay — இது "நேர்மையான" decay path</td></tr>
+        <tr><td><span class="mono">IV%</span></td><td>ஒவ்வொரு நாளும் implied volatility</td></tr>
         <tr><td><span class="mono">DTE</span></td><td>Days to Expiry — எத்தனை நாட்கள் மீதமுள்ளன</td></tr>
-        <tr><td><span class="mono">Theta</span></td><td>அன்று ஒரு நாளின் time decay இழப்பு (₹ per lot)</td></tr>
+        <tr><td><span class="mono">Theta</span></td><td>அன்று time decay இழப்பு (₹ per lot)</td></tr>
       </tbody>
     </table>
 
     <div class="example-box">
-      <div class="ex-title">உதாரணம் — NIFTY 24100 CE (8 மே 2026 Expiry)</div>
-      <p>From: <span class="ex-val">28-Mar-2026</span> &nbsp;→&nbsp; To: <span class="ex-val">08-May-2026</span> (41 நாட்கள்)</p>
-      <p>40 DTE-இல் LTP: <span class="ex-val">₹420</span> &nbsp;|&nbsp; 10 DTE-இல் LTP: <span class="ex-val">₹85</span> &nbsp;|&nbsp; Expiry-ல்: <span class="ex-val">₹3</span></p>
-      <p><strong>பாடம்:</strong> Expiry-க்கு 30 நாட்களுக்கு முன்பு வாங்கினால் ₹420 → ₹3 ஆகும் — premium-இன் 99% போய்விடும். Options வாங்குபவர்களுக்கு TIME ஒரு எதிரி.</p>
+      <div class="ex-title">உதாரணம் — RELIANCE 1,420 CE (29 மே 2026 Expiry)</div>
+      <p>From: <span class="ex-val">01-May-2026</span> → To: <span class="ex-val">29-May-2026</span> (28 calendar days)</p>
+      <p>20 DTE-இல் LTP: <span class="ex-val">₹65</span> &nbsp;|&nbsp; 5 DTE-இல் LTP: <span class="ex-val">₹12</span> &nbsp;|&nbsp; Expiry-ல்: <span class="ex-val">₹0.5</span></p>
+      <p><strong>Spread-க்கு பாடம்:</strong> Buy Leg (1,420 CE) ₹65 → ₹12 ஆகும். ஆனால் Sell Leg (1,460 CE) ₹22 → ₹2 ஆகும். <strong>Net decay difference</strong> Spread value-ஐ காப்பாற்றுகிறது — naked single option-ஐ விட spread holding எளிது.</p>
     </div>
 
     <div class="info-box tip-box">
       <span class="info-icon">💡</span>
-      <p><strong>Option Writers-க்கு ஒரு குறிப்பு:</strong> Actual LTP &gt; Theoretical Decay என்று இருந்தால் — IV அதிகமாக உள்ளது, selling சாதகமான நேரம். Actual LTP &lt; Theoretical Decay என்றால் — IV குறைவாக உள்ளது, buying சாதகமான நேரம்.</p>
+      <p>Spread-இல் Sell Leg-இன் premium collection Buy Leg-இன் theta decay-ஐ partially offset செய்கிறது. இதனால் Spread-இல் intraday trader-க்கு time decay பாதிப்பு குறைவாக இருக்கும் — single option buyer-ஐ விட.</p>
     </div>
   </div>
 
 
-  <!-- SECTION 9 — FULL WORKFLOW -->
+  <!-- SECTION 11 — FULL WORKFLOW -->
   <div class="section">
-    <span class="section-anchor" id="s9"></span>
+    <span class="section-anchor" id="s11"></span>
     <div class="section-header">
-      <div class="section-num">9</div>
-      <h2>முழு Workflow உதாரணம்</h2>
+      <div class="section-num">11</div>
+      <h2>முழு Spread Workflow உதாரணம்</h2>
     </div>
-    <p>இங்கே ஒரு real trade setup-ஐ step-by-step பார்ப்போம். Stock: <strong>RELIANCE</strong>, Date: <strong>14 மே 2026</strong>, Expiry: <strong>29 மே 2026</strong>.</p>
+    <p>இங்கே ஒரு real Hawk Call Spread setup-ஐ step-by-step பார்ப்போம். Stock: <strong>RELIANCE</strong>, Date: <strong>14 மே 2026</strong>, Expiry: <strong>29 மே 2026</strong>.</p>
 
     <div class="workflow">
-      <div class="wf-step"><div class="wf-circle">🔧</div><div class="wf-label">Symbol &amp; Expiry அமை</div></div>
+      <div class="wf-step"><div class="wf-circle">🔧</div><div class="wf-label">Symbol, Expiry, Spread Mode</div></div>
       <div class="wf-arrow">→</div>
       <div class="wf-step"><div class="wf-circle">📊</div><div class="wf-label">Analyze அழுத்து</div></div>
       <div class="wf-arrow">→</div>
-      <div class="wf-step"><div class="wf-circle">🧭</div><div class="wf-label">Trade Flow சரிபார்</div></div>
+      <div class="wf-step"><div class="wf-circle">🧭</div><div class="wf-label">Trade Flow &amp; Score</div></div>
       <div class="wf-arrow">→</div>
-      <div class="wf-step"><div class="wf-circle">🎯</div><div class="wf-label">Score &amp; Strike</div></div>
+      <div class="wf-step"><div class="wf-circle">🎯</div><div class="wf-label">Spread Builder</div></div>
       <div class="wf-arrow">→</div>
-      <div class="wf-step"><div class="wf-circle">📈</div><div class="wf-label">Chain + Max Pain</div></div>
+      <div class="wf-step"><div class="wf-circle">💧</div><div class="wf-label">Liquidity Check</div></div>
       <div class="wf-arrow">→</div>
-      <div class="wf-step"><div class="wf-circle">🛡️</div><div class="wf-label">Trade Monitor</div></div>
+      <div class="wf-step"><div class="wf-circle">🛡️</div><div class="wf-label">Monitor</div></div>
     </div>
 
     <div class="example-box" style="border-color:rgba(46,204,113,0.4)">
       <div class="ex-title" style="color:var(--green)">Step 1 — Setup</div>
-      <p>Symbol: <span class="ex-val">RELIANCE</span> &nbsp;|&nbsp; Expiry: <span class="ex-val">29-May-2026</span> &nbsp;|&nbsp; Direction: <span class="lbl lbl-blue">CE</span> (bullish திசை நம்புகிறோம்)</p>
-      <p>Analyze அழுத்துங்கள் — 5–8 வினாடிகளில் அனைத்தும் ஏற்றப்படும்.</p>
+      <p>Symbol: <span class="ex-val">RELIANCE</span> &nbsp;|&nbsp; Expiry: <span class="ex-val">29-May-2026</span> &nbsp;|&nbsp; Trade Mode: <span class="lbl lbl-purple">Spread</span> &nbsp;|&nbsp; Spread Type: <span class="lbl lbl-blue">Call Spread</span></p>
+      <p>Analyze அழுத்துங்கள் — 5–10 வினாடிகளில் Chain, Signal Score, Spread Builder அனைத்தும் ஏற்றப்படும்.</p>
     </div>
 
     <div class="example-box" style="border-color:rgba(0,212,255,0.4)">
-      <div class="ex-title" style="color:var(--cyan)">Step 2 — Stock Trade Flow சரிபார்</div>
-      <p>TC = <span class="ex-val">1,402</span> &nbsp;|&nbsp; Spot = <span class="ex-val">1,406</span> &nbsp;→&nbsp; <span class="pass">▲ ABOVE TC — Bullish</span></p>
-      <p>ORB High = <span class="ex-val">1,408</span>, Spot &gt; ORB High — breakout confirm. CPR bullish signal உள்ளது, CE trade-க்கு ஆதரவு.</p>
+      <div class="ex-title" style="color:var(--cyan)">Step 2 — Trade Flow &amp; Signal Score சரிபார்</div>
+      <p>TC = <span class="ex-val">1,402</span> &nbsp;|&nbsp; Spot = <span class="ex-val">1,406</span> → <span class="pass">▲ ABOVE TC — Bullish</span></p>
+      <p>Signal Score: <span class="ex-val" style="color:var(--green)">13 / 17</span> — <span class="lbl lbl-blue">MODERATE</span> → Call Spread-க்கு ஆதரவு உள்ளது.</p>
+      <p>Max Pain = <span class="ex-val" style="color:var(--yellow)">1,460</span> &nbsp;|&nbsp; Spot (1,406) &lt; Max Pain (1,460) — upside pull இருக்கும். Call Spread Sell Leg-ஐ 1,460 அருகில் வைக்கலாம்.</p>
     </div>
 
     <div class="example-box" style="border-color:rgba(124,106,247,0.4)">
-      <div class="ex-title" style="color:var(--accent)">Step 3 — Signal Score</div>
-      <p>Score: <span class="ex-val" style="color:var(--green)">13 / 17</span> — <span class="lbl lbl-blue">MODERATE</span></p>
-      <p>✅ RSI Bullish &nbsp;✅ CPR Above TC &nbsp;✅ OI Bullish &nbsp;✅ PCR &gt; 1.0 &nbsp;✅ Max Pain தொலைவில் (upside) &nbsp;✅ Volume Spike</p>
-      <p>❌ VIX குறைவாக உள்ளது (premium மலிவு — buying சாதகம் ✓) &nbsp;❌ IV relatively low</p>
-      <p>பரிந்துரை Strike: <span class="ex-val">1,420 CE</span> &nbsp;|&nbsp; LTP: <span class="ex-val">₹42</span> &nbsp;|&nbsp; Delta: <span class="ex-val">0.38</span> &nbsp;|&nbsp; Theta: <span class="ex-val">-₹1.8/day</span></p>
+      <div class="ex-title" style="color:var(--accent)">Step 3 — Spread Builder</div>
+      <p>Auto-selected: Buy Leg = <span class="ex-val">1,420 CE @ ₹42</span> &nbsp;|&nbsp; Sell Leg = <span class="ex-val">1,460 CE @ ₹18</span></p>
+      <div class="spread-math" style="margin:10px 0">
+        <div class="math-row"><span class="math-key">Net Debit</span><span class="math-val yellow">₹42 − ₹18 = ₹24</span></div>
+        <div class="math-row"><span class="math-key">Spread Width</span><span class="math-val">40 pts</span></div>
+        <div class="math-row"><span class="math-key">Max Loss / lot (250)</span><span class="math-val red">₹24 × 250 = ₹6,000</span></div>
+        <div class="math-row"><span class="math-key">Max Profit / lot (250)</span><span class="math-val green">₹16 × 250 = ₹4,000</span></div>
+        <div class="math-row"><span class="math-key">Breakeven</span><span class="math-val">1,420 + 24 = ₹1,444</span></div>
+      </div>
+      <p>Risk Unit = <span class="ex-val">₹2,500</span> → 1 lot max loss ₹6,000 &gt; ₹2,500. <span class="warn">Narrow the spread</span> — 20 pts width தேர்வு: Buy 1,420 CE, Sell 1,440 CE.</p>
+      <p>Revised: Net Debit ≈ ₹12 &nbsp;|&nbsp; Max Loss = ₹3,000 &nbsp;|&nbsp; Suggested: <span class="pass">0 lots</span> still tight → Risk Unit ₹5,000 என்றால் 1 lot suitable.</p>
     </div>
 
-    <div class="example-box" style="border-color:rgba(245,166,35,0.4)">
-      <div class="ex-title" style="color:var(--yellow)">Step 4 — Option Chain &amp; Max Pain</div>
-      <p>1,420 CE-இல்: <span class="lbl lbl-green">long buildup</span> — OI ↑ + Price ↑. Institutional buying உள்ளது.</p>
-      <p>Max Pain = <span class="ex-val" style="color:var(--yellow)">1,440</span> &nbsp;|&nbsp; Spot (1,406) &lt; Max Pain (1,440) — upside pull இருக்கும்.</p>
-      <p>PCR = <span class="ex-val">1.22</span> — Slightly bearish sentiment = contrarian bullish signal.</p>
-      <p>அனைத்து signals CE-க்கு சாதகமாக உள்ளன. Trade எடுக்கலாம்.</p>
+    <div class="example-box" style="border-color:rgba(0,212,255,0.4)">
+      <div class="ex-title" style="color:var(--cyan)">Step 4 — Liquidity Gate</div>
+      <p>1,420 CE: Bid-Ask <span class="pass">1.9%</span> ✓ &nbsp;|&nbsp; 1,440 CE: Bid-Ask <span class="pass">2.1%</span> ✓</p>
+      <p>Est. 4-leg round-trip cost: <span class="ex-val">₹210</span> — Max Profit ₹2,000-இல் 10.5% friction. Acceptable.</p>
+      <p><span class="pass">✓ Both legs liquid</span> — Trade செல்லலாம்.</p>
     </div>
 
     <div class="example-box" style="border-color:rgba(46,204,113,0.4)">
       <div class="ex-title" style="color:var(--green)">Step 5 — Trade Monitor</div>
-      <p>வாங்கினோம்: <span class="ex-val">1,420 CE @ ₹42</span> &nbsp;|&nbsp; Lots: <span class="ex-val">2</span> &nbsp;|&nbsp; Lot Size: <span class="ex-val">250</span></p>
-      <p>Risk Plan (auto): Stop = <span class="ex-val" style="color:var(--red)">₹25</span> &nbsp;|&nbsp; T1 = <span class="ex-val" style="color:var(--green)">₹67</span> &nbsp;|&nbsp; T2 = <span class="ex-val" style="color:var(--green)">₹92</span></p>
-      <p>அடுத்த நாள் Current LTP = <span class="ex-val">₹68</span> → Monitor சொல்கிறது: <span class="EXIT_T1" style="font-weight:700">EXIT T1</span></p>
-      <p>1 lot @ ₹67 விற்றோம்: Profit = (67–42) × 250 = <span class="pass">+₹6,250</span>. மீதி 1 lot TRAIL-க்கு வைத்தோம்.</p>
+      <p>Entry Net: <span class="ex-val">₹12</span> &nbsp;|&nbsp; Lots: <span class="ex-val">1</span> &nbsp;|&nbsp; Lot Size: <span class="ex-val">250</span></p>
+      <p>2 மணி நேரம் கடந்து: Buy Leg ₹19, Sell Leg ₹7 → Current Net = <span class="ex-val">₹12</span> → P&L = 0 (breakeven).</p>
+      <p>RELIANCE spot ₹1,435 hit: Buy Leg ₹28, Sell Leg ₹10 → Current Net = <span class="ex-val">₹18</span>.</p>
+      <p>Monitor: <span class="EXIT_T1" style="font-weight:700">EXIT T1</span> — Net ₹18 ≈ T1 (Entry × 1.5). Square off both legs: Profit = (18−12) × 250 = <span class="pass">+₹1,500</span>.</p>
     </div>
 
     <div class="info-box tip-box">
       <span class="info-icon">✅</span>
-      <p><strong>சுருக்கம்:</strong> CPR Bullish → Signal Score 13/17 → Long Buildup in Chain → Max Pain Upside → PCR Contrarian Bullish → Trade எடுத்தோம் → Monitor-இல் T1 hit → பாதி profit book செய்தோம். இதுவே Stock Options கருவியின் சரியான பயன்பாடு.</p>
+      <p><strong>சுருக்கம்:</strong> CPR Bullish → Score 13/17 → Max Pain upside → Call Spread (1420/1440) → Liquidity OK → Risk Unit fit (1 lot @ ₹5,000 unit) → Net Debit ₹12 → T1 hit → +₹1,500 profit. இதுவே Hawk Spread-இன் சரியான கல்வி பயன்பாடு.</p>
+      <p style="margin-top:8px;font-size:12px;color:var(--muted)">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</p>
     </div>
   </div>
 
