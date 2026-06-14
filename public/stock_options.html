@@ -236,6 +236,36 @@ select:focus,input:focus{border-color:var(--accent)}
 /* ── Tab Panels ──────────────────────────────────────────────────────────────── */
 .tab-panel{display:none}.tab-panel.active{display:block}
 
+/* ── Spread Detail Modal ─────────────────────────────────────────────────────── */
+.spread-modal-backdrop{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.spread-modal-backdrop.open{display:flex}
+.spread-modal{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r);width:100%;max-width:720px;
+  max-height:88vh;overflow-y:auto;
+  box-shadow:0 28px 80px rgba(0,0,0,.7);
+}
+.spread-modal-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 18px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--bg2);z-index:1;
+}
+.spread-modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
+.spread-modal-close{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--dim);
+  width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.spread-modal-close:hover{color:#fff;border-color:var(--accent)}
+.spread-modal-body{padding:16px}
+.spread-modal-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.spread-modal-cols{grid-template-columns:1fr}}
+.spread-modal-col{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px}
+
 /* ── Option Chain Table ──────────────────────────────────────────────────────── */
 .chain-table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12px}
@@ -438,25 +468,15 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
     <div id="spreadSummary"><div class="notice" style="margin:0;font-size:11px">Run Analyze to load chain.</div></div>
   </div>
 
-  <!-- Liquidity Gate (visible after spread calculated) -->
-  <div class="sb-section panel-liq" id="liquidityBox" style="display:none">
-    <div class="sb-title">Liquidity Gate</div>
-    <div id="liquidityContent"></div>
-  </div>
-
   <!-- Selected Strike (single leg mode) -->
   <div class="sb-section panel-strike" id="strikeBox" style="display:none">
     <div class="sb-title">Selected Strike</div>
     <div id="strikeContent"></div>
   </div>
 
-  <!-- Risk Plan -->
+  <!-- Risk Plan (single-leg mode only) -->
   <div class="sb-section panel-risk" id="riskBox" style="display:none">
     <div class="sb-title">Risk Plan</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">
-      <label style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--dim);white-space:nowrap">RISK ₹</label>
-      <input type="number" id="riskUnit" value="2500" min="500" step="500" style="width:100%;font-size:12px" onchange="onSpreadStrikeChange()">
-    </div>
     <div id="riskContent"></div>
   </div>
 
@@ -624,6 +644,33 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 
 </div><!-- /content -->
 
+<!-- ── SPREAD DETAIL MODAL ───────────────────────────────────────────────────── -->
+<div class="spread-modal-backdrop" id="spreadModal" onclick="closeSpreadModal(event)">
+  <div class="spread-modal">
+    <div class="spread-modal-hdr">
+      <span class="spread-modal-title" id="spreadModalTitle">Spread Details</span>
+      <button class="spread-modal-close" onclick="closeSpreadModal()">✕</button>
+    </div>
+    <div class="spread-modal-body">
+      <div class="spread-modal-cols">
+        <div class="spread-modal-col">
+          <div class="sb-title">Liquidity Gate</div>
+          <div id="modalLiquidityContent"></div>
+        </div>
+        <div class="spread-modal-col">
+          <div class="sb-title">Risk Plan</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+            <label style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--dim);white-space:nowrap">RISK ₹</label>
+            <input type="number" id="riskUnit" value="2500" min="500" step="500" style="width:100%;font-size:12px" onchange="onSpreadStrikeChange()">
+          </div>
+          <div id="modalRiskContent"></div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ── BOTTOM TAB BAR ─────────────────────────────────────────────────────────── -->
 <div class="bottom-tab-bar">
   <button class="tab-btn active" onclick="showTab('chain',this)">Option Chain</button>
@@ -681,7 +728,6 @@ function setMode(mode) {
   document.getElementById("spreadTypeField").style.display  = mode==="spread" ? "" : "none";
   document.getElementById("directionField").style.display   = mode==="single" ? "" : "none";
   document.getElementById("spreadBuilderBox").style.display = (mode==="spread" && chainData) ? "" : "none";
-  document.getElementById("liquidityBox").style.display     = (mode==="spread" && spreadData) ? "" : "none";
   document.getElementById("strikeBox").style.display        = (mode==="single" && chainData) ? "" : "none";
   const note = document.getElementById("monitorSpreadNote");
   if (note) note.style.display = mode==="spread" ? "" : "none";
@@ -1195,9 +1241,9 @@ function onSpreadStrikeChange() {
   if (spread) {
     spreadData = spread;
     renderSpreadSummary(spread, lotSize, riskUnit);
-    document.getElementById("liquidityBox").style.display = "";
     renderLiquidityGate(spread.longLeg, spread.shortLeg, lotSize,
       Math.max(1, Math.floor(riskUnit / (spread.maxLoss * lotSize || 1))));
+    openSpreadModal(spread);
   }
 }
 
@@ -1245,6 +1291,9 @@ function renderSpreadSummary(spread, lotSize, riskUnit) {
   }
   const netLabel = spread.isDebit ? "Debit" : "Credit";
   const netColor = spread.isDebit ? "red"   : "green";
+  const sym = document.getElementById("symbolInput").value.trim().toUpperCase();
+  document.getElementById("spreadModalTitle").textContent =
+    `${sym} · ${spread.sType} Spread ${fmtN(spread.longStrike)} / ${fmtN(spread.shortStrike)}`;
   document.getElementById("spreadSummary").innerHTML = `
     <div class="spread-sum">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
@@ -1265,12 +1314,10 @@ function renderSpreadSummary(spread, lotSize, riskUnit) {
 }
 
 function renderSpreadRisk(spread, lotSize, lots, riskUnit) {
-  const box = document.getElementById("riskBox");
-  box.style.display = "block";
   const totalLoss   = spread.maxLoss   * lotSize * lots;
   const totalProfit = spread.maxProfit * lotSize * lots;
   const units = riskUnit > 0 ? (totalLoss/riskUnit).toFixed(1) : "—";
-  document.getElementById("riskContent").innerHTML = `
+  document.getElementById("modalRiskContent").innerHTML = `
     <table class="risk-table">
       <tr><td>Net ${spread.isDebit?"Debit":"Credit"}</td><td>₹${fmtN(Math.abs(spread.net))} / pt</td></tr>
       <tr><td>Lots × Size</td><td>${lots} × ${lotSize} = ${lots*lotSize} qty</td></tr>
@@ -1278,13 +1325,21 @@ function renderSpreadRisk(spread, lotSize, lots, riskUnit) {
       <tr class="win"><td>Max Profit</td><td>₹${fmtK(totalProfit)}</td></tr>
       <tr><td>Breakeven</td><td>${fmtN(spread.breakeven)}</td></tr>
       <tr><td>Width</td><td>${fmtN(spread.width)} pts</td></tr>
-    </table>
-    <div style="font-size:10px;color:var(--muted);margin-top:8px">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser.</div>`;
+    </table>`;
 }
+
+function openSpreadModal() {
+  document.getElementById("spreadModal").classList.add("open");
+}
+function closeSpreadModal(e) {
+  if (e && e.target !== document.getElementById("spreadModal")) return;
+  document.getElementById("spreadModal").classList.remove("open");
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSpreadModal(); });
 
 const LIQ_THRESHOLD = 0.03;
 function renderLiquidityGate(longLeg, shortLeg, lotSize, lots) {
-  const liqContent = document.getElementById("liquidityContent");
+  const liqContent = document.getElementById("modalLiquidityContent");
   if (!liqContent || !longLeg || !shortLeg) return;
   const legs = [{ label:"Buy Leg", leg:longLeg }, { label:"Sell Leg", leg:shortLeg }];
   const crossCost = legs.map(({leg}) => {
