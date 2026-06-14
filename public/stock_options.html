@@ -69,21 +69,34 @@ select:focus,input:focus{border-color:var(--accent)}
 .mode-btn{padding:7px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--bg3);color:var(--dim);transition:all .15s}
 .mode-btn.active{background:rgba(124,106,247,0.2);color:var(--accent)}
 
+/* ── Strip Placeholder ───────────────────────────────────────────────────────── */
+.strip-placeholder{
+  display:flex;align-items:center;justify-content:center;
+  padding:36px 20px;text-align:center;
+  background:var(--bg1);border-bottom:1px solid var(--border);
+}
+.strip-ph-icon{font-size:32px;opacity:.2;margin-bottom:12px;line-height:1}
+.strip-ph-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--dim);margin-bottom:6px}
+.strip-ph-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px}
+
 /* ── Horizontal Info Strip ───────────────────────────────────────────────────── */
 .info-strip{
-  display:flex;
-  gap:10px;
-  padding:12px 16px;
   overflow-x:auto;
   background:var(--bg1);
   border-bottom:1px solid var(--border);
-  align-items:flex-start;
+  padding:12px 16px;
   scrollbar-width:thin;
   scrollbar-color:var(--border2) transparent;
 }
 .info-strip::-webkit-scrollbar{height:4px}
 .info-strip::-webkit-scrollbar-track{background:transparent}
 .info-strip::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Inner wrapper — flex centering without left-cutoff on overflow */
+.strip-inner{
+  display:flex;gap:10px;align-items:flex-start;
+  min-width:min-content;margin:0 auto;
+}
 
 .sb-section{
   background:var(--bg2);
@@ -94,14 +107,14 @@ select:focus,input:focus{border-color:var(--accent)}
 }
 .sb-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
 
-/* Panel sizing */
-.panel-stf    { min-width:210px; max-width:240px; }
-.panel-ctx    { min-width:230px; max-width:260px; }
-.panel-score  { min-width:280px; max-width:310px; }
-.panel-spread { min-width:300px; max-width:340px; }
-.panel-liq    { min-width:220px; max-width:250px; }
-.panel-strike { min-width:270px; max-width:300px; }
-.panel-risk   { min-width:210px; max-width:240px; }
+/* Panel sizing — normalized widths */
+.panel-stf    { width:240px; }
+.panel-ctx    { width:240px; }
+.panel-score  { width:272px; }
+.panel-spread { width:258px; }
+.panel-liq    { width:238px; }
+.panel-strike { width:248px; }
+.panel-risk   { width:232px; }
 
 /* Score ring — slightly smaller in horizontal strip */
 .info-strip .score-ring{width:76px;height:76px}
@@ -351,8 +364,18 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
   </div>
 </div>
 
+<!-- ── STRIP PLACEHOLDER (shown before first Analyze) ─────────────────────────── -->
+<div id="stripPlaceholder" class="strip-placeholder">
+  <div>
+    <div class="strip-ph-icon">◎</div>
+    <div class="strip-ph-title">Select a stock and click Analyze</div>
+    <div class="strip-ph-sub">Signal Score &middot; Hawk Spread &middot; Market Context &middot; Trade Flow will appear here</div>
+  </div>
+</div>
+
 <!-- ── HORIZONTAL INFO STRIP ─────────────────────────────────────────────────── -->
-<div class="info-strip">
+<div class="info-strip" id="infoStrip" style="display:none">
+<div class="strip-inner">
 
   <!-- Stock Trade Flow -->
   <div class="sb-section panel-stf" id="stfBox">
@@ -436,6 +459,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
     <div id="riskContent"></div>
   </div>
 
+</div><!-- /strip-inner -->
 </div><!-- /info-strip -->
 
 <!-- ── CONTENT AREA ───────────────────────────────────────────────────────────── -->
@@ -760,6 +784,8 @@ async function runAnalysis() {
     if (bw) bw.innerHTML = "";
   }
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  document.getElementById("infoStrip").style.display = "";
+  document.getElementById("stripPlaceholder").style.display = "none";
   loadStockTradeFlow(symbol);
   try {
     const [ctx, chain] = await Promise.all([
