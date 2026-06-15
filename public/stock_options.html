@@ -466,6 +466,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
       </div>
     </div>
     <div id="spreadSummary"><div class="notice" style="margin:0;font-size:11px">Run Analyze to load chain.</div></div>
+    <button id="buildBtn" class="btn btn-primary" style="width:100%;margin-top:10px;display:none" onclick="openSpreadModal()">Build</button>
   </div>
 
   <!-- Selected Strike (single leg mode) -->
@@ -1218,11 +1219,17 @@ function populateSpreadSelectors() {
     const atmRow = rows.reduce((a,b) => Math.abs(b.strike-spot)<Math.abs(a.strike-spot)?b:a);
     const atmIdx = rows.findIndex(r=>r.strike===atmRow.strike);
     if (sType === "CE") {
-      document.getElementById("spreadLongStrike").value  = rows[atmIdx]?.strike ?? "";
-      document.getElementById("spreadShortStrike").value = rows[Math.min(atmIdx+1,rows.length-1)]?.strike ?? "";
+      // Long = ATM, Short = one step higher; if ATM is the last row, shift both down one
+      const longIdx  = atmIdx < rows.length - 1 ? atmIdx     : atmIdx - 1;
+      const shortIdx = atmIdx < rows.length - 1 ? atmIdx + 1 : atmIdx;
+      document.getElementById("spreadLongStrike").value  = rows[longIdx].strike;
+      document.getElementById("spreadShortStrike").value = rows[shortIdx].strike;
     } else {
-      document.getElementById("spreadLongStrike").value  = rows[atmIdx]?.strike ?? "";
-      document.getElementById("spreadShortStrike").value = rows[Math.max(atmIdx-1,0)]?.strike ?? "";
+      // Long = ATM, Short = one step lower; if ATM is the first row, shift both up one
+      const longIdx  = atmIdx > 0 ? atmIdx     : atmIdx + 1;
+      const shortIdx = atmIdx > 0 ? atmIdx - 1 : atmIdx;
+      document.getElementById("spreadLongStrike").value  = rows[longIdx].strike;
+      document.getElementById("spreadShortStrike").value = rows[shortIdx].strike;
     }
   }
   onSpreadStrikeChange();
@@ -1233,8 +1240,10 @@ function onSpreadStrikeChange() {
   const shortStrike = parseFloat(document.getElementById("spreadShortStrike").value);
   const lotSize     = parseInt(document.getElementById("mLotSize").value) || 1;
   const riskUnit    = parseInt(document.getElementById("riskUnit").value) || RISK_UNIT_DEFAULT;
+  const buildBtn = document.getElementById("buildBtn");
   if (!longStrike || !shortStrike || longStrike === shortStrike) {
     document.getElementById("spreadSummary").innerHTML = '<div class="notice" style="margin:0;font-size:11px">Select two different strikes.</div>';
+    if (buildBtn) buildBtn.style.display = "none";
     return;
   }
   const spread = calcSpread(longStrike, shortStrike, spreadType);
@@ -1243,7 +1252,7 @@ function onSpreadStrikeChange() {
     renderSpreadSummary(spread, lotSize, riskUnit);
     renderLiquidityGate(spread.longLeg, spread.shortLeg, lotSize,
       Math.max(1, Math.floor(riskUnit / (spread.maxLoss * lotSize || 1))));
-    openSpreadModal(spread);
+    if (buildBtn) buildBtn.style.display = "";
   }
 }
 
