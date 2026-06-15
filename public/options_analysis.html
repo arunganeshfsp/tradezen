@@ -683,8 +683,9 @@ function renderChain(data) {
     const isAtm  = spot && Math.abs(strike-spot) < 51;
     const isMp   = mp  && Math.abs(strike-mp) < 26;
     const ce = row.ce||{}, pe = row.pe||{};
-    const ceSig = (ois[strike]||{}).ce||"unchanged";
-    const peSig = (ois[strike]||{}).pe||"unchanged";
+    const oisRow = ois[strike] || ois[strike.toFixed(1)] || {};
+    const ceSig = oisRow.ce||"unchanged";
+    const peSig = oisRow.pe||"unchanged";
     const ceOiPct  = Math.round((ce.oi||0)/maxCeOi*100);
     const peOiPct  = Math.round((pe.oi||0)/maxPeOi*100);
     const ceVolPct = Math.round((ce.volume||0)/maxCeVol*100);

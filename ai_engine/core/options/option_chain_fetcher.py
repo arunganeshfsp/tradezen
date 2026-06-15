@@ -6,6 +6,7 @@ Handles Module 2 (contract selector) and Module 4 (option chain engine).
 import json
 import os
 import logging
+import requests
 from datetime import datetime, timedelta
 from calendar import monthrange
 
@@ -287,6 +288,158 @@ def _save_oi_snapshot(symbol: str, expiry: str, chain: list):
         log.debug(f"OI snapshot saved: {symbol} {expiry} ({len(rows)} strikes)")
     except Exception as e:
         log.warning(f"OI snapshot save error: {e}")
+
+
+# ── NSE direct option chain ────────────────────────────────────────────────────
+
+_nse_chain_session = None
+
+_NSE_INDICES = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX"}
+
+_NSE_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language":  "en-US,en;q=0.9",
+    "Accept-Encoding":  "gzip, deflate, br",
+}
+
+
+def _get_nse_chain_session():
+    global _nse_chain_session
+    if _nse_chain_session is not None:
+        return _nse_chain_session
+    s = requests.Session()
+    s.headers.update(_NSE_HEADERS)
+    for url, accept in [
+        ("https://www.nseindia.com/",        "text/html,application/xhtml+xml,*/*"),
+        ("https://www.nseindia.com/option-chain", "text/html,application/xhtml+xml,*/*"),
+    ]:
+        try:
+            s.get(url, timeout=10, headers={"Accept": accept})
+        except Exception:
+            pass
+    _nse_chain_session = s
+    return s
+
+
+def _get_lot_size(symbol: str, expiry: str) -> int:
+    raw    = _load_raw()
+    sym_up = symbol.strip().upper()
+    exp_up = expiry.strip().upper()
+    for item in raw:
+        if (item.get("exch_seg") == "NFO"
+                and item.get("instrumenttype") in ("OPTSTK", "OPTIDX")
+                and item.get("name", "").upper()  == sym_up
+                and item.get("expiry", "").upper() == exp_up):
+            return int(item.get("lotsize", 1))
+    return 1
+
+
+def fetch_chain_nse(symbol: str, expiry: str,
+                    spot_price: float | None = None) -> dict:
+    """
+    Fetch full option chain from NSE directly.
+    More accurate than SmartAPI for thinly-traded / far-dated contracts
+    because NSE always reflects the current bid/ask and last traded price.
+    expiry: DDMMMYYYY  e.g. "30JUN2026"
+    """
+    global _nse_chain_session
+
+    try:
+        target_date = datetime.strptime(expiry.strip().upper(), "%d%b%Y").date()
+    except Exception:
+        return {"error": f"Invalid expiry format: {expiry}"}
+
+    sym_up   = symbol.strip().upper()
+    lot_size = _get_lot_size(sym_up, expiry.strip().upper())
+    url = (
+        f"https://www.nseindia.com/api/option-chain-indices?symbol={sym_up}"
+        if sym_up in _NSE_INDICES else
+        f"https://www.nseindia.com/api/option-chain-equities?symbol={sym_up}"
+    )
+
+    data = None
+    for attempt in range(2):
+        try:
+            sess = _get_nse_chain_session()
+            resp = sess.get(url, timeout=20, headers={
+                "Referer":          "https://www.nseindia.com/option-chain",
+                "Accept":           "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            })
+            resp.raise_for_status()
+            data = resp.json()
+            break
+        except Exception as e:
+            log.warning(f"NSE chain attempt {attempt + 1} for {sym_up}: {e}")
+            _nse_chain_session = None  # force re-creation on next attempt
+
+    if data is None:
+        return {"error": f"NSE chain fetch failed for {sym_up} {expiry}"}
+
+    records    = data.get("records", {})
+    underlying = records.get("underlyingValue") or spot_price
+    all_rows   = records.get("data", [])
+
+    chain_rows = []
+    for row in all_rows:
+        try:
+            row_date = datetime.strptime(row.get("expiryDate", ""), "%d-%b-%Y").date()
+            if row_date == target_date:
+                chain_rows.append(row)
+        except Exception:
+            pass
+
+    if not chain_rows:
+        return {"error": f"No NSE data for {sym_up} expiry {expiry}"}
+
+    def _leg(side: dict | None) -> dict:
+        if not side:
+            return {
+                "lot_size": lot_size, "ltp": None, "oi": None, "oi_change": None,
+                "volume": None, "iv": None, "delta": None,
+                "bid": None, "ask": None, "depth": {"buy": [], "sell": []},
+            }
+        return {
+            "lot_size":  lot_size,
+            "ltp":       side.get("lastPrice"),
+            "oi":        side.get("openInterest"),
+            "oi_change": side.get("changeinOpenInterest"),
+            "volume":    side.get("totalTradedVolume"),
+            "iv":        side.get("impliedVolatility"),
+            "delta":     None,
+            "bid":       side.get("bidprice"),
+            "ask":       side.get("askPrice"),
+            "depth":     {"buy": [], "sell": []},
+        }
+
+    chain = []
+    for row in sorted(chain_rows, key=lambda r: r.get("strikePrice", 0)):
+        strike = float(row.get("strikePrice", 0))
+        if strike <= 0:
+            continue
+        chain.append({
+            "strike": strike,
+            "ce":     _leg(row.get("CE")),
+            "pe":     _leg(row.get("PE")),
+        })
+
+    if not chain:
+        return {"error": f"No strikes parsed for {sym_up} {expiry}"}
+
+    _save_oi_snapshot(sym_up, expiry.upper(), chain)
+
+    return {
+        "symbol":     sym_up,
+        "expiry":     expiry.upper(),
+        "spot":       underlying,
+        "chain":      chain,
+        "fetched_at": datetime.now().strftime("%H:%M:%S"),
+        "source":     "NSE",
+    }
 
 
 def get_nse_equity_token(symbol: str) -> str | None:

@@ -3197,6 +3197,7 @@ from core.options.option_chain_fetcher import (
     get_expiries as _oc_expiries,
     search_contracts as _oc_search,
     fetch_chain as _oc_fetch_chain,
+    fetch_chain_nse as _oc_fetch_chain_nse,
     get_oi_change_signals as _oc_oi_signals,
 )
 from core.options.max_pain          import analyze_chain      as _oc_max_pain
@@ -3241,9 +3242,13 @@ def options_search(query: str, expiry_type: str = "weekly", spot_price: float = 
 
 
 def _options_chain_sync(symbol: str, expiry: str, spot_price: float | None) -> dict:
-    global smart
-    _s = smart or _get_smart()
-    chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
+    # Try NSE direct first — more accurate LTP for thinly-traded / far-dated contracts
+    chain_data = _oc_fetch_chain_nse(symbol, expiry, spot_price)
+    if "error" in chain_data:
+        log.info(f"NSE chain fallback to SmartAPI for {symbol} {expiry}: {chain_data['error']}")
+        global smart
+        _s = smart or _get_smart()
+        chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
     if "error" in chain_data:
         return chain_data
     chain       = chain_data.get("chain", [])
@@ -3299,38 +3304,48 @@ def _compute_candle_data(symbol: str) -> dict | None:
                 log.debug(f"_compute_candle_data {yf_sym} period={period}: {_fe}")
                 continue
 
-        if df is None or df.empty:
-            log.warning(f"_compute_candle_data({symbol}): no intraday data for today")
+        if df is not None and not df.empty:
+            closes  = df["Close"]
+            volumes = df["Volume"]
+            ema9       = float(closes.ewm(span=9,  adjust=False).mean().iloc[-1])
+            ema21      = float(closes.ewm(span=21, adjust=False).mean().iloc[-1])
+            close      = float(closes.iloc[-1])
+            volume     = float(volumes.iloc[-1])
+            avg_volume = float(volumes.mean())
+            typical    = (df["High"] + df["Low"] + df["Close"]) / 3
+            cum_vol    = volumes.replace(0, float("nan")).cumsum().iloc[-1]
+            vwap       = float((typical * volumes).cumsum().iloc[-1] / cum_vol) if cum_vol and cum_vol > 0 else close
+            delta      = closes.diff()
+            gain       = delta.where(delta > 0, 0.0).ewm(com=13, adjust=False).mean()
+            loss       = (-delta.where(delta < 0, 0.0)).ewm(com=13, adjust=False).mean()
+            last_loss  = float(loss.iloc[-1])
+            last_gain  = float(gain.iloc[-1])
+            rsi = float(100 - 100 / (1 + last_gain / last_loss)) if last_loss > 0 else (100.0 if last_gain > 0 else 50.0)
+            log.info(f"_compute_candle_data({symbol}): intraday close={close:.1f} ema9={ema9:.1f} ema21={ema21:.1f} vwap={vwap:.1f} rsi={rsi:.1f} bars={len(df)}")
+            return {"close": close, "vwap": vwap, "volume": volume, "avg_volume": avg_volume, "ema9": ema9, "ema21": ema21, "rsi": rsi}
+
+        # Intraday unavailable — fall back to daily bars for EMA/RSI/Volume
+        # VWAP key is intentionally omitted so the scorer marks it as no_data
+        log.warning(f"_compute_candle_data({symbol}): no intraday data, falling back to daily bars")
+        daily = yf.Ticker(yf_sym).history(period="30d", interval="1d", auto_adjust=True)
+        if daily is None or len(daily) < 14:
+            log.warning(f"_compute_candle_data({symbol}): daily fallback insufficient")
             return None
-
-        closes  = df["Close"]
-        volumes = df["Volume"]
-
+        closes     = daily["Close"]
+        volumes    = daily["Volume"]
         ema9       = float(closes.ewm(span=9,  adjust=False).mean().iloc[-1])
         ema21      = float(closes.ewm(span=21, adjust=False).mean().iloc[-1])
         close      = float(closes.iloc[-1])
         volume     = float(volumes.iloc[-1])
-        avg_volume = float(volumes.mean())
-
-        # VWAP
-        typical = (df["High"] + df["Low"] + df["Close"]) / 3
-        cum_vol  = volumes.replace(0, float("nan")).cumsum().iloc[-1]
-        vwap     = float((typical * volumes).cumsum().iloc[-1] / cum_vol) if cum_vol and cum_vol > 0 else close
-
-        # RSI(14) Wilder EWM
-        delta     = closes.diff()
-        gain      = delta.where(delta > 0, 0.0).ewm(com=13, adjust=False).mean()
-        loss      = (-delta.where(delta < 0, 0.0)).ewm(com=13, adjust=False).mean()
-        last_loss = float(loss.iloc[-1])
-        last_gain = float(gain.iloc[-1])
+        avg_volume = float(volumes.iloc[-20:].mean())
+        delta      = closes.diff()
+        gain       = delta.where(delta > 0, 0.0).ewm(com=13, adjust=False).mean()
+        loss       = (-delta.where(delta < 0, 0.0)).ewm(com=13, adjust=False).mean()
+        last_loss  = float(loss.iloc[-1])
+        last_gain  = float(gain.iloc[-1])
         rsi = float(100 - 100 / (1 + last_gain / last_loss)) if last_loss > 0 else (100.0 if last_gain > 0 else 50.0)
-
-        log.info(f"_compute_candle_data({symbol}): close={close:.1f} ema9={ema9:.1f} ema21={ema21:.1f} vwap={vwap:.1f} rsi={rsi:.1f} bars={len(df)}")
-        return {
-            "close": close, "vwap": vwap,
-            "volume": volume, "avg_volume": avg_volume,
-            "ema9": ema9, "ema21": ema21, "rsi": rsi,
-        }
+        log.info(f"_compute_candle_data({symbol}): daily close={close:.1f} ema9={ema9:.1f} ema21={ema21:.1f} rsi={rsi:.1f}")
+        return {"close": close, "volume": volume, "avg_volume": avg_volume, "ema9": ema9, "ema21": ema21, "rsi": rsi}
     except Exception as e:
         log.warning(f"_compute_candle_data({symbol}): {e}")
         return None
