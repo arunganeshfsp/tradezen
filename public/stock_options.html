@@ -1278,7 +1278,7 @@ function calcSpread(longStrike, shortStrike, sType) {
   } else {
     const credit = -net;
     maxProfit = credit;
-    maxLoss   = width - credit;
+    maxLoss   = Math.max(0, width - credit); // clamp: credit > width means data mismatch
     breakeven = sType === "CE" ? shortStrike + credit : shortStrike - credit;
   }
   return { longStrike, shortStrike, sType, longLTP, shortLTP, net, width,
@@ -1287,7 +1287,7 @@ function calcSpread(longStrike, shortStrike, sType) {
 
 function renderSpreadSummary(spread, lotSize, riskUnit) {
   const maxLossOneLot = spread.maxLoss * lotSize;
-  let suggestedLots = maxLossOneLot > 0 ? Math.floor(riskUnit / maxLossOneLot) : 0;
+  let suggestedLots = maxLossOneLot > 0 ? Math.floor(riskUnit / maxLossOneLot) : 1;
   const tooLarge    = suggestedLots < 1;
   let lotHtml;
   if (tooLarge) {
@@ -1325,7 +1325,7 @@ function renderSpreadSummary(spread, lotSize, riskUnit) {
 function renderSpreadRisk(spread, lotSize, lots, riskUnit) {
   const totalLoss   = spread.maxLoss   * lotSize * lots;
   const totalProfit = spread.maxProfit * lotSize * lots;
-  const units = riskUnit > 0 ? (totalLoss/riskUnit).toFixed(1) : "—";
+  const units = (riskUnit > 0 && totalLoss > 0) ? (totalLoss/riskUnit).toFixed(1) : "—";
   document.getElementById("modalRiskContent").innerHTML = `
     <table class="risk-table">
       <tr><td>Net ${spread.isDebit?"Debit":"Credit"}</td><td>₹${fmtN(Math.abs(spread.net))} / pt</td></tr>
