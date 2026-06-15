@@ -400,20 +400,21 @@ def fetch_chain_nse(symbol: str, expiry: str,
         if not side:
             return {
                 "lot_size": lot_size, "ltp": None, "oi": None, "oi_change": None,
-                "volume": None, "iv": None, "delta": None,
+                "ltp_change": None, "volume": None, "iv": None, "delta": None,
                 "bid": None, "ask": None, "depth": {"buy": [], "sell": []},
             }
         return {
-            "lot_size":  lot_size,
-            "ltp":       side.get("lastPrice"),
-            "oi":        side.get("openInterest"),
-            "oi_change": side.get("changeinOpenInterest"),
-            "volume":    side.get("totalTradedVolume"),
-            "iv":        side.get("impliedVolatility"),
-            "delta":     None,
-            "bid":       side.get("bidprice"),
-            "ask":       side.get("askPrice"),
-            "depth":     {"buy": [], "sell": []},
+            "lot_size":   lot_size,
+            "ltp":        side.get("lastPrice"),
+            "oi":         side.get("openInterest"),
+            "oi_change":  side.get("changeinOpenInterest"),
+            "ltp_change": side.get("change"),        # LTP change vs previous session close
+            "volume":     side.get("totalTradedVolume"),
+            "iv":         side.get("impliedVolatility"),
+            "delta":      None,
+            "bid":        side.get("bidprice"),
+            "ask":        side.get("askPrice"),
+            "depth":      {"buy": [], "sell": []},
         }
 
     chain = []
@@ -440,6 +441,38 @@ def fetch_chain_nse(symbol: str, expiry: str,
         "fetched_at": datetime.now().strftime("%H:%M:%S"),
         "source":     "NSE",
     }
+
+
+def compute_daily_oi_signals(chain: list) -> dict:
+    """
+    Derive OI change signals from daily `oi_change` and `ltp_change` fields in the chain.
+    Used when SQLite snapshot history isn't available yet (first load).
+    NSE provides changeinOpenInterest (vs previous session) and change (LTP vs previous close),
+    giving us enough to classify each strike into the 4-quadrant model.
+    Returns same format as get_oi_change_signals().
+    """
+    def _quad(price_up: bool, oi_up: bool) -> str:
+        if price_up  and oi_up:      return "long_buildup"
+        if not price_up and oi_up:   return "short_buildup"
+        if price_up  and not oi_up:  return "short_covering"
+        return "long_unwinding"
+
+    signals = {}
+    for s in chain:
+        strike    = s["strike"]
+        ce        = s.get("ce", {})
+        pe        = s.get("pe", {})
+        ce_oi_chg = ce.get("oi_change") or 0
+        pe_oi_chg = pe.get("oi_change") or 0
+        # If both legs have zero OI change there's nothing to signal
+        if ce_oi_chg == 0 and pe_oi_chg == 0:
+            signals[strike] = {"ce": "unchanged", "pe": "unchanged"}
+            continue
+        signals[strike] = {
+            "ce": _quad((ce.get("ltp_change") or 0) > 0, ce_oi_chg > 0),
+            "pe": _quad((pe.get("ltp_change") or 0) > 0, pe_oi_chg > 0),
+        }
+    return signals
 
 
 def get_nse_equity_token(symbol: str) -> str | None:

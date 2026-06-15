@@ -3199,6 +3199,7 @@ from core.options.option_chain_fetcher import (
     fetch_chain as _oc_fetch_chain,
     fetch_chain_nse as _oc_fetch_chain_nse,
     get_oi_change_signals as _oc_oi_signals,
+    compute_daily_oi_signals as _oc_daily_oi_signals,
 )
 from core.options.max_pain          import analyze_chain      as _oc_max_pain
 from core.options.signal_scorer     import score_signals      as _oc_score
@@ -3251,9 +3252,12 @@ def _options_chain_sync(symbol: str, expiry: str, spot_price: float | None) -> d
         chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
     if "error" in chain_data:
         return chain_data
-    chain       = chain_data.get("chain", [])
-    analytics   = _oc_max_pain(chain, spot_price)
-    oi_signals  = _oc_oi_signals(symbol, expiry, chain)
+    chain      = chain_data.get("chain", [])
+    analytics  = _oc_max_pain(chain, spot_price)
+    oi_signals = _oc_oi_signals(symbol, expiry, chain)
+    # No 5-min snapshot yet — derive OI signals from NSE daily change data instead
+    if not oi_signals and chain_data.get("source") == "NSE":
+        oi_signals = _oc_daily_oi_signals(chain)
     return {**chain_data, "analytics": analytics, "oi_signals": oi_signals}
 
 
@@ -3376,13 +3380,17 @@ def options_score(
                       "resistance_wall": None, "support_wall": None, "max_pain": None}
         oi_signals = {}
         try:
-            global smart
-            _s = smart or _get_smart()
-            chain_data = _oc_fetch_chain(_s, symbol, expiry, effective_spot)
+            chain_data = _oc_fetch_chain_nse(symbol, expiry, effective_spot)
+            if "error" in chain_data:
+                global smart
+                _s = smart or _get_smart()
+                chain_data = _oc_fetch_chain(_s, symbol, expiry, effective_spot)
             if "error" not in chain_data:
                 chain      = chain_data.get("chain", [])
                 analytics  = _oc_max_pain(chain, effective_spot)
                 oi_signals = _oc_oi_signals(symbol, expiry, chain)
+                if not oi_signals and chain_data.get("source") == "NSE":
+                    oi_signals = _oc_daily_oi_signals(chain)
         except Exception as ce:
             log.warning(f"options/score chain fetch skipped: {ce}")
 
