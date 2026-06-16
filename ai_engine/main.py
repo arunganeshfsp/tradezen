@@ -175,7 +175,16 @@ async def lifespan(app: FastAPI):
             trade_flow_data["prev_ohlc"] = ohlc
             _ohlc_last_fetched_ist_date = ist_now.strftime("%Y-%m-%d")
             log.info(f"📅 Prev OHLC (yfinance): H={ohlc['high']} L={ohlc['low']} C={ohlc['close']} [{ohlc['date']}]")
-            ohlc_loaded = True
+            # Staleness check: yfinance for ^NSEI lags 1 trading day — if the date is
+            # behind the most recent weekday, discard and let Angel One fill it in.
+            expected_prev = ist_now.date() - timedelta(days=1)
+            while expected_prev.weekday() >= 5:
+                expected_prev -= timedelta(days=1)
+            yf_date = datetime.strptime(ohlc["date"], "%Y-%m-%d").date()
+            if yf_date >= expected_prev:
+                ohlc_loaded = True   # fresh enough
+            else:
+                log.warning(f"⚠️ yfinance OHLC dated {yf_date}, expected {expected_prev} — trying Angel One for fresher data")
         except Exception as yf_err:
             log.warning(f"⚠️ yfinance OHLC fetch failed: {yf_err} — trying Angel One API")
 
@@ -452,17 +461,43 @@ async def lifespan(app: FastAPI):
                 log.info(f"✅ Instrument master refreshed — {len(im.data)} NIFTY options loaded")
             except Exception as _ire:
                 log.error(f"❌ Instrument master refresh failed: {_ire}")
-            # ── Previous day OHLC — must refresh so CPR uses today's prev session ─
+            # ── Previous day OHLC — refresh with SmartAPI fallback if yfinance lags ─
             try:
                 ohlc = _yf_prev_ohlc()
-                trade_flow_data["prev_ohlc"] = ohlc
-                log.info(f"📅 Prev OHLC refreshed (daily): H={ohlc['high']} L={ohlc['low']} C={ohlc['close']} [{ohlc['date']}]")
+                expected = (datetime.utcnow() + timedelta(hours=5, minutes=30)).date() - timedelta(days=1)
+                while expected.weekday() >= 5:
+                    expected -= timedelta(days=1)
+                import datetime as _dt2
+                yf_d = _dt2.datetime.strptime(ohlc["date"], "%Y-%m-%d").date()
+                if yf_d >= expected:
+                    trade_flow_data["prev_ohlc"] = ohlc
+                    log.info(f"📅 Prev OHLC refreshed (daily): [{ohlc['date']}]")
+                else:
+                    raise ValueError(f"yfinance stale: {yf_d} < {expected}")
             except Exception as _oe:
-                log.warning(f"⚠️ Daily OHLC refresh failed: {_oe}")
-            # ── Reset intraday fields so today's values are captured fresh ─────
+                log.warning(f"⚠️ Daily OHLC yfinance failed/stale ({_oe}) — trying SmartAPI")
+                try:
+                    _prev = (datetime.utcnow() + timedelta(hours=5, minutes=30)).date() - timedelta(days=1)
+                    while _prev.weekday() >= 5:
+                        _prev -= timedelta(days=1)
+                    _s2 = smart or _get_smart()
+                    for _ex, _tk in [("NSE", SPOT_TOKEN), ("NFO", im.get_nifty_futures_token() or SPOT_TOKEN)]:
+                        _r = _s2.getCandleData({"exchange": _ex, "symboltoken": _tk, "interval": "ONE_DAY",
+                                                "fromdate": _prev.strftime("%Y-%m-%d 09:15"),
+                                                "todate":   _prev.strftime("%Y-%m-%d 15:30")})
+                        _rows = (_r or {}).get("data") or []
+                        if _rows:
+                            d = _rows[-1]
+                            trade_flow_data["prev_ohlc"] = {"high": round(float(d[2]), 2), "low": round(float(d[3]), 2),
+                                                             "close": round(float(d[4]), 2), "date": _prev.strftime("%Y-%m-%d")}
+                            log.info(f"📅 Prev OHLC refreshed via SmartAPI (daily): [{_prev}]")
+                            break
+                except Exception as _se:
+                    log.error(f"❌ Daily OHLC SmartAPI fallback failed: {_se}")
+            # ── Reset intraday fields so today's open/ORB are captured fresh ────
+            # gift_nifty is NOT reset — user may have entered it pre-market before 8:30
             trade_flow_data["nifty_open"] = None
             trade_flow_data["orb"]        = None
-            trade_flow_data["gift_nifty"] = None
             log.info("🔄 Intraday fields reset for new trading day")
 
     asyncio.create_task(_daily_instrument_refresh())
@@ -710,22 +745,10 @@ def get_trade_flow():
     Returns live trade flow data for the Nifty Trade Flow decision framework.
     Covers 3 phases: Pre-Market (CPR + GIFT gap), 9:15 open, ORB (9:30+).
     """
-    global market_state, trade_flow_data, chain_map, _ohlc_last_fetched_ist_date
+    global market_state, trade_flow_data, chain_map
 
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     h, m = now_ist.hour, now_ist.minute
-
-    # Auto-refresh prev OHLC when IST date changes (safety net if server wasn't restarted)
-    today_str = now_ist.strftime("%Y-%m-%d")
-    if _ohlc_last_fetched_ist_date != today_str:
-        try:
-            ohlc = _yf_prev_ohlc()
-            trade_flow_data["prev_ohlc"] = ohlc
-            _ohlc_last_fetched_ist_date = today_str
-            log.info(f"📅 Prev OHLC auto-refreshed (date change): [{ohlc['date']}]")
-        except Exception as _oe:
-            _ohlc_last_fetched_ist_date = today_str   # avoid spamming on failure
-            log.warning(f"⚠️ Prev OHLC auto-refresh failed: {_oe}")
 
     # Current phase
     if h < 9 or (h == 9 and m < 15):
@@ -4248,7 +4271,7 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
     try:
         # ── Fetch prev-period OHLC ────────────────────────────────────────────
         if timeframe == "daily":
-            df = yf.Ticker(yf_sym).history(period="5d", interval="1d")
+            df = yf.Ticker(yf_sym).history(period="10d", interval="1d")
             df.index = df.index.normalize()
             past = df[df.index.date < today]
             if past.empty:
@@ -4256,7 +4279,35 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
             row        = past.iloc[-1]
             H, L, C    = float(row.High), float(row.Low), float(row.Close)
             date_label = past.index[-1].strftime("%Y-%m-%d")
-            # Keep trade_flow_data in sync so other endpoints (trade-flow, WebSocket) also get the correct prev OHLC
+
+            # yfinance for ^NSEI lags by 1 trading day — if the date is behind the
+            # most recent weekday, fall back to SmartAPI getCandleData (exchange data).
+            if is_nifty:
+                expected_prev = today - _dt.timedelta(days=1)
+                while expected_prev.weekday() >= 5:
+                    expected_prev -= _dt.timedelta(days=1)
+                yf_date = _dt.datetime.strptime(date_label, "%Y-%m-%d").date()
+                if yf_date < expected_prev:
+                    log.info(f"[CPR] yfinance returned {yf_date}, expected {expected_prev} — trying SmartAPI")
+                    try:
+                        global smart
+                        _s = smart or _get_smart()
+                        from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
+                        to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
+                        for _exch, _tok in [("NSE", SPOT_TOKEN), ("NFO", im.get_nifty_futures_token() or SPOT_TOKEN)]:
+                            _resp = _s.getCandleData({"exchange": _exch, "symboltoken": _tok,
+                                                      "interval": "ONE_DAY", "fromdate": from_dt, "todate": to_dt})
+                            _rows = (_resp or {}).get("data") or []
+                            if _rows:
+                                d = _rows[-1]
+                                H, L, C    = float(d[2]), float(d[3]), float(d[4])
+                                date_label = expected_prev.strftime("%Y-%m-%d")
+                                log.info(f"[CPR] SmartAPI OHLC: H={H} L={L} C={C} [{date_label}]")
+                                break
+                    except Exception as _sapi_err:
+                        log.warning(f"[CPR] SmartAPI fallback failed: {_sapi_err}")
+
+            # Keep trade_flow_data in sync so other endpoints (trade-flow, WebSocket) also use correct prev OHLC
             if is_nifty:
                 trade_flow_data["prev_ohlc"] = {"high": round(H, 2), "low": round(L, 2), "close": round(C, 2), "date": date_label}
 
