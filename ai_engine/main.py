@@ -4254,19 +4254,36 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
     cache_key = _cpr_cache_key(symbol, timeframe, today)
     if cache_key in _cpr_cache:
         cached = _cpr_cache[cache_key]
-        ltp = None
-        if is_nifty:
-            spot = market_state.get(SPOT_TOKEN)
-            if spot and spot.get("price"):
-                ltp = round(float(spot["price"]), 2)
-        if ltp is None:
+        # For daily NIFTY: don't serve cache if stored OHLC date is stale.
+        # yfinance can lag by 1 trading day; if SmartAPI also failed the first
+        # time, the stale date gets stuck in cache all day. Evict and re-fetch.
+        _serve_cache = True
+        if timeframe == "daily" and is_nifty:
+            _exp = today - _dt.timedelta(days=1)
+            while _exp.weekday() >= 5:
+                _exp -= _dt.timedelta(days=1)
             try:
-                intra = yf.Ticker(yf_sym).history(period="1d", interval="1m")
-                if not intra.empty:
-                    ltp = round(float(intra["Close"].iloc[-1]), 2)
+                _cached_d = _dt.datetime.strptime(cached["ohlc"]["date"], "%Y-%m-%d").date()
             except Exception:
-                pass
-        return {**cached, "ltp": ltp}
+                _cached_d = _dt.date(2000, 1, 1)
+            if _cached_d < _exp:
+                log.info(f"[CPR] Cache has stale OHLC {_cached_d} (want {_exp}) — evicting, re-fetching")
+                del _cpr_cache[cache_key]
+                _serve_cache = False
+        if _serve_cache:
+            ltp = None
+            if is_nifty:
+                spot = market_state.get(SPOT_TOKEN)
+                if spot and spot.get("price"):
+                    ltp = round(float(spot["price"]), 2)
+            if ltp is None:
+                try:
+                    intra = yf.Ticker(yf_sym).history(period="1d", interval="1m")
+                    if not intra.empty:
+                        ltp = round(float(intra["Close"].iloc[-1]), 2)
+                except Exception:
+                    pass
+            return {**cached, "ltp": ltp}
 
     try:
         # ── Fetch prev-period OHLC ────────────────────────────────────────────
@@ -4292,18 +4309,35 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
                     try:
                         global smart
                         _s = smart or _get_smart()
-                        from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
-                        to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
-                        for _exch, _tok in [("NSE", SPOT_TOKEN), ("NFO", im.get_nifty_futures_token() or SPOT_TOKEN)]:
-                            _resp = _s.getCandleData({"exchange": _exch, "symboltoken": _tok,
-                                                      "interval": "ONE_DAY", "fromdate": from_dt, "todate": to_dt})
-                            _rows = (_resp or {}).get("data") or []
-                            if _rows:
-                                d = _rows[-1]
-                                H, L, C    = float(d[2]), float(d[3]), float(d[4])
-                                date_label = expected_prev.strftime("%Y-%m-%d")
-                                log.info(f"[CPR] SmartAPI OHLC: H={H} L={L} C={C} [{date_label}]")
-                                break
+                        if _s:
+                            _fut_tok = im.get_nifty_futures_token() or SPOT_TOKEN
+                            _from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
+                            _to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
+                            _attempts = [
+                                ("NSE", SPOT_TOKEN, "ONE_DAY"),
+                                ("NFO", _fut_tok,   "ONE_DAY"),
+                                ("NSE", SPOT_TOKEN, "ONE_HOUR"),
+                                ("NFO", _fut_tok,   "ONE_HOUR"),
+                            ]
+                            for _exch, _tok, _intv in _attempts:
+                                try:
+                                    _resp = _s.getCandleData({"exchange": _exch, "symboltoken": _tok,
+                                                              "interval": _intv, "fromdate": _from_dt, "todate": _to_dt})
+                                    _rows = (_resp or {}).get("data") or []
+                                    if not _rows:
+                                        continue
+                                    if _intv == "ONE_DAY":
+                                        d = _rows[-1]
+                                        H, L, C = float(d[2]), float(d[3]), float(d[4])
+                                    else:
+                                        H = max(float(r[2]) for r in _rows)
+                                        L = min(float(r[3]) for r in _rows)
+                                        C = float(_rows[-1][4])
+                                    date_label = expected_prev.strftime("%Y-%m-%d")
+                                    log.info(f"[CPR] SmartAPI OHLC ({_exch}/{_intv}): H={H} L={L} C={C} [{date_label}]")
+                                    break
+                                except Exception as _att_err:
+                                    log.debug(f"[CPR] SmartAPI {_exch}/{_intv} failed: {_att_err}")
                     except Exception as _sapi_err:
                         log.warning(f"[CPR] SmartAPI fallback failed: {_sapi_err}")
 
@@ -4376,7 +4410,22 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
             "cpr":       cpr,
             "atr":       atr,
         }
-        _cpr_cache[cache_key] = payload
+        # Don't cache daily NIFTY if OHLC is still stale (SmartAPI also failed).
+        # Next request will re-fetch and try again instead of serving bad data all day.
+        _ok_to_cache = True
+        if timeframe == "daily" and is_nifty:
+            try:
+                _fetched_d = _dt.datetime.strptime(date_label, "%Y-%m-%d").date()
+                _exp2 = today - _dt.timedelta(days=1)
+                while _exp2.weekday() >= 5:
+                    _exp2 -= _dt.timedelta(days=1)
+                if _fetched_d < _exp2:
+                    log.warning(f"[CPR] OHLC still stale ({date_label}, want {_exp2}) — skipping cache, will retry next request")
+                    _ok_to_cache = False
+            except Exception:
+                pass
+        if _ok_to_cache:
+            _cpr_cache[cache_key] = payload
         return {**payload, "ltp": ltp}
 
     except Exception as e:
