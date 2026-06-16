@@ -4246,21 +4246,19 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
         return {**cached, "ltp": ltp}
 
     try:
-        # ── Fetch prev-period OHLC (logic unchanged) ──────────────────────────
+        # ── Fetch prev-period OHLC ────────────────────────────────────────────
         if timeframe == "daily":
-            if is_nifty and trade_flow_data.get("prev_ohlc"):
-                ohlc_src   = trade_flow_data["prev_ohlc"]
-                H, L, C    = ohlc_src["high"], ohlc_src["low"], ohlc_src["close"]
-                date_label = ohlc_src.get("date", "")
-            else:
-                df = yf.Ticker(yf_sym).history(period="5d", interval="1d")
-                df.index = df.index.normalize()
-                past = df[df.index.date < today]
-                if past.empty:
-                    return {"error": "No previous day data available"}
-                row        = past.iloc[-1]
-                H, L, C    = float(row.High), float(row.Low), float(row.Close)
-                date_label = past.index[-1].strftime("%Y-%m-%d")
+            df = yf.Ticker(yf_sym).history(period="5d", interval="1d")
+            df.index = df.index.normalize()
+            past = df[df.index.date < today]
+            if past.empty:
+                return {"error": "No previous day data available"}
+            row        = past.iloc[-1]
+            H, L, C    = float(row.High), float(row.Low), float(row.Close)
+            date_label = past.index[-1].strftime("%Y-%m-%d")
+            # Keep trade_flow_data in sync so other endpoints (trade-flow, WebSocket) also get the correct prev OHLC
+            if is_nifty:
+                trade_flow_data["prev_ohlc"] = {"high": round(H, 2), "low": round(L, 2), "close": round(C, 2), "date": date_label}
 
         elif timeframe == "weekly":
             df = yf.Ticker(yf_sym).history(period="3mo", interval="1wk")
