@@ -61,6 +61,7 @@ trade_flow_data = {
     "last_ltp":   None,   # last known NIFTY price — persists across WebSocket drops
 }
 _vix_last_refresh: datetime = None   # tracks last VIX fetch time
+_ohlc_last_fetched_ist_date: str = None   # IST date when prev_ohlc was last refreshed
 
 
 # ──────────────────────────────────────────────
@@ -172,6 +173,7 @@ async def lifespan(app: FastAPI):
         try:
             ohlc = _yf_prev_ohlc()
             trade_flow_data["prev_ohlc"] = ohlc
+            _ohlc_last_fetched_ist_date = ist_now.strftime("%Y-%m-%d")
             log.info(f"📅 Prev OHLC (yfinance): H={ohlc['high']} L={ohlc['low']} C={ohlc['close']} [{ohlc['date']}]")
             ohlc_loaded = True
         except Exception as yf_err:
@@ -443,12 +445,25 @@ async def lifespan(app: FastAPI):
             wait_sec = (target - now_ist).total_seconds()
             log.info(f"📅 Instrument refresh scheduled: {target.strftime('%a %d-%b %H:%M IST')} ({wait_sec/3600:.1f}h away)")
             await asyncio.sleep(wait_sec)
+            # ── Instrument master ──────────────────────────────────────────────
             try:
                 log.info("🔄 Refreshing instrument master (daily pre-market)...")
                 im.reload()
                 log.info(f"✅ Instrument master refreshed — {len(im.data)} NIFTY options loaded")
             except Exception as _ire:
                 log.error(f"❌ Instrument master refresh failed: {_ire}")
+            # ── Previous day OHLC — must refresh so CPR uses today's prev session ─
+            try:
+                ohlc = _yf_prev_ohlc()
+                trade_flow_data["prev_ohlc"] = ohlc
+                log.info(f"📅 Prev OHLC refreshed (daily): H={ohlc['high']} L={ohlc['low']} C={ohlc['close']} [{ohlc['date']}]")
+            except Exception as _oe:
+                log.warning(f"⚠️ Daily OHLC refresh failed: {_oe}")
+            # ── Reset intraday fields so today's values are captured fresh ─────
+            trade_flow_data["nifty_open"] = None
+            trade_flow_data["orb"]        = None
+            trade_flow_data["gift_nifty"] = None
+            log.info("🔄 Intraday fields reset for new trading day")
 
     asyncio.create_task(_daily_instrument_refresh())
 
@@ -695,10 +710,22 @@ def get_trade_flow():
     Returns live trade flow data for the Nifty Trade Flow decision framework.
     Covers 3 phases: Pre-Market (CPR + GIFT gap), 9:15 open, ORB (9:30+).
     """
-    global market_state, trade_flow_data, chain_map
+    global market_state, trade_flow_data, chain_map, _ohlc_last_fetched_ist_date
 
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     h, m = now_ist.hour, now_ist.minute
+
+    # Auto-refresh prev OHLC when IST date changes (safety net if server wasn't restarted)
+    today_str = now_ist.strftime("%Y-%m-%d")
+    if _ohlc_last_fetched_ist_date != today_str:
+        try:
+            ohlc = _yf_prev_ohlc()
+            trade_flow_data["prev_ohlc"] = ohlc
+            _ohlc_last_fetched_ist_date = today_str
+            log.info(f"📅 Prev OHLC auto-refreshed (date change): [{ohlc['date']}]")
+        except Exception as _oe:
+            _ohlc_last_fetched_ist_date = today_str   # avoid spamming on failure
+            log.warning(f"⚠️ Prev OHLC auto-refresh failed: {_oe}")
 
     # Current phase
     if h < 9 or (h == 9 and m < 15):

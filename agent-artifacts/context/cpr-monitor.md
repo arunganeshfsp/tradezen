@@ -1,7 +1,7 @@
 # Context: cpr-monitor
 
 **File:** `public/cpr_monitor.html`  
-**Last updated:** 2026-06-09
+**Last updated:** 2026-06-16
 
 ---
 
@@ -80,6 +80,19 @@ Three rules added 2026-06-09 to kill false/contradictory alerts:
 1. **BREAKOUT_FAILURE requires a prior confirmed breakout.** Gated on `_breakoutDir === 'bull'`/`'bear'`. Without this, price merely drifting back below TC (when it opened above TC, never having a body-confirmed breakout) fired phantom "bull trap" failures.
 2. **Camarilla H3 (short) / L3 (long) are suppressed against an active breakout.** H3 needs `_breakoutDir !== 'bull'`, L3 needs `_breakoutDir !== 'bear'` — prevents shorting into a bull breakout / longing into a bear breakdown. `_breakoutDir` clears on failure or retest, so mean-reversion re-enables once the breakout resolves.
 3. **REVERSAL reason text corrected** — "from above → bearish reversal" (Sell), "from below → bullish reversal" (Buy). Previously swapped.
+
+## Stale OHLC Bug — Fixed 2026-06-16
+
+**Root cause:** `trade_flow_data["prev_ohlc"]` (in `main.py`) was fetched once at startup and never refreshed. If the server stayed running across a weekend/holiday, it served the startup-day's previous trading day forever (e.g. started Saturday → showed Friday's data indefinitely into the following week).
+
+**Fixes applied (`main.py`):**
+1. `_daily_instrument_refresh` task (8:30 AM IST on weekdays) now also refreshes `prev_ohlc` via `_yf_prev_ohlc()` and resets `nifty_open` + `orb` fields so intraday state is clean for the new day.
+2. `_ohlc_last_fetched_ist_date` module variable — tracks which IST date the OHLC was last fetched.
+3. `get_trade_flow()` checks this variable on every call — if today's IST date differs from the last fetch date, it calls `_yf_prev_ohlc()` and updates the cache. This is a safety net for any case where the daily task didn't fire (holiday, missed window, etc.). Only fires once per day (tracker updated after refresh).
+
+The `psychology/levels` endpoint is NOT affected — it does its own live yfinance fetch on every call.
+
+---
 
 ## Known Caveats
 
