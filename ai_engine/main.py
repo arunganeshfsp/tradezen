@@ -3302,13 +3302,24 @@ def _options_chain_sync(symbol: str, expiry: str, spot_price: float | None) -> d
         chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
     if "error" in chain_data:
         return chain_data
-    chain      = chain_data.get("chain", [])
-    analytics  = _oc_max_pain(chain, spot_price)
+    chain     = chain_data.get("chain", [])
+    spot      = chain_data.get("spot") or spot_price
+    analytics = _oc_max_pain(chain, spot)          # compute on full chain for accuracy
+    chain     = _trim_chain_atm(chain, spot, n=5)  # then trim to ±5 for display
     oi_signals = _oc_oi_signals(symbol, expiry, chain)
     # No 5-min snapshot yet — derive OI signals from NSE daily change data instead
     if not oi_signals and chain_data.get("source") == "NSE":
         oi_signals = _oc_daily_oi_signals(chain)
-    return {**chain_data, "analytics": analytics, "oi_signals": oi_signals}
+    return {**chain_data, "chain": chain, "analytics": analytics, "oi_signals": oi_signals}
+
+
+def _trim_chain_atm(chain: list, spot: float | None, n: int = 5) -> list:
+    if not chain or spot is None:
+        return chain
+    strikes = [r["strike"] for r in chain]
+    atm = min(strikes, key=lambda s: abs(s - spot))
+    idx = strikes.index(atm)
+    return chain[max(0, idx - n): idx + n + 1]
 
 
 @app.get("/options/chain")

@@ -396,6 +396,12 @@ def fetch_chain_nse(symbol: str, expiry: str,
     if not chain_rows:
         return {"error": f"No NSE data for {sym_up} expiry {expiry}"}
 
+    def _n(v, cast=float):
+        try:
+            return cast(v)
+        except (TypeError, ValueError):
+            return None
+
     def _leg(side: dict | None) -> dict:
         if not side:
             return {
@@ -405,15 +411,15 @@ def fetch_chain_nse(symbol: str, expiry: str,
             }
         return {
             "lot_size":   lot_size,
-            "ltp":        side.get("lastPrice"),
-            "oi":         side.get("openInterest"),
-            "oi_change":  side.get("changeinOpenInterest"),
-            "ltp_change": side.get("change"),        # LTP change vs previous session close
-            "volume":     side.get("totalTradedVolume"),
-            "iv":         side.get("impliedVolatility"),
+            "ltp":        _n(side.get("lastPrice")),
+            "oi":         _n(side.get("openInterest"), int),
+            "oi_change":  _n(side.get("changeinOpenInterest"), int),
+            "ltp_change": _n(side.get("change")),
+            "volume":     _n(side.get("totalTradedVolume"), int),
+            "iv":         _n(side.get("impliedVolatility")),
             "delta":      None,
-            "bid":        side.get("bidprice"),
-            "ask":        side.get("askPrice"),
+            "bid":        _n(side.get("bidprice")),
+            "ask":        _n(side.get("askPrice")),
             "depth":      {"buy": [], "sell": []},
         }
 

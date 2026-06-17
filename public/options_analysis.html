@@ -192,6 +192,30 @@ td.ce-col{color:var(--blue)}.td.pe-col{color:var(--red)}
 .ch-stat .v.green{color:var(--green)}.ch-stat .v.red{color:var(--red)}.ch-stat .v.yellow{color:var(--yellow)}.ch-stat .v.cyan{color:var(--cyan)}.ch-stat .v.purple{color:var(--purple)}
 .ch-legend{display:flex;gap:16px;font-size:11px;color:var(--dim);margin-bottom:6px;flex-wrap:wrap;align-items:center}
 .ch-leg-line{display:inline-block;width:20px;height:2px;border-radius:2px;vertical-align:middle;margin-right:4px}
+/* CPR Drawer */
+.cpr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:499;display:none}
+.cpr-overlay.open{display:block}
+.cpr-drawer{position:fixed;right:-380px;top:0;height:100vh;width:360px;background:var(--bg1);border-left:1px solid var(--border2);z-index:500;transition:right .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
+.cpr-drawer.open{right:0}
+.cpr-drawer-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2);flex-shrink:0}
+.cpr-drawer-hdr .contract{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:.5px}
+.cpr-drawer-body{padding:16px;flex:1}
+.cpr-lvl-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;margin-bottom:4px;font-size:12px}
+.cpr-lvl-row.is-ltp{background:rgba(245,166,35,.13);border:1px solid rgba(245,166,35,.35)}
+.cpr-lvl-row .lname{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;width:32px;flex-shrink:0}
+.cpr-lvl-row .lval{font-weight:700;font-size:13px}
+.cpr-lvl-row .ldist{font-size:11px;color:var(--muted);text-align:right;min-width:70px}
+.cpr-band{background:rgba(91,138,245,.08);border:1px solid rgba(91,138,245,.2);border-radius:6px;padding:2px 0;margin:2px 0}
+.cpr-ohlc{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:14px}
+.cpr-ohlc-cell{background:var(--bg2);border-radius:6px;padding:8px;text-align:center}
+.cpr-ohlc-cell .ok{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.cpr-ohlc-cell .ov{font-size:13px;font-weight:700}
+.cpr-type-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:14px}
+.cpr-type-badge.narrow{background:rgba(39,174,96,.15);color:var(--green)}
+.cpr-type-badge.medium{background:rgba(245,166,35,.15);color:var(--yellow)}
+.cpr-type-badge.wide{background:rgba(231,76,60,.15);color:var(--red)}
+.cpr-disclaimer{font-size:10px;color:var(--dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.ltp-click:hover{background:rgba(255,255,255,.06);border-radius:4px}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
@@ -700,11 +724,11 @@ function renderChain(data) {
         <div class="oi-bar"><div class="oi-bar-fill" style="width:${ceOiPct}%;background:${barColor[ceSig]||'var(--blue)'}"></div></div></td>
       <td style="color:var(--blue)">${fmtOi(ce.volume)}
         <div class="oi-bar"><div class="oi-bar-fill" style="width:${ceVolPct}%;background:rgba(91,138,245,.5)"></div></div></td>
-      <td style="color:var(--blue)">${fmtN(ce.ltp)}</td>
-      <td style="color:var(--blue)">${ce.iv?ce.iv.toFixed(1)+"%":"—"}</td>
+      <td class="ltp-click" style="color:var(--blue);cursor:pointer" onclick="openOptionCPR(${strike},'CE')">${fmtN(ce.ltp)}</td>
+      <td style="color:var(--blue)">${ce.iv!=null?Number(ce.iv).toFixed(1)+"%":"—"}</td>
       <td class="strike-col">${isAtm?'<span style="color:var(--accent)">▶</span> ':""}<span style="${isMp?'color:var(--yellow)':''}">${fmtN(strike)}</span>${isMp?' <span style="color:var(--yellow);font-size:9px">MP</span>':""}</td>
-      <td style="color:var(--red)">${pe.iv?pe.iv.toFixed(1)+"%":"—"}</td>
-      <td style="color:var(--red)">${fmtN(pe.ltp)}</td>
+      <td style="color:var(--red)">${pe.iv!=null?Number(pe.iv).toFixed(1)+"%":"—"}</td>
+      <td class="ltp-click" style="color:var(--red);cursor:pointer" onclick="openOptionCPR(${strike},'PE')">${fmtN(pe.ltp)}</td>
       <td style="color:var(--red)">${fmtOi(pe.volume)}
         <div class="oi-bar"><div class="oi-bar-fill" style="width:${peVolPct}%;background:rgba(231,76,60,.5)"></div></div></td>
       <td style="${peOiHi?'color:var(--yellow);font-weight:700':'color:var(--red)'}">${fmtOi(pe.oi)}
@@ -1004,8 +1028,113 @@ function _renderChHistory(d) {
       </tbody>
     </table></div>`;
 }
+
+// ── Option CPR Drawer ─────────────────────────────────────────────────────────
+function openOptionCPR(strike, type) {
+  const sym = (document.getElementById("symbolInput")?.value || "NIFTY").trim().toUpperCase();
+  const contractSym = `${sym}${Math.round(strike)}${type}`;
+  const expiry = document.getElementById("expirySelect")?.value || "";
+
+  let currentLtp = null;
+  if (chainData?.chain) {
+    const row = chainData.chain.find(r => Math.abs(r.strike - strike) < 0.01);
+    if (row) currentLtp = type === "CE" ? row.ce?.ltp : row.pe?.ltp;
+  }
+
+  document.getElementById("cprDrawerTitle").textContent = contractSym;
+  document.getElementById("cprDrawerExpiry").textContent = expiry ? `Expiry: ${expiry}` : "";
+  document.getElementById("cprDrawerBody").innerHTML =
+    `<div style="text-align:center;padding:40px 0;color:var(--muted)"><div class="spinner"></div><div style="margin-top:10px;font-size:12px">Loading CPR…</div></div>`;
+  document.getElementById("cprDrawer").classList.add("open");
+  document.getElementById("cprOverlay").classList.add("open");
+
+  fetch(`${API}/cpr-levels?symbol=${contractSym}`)
+    .then(r => r.json())
+    .then(d => _renderCprDrawer(d, currentLtp, type))
+    .catch(e => {
+      document.getElementById("cprDrawerBody").innerHTML =
+        `<div class="err-msg">Failed to load CPR: ${e.message}</div>`;
+    });
+}
+
+function closeCprDrawer() {
+  document.getElementById("cprDrawer").classList.remove("open");
+  document.getElementById("cprOverlay").classList.remove("open");
+}
+
+function _renderCprDrawer(d, ltp, type) {
+  if (d.error) {
+    document.getElementById("cprDrawerBody").innerHTML = `<div class="err-msg">${d.error}</div>`;
+    return;
+  }
+  const { tc, pp, bc, r1, r2, s1, s2, cpr_type, prev_ohlc } = d;
+  const fmtV = v => v != null ? v.toFixed(2) : "—";
+  const dist = v => {
+    if (v == null || ltp == null) return "—";
+    const diff = (v - ltp).toFixed(2);
+    return `${diff >= 0 ? "+" : ""}${diff}`;
+  };
+  const distStyle = v => {
+    if (v == null || ltp == null) return "color:var(--muted)";
+    return v > ltp ? "color:var(--green)" : v < ltp ? "color:var(--red)" : "color:var(--yellow)";
+  };
+  const lvlRow = (name, val, inBand) => {
+    const near = ltp != null && val != null && Math.abs(val - ltp) < 0.5;
+    return `<div class="cpr-lvl-row${near ? " is-ltp" : ""}">
+      <span class="lname">${name}</span>
+      <span class="lval">${fmtV(val)}</span>
+      <span class="ldist" style="${distStyle(val)}">${dist(val)}</span>
+    </div>`;
+  };
+
+  let zoneLabel = "—", zoneCls = "var(--muted)";
+  if (ltp != null) {
+    if (ltp > tc)      { zoneLabel = "Above CPR ▲"; zoneCls = "var(--green)"; }
+    else if (ltp < bc) { zoneLabel = "Below CPR ▼"; zoneCls = "var(--red)"; }
+    else               { zoneLabel = "Inside CPR ↔"; zoneCls = "var(--yellow)"; }
+  }
+
+  const typeKey = (cpr_type || "medium").toLowerCase();
+  const typeLabels = { narrow: "Narrow — Trending day expected", medium: "Moderate CPR", wide: "Wide — Choppy day expected" };
+  const ohlcDate = prev_ohlc?.date || "—";
+  const ltpColor = type === "CE" ? "var(--blue)" : "var(--red)";
+
+  document.getElementById("cprDrawerBody").innerHTML = `
+    <div class="cpr-type-badge ${typeKey}">${typeLabels[typeKey] || cpr_type}</div>
+    ${ltp != null ? `<div style="margin-bottom:14px;font-size:12px;color:var(--muted)">LTP &nbsp;<strong style="color:${ltpColor}">${fmtV(ltp)}</strong> &nbsp;•&nbsp; <span style="color:${zoneCls}">${zoneLabel}</span></div>` : ""}
+    <div class="cpr-ohlc">
+      <div class="cpr-ohlc-cell"><div class="ok">High</div><div class="ov green">${fmtV(prev_ohlc?.high)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Low</div><div class="ov red">${fmtV(prev_ohlc?.low)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Close</div><div class="ov">${fmtV(prev_ohlc?.close)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Date</div><div class="ov" style="font-size:10px;color:var(--muted)">${ohlcDate}</div></div>
+    </div>
+    ${lvlRow("R2", r2)}
+    ${lvlRow("R1", r1)}
+    <div class="cpr-band">
+      ${lvlRow("TC", tc)}
+      ${lvlRow("PP", pp)}
+      ${lvlRow("BC", bc)}
+    </div>
+    ${lvlRow("S1", s1)}
+    ${lvlRow("S2", s2)}
+    <div class="cpr-disclaimer">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>
+  `;
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
+<div class="cpr-overlay" id="cprOverlay" onclick="closeCprDrawer()"></div>
+<div class="cpr-drawer" id="cprDrawer">
+  <div class="cpr-drawer-hdr">
+    <div>
+      <div class="contract" id="cprDrawerTitle">—</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px" id="cprDrawerExpiry"></div>
+    </div>
+    <button onclick="closeCprDrawer()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;line-height:1">✕</button>
+  </div>
+  <div class="cpr-drawer-body" id="cprDrawerBody">
+    <div style="text-align:center;padding:40px 0;color:var(--muted)"><div class="spinner"></div></div>
+  </div>
+</div>
 </body>
 </html>
