@@ -4297,15 +4297,31 @@ def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe
         from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
         to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
 
-        resp = _s.getCandleData({"exchange": "NFO", "symboltoken": token,
-                                  "interval": "ONE_DAY", "fromdate": from_dt, "todate": to_dt})
-        rows = (resp or {}).get("data") or []
-        if not rows:
-            return {"error": f"No prev-day OHLC for {symbol} (expiry {expiry}). Option may not have traded."}
-
-        d = rows[-1]
-        H, L, C = float(d[2]), float(d[3]), float(d[4])
+        H = L = C = None
         date_label = expected_prev.strftime("%Y-%m-%d")
+
+        # Try ONE_DAY first; NFO daily candles are often unavailable, fall back to FIVE_MINUTE
+        for interval in ("ONE_DAY", "FIVE_MINUTE"):
+            try:
+                resp = _s.getCandleData({"exchange": "NFO", "symboltoken": token,
+                                          "interval": interval, "fromdate": from_dt, "todate": to_dt})
+                rows = (resp or {}).get("data") or []
+            except Exception:
+                rows = []
+            if not rows:
+                continue
+            if interval == "ONE_DAY":
+                d = rows[-1]
+                H, L, C = float(d[2]), float(d[3]), float(d[4])
+            else:
+                H = max(float(r[2]) for r in rows)
+                L = min(float(r[3]) for r in rows)
+                C = float(rows[-1][4])
+            log.info(f"[CPR-OPTION] {symbol} {interval} OHLC: H={H} L={L} C={C}")
+            break
+
+        if H is None:
+            return {"error": f"No prev-day OHLC for {symbol} (expiry {expiry}). Option may not have traded."}
 
         cpr = _calc_cpr(H, L, C)
         atr = max(round(C * 0.20, 2), 5.0)
