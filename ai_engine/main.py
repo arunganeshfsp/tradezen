@@ -4172,6 +4172,15 @@ def report_delete(date: str):
 # CPR Levels — multi-timeframe, multi-symbol CPR for the CPR Monitor page
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _parse_option_symbol(symbol: str):
+    """Parse 'NIFTY24000CE' → ('NIFTY', 24000.0, 'CE'), or None if not an option symbol."""
+    import re
+    m = re.match(r'^(NIFTY|BANKNIFTY)(\d+)(CE|PE)$', symbol.upper().strip())
+    if not m:
+        return None
+    return m.group(1), float(m.group(2)), m.group(3)
+
+
 # ── CPR levels cache (keyed by period so OHLC isn't re-fetched intraday) ─────
 _cpr_cache: dict = {}
 
@@ -4238,7 +4247,140 @@ def _calc_cpr(H: float, L: float, C: float) -> dict:
     }
 
 
+def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe: str) -> dict:
+    """CPR levels for a specific option contract (NIFTY24000CE etc.) using SmartAPI OHLC."""
+    import datetime as _dt
+
+    IST     = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    now_ist = _dt.datetime.now(IST)
+    today   = now_ist.date()
+
+    _evict_cpr_cache(today)
+    cache_key = _cpr_cache_key(symbol, "daily", today)
+    if cache_key in _cpr_cache:
+        return {**_cpr_cache[cache_key], "ltp": None}
+
+    try:
+        global smart
+        _s = smart or _get_smart()
+        if not _s:
+            return {"error": "SmartAPI session unavailable — option OHLC requires authenticated session"}
+
+        token, sapi_sym, expiry = im.get_option_token(strike, opt_type)
+        if not token:
+            return {"error": f"Option not found: {symbol} (nearest expiry). Check that the strike exists."}
+
+        expected_prev = today - _dt.timedelta(days=1)
+        while expected_prev.weekday() >= 5:
+            expected_prev -= _dt.timedelta(days=1)
+        from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
+        to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
+
+        resp = _s.getCandleData({"exchange": "NFO", "symboltoken": token,
+                                  "interval": "ONE_DAY", "fromdate": from_dt, "todate": to_dt})
+        rows = (resp or {}).get("data") or []
+        if not rows:
+            return {"error": f"No prev-day OHLC for {symbol} (expiry {expiry}). Option may not have traded."}
+
+        d = rows[-1]
+        H, L, C = float(d[2]), float(d[3]), float(d[4])
+        date_label = expected_prev.strftime("%Y-%m-%d")
+
+        cpr = _calc_cpr(H, L, C)
+        atr = max(round(C * 0.20, 2), 5.0)
+
+        payload = {
+            "symbol":    symbol.upper(),
+            "timeframe": "daily",
+            "ohlc":      {"high": round(H, 2), "low": round(L, 2), "close": round(C, 2), "date": date_label},
+            "cpr":       cpr,
+            "atr":       atr,
+            "expiry":    expiry,
+        }
+        _cpr_cache[cache_key] = payload
+        log.info(f"[CPR-OPTION] {symbol} ({expiry}): H={H} L={L} C={C} CPR width={cpr['width']}")
+        return {**payload, "ltp": None}
+
+    except Exception as e:
+        log.error(f"[CPR-OPTION] {symbol}: {e}")
+        return {"error": str(e)}
+
+
+def _candles_for_cpr_option_sync(symbol: str, strike: float, opt_type: str, timeframe: str) -> dict:
+    """5-min intraday candles (or daily for weekly/monthly) for an option via SmartAPI."""
+    import datetime as _dt
+    _IST_OFF = 19800
+
+    IST     = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    now_ist = _dt.datetime.now(IST)
+    today   = now_ist.date()
+
+    try:
+        global smart
+        _s = smart or _get_smart()
+        if not _s:
+            return {"candles": [], "interval": "5m", "count": 0,
+                    "data_source": "smartapi", "as_of": None, "error": "SmartAPI unavailable"}
+
+        token, _, expiry = im.get_option_token(strike, opt_type)
+        if not token:
+            return {"candles": [], "interval": "5m", "count": 0,
+                    "data_source": "smartapi", "as_of": None, "error": "Token not found"}
+
+        if timeframe == "daily":
+            from_dt  = today.strftime("%Y-%m-%d 09:15")
+            to_dt    = today.strftime("%Y-%m-%d 15:30")
+            interval = "FIVE_MINUTE"
+        else:
+            if timeframe == "weekly":
+                from_d = today - _dt.timedelta(days=today.weekday())
+            else:
+                from_d = today.replace(day=1)
+            from_dt  = from_d.strftime("%Y-%m-%d 09:15")
+            to_dt    = today.strftime("%Y-%m-%d 15:30")
+            interval = "ONE_DAY"
+
+        resp = _s.getCandleData({"exchange": "NFO", "symboltoken": token,
+                                  "interval": interval, "fromdate": from_dt, "todate": to_dt})
+        rows = (resp or {}).get("data") or []
+        if not rows:
+            return {"candles": [], "interval": "5m" if timeframe == "daily" else "1d",
+                    "count": 0, "data_source": "smartapi", "as_of": None}
+
+        candles = []
+        for r in rows:
+            try:
+                ts = _dt.datetime.fromisoformat(r[0])
+                if timeframe == "daily":
+                    epoch = int(ts.timestamp()) + _IST_OFF
+                else:
+                    epoch = int(_dt.datetime(ts.year, ts.month, ts.day).timestamp())
+                candles.append({
+                    "time":  epoch,
+                    "open":  round(float(r[1]), 2),
+                    "high":  round(float(r[2]), 2),
+                    "low":   round(float(r[3]), 2),
+                    "close": round(float(r[4]), 2),
+                })
+            except Exception:
+                continue
+
+        intv_label = "5m" if timeframe == "daily" else "1d"
+        as_of = (candles[-1]["time"] - _IST_OFF) if (candles and timeframe == "daily") else (candles[-1]["time"] if candles else None)
+        return {"candles": candles, "interval": intv_label, "count": len(candles),
+                "data_source": "smartapi", "as_of": as_of}
+
+    except Exception as e:
+        log.error(f"[CANDLES-OPTION] {symbol}/{timeframe}: {e}")
+        return {"candles": [], "interval": "5m", "count": 0,
+                "data_source": "smartapi", "as_of": None, "error": str(e)}
+
+
 def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
+    _opt = _parse_option_symbol(symbol)
+    if _opt:
+        return _cpr_levels_option_sync(symbol, _opt[1], _opt[2], timeframe)
+
     import yfinance as yf
     import datetime as _dt
 
@@ -4444,6 +4586,10 @@ async def cpr_levels(symbol: str = "NIFTY", timeframe: str = "daily"):
 
 
 def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
+    _opt = _parse_option_symbol(symbol)
+    if _opt:
+        return _candles_for_cpr_option_sync(symbol, _opt[1], _opt[2], timeframe)
+
     import yfinance as yf
     import datetime as _dt
     import pandas as pd

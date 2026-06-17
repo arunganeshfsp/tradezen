@@ -83,14 +83,59 @@ Three rules added 2026-06-09 to kill false/contradictory alerts:
 
 ## Stale OHLC Bug — Fixed 2026-06-16
 
-**Root cause:** `trade_flow_data["prev_ohlc"]` (in `main.py`) was fetched once at startup and never refreshed. If the server stayed running across a weekend/holiday, it served the startup-day's previous trading day forever (e.g. started Saturday → showed Friday's data indefinitely into the following week).
+### Root cause (three layers)
 
-**Fixes applied (`main.py`):**
-1. `_daily_instrument_refresh` task (8:30 AM IST on weekdays) now also refreshes `prev_ohlc` via `_yf_prev_ohlc()` and resets `nifty_open` + `orb` fields so intraday state is clean for the new day.
-2. `_ohlc_last_fetched_ist_date` module variable — tracks which IST date the OHLC was last fetched.
-3. `get_trade_flow()` checks this variable on every call — if today's IST date differs from the last fetch date, it calls `_yf_prev_ohlc()` and updates the cache. This is a safety net for any case where the daily task didn't fire (holiday, missed window, etc.). Only fires once per day (tracker updated after refresh).
+**Layer 1 — yfinance `^NSEI` data lag:** yfinance consistently returns the previous trading day's data one day late for the NSE spot index. On Tuesday June 16, it returns Friday June 12 data instead of Monday June 15.
 
-The `psychology/levels` endpoint is NOT affected — it does its own live yfinance fetch on every call.
+**Layer 2 — No daily refresh of `trade_flow_data["prev_ohlc"]`:** This dict was fetched once at startup and never refreshed. If the server ran across midnight, the stale startup-day data was served forever.
+
+**Layer 3 — `_cpr_levels_sync` cache poisoning:** Once `_cpr_cache` stored a stale OHLC date under today's key, it was served for the rest of the day with no staleness check — even after the data source was corrected.
+
+### Fixes applied
+
+**`_cpr_levels_sync` (primary fix):**
+- Before serving from `_cpr_cache`, checks if the cached OHLC date ≥ `expected_prev` (most recent weekday). If stale, evicts the cache entry and falls through to a fresh fetch.
+- After a fresh fetch, only writes to cache if the resulting OHLC date ≥ `expected_prev`. If SmartAPI also failed and yfinance data is still stale, the result is NOT cached — next request will retry.
+- SmartAPI fallback now tries 4 combinations: `("NSE", SPOT_TOKEN, "ONE_DAY")`, `("NFO", fut_token, "ONE_DAY")`, `("NSE", SPOT_TOKEN, "ONE_HOUR")`, `("NFO", fut_token, "ONE_HOUR")` — matching the startup logic.
+- On success, writes corrected OHLC back to `trade_flow_data["prev_ohlc"]` so WebSocket and trade-flow endpoint also benefit.
+
+**`_daily_instrument_refresh` task (8:30 AM IST on weekdays):**
+- Now also refreshes `prev_ohlc` with the same yfinance → SmartAPI fallback pattern.
+- Resets `nifty_open` and `orb` (intraday accumulators) so they are clean for the new day.
+- Does NOT reset `gift_nifty` — that is manually entered by the user pre-market and must survive the 8:30 AM task.
+
+**`get_trade_flow()` staleness check — REMOVED (risk audit):**
+- An initial version added a staleness check inside `get_trade_flow()` that called `_yf_prev_ohlc()` on the first request each day. This was removed because it could overwrite a correct SmartAPI-sourced `prev_ohlc` with stale yfinance data if called before `/cpr-levels` had a chance to correct it.
+
+### Expected log output when fix is active
+- `[CPR] Cache has stale OHLC 2026-06-12 (want 2026-06-15) — evicting, re-fetching`
+- `[CPR] yfinance returned 2026-06-12, expected 2026-06-15 — trying SmartAPI`
+- `[CPR] SmartAPI OHLC (NFO/ONE_DAY): H=... L=... C=... [2026-06-15]` ← success
+- OR: `[CPR] OHLC still stale (2026-06-12, want 2026-06-15) — skipping cache, will retry next request` ← SmartAPI failing, keeps retrying
+
+### What is NOT affected
+- `psychology/levels` endpoint — does its own fresh yfinance fetch on every call, no shared cache.
+- Weekly / monthly CPR timeframes — no staleness check applied (their data lags are expected and harmless).
+
+---
+
+## Option Contract CPR — Added 2026-06-17
+
+Enter a contract like `NIFTY24000CE` in the new Option input in the selector bar. The CPR is computed from the **option's own prev-day OHLC** (the premium), not the underlying NIFTY.
+
+**Data flow:**
+- `_parse_option_symbol(sym)` — regex `(NIFTY|BANKNIFTY)\d+(CE|PE)`, returns `(underlying, strike, type)` or `None`
+- `_cpr_levels_option_sync` — looks up token via `im.get_option_token(strike, type)` (nearest expiry), fetches prev-day ONE_DAY candle from SmartAPI NFO, calculates CPR. ATR = `max(close × 0.20, 5)` (rough premium ATR).
+- `_candles_for_cpr_option_sync` — fetches today's FIVE_MINUTE candles from SmartAPI NFO for the intraday chart. Live LTP comes from `last.close` of the candle poll (every 30s).
+- Both `_cpr_levels_sync` and `_candles_for_cpr_sync` check `_parse_option_symbol` first and delegate to the option-specific functions.
+- `im.get_option_token(strike, type)` added to `InstrumentMaster` — searches `self.data` (NIFTY OPTIDX only) for nearest expiry match.
+
+**Caveats:**
+- Only NIFTY options supported (InstrumentMaster filters for `name == "NIFTY"`)
+- Option must have traded on the previous day — OTM options with no trades return `"No prev-day OHLC"` error
+- Weekly/monthly timeframe buttons still show but use the same daily CPR (option weekly CPR not implemented)
+- `ltp` in the levels response is always `None` for options — the candles endpoint provides live price
+- CPR cache key uses the full symbol string (`NIFTY24000CE`) so separate from the NIFTY cache
 
 ---
 

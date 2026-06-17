@@ -294,6 +294,17 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
     </div>
   </div>
   <div class="sel-group">
+    <span class="sel-label">Option</span>
+    <div class="sel-row">
+      <input type="text" id="contractInput" placeholder="NIFTY24000CE"
+             style="font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 10px;border-radius:var(--r2);border:1px solid var(--border);background:var(--bg2);color:var(--text);outline:none;width:130px;transition:border-color .15s;text-transform:uppercase"
+             oninput="this.value=this.value.toUpperCase()"
+             onkeydown="if(event.key==='Enter')applyContract()">
+      <button class="sel-btn" onclick="applyContract()" style="padding:4px 10px">→</button>
+      <button class="sel-btn" id="clearContractBtn" onclick="clearContract()" style="display:none;padding:4px 8px;color:var(--muted)">✕</button>
+    </div>
+  </div>
+  <div class="sel-group">
     <span class="sel-label">CPR Timeframe</span>
     <div class="sel-row" id="tfBtns">
       <button class="sel-btn active" data-tf="daily" onclick="setTimeframe('daily',this)">Daily</button>
@@ -1398,18 +1409,54 @@ function renderTradePlan(ltp) {
 // ─────────────────────────────────────────────
 // Instrument & Timeframe selectors
 // ─────────────────────────────────────────────
+function applyContract() {
+  const val = document.getElementById('contractInput').value.trim().toUpperCase();
+  if (!val) return;
+  if (!/^(NIFTY|BANKNIFTY)\d+(CE|PE)$/.test(val)) {
+    document.getElementById('contractInput').style.borderColor = 'var(--red)';
+    setTimeout(() => { document.getElementById('contractInput').style.borderColor = ''; }, 1500);
+    return;
+  }
+  document.getElementById('clearContractBtn').style.display = '';
+  document.getElementById('contractInput').style.borderColor = 'rgba(0,212,255,0.45)';
+  setInstrument(val);
+}
+
+function clearContract() {
+  document.getElementById('contractInput').value = '';
+  document.getElementById('contractInput').style.borderColor = '';
+  document.getElementById('clearContractBtn').style.display = 'none';
+  setInstrument('NIFTY');
+}
+
 function setInstrument(sym) {
   _symbol = sym.toUpperCase();
   const niftyBtn = document.getElementById('btnNifty');
   const stockSel = document.getElementById('stockSel');
+  const clearBtn = document.getElementById('clearContractBtn');
+  const isOption = !!_parse_option_symbol(_symbol);
+
   if (_symbol === 'NIFTY') {
     niftyBtn.classList.add('active');
     stockSel.value = '';
+    document.getElementById('contractInput').value = '';
+    document.getElementById('contractInput').style.borderColor = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+  } else if (isOption) {
+    niftyBtn.classList.remove('active');
+    stockSel.value = '';
   } else {
     niftyBtn.classList.remove('active');
+    document.getElementById('contractInput').value = '';
+    document.getElementById('contractInput').style.borderColor = '';
+    if (clearBtn) clearBtn.style.display = 'none';
   }
   updateSelInfo();
   resetAndReload();
+}
+
+function _parse_option_symbol(sym) {
+  return /^(NIFTY|BANKNIFTY)\d+(CE|PE)$/.test(sym.toUpperCase());
 }
 
 function setTimeframe(tf, btn) {
@@ -1423,7 +1470,12 @@ function setTimeframe(tf, btn) {
 
 function updateSelInfo() {
   const el = document.getElementById('selInfo');
-  if (el) el.textContent = `${_symbol} • ${_timeframe.toUpperCase()} CPR`;
+  if (!el) return;
+  if (_parse_option_symbol(_symbol)) {
+    el.textContent = `${_symbol} • OPTION CPR`;
+  } else {
+    el.textContent = `${_symbol} • ${_timeframe.toUpperCase()} CPR`;
+  }
 }
 
 function resetAndReload() {

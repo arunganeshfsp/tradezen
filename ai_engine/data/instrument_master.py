@@ -198,6 +198,16 @@ class InstrumentMaster:
         except Exception:
             return None
 
+    def get_option_token(self, strike: float, option_type: str, expiry: str = None):
+        """Return (token, sapi_symbol, expiry_str) for given strike/type, nearest expiry by default."""
+        if not self.data:
+            self.load()
+        target_expiry = expiry if expiry else self.get_nearest_expiry()
+        for item in self.data:
+            if abs(item["strike"] - strike) < 0.01 and item["type"] == option_type.upper() and item["expiry"] == target_expiry:
+                return item["token"], item["symbol"], target_expiry
+        return None, None, None
+
     def get_nearest_expiry(self):
         """Return the nearest expiry that has not yet passed."""
         return self.get_upcoming_expiries(n=1)[0]
