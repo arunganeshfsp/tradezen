@@ -1067,8 +1067,16 @@ function _renderCprDrawer(d, ltp, type) {
     document.getElementById("cprDrawerBody").innerHTML = `<div class="err-msg">${d.error}</div>`;
     return;
   }
-  const { tc, pp, bc, r1, r2, s1, s2, cpr_type, prev_ohlc } = d;
-  const fmtV = v => v != null ? v.toFixed(2) : "—";
+  // API response: { cpr:{tc,pp,bc,r1,r2,s1,s2,width}, ohlc:{high,low,close,date}, atr, ltp }
+  const c = d.cpr || {};
+  const { tc, pp, bc, r1, r2, s1, s2, width } = c;
+  const prev_ohlc = d.ohlc || {};
+
+  // CPR type computed client-side from width % of prev close (mirrors cpr_monitor.html logic)
+  const wPct = (prev_ohlc.close && width != null) ? (width / prev_ohlc.close * 100) : null;
+  const typeKey = wPct == null ? "medium" : wPct < 0.167 ? "narrow" : wPct <= 0.333 ? "medium" : "wide";
+
+  const fmtV = v => v != null ? Number(v).toFixed(2) : "—";
   const dist = v => {
     if (v == null || ltp == null) return "—";
     const diff = (v - ltp).toFixed(2);
@@ -1078,7 +1086,7 @@ function _renderCprDrawer(d, ltp, type) {
     if (v == null || ltp == null) return "color:var(--muted)";
     return v > ltp ? "color:var(--green)" : v < ltp ? "color:var(--red)" : "color:var(--yellow)";
   };
-  const lvlRow = (name, val, inBand) => {
+  const lvlRow = (name, val) => {
     const near = ltp != null && val != null && Math.abs(val - ltp) < 0.5;
     return `<div class="cpr-lvl-row${near ? " is-ltp" : ""}">
       <span class="lname">${name}</span>
@@ -1088,25 +1096,23 @@ function _renderCprDrawer(d, ltp, type) {
   };
 
   let zoneLabel = "—", zoneCls = "var(--muted)";
-  if (ltp != null) {
+  if (ltp != null && tc != null && bc != null) {
     if (ltp > tc)      { zoneLabel = "Above CPR ▲"; zoneCls = "var(--green)"; }
     else if (ltp < bc) { zoneLabel = "Below CPR ▼"; zoneCls = "var(--red)"; }
     else               { zoneLabel = "Inside CPR ↔"; zoneCls = "var(--yellow)"; }
   }
 
-  const typeKey = (cpr_type || "medium").toLowerCase();
   const typeLabels = { narrow: "Narrow — Trending day expected", medium: "Moderate CPR", wide: "Wide — Choppy day expected" };
-  const ohlcDate = prev_ohlc?.date || "—";
   const ltpColor = type === "CE" ? "var(--blue)" : "var(--red)";
 
   document.getElementById("cprDrawerBody").innerHTML = `
-    <div class="cpr-type-badge ${typeKey}">${typeLabels[typeKey] || cpr_type}</div>
+    <div class="cpr-type-badge ${typeKey}">${typeLabels[typeKey]}</div>
     ${ltp != null ? `<div style="margin-bottom:14px;font-size:12px;color:var(--muted)">LTP &nbsp;<strong style="color:${ltpColor}">${fmtV(ltp)}</strong> &nbsp;•&nbsp; <span style="color:${zoneCls}">${zoneLabel}</span></div>` : ""}
     <div class="cpr-ohlc">
-      <div class="cpr-ohlc-cell"><div class="ok">High</div><div class="ov green">${fmtV(prev_ohlc?.high)}</div></div>
-      <div class="cpr-ohlc-cell"><div class="ok">Low</div><div class="ov red">${fmtV(prev_ohlc?.low)}</div></div>
-      <div class="cpr-ohlc-cell"><div class="ok">Close</div><div class="ov">${fmtV(prev_ohlc?.close)}</div></div>
-      <div class="cpr-ohlc-cell"><div class="ok">Date</div><div class="ov" style="font-size:10px;color:var(--muted)">${ohlcDate}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">High</div><div class="ov green">${fmtV(prev_ohlc.high)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Low</div><div class="ov red">${fmtV(prev_ohlc.low)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Close</div><div class="ov">${fmtV(prev_ohlc.close)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Date</div><div class="ov" style="font-size:10px;color:var(--muted)">${prev_ohlc.date || "—"}</div></div>
     </div>
     ${lvlRow("R2", r2)}
     ${lvlRow("R1", r1)}
