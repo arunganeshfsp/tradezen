@@ -4268,7 +4268,8 @@ def _calc_cpr(H: float, L: float, C: float) -> dict:
     }
 
 
-def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe: str) -> dict:
+def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe: str,
+                             chain_expiry: str = "") -> dict:
     """CPR levels for a specific option contract (NIFTY24000CE etc.) using SmartAPI OHLC."""
     import datetime as _dt
 
@@ -4276,20 +4277,26 @@ def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe
     now_ist = _dt.datetime.now(IST)
     today   = now_ist.date()
 
-    _evict_cpr_cache(today)
-    cache_key = _cpr_cache_key(symbol, "daily", today)
-    if cache_key in _cpr_cache:
-        return {**_cpr_cache[cache_key], "ltp": None}
-
     try:
         global smart
         _s = smart or _get_smart()
         if not _s:
             return {"error": "SmartAPI session unavailable — option OHLC requires authenticated session"}
 
-        token, sapi_sym, expiry = im.get_option_token(strike, opt_type)
+        # Use the expiry from the chain dropdown first; fall back to InstrumentMaster nearest
+        lookup_expiry = chain_expiry.strip().upper() if chain_expiry else None
+        token, sapi_sym, expiry = im.get_option_token(strike, opt_type, expiry=lookup_expiry)
         if not token:
-            return {"error": f"Option not found: {symbol} (nearest expiry). Check that the strike exists."}
+            # chain expiry didn't find it — try nearest
+            token, sapi_sym, expiry = im.get_option_token(strike, opt_type)
+        if not token:
+            return {"error": f"Option not found: {symbol}. Check that the strike exists for this expiry."}
+
+        # Cache keyed by expiry so NIFTY24000CE@19JUN2026 and @23JUN2026 don't collide
+        _evict_cpr_cache(today)
+        cache_key = _cpr_cache_key(f"{symbol}@{expiry}", "daily", today)
+        if cache_key in _cpr_cache:
+            return {**_cpr_cache[cache_key], "ltp": None}
 
         expected_prev = today - _dt.timedelta(days=1)
         while expected_prev.weekday() >= 5:
@@ -4413,10 +4420,10 @@ def _candles_for_cpr_option_sync(symbol: str, strike: float, opt_type: str, time
                 "data_source": "smartapi", "as_of": None, "error": str(e)}
 
 
-def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
+def _cpr_levels_sync(symbol: str, timeframe: str, expiry: str = "") -> dict:
     _opt = _parse_option_symbol(symbol)
     if _opt:
-        return _cpr_levels_option_sync(symbol, _opt[1], _opt[2], timeframe)
+        return _cpr_levels_option_sync(symbol, _opt[1], _opt[2], timeframe, chain_expiry=expiry)
 
     import yfinance as yf
     import datetime as _dt
@@ -4613,10 +4620,10 @@ def _cpr_levels_sync(symbol: str, timeframe: str) -> dict:
 
 
 @app.get("/cpr-levels")
-async def cpr_levels(symbol: str = "NIFTY", timeframe: str = "daily"):
+async def cpr_levels(symbol: str = "NIFTY", timeframe: str = "daily", expiry: str = ""):
     loop = asyncio.get_event_loop()
     try:
-        return await loop.run_in_executor(None, _cpr_levels_sync, symbol, timeframe)
+        return await loop.run_in_executor(None, _cpr_levels_sync, symbol, timeframe, expiry)
     except Exception as e:
         log.error(f"[CPR-LEVELS] endpoint error: {e}")
         return {"error": str(e)}

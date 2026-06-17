@@ -1048,7 +1048,8 @@ function openOptionCPR(strike, type) {
   document.getElementById("cprDrawer").classList.add("open");
   document.getElementById("cprOverlay").classList.add("open");
 
-  fetch(`${API}/cpr-levels?symbol=${contractSym}`)
+  const expiryParam = expiry ? `&expiry=${encodeURIComponent(expiry)}` : "";
+  fetch(`${API}/cpr-levels?symbol=${contractSym}${expiryParam}`)
     .then(r => r.json())
     .then(d => _renderCprDrawer(d, currentLtp, type))
     .catch(e => {
