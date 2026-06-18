@@ -258,3 +258,96 @@ body {
 /* ── orbs / grid: reduce opacity in light mode instead of hiding ── */
 :root[data-theme="light"] .tz-bg-orb { opacity: 0.08; }
 :root[data-theme="light"] .tz-grid   { opacity: 0.4; }
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOL PAGE LIGHT-THEME FIXES
+   Covers trade_flow · cpr_monitor · stock_options · market_psychology
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── All tool pages: nav link hover ── */
+:root[data-theme="light"] .nl:hover { color: var(--text); background: var(--bg3); }
+
+/* ── Hero h1 em gradient — keep readable ── */
+:root[data-theme="light"] .hero h1 em {
+  background: linear-gradient(90deg, var(--accent), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Hero section base background ── */
+:root[data-theme="light"] .hero { background-color: var(--bg); }
+
+/* ── cpr_monitor.html ── */
+:root[data-theme="light"] .hero-title   { color: var(--text); }
+:root[data-theme="light"] .ltp-display  { color: var(--text); }
+:root[data-theme="light"] .stat-val     { color: var(--text); }
+:root[data-theme="light"] .chart-title  { color: var(--text); }
+:root[data-theme="light"] .panel-title  { color: var(--text); }
+:root[data-theme="light"] .lr-val       { color: var(--text); }
+
+/* ── stock_options.html: bottom tab bar ── */
+:root[data-theme="light"] .bottom-tab-bar {
+  background: rgba(248,250,252,0.97);
+  border-top-color: var(--border);
+}
+:root[data-theme="light"] .tab-btn { color: var(--muted); }
+:root[data-theme="light"] .tab-btn:hover { color: var(--text); background: var(--bg3); }
+:root[data-theme="light"] .tab-btn.active {
+  color: var(--accent);
+  background: rgba(91,79,212,0.08);
+  border-top-color: var(--accent);
+}
+
+/* ── stock_options.html: text elements with hardcoded color:#fff ── */
+:root[data-theme="light"] td.strike-col          { color: var(--text); }
+:root[data-theme="light"] .score-num             { color: var(--text); }
+:root[data-theme="light"] .a-card .value         { color: var(--text); }
+:root[data-theme="light"] .ch-stat .v            { color: var(--text); }
+:root[data-theme="light"] .spread-modal-title    { color: var(--text); }
+:root[data-theme="light"] .cand-table td:first-child { color: var(--text); }
+:root[data-theme="light"] .sc-item .v            { color: var(--dim); }
+:root[data-theme="light"] .greek-pill .gv        { color: var(--dim); }
+
+/* ── stock_options.html: info strip + panels ── */
+:root[data-theme="light"] .info-strip { background: var(--bg2); }
+:root[data-theme="light"] .strip-placeholder { background: var(--bg2); }
+
+/* ── stock_options.html: chain table ── */
+:root[data-theme="light"] thead th {
+  background: var(--bg3);
+  color: var(--muted);
+}
+:root[data-theme="light"] tbody tr.atm {
+  background: rgba(91,79,212,0.06);
+  border-left-color: var(--accent);
+}
+:root[data-theme="light"] tbody tr:hover { background: rgba(91,79,212,0.03); }
+
+/* ── stock_options.html: CPR drawer ── */
+:root[data-theme="light"] .cpr-drawer { background: var(--bg1); border-left-color: var(--border); }
+
+/* ── market_psychology.html: chart panel header ── */
+:root[data-theme="light"] .chart-hdr-title { color: var(--text); }
+:root[data-theme="light"] .dom-score       { color: var(--text); }
+:root[data-theme="light"] .state-name      { color: var(--text); }
+:root[data-theme="light"] .ch-banner-title { color: var(--text); }
+
+/* ── market_psychology.html: indicator pills (light bg adapts) ── */
+:root[data-theme="light"] .leg-item { background: var(--bg3); border-color: var(--border); }
+:root[data-theme="light"] .levels-btn { background: var(--bg3); }
+:root[data-theme="light"] .ind-tooltip { background: var(--bg2); }
+
+/* ── trade_flow.html: inline style strong override ── */
+:root[data-theme="light"] strong[style*="color:#fff"] { color: var(--text) !important; }
+
+/* ── All pages: notice / error colors ── */
+:root[data-theme="light"] .notice {
+  background: rgba(217,119,6,0.08);
+  border-color: rgba(217,119,6,0.25);
+  color: var(--yellow);
+}
+:root[data-theme="light"] .err-msg {
+  background: rgba(220,38,38,0.08);
+  border-color: rgba(220,38,38,0.2);
+  color: var(--red);
+}

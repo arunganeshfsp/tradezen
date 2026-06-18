@@ -216,6 +216,44 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .tp-rr-ok{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
 .tp-context{padding:10px 14px;font-size:11px;color:var(--dim);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg2)}
 .tp-context-icon{font-size:14px;flex-shrink:0}
+
+/* ── LIGHT THEME ──────────────────────────────────────────── */
+:root[data-theme="light"]{
+  --bg:#f8fafc;--bg1:#ffffff;--bg2:#f1f5f9;--bg3:#e2e8f0;--bg4:#cbd5e1;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --accent:#5B4FD4;--blue:#2563eb;
+  --green:#16a34a;--green-bg:rgba(22,163,74,0.10);--green-border:rgba(22,163,74,0.25);
+  --red:#dc2626;--red-bg:rgba(220,38,38,0.10);--red-border:rgba(220,38,38,0.25);
+  --yellow:#d97706;--yellow-bg:rgba(217,119,6,0.10);--yellow-border:rgba(217,119,6,0.25);
+  --cyan:#0284c7;--purple:#5B4FD4;
+  --text:#0f172a;--dim:#334155;--muted:#64748b;
+}
+/* Hardcoded-white text elements */
+:root[data-theme="light"] .hero-title{color:var(--text)}
+:root[data-theme="light"] .ltp-display{color:var(--text)}
+:root[data-theme="light"] .stat-val{color:var(--text)}
+:root[data-theme="light"] .panel-title{color:var(--text)}
+:root[data-theme="light"] .chart-title{color:var(--text)}
+:root[data-theme="light"] .lr-val{color:var(--text)}
+:root[data-theme="light"] .tp-bias-label{color:var(--text)}
+:root[data-theme="light"] .alog-title{color:var(--text)}
+/* Nav fallback (page uses halo-navbar, but keep consistent) */
+:root[data-theme="light"] nav{background:rgba(248,250,252,0.97)}
+:root[data-theme="light"] .brand{color:var(--text)}
+:root[data-theme="light"] .nl.on{color:var(--accent);background:rgba(91,79,212,0.08)}
+:root[data-theme="light"] .nl:hover{color:var(--text);background:var(--bg3)}
+@media(max-width:768px){:root[data-theme="light"] .nav-links{background:rgba(248,250,252,0.98)}}
+/* Hero */
+:root[data-theme="light"] .hero{background:radial-gradient(ellipse 70% 60% at 60% -10%,rgba(91,79,212,0.04) 0%,transparent 65%),var(--bg)}
+/* virgin banner gradient */
+:root[data-theme="light"] .virgin-banner{background:linear-gradient(135deg,rgba(91,79,212,0.06),rgba(37,99,235,0.03))}
+/* Chain / alerts */
+:root[data-theme="light"] .alert-item:hover{background:var(--bg2)}
+:root[data-theme="light"] .ladder-row:hover{background:var(--bg3)}
+/* Inline #fff overrides */
+:root[data-theme="light"] span[style*="color:#fff"],
+:root[data-theme="light"] div[style*="color:#fff"],
+:root[data-theme="light"] strong[style*="color:#fff"]{color:var(--text)!important}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">

@@ -442,6 +442,37 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .cp-toast-close:hover{color:var(--text)}
 .cp-toast-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:5px}
 .cp-toast-desc{font-size:11.5px;color:var(--dim);line-height:1.55}
+
+/* ── LIGHT THEME ──────────────────────────────────────────── */
+:root[data-theme="light"]{
+  --bg:#f8fafc;--bg1:#ffffff;--bg2:#f1f5f9;--bg3:#e2e8f0;--bg4:#cbd5e1;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --accent:#5B4FD4;--blue:#2563eb;
+  --green:#16a34a;--green-bg:rgba(22,163,74,0.10);--green-border:rgba(22,163,74,0.25);
+  --red:#dc2626;--red-bg:rgba(220,38,38,0.10);--red-border:rgba(220,38,38,0.25);
+  --yellow:#d97706;--yellow-bg:rgba(217,119,6,0.10);--yellow-border:rgba(217,119,6,0.25);
+  --cyan:#0284c7;--purple:#5B4FD4;
+  --text:#0f172a;--dim:#334155;--muted:#64748b;
+}
+:root[data-theme="light"] .hero h1{color:var(--text)}
+:root[data-theme="light"] .state-name{color:var(--text)}
+:root[data-theme="light"] .dom-score{color:var(--text)}
+:root[data-theme="light"] .chart-hdr-title{color:var(--text)}
+:root[data-theme="light"] .ch-banner-title{color:var(--text)}
+:root[data-theme="light"] .sb-title{color:var(--text)}
+:root[data-theme="light"] .ph-time{color:var(--muted)}
+:root[data-theme="light"] .dc-title{color:var(--text)}
+:root[data-theme="light"] nav{background:rgba(248,250,252,0.97)}
+:root[data-theme="light"] .brand{color:var(--text)}
+:root[data-theme="light"] .nl.on{color:var(--accent);background:rgba(91,79,212,0.08)}
+:root[data-theme="light"] .nl:hover{color:var(--text);background:var(--bg3)}
+@media(max-width:768px){:root[data-theme="light"] .nav-links{background:rgba(248,250,252,0.98)}}
+:root[data-theme="light"] .hero{background:radial-gradient(ellipse 70% 60% at 60% -10%,rgba(91,79,212,0.04) 0%,transparent 65%),var(--bg)}
+:root[data-theme="light"] .leg-item{background:var(--bg3);border-color:var(--border)}
+:root[data-theme="light"] .ind-tooltip{background:var(--bg2);border-color:var(--border)}
+:root[data-theme="light"] span[style*="color:#fff"],
+:root[data-theme="light"] div[style*="color:#fff"],
+:root[data-theme="light"] strong[style*="color:#fff"]{color:var(--text)!important}
 </style>
 </head>
 <body>
