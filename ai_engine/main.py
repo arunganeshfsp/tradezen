@@ -3304,16 +3304,21 @@ def _options_chain_sync(symbol: str, expiry: str, spot_price: float | None) -> d
         return chain_data
     chain     = chain_data.get("chain", [])
     spot      = chain_data.get("spot") or spot_price
-    if not spot:
-        # NSE underlyingValue missing/zero — fall back to WebSocket market state
+    is_index  = symbol.upper() in _INDEX_UNDERLYINGS
+    if not spot and is_index:
+        # NIFTY/BANKNIFTY WebSocket price is only reliable for index underlyings
         try:
             ws = market_state.get(SPOT_TOKEN, {})
             if ws.get("price"):
                 spot = float(ws["price"])
         except Exception:
             pass
-    if not spot:
+    if not spot and is_index:
         spot = (trade_flow_data.get("prev_ohlc") or {}).get("close")
+    if not spot and chain:
+        # Last resort for stocks: use median strike as ATM proxy
+        strikes = sorted(r["strike"] for r in chain)
+        spot = strikes[len(strikes) // 2]
     analytics = _oc_max_pain(chain, spot)          # compute on full chain for accuracy
     chain     = _trim_chain_atm(chain, spot, n=5)  # then trim to ±5 for display
     oi_signals = _oc_oi_signals(symbol, expiry, chain)

@@ -384,14 +384,19 @@ def fetch_chain_nse(symbol: str, expiry: str,
     underlying = records.get("underlyingValue") or spot_price
     all_rows   = records.get("data", [])
 
+    def _parse_nse_date(s: str):
+        for fmt in ("%d-%b-%Y", "%d %b %Y", "%d-%B-%Y", "%d %B %Y"):
+            try:
+                return datetime.strptime(s.strip().title(), fmt).date()
+            except Exception:
+                pass
+        return None
+
     chain_rows = []
     for row in all_rows:
-        try:
-            row_date = datetime.strptime(row.get("expiryDate", ""), "%d-%b-%Y").date()
-            if row_date == target_date:
-                chain_rows.append(row)
-        except Exception:
-            pass
+        row_date = _parse_nse_date(row.get("expiryDate", ""))
+        if row_date and row_date == target_date:
+            chain_rows.append(row)
 
     if not chain_rows:
         return {"error": f"No NSE data for {sym_up} expiry {expiry}"}
