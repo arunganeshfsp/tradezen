@@ -316,6 +316,34 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 .err-msg{color:var(--red);font-size:13px;background:var(--red-bg);border:1px solid rgba(231,76,60,.25);border-radius:var(--r2);padding:10px 14px;margin:8px 0}
 .notice{color:var(--yellow);font-size:12px;background:var(--yellow-bg);border:1px solid rgba(245,166,35,.2);border-radius:var(--r2);padding:8px 12px;margin:8px 0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* CPR + Greeks Drawer */
+.cpr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:499;display:none}
+.cpr-overlay.open{display:block}
+.cpr-drawer{position:fixed;right:-400px;top:0;height:100vh;width:380px;background:var(--bg1);border-left:1px solid var(--border2);z-index:500;transition:right .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
+.cpr-drawer.open{right:0}
+.cpr-drawer-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2);flex-shrink:0}
+.cpr-drawer-hdr .contract{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:.5px}
+.cpr-drawer-body{padding:16px;flex:1}
+.cpr-lvl-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;margin-bottom:4px;font-size:12px}
+.cpr-lvl-row.is-ltp{background:rgba(245,166,35,.13);border:1px solid rgba(245,166,35,.35)}
+.cpr-lvl-row .lname{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;width:32px;flex-shrink:0}
+.cpr-lvl-row .lval{font-weight:700;font-size:13px}
+.cpr-lvl-row .ldist{font-size:11px;color:var(--muted);text-align:right;min-width:70px}
+.cpr-band{background:rgba(91,138,245,.08);border:1px solid rgba(91,138,245,.2);border-radius:6px;padding:2px 0;margin:2px 0}
+.cpr-ohlc{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:14px}
+.cpr-ohlc-cell{background:var(--bg2);border-radius:6px;padding:8px;text-align:center}
+.cpr-ohlc-cell .ok{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.cpr-ohlc-cell .ov{font-size:13px;font-weight:700}
+.cpr-type-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:14px}
+.cpr-type-badge.narrow{background:rgba(39,174,96,.15);color:var(--green)}
+.cpr-type-badge.medium{background:rgba(245,166,35,.15);color:var(--yellow)}
+.cpr-type-badge.wide{background:rgba(231,76,60,.15);color:var(--red)}
+.cpr-disclaimer{font-size:10px;color:var(--dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.ltp-click:hover{background:rgba(255,255,255,.06);border-radius:4px}
+.greeks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.gk-cell{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center}
+.gk-cell .gk{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.gk-cell .gv{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700}
 </style>
 <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
@@ -956,11 +984,11 @@ function renderChain(data) {
       <td><span class="ois-chip ois-${ceSig}">${ceSig.replace(/_/g," ")}</span></td>
       <td style="${ceOiHi?'color:var(--yellow);font-weight:700':'color:var(--blue)'}">${fmtOi(ce.oi)}<div class="oi-bar"><div class="oi-bar-fill" style="width:${ceOiPct}%;background:${barColor[ceSig]||'var(--blue)'}"></div></div></td>
       <td style="color:var(--blue)">${fmtOi(ce.volume)}<div class="oi-bar"><div class="oi-bar-fill" style="width:${ceVolPct}%;background:rgba(91,138,245,.5)"></div></div></td>
-      <td style="color:var(--blue)">${fmtN(ce.ltp)}</td>
-      <td style="color:var(--blue)">${ce.iv?ce.iv.toFixed(1)+"%":"—"}</td>
+      <td class="ltp-click" style="color:var(--blue);cursor:pointer" onclick="openOptionCPR(${strike},'CE')">${fmtN(ce.ltp)}</td>
+      <td style="color:var(--blue)">${ce.iv!=null?Number(ce.iv).toFixed(1)+"%":"—"}</td>
       <td class="strike-col">${isAtm?'<span style="color:var(--accent)">▶</span> ':""}<span style="${isMp?'color:var(--yellow)':''}">${fmtN(strike)}</span>${isMp?' <span style="color:var(--yellow);font-size:9px">MP</span>':""}</td>
-      <td style="color:var(--red)">${pe.iv?pe.iv.toFixed(1)+"%":"—"}</td>
-      <td style="color:var(--red)">${fmtN(pe.ltp)}</td>
+      <td style="color:var(--red)">${pe.iv!=null?Number(pe.iv).toFixed(1)+"%":"—"}</td>
+      <td class="ltp-click" style="color:var(--red);cursor:pointer" onclick="openOptionCPR(${strike},'PE')">${fmtN(pe.ltp)}</td>
       <td style="color:var(--red)">${fmtOi(pe.volume)}<div class="oi-bar"><div class="oi-bar-fill" style="width:${peVolPct}%;background:rgba(231,76,60,.5)"></div></div></td>
       <td style="${peOiHi?'color:var(--yellow);font-weight:700':'color:var(--red)'}">${fmtOi(pe.oi)}<div class="oi-bar"><div class="oi-bar-fill" style="width:${peOiPct}%;background:${barColor[peSig]||'var(--red)'}"></div></div></td>
       <td><span class="ois-chip ois-${peSig}">${peSig.replace(/_/g," ")}</span></td>
@@ -1439,6 +1467,178 @@ function _renderChHistory(d) {
       </tbody>
     </table></div>`;
 }
+
+// ── Option CPR + Greeks Drawer ────────────────────────────────────────────────
+function _normCDF(x) {
+  const t = 1/(1+0.2316419*Math.abs(x));
+  const d = 0.3989422820*Math.exp(-x*x/2);
+  const p = t*(0.3193815 + t*(-0.3565638 + t*(1.7814780 + t*(-1.8212560 + t*1.3302740))));
+  return x >= 0 ? 1 - d*p : d*p;
+}
+function _normPDF(x) { return Math.exp(-0.5*x*x)/Math.sqrt(2*Math.PI); }
+
+function _parseBSMExpiry(s) {
+  if (!s) return null;
+  const M = {JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11};
+  const m = s.match(/^(\d{1,2})([A-Z]{3})(\d{4})$/);
+  if (!m) return null;
+  return new Date(+m[3], M[m[2]], +m[1]);
+}
+
+function _calcDTE(expStr) {
+  const exp = _parseBSMExpiry(expStr);
+  if (!exp) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.max(0, Math.round((exp - today)/86400000));
+}
+
+function _bsmGreeks(S, K, T, sigma, type) {
+  if (!S || !K || T <= 0 || !sigma || sigma <= 0) return null;
+  const r = 0.065, sq = Math.sqrt(T);
+  const d1 = (Math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*sq);
+  const d2 = d1 - sigma*sq;
+  const pd1 = _normPDF(d1);
+  const delta = type === 'CE' ? _normCDF(d1) : _normCDF(d1) - 1;
+  const gamma = pd1 / (S * sigma * sq);
+  const nd2   = type === 'CE' ? _normCDF(d2) : _normCDF(-d2);
+  const theta = (-S*pd1*sigma/(2*sq) + (type==='CE' ? -1 : 1)*r*K*Math.exp(-r*T)*nd2) / 365;
+  const vega  = S * pd1 * sq / 100;
+  return { delta, gamma, theta, vega };
+}
+
+function openOptionCPR(strike, type) {
+  const sym = (document.getElementById("symbolInput")?.value || "RELIANCE").trim().toUpperCase();
+  const contractSym = `${sym}${Math.round(strike)}${type}`;
+  const expiry = document.getElementById("expirySelect")?.value || "";
+
+  let chainRow = null;
+  if (chainData?.chain) chainRow = chainData.chain.find(r => Math.abs(r.strike - strike) < 0.01);
+  const leg = chainRow ? (type === "CE" ? chainRow.ce : chainRow.pe) : null;
+  const currentLtp = leg?.ltp ?? null;
+
+  document.getElementById("cprDrawerTitle").textContent = contractSym;
+  document.getElementById("cprDrawerExpiry").textContent = expiry ? `Expiry: ${expiry}` : "";
+  document.getElementById("cprDrawerBody").innerHTML =
+    `<div style="text-align:center;padding:40px 0;color:var(--muted)"><div class="spinner"></div><div style="margin-top:10px;font-size:12px">Loading…</div></div>`;
+  document.getElementById("cprDrawer").classList.add("open");
+  document.getElementById("cprOverlay").classList.add("open");
+
+  const spot   = chainData?.spot || null;
+  const iv     = leg?.iv ?? null;
+  const dte    = _calcDTE(expiry);
+  const greeks = (spot && iv && dte != null && dte > 0)
+    ? _bsmGreeks(spot, strike, dte/365, iv/100, type)
+    : null;
+
+  const expiryParam = expiry ? `&expiry=${encodeURIComponent(expiry)}` : "";
+  fetch(`${API}/cpr-levels?symbol=${contractSym}${expiryParam}`)
+    .then(r => r.json())
+    .then(d => _renderCprDrawer(d, currentLtp, type, leg, greeks, dte))
+    .catch(e => {
+      document.getElementById("cprDrawerBody").innerHTML =
+        `<div class="err-msg">Failed to load CPR: ${e.message}</div>`;
+    });
+}
+
+function closeCprDrawer() {
+  document.getElementById("cprDrawer").classList.remove("open");
+  document.getElementById("cprOverlay").classList.remove("open");
+}
+
+function _renderCprDrawer(d, ltp, type, leg, greeks, dte) {
+  const fmtV = v => v != null ? Number(v).toFixed(2) : "—";
+  const gVal = (v, dec) => v != null ? v.toFixed(dec) : "—";
+  const ltpColor = type === "CE" ? "var(--blue)" : "var(--red)";
+
+  const greeksHtml = `
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Greeks${dte != null ? " · DTE "+dte : ""}</div>
+    <div class="greeks-grid">
+      <div class="gk-cell"><div class="gk">Delta δ</div><div class="gv" style="color:${type==='CE'?'var(--green)':'var(--red)'}">${gVal(greeks?.delta,3)}</div></div>
+      <div class="gk-cell"><div class="gk">Gamma γ</div><div class="gv">${gVal(greeks?.gamma,4)}</div></div>
+      <div class="gk-cell"><div class="gk">Theta θ/d</div><div class="gv" style="color:var(--red)">${gVal(greeks?.theta,2)}</div></div>
+      <div class="gk-cell"><div class="gk">Vega ν</div><div class="gv">${gVal(greeks?.vega,2)}</div></div>
+      <div class="gk-cell"><div class="gk">IV%</div><div class="gv">${leg?.iv!=null?Number(leg.iv).toFixed(1)+"%":"—"}</div></div>
+      <div class="gk-cell"><div class="gk">Bid / Ask</div><div class="gv" style="font-size:11px">${fmtV(leg?.bid)} / ${fmtV(leg?.ask)}</div></div>
+    </div>`;
+
+  if (d.error) {
+    document.getElementById("cprDrawerBody").innerHTML =
+      `${ltp != null ? `<div style="margin-bottom:14px;font-size:12px;color:var(--muted)">LTP &nbsp;<strong style="color:${ltpColor}">${fmtV(ltp)}</strong></div>` : ""}
+       ${greeksHtml}
+       <div class="err-msg">${d.error}</div>
+       <div class="cpr-disclaimer">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>`;
+    return;
+  }
+
+  const c = d.cpr || {};
+  const { tc, pp, bc, r1, r2, s1, s2, width } = c;
+  const prev_ohlc = d.ohlc || {};
+  const wPct = (prev_ohlc.close && width != null) ? (width / prev_ohlc.close * 100) : null;
+  const typeKey = wPct == null ? "medium" : wPct < 0.167 ? "narrow" : wPct <= 0.333 ? "medium" : "wide";
+
+  const dist = v => {
+    if (v == null || ltp == null) return "—";
+    const diff = (v - ltp).toFixed(2);
+    return `${diff >= 0 ? "+" : ""}${diff}`;
+  };
+  const distStyle = v => {
+    if (v == null || ltp == null) return "color:var(--muted)";
+    return v > ltp ? "color:var(--green)" : v < ltp ? "color:var(--red)" : "color:var(--yellow)";
+  };
+  const lvlRow = (name, val) => {
+    const near = ltp != null && val != null && Math.abs(val - ltp) < 0.5;
+    return `<div class="cpr-lvl-row${near?" is-ltp":""}">
+      <span class="lname">${name}</span>
+      <span class="lval">${fmtV(val)}</span>
+      <span class="ldist" style="${distStyle(val)}">${dist(val)}</span>
+    </div>`;
+  };
+
+  let zoneLabel = "—", zoneCls = "var(--muted)";
+  if (ltp != null && tc != null && bc != null) {
+    if (ltp > tc)      { zoneLabel = "Above CPR ▲"; zoneCls = "var(--green)"; }
+    else if (ltp < bc) { zoneLabel = "Below CPR ▼"; zoneCls = "var(--red)"; }
+    else               { zoneLabel = "Inside CPR ↔"; zoneCls = "var(--yellow)"; }
+  }
+  const typeLabels = {narrow:"Narrow — Trending day expected",medium:"Moderate CPR",wide:"Wide — Choppy day expected"};
+
+  document.getElementById("cprDrawerBody").innerHTML = `
+    ${ltp != null ? `<div style="margin-bottom:14px;font-size:12px;color:var(--muted)">LTP &nbsp;<strong style="color:${ltpColor}">${fmtV(ltp)}</strong> &nbsp;•&nbsp; <span style="color:${zoneCls}">${zoneLabel}</span></div>` : ""}
+    ${greeksHtml}
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">CPR Levels</div>
+    <div class="cpr-type-badge ${typeKey}">${typeLabels[typeKey]}</div>
+    <div class="cpr-ohlc">
+      <div class="cpr-ohlc-cell"><div class="ok">High</div><div class="ov" style="color:var(--green)">${fmtV(prev_ohlc.high)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Low</div><div class="ov" style="color:var(--red)">${fmtV(prev_ohlc.low)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Close</div><div class="ov">${fmtV(prev_ohlc.close)}</div></div>
+      <div class="cpr-ohlc-cell"><div class="ok">Date</div><div class="ov" style="font-size:10px;color:var(--muted)">${prev_ohlc.date||"—"}</div></div>
+    </div>
+    ${lvlRow("R2",r2)}
+    ${lvlRow("R1",r1)}
+    <div class="cpr-band">
+      ${lvlRow("TC",tc)}
+      ${lvlRow("PP",pp)}
+      ${lvlRow("BC",bc)}
+    </div>
+    ${lvlRow("S1",s1)}
+    ${lvlRow("S2",s2)}
+    <div class="cpr-disclaimer">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>
+  `;
+}
 </script>
+
+<div class="cpr-overlay" id="cprOverlay" onclick="closeCprDrawer()"></div>
+<div class="cpr-drawer" id="cprDrawer">
+  <div class="cpr-drawer-hdr">
+    <div>
+      <div class="contract" id="cprDrawerTitle">—</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px" id="cprDrawerExpiry"></div>
+    </div>
+    <button onclick="closeCprDrawer()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;line-height:1">✕</button>
+  </div>
+  <div class="cpr-drawer-body" id="cprDrawerBody">
+    <div style="text-align:center;padding:40px 0;color:var(--muted)"><div class="spinner"></div></div>
+  </div>
+</div>
 </body>
 </html>
