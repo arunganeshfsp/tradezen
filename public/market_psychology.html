@@ -405,6 +405,30 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .lib-card-hint{font-size:10px;color:var(--muted);line-height:1.45}
 @media(max-width:600px){.quiz-opts{grid-template-columns:1fr}}
 
+/* ── ATM GREEKS STRIP ── */
+.greeks-strip{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.gs-header{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap}
+.gs-tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.gs-contract{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.gs-iv{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:rgba(255,255,255,0.04);padding:1px 7px;border-radius:4px;border:1px solid var(--border)}
+.gs-type-grp{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
+.gs-type-btn{padding:3px 10px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
+.gs-type-btn.active{background:var(--bg3);border-color:var(--accent);color:var(--accent)}
+.gs-note{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);width:100%;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;letter-spacing:.2px}
+.gs-body{display:grid;grid-template-columns:repeat(4,1fr)}
+.greek-box{padding:14px 16px;border-right:1px solid var(--border);transition:background .3s}
+.greek-box:last-child{border-right:none}
+.gk-sym{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);line-height:1;margin-bottom:1px}
+.gk-name{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.gk-val{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-0.5px}
+.gk-chg{font-family:'JetBrains Mono',monospace;font-size:10px;margin-top:5px;min-height:13px;letter-spacing:.2px}
+.gk-chg.up{color:var(--green)}.gk-chg.dn{color:var(--red)}.gk-chg.flat{color:var(--muted)}
+@keyframes gkFlashUp{0%,100%{background:transparent}35%{background:rgba(46,204,113,0.13)}}
+@keyframes gkFlashDn{0%,100%{background:transparent}35%{background:rgba(231,76,60,0.10)}}
+.gk-flash-up{animation:gkFlashUp .65s ease}
+.gk-flash-dn{animation:gkFlashDn .65s ease}
+@media(max-width:700px){.gs-body{grid-template-columns:repeat(2,1fr)}.greek-box:nth-child(2){border-right:none}.greek-box:nth-child(3),.greek-box:nth-child(4){border-top:1px solid var(--border)}.greek-box:nth-child(4){border-right:none}}
+
 /* ── CANDLE PATTERN TOAST ── */
 .cp-toast{position:fixed;bottom:24px;right:24px;z-index:500;max-width:290px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:13px 15px;box-shadow:0 8px 32px rgba(0,0,0,0.55);transform:translateY(24px);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);pointer-events:none}
 .cp-toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
@@ -566,6 +590,46 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div><!-- /chart-panel -->
 
   </div><!-- /chart-col -->
+
+  <!-- ATM GREEKS STRIP -->
+  <div class="greeks-strip" id="greeks-strip" style="display:none">
+    <div class="gs-header">
+      <span class="gs-tag">ATM GREEKS · LIVE</span>
+      <span class="gs-contract" id="gs-contract">—</span>
+      <span class="gs-iv" id="gs-iv">IV —</span>
+      <div class="gs-type-grp">
+        <button class="gs-type-btn active" id="gs-ce-btn" onclick="_gkSetType('CE')">CE</button>
+        <button class="gs-type-btn" id="gs-pe-btn" onclick="_gkSetType('PE')">PE</button>
+      </div>
+      <span class="gs-note">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</span>
+    </div>
+    <div class="gs-body">
+      <div class="greek-box" id="gk-delta-box">
+        <div class="gk-sym">Δ</div>
+        <div class="gk-name">Delta</div>
+        <div class="gk-val" id="gk-delta-val">—</div>
+        <div class="gk-chg" id="gk-delta-chg"></div>
+      </div>
+      <div class="greek-box" id="gk-gamma-box">
+        <div class="gk-sym">Γ</div>
+        <div class="gk-name">Gamma</div>
+        <div class="gk-val" id="gk-gamma-val">—</div>
+        <div class="gk-chg" id="gk-gamma-chg"></div>
+      </div>
+      <div class="greek-box" id="gk-theta-box">
+        <div class="gk-sym">Θ</div>
+        <div class="gk-name">Theta / day</div>
+        <div class="gk-val" id="gk-theta-val">—</div>
+        <div class="gk-chg" id="gk-theta-chg"></div>
+      </div>
+      <div class="greek-box" id="gk-vega-box">
+        <div class="gk-sym">V</div>
+        <div class="gk-name">Vega / 1% IV</div>
+        <div class="gk-val" id="gk-vega-val">—</div>
+        <div class="gk-chg" id="gk-vega-chg"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Indicator info tooltip -->
   <div id="ind-tooltip" class="ind-tooltip"></div>
@@ -1668,6 +1732,9 @@ function updatePanel(candle) {
 
   // CRT trap analysis
   updateCrtCard(candle);
+
+  // ATM Greeks strip
+  updateGreeks(candle.close);
 }
 
 function fmtVol(v) {
@@ -2501,6 +2568,140 @@ function updateCrtCard(candle) {
         <div class="crt-learn-v">${t.learn()}</div>
       </div>
     </div>`;
+}
+
+// ─── ATM Greeks Strip ────────────────────────────────────────────────────────
+let _atmStrike      = null;
+let _atmType        = 'CE';
+let _atmIV          = 0.12;     // annualised decimal; 12% NIFTY default
+let _lastGreeks     = null;
+let _lastIvFetchMs  = 0;
+
+function _normCDF(x) {
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const s=x<0?-1:1; x=Math.abs(x);
+  const t=1/(1+p*x);
+  return 0.5*(1+s*(1-(((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x))));
+}
+
+function _bsmGreeks(S, K, T, r, sigma, type) {
+  if (T<=0||sigma<=0) return {delta:0,gamma:0,theta:0,vega:0};
+  const sqT=Math.sqrt(T);
+  const d1=(Math.log(S/K)+(r+0.5*sigma*sigma)*T)/(sigma*sqT), d2=d1-sigma*sqT;
+  const nd1=_normCDF(d1), nd2=_normCDF(d2);
+  const npd1=Math.exp(-0.5*d1*d1)/Math.sqrt(2*Math.PI);
+  const iC=type==='CE';
+  return {
+    delta: iC?nd1:nd1-1,
+    gamma: npd1/(S*sigma*sqT),
+    theta: ((-S*npd1*sigma/(2*sqT))-r*K*Math.exp(-r*T)*(iC?nd2:-_normCDF(-d2)))/365,
+    vega:  S*npd1*sqT/100,
+  };
+}
+
+function _bsmPrice(S, K, T, r, sigma, type) {
+  if (T<=0||sigma<=0) return 0;
+  const sqT=Math.sqrt(T), d1=(Math.log(S/K)+(r+0.5*sigma*sigma)*T)/(sigma*sqT), d2=d1-sigma*sqT;
+  return type==='CE'
+    ? S*_normCDF(d1)-K*Math.exp(-r*T)*_normCDF(d2)
+    : K*Math.exp(-r*T)*_normCDF(-d2)-S*_normCDF(-d1);
+}
+
+function _bisectIV(S, K, T, r, ltp, type) {
+  let lo=0.01,hi=5;
+  for(let i=0;i<60;i++){
+    const m=(lo+hi)/2;
+    if(_bsmPrice(S,K,T,r,m,type)>ltp) hi=m; else lo=m;
+    if(hi-lo<0.00005) break;
+  }
+  return (lo+hi)/2;
+}
+
+function _daysToExpiry() {
+  const now=new Date();
+  const ist=new Date(now.getTime()+5.5*3600000);
+  const dow=ist.getUTCDay();                         // 0=Sun…4=Thu
+  const expDow=(_sym==='BANKNIFTY')?3:4;             // BNF=Wed, NIFTY=Thu
+  let d=(expDow-dow+7)%7;
+  const h=ist.getUTCHours()+ist.getUTCMinutes()/60;
+  if(d===0 && h>=15.5) d=7;                          // today's expiry already passed
+  return Math.max(0.5/365, (d+Math.max(0,15.5-h)/24)/365);
+}
+
+function _atmStrikeFor(spot) {
+  const step=(_sym==='BANKNIFTY')?100:50;
+  return Math.round(spot/step)*step;
+}
+
+async function _gkFetchIV(spot) {
+  const now=Date.now();
+  if(now-_lastIvFetchMs < 90000) return;  // throttle: max once per 90s
+  _lastIvFetchMs=now;
+  try {
+    const res=await fetch(`/api/options/chain?symbol=${_sym}`);
+    const d=await res.json();
+    if(d.error||!d.chain||!d.chain.length) return;
+    const atm=_atmStrikeFor(spot);
+    const row=d.chain.reduce((a,b)=>Math.abs(a.strike-atm)<Math.abs(b.strike-atm)?a:b);
+    const side=_atmType==='CE'?row.ce:row.pe;
+    if(side?.iv && side.iv>0) {
+      _atmIV=side.iv/100;
+    } else if(side?.ltp && side.ltp>0) {
+      const iv=_bisectIV(spot,row.strike,_daysToExpiry(),0.065,side.ltp,_atmType);
+      if(iv>0.01&&iv<5) _atmIV=iv;
+    }
+    document.getElementById('gs-iv').textContent=`IV ${(_atmIV*100).toFixed(1)}%`;
+  } catch(_) {}
+}
+
+function updateGreeks(spot) {
+  if(!spot||spot<=0) return;
+  const strip=document.getElementById('greeks-strip');
+  if(strip.style.display==='none') strip.style.display='';
+
+  const newAtm=_atmStrikeFor(spot);
+  if(newAtm!==_atmStrike) { _atmStrike=newAtm; _lastIvFetchMs=0; }  // force IV re-fetch on strike change
+  _gkFetchIV(spot);
+
+  const g=_bsmGreeks(spot,_atmStrike,_daysToExpiry(),0.065,_atmIV,_atmType);
+  document.getElementById('gs-contract').textContent=`${_sym} ${_atmStrike} ${_atmType}`;
+
+  _gkBox('delta', g.delta,  _lastGreeks?.delta,  v=>v.toFixed(4));
+  _gkBox('gamma', g.gamma,  _lastGreeks?.gamma,  v=>v.toFixed(5));
+  _gkBox('theta', g.theta,  _lastGreeks?.theta,  v=>v.toFixed(2));
+  _gkBox('vega',  g.vega,   _lastGreeks?.vega,   v=>v.toFixed(2));
+  _lastGreeks=g;
+}
+
+function _gkBox(id, val, prev, fmt) {
+  const vEl=document.getElementById(`gk-${id}-val`);
+  const cEl=document.getElementById(`gk-${id}-chg`);
+  const box=document.getElementById(`gk-${id}-box`);
+  if(!vEl) return;
+  vEl.textContent=fmt(val);
+  if(prev!=null) {
+    const diff=val-prev;
+    if(Math.abs(diff)>1e-7) {
+      const up=diff>0;
+      cEl.textContent=(up?'▲ +':'▼ ')+fmt(diff);
+      cEl.className='gk-chg '+(up?'up':'dn');
+      box.classList.remove('gk-flash-up','gk-flash-dn');
+      void box.offsetWidth;
+      box.classList.add(up?'gk-flash-up':'gk-flash-dn');
+    } else {
+      cEl.textContent='—';
+      cEl.className='gk-chg flat';
+    }
+  }
+}
+
+function _gkSetType(type) {
+  _atmType=type;
+  document.getElementById('gs-ce-btn').classList.toggle('active',type==='CE');
+  document.getElementById('gs-pe-btn').classList.toggle('active',type==='PE');
+  _lastGreeks=null;
+  _lastIvFetchMs=0;
+  if(_candles.length) updateGreeks(_candles[_candles.length-1].close);
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
