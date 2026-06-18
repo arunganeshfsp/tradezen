@@ -208,6 +208,51 @@ class InstrumentMaster:
                 return item["token"], item["symbol"], target_expiry
         return None, None, None
 
+    def get_stock_option_token(self, name: str, strike: float, option_type: str, expiry: str = None):
+        """Return (token, sapi_symbol, expiry_str) for a stock option (OPTSTK) by underlying name."""
+        try:
+            with open(DATA_FILE, "r") as f:
+                raw = json.load(f)
+        except Exception:
+            return None, None, None
+
+        name_upper = name.upper()
+        type_upper = option_type.upper()
+        today = datetime.now().date()
+
+        candidates = [
+            i for i in raw
+            if i.get("name", "").upper() == name_upper
+            and i.get("instrumenttype") == "OPTSTK"
+            and i.get("exch_seg") == "NFO"
+            and i.get("symbol", "").upper().endswith(type_upper)
+            and abs(float(i.get("strike", 0)) / 100 - strike) < 0.6
+        ]
+        if not candidates:
+            return None, None, None
+
+        if expiry:
+            for i in candidates:
+                if i["expiry"] == expiry:
+                    return i["token"], i["symbol"], expiry
+
+        exps = sorted(
+            set(i["expiry"] for i in candidates),
+            key=lambda e: datetime.strptime(e, "%d%b%Y")
+        )
+        target_expiry = next(
+            (e for e in exps if datetime.strptime(e, "%d%b%Y").date() >= today),
+            None
+        )
+        if not target_expiry:
+            return None, None, None
+
+        for i in candidates:
+            if i["expiry"] == target_expiry:
+                return i["token"], i["symbol"], target_expiry
+
+        return None, None, None
+
     def get_nearest_expiry(self):
         """Return the nearest expiry that has not yet passed."""
         return self.get_upcoming_expiries(n=1)[0]

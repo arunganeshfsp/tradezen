@@ -340,6 +340,13 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 .cpr-type-badge.wide{background:rgba(231,76,60,.15);color:var(--red)}
 .cpr-disclaimer{font-size:10px;color:var(--dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
 .ltp-click:hover{background:rgba(255,255,255,.06);border-radius:4px}
+/* Symbol autocomplete */
+.sym-wrap{position:relative;display:inline-block}
+.sym-dropdown{position:absolute;top:calc(100% + 2px);left:0;min-width:160px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);z-index:400;max-height:240px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.sym-dropdown.open{display:block}
+.sym-item{padding:7px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border)}
+.sym-item:last-child{border:none}
+.sym-item:hover,.sym-item.ac-active{background:rgba(124,106,247,0.15);color:#fff}
 .greeks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
 .gk-cell{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center}
 .gk-cell .gk{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
@@ -385,7 +392,11 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 <div class="toolbar">
   <div class="tb-field">
     <label>Stock Symbol</label>
-    <input type="text" id="symbolInput" value="RELIANCE" style="width:130px" placeholder="e.g. RELIANCE…">
+    <div class="sym-wrap">
+      <input type="text" id="symbolInput" value="RELIANCE" style="width:130px" placeholder="e.g. RELIANCE…"
+             autocomplete="off" oninput="_symInput(event)" onkeydown="_symKeydown(event)">
+      <div class="sym-dropdown" id="symDropdown"></div>
+    </div>
   </div>
   <div class="tb-field">
     <label>Expiry</label>
@@ -1114,10 +1125,94 @@ function fmtK(v){return v!=null?Math.abs(v).toLocaleString("en-IN",{maximumFract
 function fmtOi(v){if(v==null)return "—";if(v>=1e7)return(v/1e7).toFixed(2)+"Cr";if(v>=1e5)return(v/1e5).toFixed(1)+"L";return v.toLocaleString("en-IN")}
 function showErr(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display="block";el.className="err-msg"}}
 
+/* ── Symbol autocomplete ─────────────────────────────────────────────────── */
+const _FNO_SYMS = [
+  'NIFTY','BANKNIFTY','FINNIFTY','MIDCPNIFTY',
+  'AARTIIND','ABB','ABBOTINDIA','ABCAPITAL','ABFRL','ACC','ADANIENT','ADANIPORTS',
+  'ALKEM','AMBUJACEM','APOLLOHOSP','APOLLOTYRE','ASHOKLEY','ASIANPAINT','ASTRAL',
+  'ATUL','AUBANK','AUROPHARMA','AXISBANK','BAJAJFINSV','BAJFINANCE','BALKRISIND',
+  'BANDHANBNK','BANKBARODA','BATAINDIA','BEL','BERGEPAINT','BHARATFORG','BHARTIARTL',
+  'BHEL','BIOCON','BOSCHLTD','BPCL','BRITANNIA','BSOFT','CAMS','CANFINHOME','CANBK',
+  'CDSL','CESC','CHOLAFIN','CIPLA','COALINDIA','COFORGE','COLPAL','CONCOR',
+  'COROMANDEL','CROMPTON','CUB','CUMMINSIND','CYIENT','DABUR','DALBHARAT',
+  'DEEPAKNTR','DELTACORP','DIVISLAB','DIXON','DLF','DRREDDY','EICHERMOT','ESCORTS',
+  'EXIDEIND','FEDERALBNK','GAIL','GLENMARK','GMRINFRA','GNFC','GODREJCP',
+  'GODREJPROP','GRANULES','GRASIM','GUJGASLTD','HAL','HAVELLS','HCLTECH','HDFCAMC',
+  'HDFCBANK','HDFCLIFE','HEROMOTOCO','HINDALCO','HINDPETRO','HINDUNILVR','ICICIBANK',
+  'ICICIGI','ICICIPRULI','IDFCFIRSTB','IEX','IGL','INDHOTEL','INDIAMART','INDIANB',
+  'INDIGO','INDUSINDBK','INDUSTOWER','INFY','IOC','IPCALAB','IRB','IRCTC','ISEC',
+  'ITC','JINDALSTEL','JKCEMENT','JSL','JSWSTEEL','JUBLFOOD','KOTAKBANK','KPITTECH',
+  'LALPATHLAB','LAURUSLABS','LICHSGFIN','LT','LTIM','LTTS','LUPIN','MANAPPURAM',
+  'MARICO','MARUTI','MCX','METROPOLIS','MGL','MPHASIS','MRF','MUTHOOTFIN',
+  'NATIONALUM','NAUKRI','NAVINFLUOR','NESTLEIND','NMDC','NTPC','OBEROIRLTY','OFSS',
+  'ONGC','PAGEIND','PERSISTENT','PETRONET','PFC','PIDILITIND','PIIND','PNB',
+  'POLYCAB','POWERGRID','PVRINOX','RAMCOCEM','RECLTD','RELIANCE','SAIL','SBICARD',
+  'SBILIFE','SBIN','SHREECEM','SHRIRAMFIN','SIEMENS','SRF','SUNPHARMA','SUNTV',
+  'SUPREMEIND','SYNGENE','TATACHEM','TATACOMM','TATACONSUMER','TATAELXSI',
+  'TATAMOTORS','TATAPOWER','TATASTEEL','TCS','TECHM','TITAN','TORNTPHARM',
+  'TORNTPOWER','TRENT','TVSMOTOR','UBL','ULTRACEMCO','UNIONBANK','UPL','VEDL',
+  'VOLTAS','WIPRO','ZEEL','ZOMATO','ZYDUSLIFE'
+];
+
 let _expDebounce;
-document.getElementById("symbolInput").addEventListener("input",()=>{
+let _symAcIdx = -1;
+
+function _symFilter(q) {
+  if (!q) return [];
+  const u = q.toUpperCase();
+  const starts = _FNO_SYMS.filter(s => s.startsWith(u));
+  const contains = _FNO_SYMS.filter(s => !s.startsWith(u) && s.includes(u));
+  return [...starts, ...contains].slice(0, 8);
+}
+
+function _symInput(e) {
+  const q = e.target.value.trim();
+  const dd = document.getElementById('symDropdown');
+  _symAcIdx = -1;
   clearTimeout(_expDebounce);
-  _expDebounce=setTimeout(loadExpiries,600);
+  _expDebounce = setTimeout(loadExpiries, 700);
+  const items = _symFilter(q);
+  if (!items.length || !q) { dd.classList.remove('open'); return; }
+  dd.innerHTML = items.map(s =>
+    `<div class="sym-item" data-sym="${s}" onmousedown="_symSelect('${s}')">${s}</div>`
+  ).join('');
+  dd.classList.add('open');
+}
+
+function _symSelect(sym) {
+  document.getElementById('symbolInput').value = sym;
+  document.getElementById('symDropdown').classList.remove('open');
+  _symAcIdx = -1;
+  clearTimeout(_expDebounce);
+  _expDebounce = setTimeout(loadExpiries, 100);
+}
+
+function _symKeydown(e) {
+  const dd = document.getElementById('symDropdown');
+  const items = dd.querySelectorAll('.sym-item');
+  if (!dd.classList.contains('open') || !items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _symAcIdx = Math.min(_symAcIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('ac-active', i === _symAcIdx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _symAcIdx = Math.max(_symAcIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('ac-active', i === _symAcIdx));
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (_symAcIdx >= 0) {
+      e.preventDefault();
+      _symSelect(items[_symAcIdx].dataset.sym);
+    } else {
+      dd.classList.remove('open');
+    }
+  } else if (e.key === 'Escape') {
+    dd.classList.remove('open');
+  }
+}
+
+document.getElementById('symbolInput').addEventListener('blur', () => {
+  setTimeout(() => document.getElementById('symDropdown').classList.remove('open'), 150);
 });
 
 loadExpiries().then(()=>{
@@ -1546,7 +1641,13 @@ function openOptionCPR(strike, type) {
   document.getElementById("cprDrawer").classList.add("open");
   document.getElementById("cprOverlay").classList.add("open");
 
-  const spot = chainData?.spot || null;
+  let spot = chainData?.spot || null;
+  if (!spot && chainData?.analytics) {
+    const a = chainData.analytics;
+    if (a.trading_range?.low && a.trading_range?.high)
+      spot = (a.trading_range.low + a.trading_range.high) / 2;
+    else if (a.max_pain) spot = a.max_pain;
+  }
   const dte  = _calcDTE(expiry);
   let sigma  = (leg?.iv != null) ? leg.iv / 100 : null;
   let ivDisp = leg?.iv ?? null;

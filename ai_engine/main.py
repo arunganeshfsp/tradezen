@@ -4194,9 +4194,9 @@ def report_delete(date: str):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _parse_option_symbol(symbol: str):
-    """Parse 'NIFTY24000CE' → ('NIFTY', 24000.0, 'CE'), or None if not an option symbol."""
+    """Parse 'NIFTY24000CE' or 'RELIANCE1600CE' → ('NIFTY', 24000.0, 'CE'), or None."""
     import re
-    m = re.match(r'^(NIFTY|BANKNIFTY)(\d+)(CE|PE)$', symbol.upper().strip())
+    m = re.match(r'^([A-Z]+)(\d+(?:\.\d+)?)(CE|PE)$', symbol.upper().strip())
     if not m:
         return None
     return m.group(1), float(m.group(2)), m.group(3)
@@ -4268,9 +4268,11 @@ def _calc_cpr(H: float, L: float, C: float) -> dict:
     }
 
 
-def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe: str,
-                             chain_expiry: str = "") -> dict:
-    """CPR levels for a specific option contract (NIFTY24000CE etc.) using SmartAPI OHLC."""
+_INDEX_UNDERLYINGS = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX"}
+
+def _cpr_levels_option_sync(symbol: str, underlying: str, strike: float, opt_type: str,
+                             timeframe: str, chain_expiry: str = "") -> dict:
+    """CPR levels for a specific option contract (NIFTY24000CE, RELIANCE1600CE etc.)."""
     import datetime as _dt
 
     IST     = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
@@ -4283,14 +4285,17 @@ def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe
         if not _s:
             return {"error": "SmartAPI session unavailable — option OHLC requires authenticated session"}
 
-        # Use the expiry from the chain dropdown first; fall back to InstrumentMaster nearest
         lookup_expiry = chain_expiry.strip().upper() if chain_expiry else None
-        token, sapi_sym, expiry = im.get_option_token(strike, opt_type, expiry=lookup_expiry)
+        if underlying.upper() in _INDEX_UNDERLYINGS:
+            token, sapi_sym, expiry = im.get_option_token(strike, opt_type, expiry=lookup_expiry)
+            if not token:
+                token, sapi_sym, expiry = im.get_option_token(strike, opt_type)
+        else:
+            token, sapi_sym, expiry = im.get_stock_option_token(underlying, strike, opt_type, expiry=lookup_expiry)
+            if not token:
+                token, sapi_sym, expiry = im.get_stock_option_token(underlying, strike, opt_type)
         if not token:
-            # chain expiry didn't find it — try nearest
-            token, sapi_sym, expiry = im.get_option_token(strike, opt_type)
-        if not token:
-            return {"error": f"Option not found: {symbol}. Check that the strike exists for this expiry."}
+            return {"error": f"Option not found: {symbol}. Strike/expiry may not be in InstrumentMaster."}
 
         # Cache keyed by expiry so NIFTY24000CE@19JUN2026 and @23JUN2026 don't collide
         _evict_cpr_cache(today)
@@ -4350,7 +4355,7 @@ def _cpr_levels_option_sync(symbol: str, strike: float, opt_type: str, timeframe
         return {"error": str(e)}
 
 
-def _candles_for_cpr_option_sync(symbol: str, strike: float, opt_type: str, timeframe: str) -> dict:
+def _candles_for_cpr_option_sync(symbol: str, underlying: str, strike: float, opt_type: str, timeframe: str) -> dict:
     """5-min intraday candles (or daily for weekly/monthly) for an option via SmartAPI."""
     import datetime as _dt
     _IST_OFF = 19800
@@ -4366,7 +4371,10 @@ def _candles_for_cpr_option_sync(symbol: str, strike: float, opt_type: str, time
             return {"candles": [], "interval": "5m", "count": 0,
                     "data_source": "smartapi", "as_of": None, "error": "SmartAPI unavailable"}
 
-        token, _, expiry = im.get_option_token(strike, opt_type)
+        if underlying.upper() in _INDEX_UNDERLYINGS:
+            token, _, expiry = im.get_option_token(strike, opt_type)
+        else:
+            token, _, expiry = im.get_stock_option_token(underlying, strike, opt_type)
         if not token:
             return {"candles": [], "interval": "5m", "count": 0,
                     "data_source": "smartapi", "as_of": None, "error": "Token not found"}
@@ -4423,7 +4431,7 @@ def _candles_for_cpr_option_sync(symbol: str, strike: float, opt_type: str, time
 def _cpr_levels_sync(symbol: str, timeframe: str, expiry: str = "") -> dict:
     _opt = _parse_option_symbol(symbol)
     if _opt:
-        return _cpr_levels_option_sync(symbol, _opt[1], _opt[2], timeframe, chain_expiry=expiry)
+        return _cpr_levels_option_sync(symbol, _opt[0], _opt[1], _opt[2], timeframe, chain_expiry=expiry)
 
     import yfinance as yf
     import datetime as _dt
@@ -4632,7 +4640,7 @@ async def cpr_levels(symbol: str = "NIFTY", timeframe: str = "daily", expiry: st
 def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
     _opt = _parse_option_symbol(symbol)
     if _opt:
-        return _candles_for_cpr_option_sync(symbol, _opt[1], _opt[2], timeframe)
+        return _candles_for_cpr_option_sync(symbol, _opt[0], _opt[1], _opt[2], timeframe)
 
     import yfinance as yf
     import datetime as _dt
