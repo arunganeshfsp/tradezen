@@ -351,6 +351,76 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
 .gk-cell{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center}
 .gk-cell .gk{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
 .gk-cell .gv{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+/* Toolbar: 2-col layout on phones */
+@media(max-width:640px){
+  .toolbar{padding:10px 14px;gap:8px 10px;justify-content:flex-start}
+  .tb-field{flex:0 0 calc(50% - 5px);min-width:0}
+  .sym-wrap{display:block;width:100%}
+  .sym-wrap input{width:100%!important}
+  #expirySelect{width:100%!important}
+  #spreadTypeField,#directionField{flex:0 0 100%}
+  .dir-toggle{width:100%}
+  .dir-btn,.mode-btn{flex:1;text-align:center;padding:7px 8px}
+  .tb-field .btn{width:100%}
+  .back-link{display:none}
+}
+
+/* Info strip: slightly narrower panels on phones */
+@media(max-width:480px){
+  .panel-stf,.panel-ctx,.panel-liq,.panel-strike,.panel-risk{width:200px}
+  .panel-score,.panel-spread{width:220px}
+  .info-strip{padding:10px 12px}
+}
+
+/* Chain table: compact + enforce min-width for horizontal scroll */
+@media(max-width:900px){
+  table{min-width:560px;font-size:11px}
+  td,thead th{padding:4px 6px!important}
+  .oi-bar{display:none}
+  .ois-chip{font-size:9px;padding:1px 5px}
+  .chain-table-wrap{-webkit-overflow-scrolling:touch}
+}
+
+/* CPR drawer: full-width on narrow phones */
+@media(max-width:480px){
+  .cpr-drawer{width:100vw;right:-100vw}
+  .cpr-drawer.open{right:0}
+  .cpr-ohlc{grid-template-columns:1fr 1fr}
+}
+
+/* Content area: tighter padding on mobile */
+@media(max-width:600px){
+  .content{padding:12px 14px 72px}
+}
+
+/* Strike card grid: 3→2 cols on phones */
+@media(max-width:480px){
+  .sc-grid{grid-template-columns:1fr 1fr}
+}
+
+/* Monitor inputs: single col on very small screens */
+@media(max-width:400px){
+  .mon-inputs-grid{grid-template-columns:1fr!important}
+}
+
+/* History tab: 2-col inputs on mobile */
+@media(max-width:640px){
+  #tab-history .tb-field{flex:0 0 calc(50% - 5px);min-width:0}
+  #tab-history input[type=number],#tab-history input[type=date]{width:100%!important}
+  #tab-history .dir-toggle{width:100%}
+}
+
+/* Theta disclaimer section: stack grids on mobile */
+@media(max-width:600px){.disc-2col{grid-template-columns:1fr!important}}
+@media(max-width:480px){.disc-3col{grid-template-columns:1fr 1fr!important}}
+
+/* Tab bar: tighter text on very small screens */
+@media(max-width:360px){
+  .tab-btn{font-size:9px;padding:0 2px;letter-spacing:0}
+}
 </style>
 <link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
@@ -573,7 +643,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
         <div id="monitorSpreadNote" style="display:none" class="notice">
           Spread mode: Entry LTP = net debit/credit. Current LTP = live (Long LTP − Short LTP).
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div class="mon-inputs-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
           <div class="tb-field"><label>Entry LTP</label><input type="number" id="mEntry" placeholder="LTP at entry" style="width:100%"></div>
           <div class="tb-field"><label>Current LTP</label><input type="number" id="mCurrent" placeholder="current LTP" style="width:100%"></div>
           <div class="tb-field"><label>Stop Price</label><input type="number" id="mStop" placeholder="stop-loss" style="width:100%"></div>
@@ -645,7 +715,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
           <div style="font-size:11px;color:var(--dim);margin-top:2px">Theta decay strategies involve significant risk. Read before trading.</div>
         </div>
       </div>
-      <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="disc-2col" style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--red);margin-bottom:10px">⛔ THE NAKED SELLING PROBLEM</div>
           <p style="font-size:12px;color:var(--text);line-height:1.7;margin:0 0 8px">Selling a naked call or put <strong style="color:#f5a623">collects limited premium</strong> but carries <strong style="color:var(--red)">theoretically unlimited loss</strong>. A single gap-up or gap-down event can wipe out months of premium collected in one session.</p>
@@ -667,7 +737,7 @@ td.strike-col{text-align:center;font-weight:700;color:#fff;font-size:13px}
       </div>
       <div style="border-top:1px solid rgba(245,166,35,.15);padding:14px 16px;background:rgba(0,0,0,.15)">
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent);margin-bottom:12px">🛡️ 6 RULES FOR SAFE THETA TRADING</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div class="disc-3col" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
           <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px"><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px">1. Always Define Risk</div><div style="font-size:11px;color:var(--dim);line-height:1.6">Never sell naked. Use spreads so your max loss is known before entry.</div></div>
           <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px"><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px">2. 50% Profit Rule</div><div style="font-size:11px;color:var(--dim);line-height:1.6">Exit when you've collected 50% of the max premium. Gamma risk explodes in the final day.</div></div>
           <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px"><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px">3. 2× Stop Loss</div><div style="font-size:11px;color:var(--dim);line-height:1.6">If premium doubles from your sell price, exit without hesitation.</div></div>
