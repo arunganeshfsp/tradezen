@@ -1492,6 +1492,29 @@ function _calcDTE(expStr) {
   return Math.max(0, Math.round((exp - today)/86400000));
 }
 
+function _bsmPrice(S, K, T, sigma, type) {
+  if (!S || !K || T <= 0 || !sigma) return null;
+  const r = 0.065, sq = Math.sqrt(T);
+  const d1 = (Math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*sq);
+  const d2 = d1 - sigma*sq;
+  return type === 'CE'
+    ? S*_normCDF(d1) - K*Math.exp(-r*T)*_normCDF(d2)
+    : K*Math.exp(-r*T)*_normCDF(-d2) - S*_normCDF(-d1);
+}
+
+function _impliedVol(S, K, T, price, type) {
+  if (!S || !K || T <= 0 || !price || price <= 0) return null;
+  let lo = 0.001, hi = 5.0;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    const p = _bsmPrice(S, K, T, mid, type);
+    if (p == null) break;
+    if (Math.abs(p - price) < 0.01) return mid;
+    if (p < price) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
 function _bsmGreeks(S, K, T, sigma, type) {
   if (!S || !K || T <= 0 || !sigma || sigma <= 0) return null;
   const r = 0.065, sq = Math.sqrt(T);
@@ -1523,17 +1546,22 @@ function openOptionCPR(strike, type) {
   document.getElementById("cprDrawer").classList.add("open");
   document.getElementById("cprOverlay").classList.add("open");
 
-  const spot   = chainData?.spot || null;
-  const iv     = leg?.iv ?? null;
-  const dte    = _calcDTE(expiry);
-  const greeks = (spot && iv && dte != null && dte > 0)
-    ? _bsmGreeks(spot, strike, dte/365, iv/100, type)
+  const spot = chainData?.spot || null;
+  const dte  = _calcDTE(expiry);
+  let sigma  = (leg?.iv != null) ? leg.iv / 100 : null;
+  let ivDisp = leg?.iv ?? null;
+  if (!sigma && currentLtp && spot && dte > 0) {
+    sigma  = _impliedVol(spot, strike, dte/365, currentLtp, type);
+    ivDisp = sigma != null ? +(sigma * 100).toFixed(2) : null;
+  }
+  const greeks = (spot && sigma && dte != null && dte > 0)
+    ? _bsmGreeks(spot, strike, dte/365, sigma, type)
     : null;
 
   const expiryParam = expiry ? `&expiry=${encodeURIComponent(expiry)}` : "";
   fetch(`${API}/cpr-levels?symbol=${contractSym}${expiryParam}`)
     .then(r => r.json())
-    .then(d => _renderCprDrawer(d, currentLtp, type, leg, greeks, dte))
+    .then(d => _renderCprDrawer(d, currentLtp, type, leg, greeks, dte, ivDisp))
     .catch(e => {
       document.getElementById("cprDrawerBody").innerHTML =
         `<div class="err-msg">Failed to load CPR: ${e.message}</div>`;
@@ -1545,7 +1573,7 @@ function closeCprDrawer() {
   document.getElementById("cprOverlay").classList.remove("open");
 }
 
-function _renderCprDrawer(d, ltp, type, leg, greeks, dte) {
+function _renderCprDrawer(d, ltp, type, leg, greeks, dte, ivDisp) {
   const fmtV = v => v != null ? Number(v).toFixed(2) : "—";
   const gVal = (v, dec) => v != null ? v.toFixed(dec) : "—";
   const ltpColor = type === "CE" ? "var(--blue)" : "var(--red)";
@@ -1557,7 +1585,7 @@ function _renderCprDrawer(d, ltp, type, leg, greeks, dte) {
       <div class="gk-cell"><div class="gk">Gamma γ</div><div class="gv">${gVal(greeks?.gamma,4)}</div></div>
       <div class="gk-cell"><div class="gk">Theta θ/d</div><div class="gv" style="color:var(--red)">${gVal(greeks?.theta,2)}</div></div>
       <div class="gk-cell"><div class="gk">Vega ν</div><div class="gv">${gVal(greeks?.vega,2)}</div></div>
-      <div class="gk-cell"><div class="gk">IV%</div><div class="gv">${leg?.iv!=null?Number(leg.iv).toFixed(1)+"%":"—"}</div></div>
+      <div class="gk-cell"><div class="gk">IV%</div><div class="gv">${ivDisp!=null?Number(ivDisp).toFixed(1)+"%" + (leg?.iv==null?' <span style="font-size:9px;color:var(--muted)">(impl)</span>':""):"—"}</div></div>
       <div class="gk-cell"><div class="gk">Bid / Ask</div><div class="gv" style="font-size:11px">${fmtV(leg?.bid)} / ${fmtV(leg?.ask)}</div></div>
     </div>`;
 
