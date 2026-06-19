@@ -321,25 +321,27 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 
 /* ── LIGHT THEME ─────────────────────────────────────── */
 :root[data-theme="light"]{
-  --bg:#f8fafc; --bg1:#ffffff; --bg2:#f1f5f9; --bg3:#e2e8f0; --bg4:#cbd5e1;
-  --border:#e2e8f0; --border2:#cbd5e1;
-  --accent:#5B4FD4; --blue:#2563eb;
+  --bg:#f3f4f6; --bg1:#ffffff; --bg2:#f9fafb; --bg3:#e5e7eb; --bg4:#d1d5db;
+  --border:#e5e7eb; --border2:#d1d5db;
+  --accent:#3563e9; --blue:#2563eb;
   --green:#16a34a; --green2:#15803d;
   --green-bg:rgba(22,163,74,0.10); --green-border:rgba(22,163,74,0.25);
   --red:#dc2626; --red2:#b91c1c;
   --red-bg:rgba(220,38,38,0.10); --red-border:rgba(220,38,38,0.25);
   --yellow:#d97706; --yellow-bg:rgba(217,119,6,0.10); --yellow-border:rgba(217,119,6,0.25);
   --cyan:#0284c7;
-  --text:#0f172a; --dim:#334155; --muted:#64748b;
+  --text:#111827; --dim:#4b5563; --muted:#9ca3af;
 }
 /* Nav */
-:root[data-theme="light"] nav{background:rgba(248,250,252,0.97)}
-:root[data-theme="light"] .nav-links{background:rgba(248,250,252,0.98)}
+:root[data-theme="light"] nav{background:rgba(243,244,246,0.97)}
+:root[data-theme="light"] .nav-links{background:rgba(243,244,246,0.98)}
 :root[data-theme="light"] .brand{color:var(--text)}
-:root[data-theme="light"] .nl.on{color:var(--accent);background:rgba(91,79,212,0.08)}
-/* Hero */
-:root[data-theme="light"] .hero{background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(91,79,212,0.06) 0%,transparent 65%),var(--bg)}
+:root[data-theme="light"] .nl.on{color:var(--accent);background:rgba(53,99,233,0.08)}
+/* Hero — flat, no gradient */
+:root[data-theme="light"] .hero{background:var(--bg1)}
+:root[data-theme="light"] .hero-glow{display:none}
 :root[data-theme="light"] .hero h1{color:var(--text)}
+:root[data-theme="light"] .hero h1 em{background:none;-webkit-text-fill-color:var(--accent);color:var(--accent)}
 /* Phase / step */
 :root[data-theme="light"] .ph-time{color:var(--text)}
 /* Detail card */
@@ -368,6 +370,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 /* Inline color:#fff overrides — static + JS-generated */
 :root[data-theme="light"] span[style*="color:#fff"],
 :root[data-theme="light"] div[style*="color:#fff"]{color:var(--text) !important}
+/* Hero tag — muted on light */
+:root[data-theme="light"] .htag{background:rgba(53,99,233,0.07);border-color:rgba(53,99,233,0.2);color:var(--accent)}
+/* Step active / done */
+:root[data-theme="light"] .step-item.active{background:rgba(53,99,233,0.05);border-left-color:var(--accent)}
+:root[data-theme="light"] .step-item.active .step-num{background:var(--accent);border-color:var(--accent)}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
