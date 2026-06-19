@@ -279,7 +279,8 @@ nav{position:sticky;top:0;z-index:200;background:var(--void);border-bottom:1px s
 .analytics-section-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--fg3);text-transform:uppercase;margin-bottom:10px}
 
 /* ── Monitor Tab ───────────────────────────────────────────────── */
-.monitor-form{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;max-width:520px}
+.monitor-form{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin:0 auto 14px;max-width:520px}
+#monitorResult{max-width:520px;margin:0 auto}
 .mon-inputs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 .mon-action{font-size:28px;font-weight:700;letter-spacing:-1px;margin-bottom:6px}
 .mon-pnl{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;margin-bottom:4px}
@@ -831,8 +832,9 @@ function renderStockTradeFlow(d,ctx){
   const bias=(d.bias||'').toUpperCase();
   const bClass=bias.includes('BULL')?'bull':bias.includes('BEAR')?'bear':'neut';
   const bIcon=bClass==='bull'?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7l-8.5 8.5-5-5L2 17M16 7h6v6"/></svg>':bClass==='bear'?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17l-8.5-8.5-5 5L2 7M16 17h6v-6"/></svg>':'';
+  const _cprLevels=d.cpr||{};
   const levels=[
-    {k:'TC (Top CPR)',v:d.tc,c:'gain'},{k:'BC (Bot CPR)',v:d.bc,c:'loss'},{k:'Pivot (PP)',v:d.pp,c:'info'},
+    {k:'TC (Top CPR)',v:_cprLevels.tc,c:'gain'},{k:'BC (Bot CPR)',v:_cprLevels.bc,c:'loss'},{k:'Pivot (PP)',v:_cprLevels.pp,c:'info'},
     {k:'Week High',v:d.weekly_high,c:'warn'},{k:'Week Low',v:d.weekly_low,c:'warn'},
     {k:'Prev High',v:d.pdh,c:'dim'},{k:'Prev Low',v:d.pdl,c:'dim'}
   ].filter(l=>l.v!=null&&l.v!=='');
@@ -971,7 +973,8 @@ function renderChain(data){
     const isAtm=st===atmStrike;
     const isMp=maxP&&Math.abs(st-maxP)<step/2;
     const ce=row.ce||{};const pe=row.pe||{};
-    const ceSig=ce.signal||'unchanged';const peSig=pe.signal||'unchanged';
+    const _oiSigs=(data.oi_signals||{})[st]||(data.oi_signals||{})[String(st)]||{};
+    const ceSig=_oiSigs.ce||ce.signal||'unchanged';const peSig=_oiSigs.pe||pe.signal||'unchanged';
     const ceOiPct=maxCeOi?((ce.oi||0)/maxCeOi*100):0;
     const peOiPct=maxPeOi?((pe.oi||0)/maxPeOi*100):0;
     const ceHi=(ce.oi||0)>=ceHiThresh;const peHi=(pe.oi||0)>=peHiThresh;
@@ -1009,9 +1012,10 @@ function renderChain(data){
 function renderAnalytics(d){
   const el=document.getElementById('analyticsArea');
   if(!d){el.innerHTML='<div class="notice">No data.</div>';return;}
-  const pcr=d.pcr;const pcrBias=pcr>1.2?'BULLISH':pcr<0.8?'BEARISH':'NEUTRAL';
-  const maxP=d.max_pain;
-  const totCe=d.total_ce_oi||0,totPe=d.total_pe_oi||0;
+  const an=d.analytics||d;
+  const pcr=an.pcr;const pcrBias=an.pcr_label||(pcr>1.2?'BULLISH':pcr<0.8?'BEARISH':'NEUTRAL');
+  const maxP=an.max_pain;
+  const totCe=an.total_ce_oi||0,totPe=an.total_pe_oi||0;
   el.innerHTML=`
     <div class="analytics-grid">
       <div class="a-card pcr-${pcrBias}"><div class="label">PCR</div><div class="value">${pcr!=null?pcr.toFixed(2):'—'}</div><div class="sub">${pcrBias}</div></div>
@@ -1401,10 +1405,15 @@ function openStrikeDetail(strike,dir){
   if(!opt)return;
   const sym=document.getElementById('symbolInput').value||'';
   document.getElementById('sdTitle').textContent=`${sym} ${fmtN(strike)} ${dir}`;
-  const sig=opt.signal||'unchanged';const tone=SIG_TONE[sig]||'dim';
-  const cpr=_lastStf||{};const spotVal=_lastCtx?(_lastCtx.spot||null):null;
+  const _oiSigsD=(_lastChain.oi_signals||{})[strike]||(_lastChain.oi_signals||{})[String(strike)]||{};
+  const sig=_oiSigsD[dir.toLowerCase()]||_oiSigsD[dir]||opt.signal||'unchanged';
+  const tone=SIG_TONE[sig]||'dim';
+  const stf=_lastStf||{};const _cprD=stf.cpr||{};
+  const spotVal=_lastCtx?(_lastCtx.spot||null):null;
+  const pdh=stf.pdh||(_lastCtx&&_lastCtx.pdh)||null;
+  const pdl=stf.pdl||(_lastCtx&&_lastCtx.pdl)||null;
   const hasGreeks=opt.delta!=null||opt.gamma!=null||opt.theta!=null||opt.vega!=null;
-  const hasCpr=cpr.tc||cpr.bc||cpr.pp||cpr.pdh||cpr.pdl;
+  const hasCpr=_cprD.tc||_cprD.bc||_cprD.pp||pdh||pdl||spotVal;
   const body=`
     <div class="sd-stats">
       <div class="sd-stat"><div class="sd-lbl">LTP</div><div class="sd-val ${dir==='CE'?'gain':'loss'}">${fmtN(opt.ltp)}</div></div>
@@ -1422,12 +1431,12 @@ function openStrikeDetail(strike,dir){
     </div>`:''}
     ${hasCpr?`<div class="sd-section-title">CPR Reference</div>
     <div class="sd-cpr-levels">
-      ${cpr.tc?`<div class="level-row"><span class="level-key">Top CPR (TC)</span><span class="level-val gain">${fmtN(cpr.tc)}</span></div>`:''}
-      ${cpr.pp?`<div class="level-row"><span class="level-key">Pivot (PP)</span><span class="level-val info">${fmtN(cpr.pp)}</span></div>`:''}
-      ${cpr.bc?`<div class="level-row"><span class="level-key">Bottom CPR (BC)</span><span class="level-val loss">${fmtN(cpr.bc)}</span></div>`:''}
+      ${_cprD.tc?`<div class="level-row"><span class="level-key">Top CPR (TC)</span><span class="level-val gain">${fmtN(_cprD.tc)}</span></div>`:''}
+      ${_cprD.pp?`<div class="level-row"><span class="level-key">Pivot (PP)</span><span class="level-val info">${fmtN(_cprD.pp)}</span></div>`:''}
+      ${_cprD.bc?`<div class="level-row"><span class="level-key">Bottom CPR (BC)</span><span class="level-val loss">${fmtN(_cprD.bc)}</span></div>`:''}
       ${spotVal?`<div class="level-row"><span class="level-key">Current Spot</span><span class="level-val">${fmtN(spotVal)}</span></div>`:''}
-      ${cpr.pdh?`<div class="level-row"><span class="level-key">Prev Day High</span><span class="level-val warn">${fmtN(cpr.pdh)}</span></div>`:''}
-      ${cpr.pdl?`<div class="level-row"><span class="level-key">Prev Day Low</span><span class="level-val warn">${fmtN(cpr.pdl)}</span></div>`:''}
+      ${pdh?`<div class="level-row"><span class="level-key">Prev Day High</span><span class="level-val warn">${fmtN(pdh)}</span></div>`:''}
+      ${pdl?`<div class="level-row"><span class="level-key">Prev Day Low</span><span class="level-val warn">${fmtN(pdl)}</span></div>`:''}
     </div>`:''}
     <div style="margin-top:20px;font-size:10px;color:var(--fg3);text-align:center">For educational purposes only. Not investment advice.</div>`;
   document.getElementById('sdBody').innerHTML=body;
