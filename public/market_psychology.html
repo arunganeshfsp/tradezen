@@ -910,6 +910,7 @@ let _rpTimer  = null;        // replay setInterval id
 let _rpMs     = 1000;        // replay speed ms
 let _rpPlaying = false;
 let _lastCandleTime = 0;  // tracks completed-candle detection
+let _seenCurrentCandle = false;  // true once we've polled the live candle at least once
 let _toastTimer = null;
 
 // Indicator toggle state — true = visible
@@ -991,6 +992,7 @@ async function reload() {
 
     _candles = data.candles;
     _lastCandleTime = _candles.length ? _candles[_candles.length - 1].time : 0;
+    _seenCurrentCandle = false;
     buildChart(data.candles);
     fetchAndDrawLevels();  // also calls tryBuildStory() once CPR loads
     fetchAndDrawOrb();
@@ -1237,11 +1239,11 @@ function applyIndVisibility() {
   // RSI sub-panel
   const rsiEl = document.getElementById('rsi-panel');
   if (rsiEl) rsiEl.style.display = _indState.rsi ? '' : 'none';
-  if (_indState.rsi && !_rsiChart) buildRsiChart();
+  if (_indState.rsi && !_rsiChart) setTimeout(buildRsiChart, 30);
   // MACD sub-panel
   const macdEl = document.getElementById('macd-panel');
   if (macdEl) macdEl.style.display = _indState.macd ? '' : 'none';
-  if (_indState.macd && !_macdChart) buildMacdChart();
+  if (_indState.macd && !_macdChart) setTimeout(buildMacdChart, 30);
   // Recompute EMA data if newly enabled
   if (_indState.ema9  && _ema9Series  && _candles.length) _ema9Series.setData(_calcEMAData(_candles, 9));
   if (_indState.ema21 && _ema21Series && _candles.length) _ema21Series.setData(_calcEMAData(_candles, 21));
@@ -1823,9 +1825,10 @@ async function pollTick() {
     // Update or append candle in our array
     if (_candles.length && _candles[_candles.length - 1].time === candle.time) {
       _candles[_candles.length - 1] = candle;
+      _seenCurrentCandle = true;
     } else {
       // New candle started — previous one just completed
-      if (_candles.length >= 1 && _lastCandleTime !== 0) {
+      if (_candles.length >= 1 && _seenCurrentCandle) {
         const completedC = _candles[_candles.length - 1];
         const prevForCompleted = _candles.length >= 2 ? _candles[_candles.length - 2] : null;
         const completedPattern = detectCandlePattern(completedC, prevForCompleted);
@@ -1833,6 +1836,7 @@ async function pollTick() {
         const tStr = `${String(_d.getUTCHours()).padStart(2,'0')}:${String(_d.getUTCMinutes()).padStart(2,'0')}`;
         showPatternToast(completedPattern, tStr);
       }
+      _seenCurrentCandle = false;
       _lastCandleTime = candle.time;
       _candles.push(candle);
       updateHistStrip(_candles);

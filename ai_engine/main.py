@@ -2559,7 +2559,7 @@ def _psychology_sync(symbol: str, interval: str) -> dict:
     vol_proxy = _VOL_PROXY.get(symbol.upper())
     if vol_proxy and (df["Volume"] == 0).all():
         try:
-            vdf = yf.Ticker(vol_proxy).history(period=yf_period, interval=yf_interval)
+            vdf = yf.Ticker(vol_proxy).history(period=warmup_period, interval=yf_interval)
             if not vdf.empty:
                 try:
                     vdf.index = vdf.index.tz_convert("Asia/Kolkata")
