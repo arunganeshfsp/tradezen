@@ -968,13 +968,15 @@ function renderChain(data){
   if(data.stale||data.warning){
     csEl.textContent=data.warning||'Chain data may be stale.';csEl.style.display='block';
   }else csEl.style.display='none';
+  const _oiLookup={};
+  Object.entries(data.oi_signals||{}).forEach(([k,v])=>{_oiLookup[parseFloat(k)]=v;});
   const rows=chain.map(row=>{
     const st=Number(row.strike);
     const isAtm=st===atmStrike;
     const isMp=maxP&&Math.abs(st-maxP)<step/2;
     const ce=row.ce||{};const pe=row.pe||{};
-    const _oiSigs=(data.oi_signals||{})[st]||(data.oi_signals||{})[String(st)]||{};
-    const ceSig=_oiSigs.ce||ce.signal||'unchanged';const peSig=_oiSigs.pe||pe.signal||'unchanged';
+    const _oiSigs=_oiLookup[st]||{};
+    const ceSig=_oiSigs.ce||'unchanged';const peSig=_oiSigs.pe||'unchanged';
     const ceOiPct=maxCeOi?((ce.oi||0)/maxCeOi*100):0;
     const peOiPct=maxPeOi?((pe.oi||0)/maxPeOi*100):0;
     const ceHi=(ce.oi||0)>=ceHiThresh;const peHi=(pe.oi||0)>=peHiThresh;
@@ -1405,8 +1407,10 @@ function openStrikeDetail(strike,dir){
   if(!opt)return;
   const sym=document.getElementById('symbolInput').value||'';
   document.getElementById('sdTitle').textContent=`${sym} ${fmtN(strike)} ${dir}`;
-  const _oiSigsD=(_lastChain.oi_signals||{})[strike]||(_lastChain.oi_signals||{})[String(strike)]||{};
-  const sig=_oiSigsD[dir.toLowerCase()]||_oiSigsD[dir]||opt.signal||'unchanged';
+  const _oiLookupD={};
+  Object.entries(_lastChain.oi_signals||{}).forEach(([k,v])=>{_oiLookupD[parseFloat(k)]=v;});
+  const _oiSigsD=_oiLookupD[strike]||{};
+  const sig=_oiSigsD[dir.toLowerCase()]||_oiSigsD[dir]||'unchanged';
   const tone=SIG_TONE[sig]||'dim';
   const stf=_lastStf||{};const _cprD=stf.cpr||{};
   const spotVal=_lastCtx?(_lastCtx.spot||null):null;
