@@ -340,6 +340,27 @@ input:focus,select:focus{border-color:var(--tz-purple)}
 .notice{color:var(--tz-warn);font-size:12px;background:var(--tz-warn-dim);border:1px solid rgba(251,191,36,0.2);border-radius:var(--r-xs);padding:8px 12px;margin:8px 0}
 .sebi-disclaimer{text-align:center;font-size:11px;color:var(--fg3);padding:20px 0 0;border-top:1px solid var(--border);margin-top:12px}
 @media(max-width:640px){.mon-inputs-grid{grid-template-columns:1fr}.tab-bar-actions{flex-direction:column}}
+
+/* ── Strike Detail Drawer ──────────────────────────────────────── */
+.strike-drawer-backdrop{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}
+.strike-drawer-backdrop.open{display:flex}
+.strike-drawer{background:var(--surface2);border-top:1px solid var(--border-s);border-radius:18px 18px 0 0;width:100%;max-width:640px;max-height:82vh;overflow-y:auto;animation:slideUp .24s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.strike-drawer-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface2);z-index:1}
+.strike-drawer-title{font-size:15px;font-weight:700;color:var(--fg1);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
+.strike-drawer-body{padding:16px 18px 28px}
+.sd-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.sd-stat{background:var(--inset);border:1px solid var(--border);border-radius:9px;padding:10px 12px;text-align:center}
+.sd-lbl{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:4px}
+.sd-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--fg1)}
+.sd-val.gain{color:var(--tz-gain)}.sd-val.loss{color:var(--tz-loss)}
+.sd-sig-row{margin-bottom:14px}
+.sd-section-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--fg3);margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.sd-greeks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sd-cpr-levels{}
+.chain-cell.ce-ltp,.chain-cell.pe-ltp{cursor:pointer}
+.chain-cell.ce-ltp:hover{background:rgba(52,211,153,0.08)}
+.chain-cell.pe-ltp:hover{background:rgba(248,113,113,0.08)}
 </style>
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
@@ -667,6 +688,19 @@ input:focus,select:focus{border-color:var(--tz-purple)}
 
 </div><!-- /main -->
 
+<!-- Strike Detail Drawer -->
+<div id="strikeDrawer" class="strike-drawer-backdrop" onclick="closeStrikeDrawer(event)">
+  <div class="strike-drawer">
+    <div class="strike-drawer-hdr">
+      <div class="strike-drawer-title" id="sdTitle"></div>
+      <button class="spread-modal-close" onclick="document.getElementById('strikeDrawer').classList.remove('open')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="strike-drawer-body" id="sdBody"></div>
+  </div>
+</div>
+
 <!-- Spread Detail Modal -->
 <div class="spread-modal-backdrop" id="spreadModal" onclick="closeSpreadModal(event)">
   <div class="spread-modal">
@@ -781,13 +815,18 @@ async function loadStockTradeFlow(symbol,expiry){
     const r=await fetch(`/api/psychology/levels?symbol=${symbol}&expiry=${expiry}`);
     const d=await r.json();
     _lastStf=d;
-    renderStockTradeFlow(d);
+    renderStockTradeFlow(d,_lastCtx);
   }catch(e){el.innerHTML=`<div class="err-msg" style="margin:0">Trade Flow unavailable</div>`;}
 }
 
-function renderStockTradeFlow(d){
+function renderStockTradeFlow(d,ctx){
   const el=document.getElementById('stfContent');
   if(!d){el.innerHTML='<div class="err-msg" style="margin:0">No data</div>';return;}
+  if(ctx){
+    d.pdh=d.pdh||ctx.pdh;d.pdl=d.pdl||ctx.pdl;
+    d.weekly_high=d.weekly_high||ctx.weekly_high;d.weekly_low=d.weekly_low||ctx.weekly_low;
+    d.bias=d.bias||ctx.bias;d.spot=d.spot||ctx.spot||d.ltp;
+  }
   const spot=d.spot||d.ltp||null;
   const bias=(d.bias||'').toUpperCase();
   const bClass=bias.includes('BULL')?'bull':bias.includes('BEAR')?'bear':'neut';
@@ -872,7 +911,10 @@ function renderContext(ctx){
 /* ── Render Signal Score ───────────────────────────────────────── */
 function renderScore(s){
   if(!s||!s.score)return;
-  const total=s.score.total||0,max=s.score.max||17;
+  const items=s.signals||s.items||s.checks||{};
+  const calcTotal=Object.values(items).reduce((sum,v)=>sum+(Number(v.earned)||0),0);
+  const total=calcTotal>0?calcTotal:(s.score.total||0);
+  const max=s.score.max||17;
   const pct=max?total/max:0;
   const circ=264;
   const arc=document.getElementById('scoreArc');
@@ -883,7 +925,7 @@ function renderScore(s){
   const lbl=document.getElementById('scoreLabel');
   lbl.textContent=band;lbl.className=`score-band ${band}`;
   document.getElementById('scoreHint').textContent=s.score.hint||s.score.summary||'';
-  const items=s.signals||s.items||s.checks||{};
+
   const CHECK='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   const MINUS='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
   const X='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
@@ -943,7 +985,7 @@ function renderChain(data){
         <span class="oi-num${ceHi?' hi':''}">${fmtOi(ce.oi)}</span>
       </div>
       <div class="chain-cell c-r dim">${fmtOi(ce.volume)}</div>
-      <div class="chain-cell ce-ltp">${fmtN(ce.ltp)}</div>
+      <div class="chain-cell ce-ltp" onclick="openStrikeDetail(${st},'CE')">${fmtN(ce.ltp)}</div>
       <div class="chain-cell c-r dim">${ce.iv!=null?Number(ce.iv).toFixed(1)+'%':'—'}</div>
       <div class="chain-cell strike-col">
         <span class="strike-val${isAtm?' atm-v':''}">${fmtN(st)}</span>
@@ -951,7 +993,7 @@ function renderChain(data){
         ${isMp?'<span class="mp-tag">MP</span>':''}
       </div>
       <div class="chain-cell c-l dim">${pe.iv!=null?Number(pe.iv).toFixed(1)+'%':'—'}</div>
-      <div class="chain-cell pe-ltp">${fmtN(pe.ltp)}</div>
+      <div class="chain-cell pe-ltp" onclick="openStrikeDetail(${st},'PE')">${fmtN(pe.ltp)}</div>
       <div class="chain-cell c-l dim">${fmtOi(pe.volume)}</div>
       <div class="chain-cell oi-wrap c-l">
         <div class="oi-bg" style="width:${peOiPct.toFixed(1)}%;left:0;background:${peBarCol}"></div>
@@ -1348,6 +1390,52 @@ function _setThemeIcon(){
   document.getElementById('themeToggle').innerHTML=dark
     ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
     :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+}
+
+/* ── Strike Detail Drawer ──────────────────────────────────────── */
+function openStrikeDetail(strike,dir){
+  if(!_lastChain)return;
+  const row=_lastChain.chain.find(r=>r.strike===strike);
+  if(!row)return;
+  const opt=dir==='CE'?row.ce:row.pe;
+  if(!opt)return;
+  const sym=document.getElementById('symbolInput').value||'';
+  document.getElementById('sdTitle').textContent=`${sym} ${fmtN(strike)} ${dir}`;
+  const sig=opt.signal||'unchanged';const tone=SIG_TONE[sig]||'dim';
+  const cpr=_lastStf||{};const spotVal=_lastCtx?(_lastCtx.spot||null):null;
+  const hasGreeks=opt.delta!=null||opt.gamma!=null||opt.theta!=null||opt.vega!=null;
+  const hasCpr=cpr.tc||cpr.bc||cpr.pp||cpr.pdh||cpr.pdl;
+  const body=`
+    <div class="sd-stats">
+      <div class="sd-stat"><div class="sd-lbl">LTP</div><div class="sd-val ${dir==='CE'?'gain':'loss'}">${fmtN(opt.ltp)}</div></div>
+      <div class="sd-stat"><div class="sd-lbl">IV %</div><div class="sd-val">${opt.iv!=null?Number(opt.iv).toFixed(1)+'%':'—'}</div></div>
+      <div class="sd-stat"><div class="sd-lbl">OI</div><div class="sd-val">${fmtOi(opt.oi)}</div></div>
+      <div class="sd-stat"><div class="sd-lbl">Volume</div><div class="sd-val">${fmtOi(opt.volume)}</div></div>
+    </div>
+    <div class="sd-sig-row"><span class="sig-pill ${tone}">${sig.replace(/_/g,' ')}</span></div>
+    ${hasGreeks?`<div class="sd-section-title">Greeks</div>
+    <div class="sd-greeks">
+      <div class="greek-pill"><div class="gk">Delta Δ</div><div class="gv">${opt.delta!=null?Number(opt.delta).toFixed(3):'—'}</div></div>
+      <div class="greek-pill"><div class="gk">Gamma Γ</div><div class="gv">${opt.gamma!=null?Number(opt.gamma).toFixed(4):'—'}</div></div>
+      <div class="greek-pill"><div class="gk">Theta θ</div><div class="gv">${opt.theta!=null?Number(opt.theta).toFixed(2):'—'}</div></div>
+      <div class="greek-pill"><div class="gk">Vega</div><div class="gv">${opt.vega!=null?Number(opt.vega).toFixed(3):'—'}</div></div>
+    </div>`:''}
+    ${hasCpr?`<div class="sd-section-title">CPR Reference</div>
+    <div class="sd-cpr-levels">
+      ${cpr.tc?`<div class="level-row"><span class="level-key">Top CPR (TC)</span><span class="level-val gain">${fmtN(cpr.tc)}</span></div>`:''}
+      ${cpr.pp?`<div class="level-row"><span class="level-key">Pivot (PP)</span><span class="level-val info">${fmtN(cpr.pp)}</span></div>`:''}
+      ${cpr.bc?`<div class="level-row"><span class="level-key">Bottom CPR (BC)</span><span class="level-val loss">${fmtN(cpr.bc)}</span></div>`:''}
+      ${spotVal?`<div class="level-row"><span class="level-key">Current Spot</span><span class="level-val">${fmtN(spotVal)}</span></div>`:''}
+      ${cpr.pdh?`<div class="level-row"><span class="level-key">Prev Day High</span><span class="level-val warn">${fmtN(cpr.pdh)}</span></div>`:''}
+      ${cpr.pdl?`<div class="level-row"><span class="level-key">Prev Day Low</span><span class="level-val warn">${fmtN(cpr.pdl)}</span></div>`:''}
+    </div>`:''}
+    <div style="margin-top:20px;font-size:10px;color:var(--fg3);text-align:center">For educational purposes only. Not investment advice.</div>`;
+  document.getElementById('sdBody').innerHTML=body;
+  document.getElementById('strikeDrawer').classList.add('open');
+}
+function closeStrikeDrawer(e){
+  if(e&&e.target!==document.getElementById('strikeDrawer'))return;
+  document.getElementById('strikeDrawer').classList.remove('open');
 }
 
 /* ── Init ──────────────────────────────────────────────────────── */
