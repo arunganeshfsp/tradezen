@@ -100,7 +100,10 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 
 /* ── SIDEBAR ── */
 .app-sidebar{width:236px;flex-shrink:0;overflow-y:auto;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column}
-.app-sidebar .verdict{margin:10px 10px 4px}
+.app-sidebar .verdict{margin:8px;padding:10px 12px;gap:8px}
+.app-sidebar .v-icon{font-size:16px;flex-shrink:0}
+.app-sidebar .v-title{font-size:11px;letter-spacing:.4px;line-height:1.3;margin-bottom:2px}
+.app-sidebar .v-sub{font-size:10px;line-height:1.4}
 
 /* phase header */
 .phase-head{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg3)}
@@ -2490,9 +2493,13 @@ async function fetchFlowData() {
     // Auto-advance steps only once when phase first changes — never override user navigation
     if (d.phase !== lastAutoAdvancePhase) {
       lastAutoAdvancePhase = d.phase;
-      if      (d.phase === 'market_open') showStep(4);
-      else if (d.phase === 'orb')         showStep(5);
-      else if (d.phase === 'closed' && d.orb) showStep(6);
+      var _expandPhase = function(phIdx) {
+        var ph = document.getElementById('ph-head-' + phIdx);
+        if (ph) ph.classList.remove('ph-collapsed');
+      };
+      if      (d.phase === 'market_open')        { _expandPhase(2); showStep(4); }
+      else if (d.phase === 'orb')                { _expandPhase(3); showStep(5); }
+      else if (d.phase === 'closed' && d.orb)    { showStep(6); }
     }
 
   } catch (err) {
@@ -3443,27 +3450,22 @@ function tfTogglePhase(head) {
   head.classList.toggle('ph-collapsed');
 }
 
-// Expand the phase that contains step n and scroll sidebar to show it
+// On mobile only: auto-expand sidebar phase + scroll detail card into view
 (function () {
   var _origShow = showStep;
   showStep = function (n) {
     _origShow(n);
-
-    // Expand whichever phase contains this step so its steps-wrap is visible
+    if (!tfIsMobile()) return;
     var phaseMap = { 1:1, 2:1, 3:1, 4:2, 5:3, 6:3 };
     var phIdx = phaseMap[n];
     if (phIdx) {
       var ph = document.getElementById('ph-head-' + phIdx);
       if (ph) ph.classList.remove('ph-collapsed');
     }
-
-    // On mobile: scroll detail card into view
-    if (tfIsMobile()) {
-      var card = document.getElementById('detail' + n);
-      if (card) setTimeout(function () {
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 60);
-    }
+    var card = document.getElementById('detail' + n);
+    if (card) setTimeout(function () {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
   };
 })();
 
