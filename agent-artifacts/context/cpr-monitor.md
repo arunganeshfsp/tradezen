@@ -1,7 +1,7 @@
 # Context: cpr-monitor
 
 **File:** `public/cpr_monitor.html`  
-**Last updated:** 2026-06-16
+**Last updated:** 2026-06-19
 
 ---
 
@@ -138,6 +138,27 @@ Enter a contract like `NIFTY24000CE` in the new Option input in the selector bar
 - CPR cache key uses the full symbol string (`NIFTY24000CE`) so separate from the NIFTY cache
 
 ---
+
+## Layout (Simulator Architecture — 2026-06-19)
+
+Same fixed-viewport pattern as `trade_flow.html`:
+
+```
+nav (56px)
+app-topbar (52px)  — live-dot + LTP + zone-pill + bias-pill + cpr-type-badge + virgin-badge
+                      | PP/TC/BC/Width stat chips | pause-btn + alert-count | selInfo (right)
+app-workspace (flex:1)
+  app-sidebar (292px) — selectors (symbol/option/period) + heroSub info + candle stats
+                         virgin-banner + Price Levels panel + Camarilla panel
+  app-main (flex:1)  — chart + Active Signals (always visible in .main-content)
+                        sec-panel#sec-plan (Trade Plan)
+                        sec-panel#sec-alerts (Alert Feed)
+app-bottombar (40px) — Trade Plan tab | Alerts tab | SEBI disclaimer
+```
+
+Light theme: `/css/light-theme.css` + page-specific overrides. Variable block removed (covered by shared file).
+
+`switchPanel(id)` — same pattern as trade_flow: toggles `.sec-active` on `.app-main`, hides `.main-content`, shows matching `.sec-panel`.
 
 ## Known Caveats
 
