@@ -2277,14 +2277,6 @@ function updateHero(d) {
   if (!d) return;
   document.getElementById('chip-phase').textContent = PHASE_LABELS[d.phase] || d.phase;
   if (d.nifty_ltp) document.getElementById('chip-ltp').textContent = d.nifty_ltp.toLocaleString('en-IN');
-
-  const badgeIds   = ['badge-pre', 'badge-open', 'badge-orb'];
-  const phaseMap   = { pre_market:0, market_open:1, orb:2, closed:2 };
-  const activeIdx  = phaseMap[d.phase] ?? -1;
-  badgeIds.forEach((id, i) => {
-    const el = document.getElementById(id);
-    el.classList.toggle('active-phase', i === activeIdx);
-  });
 }
 
 // ─────────────────────────────────────────────
@@ -3447,18 +3439,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function tfIsMobile() { return window.innerWidth < 900; }
 
-// Phase accordion toggle — only active on mobile; desktop clicks do nothing
 function tfTogglePhase(head) {
-  if (!tfIsMobile()) return;
   head.classList.toggle('ph-collapsed');
 }
 
-// Expand the phase that contains step n and scroll to the detail card
+// Expand the phase that contains step n and scroll sidebar to show it
 (function () {
   var _origShow = showStep;
   showStep = function (n) {
     _origShow(n);
-    if (!tfIsMobile()) return;
 
     // Expand whichever phase contains this step so its steps-wrap is visible
     var phaseMap = { 1:1, 2:1, 3:1, 4:2, 5:3, 6:3 };
@@ -3468,12 +3457,13 @@ function tfTogglePhase(head) {
       if (ph) ph.classList.remove('ph-collapsed');
     }
 
-    // Scroll to the detail card after DOM updates
-    var card = document.getElementById('detail' + n);
-    if (!card) return;
-    setTimeout(function () {
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 60);
+    // On mobile: scroll detail card into view
+    if (tfIsMobile()) {
+      var card = document.getElementById('detail' + n);
+      if (card) setTimeout(function () {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
+    }
   };
 })();
 
