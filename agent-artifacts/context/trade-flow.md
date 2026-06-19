@@ -1,7 +1,7 @@
 # Context: trade-flow
 
 **File:** `public/trade_flow.html`  
-**Last updated:** 2026-06-09
+**Last updated:** 2026-06-19
 
 ---
 
@@ -26,13 +26,26 @@ Full educational reframe of all user-facing directive language (English + Tamil)
 
 ---
 
-## Layout
+## Layout (Simulator Architecture — 2026-06-19)
 
-6 step cards (accordion-style) + live signal sidebar. Steps revealed progressively.
+Fixed-viewport, no-scroll layout. `body` is `height:100vh, overflow:hidden, flex-column`.
 
 ```
-nav → hero → step-nav (1–6 tabs) → detail-panel → signal sidebar
+nav (56px)
+app-topbar (52px)   — live chips | separator | scenario buttons | refresh-note
+app-workspace       — flex:1, overflow:hidden
+  app-sidebar (236px) — phase heads (collapsible) + step tracker, overflow-y:auto
+  app-main (flex:1)   — overflow-y:auto, background:var(--bg)
+    ohlc-banner       — shown only when CPR data is missing (inside main, not hero)
+    detail-area       — step detail cards (detail1..detail6, ind-card, iv-card)
+    sec-panel#sec-rules  — rules grid (hidden until Rules tab clicked)
+    sec-panel#sec-alerts — alert log (hidden until Alerts tab clicked)
+app-bottombar (40px) — Rules tab | Alerts tab | SEBI disclaimer
 ```
+
+**Panel toggle:** `switchPanel(id)` — clicking a `.btab` toggles `.sec-active` on `.app-main`, which hides `.detail-area` and shows the matching `.sec-panel`. Clicking the active tab again collapses it and restores `.detail-area`.
+
+**Phase collapse:** `.phase-head.ph-collapsed + .steps-wrap{display:none}` — always active (not gated by media query). Phase 1 starts expanded, phases 2 and 3 start collapsed.
 
 ---
 
@@ -55,6 +68,7 @@ nav → hero → step-nav (1–6 tabs) → detail-panel → signal sidebar
 
 | Function | What it does |
 |---|---|
+| `switchPanel(id)` | Toggles secondary panel (rules/alerts); adds `.sec-active` to `.app-main` which hides detail-area |
 | `showStep(n)` | Reveals step n detail panel, updates step nav status |
 | `setScenario(sc, fromAuto)` | Sets scenario + controls conditional bear/bull visibility |
 | `renderStep1(d)` | GIFT Nifty gap card — shows gap label + bull/bear/neutral box |
@@ -94,3 +108,6 @@ The server returns `d.phase` which drives auto step-advance:
 - The 6 editing flags (`editingOhlc`, etc.) must be checked before re-rendering to avoid clearing in-progress user input on poll cycles.
 - `giftRefClose` is null until the page fetches trade-flow data — GIFT gap calculation falls back to `prev.close` if not yet set.
 - Steps 1–6 use IDs `s1-status` … `s6-status` and `detail1` … `detail6` — these are hardcoded in `showStep()`.
+- Light theme applied via `/css/light-theme.css` (shared) + page-specific `:root[data-theme="light"]` block for chips, scenario buttons, step items, tables, etc. JS-set inline colors on `#chip-vix`, `#chip-iv`, `#chip-alerts`, `#pcr-chip` need `!important` in CSS overrides.
+- The hero section and standalone `scenario-bar` div have been removed — chips now live in `app-topbar`, which is always visible. The `#refresh-note` element moved to the topbar right edge.
+- Footer removed; SEBI disclaimer is in the `.bbar-disclaimer` span inside `.app-bottombar`.
