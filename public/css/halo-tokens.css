@@ -84,32 +84,38 @@
    Triggered via Bootstrap's data-bs-theme="light" on <html>
    ============================================================ */
 [data-bs-theme="light"] {
-  --tz-accent-1:        #6451dc;
-  --tz-accent-2:        #4373db;
-  --tz-accent-rgb:      100, 81, 220;
-  --tz-grad:            linear-gradient(135deg, #6451dc 0%, #4373db 100%);
-  --tz-grad-h:          linear-gradient(90deg,  #6451dc 0%, #4373db 100%);
-  --tz-glow:            0 12px 36px rgba(100,81,220,0.28);
-  --tz-glow-soft:       0 6px 18px rgba(100,81,220,0.18);
+  /* Blue accent — clean, no purple tint */
+  --tz-accent-1:        #3563e9;
+  --tz-accent-2:        #2952c8;
+  --tz-accent-rgb:      53, 99, 233;
+  --tz-grad:            linear-gradient(135deg, #3563e9 0%, #2952c8 100%);
+  --tz-grad-h:          linear-gradient(90deg,  #3563e9 0%, #2952c8 100%);
+  --tz-glow:            0 4px 14px rgba(53,99,233,0.18);
+  --tz-glow-soft:       0 2px 8px  rgba(53,99,233,0.10);
 
-  --tz-bg:              #f6f4ff;
+  /* Pure white cards, neutral gray page background */
+  --tz-bg:              #f3f4f6;
   --tz-bg-elev:         #ffffff;
   --tz-surface:         #ffffff;
-  --tz-surface-2:       #f0eefb;
-  --tz-border:          rgba(15,16,32,0.08);
-  --tz-border-strong:   rgba(15,16,32,0.16);
-  --tz-border-accent:   rgba(100,81,220,0.32);
+  --tz-surface-2:       #f3f4f6;
+  --tz-border:          rgba(0,0,0,0.07);
+  --tz-border-strong:   rgba(0,0,0,0.13);
+  --tz-border-accent:   rgba(53,99,233,0.28);
 
-  --tz-fg-1:            #0f1020;
-  --tz-fg-2:            #4a4f6e;
-  --tz-fg-3:            #9ea3be;
+  /* Neutral text — no blue/purple tint */
+  --tz-fg-1:            #111827;
+  --tz-fg-2:            #4b5563;
+  --tz-fg-3:            #9ca3af;
 
-  --tz-halo-a:          radial-gradient(60% 60% at 20% 0%,  rgba(124,106,247,0.18) 0%, rgba(124,106,247,0) 60%);
-  --tz-halo-b:          radial-gradient(50% 50% at 80% 10%, rgba(91,138,245,0.16) 0%, rgba(91,138,245,0) 60%);
-  --tz-halo-footer:     radial-gradient(40% 60% at 50% 100%, rgba(124,106,247,0.12) 0%, transparent 70%);
+  /* No decorative gradients in light mode */
+  --tz-halo-a:          none;
+  --tz-halo-b:          none;
+  --tz-halo-footer:     none;
 
   --tz-gain:            #0e9966;
-  --tz-gain-dim:        rgba(14,153,102,0.12);
-  --tz-loss:            #c43d3d;
-  --tz-loss-dim:        rgba(196,61,61,0.10);
+  --tz-gain-dim:        rgba(14,153,102,0.10);
+  --tz-loss:            #dc2626;
+  --tz-loss-dim:        rgba(220,38,38,0.08);
+  --tz-warning:         #d97706;
+  --tz-info:            #2563eb;
 }
