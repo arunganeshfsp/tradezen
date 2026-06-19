@@ -2494,6 +2494,9 @@ async function fetchFlowData() {
     if (d.phase !== lastAutoAdvancePhase) {
       lastAutoAdvancePhase = d.phase;
       var _expandPhase = function(phIdx) {
+        document.querySelectorAll('.phase-head').forEach(function(ph) {
+          ph.classList.add('ph-collapsed');
+        });
         var ph = document.getElementById('ph-head-' + phIdx);
         if (ph) ph.classList.remove('ph-collapsed');
       };
@@ -3447,7 +3450,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 function tfIsMobile() { return window.innerWidth < 900; }
 
 function tfTogglePhase(head) {
-  head.classList.toggle('ph-collapsed');
+  var wasCollapsed = head.classList.contains('ph-collapsed');
+  // Collapse all phases first (accordion)
+  document.querySelectorAll('.phase-head').forEach(function(ph) {
+    ph.classList.add('ph-collapsed');
+  });
+  // If it was collapsed, open it; if it was open, leave it closed
+  if (wasCollapsed) head.classList.remove('ph-collapsed');
 }
 
 // On mobile only: auto-expand sidebar phase + scroll detail card into view
