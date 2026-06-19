@@ -1,7 +1,7 @@
 # Context: shared-ui
 
-**Files:** `public/css/halo-tokens.css`, `public/css/halo-aurora.css`, `public/halo-aurora.js`, `public/theme.js`, `public/theme.css`, `public/tradezen.css`  
-**Last updated:** 2026-05-23
+**Files:** `public/css/halo-tokens.css`, `public/css/halo-aurora.css`, `public/css/light-theme.css`, `public/halo-aurora.js`, `public/theme.js`, `public/theme.css`, `public/tradezen.css`  
+**Last updated:** 2026-06-19
 
 ---
 
@@ -81,6 +81,23 @@ Every new page must include:
 </nav>
 <script src="halo-aurora.js"></script>
 ```
+
+---
+
+## Shared Light Theme (`css/light-theme.css`)
+
+For **old pages** using the `--bg/--accent` private variable system (not `--tz-*` tokens), a shared light-mode baseline is in `css/light-theme.css`. It provides:
+- CSS variable overrides (`--bg`, `--border`, `--accent`, `--text`, `--green`, `--red`, etc.)
+- Nav + footer overrides (same markup across all pages)
+- Inline `color:#fff` safety guard for JS-generated HTML
+
+**How to add light mode to an old page:**
+1. Add `<link rel="stylesheet" href="/css/light-theme.css">` in `<head>`.
+2. Delete (or skip writing) the variable block and nav/footer sections from the page's own `:root[data-theme="light"]` block.
+3. Keep page-specific component overrides (chips, modals, tables) in the page's own `<style>`.
+4. For JS-set inline styles, use `!important` on the specific element IDs.
+
+Currently applied to: `trade_flow.html` (POC).
 
 ---
 

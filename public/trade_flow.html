@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trade Decision Flow | TradeZen</title>
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Tamil:ital@0;1&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/light-theme.css">
 <style>
 :root{
   --bg:#0A0C18; --bg1:#0e1020; --bg2:#13162b; --bg3:#1a1e35; --bg4:#20253e;
@@ -320,23 +321,6 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 @media(max-width:768px){.alog-tip{display:none}.alog-table th:nth-child(4),.alog-table td:nth-child(4){display:none}}
 
 /* ── LIGHT THEME ─────────────────────────────────────── */
-:root[data-theme="light"]{
-  --bg:#f3f4f6; --bg1:#ffffff; --bg2:#f9fafb; --bg3:#e5e7eb; --bg4:#d1d5db;
-  --border:#e5e7eb; --border2:#d1d5db;
-  --accent:#3563e9; --blue:#2563eb;
-  --green:#16a34a; --green2:#15803d;
-  --green-bg:rgba(22,163,74,0.10); --green-border:rgba(22,163,74,0.25);
-  --red:#dc2626; --red2:#b91c1c;
-  --red-bg:rgba(220,38,38,0.10); --red-border:rgba(220,38,38,0.25);
-  --yellow:#d97706; --yellow-bg:rgba(217,119,6,0.10); --yellow-border:rgba(217,119,6,0.25);
-  --cyan:#0284c7;
-  --text:#111827; --dim:#4b5563; --muted:#9ca3af;
-}
-/* Nav */
-:root[data-theme="light"] nav{background:rgba(243,244,246,0.97)}
-:root[data-theme="light"] .nav-links{background:rgba(243,244,246,0.98)}
-:root[data-theme="light"] .brand{color:var(--text)}
-:root[data-theme="light"] .nl.on{color:var(--accent);background:rgba(53,99,233,0.08)}
 /* Hero — flat, no gradient */
 :root[data-theme="light"] .hero{background:var(--bg1)}
 :root[data-theme="light"] .hero-glow{display:none}
@@ -355,9 +339,6 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 :root[data-theme="light"] .compare-table th{background:var(--bg3);color:var(--muted)}
 :root[data-theme="light"] .compare-table td{border-bottom-color:var(--border)}
 :root[data-theme="light"] .compare-table tr:hover td{background:var(--bg2)}
-/* Footer */
-:root[data-theme="light"] footer{background:var(--bg2);border-top-color:var(--border)}
-:root[data-theme="light"] .fbrand span{color:var(--dim)}
 /* Chart OI panel */
 :root[data-theme="light"] #chart-oi-panel{background:var(--bg2)}
 :root[data-theme="light"] #chart-legend{background:var(--bg2)}
@@ -367,14 +348,42 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 :root[data-theme="light"] .alog-stats{background:var(--bg2)}
 :root[data-theme="light"] .alog-table th{background:var(--bg2)}
 :root[data-theme="light"] .alog-table tr:hover td{background:var(--bg2)}
-/* Inline color:#fff overrides — static + JS-generated */
-:root[data-theme="light"] span[style*="color:#fff"],
-:root[data-theme="light"] div[style*="color:#fff"]{color:var(--text) !important}
-/* Hero tag — muted on light */
-:root[data-theme="light"] .htag{background:rgba(53,99,233,0.07);border-color:rgba(53,99,233,0.2);color:var(--accent)}
+/* Hero tag */
+:root[data-theme="light"] .htag{background:transparent;border-color:#d1d5db;color:var(--dim)}
 /* Step active / done */
 :root[data-theme="light"] .step-item.active{background:rgba(53,99,233,0.05);border-left-color:var(--accent)}
 :root[data-theme="light"] .step-item.active .step-num{background:var(--accent);border-color:var(--accent)}
+
+/* ── Live chips — all neutral white in light mode ── */
+:root[data-theme="light"] .live-chip{background:#ffffff;border-color:#d1d5db;color:#374151}
+:root[data-theme="light"] .lc-time{background:#ffffff;border-color:#d1d5db;color:#374151}
+:root[data-theme="light"] .lc-phase{background:#ffffff;border-color:#d1d5db;color:#374151}
+:root[data-theme="light"] .lc-ltp{background:#ffffff;border-color:#d1d5db;color:#374151}
+/* JS sets inline styles on these — need !important */
+:root[data-theme="light"] #chip-vix{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
+:root[data-theme="light"] #chip-iv{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
+:root[data-theme="light"] #chip-alerts{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
+
+/* ── Phase timeline badges — simple outlined pills ── */
+:root[data-theme="light"] .tbadge{background:#ffffff;border:1px solid #d1d5db;color:#374151}
+:root[data-theme="light"] .tb-pre{background:#ffffff;border-color:#d1d5db;color:#374151}
+:root[data-theme="light"] .tb-open{background:#ffffff;border-color:#d1d5db;color:#374151}
+:root[data-theme="light"] .tb-orb{background:#ffffff;border-color:#d1d5db;color:#374151}
+:root[data-theme="light"] .tbadge.active-phase{box-shadow:0 0 0 2px var(--accent);transform:scale(1.04);color:var(--accent);border-color:rgba(53,99,233,0.4)}
+
+/* ── Trigger banners (inside detail cards) ── */
+:root[data-theme="light"] .tb-bull{background:rgba(22,163,74,0.07);border-color:rgba(22,163,74,0.3);color:#15803d}
+:root[data-theme="light"] .tb-bear{background:rgba(220,38,38,0.07);border-color:rgba(220,38,38,0.3);color:#b91c1c}
+:root[data-theme="light"] .tb-wait{background:rgba(217,119,6,0.07);border-color:rgba(217,119,6,0.3);color:#92400e}
+
+/* ── Scenario buttons ── */
+:root[data-theme="light"] .sc-btn{background:#ffffff;border-color:#d1d5db;color:#374151}
+:root[data-theme="light"] .sc-btn:hover{background:#f9fafb;border-color:#9ca3af;color:#111827}
+:root[data-theme="light"] .sc-btn.bull-active{background:rgba(22,163,74,0.08);border-color:rgba(22,163,74,0.45);color:#15803d}
+:root[data-theme="light"] .sc-btn.bear-active{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.45);color:#b91c1c}
+:root[data-theme="light"] .sc-btn.skip-active{background:rgba(217,119,6,0.08);border-color:rgba(217,119,6,0.45);color:#92400e}
+:root[data-theme="light"] .sc-btn.cond-bull-active{background:rgba(22,163,74,0.06);border-color:rgba(22,163,74,0.35);color:#15803d}
+:root[data-theme="light"] .sc-btn.cond-bear-active{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.35);color:#b91c1c}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">

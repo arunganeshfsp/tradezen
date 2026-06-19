@@ -1,0 +1,65 @@
+/* ============================================================
+   TradeZen — Shared Light Theme
+   Include this file in every page that uses the --bg/--accent
+   variable system. It handles variables, nav, footer, and the
+   inline color:#fff safety guard. Page-specific component
+   overrides (chips, badges, modals) stay in each page's own
+   <style> block.
+   ============================================================ */
+
+/* ── 1. CSS variables ────────────────────────────────────────
+   Overrides every shared custom property used across old pages.
+   Values intentionally neutral (no purple tint, no gradients).
+──────────────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  --bg:           #f3f4f6;
+  --bg1:          #ffffff;
+  --bg2:          #f9fafb;
+  --bg3:          #e5e7eb;
+  --bg4:          #d1d5db;
+  --border:       #e5e7eb;
+  --border2:      #d1d5db;
+
+  --accent:       #3563e9;
+  --blue:         #2563eb;
+
+  --green:        #16a34a;
+  --green2:       #15803d;
+  --green-bg:     rgba(22,163,74,0.10);
+  --green-border: rgba(22,163,74,0.25);
+
+  --red:          #dc2626;
+  --red2:         #b91c1c;
+  --red-bg:       rgba(220,38,38,0.10);
+  --red-border:   rgba(220,38,38,0.25);
+
+  --yellow:       #d97706;
+  --yellow-bg:    rgba(217,119,6,0.10);
+  --yellow-border:rgba(217,119,6,0.25);
+
+  --cyan:         #0284c7;
+
+  --text:         #111827;
+  --dim:          #4b5563;
+  --muted:        #9ca3af;
+}
+
+/* ── 2. Navigation ───────────────────────────────────────────
+   All pages share the same nav markup and class names.
+──────────────────────────────────────────────────────────── */
+:root[data-theme="light"] nav            { background: rgba(243,244,246,0.97); }
+:root[data-theme="light"] .nav-links     { background: rgba(243,244,246,0.98); }
+:root[data-theme="light"] .brand         { color: var(--text); }
+:root[data-theme="light"] .nl.on         { color: var(--accent); background: rgba(53,99,233,0.08); }
+
+/* ── 3. Footer ───────────────────────────────────────────────
+──────────────────────────────────────────────────────────── */
+:root[data-theme="light"] footer         { background: var(--bg2); border-top-color: var(--border); }
+:root[data-theme="light"] .fbrand span   { color: var(--dim); }
+
+/* ── 4. Inline color:#fff safety guard ──────────────────────
+   JS-generated HTML often hardcodes color:#fff. Override for
+   light backgrounds without touching every JS template.
+──────────────────────────────────────────────────────────── */
+:root[data-theme="light"] span[style*="color:#fff"],
+:root[data-theme="light"] div[style*="color:#fff"] { color: var(--text) !important; }
