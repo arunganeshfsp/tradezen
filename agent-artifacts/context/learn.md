@@ -114,6 +114,27 @@ Shared sidebar used across all chapter pages. Renders chapter list with completi
 
 ---
 
+## Auth: Google SSO added (2026-06-20)
+
+**Files changed:** `public/learn/auth.html`, `routes/authRoute.js`, `db/schema.sql`, `.env`, `package.json`
+
+**What changed:**
+- `auth.html` fully redesigned: Google "Continue with Google" button as primary CTA, email/password as fallback below an OR divider. Google section only renders if `GOOGLE_CLIENT_ID` is set.
+- `/api/auth/config` (GET) — returns `{ google_client_id }` from env to the browser. Frontend loads GIS script dynamically only when a client ID is present.
+- `/api/auth/google` (POST) — receives Google ID token, verifies with `google-auth-library` `OAuth2Client.verifyIdToken()`, finds-or-creates user. Links Google to existing email accounts (by email match, when `google_id` is NULL).
+- `schema.sql` — `password_hash` made nullable (Google users have no password); `google_id TEXT` column added with partial unique index.
+- `google-auth-library@^9` added to `package.json` and installed.
+
+**Required setup (user must do):**
+1. Google Cloud Console → APIs & Services → OAuth 2.0 Client ID (Web Application)
+2. Authorized JavaScript origins: `https://tradeze.in`, `http://localhost:3000`
+3. Add the Client ID to `.env` as `GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com`
+4. Restart server (schema migration runs automatically on `initDB()`)
+
+**Token storage:** same as email auth — `localStorage.tz_learn_token` + `tz_learn_user`
+
+---
+
 ## learn/index.html redesign (2026-06-20)
 
 `public/learn/index.html` was fully redesigned from a flat catalog list to a modern dashboard layout targeting youngsters and homemakers.

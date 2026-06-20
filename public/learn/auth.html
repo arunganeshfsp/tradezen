@@ -5,220 +5,278 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sign In — TradeZen Learn</title>
 <link rel="stylesheet" href="/halo-aurora/css/halo-tokens.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
     min-height: 100vh;
     background: var(--tz-bg);
     color: var(--tz-fg-1);
+    font-family: var(--tz-font-ui);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
-    font-family: var(--tz-font-ui);
+    padding: 24px 16px;
   }
   body::before {
     content: '';
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background:
-      radial-gradient(50% 40% at 20% 20%, rgba(124,106,247,0.18) 0%, transparent 60%),
-      radial-gradient(50% 40% at 80% 80%, rgba(91,138,245,0.15) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
+      radial-gradient(60% 55% at 15% 10%, rgba(124,106,247,.22) 0%, transparent 55%),
+      radial-gradient(50% 50% at 85% 85%, rgba(91,138,245,.18) 0%, transparent 55%);
+    pointer-events: none; z-index: 0;
   }
-  .auth-wrap {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 420px;
+
+  /* ── Outer shell ── */
+  .auth-outer {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 420px;
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
   }
-  .brand {
-    text-align: center;
-    margin-bottom: 28px;
+
+  /* ── Brand ── */
+  .auth-brand { text-align: center; }
+  .brand-logo {
+    width: 52px; height: 52px; border-radius: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 24px rgba(124,106,247,.35);
   }
-  .brand .wordmark {
+  .brand-name {
     font-family: var(--tz-font-display);
-    font-size: 24px;
-    letter-spacing: -0.02em;
+    font-size: 28px; font-weight: 400; letter-spacing: -.025em;
     color: var(--tz-fg-1);
-    font-weight: 400;
   }
-  .brand .wordmark em {
+  .brand-name em {
     font-style: italic;
     background: var(--tz-grad-h);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .brand .sub {
+  .brand-tagline {
     font-family: var(--tz-font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--tz-fg-3);
-    margin-top: 4px;
+    font-size: 10.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tz-fg-3);
+    margin-top: 6px;
   }
-  .card-box {
+
+  /* ── Card ── */
+  .auth-card {
+    width: 100%;
     background: var(--tz-surface);
     border: 1px solid var(--tz-border);
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 32px;
+    box-shadow: var(--tz-shadow-lg);
   }
+
+  /* ── Google button wrapper ── */
+  .google-section { margin-bottom: 0; }
+  .btn-google {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 12px 20px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.12);
+    border-radius: 12px;
+    font-family: var(--tz-font-ui);
+    font-size: 14px; font-weight: 600;
+    color: #1f1f1f;
+    cursor: pointer;
+    transition: box-shadow .15s, transform .1s;
+  }
+  .btn-google:hover { box-shadow: 0 2px 8px rgba(0,0,0,.18); transform: translateY(-1px); }
+  .btn-google:active { transform: scale(.98); }
+  .btn-google:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .btn-google .g-logo { width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* ── Divider ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 22px 0;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--tz-border);
+  }
+  .divider span {
+    font-family: var(--tz-font-mono); font-size: 10px;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--tz-fg-3);
+    white-space: nowrap;
+  }
+
+  /* ── Tabs ── */
   .tab-row {
-    display: flex;
-    gap: 0;
+    display: flex; gap: 0;
     background: var(--tz-bg);
     border: 1px solid var(--tz-border);
-    border-radius: 10px;
-    padding: 3px;
-    margin-bottom: 28px;
+    border-radius: 12px; padding: 3px;
+    margin-bottom: 24px;
   }
   .tab-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    padding: 8px;
-    font-family: var(--tz-font-mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--tz-fg-3);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 150ms, color 150ms;
+    flex: 1; background: none; border: none;
+    padding: 9px;
+    font-family: var(--tz-font-mono); font-size: 11px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--tz-fg-3); border-radius: 9px;
+    cursor: pointer; transition: background .15s, color .15s;
   }
   .tab-btn.active {
-    background: var(--tz-surface);
+    background: var(--tz-surface-2);
     color: var(--tz-fg-1);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 4px rgba(0,0,0,.35);
   }
-  .form-group {
-    margin-bottom: 16px;
+
+  /* ── Form fields ── */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--tz-font-mono); font-size: 10px;
+    letter-spacing: .15em; text-transform: uppercase;
+    color: var(--tz-fg-3); margin-bottom: 6px;
   }
-  .form-group label {
-    display: block;
-    font-family: var(--tz-font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--tz-fg-3);
-    margin-bottom: 6px;
-  }
-  .form-group input {
+  .field label .hint { font-size: 9.5px; color: var(--tz-fg-3); letter-spacing: 0; text-transform: none; }
+  .field input {
     width: 100%;
     background: var(--tz-bg);
     border: 1px solid var(--tz-border);
     border-radius: 10px;
     padding: 11px 14px;
-    font-family: var(--tz-font-ui);
-    font-size: 14px;
+    font-family: var(--tz-font-ui); font-size: 14px;
     color: var(--tz-fg-1);
     outline: none;
-    transition: border-color 150ms;
-    box-sizing: border-box;
+    transition: border-color .15s, box-shadow .15s;
   }
-  .form-group input:focus {
+  .field input:focus {
     border-color: var(--tz-accent-1);
+    box-shadow: 0 0 0 3px rgba(124,106,247,.15);
   }
-  .form-group input::placeholder { color: var(--tz-fg-3); }
-  .btn-primary-tz {
-    width: 100%;
-    padding: 12px;
-    background: var(--tz-accent-1);
-    border: none;
-    border-radius: 10px;
-    font-family: var(--tz-font-ui);
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: opacity 150ms, transform 80ms;
+  .field input::placeholder { color: var(--tz-fg-3); }
+
+  /* ── Primary button ── */
+  .btn-primary {
+    width: 100%; margin-top: 6px;
+    padding: 13px;
+    background: var(--tz-grad);
+    border: none; border-radius: 12px;
+    font-family: var(--tz-font-ui); font-size: 14px; font-weight: 700;
+    color: #fff; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(124,106,247,.35);
+    transition: opacity .15s, transform .1s, box-shadow .15s;
   }
-  .btn-primary-tz:hover   { opacity: 0.88; }
-  .btn-primary-tz:active  { transform: scale(0.98); }
-  .btn-primary-tz:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary:hover  { opacity: .9; box-shadow: 0 6px 22px rgba(124,106,247,.45); }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ── Error / success messages ── */
   .err-msg {
-    display: none;
-    margin-top: 12px;
+    display: none; margin-top: 12px;
     padding: 10px 14px;
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.3);
+    background: rgba(248,113,113,.1);
+    border: 1px solid rgba(248,113,113,.3);
     border-radius: 8px;
-    font-size: 13px;
-    color: #f87171;
+    font-size: 13px; color: #f87171; line-height: 1.4;
   }
-  .footer-note {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 12px;
-    color: var(--tz-fg-3);
+  .ok-msg {
+    display: none; margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(52,211,153,.08);
+    border: 1px solid rgba(52,211,153,.3);
+    border-radius: 8px;
+    font-size: 13px; color: var(--tz-gain); line-height: 1.4;
+  }
+
+  /* ── Footer ── */
+  .auth-footer {
+    font-family: var(--tz-font-mono); font-size: 10px;
+    color: var(--tz-fg-3); text-align: center;
+    opacity: .55; line-height: 1.65;
   }
 </style>
 </head>
 <body>
-<div class="auth-wrap">
 
-  <div class="brand">
-    <div class="wordmark">Trade<em>Zen</em></div>
-    <div class="sub">Learn — Sign in to continue</div>
+<div class="auth-outer">
+
+  <!-- Brand -->
+  <div class="auth-brand">
+    <img class="brand-logo" src="/app-icon.svg" alt="TradeZen" data-app-logo>
+    <div class="brand-name">Trade<em>Zen</em></div>
+    <p class="brand-tagline">Learn · Grow · Master the Market</p>
   </div>
 
-  <div class="card-box">
+  <!-- Card -->
+  <div class="auth-card">
+
+    <!-- Google Sign-In (shown only when GOOGLE_CLIENT_ID is configured) -->
+    <div class="google-section" id="google-section" style="display:none">
+      <button class="btn-google" id="btn-google" onclick="triggerGoogle()">
+        <svg class="g-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+      <div class="divider"><span>or continue with email</span></div>
+    </div>
+
+    <!-- Tab row -->
     <div class="tab-row">
       <button class="tab-btn active" id="tab-login"  onclick="showTab('login')">Sign In</button>
       <button class="tab-btn"        id="tab-signup" onclick="showTab('signup')">Create Account</button>
     </div>
 
-    <!-- Login -->
+    <!-- Login form -->
     <form id="form-login" onsubmit="handleLogin(event)">
-      <div class="form-group">
+      <div class="field">
         <label>Email</label>
         <input type="email" id="l-email" placeholder="you@example.com" required autocomplete="email">
       </div>
-      <div class="form-group">
+      <div class="field">
         <label>Password</label>
         <input type="password" id="l-pass" placeholder="••••••••" required autocomplete="current-password">
       </div>
-      <button class="btn-primary-tz" id="btn-login" type="submit">Sign In</button>
+      <button class="btn-primary" id="btn-login" type="submit">Sign In</button>
       <div class="err-msg" id="login-err"></div>
     </form>
 
-    <!-- Signup -->
-    <form id="form-signup" style="display:none;" onsubmit="handleSignup(event)">
-      <div class="form-group">
-        <label>Display Name</label>
-        <input type="text" id="s-name" placeholder="Your name" autocomplete="name">
+    <!-- Signup form -->
+    <form id="form-signup" style="display:none" onsubmit="handleSignup(event)">
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="s-name" placeholder="First name" autocomplete="name">
       </div>
-      <div class="form-group">
+      <div class="field">
         <label>Email</label>
         <input type="email" id="s-email" placeholder="you@example.com" required autocomplete="email">
       </div>
-      <div class="form-group">
-        <label>Password <span style="color:var(--tz-fg-3);font-size:10px;">(min 6 characters)</span></label>
+      <div class="field">
+        <label>Password <span class="hint">min 6 characters</span></label>
         <input type="password" id="s-pass" placeholder="••••••••" required autocomplete="new-password" minlength="6">
       </div>
-      <button class="btn-primary-tz" id="btn-signup" type="submit">Create Account</button>
+      <button class="btn-primary" id="btn-signup" type="submit">Create Account</button>
       <div class="err-msg" id="signup-err"></div>
+      <div class="ok-msg"  id="signup-ok"></div>
     </form>
+
   </div>
 
-  <div class="footer-note">
-    By continuing you agree to learn and grow 📈
-  </div>
+  <!-- Footer -->
+  <p class="auth-footer">
+    For educational purposes only. Not investment advice.<br>
+    Consult a SEBI-registered adviser before trading.
+  </p>
+
 </div>
 
 <script>
-  const params   = new URLSearchParams(location.search);
-  const nextUrl  = params.get('next') || '/learn/index.html';
+  // ── Redirect if already logged in ────────────────────────────────────────────
+  const params  = new URLSearchParams(location.search);
+  const nextUrl = params.get('next') || '/learn/index.html';
+  if (localStorage.getItem('tz_learn_token')) location.replace(nextUrl);
 
-  // If already logged in, skip auth
-  (function() {
-    const t = localStorage.getItem('tz_learn_token');
-    if (t) location.replace(nextUrl);
-  })();
-
+  // ── Tab switch ────────────────────────────────────────────────────────────────
   function showTab(tab) {
     const isLogin = tab === 'login';
     document.getElementById('tab-login').classList.toggle('active', isLogin);
@@ -227,19 +285,26 @@
     document.getElementById('form-signup').style.display = isLogin ? 'none' : '';
   }
 
+  // ── Error helpers ─────────────────────────────────────────────────────────────
   function showErr(id, msg) {
     const el = document.getElementById(id);
-    el.textContent = msg;
-    el.style.display = 'block';
+    el.textContent = msg; el.style.display = 'block';
   }
-  function clearErr(id) { document.getElementById(id).style.display = 'none'; }
+  function hideMsg(id) { document.getElementById(id).style.display = 'none'; }
 
+  // ── Save token + redirect ─────────────────────────────────────────────────────
+  function saveAndRedirect(token, user) {
+    localStorage.setItem('tz_learn_token', token);
+    localStorage.setItem('tz_learn_user',  JSON.stringify(user));
+    location.replace(nextUrl);
+  }
+
+  // ── Email: Login ──────────────────────────────────────────────────────────────
   async function handleLogin(e) {
     e.preventDefault();
-    clearErr('login-err');
+    hideMsg('login-err');
     const btn = document.getElementById('btn-login');
-    btn.disabled = true;
-    btn.textContent = 'Signing in…';
+    btn.disabled = true; btn.textContent = 'Signing in…';
     try {
       const res  = await fetch('/api/auth/login', {
         method: 'POST',
@@ -252,20 +317,16 @@
       const data = await res.json();
       if (!res.ok) { showErr('login-err', data.error); return; }
       saveAndRedirect(data.token, data.user);
-    } catch {
-      showErr('login-err', 'Network error — please try again');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Sign In';
-    }
+    } catch { showErr('login-err', 'Network error — please try again'); }
+    finally   { btn.disabled = false; btn.textContent = 'Sign In'; }
   }
 
+  // ── Email: Signup ─────────────────────────────────────────────────────────────
   async function handleSignup(e) {
     e.preventDefault();
-    clearErr('signup-err');
+    hideMsg('signup-err'); hideMsg('signup-ok');
     const btn = document.getElementById('btn-signup');
-    btn.disabled = true;
-    btn.textContent = 'Creating account…';
+    btn.disabled = true; btn.textContent = 'Creating account…';
     try {
       const res  = await fetch('/api/auth/register', {
         method: 'POST',
@@ -279,19 +340,58 @@
       const data = await res.json();
       if (!res.ok) { showErr('signup-err', data.error); return; }
       saveAndRedirect(data.token, data.user);
-    } catch {
-      showErr('signup-err', 'Network error — please try again');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Create Account';
-    }
+    } catch { showErr('signup-err', 'Network error — please try again'); }
+    finally   { btn.disabled = false; btn.textContent = 'Create Account'; }
   }
 
-  function saveAndRedirect(token, user) {
-    localStorage.setItem('tz_learn_token', token);
-    localStorage.setItem('tz_learn_user',  JSON.stringify(user));
-    location.replace(nextUrl);
+  // ── Google Sign-In ────────────────────────────────────────────────────────────
+  let _googleInitialized = false;
+
+  function triggerGoogle() {
+    if (!_googleInitialized) return;
+    google.accounts.id.prompt();
   }
+
+  async function onGoogleCredential(response) {
+    const btn = document.getElementById('btn-google');
+    btn.disabled = true; btn.childNodes[1].textContent = ' Signing in…';
+    try {
+      const res  = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Google sign-in failed'); return; }
+      saveAndRedirect(data.token, data.user);
+    } catch { alert('Network error — please try again'); }
+    finally   { btn.disabled = false; btn.childNodes[1].textContent = ' Continue with Google'; }
+  }
+
+  function initGoogleSignIn(clientId) {
+    google.accounts.id.initialize({
+      client_id:             clientId,
+      callback:              onGoogleCredential,
+      auto_select:           false,
+      cancel_on_tap_outside: true,
+    });
+    _googleInitialized = true;
+    document.getElementById('google-section').style.display = 'block';
+  }
+
+  // Fetch config, then conditionally load GIS
+  fetch('/api/auth/config')
+    .then(r => r.json())
+    .then(cfg => {
+      if (!cfg.google_client_id) return;
+      const s = document.createElement('script');
+      s.src   = 'https://accounts.google.com/gsi/client';
+      s.async = true;
+      s.defer = true;
+      s.onload = () => initGoogleSignIn(cfg.google_client_id);
+      document.head.appendChild(s);
+    })
+    .catch(() => {});
 </script>
 </body>
 </html>

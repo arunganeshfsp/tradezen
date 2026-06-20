@@ -297,3 +297,12 @@ CREATE TABLE IF NOT EXISTS user_quiz_attempts (
 CREATE INDEX IF NOT EXISTS idx_user_progress_user    ON user_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_progress_chapter ON user_progress(chapter_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user    ON user_quiz_attempts(user_id);
+
+-- ─── OAUTH MIGRATIONS (idempotent) ──────────────────────────────────────────
+
+-- Allow Google-only users who have no password
+ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+
+-- Google OAuth identity link
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;

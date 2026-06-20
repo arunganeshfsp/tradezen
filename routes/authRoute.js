@@ -1,6 +1,7 @@
 const express  = require('express');
 const bcrypt   = require('bcrypt');
 const jwt      = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const { query } = require('../db/db');
 const router   = express.Router();
 
@@ -86,6 +87,57 @@ router.get('/me', async (req, res) => {
     res.json({ user: rows[0] });
   } catch {
     res.status(401).json({ error: 'Invalid or expired token' });
+  }
+});
+
+// ── Config (exposes public client IDs to frontend) ────────────────────────────
+router.get('/config', (req, res) => {
+  res.json({ google_client_id: process.env.GOOGLE_CLIENT_ID || null });
+});
+
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+router.post('/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) return res.status(400).json({ error: 'credential required' });
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) return res.status(503).json({ error: 'Google Sign-In not configured on server' });
+
+  try {
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId });
+    const { sub: googleId, email, name, picture } = ticket.getPayload();
+
+    // Find by google_id first, then fall back to email (links existing email accounts)
+    const { rows: existing } = await query(`
+      SELECT user_id, email, display_name, xp_total, streak_days
+      FROM users WHERE google_id = $1 OR (email = $2 AND google_id IS NULL)
+      LIMIT 1
+    `, [googleId, email.toLowerCase()]);
+
+    let user;
+    if (existing.length) {
+      await query(`
+        UPDATE users SET
+          google_id  = $1,
+          avatar_url = COALESCE(avatar_url, $2),
+          last_active = now(), updated_at = now()
+        WHERE user_id = $3
+      `, [googleId, picture, existing[0].user_id]);
+      user = existing[0];
+    } else {
+      const { rows } = await query(`
+        INSERT INTO users (email, password_hash, display_name, google_id, avatar_url, last_active)
+        VALUES ($1, NULL, $2, $3, $4, now())
+        RETURNING user_id, email, display_name, xp_total, streak_days, created_at
+      `, [email.toLowerCase(), name || email.split('@')[0], googleId, picture]);
+      user = rows[0];
+    }
+
+    res.json({ token: signToken(user), user });
+  } catch (err) {
+    console.error('[auth] google:', err.message);
+    res.status(401).json({ error: 'Google sign-in failed — try again' });
   }
 });
 
