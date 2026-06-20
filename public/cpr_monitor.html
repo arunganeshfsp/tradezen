@@ -405,6 +405,36 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
     </div>
   </div>
 
+  <!-- Futures OI + CPR Confirmation -->
+  <div class="sidebar-panel sp-collapsed" id="foiSidePanel">
+    <div class="panel">
+      <div class="panel-head" onclick="spToggle(this)">
+        <span class="panel-title">📊 Futures OI</span>
+        <span class="sp-head-r">
+          <span id="foiSignalBadge" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)">—</span>
+          <span class="sp-chev">›</span>
+        </span>
+      </div>
+      <div class="sp-body" style="padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase">NIFTY FUT OI</span>
+          <span id="foiOIVal" style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase">OI Change</span>
+          <span id="foiOIChg" style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--dim)">—</span>
+        </div>
+        <div id="foiConfirmBox" style="border-radius:6px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);margin-top:2px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">CPR CONFIRMATION</div>
+          <div id="foiConfirmText" style="font-size:12px;font-weight:600;line-height:1.4;color:var(--dim)">Waiting for data…</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);line-height:1.4;margin-top:2px">
+          For educational purposes only. Not investment advice.
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Price Levels -->
   <div class="sidebar-panel">
     <div class="panel">
@@ -579,6 +609,9 @@ let _running    = true;
 let _pollTimer  = null;
 let _levelInterval = null;
 let _chartLines = [];   // tracks active price lines so they can be removed on redraw
+let _ltp        = null;   // last seen LTP — used in Futures OI CPR confirmation
+let _lastFutOI  = null;   // last fetched /api/fut-oi data
+let _foiTimer   = null;   // 60-second poll timer for Futures OI
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -703,6 +736,105 @@ async function fetchLevels() {
 
   } catch(e) { console.error('fetchLevels', e); }
 }
+
+// ─────────────────────────────────────────────
+// Futures OI
+// ─────────────────────────────────────────────
+const _FOI_SIG = {
+  long_buildup:   { label: 'Long Buildup',   color: 'var(--green)',  border: 'var(--green-border)',          bg: 'var(--green-bg)' },
+  short_buildup:  { label: 'Short Buildup',  color: 'var(--red)',    border: 'var(--red-border)',            bg: 'var(--red-bg)' },
+  short_covering: { label: 'Short Covering', color: 'var(--cyan)',   border: 'rgba(0,212,255,0.25)',         bg: 'rgba(0,212,255,0.06)' },
+  long_unwinding: { label: 'Long Unwinding', color: 'var(--yellow)', border: 'var(--yellow-border)',         bg: 'var(--yellow-bg)' },
+};
+
+const _CPR_CONFIRM = {
+  above: {
+    long_buildup:   { text: 'Bullish Confirmed',              color: 'var(--green)',  border: 'var(--green-border)',  bg: 'var(--green-bg)',  icon: '✅' },
+    short_covering: { text: 'Recovering — Shorts Exiting',   color: 'var(--cyan)',   border: 'rgba(0,212,255,.25)',  bg: 'rgba(0,212,255,.06)', icon: '↗️' },
+    short_buildup:  { text: 'Divergence — Bearish Pressure', color: 'var(--yellow)', border: 'var(--yellow-border)', bg: 'var(--yellow-bg)', icon: '⚠️' },
+    long_unwinding: { text: 'Caution — Longs Exiting',       color: 'var(--yellow)', border: 'var(--yellow-border)', bg: 'var(--yellow-bg)', icon: '⚠️' },
+  },
+  below: {
+    short_buildup:  { text: 'Bearish Confirmed',              color: 'var(--red)',    border: 'var(--red-border)',    bg: 'var(--red-bg)',    icon: '✅' },
+    long_unwinding: { text: 'Bearish Deepening',              color: 'var(--red)',    border: 'var(--red-border)',    bg: 'var(--red-bg)',    icon: '🔻' },
+    long_buildup:   { text: 'Divergence — Bullish Pressure', color: 'var(--yellow)', border: 'var(--yellow-border)', bg: 'var(--yellow-bg)', icon: '⚠️' },
+    short_covering: { text: 'Caution — Shorts Covering',     color: 'var(--yellow)', border: 'var(--yellow-border)', bg: 'var(--yellow-bg)', icon: '⚠️' },
+  },
+  inside: {
+    long_buildup:   { text: 'In CPR Zone — Watch Breakout',   color: 'var(--dim)', border: 'var(--border)', bg: 'var(--bg3)', icon: '🔄' },
+    short_buildup:  { text: 'In CPR Zone — Watch Breakdown',  color: 'var(--dim)', border: 'var(--border)', bg: 'var(--bg3)', icon: '🔄' },
+    short_covering: { text: 'In CPR Zone — Shorts Covering',  color: 'var(--dim)', border: 'var(--border)', bg: 'var(--bg3)', icon: '🔄' },
+    long_unwinding: { text: 'In CPR Zone — Longs Unwinding',  color: 'var(--dim)', border: 'var(--border)', bg: 'var(--bg3)', icon: '🔄' },
+  },
+};
+
+function _fmtOI(v) {
+  if (v == null) return '—';
+  const abs = Math.abs(v);
+  if (abs >= 1e7) return (v / 1e7).toFixed(2) + ' Cr';
+  if (abs >= 1e5) return (v / 1e5).toFixed(1) + ' L';
+  if (abs >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+  return String(v);
+}
+
+async function fetchFutOI() {
+  try {
+    const r = await fetch(`${API}/fut-oi`);
+    const d = await r.json();
+    if (d.error) return;
+    _lastFutOI = d;
+    renderFutOISidebar(d);
+  } catch(e) { console.error('fetchFutOI', e); }
+}
+
+function renderFutOISidebar(d) {
+  if (!d || !d.oi) return;
+
+  const sig = d.signal ? _FOI_SIG[d.signal] : null;
+
+  const badge = document.getElementById('foiSignalBadge');
+  if (badge) {
+    badge.textContent = sig ? sig.label : '—';
+    badge.style.color = sig ? sig.color : 'var(--dim)';
+  }
+
+  const oiVal = document.getElementById('foiOIVal');
+  if (oiVal) oiVal.textContent = _fmtOI(d.oi);
+
+  const oiChg = document.getElementById('foiOIChg');
+  if (oiChg && d.oi_chg != null) {
+    const up = d.oi_chg >= 0;
+    oiChg.textContent  = (up ? '+' : '') + _fmtOI(d.oi_chg);
+    oiChg.style.color  = up ? 'var(--green)' : 'var(--red)';
+  }
+
+  // CPR zone requires a live LTP; d.ltp from /fut-oi is the futures LTP
+  const price = _ltp || d.ltp;
+  let zone = null;
+  if (_levels && price) {
+    if      (price > _levels.tc) zone = 'above';
+    else if (price < _levels.bc) zone = 'below';
+    else                         zone = 'inside';
+  }
+
+  const conf = zone && d.signal ? (_CPR_CONFIRM[zone] || {})[d.signal] : null;
+  const box  = document.getElementById('foiConfirmBox');
+  const txt  = document.getElementById('foiConfirmText');
+  if (box && txt) {
+    if (conf) {
+      txt.textContent    = conf.icon + ' ' + conf.text;
+      txt.style.color    = conf.color;
+      box.style.background  = conf.bg;
+      box.style.borderColor = conf.border;
+    } else {
+      txt.textContent    = zone ? 'Waiting for signal…' : 'Waiting for price data…';
+      txt.style.color    = 'var(--dim)';
+      box.style.background  = 'var(--bg3)';
+      box.style.borderColor = 'var(--border)';
+    }
+  }
+}
+
 
 async function fetchCandles() {
   const gen = _gen;
@@ -944,6 +1076,7 @@ function detectEvents(candles, lv) {
 // ─────────────────────────────────────────────
 function updateLiveDisplay(price) {
   if (!price) return;
+  _ltp = price;
   document.getElementById('ltpDisplay').textContent = fmt(price);
 
   if (!_levels) return;
@@ -960,6 +1093,7 @@ function updateLiveDisplay(price) {
 
   updateBiasPill();
   updateZoneBar(price);
+  if (_lastFutOI) renderFutOISidebar(_lastFutOI);
 }
 
 function updateBiasPill() {
@@ -1585,8 +1719,12 @@ function resetAndReload() {
   _gen++;                     // invalidate any in-flight fetches from the previous instrument
   clearTimeout(_pollTimer);
   clearInterval(_levelInterval);
+  clearInterval(_foiTimer);
   _pollTimer     = null;
   _levelInterval = null;
+  _foiTimer      = null;
+  _lastFutOI     = null;
+  _ltp           = null;
 
   _levels       = null;
   _prevDay      = null;
@@ -1657,6 +1795,10 @@ async function init() {
   startPoll();
   if (_levelInterval) clearInterval(_levelInterval);
   _levelInterval = setInterval(fetchLevels, 300000);
+  // Futures OI — fetch once now, then every 60 seconds
+  if (_foiTimer) clearInterval(_foiTimer);
+  fetchFutOI();
+  _foiTimer = setInterval(fetchFutOI, 60000);
 }
 
 init();

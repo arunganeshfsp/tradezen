@@ -996,6 +996,7 @@ def get_trade_flow():
         pass
 
     # ── Auto scenario determination ───────────────────────────────────────────
+    # Stage 1: CPR + ORB structure (price-based, uses yesterday's levels)
     scenario = "unknown"
     if open_data and orb_data:
         op   = open_data["position"]
@@ -1019,20 +1020,49 @@ def get_trade_flow():
         else:
             scenario = "skip"
 
+    # Stage 2: Futures OI modifier (intraday money flow confirmation)
+    # Only strong signals (long_buildup / short_buildup) alter the scenario.
+    # short_covering / long_unwinding are secondary — they don't add new positions,
+    # so they don't constitute a directional conviction shift.
+    _oi_sig = (fut_oi_data or {}).get("signal")
+    if _oi_sig in ("long_buildup", "short_buildup"):
+        if _oi_sig == "long_buildup":
+            if   scenario == "bull":            pass                    # confirmed — no change
+            elif scenario == "conditional_bull": scenario = "bull"      # OI upgrades the lean
+            elif scenario == "bear":            scenario = "conditional_bear"  # OI diverges
+            elif scenario in ("skip", "unknown"): scenario = "conditional_bull"
+        elif _oi_sig == "short_buildup":
+            if   scenario == "bear":            pass                    # confirmed — no change
+            elif scenario == "conditional_bear": scenario = "bear"      # OI upgrades the lean
+            elif scenario == "bull":            scenario = "conditional_bull"  # OI diverges
+            elif scenario in ("skip", "unknown"): scenario = "conditional_bear"
+
+    # Build a human-readable note when OI changed the scenario
+    _oi_note = None
+    if _oi_sig == "long_buildup" and scenario != "bull":
+        _oi_note = "Long Buildup detected — bulls adding positions intraday"
+    elif _oi_sig == "short_buildup" and scenario != "bear":
+        _oi_note = "Short Buildup detected — bears adding positions intraday"
+    elif _oi_sig == "long_buildup":
+        _oi_note = "Long Buildup confirms bull scenario"
+    elif _oi_sig == "short_buildup":
+        _oi_note = "Short Buildup confirms bear scenario"
+
     return {
-        "phase":         phase,
-        "time_ist":      now_ist.strftime("%H:%M:%S"),
-        "date":          now_ist.strftime("%Y-%m-%d"),
-        "prev_day":      prev,
-        "gift_nifty":    trade_flow_data.get("gift_nifty"),
-        "india_vix":     trade_flow_data.get("india_vix"),
-        "cpr":           cpr,
-        "nifty_open":    open_data,
-        "orb":           orb_data,
-        "nifty_ltp":     effective_ltp,
-        "scenario":      scenario,
-        "oi_sentiment":  oi_sentiment,
-        "fut_oi":        fut_oi_data,
+        "phase":            phase,
+        "time_ist":         now_ist.strftime("%H:%M:%S"),
+        "date":             now_ist.strftime("%Y-%m-%d"),
+        "prev_day":         prev,
+        "gift_nifty":       trade_flow_data.get("gift_nifty"),
+        "india_vix":        trade_flow_data.get("india_vix"),
+        "cpr":              cpr,
+        "nifty_open":       open_data,
+        "orb":              orb_data,
+        "nifty_ltp":        effective_ltp,
+        "scenario":         scenario,
+        "scenario_oi_note": _oi_note,
+        "oi_sentiment":     oi_sentiment,
+        "fut_oi":           fut_oi_data,
     }
 
 

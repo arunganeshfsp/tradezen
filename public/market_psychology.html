@@ -545,6 +545,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <span id="foi-val">—</span>
     <span id="foi-sig" style="font-size:9px;font-weight:700;letter-spacing:.8px"></span>
   </div>
+  <div id="foi-confirm" style="display:none;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.4px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--dim);white-space:nowrap" title="CPR zone vs Futures OI confirmation"></div>
   <div class="ctrl-status">
     <div class="pulse-dot" id="pulse-dot"></div>
     <span id="ctrl-asof">—</span>
@@ -888,6 +889,7 @@ let _sym      = 'NIFTY';
 let _tf       = '5m';
 let _mode     = 'live';      // 'live' | 'replay'
 let _candles  = [];          // full candle array from server
+let _ltp      = null;        // last seen close price — used for CPR zone in Futures OI confirmation
 let _chart    = null;
 let _candleSeries  = null;
 let _vwapSeries    = null;
@@ -1051,6 +1053,7 @@ function buildChart(candles) {
   _candleSeries.setData(candles.map(c => ({
     time: c.time, open: c.open, high: c.high, low: c.low, close: c.close,
   })));
+  if (candles.length) _ltp = candles[candles.length - 1].close;
 
   // VWAP — dashed cyan line
   _vwapSeries = _chart.addLineSeries({
@@ -1427,6 +1430,7 @@ function toggleFullscreen() {
 // Update only the last candle in chart (live mode)
 function chartUpdateLast(candle) {
   if (!_candleSeries) return;
+  _ltp = candle.close;
   _candleSeries.update({ time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close });
   if (candle.vwap)      _vwapSeries.update({ time: candle.time, value: candle.vwap });
   if (candle.supertrend && candle.supertrend_dir === 'up')
@@ -2749,7 +2753,27 @@ const _FOI_SIG_PSYCH = {
   long_buildup:   { label: 'LONG BUILD',  color: '#2ecc71', bg: 'rgba(46,204,113,0.1)',  border: 'rgba(46,204,113,0.3)'  },
   short_buildup:  { label: 'SHORT BUILD', color: '#e74c3c', bg: 'rgba(231,76,60,0.1)',   border: 'rgba(231,76,60,0.3)'   },
   short_covering: { label: 'ST.COVER',    color: '#5b8af5', bg: 'rgba(91,138,245,0.1)',  border: 'rgba(91,138,245,0.3)'  },
-  long_unwinding: { label: 'LONG UNWIND', color: '#f5a623', bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.3)'  },
+  long_unwinding: { label: 'LONG UNWIND', color: '#f5a623', bg: 'rgba(245,166,35,0.1)',  border: 'rgba(245,166,35,0.3)'  },
+};
+const _CPR_CONFIRM_PSYCH = {
+  above: {
+    long_buildup:   { label: '✅ Bullish Confirmed',  color: '#2ecc71', bg: 'rgba(46,204,113,0.1)',  border: 'rgba(46,204,113,0.3)'  },
+    short_covering: { label: '↗ Recovering',          color: '#5b8af5', bg: 'rgba(91,138,245,0.1)',  border: 'rgba(91,138,245,0.3)'  },
+    short_buildup:  { label: '⚠ Divergence-Bear',     color: '#f5a623', bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.3)'  },
+    long_unwinding: { label: '⚠ Longs Exiting',       color: '#f5a623', bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.3)'  },
+  },
+  below: {
+    short_buildup:  { label: '✅ Bearish Confirmed',  color: '#e74c3c', bg: 'rgba(231,76,60,0.1)',   border: 'rgba(231,76,60,0.3)'   },
+    long_unwinding: { label: '🔻 Bearish Deepening',  color: '#e74c3c', bg: 'rgba(231,76,60,0.1)',   border: 'rgba(231,76,60,0.3)'   },
+    long_buildup:   { label: '⚠ Divergence-Bull',     color: '#f5a623', bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.3)'  },
+    short_covering: { label: '⚠ Shorts Covering',     color: '#f5a623', bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.3)'  },
+  },
+  inside: {
+    long_buildup:   { label: '🔄 In CPR · Watch Break', color: '#9ba3bf', bg: 'transparent', border: 'var(--border)' },
+    short_buildup:  { label: '🔄 In CPR · Watch Down',  color: '#9ba3bf', bg: 'transparent', border: 'var(--border)' },
+    short_covering: { label: '🔄 In CPR · ST Cover',    color: '#9ba3bf', bg: 'transparent', border: 'var(--border)' },
+    long_unwinding: { label: '🔄 In CPR · LU Unwind',   color: '#9ba3bf', bg: 'transparent', border: 'var(--border)' },
+  },
 };
 function _fmtFOI(n) {
   if (!n) return '—';
@@ -2764,7 +2788,7 @@ async function fetchFutOI() {
     if (!res.ok) return;
     const d = await res.json();
     if (d.error || !d.oi) return;
-    const pill = document.getElementById('foi-pill');
+    const pill  = document.getElementById('foi-pill');
     const valEl = document.getElementById('foi-val');
     const sigEl = document.getElementById('foi-sig');
     if (!pill) return;
@@ -2779,6 +2803,22 @@ async function fetchFutOI() {
     pill.style.background   = s ? s.bg     : 'transparent';
     pill.style.borderColor  = s ? s.border : 'var(--border)';
     pill.style.color        = s ? s.color  : 'var(--dim)';
+
+    // CPR Confirmation pill
+    const cc  = document.getElementById('foi-confirm');
+    const cpr = _cprData && _cprData.cpr;
+    const ltp = _ltp || (d.ltp);
+    if (cc && cpr && ltp && d.signal) {
+      const zone = ltp > cpr.tc ? 'above' : ltp < cpr.bc ? 'below' : 'inside';
+      const conf = (_CPR_CONFIRM_PSYCH[zone] || {})[d.signal];
+      if (conf) {
+        cc.textContent      = conf.label;
+        cc.style.display    = 'flex';
+        cc.style.background = conf.bg;
+        cc.style.borderColor= conf.border;
+        cc.style.color      = conf.color;
+      }
+    }
   } catch (_) {}
 }
 
