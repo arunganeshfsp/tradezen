@@ -48,7 +48,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .ss-stat-val{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text)}
 .sidebar-panel{border-top:1px solid var(--border)}
 .sidebar-panel .panel{border:none;border-radius:0}
-.sidebar-panel .panel-head{padding:9px 12px}
+.sidebar-panel .panel-head{padding:9px 12px;cursor:pointer;user-select:none}
+.sp-head-r{display:flex;align-items:center;gap:6px}
+.sp-chev{font-size:14px;color:var(--muted);transition:transform .2s;display:inline-block;line-height:1}
+.sidebar-panel.sp-collapsed .sp-chev{transform:rotate(-90deg)}
+.sidebar-panel.sp-collapsed .sp-body{display:none}
 
 /* ── TOPBAR ELEMENTS ── */
 .app-topbar .ltp-display{font-size:15px;font-weight:700}
@@ -404,33 +408,37 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
   <!-- Price Levels -->
   <div class="sidebar-panel">
     <div class="panel">
-      <div class="panel-head">
+      <div class="panel-head" onclick="spToggle(this)">
         <span class="panel-title">📐 Price Levels</span>
-        <span class="panel-sub" id="prevDayLabel">Prev Day OHLC</span>
+        <span class="sp-head-r"><span class="panel-sub" id="prevDayLabel">Prev Day OHLC</span><span class="sp-chev">›</span></span>
       </div>
-      <div style="padding:8px 12px 4px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:5px">PRICE POSITION</div>
-        <div class="cpr-zone-bar" id="zoneBar" style="margin:0 0 4px">
-          <div class="czb-fill" id="czFill"></div>
-          <div class="czb-price" id="czPrice"></div>
-          <span class="czb-label" id="czLabel">—</span>
+      <div class="sp-body">
+        <div style="padding:8px 12px 4px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:5px">PRICE POSITION</div>
+          <div class="cpr-zone-bar" id="zoneBar" style="margin:0 0 4px">
+            <div class="czb-fill" id="czFill"></div>
+            <div class="czb-price" id="czPrice"></div>
+            <span class="czb-label" id="czLabel">—</span>
+          </div>
         </div>
-      </div>
-      <div class="ladder" id="ladder">
-        <div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">Fetching levels…</div>
+        <div class="ladder" id="ladder">
+          <div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">Fetching levels…</div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Camarilla -->
-  <div class="sidebar-panel">
+  <div class="sidebar-panel sp-collapsed">
     <div class="panel">
-      <div class="panel-head">
+      <div class="panel-head" onclick="spToggle(this)">
         <span class="panel-title">📏 Camarilla Levels</span>
-        <span class="panel-sub">H3·H4 / L3·L4</span>
+        <span class="sp-head-r"><span class="panel-sub">H3·H4 / L3·L4</span><span class="sp-chev">›</span></span>
       </div>
-      <div class="ladder" id="camLadder">
-        <div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">Calculating…</div>
+      <div class="sp-body">
+        <div class="ladder" id="camLadder">
+          <div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">Calculating…</div>
+        </div>
       </div>
     </div>
   </div>
@@ -532,6 +540,15 @@ function switchPanel(id) {
     const panel = document.getElementById('sec-' + id);
     if (panel) { panel.classList.add('active'); main.classList.add('sec-active'); }
   }
+}
+
+function spToggle(head) {
+  var panel = head.closest('.sidebar-panel');
+  var wasCollapsed = panel.classList.contains('sp-collapsed');
+  document.querySelectorAll('.sidebar-panel').forEach(function(p) {
+    p.classList.add('sp-collapsed');
+  });
+  if (wasCollapsed) panel.classList.remove('sp-collapsed');
 }
 
 // ─────────────────────────────────────────────
