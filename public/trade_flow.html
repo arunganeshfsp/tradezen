@@ -331,6 +331,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
 :root[data-theme="light"] #chip-vix{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
 :root[data-theme="light"] #chip-iv{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
 :root[data-theme="light"] #chip-alerts{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
+:root[data-theme="light"] #chip-foi{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
 :root[data-theme="light"] #pcr-chip{background:#ffffff !important;border-color:#d1d5db !important;color:#374151 !important}
 
 /* ── Phase timeline badges ── */
@@ -458,6 +459,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     </div>
     <div class="live-chip" id="chip-iv" style="background:rgba(0,212,255,0.07);color:var(--cyan);border-color:rgba(0,212,255,0.25);display:none;cursor:pointer" onclick="openIvCard()" title="Click for ATM IV breakdown">
       ◎ IV <span id="chip-iv-val">--</span>
+    </div>
+    <div class="live-chip" id="chip-foi" style="display:none" title="NIFTY near-month futures open interest vs morning baseline">
+      F-OI <span id="chip-foi-val">--</span>
     </div>
     <div class="live-chip" id="chip-alerts" onclick="toggleAlerts()" title="Price alerts for key levels" style="cursor:pointer;background:rgba(255,255,255,0.04);color:var(--dim);border-color:var(--border)">
       🔔 <span id="chip-alerts-label">Alerts Off</span>
@@ -2282,6 +2286,34 @@ function updateHero(d) {
   if (d.nifty_ltp) document.getElementById('chip-ltp').textContent = d.nifty_ltp.toLocaleString('en-IN');
 }
 
+const _FOI_SIG = {
+  long_buildup:   { label: 'LONG BUILD',   bg: 'rgba(46,204,113,0.09)',  border: 'rgba(46,204,113,0.3)',  color: '#2ecc71' },
+  short_buildup:  { label: 'SHORT BUILD',  bg: 'rgba(231,76,60,0.09)',   border: 'rgba(231,76,60,0.3)',   color: '#e74c3c' },
+  short_covering: { label: 'ST.COVER',     bg: 'rgba(91,138,245,0.09)',  border: 'rgba(91,138,245,0.3)',  color: '#5b8af5' },
+  long_unwinding: { label: 'LONG UNWIND',  bg: 'rgba(245,166,35,0.09)', border: 'rgba(245,166,35,0.3)',  color: '#f5a623' },
+};
+function _fmtOI(n) {
+  if (!n) return '—';
+  if (n >= 10000000) return (n / 10000000).toFixed(1) + 'Cr';
+  if (n >= 100000)   return (n / 100000).toFixed(1) + 'L';
+  if (n >= 1000)     return (n / 1000).toFixed(0) + 'K';
+  return String(n);
+}
+function renderFutOI(d) {
+  var chip = document.getElementById('chip-foi');
+  var val  = document.getElementById('chip-foi-val');
+  if (!chip || !d || !d.oi) { if (chip) chip.style.display = 'none'; return; }
+  var s = d.signal ? _FOI_SIG[d.signal] : null;
+  var chg = d.oi_chg != null
+    ? ' ' + (d.oi_chg >= 0 ? '+' : '') + _fmtOI(Math.abs(d.oi_chg))
+    : '';
+  val.textContent = _fmtOI(d.oi) + chg + (s ? ' · ' + s.label : '');
+  chip.style.display      = 'flex';
+  chip.style.background   = s ? s.bg     : 'rgba(255,255,255,0.04)';
+  chip.style.borderColor  = s ? s.border : 'var(--border)';
+  chip.style.color        = s ? s.color  : 'var(--dim)';
+}
+
 // ─────────────────────────────────────────────
 // Clock ticker (every second, client-side)
 // ─────────────────────────────────────────────
@@ -2483,6 +2515,7 @@ async function fetchFlowData() {
     updateHero(d);
     renderFlowData(d);
     _updatePcrChip(d.oi_sentiment);
+    renderFutOI(d.fut_oi);
     _checkPriceAlerts(d.nifty_ltp);
     _evaluatePendingAlerts(d.nifty_ltp);
 

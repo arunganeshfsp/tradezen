@@ -540,6 +540,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <button class="tog"             id="btn-practice" onclick="setMode('practice')">🎮 PRACTICE</button>
     </div>
   </div>
+  <div id="foi-pill" style="display:none;align-items:center;gap:6px;margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.4px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--dim);white-space:nowrap">
+    <span style="font-size:9px;letter-spacing:1px;color:var(--muted)">FUT OI</span>
+    <span id="foi-val">—</span>
+    <span id="foi-sig" style="font-size:9px;font-weight:700;letter-spacing:.8px"></span>
+  </div>
   <div class="ctrl-status">
     <div class="pulse-dot" id="pulse-dot"></div>
     <span id="ctrl-asof">—</span>
@@ -2739,9 +2744,49 @@ function _gkSetType(type) {
   if(_candles.length) updateGreeks(_candles[_candles.length-1].close);
 }
 
+// ─── Futures OI ───────────────────────────────────────────────────────────────
+const _FOI_SIG_PSYCH = {
+  long_buildup:   { label: 'LONG BUILD',  color: '#2ecc71', bg: 'rgba(46,204,113,0.1)',  border: 'rgba(46,204,113,0.3)'  },
+  short_buildup:  { label: 'SHORT BUILD', color: '#e74c3c', bg: 'rgba(231,76,60,0.1)',   border: 'rgba(231,76,60,0.3)'   },
+  short_covering: { label: 'ST.COVER',    color: '#5b8af5', bg: 'rgba(91,138,245,0.1)',  border: 'rgba(91,138,245,0.3)'  },
+  long_unwinding: { label: 'LONG UNWIND', color: '#f5a623', bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.3)'  },
+};
+function _fmtFOI(n) {
+  if (!n) return '—';
+  if (n >= 10000000) return (n / 10000000).toFixed(1) + 'Cr';
+  if (n >= 100000)   return (n / 100000).toFixed(1) + 'L';
+  if (n >= 1000)     return (n / 1000).toFixed(0) + 'K';
+  return String(n);
+}
+async function fetchFutOI() {
+  try {
+    const res = await fetch('/api/fut-oi');
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d.error || !d.oi) return;
+    const pill = document.getElementById('foi-pill');
+    const valEl = document.getElementById('foi-val');
+    const sigEl = document.getElementById('foi-sig');
+    if (!pill) return;
+    const s = d.signal ? _FOI_SIG_PSYCH[d.signal] : null;
+    const chg = d.oi_chg != null
+      ? ' ' + (d.oi_chg >= 0 ? '+' : '') + _fmtFOI(Math.abs(d.oi_chg))
+      : '';
+    valEl.textContent = _fmtFOI(d.oi) + chg;
+    sigEl.textContent = s ? s.label : '';
+    sigEl.style.color = s ? s.color : 'var(--muted)';
+    pill.style.display      = 'flex';
+    pill.style.background   = s ? s.bg     : 'transparent';
+    pill.style.borderColor  = s ? s.border : 'var(--border)';
+    pill.style.color        = s ? s.color  : 'var(--dim)';
+  } catch (_) {}
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('resize', _resizeChart);
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && _isFullscreen) toggleFullscreen(); });
+fetchFutOI();
+setInterval(fetchFutOI, 60000);
 reload();
 </script>
 <!-- CANDLE PATTERN TOAST -->

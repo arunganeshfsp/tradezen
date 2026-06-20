@@ -52,13 +52,14 @@ last_signal = {
 
 # Trade flow data — populated at startup and updated during the signal loop
 trade_flow_data = {
-    "prev_ohlc":  None,   # {"high":..., "low":..., "close":..., "date":...}
-    "gift_nifty": None,   # manually supplied GIFT Nifty price (pre-market)
-    "nifty_open": None,   # first spot price at/after 9:15 AM IST
-    "orb":        None,   # {"high":..., "low":...} — locked after 9:30 AM
-    "_orb_acc":   {"high": None, "low": None},   # accumulator 9:15–9:30
-    "india_vix":  None,   # fetched from yfinance ^INDIAVIX, refreshed every 5 min
-    "last_ltp":   None,   # last known NIFTY price — persists across WebSocket drops
+    "prev_ohlc":   None,   # {"high":..., "low":..., "close":..., "date":...}
+    "gift_nifty":  None,   # manually supplied GIFT Nifty price (pre-market)
+    "nifty_open":  None,   # first spot price at/after 9:15 AM IST
+    "orb":         None,   # {"high":..., "low":...} — locked after 9:30 AM
+    "_orb_acc":    {"high": None, "low": None},   # accumulator 9:15–9:30
+    "india_vix":   None,   # fetched from yfinance ^INDIAVIX, refreshed every 5 min
+    "last_ltp":    None,   # last known NIFTY price — persists across WebSocket drops
+    "prev_fut_oi": None,   # NIFTY futures OI at startup / 8:30 AM — used as daily baseline
 }
 _vix_last_refresh: datetime = None   # tracks last VIX fetch time
 _ohlc_last_fetched_ist_date: str = None   # IST date when prev_ohlc was last refreshed
@@ -326,6 +327,21 @@ async def lifespan(app: FastAPI):
     except Exception as vix_err:
         log.warning(f"⚠️ India VIX fetch failed: {vix_err}")
 
+    # 📊 Fetch NIFTY futures OI baseline (used by /trade-flow for 4-quadrant signal)
+    try:
+        _ft = im.get_nifty_futures_token()
+        if _ft:
+            _r = smart.getMarketData("FULL", {"NFO": [str(_ft)]})
+            for _item in (_r or {}).get("data", {}).get("fetched", []):
+                if str(_item.get("symbolToken")) == str(_ft):
+                    _oi = _item.get("opnInterest")
+                    if _oi:
+                        trade_flow_data["prev_fut_oi"] = int(float(_oi))
+                        log.info(f"📊 Futures OI baseline: {trade_flow_data['prev_fut_oi']:,}")
+                    break
+    except Exception as _fe:
+        log.warning(f"⚠️ Futures OI baseline fetch failed: {_fe}")
+
     # 📈 Get NIFTY LTP
     ltp_data = smart.ltpData("NSE", "NIFTY", SPOT_TOKEN)
     ltp = ltp_data["data"]["ltp"]
@@ -494,6 +510,21 @@ async def lifespan(app: FastAPI):
                             break
                 except Exception as _se:
                     log.error(f"❌ Daily OHLC SmartAPI fallback failed: {_se}")
+            # ── Refresh futures OI baseline for the new day ───────────────────
+            try:
+                _ft2 = im.get_nifty_futures_token()
+                if _ft2:
+                    _s3 = smart or _get_smart()
+                    _r2 = _s3.getMarketData("FULL", {"NFO": [str(_ft2)]})
+                    for _item2 in (_r2 or {}).get("data", {}).get("fetched", []):
+                        if str(_item2.get("symbolToken")) == str(_ft2):
+                            _oi2 = _item2.get("opnInterest")
+                            if _oi2:
+                                trade_flow_data["prev_fut_oi"] = int(float(_oi2))
+                                log.info(f"📊 Futures OI baseline refreshed: {trade_flow_data['prev_fut_oi']:,}")
+                            break
+            except Exception as _fe2:
+                log.warning(f"⚠️ Daily futures OI baseline refresh failed: {_fe2}")
             # ── Reset intraday fields so today's open/ORB are captured fresh ────
             # gift_nifty is NOT reset — user may have entered it pre-market before 8:30
             trade_flow_data["nifty_open"] = None
@@ -929,6 +960,41 @@ def get_trade_flow():
             orb_data["straddle_lean"] = "bull_lean"
         orb_data["lean_scores"] = lean_scores
 
+    # ── Futures OI (near-month NIFTY futures) ────────────────────────────────
+    fut_oi_data = None
+    try:
+        _s_f = smart or _get_smart()
+        _ft_f = im.get_nifty_futures_token()
+        if _ft_f and _s_f:
+            _r_f = _s_f.getMarketData("FULL", {"NFO": [str(_ft_f)]})
+            for _item_f in (_r_f or {}).get("data", {}).get("fetched", []):
+                if str(_item_f.get("symbolToken")) == str(_ft_f):
+                    _oi_f   = _item_f.get("opnInterest")
+                    _ltp_f  = _item_f.get("ltp")
+                    if _oi_f:
+                        _oi_int   = int(float(_oi_f))
+                        _base_oi  = trade_flow_data.get("prev_fut_oi")
+                        _oi_chg   = (_oi_int - _base_oi) if _base_oi else None
+                        _prev_c   = (trade_flow_data.get("prev_ohlc") or {}).get("close")
+                        _ltp_val  = float(_ltp_f) if _ltp_f else None
+                        _price_up = (_ltp_val > _prev_c) if (_ltp_val and _prev_c) else None
+                        _oi_up    = (_oi_chg > 0)        if _oi_chg is not None else None
+                        _signal   = None
+                        if _price_up is not None and _oi_up is not None:
+                            if   _price_up and _oi_up:      _signal = "long_buildup"
+                            elif not _price_up and _oi_up:  _signal = "short_buildup"
+                            elif _price_up and not _oi_up:  _signal = "short_covering"
+                            else:                           _signal = "long_unwinding"
+                        fut_oi_data = {
+                            "oi":     _oi_int,
+                            "oi_chg": _oi_chg,
+                            "signal": _signal,
+                            "ltp":    round(_ltp_val, 2) if _ltp_val else None,
+                        }
+                    break
+    except Exception:
+        pass
+
     # ── Auto scenario determination ───────────────────────────────────────────
     scenario = "unknown"
     if open_data and orb_data:
@@ -966,6 +1032,7 @@ def get_trade_flow():
         "nifty_ltp":     effective_ltp,
         "scenario":      scenario,
         "oi_sentiment":  oi_sentiment,
+        "fut_oi":        fut_oi_data,
     }
 
 
@@ -2179,6 +2246,41 @@ def _fetch_iv_sync() -> dict:
         "vix_gap":     vix_gap,
         "as_of":       now_ist.strftime("%H:%M"),
     }
+
+
+@app.get("/fut-oi")
+def get_fut_oi():
+    """Lightweight endpoint returning NIFTY near-month futures OI + intraday signal."""
+    try:
+        _s = smart or _get_smart()
+        _ft = im.get_nifty_futures_token()
+        if not _ft or not _s:
+            return {"error": "Futures token unavailable"}
+        _r = _s.getMarketData("FULL", {"NFO": [str(_ft)]})
+        for _item in (_r or {}).get("data", {}).get("fetched", []):
+            if str(_item.get("symbolToken")) == str(_ft):
+                _oi  = _item.get("opnInterest")
+                _ltp = _item.get("ltp")
+                if not _oi:
+                    return {"error": "No OI data"}
+                _oi_int  = int(float(_oi))
+                _base_oi = trade_flow_data.get("prev_fut_oi")
+                _oi_chg  = (_oi_int - _base_oi) if _base_oi else None
+                _prev_c  = (trade_flow_data.get("prev_ohlc") or {}).get("close")
+                _ltp_val = float(_ltp) if _ltp else None
+                _price_up = (_ltp_val > _prev_c) if (_ltp_val and _prev_c) else None
+                _oi_up    = (_oi_chg > 0)        if _oi_chg is not None else None
+                _signal   = None
+                if _price_up is not None and _oi_up is not None:
+                    if   _price_up and _oi_up:      _signal = "long_buildup"
+                    elif not _price_up and _oi_up:  _signal = "short_buildup"
+                    elif _price_up and not _oi_up:  _signal = "short_covering"
+                    else:                           _signal = "long_unwinding"
+                return {"oi": _oi_int, "oi_chg": _oi_chg, "signal": _signal,
+                        "ltp": round(_ltp_val, 2) if _ltp_val else None}
+        return {"error": "Token not found in response"}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/iv")

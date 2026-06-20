@@ -83,6 +83,17 @@ class AIService {
         }
     }
 
+    // Futures OI — near-month NIFTY futures open interest + intraday signal
+    async getFutOI() {
+        try {
+            const res = await axios.get(`${AI_ENGINE_URL}/fut-oi`, { timeout: 8000 });
+            return res.data;
+        } catch (err) {
+            console.error("Fut OI error:", err.message);
+            return { error: "engine unreachable" };
+        }
+    }
+
     // Auto-fetch GIFT Nifty proxy from engine (WebSocket LTP or yfinance fallback)
     async fetchGiftNifty() {
         try {

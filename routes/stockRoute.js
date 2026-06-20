@@ -260,6 +260,17 @@ router.get("/trade-flow", async (req, res) => {
   }
 });
 
+// ─── GET /api/fut-oi ─────────────────────────────────────────────────────────
+// NIFTY near-month futures OI + intraday 4-quadrant signal
+router.get("/fut-oi", async (req, res) => {
+  try {
+    const data = await aiService.getFutOI();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/fetch-gift-nifty ───────────────────────────────────────────────
 // Auto-fetch GIFT Nifty proxy — tries live WebSocket price, then yfinance
 router.get("/fetch-gift-nifty", async (req, res) => {
