@@ -5,7 +5,7 @@
 **Admin CMS:** `public/mgmt/learn-admin.html`  
 **Legacy pages (kept but no longer linked from nav):** `public/learn_dashboard.html`, `public/learn_technical.html`, `public/learn_quiz.html`, `public/learn_ch_ta_1.html` … `learn_ch_ta_10.html`  
 **Deprecated (for removal):** `public/training/learn_home.html`, `public/training/learn_m1_l1.html`, `public/training/learn_m1_l2.html`, `public/training/learn_m1_l3.html`  
-**Last updated:** 2026-05-27
+**Last updated:** 2026-06-20
 
 ---
 
@@ -111,6 +111,26 @@ Chapters (`learn_ch_ta_*.html`) are written fully in Tamil — no EN toggle need
 ## learn-sidebar.js
 
 Shared sidebar used across all chapter pages. Renders chapter list with completion indicators, "next chapter" navigation, and a "back to dashboard" link. Reads progress from the same `'tz_learn'` localStorage key.
+
+---
+
+## learn/index.html redesign (2026-06-20)
+
+`public/learn/index.html` was fully redesigned from a flat catalog list to a modern dashboard layout targeting youngsters and homemakers.
+
+**New layout:**
+- **Welcome row** — time-of-day greeting + XP badge
+- **Progress row** — three stat cards: 🔥 Day Streak | ✅ Completed | ⭐ XP Earned
+- **Continue card** — shows first unpublished+undone lesson; says "Start Here" if no progress, "Continue →" if some done
+- **All Courses grid** — 2-column colorful subject cards; each card has icon, title, progress bar, lesson list rows
+
+**Key behaviours:**
+- Streak: computed on page load from `last_active` / `streak` fields in `tz_learn` localStorage (backward compatible with legacy `chapters_done` field)
+- Theme: syncs to `halo-theme` key (not `tz_theme`) to stay in sync with halo-aurora.js
+- Lang: reads current lang from `document.documentElement.getAttribute('lang')` set by halo-aurora.js; no toggle button on this page
+- Subject colours cycle through a 6-colour PALETTE array
+- Draft lessons show with a 🔒 lock icon and `is-draft` class (not clickable)
+- Catalog API: tries `/api/learn/catalog` first, falls back to `/learn/catalog.json`
 
 ---
 

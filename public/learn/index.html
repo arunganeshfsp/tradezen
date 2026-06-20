@@ -10,328 +10,613 @@
   <link rel="stylesheet" href="/halo-aurora/css/halo-aurora.css" />
 
   <style>
-    body { min-height: 100vh; background: var(--tz-bg); color: var(--tz-fg-1); padding: 0; }
-    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(50% 40% at 10% 10%, rgba(124,106,247,0.13) 0%, transparent 60%), radial-gradient(50% 40% at 90% 90%, rgba(91,138,245,0.11) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Top bar */
-    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(var(--tz-bg-rgb, 10,10,15), 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--tz-border); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 14px; }
+    body {
+      min-height: 100vh;
+      background: var(--tz-bg);
+      color: var(--tz-fg-1);
+      font-family: var(--tz-font-ui);
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(65% 55% at 0% 0%, rgba(124,106,247,.16) 0%, transparent 55%),
+        radial-gradient(45% 45% at 100% 100%, rgba(91,138,245,.13) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(6,7,15,.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--tz-border);
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; gap: 14px;
+    }
     .topbar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .topbar .brand .wordmark { font-family: var(--tz-font-display); font-size: 17px; letter-spacing: -0.02em; color: var(--tz-fg-1); font-weight: 400; }
+    .topbar .brand .wordmark { font-family: var(--tz-font-display); font-size: 17px; letter-spacing: -.02em; color: var(--tz-fg-1); font-weight: 400; }
     .topbar .brand .wordmark em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-    .topbar .back-link { font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--tz-fg-3); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 180ms; padding: 4px 0; }
-    .topbar .back-link:hover { color: var(--tz-fg-1); }
     .topbar .sep { width: 1px; height: 18px; background: var(--tz-border); flex-shrink: 0; }
+    .topbar .back-link { font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: .08em; color: var(--tz-fg-3); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 180ms; }
+    .topbar .back-link:hover { color: var(--tz-fg-1); }
     .topbar .spacer { flex: 1; }
-    #themeToggle { background: none; border: 1px solid var(--tz-border); border-radius: 999px; padding: 6px 14px; font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--tz-fg-2); cursor: pointer; transition: border-color 180ms, color 180ms; }
+    #themeToggle { background: none; border: 1px solid var(--tz-border); border-radius: 999px; padding: 5px 14px; font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: .1em; color: var(--tz-fg-2); cursor: pointer; transition: border-color 180ms, color 180ms; }
     #themeToggle:hover { border-color: var(--tz-accent-1); color: var(--tz-fg-1); }
 
-    /* Page layout */
-    .page-wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+    /* ── PAGE WRAP ── */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 36px 24px 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
 
-    /* Hero */
-    .hero { margin-bottom: 48px; }
-    .hero .eyebrow { font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--tz-accent-1); margin-bottom: 10px; }
-    .hero h1 { font-family: var(--tz-font-display); font-size: clamp(28px, 4vw, 40px); font-weight: 400; letter-spacing: -0.02em; color: var(--tz-fg-1); margin: 0 0 12px; line-height: 1.15; }
-    .hero h1 em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero .sub { font-family: var(--tz-font-ui); font-size: 14.5px; color: var(--tz-fg-2); max-width: 560px; line-height: 1.65; }
-    .hero .stats-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-    .hero .stat-chip { padding: 8px 16px; background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-lg); display: flex; align-items: center; gap: 8px; }
-    .hero .stat-chip .k { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--tz-fg-3); }
-    .hero .stat-chip .v { font-family: var(--tz-font-mono); font-size: 15px; font-weight: 700; color: var(--tz-fg-1); }
-    .hero .stat-chip .v.accent { color: var(--tz-accent-1); }
-    .hero .stat-chip .v.gain { color: var(--tz-gain); }
+    /* ── WELCOME ── */
+    .welcome-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .welcome-text .eyebrow {
+      font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--tz-accent-1); margin-bottom: 9px;
+    }
+    .welcome-text h1 {
+      font-family: var(--tz-font-display);
+      font-size: clamp(26px, 3.8vw, 38px);
+      font-weight: 400; letter-spacing: -.025em; line-height: 1.12; color: var(--tz-fg-1);
+    }
+    .welcome-text h1 em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .welcome-text .sub { font-size: 14px; color: var(--tz-fg-2); margin-top: 8px; line-height: 1.55; max-width: 520px; }
+    .welcome-xp-badge {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: 999px;
+      background: rgba(124,106,247,.12);
+      border: 1px solid rgba(124,106,247,.3);
+      font-family: var(--tz-font-mono); font-size: 12px; font-weight: 600; color: var(--tz-accent-1);
+    }
 
-    /* Loading */
-    #loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 260px; gap: 14px; }
-    #loading-state .spinner { width: 32px; height: 32px; border: 2.5px solid var(--tz-border); border-top-color: var(--tz-accent-1); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    #loading-state .msg { font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--tz-fg-3); text-transform: uppercase; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ── PROGRESS CARDS ── */
+    .progress-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .prog-card {
+      background: var(--tz-surface);
+      border: 1px solid var(--tz-border);
+      border-radius: 20px;
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color .2s, transform .15s;
+    }
+    .prog-card:hover { border-color: var(--tz-border-strong); transform: translateY(-1px); }
+    .prog-card .pc-icon { font-size: 30px; line-height: 1; flex-shrink: 0; }
+    .prog-card .pc-info { display: flex; flex-direction: column; gap: 3px; }
+    .prog-card .pc-label { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--tz-fg-3); }
+    .prog-card .pc-val { font-family: var(--tz-font-mono); font-size: 24px; font-weight: 700; color: var(--tz-fg-1); line-height: 1; }
+    .prog-card .pc-val.fire  { color: #fb923c; }
+    .prog-card .pc-val.gain  { color: var(--tz-gain); }
+    .prog-card .pc-val.xp    { color: var(--tz-accent-1); }
 
-    /* Error */
-    #error-state { display: none; padding: 28px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--tz-radius-xl); text-align: center; }
-    #error-state .icon { font-size: 32px; margin-bottom: 10px; }
-    #error-state p { font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-2); margin: 0; }
+    /* ── CONTINUE CARD ── */
+    .continue-card {
+      display: flex; align-items: center; gap: 20px;
+      padding: 22px 26px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(124,106,247,.14) 0%, rgba(91,138,245,.09) 100%);
+      border: 1px solid rgba(124,106,247,.32);
+      text-decoration: none;
+      transition: border-color .2s, transform .18s;
+    }
+    .continue-card:hover { border-color: rgba(124,106,247,.6); transform: translateY(-2px); }
+    .cc-icon { font-size: 38px; flex-shrink: 0; }
+    .cc-body { flex: 1; min-width: 0; }
+    .cc-badge {
+      display: inline-block;
+      font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--tz-accent-1);
+      background: rgba(124,106,247,.1); border: 1px solid rgba(124,106,247,.28);
+      padding: 3px 9px; border-radius: 999px; margin-bottom: 7px;
+    }
+    .cc-title { font-family: var(--tz-font-display); font-size: 18px; font-weight: 400; letter-spacing: -.01em; color: var(--tz-fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cc-meta  { font-family: var(--tz-font-mono); font-size: 11px; color: var(--tz-fg-3); margin-top: 5px; }
+    .cc-cta {
+      flex-shrink: 0;
+      background: var(--tz-grad);
+      color: #fff;
+      font-family: var(--tz-font-mono); font-size: 12px; font-weight: 600;
+      padding: 11px 22px; border-radius: 12px; white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(124,106,247,.35);
+    }
 
-    /* Subject sections */
-    .subject-section { margin-bottom: 40px; }
-    .subject-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--tz-border); }
-    .subject-header .icon { font-size: 22px; line-height: 1; }
-    .subject-header h2 { font-family: var(--tz-font-display); font-size: 20px; font-weight: 400; letter-spacing: -0.01em; color: var(--tz-fg-1); margin: 0; }
-    .subject-header h2 span.ta { display: none; }
-    .subject-header .lesson-count { margin-left: auto; font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--tz-fg-3); }
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--tz-fg-3);
+    }
+
+    /* ── SUBJECTS GRID ── */
+    .subjects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+
+    /* ── SUBJECT CARD ── */
+    .subj-card {
+      border-radius: 22px;
+      border: 1px solid var(--tz-border);
+      background: var(--tz-surface);
+      overflow: hidden;
+      transition: border-color .2s, transform .18s;
+    }
+    .subj-card:hover { transform: translateY(-3px); }
+    .subj-card-head { padding: 22px 24px 18px; }
+    .subj-icon-wrap {
+      width: 52px; height: 52px;
+      border-radius: 15px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; margin-bottom: 14px; flex-shrink: 0;
+    }
+    .subj-title {
+      font-family: var(--tz-font-display); font-size: 18px;
+      font-weight: 400; letter-spacing: -.01em; color: var(--tz-fg-1);
+      line-height: 1.2; margin-bottom: 5px;
+    }
+    .subj-meta { font-family: var(--tz-font-mono); font-size: 10.5px; color: var(--tz-fg-3); }
+    .subj-progress-area { margin-top: 14px; }
+    .subj-prog-bar { height: 5px; background: rgba(255,255,255,.07); border-radius: 3px; overflow: hidden; }
+    .subj-prog-fill { height: 100%; border-radius: 3px; transition: width .6s ease; min-width: 0; }
+    .subj-prog-label { font-family: var(--tz-font-mono); font-size: 9.5px; color: var(--tz-fg-3); margin-top: 5px; }
+
+    /* ── LESSON ROWS INSIDE CARD ── */
+    .subj-lessons { border-top: 1px solid var(--tz-border); }
+    .lp-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 24px;
+      position: relative;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .lp-row + .lp-row { border-top: 1px solid var(--tz-border); }
+    .lp-row.is-pub { cursor: pointer; }
+    .lp-row.is-pub:hover { background: var(--tz-surface-2); }
+    .lp-row.is-draft { opacity: .52; cursor: not-allowed; }
+    .lp-emoji { font-size: 16px; flex-shrink: 0; line-height: 1; }
+    .lp-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 500; color: var(--tz-fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-done { color: var(--tz-gain); font-size: 13px; flex-shrink: 0; }
+    .lp-xp   { font-family: var(--tz-font-mono); font-size: 9.5px; color: var(--tz-accent-1); flex-shrink: 0; }
+    .lp-lock { font-size: 11px; color: var(--tz-fg-3); flex-shrink: 0; }
 
     /* Empty subject */
-    .empty-subject { padding: 24px; border: 1px dashed var(--tz-border); border-radius: var(--tz-radius-xl); text-align: center; }
-    .empty-subject p { font-family: var(--tz-font-ui); font-size: 13px; color: var(--tz-fg-3); margin: 0; }
+    .subj-empty {
+      padding: 26px 24px;
+      border-top: 1px solid var(--tz-border);
+      text-align: center;
+    }
+    .subj-empty-icon { font-size: 28px; margin-bottom: 8px; opacity: .5; }
+    .subj-empty-txt { font-family: var(--tz-font-mono); font-size: 10.5px; letter-spacing: .1em; color: var(--tz-fg-3); text-transform: uppercase; }
 
-    /* Module block */
-    .module-block { background: var(--tz-surface); border: 1px solid var(--tz-border); border-radius: var(--tz-radius-xl); overflow: hidden; margin-bottom: 14px; }
-    .module-header { padding: 14px 18px; border-bottom: 1px solid var(--tz-border); display: flex; align-items: center; gap: 10px; }
-    .module-header .m-label { font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--tz-fg-3); }
-    .module-header .m-title { font-family: var(--tz-font-ui); font-size: 14px; font-weight: 600; color: var(--tz-fg-1); }
-    .module-header .m-title span.ta { display: none; }
+    /* ── LOADING / ERROR ── */
+    #loading-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 260px; gap: 14px;
+    }
+    #loading-state .spinner {
+      width: 32px; height: 32px;
+      border: 2.5px solid var(--tz-border);
+      border-top-color: var(--tz-accent-1);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    #loading-state .msg { font-family: var(--tz-font-mono); font-size: 11px; letter-spacing: .16em; color: var(--tz-fg-3); text-transform: uppercase; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #error-state {
+      display: none;
+      padding: 28px;
+      background: rgba(248,113,113,.07);
+      border: 1px solid rgba(248,113,113,.3);
+      border-radius: 20px;
+      text-align: center;
+    }
+    #error-state .eicon { font-size: 28px; margin-bottom: 8px; }
+    #error-state p { font-size: 13px; color: var(--tz-fg-2); margin: 0; }
 
-    /* Lesson rows */
-    .lesson-list { padding: 8px 0; }
-    .lesson-row { display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-radius: 0; transition: background 150ms var(--tz-ease-out); position: relative; }
-    .lesson-row:hover { background: var(--tz-surface-2); }
-    .lesson-row + .lesson-row { border-top: 1px solid var(--tz-border); }
-    .lesson-row .l-num { font-family: var(--tz-font-mono); font-size: 11px; color: var(--tz-fg-3); width: 22px; text-align: center; flex-shrink: 0; }
-    .lesson-row .l-emoji { font-size: 18px; line-height: 1; flex-shrink: 0; }
-    .lesson-row .l-body { flex: 1; min-width: 0; }
-    .lesson-row .l-title { font-family: var(--tz-font-ui); font-size: 13.5px; font-weight: 600; color: var(--tz-fg-1); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .lesson-row .l-title span.ta { display: none; }
-    .lesson-row .l-meta { font-family: var(--tz-font-mono); font-size: 10.5px; color: var(--tz-fg-3); margin-top: 2px; }
-    .lesson-row .l-tags { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    /* ── DISCLAIMER ── */
+    .learn-disclaimer {
+      font-family: var(--tz-font-mono); font-size: 10px;
+      color: var(--tz-fg-3); text-align: center; opacity: .6; line-height: 1.65;
+    }
 
-    /* Tags */
-    .tag { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--tz-border); color: var(--tz-fg-3); white-space: nowrap; }
-    .tag.published { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.35); color: var(--tz-gain); }
-    .tag.draft { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.3); color: #f59e0b; }
-    .tag.xp { background: rgba(var(--tz-accent-rgb), 0.1); border-color: var(--tz-border-accent); color: var(--tz-accent-1); }
+    /* ── LIGHT THEME OVERRIDES ── */
+    [data-bs-theme="light"] body { background: #f4f5f9; color: #1a1d2e; }
+    [data-bs-theme="light"] body::before {
+      background:
+        radial-gradient(65% 55% at 0% 0%, rgba(124,106,247,.07) 0%, transparent 55%),
+        radial-gradient(45% 45% at 100% 100%, rgba(91,138,245,.06) 0%, transparent 55%);
+    }
+    [data-bs-theme="light"] .topbar { background: rgba(244,245,249,.92); border-bottom-color: rgba(0,0,0,.08); }
+    [data-bs-theme="light"] .prog-card,
+    [data-bs-theme="light"] .subj-card { background: #ffffff; border-color: rgba(0,0,0,.09); }
+    [data-bs-theme="light"] .prog-card:hover { border-color: rgba(0,0,0,.18); }
+    [data-bs-theme="light"] .subj-lessons { border-top-color: rgba(0,0,0,.08); }
+    [data-bs-theme="light"] .lp-row + .lp-row { border-top-color: rgba(0,0,0,.06); }
+    [data-bs-theme="light"] .subj-prog-bar { background: rgba(0,0,0,.08); }
+    [data-bs-theme="light"] .lp-row.is-pub:hover { background: #f8f9fc; }
+    [data-bs-theme="light"] .subj-card-head { color: #1a1d2e; }
+    [data-bs-theme="light"] .cc-title,
+    [data-bs-theme="light"] .subj-title { color: #1a1d2e; }
+    [data-bs-theme="light"] .lp-title { color: #1a1d2e; }
+    [data-bs-theme="light"] .welcome-text h1 { color: #1a1d2e; }
 
-    /* Lesson link overlay — for published only */
-    .lesson-row.is-published { cursor: pointer; }
-    .lesson-row.is-published .l-open { font-family: var(--tz-font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--tz-fg-3); flex-shrink: 0; opacity: 0; transition: opacity 180ms; }
-    .lesson-row.is-published:hover .l-open { opacity: 1; }
-    .lesson-row.is-draft { opacity: 0.6; cursor: not-allowed; }
-    a.row-link { position: absolute; inset: 0; display: block; text-decoration: none; }
-
-    /* XP summary in module header */
-    .module-header .m-xp { margin-left: auto; font-family: var(--tz-font-mono); font-size: 10px; color: var(--tz-fg-3); }
-
-    /* Responsive */
-    @media (max-width: 575px) {
-      .page-wrap { padding: 24px 14px 60px; }
-      .topbar { padding: 0 14px; }
-      .lesson-row .l-tags { display: none; }
-      .hero .stats-row { gap: 8px; }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .subjects-grid { grid-template-columns: 1fr; }
+      .cc-cta { display: none; }
+      .page-wrap { padding: 24px 16px 60px; gap: 22px; }
+    }
+    @media (max-width: 480px) {
+      .progress-row { gap: 8px; }
+      .prog-card { padding: 14px 12px; gap: 10px; }
+      .prog-card .pc-icon { font-size: 24px; }
+      .prog-card .pc-val { font-size: 20px; }
+      .welcome-row { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top bar -->
-  <header class="topbar">
-    <a href="/index.html" class="brand">
-      <img src="/app-icon.svg" width="28" height="28" alt="TradeZen" style="border-radius:7px;flex-shrink:0" data-app-logo />
-      <span class="wordmark">Trade<em>Zen</em></span>
-    </a>
-    <div class="sep"></div>
-    <a href="/index.html" class="back-link">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Dashboard
-    </a>
-    <div class="spacer"></div>
-    <button id="themeToggle">☀ Light</button>
-  </header>
+<!-- Topbar -->
+<header class="topbar">
+  <a href="/index.html" class="brand">
+    <img src="/app-icon.svg" width="28" height="28" alt="TradeZen" style="border-radius:7px;flex-shrink:0" data-app-logo />
+    <span class="wordmark">Trade<em>Zen</em></span>
+  </a>
+  <div class="sep"></div>
+  <a href="/index.html" class="back-link">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Dashboard
+  </a>
+  <div class="spacer"></div>
+  <button id="themeToggle">☀ Light</button>
+</header>
 
-  <main class="page-wrap">
+<main class="page-wrap">
 
-    <!-- Hero -->
-    <section class="hero">
+  <!-- Welcome -->
+  <div class="welcome-row">
+    <div class="welcome-text">
       <p class="eyebrow" data-en="TradeZen Learn" data-ta="TradeZen கற்றல்">TradeZen Learn</p>
-      <h1>Invest. Trade. <em>Grow.</em></h1>
-      <p class="sub" data-en="From money mindset to market mastery — lessons covering personal finance, stock investing, fundamental analysis, and trading built for the Indian market. Earn XP and build real financial knowledge." data-ta="பணம் பற்றிய மனநிலையிலிருந்து சந்தை தேர்ச்சி வரை — தனிப்பட்ட நிதி, பங்கு முதலீடு, அடிப்படை பகுப்பாய்வு மற்றும் வர்த்தகம் — இந்திய சந்தைக்காக உருவாக்கப்பட்டது. XP சம்பாதிக்கவும், உண்மையான நிதி அறிவை வளர்க்கவும்.">
-        From money mindset to market mastery — lessons covering personal finance, stock investing, fundamental analysis, and trading built for the Indian market. Earn XP and build real financial knowledge.
+      <h1 id="greeting-h1">Learn. Invest. <em>Grow.</em></h1>
+      <p class="sub" data-en="Build real financial knowledge — one lesson at a time. Master the Indian market at your own pace." data-ta="உண்மையான நிதி அறிவை வளர்க்கவும் — ஒரு பாடம் ஒரு நேரம். இந்திய சந்தையை உங்கள் சொந்த வேகத்தில் கற்றுக்கொள்ளுங்கள்.">
+        Build real financial knowledge — one lesson at a time. Master the Indian market at your own pace.
       </p>
-      <div class="stats-row" id="stats-row">
-        <!-- populated by JS -->
+    </div>
+    <div class="welcome-xp-badge" id="xp-badge" style="display:none">
+      ⭐ <span id="xp-badge-val">0</span> XP
+    </div>
+  </div>
+
+  <!-- Progress stat cards -->
+  <div class="progress-row">
+    <div class="prog-card">
+      <span class="pc-icon">🔥</span>
+      <div class="pc-info">
+        <span class="pc-label" data-en="Day Streak" data-ta="தொடர்ச்சி">Day Streak</span>
+        <span class="pc-val fire" id="stat-streak">0</span>
       </div>
-    </section>
-
-    <!-- Loading -->
-    <div id="loading-state">
-      <div class="spinner"></div>
-      <p class="msg">Loading catalog…</p>
     </div>
-
-    <!-- Error -->
-    <div id="error-state">
-      <div class="icon">⚠</div>
-      <p>Could not load catalog. Is the server running?</p>
+    <div class="prog-card">
+      <span class="pc-icon">✅</span>
+      <div class="pc-info">
+        <span class="pc-label" data-en="Completed" data-ta="முடிந்தவை">Completed</span>
+        <span class="pc-val gain" id="stat-done">0</span>
+      </div>
     </div>
+    <div class="prog-card">
+      <span class="pc-icon">⭐</span>
+      <div class="pc-info">
+        <span class="pc-label" data-en="XP Earned" data-ta="XP சம்பாதித்தது">XP Earned</span>
+        <span class="pc-val xp" id="stat-xp">0</span>
+      </div>
+    </div>
+  </div>
 
-    <!-- Catalog tree -->
-    <div id="catalog-tree" style="display:none;"></div>
+  <!-- Continue learning (injected by JS) -->
+  <div id="continue-slot"></div>
 
-  </main>
+  <!-- Loading -->
+  <div id="loading-state">
+    <div class="spinner"></div>
+    <p class="msg">Loading your courses…</p>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/halo-aurora/js/halo-aurora.js"></script>
-  <script>
-    // ── Theme toggle ──────────────────────────────────────────────────────────
-    const themeBtn = document.getElementById('themeToggle');
-    function applyTheme(t) {
-      document.documentElement.setAttribute('data-bs-theme', t);
-      themeBtn.textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
-      localStorage.setItem('tz_theme', t);
-    }
-    themeBtn.addEventListener('click', () => {
-      applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
-    });
-    applyTheme(localStorage.getItem('tz_theme') || 'dark');
+  <!-- Error -->
+  <div id="error-state">
+    <div class="eicon">⚠</div>
+    <p>Could not load courses. Is the server running?</p>
+  </div>
 
-    // ── Lang helpers ──────────────────────────────────────────────────────────
-    let currentLang = localStorage.getItem('tz_lang') || 'en';
-    function applyLang() {
-      document.querySelectorAll('[data-en]').forEach(el => {
-        el.textContent = currentLang === 'ta' ? (el.dataset.ta || el.dataset.en) : el.dataset.en;
-      });
-      document.querySelectorAll('.ta').forEach(el => {
-        el.style.display = currentLang === 'ta' ? '' : 'none';
-      });
-      document.querySelectorAll('.en-only').forEach(el => {
-        el.style.display = currentLang === 'ta' ? 'none' : '';
-      });
-    }
+  <!-- Subjects label + grid -->
+  <p class="section-label" id="courses-label" style="display:none" data-en="All Courses" data-ta="அனைத்து பாடங்கள்">All Courses</p>
+  <div id="subjects-grid" class="subjects-grid" style="display:none;"></div>
 
-    // ── Escape ────────────────────────────────────────────────────────────────
-    function esc(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-    function t(obj) {
-      return esc(currentLang === 'ta' && obj.ta ? obj.ta : obj.en);
-    }
+  <!-- Disclaimer -->
+  <p class="learn-disclaimer">
+    For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+  </p>
 
-    // ── Stats ─────────────────────────────────────────────────────────────────
-    function buildStats(catalog) {
-      let totalPublished = 0, totalDraft = 0, totalXP = 0;
-      catalog.subjects.forEach(s => s.modules.forEach(m => m.lessons.forEach(l => {
-        if (l.status === 'published') { totalPublished++; totalXP += l.xp || 0; }
-        else totalDraft++;
-      })));
-      const lsData = JSON.parse(localStorage.getItem('tz_learn') || '{}');
-      const done = (lsData.lessons_done || []).length;
-      return `
-        <div class="stat-chip"><span class="k">Published</span><span class="v gain">${totalPublished}</span></div>
-        <div class="stat-chip"><span class="k">Draft</span><span class="v">${totalDraft}</span></div>
-        <div class="stat-chip"><span class="k">XP Pool</span><span class="v accent">${totalXP}</span></div>
-        <div class="stat-chip"><span class="k">Completed</span><span class="v">${done}</span></div>
-      `;
-    }
+</main>
 
-    // ── Lesson row ────────────────────────────────────────────────────────────
-    function lessonRow(lesson, modId) {
-      const isPub = lesson.status === 'published';
-      const lsData = JSON.parse(localStorage.getItem('tz_learn') || '{}');
-      const isDone = (lsData.lessons_done || []).includes(lesson.id);
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/halo-aurora/js/halo-aurora.js"></script>
+<script>
+// ── Theme ────────────────────────────────────────────────────────────────────
+// halo-aurora.js uses 'halo-theme' key and handles [data-theme-toggle] buttons.
+// We keep our own text-based button synced to the same key.
+const themeBtn = document.getElementById('themeToggle');
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-bs-theme', t);
+  themeBtn.textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+  try { localStorage.setItem('halo-theme', t); } catch (_) {}
+}
+themeBtn.addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+});
+// halo-aurora.js already ran and set data-bs-theme from halo-theme; just sync the button label.
+(function () {
+  const saved = (() => { try { return localStorage.getItem('halo-theme'); } catch (_) { return null; } })();
+  const cur = saved || document.documentElement.getAttribute('data-bs-theme') || 'dark';
+  themeBtn.textContent = cur === 'dark' ? '☀ Light' : '☾ Dark';
+})();
 
-      const doneIcon = isDone ? '<span style="color:var(--tz-gain);font-size:13px;">✓</span>' : '';
+// ── Lang ─────────────────────────────────────────────────────────────────────
+// halo-aurora.js handles [data-en] static elements via 'halo-lang' key.
+// Dynamic renders (catalog cards) read currentLang at render time.
+function getCurrentLang() {
+  return document.documentElement.getAttribute('lang') || 'en';
+}
+let currentLang = getCurrentLang();
 
-      return `
-        <div class="lesson-row ${isPub ? 'is-published' : 'is-draft'}" data-id="${esc(lesson.id)}">
-          ${isPub ? `<a class="row-link" href="/learn/lesson.html?id=${esc(lesson.id)}"></a>` : ''}
-          <span class="l-num">${lesson.order}</span>
-          <span class="l-emoji">${lesson.emoji || '📄'}</span>
-          <div class="l-body">
-            <div class="l-title">
-              <span class="en-only">${esc(lesson.title.en)}</span>
-              <span class="ta" style="display:none;">${esc(lesson.title.ta || lesson.title.en)}</span>
-              ${doneIcon}
-            </div>
-            <div class="l-meta">${lesson.duration_min || '?'} min · ${lesson.quiz_count || 0} quizzes · ${lesson.level || 'beginner'}</div>
-          </div>
-          <div class="l-tags">
-            <span class="tag ${lesson.status}">${lesson.status}</span>
-            <span class="tag xp">+${lesson.xp} XP</span>
-            ${isPub ? '<span class="l-open">Open →</span>' : ''}
-          </div>
-        </div>
-      `;
-    }
+function t(obj) {
+  const lang = getCurrentLang();
+  const s = (lang === 'ta' && obj && obj.ta) ? obj.ta : (obj && obj.en ? obj.en : String(obj || ''));
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-    // ── Module block ──────────────────────────────────────────────────────────
-    function moduleBlock(mod) {
-      const totalXP = mod.lessons.reduce((s, l) => s + (l.xp || 0), 0);
-      return `
-        <div class="module-block">
-          <div class="module-header">
-            <span class="m-label">${esc(mod.id.toUpperCase())}</span>
-            <span class="m-title">
-              <span class="en-only">${esc(mod.title.en)}</span>
-              <span class="ta" style="display:none;">${esc(mod.title.ta || mod.title.en)}</span>
-            </span>
-            <span class="m-xp">Pool: ${totalXP} XP</span>
-          </div>
-          <div class="lesson-list">
-            ${mod.lessons.map(l => lessonRow(l, mod.id)).join('')}
-          </div>
-        </div>
-      `;
-    }
+// ── Subject colour palette ────────────────────────────────────────────────────
+const PALETTE = [
+  { bg:'rgba(52,211,153,.12)',  border:'rgba(52,211,153,.25)',  icon:'rgba(52,211,153,.18)',  fill:'#34d399' },
+  { bg:'rgba(96,165,250,.12)',  border:'rgba(96,165,250,.25)',  icon:'rgba(96,165,250,.18)',  fill:'#60a5fa' },
+  { bg:'rgba(167,139,250,.12)', border:'rgba(167,139,250,.25)', icon:'rgba(167,139,250,.18)', fill:'#a78bfa' },
+  { bg:'rgba(251,146,60,.12)',  border:'rgba(251,146,60,.25)',  icon:'rgba(251,146,60,.18)',  fill:'#fb923c' },
+  { bg:'rgba(251,191,36,.12)',  border:'rgba(251,191,36,.25)',  icon:'rgba(251,191,36,.18)',  fill:'#fbbf24' },
+  { bg:'rgba(236,72,153,.12)',  border:'rgba(236,72,153,.25)',  icon:'rgba(236,72,153,.18)',  fill:'#ec4899' },
+];
 
-    // ── Subject section ───────────────────────────────────────────────────────
-    function subjectSection(subject) {
-      const total = subject.modules.reduce((s, m) => s + m.lessons.length, 0);
-      const inner = subject.modules.length === 0
-        ? `<div class="empty-subject"><p>No modules yet — coming soon.</p></div>`
-        : subject.modules.map(m => moduleBlock(m)).join('');
+// ── Local progress store ──────────────────────────────────────────────────────
+function getProgress() {
+  try { return JSON.parse(localStorage.getItem('tz_learn') || '{}'); } catch { return {}; }
+}
+function saveProgress(p) { localStorage.setItem('tz_learn', JSON.stringify(p)); }
 
-      return `
-        <section class="subject-section">
-          <div class="subject-header">
-            <span class="icon">${subject.icon}</span>
-            <h2>
-              <span class="en-only">${esc(subject.title.en)}</span>
-              <span class="ta" style="display:none;">${esc(subject.title.ta || subject.title.en)}</span>
-            </h2>
-            ${total > 0 ? `<span class="lesson-count">${total} lesson${total !== 1 ? 's' : ''}</span>` : ''}
-          </div>
-          ${inner}
-        </section>
-      `;
-    }
+function computeStreak() {
+  const p = getProgress();
+  const today = new Date().toISOString().split('T')[0];
+  const last  = p.last_active || null;
+  let streak  = p.streak || 0;
 
-    // ── Render catalog ────────────────────────────────────────────────────────
-    function renderCatalog(catalog) {
-      document.getElementById('loading-state').style.display = 'none';
-      document.getElementById('stats-row').innerHTML = buildStats(catalog);
-      const tree = document.getElementById('catalog-tree');
-      tree.innerHTML = catalog.subjects.map(s => subjectSection(s)).join('');
-      tree.style.display = '';
-      applyLang();
-    }
+  if (last === today) {
+    // already active today — streak unchanged
+  } else if (last) {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    streak = (last === yesterday) ? streak + 1 : 1;
+  } else {
+    streak = 1;
+  }
+  p.last_active = today;
+  p.streak = streak;
+  saveProgress(p);
+  return streak;
+}
 
-    // ── Normalize catalog titles (handles plain strings from DB or {en,ta} objects) ──
-    function normalizeCatalog(catalog) {
-      function loc(v) {
-        if (v && typeof v === 'object') return v;
-        const s = String(v || '');
-        return { en: s, ta: s };
+function computeXP(catalog) {
+  const done = getProgress().lessons_done || [];
+  let xp = 0;
+  (catalog.subjects || []).forEach(s =>
+    s.modules.forEach(m =>
+      m.lessons.forEach(l => { if (done.includes(l.id)) xp += (l.xp || 0); })
+    )
+  );
+  return xp;
+}
+
+// ── Greeting ──────────────────────────────────────────────────────────────────
+function renderGreeting() {
+  const h = new Date().getHours();
+  const greetings = {
+    en: h < 12 ? 'Good morning! 👋' : h < 17 ? 'Good afternoon! 👋' : 'Good evening! 👋',
+    ta: h < 12 ? 'காலை வணக்கம்! 👋' : h < 17 ? 'மதிய வணக்கம்! 👋' : 'மாலை வணக்கம்! 👋',
+  };
+  const g = document.getElementById('greeting-h1');
+  if (!g) return;
+  const greet = currentLang === 'ta' ? greetings.ta : greetings.en;
+  g.innerHTML = `${esc(greet)} <em>${currentLang === 'ta' ? 'கற்போம்.' : 'Let\'s learn.'}</em>`;
+}
+
+// ── Stats bar ─────────────────────────────────────────────────────────────────
+function renderStats(catalog) {
+  const done   = getProgress().lessons_done || [];
+  const streak = computeStreak();
+  const xp     = computeXP(catalog);
+
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('stat-done').textContent   = done.length;
+  document.getElementById('stat-xp').textContent     = xp;
+
+  const xpBadge = document.getElementById('xp-badge');
+  const xpVal   = document.getElementById('xp-badge-val');
+  if (xp > 0) { xpVal.textContent = xp; xpBadge.style.display = 'flex'; }
+}
+
+// ── Continue card ─────────────────────────────────────────────────────────────
+function renderContinue(catalog) {
+  const done = getProgress().lessons_done || [];
+  let nextLesson = null, nextSubject = null;
+
+  outer:
+  for (const s of catalog.subjects) {
+    for (const m of s.modules) {
+      for (const l of m.lessons) {
+        if (l.status === 'published' && !done.includes(l.id)) {
+          nextLesson  = l;
+          nextSubject = s;
+          break outer;
+        }
       }
-      (catalog.subjects || []).forEach(s => {
-        s.title = loc(s.title);
-        (s.modules || []).forEach(m => {
-          m.title = loc(m.title);
-          (m.lessons || []).forEach(l => { l.title = loc(l.title); });
-        });
-      });
-      return catalog;
     }
+  }
 
-    // ── Boot ──────────────────────────────────────────────────────────────────
-    function showError() {
-      document.getElementById('loading-state').style.display = 'none';
-      document.getElementById('error-state').style.display = '';
-    }
-    function loadStatic() {
-      fetch('/learn/catalog.json')
-        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(c => renderCatalog(normalizeCatalog(c)))
-        .catch(showError);
-    }
-    fetch('/api/learn/catalog')
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(c => renderCatalog(normalizeCatalog(c)))
-      .catch(loadStatic);
+  const slot = document.getElementById('continue-slot');
+  if (!nextLesson) { slot.innerHTML = ''; return; }
 
-    // ── Sync lang from halo-aurora.js ─────────────────────────────────────────
-    document.addEventListener('tz-lang-change', e => {
-      currentLang = e.detail?.lang || 'en';
-      applyLang();
+  const lang  = getCurrentLang();
+  const label = done.length > 0 ? (lang === 'ta' ? 'தொடர்க' : 'CONTINUE') : (lang === 'ta' ? 'தொடங்கு' : 'START HERE');
+  const cta   = done.length > 0 ? (lang === 'ta' ? 'தொடரவும் →' : 'Continue →') : (lang === 'ta' ? 'தொடங்கு →' : 'Begin →');
+
+  slot.innerHTML = `
+    <a class="continue-card" href="/learn/lesson.html?id=${esc(nextLesson.id)}">
+      <span class="cc-icon">${esc(nextLesson.emoji || '📖')}</span>
+      <div class="cc-body">
+        <span class="cc-badge">${esc(label)}</span>
+        <div class="cc-title">${t(nextLesson.title)}</div>
+        <div class="cc-meta">${nextLesson.duration_min || '?'} min · ${nextLesson.quiz_count || 0} quizzes · +${nextLesson.xp || 0} XP · ${esc(nextLesson.level || 'beginner')}</div>
+      </div>
+      <span class="cc-cta">${esc(cta)}</span>
+    </a>
+  `;
+}
+
+// ── Lesson row inside subject card ────────────────────────────────────────────
+function lessonRow(lesson) {
+  const isPub = lesson.status === 'published';
+  const done  = getProgress().lessons_done || [];
+  const isDone = done.includes(lesson.id);
+  const titleText = t(lesson.title);
+  const inner = `
+    <span class="lp-emoji">${lesson.emoji || '📄'}</span>
+    <span class="lp-title">${titleText}</span>
+    ${isDone ? '<span class="lp-done">✓</span>' : ''}
+    <span class="lp-xp">+${lesson.xp || 0} XP</span>
+    ${!isPub ? '<span class="lp-lock">🔒</span>' : ''}
+  `;
+  if (isPub) {
+    return `<a class="lp-row is-pub" href="/learn/lesson.html?id=${esc(lesson.id)}">${inner}</a>`;
+  }
+  return `<div class="lp-row is-draft">${inner}</div>`;
+}
+
+// ── Subject card ──────────────────────────────────────────────────────────────
+function subjCard(subject, idx) {
+  const pal  = PALETTE[idx % PALETTE.length];
+  const done = getProgress().lessons_done || [];
+
+  const allLessons = subject.modules.flatMap(m => m.lessons);
+  const pubLessons = allLessons.filter(l => l.status === 'published');
+  const doneCount  = pubLessons.filter(l => done.includes(l.id)).length;
+  const pct        = pubLessons.length > 0 ? Math.round(doneCount / pubLessons.length * 100) : 0;
+  const totalXP    = allLessons.reduce((s, l) => s + (l.xp || 0), 0);
+
+  const lang  = getCurrentLang();
+  const metaParts = [];
+  if (allLessons.length > 0) metaParts.push(`${allLessons.length} lesson${allLessons.length !== 1 ? 's' : ''}`);
+  if (totalXP > 0) metaParts.push(`${totalXP} XP`);
+  const meta = metaParts.length ? metaParts.join(' · ') : (lang === 'ta' ? 'விரைவில் வரும்' : 'Coming soon');
+
+  const progressLabel = pubLessons.length > 0
+    ? `${doneCount} / ${pubLessons.length} ${lang === 'ta' ? 'முடிந்தவை' : 'done'}`
+    : '';
+
+  let lessonsHtml = '';
+  if (allLessons.length > 0) {
+    const rows = allLessons.map(l => lessonRow(l)).join('');
+    lessonsHtml = `<div class="subj-lessons">${rows}</div>`;
+  } else {
+    lessonsHtml = `
+      <div class="subj-empty">
+        <div class="subj-empty-icon">🚧</div>
+        <div class="subj-empty-txt" data-en="Coming soon" data-ta="விரைவில் வரும்">Coming soon</div>
+      </div>`;
+  }
+
+  return `
+    <div class="subj-card" style="border-color:${pal.border}">
+      <div class="subj-card-head">
+        <div class="subj-icon-wrap" style="background:${pal.icon}">${esc(subject.icon)}</div>
+        <div class="subj-title">${t(subject.title)}</div>
+        <div class="subj-meta">${esc(meta)}</div>
+        ${pubLessons.length > 0 ? `
+        <div class="subj-progress-area">
+          <div class="subj-prog-bar">
+            <div class="subj-prog-fill" style="width:${pct}%;background:${pal.fill}"></div>
+          </div>
+          <div class="subj-prog-label">${esc(progressLabel)}</div>
+        </div>` : ''}
+      </div>
+      ${lessonsHtml}
+    </div>
+  `;
+}
+
+// ── Normalize catalog titles ──────────────────────────────────────────────────
+function normalizeCatalog(catalog) {
+  function loc(v) {
+    if (v && typeof v === 'object') return v;
+    const s = String(v || '');
+    return { en: s, ta: s };
+  }
+  (catalog.subjects || []).forEach(s => {
+    s.title = loc(s.title);
+    (s.modules || []).forEach(m => {
+      m.title = loc(m.title);
+      (m.lessons || []).forEach(l => { l.title = loc(l.title); });
     });
-    setTimeout(applyLang, 0);
-  </script>
+  });
+  return catalog;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(catalog) {
+  document.getElementById('loading-state').style.display = 'none';
+
+  renderGreeting();
+  renderStats(catalog);
+  renderContinue(catalog);
+
+  const grid = document.getElementById('subjects-grid');
+  grid.innerHTML = catalog.subjects.map((s, i) => subjCard(s, i)).join('');
+  grid.style.display = 'grid';
+  document.getElementById('courses-label').style.display = '';
+
+}
+
+function showError() {
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('error-state').style.display = '';
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+renderGreeting();
+
+fetch('/api/learn/catalog')
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(c => render(normalizeCatalog(c)))
+  .catch(() => {
+    fetch('/learn/catalog.json')
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(c => render(normalizeCatalog(c)))
+      .catch(showError);
+  });
+
+</script>
 </body>
 </html>
