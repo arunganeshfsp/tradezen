@@ -16,42 +16,22 @@
   const LS_THEME = 'halo-theme';
   const LS_LANG  = 'halo-lang';
 
-  // ── Theme ────────────────────────────────────────────────────
+  // ── Theme — light theme disabled pending redesign, always dark ──────────
   function setTheme(mode) {
     root.setAttribute('data-bs-theme', mode);
-    root.setAttribute('data-theme', mode);         // backward compat with theme.css
-    try {
-      localStorage.setItem(LS_THEME, mode);
-      localStorage.setItem('tz_theme', mode);      // keep old key in sync
-    } catch (_) {}
+    root.setAttribute('data-theme', mode);
+    try { localStorage.removeItem(LS_THEME); localStorage.removeItem('tz_theme'); } catch (_) {}
     document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
-      btn.querySelectorAll('[data-icon]').forEach(function (i) {
-        i.style.display = i.dataset.icon === mode ? 'none' : 'inline-flex';
-      });
-      btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light' : 'Switch to dark');
+      btn.style.display = 'none';
     });
     document.querySelectorAll('[data-app-logo]').forEach(function (img) {
-      img.src = mode === 'light' ? '/favicon-light.svg' : '/favicon.svg';
+      img.src = '/favicon.svg';
     });
   }
+  setTheme('dark');
 
-  var savedTheme = (function () {
-    try { return localStorage.getItem(LS_THEME) || localStorage.getItem('tz_theme'); } catch (_) { return null; }
-  })();
-  setTheme(savedTheme || 'dark');
-
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-theme-toggle]');
-    if (!btn) return;
-    var cur = root.getAttribute('data-bs-theme') || 'dark';
-    setTheme(cur === 'dark' ? 'light' : 'dark');
-  });
-
-  // Backward compat: pages using onclick="toggleTheme()"
-  window.toggleTheme = function () {
-    var cur = root.getAttribute('data-bs-theme') || root.getAttribute('data-theme') || 'dark';
-    setTheme(cur === 'dark' ? 'light' : 'dark');
-  };
+  // No-op — light theme disabled pending redesign.
+  window.toggleTheme = function () {};
 
   // ── Language ─────────────────────────────────────────────────
   function setLang(lang) {
@@ -116,6 +96,47 @@
     group.querySelectorAll('.is-active').forEach(function (x) { x.classList.remove('is-active'); });
     chip.classList.add('is-active');
   });
+
+  // ── Auth nav ─────────────────────────────────────────────────
+  function _tzEsc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  window.tzSignOut = function () {
+    try { localStorage.removeItem('tz_learn_token'); localStorage.removeItem('tz_learn_user'); } catch (_) {}
+    window.location.href = '/learn/auth.html';
+  };
+
+  function _renderHaloAuthBtn() {
+    var existing = document.getElementById('tz-auth-btn');
+    if (existing) existing.remove();
+
+    var token = null, user = null;
+    try { token = localStorage.getItem('tz_learn_token'); } catch (_) {}
+    try { user  = JSON.parse(localStorage.getItem('tz_learn_user') || 'null'); } catch (_) {}
+
+    var slot = document.createElement('span');
+    slot.id = 'tz-auth-btn';
+    slot.style.cssText = 'display:flex;align-items:center;gap:6px';
+
+    if (token && user) {
+      var name = _tzEsc((user.display_name || user.email || 'Account').split(' ')[0]);
+      slot.innerHTML =
+        '<span style="font-family:var(--tz-font-mono);font-size:10.5px;color:var(--tz-fg-2)">👤 ' + name + '</span>' +
+        '<button onclick="tzSignOut()" style="font-family:var(--tz-font-mono);font-size:10.5px;color:var(--tz-fg-3);background:none;border:1px solid var(--tz-border);border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap">Sign Out</button>';
+    } else {
+      slot.innerHTML =
+        '<a href="/learn/auth.html" style="font-family:var(--tz-font-mono);font-size:10.5px;color:var(--tz-fg-2);text-decoration:none;border:1px solid var(--tz-border);border-radius:8px;padding:4px 12px;white-space:nowrap;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--tz-border-strong)\'" onmouseout="this.style.borderColor=\'var(--tz-border)\'">Sign In</a>';
+    }
+
+    // Insert before the last item in the halo navbar actions row
+    var navActions = document.querySelector('.halo-navbar .d-flex:last-child');
+    if (navActions) {
+      navActions.insertBefore(slot, navActions.lastElementChild);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', _renderHaloAuthBtn);
 
   // ── Favicon ───────────────────────────────────────────────────
   if (!document.querySelector('link[rel~="icon"]')) {
