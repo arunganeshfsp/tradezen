@@ -1,6 +1,8 @@
 (function () {
   // ── Theme ──────────────────────────────────────────────────────────────
-  var _theme = localStorage.getItem('tz_theme') || 'dark';
+  // Light theme disabled — pending redesign. Always dark.
+  var _theme = 'dark';
+  localStorage.removeItem('tz_theme');
   document.documentElement.setAttribute('data-theme', _theme);
 
   function _applyIconTheme(mode) {
@@ -9,13 +11,8 @@
     });
   }
 
-  window.toggleTheme = function () {
-    var cur  = document.documentElement.getAttribute('data-theme') || 'dark';
-    var next = cur === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('tz_theme', next);
-    document.documentElement.setAttribute('data-theme', next);
-    _applyIconTheme(next);
-  };
+  // No-op — light theme disabled pending redesign.
+  window.toggleTheme = function () {};
 
   // ── Language ───────────────────────────────────────────────────────────
   var _lang = localStorage.getItem('tz_lang') || 'en';
@@ -59,6 +56,8 @@
   // ── Inject lang button + apply lang on DOMContentLoaded ────────────────
   document.addEventListener('DOMContentLoaded', function () {
     _applyIconTheme(_theme);
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.style.display = 'none';
     var navR = document.querySelector('.nav-r');
     if (navR && !document.getElementById('langToggle')) {
       var btn = document.createElement('button');

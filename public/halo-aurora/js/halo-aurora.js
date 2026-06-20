@@ -16,25 +16,16 @@
   const LS_LANG  = 'halo-lang';
 
   // ── Theme ────────────────────────────────────────────────────
+  // Light theme disabled — pending redesign. Always dark.
   function setTheme(mode) {
     root.setAttribute('data-bs-theme', mode);
     try { localStorage.setItem(LS_THEME, mode); } catch (_) {}
     document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
-      btn.querySelectorAll('[data-icon]').forEach(i => {
-        i.style.display = i.dataset.icon === mode ? 'none' : 'inline-flex';
-      });
-      btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light' : 'Switch to dark');
+      btn.style.display = 'none';
     });
   }
-  const savedTheme = (() => { try { return localStorage.getItem(LS_THEME); } catch (_) { return null; } })();
-  setTheme(savedTheme || root.getAttribute('data-bs-theme') || 'dark');
-
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('[data-theme-toggle]');
-    if (!btn) return;
-    const cur = root.getAttribute('data-bs-theme') || 'dark';
-    setTheme(cur === 'dark' ? 'light' : 'dark');
-  });
+  try { localStorage.removeItem(LS_THEME); } catch (_) {}
+  setTheme('dark');
 
   // ── Language ─────────────────────────────────────────────────
   function setLang(lang) {

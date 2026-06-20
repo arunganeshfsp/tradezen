@@ -276,7 +276,7 @@
     Dashboard
   </a>
   <div class="spacer"></div>
-  <button id="themeToggle">☀ Light</button>
+  <button id="themeToggle" style="display:none">☀ Light</button>
 </header>
 
 <main class="page-wrap">
@@ -349,24 +349,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/halo-aurora/js/halo-aurora.js"></script>
 <script>
-// ── Theme ────────────────────────────────────────────────────────────────────
-// halo-aurora.js uses 'halo-theme' key and handles [data-theme-toggle] buttons.
-// We keep our own text-based button synced to the same key.
-const themeBtn = document.getElementById('themeToggle');
-function applyTheme(t) {
-  document.documentElement.setAttribute('data-bs-theme', t);
-  themeBtn.textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
-  try { localStorage.setItem('halo-theme', t); } catch (_) {}
-}
-themeBtn.addEventListener('click', () => {
-  applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
-});
-// halo-aurora.js already ran and set data-bs-theme from halo-theme; just sync the button label.
-(function () {
-  const saved = (() => { try { return localStorage.getItem('halo-theme'); } catch (_) { return null; } })();
-  const cur = saved || document.documentElement.getAttribute('data-bs-theme') || 'dark';
-  themeBtn.textContent = cur === 'dark' ? '☀ Light' : '☾ Dark';
-})();
+// ── Theme — halo-aurora.js handles this; button hidden pending light redesign.
 
 // ── Lang ─────────────────────────────────────────────────────────────────────
 // halo-aurora.js handles [data-en] static elements via 'halo-lang' key.
