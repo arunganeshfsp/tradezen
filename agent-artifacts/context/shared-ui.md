@@ -1,7 +1,7 @@
 # Context: shared-ui
 
 **Files:** `public/css/halo-tokens.css`, `public/css/halo-aurora.css`, `public/css/light-theme.css`, `public/halo-aurora.js`, `public/theme.js`, `public/theme.css`, `public/tradezen.css`  
-**Last updated:** 2026-06-19
+**Last updated:** 2026-06-21
 
 ---
 
@@ -186,6 +186,32 @@ document.addEventListener('click', e => {
 - Max 10 results shown
 - Arrow ↑↓ to navigate, Enter to pick, Escape to dismiss
 - `onmousedown` + `preventDefault()` on items prevents the input losing focus before the click registers
+
+---
+
+## Dark-Theme Enhancement Layer (section 16, halo-aurora.css)
+
+Added in 2026-06-21. All new utilities live at the bottom of `public/css/halo-aurora.css`.
+
+| Utility | CSS selector | Effect |
+|---|---|---|
+| Full-page grid | `body { background-image }` | 56px repeating grid lines (0.022 opacity), `fixed` attachment. Disabled in light mode. |
+| Tool card glow hover | `.tool-card:hover` | Accent-colour box-shadow ring + soft glow |
+| Featured card border | `.tool-card.is-featured::after` | 2px gradient hairline at card top via `::after` pseudo-element |
+| Strategy card glows | `.kf-card:hover`, `.orca-card:hover`, etc. | Per-card colour-matched box-shadow glow |
+| Lucide sizing | `.tool-icon svg`, `.strategy-icon svg` | Forces 20px / 26px on Lucide-generated SVGs |
+| Skeleton shimmer | `.sk-line`, `.sk-card` | `tz-shimmer` keyframe; use with inline `style` for width/height per placeholder |
+| Glow numbers | `.num-glow-accent`, `.num-glow-gain`, `.num-glow-loss` | `text-shadow` in accent / gain / loss colours |
+
+**Lucide icons (index.html):** Loaded from `unpkg.com/lucide@latest`. All 10 tool-card `<svg>` elements replaced with `<i data-lucide="...">`. All 5 strategy-card `<svg>` icons replaced. `lucide.createIcons({ attrs: { 'stroke-width': '1.5' } })` called before `</body>`. Icon mapping:
+- 01 Trade Flow → `activity` · 02 Options Analysis → `layers` · 03 F&O Scanner → `scan-search`
+- 04 TradeFun → `brain` · 05 Market Movers → `trending-up` · 06 Stock Analyser → `microscope`
+- 07 Trade Player → `play-circle` · 08 Stock Health Story → `heart-pulse`
+- 09 Paper Trading → `monitor-play` · 10 Wealth Time-Lapse → `timer`
+- KingFisher → `zap` · Orca → `compass` · Osprey → `arrow-left-right`
+- Cup & Handle → `coffee` · Reversal → `move-up-right`
+
+**Skeleton loading (stock_reversal.html):** `showState(loading=true)` now shows `#skeletonBox` (3 shimmer cards) instead of spinner. `showState(loading=false)` hides skeleton, shows `#stateBox` text as before. Spinner `<div>` kept in DOM for backward-compat but never shown now.
 
 ---
 

@@ -1088,3 +1088,65 @@ body { overflow-x: hidden; }
   background: rgba(244, 245, 251, 0.97) !important;
   border-bottom-color: var(--border) !important;
 }
+
+/* ============================================================
+   16 · Dark-theme enhancements — grid, glows, skeleton
+   ============================================================ */
+
+/* Full-page subtle grid — extends hero grid pattern to entire page */
+body {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-attachment: fixed;
+}
+[data-bs-theme="light"] body { background-image: none; }
+
+/* Tool card — accent glow on hover */
+.tool-card:hover {
+  box-shadow: 0 0 0 1px rgba(var(--tz-accent-rgb), 0.20),
+              0 8px 32px rgba(var(--tz-accent-rgb), 0.12);
+}
+
+/* Featured card — gradient hairline top border */
+.tool-card.is-featured::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--tz-grad-h);
+  border-radius: var(--tz-radius-xl) var(--tz-radius-xl) 0 0;
+  z-index: 2;
+}
+
+/* Strategy cards — color-specific glow on hover */
+.strategy-card.kf-card:hover     { box-shadow: 0 0 0 1px rgba(124,106,247,.28), 0 12px 40px rgba(124,106,247,.16); }
+.strategy-card.orca-card:hover   { box-shadow: 0 0 0 1px rgba(91,138,245,.28),  0 12px 40px rgba(91,138,245,.16); }
+.strategy-card.osprey-card:hover { box-shadow: 0 0 0 1px rgba(0,212,255,.24),   0 12px 40px rgba(0,212,255,.14); }
+.strategy-card.cup-card:hover    { box-shadow: 0 0 0 1px rgba(16,185,129,.28),  0 12px 40px rgba(16,185,129,.16); }
+.strategy-card.rev-card:hover    { box-shadow: 0 0 0 1px rgba(245,165,36,.28),  0 12px 40px rgba(245,165,36,.16); }
+
+/* Lucide icon sizing — <i data-lucide="..."> becomes <svg> */
+.tool-icon svg     { width: 20px; height: 20px; flex-shrink: 0; }
+.strategy-icon svg { width: 26px; height: 26px; flex-shrink: 0; }
+
+/* Skeleton shimmer — loading placeholder */
+@keyframes tz-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.sk-line {
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%);
+  background-size: 600px 100%;
+  animation: tz-shimmer 1.4s infinite linear;
+}
+[data-bs-theme="light"] .sk-line {
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.11) 50%, rgba(0,0,0,0.06) 75%);
+  background-size: 600px 100%;
+}
+
+/* Glow number utilities — XP, gains, losses */
+.num-glow-accent { color: var(--tz-accent-1); text-shadow: 0 0 20px rgba(var(--tz-accent-rgb), 0.45); }
+.num-glow-gain   { color: var(--tz-gain);     text-shadow: 0 0 18px rgba(52,211,153,0.42); }
+.num-glow-loss   { color: var(--tz-loss);     text-shadow: 0 0 18px rgba(248,113,113,0.42); }

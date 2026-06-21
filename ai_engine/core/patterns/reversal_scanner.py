@@ -88,11 +88,11 @@ def _vol_signal(vol_at_trough: float, vol_base: float, vol_recovery: float) -> s
 
 def scan_reversals(
     universe:     str   = "nifty50",
-    min_decline:  float = 30.0,
+    min_decline:  float = 20.0,
     min_recovery: float = 10.0,
     support_type: str   = "single",
-    min_days:     int   = 40,
-    max_days:     int   = 130,
+    min_days:     int   = 15,
+    max_days:     int   = 150,
     min_price:    Optional[float] = None,
     max_price:    Optional[float] = None,
     sector:       str   = "",
@@ -239,14 +239,16 @@ def scan_reversals(
                     "gap":      f"broke by {((trough_val - post_min) / trough_val * 100):.1f}%",
                 })
 
-            # Structural trend: SMA20 above SMA50 for mature reversals (≥40 days)
-            if days_since_trough >= 40:
+            # Structural trend: SMA20 > SMA50 only required for well-established
+            # reversals (≥70 days). Fresh reversals just need price near SMA20.
+            sma20_above_sma50 = sma20 >= sma50 * 0.97
+            if days_since_trough >= 70:
                 trend_ok = current_price >= sma20 * 0.97 and sma20_above_sma50
             else:
                 trend_ok = current_price >= sma20 * 0.97
 
             if not trend_ok:
-                if days_since_trough >= 40 and not sma20_above_sma50:
+                if days_since_trough >= 70 and not sma20_above_sma50:
                     failures.append({
                         "name":     "Uptrend (SMA20 > SMA50)",
                         "value":    f"SMA20 ₹{sma20:.0f} vs SMA50 ₹{sma50:.0f}",
@@ -269,6 +271,8 @@ def scan_reversals(
                     "gap":      "no confirmed second test",
                 })
 
+            # Volume is informational (shown as badge on card) but not a hard gate —
+            # yfinance volume data is inconsistent enough that failing valid patterns.
             # ── Categorise ─────────────────────────────────────────────────────
             stock_data = {
                 "symbol":            sym,
@@ -374,7 +378,7 @@ def check_single_stock(
     # SMAs
     sma20 = float(close.iloc[-20:].mean())
     sma50 = float(close.iloc[-50:].mean()) if n >= 50 else sma20
-    sma20_above_sma50 = sma20 >= sma50 * 0.99
+    sma20_above_sma50 = sma20 >= sma50 * 0.97
 
     # Volume
     t_s = max(0, trough_iloc - 2)
@@ -403,7 +407,7 @@ def check_single_stock(
     # ── Criteria checklist ────────────────────────────────────────────────────
     age_pass = min_days <= days_since <= max_days
 
-    if days_since >= 40:
+    if days_since >= 70:
         trend_pass = current_price >= sma20 * 0.97 and sma20_above_sma50
     else:
         trend_pass = current_price >= sma20 * 0.97
@@ -442,24 +446,24 @@ def check_single_stock(
             "detail":   f"Lowest close after reversal: ₹{post_min:.2f}",
         },
         {
-            "name":     "Uptrend Confirmed" if days_since < 40 else "Structural Uptrend (SMA20 > SMA50)",
+            "name":     "Uptrend Confirmed" if days_since < 70 else "Structural Uptrend (SMA20 > SMA50)",
             "passed":   trend_pass,
             "value":    (f"₹{current_price:.2f} vs SMA20 ₹{sma20:.2f}"
-                         if days_since < 40
+                         if days_since < 70
                          else f"SMA20 ₹{sma20:.2f} vs SMA50 ₹{sma50:.2f}"),
             "required": ("Current price ≥ SMA20"
-                         if days_since < 40
+                         if days_since < 70
                          else "SMA20 above SMA50 and price above SMA20"),
             "detail":   (f"Price is {'above' if current_price >= sma20 else 'below'} its 20-day average"
-                         if days_since < 40
+                         if days_since < 70
                          else f"SMA20 is {'above' if sma20_above_sma50 else 'below'} SMA50 — "
                               f"{'structural uptrend confirmed' if sma20_above_sma50 else 'short-term MA still below long-term MA'}"),
         },
         {
-            "name":     "Volume Confirmation",
-            "passed":   vsig in ("strong", "moderate"),
+            "name":     "Volume Signal (informational)",
+            "passed":   True,
             "value":    vsig.capitalize(),
-            "required": "Capitulation volume at low or expanding volume on recovery",
+            "required": "Shown for context — not a hard gate",
             "detail":   (
                 "Volume spike at trough and expanding on recovery — strong reversal signal." if vsig == "strong"
                 else "Partial volume confirmation — either capitulation or recovery expansion, not both." if vsig == "moderate"
