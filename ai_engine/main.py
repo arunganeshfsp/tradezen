@@ -3850,6 +3850,165 @@ def swing_reversal_scan(capital: float = 75000, risk_pct: float = 2,
 # Cup & Handle Pattern Detection endpoints
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ── Extended universes (fallback lists; live data fetched from NSE when available)
+_CH_MIDCAP150_FALLBACK: list = [
+    "ABFRL","AIAENG","ALKEM","APLAPOLLO","APOLLOTYRE",
+    "BALRAMCHIN","BATAINDIA","BHARATFORG","BLUESTARINDIA","CANFINHOME",
+    "CESC","CHOLAFIN","COFORGE","CROMPTON","CYIENT",
+    "DALBHARAT","DEEPAKNTR","DIXON","EMAMILTD","FEDERALBNK",
+    "GLENMARK","GRANULES","HAPPSTMNDS","HDFCAMC","IDFCFIRSTB",
+    "INDIAMART","INTELLECT","IPCA","IPCALAB","JKCEMENT",
+    "JINDALSAW","JSPL","JUBLFOOD","KALYANKJIL","KPITTECH",
+    "LAURUSLABS","LICHSGFIN","LALPATHLAB","LTTS","MUTHOOTFIN",
+    "MANAPPURAM","MASTEK","MAXHEALTH","METROPOLIS","MFSL",
+    "NATCOPHARM","NAVINFLUOR","NHPC","NYKAA","OBEROIRLTY",
+    "OLECTRA","PAGEIND","PERSISTENT","PIRAMALENT","POLICYBZR",
+    "RAMCOCEM","RATEGAIN","RBLBANK","REDINGTON","RVNL",
+    "SJVN","SONATSOFTW","SUZLON","SYNGENE","TATACOMM",
+    "TATAELXSI","TATATECH","TITAGARH","VGUARD","VOLTAS",
+    "WELCORP","ZENSARTECH","SCHAEFFLER","SUNDARMFIN","UNOMINDA",
+    "TRIDENT","UTIAMC","MCX","DELHIVERY","KAYNES",
+]
+
+_CH_SMALLCAP250_FALLBACK: list = [
+    "AJANTPHARM","ALKYLAMINE","ANGELONE","ATUL","AVANTIFEED",
+    "BALAMINES","BEML","BIRLACORPN","BSOFT","CAMS",
+    "CAPLIPOINT","CARBORUNIV","CENTURYPLY","CLEAN","CRAFTSMAN",
+    "ECLERX","ENDURANCE","EPIGRAL","EQUITAS","FINEORG",
+    "FINOLEXCAB","FORCEMOT","GALAXYSURF","GNFC","GRINDWELL",
+    "GSPL","HAPPEMIND","IIFLWAM","ISGEC","JBCHEPHARM",
+    "JKPAPER","KAJARIACER","KANSAINER","KIMS","KIRLOSENG",
+    "LATENTVIEW","LUXIND","MAHINDCIE","MCX","MSTC",
+    "NAZARA","NOCIL","NUVOCO","PAYTM","RADICO",
+    "RAILTEL","REPCO","ROUTE","SAFARI","SJVN",
+    "SOLARINDS","SPANDANA","SUNTECK","SUPRAJIT","TEAMLEASE",
+    "TIMKEN","TINPLATE","TRIDENT","UJJIVANSFB","UTIAMC",
+    "VINATIORGA","WABAG","WESTLIFE","MOIL","NBCC",
+    "ANUPAM","DIXON","IEX","HFCL","INOXWIND",
+]
+
+_CH_SECTORS: dict = {
+    "banks": [
+        "HDFCBANK","ICICIBANK","SBIN","KOTAKBANK","AXISBANK",
+        "BAJFINANCE","BAJAJFINSV","INDUSINDBK","BANKBARODA","CANBK",
+        "PNB","UNIONBANK","FEDERALBNK","IDFCFIRSTB","BANDHANBNK",
+        "RBLBANK","CHOLAFIN","SHRIRAMFIN","MUTHOOTFIN","MANAPPURAM",
+        "LICHSGFIN","PNBHOUSING","RECLTD","PFC","HDFCLIFE",
+        "SBILIFE","ICICIPRULI","LICI","CANFINHOME","MFSL",
+        "EQUITAS","UJJIVANSFB","SPANDANA","REPCO","IIFLWAM",
+    ],
+    "it": [
+        "TCS","INFY","WIPRO","HCLTECH","TECHM",
+        "LTIM","LTTS","MPHASIS","COFORGE","PERSISTENT",
+        "OFSS","KPITTECH","TATAELXSI","MASTEK","BSOFT",
+        "RATEGAIN","ZENSARTECH","SONATSOFTW","CYIENT","HEXAWARE",
+        "INTELLECT","HAPPSTMNDS","LATENTVIEW","TATATECH","REDINGTON",
+        "ECLERX","ROUTE","NAZARA","IEX",
+    ],
+    "pharma": [
+        "SUNPHARMA","DRREDDY","CIPLA","DIVISLAB","LUPIN",
+        "AUROPHARMA","ABBOTINDIA","ALKEM","TORNTPHARM","IPCA",
+        "BIOCON","GRANULES","NATCOPHARM","LAURUSLABS","GLENMARK",
+        "APOLLOHOSP","FORTIS","METROPOLIS","LALPATHLAB","AJANTPHARM",
+        "JBCHEPHARM","CAPLIPOINT","MAXHEALTH","IPCALAB","SYNGENE",
+        "SUPRIYA","AVANTIFEED",
+    ],
+    "metals": [
+        "TATASTEEL","JSWSTEEL","HINDALCO","VEDL","COALINDIA",
+        "NMDC","SAIL","HINDZINC","NATIONALUM","HINDCOPPER",
+        "WELCORP","APLAPOLLO","RATNAMANI","JSPL","JINDALSAW",
+        "NAVINFLUOR","DEEPAKNTR","TINPLATE","MOIL","JSL",
+        "CARBORUNIV","GRINDWELL","TIMKEN","SCHAEFFLER",
+    ],
+    "auto": [
+        "MARUTI","TATAMOTORS","BAJAJ-AUTO","HEROMOTOCO","EICHERMOT",
+        "M&M","ASHOKLEY","TVSMOTOR","MRF","BALKRISIND",
+        "MOTHERSON","BOSCHLTD","BHARATFORG","ENDURANCE","CEATLTD",
+        "TIINDIA","APOLLOTYRE","CRAFTSMAN","MAHINDCIE","OLECTRA",
+        "FORCEMOT","UNOMINDA","SUPRAJIT","SAFARI",
+    ],
+    "fmcg": [
+        "HINDUNILVR","ITC","NESTLEIND","BRITANNIA","DABUR",
+        "MARICO","GODREJCP","EMAMILTD","COLPAL","TATACONSUM",
+        "RADICO","VBL","UBL","DMART","PAGEIND",
+        "BATAINDIA","LUXIND","DEVYANI","WESTLIFE","JUBLFOOD",
+        "AVANTIFEED","BALRAMCHIN",
+    ],
+    "energy": [
+        "RELIANCE","ONGC","BPCL","IOC","HPCL",
+        "POWERGRID","NTPC","ADANIPOWER","TATAPOWER","ADANIGREEN",
+        "TORNTPOWER","CESC","GAIL","PETRONET","IGL",
+        "MGL","ATGL","GSPL","SUZLON","NHPC",
+        "SJVN","SOLARINDS","INOXWIND","HFCL",
+    ],
+    "chemicals": [
+        "UPL","PIDILITIND","AARTIIND","DEEPAKNTR","NAVINFLUOR",
+        "ALKYLAMINE","CLEAN","VINATIORGA","ATUL","NOCIL",
+        "TATACHEM","GNFC","PIIND","FINEORG","EPIGRAL",
+        "GALAXYSURF","BALAMINES","ANUPAM","SRF","GHCL",
+    ],
+    "realty": [
+        "DLF","GODREJPROP","OBEROIRLTY","PRESTIGE","BRIGADE",
+        "SOBHA","SUNTECK","PHOENIXLTD","ANANTRAJ","KOLTEPATIL",
+        "LODHA","NUVOCO","IBREALEST","MAHLIFE",
+    ],
+    "infra": [
+        "LT","ABB","SIEMENS","CUMMINSIND","BHEL",
+        "BEL","HAL","RAILTEL","IRCTC","IRFC",
+        "RVNL","TITAGARH","INDUSTOWER","BHARTIARTL","INDHOTEL",
+        "CONCOR","BEML","ISGEC","PATELENG","WABAG",
+        "NBCC","KAYNES","MSTC",
+    ],
+}
+
+_ch_midcap_cache: list = []
+_ch_midcap_cache_ts = None
+_ch_smallcap_cache: list = []
+_ch_smallcap_cache_ts = None
+
+
+def _get_ch_symbols(universe: str, sector: str, symbols: str) -> list:
+    global _ch_midcap_cache, _ch_midcap_cache_ts, _ch_smallcap_cache, _ch_smallcap_cache_ts
+    from core.swing_analyzer import NIFTY50, NIFTY_NEXT50
+
+    if universe == "watchlist":
+        return [s.strip().upper() for s in symbols.split(",") if s.strip()] if symbols else []
+
+    if universe == "midcap150":
+        now = datetime.utcnow()
+        if not _ch_midcap_cache or not _ch_midcap_cache_ts or (now - _ch_midcap_cache_ts).total_seconds() > 86400:
+            try:
+                _ch_midcap_cache = list(_fetch_nse_index("NIFTY%20MIDCAP%20150", 130))
+                _ch_midcap_cache_ts = now
+            except Exception:
+                _ch_midcap_cache = _CH_MIDCAP150_FALLBACK
+                _ch_midcap_cache_ts = now
+        base_list = _ch_midcap_cache
+
+    elif universe == "smallcap250":
+        now = datetime.utcnow()
+        if not _ch_smallcap_cache or not _ch_smallcap_cache_ts or (now - _ch_smallcap_cache_ts).total_seconds() > 86400:
+            try:
+                _ch_smallcap_cache = list(_fetch_nse_index("NIFTY%20SMALLCAP%20250", 200))
+                _ch_smallcap_cache_ts = now
+            except Exception:
+                _ch_smallcap_cache = _CH_SMALLCAP250_FALLBACK
+                _ch_smallcap_cache_ts = now
+        base_list = _ch_smallcap_cache
+
+    elif universe == "nifty50":
+        base_list = list(NIFTY50)
+    else:
+        base_list = list(NIFTY50) + list(NIFTY_NEXT50)
+
+    if sector and sector in _CH_SECTORS:
+        sector_set = set(_CH_SECTORS[sector])
+        intersection = [s for s in base_list if s in sector_set]
+        return intersection if intersection else _CH_SECTORS[sector]
+
+    return base_list
+
+
 @app.get("/patterns/cup-handle/analyse")
 async def ch_analyse(symbol: str, period: str = "1y"):
     """Analyse a single NSE stock for Cup & Handle pattern (3-stage detection).
@@ -3865,19 +4024,25 @@ async def ch_analyse(symbol: str, period: str = "1y"):
 
 
 @app.get("/patterns/cup-handle/scan")
-async def ch_scan(universe: str = "nifty100", period: str = "1y"):
-    """Scan Nifty50 or Nifty100 for Cup & Handle patterns. Sorted by stage then score.
-    period: 3mo | 6mo | 1y | 2y"""
+async def ch_scan(universe: str = "nifty100", period: str = "1y",
+                  sector: str = "", symbols: str = ""):
+    """Scan for Cup & Handle patterns.
+    universe: nifty50 | nifty100 | midcap150 | smallcap250 | watchlist
+    sector:   banks | it | pharma | metals | auto | fmcg | energy | chemicals | realty | infra
+    symbols:  comma-separated list (used when universe=watchlist)
+    period:   3mo | 6mo | 1y | 2y"""
     from core.patterns.cup_handle import scan as _ch_scan
-    from core.swing_analyzer import NIFTY50, NIFTY_NEXT50
     loop = asyncio.get_event_loop()
-    symbols = NIFTY50 + NIFTY_NEXT50 if universe == "nifty100" else NIFTY50
+    sym_list = _get_ch_symbols(universe, sector, symbols)
+    if not sym_list:
+        return {"count": 0, "scanned": 0, "universe": universe, "sector": sector, "period": period, "results": []}
     try:
-        results = await loop.run_in_executor(None, _ch_scan, symbols, period)
+        results = await loop.run_in_executor(None, _ch_scan, sym_list, period)
         return {
             "count":    len(results),
-            "scanned":  len(symbols),
+            "scanned":  len(sym_list),
             "universe": universe,
+            "sector":   sector,
             "period":   period,
             "results":  results,
         }

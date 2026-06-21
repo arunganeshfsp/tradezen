@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="tutorial-halo.css">
 <script src="theme.js"></script>
+<script src="watchlist.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <style>
@@ -108,6 +109,9 @@ select.inp{cursor:pointer;}
 .vol-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'JetBrains Mono',monospace;border-radius:4px;padding:2px 7px;margin-top:8px;}
 .vol-pill.dry{background:var(--green-bg);color:var(--green);}
 .vol-pill.wet{background:var(--red-bg);color:var(--red);}
+
+.wl-star{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:0 2px;line-height:1;transition:color .15s;flex-shrink:0;}
+.wl-star:hover,.wl-star.active{color:#f5a623;}
 
 .score-bar{height:3px;border-radius:2px;background:var(--bg4);margin-top:8px;overflow:hidden;}
 .score-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease;}
@@ -228,12 +232,28 @@ select.inp{cursor:pointer;}
       <span>🔍</span> Analyse
     </button>
     <div class="sep"></div>
-    <select id="universeSelect" class="inp">
+    <select id="universeSelect" class="inp" title="Index universe to scan">
       <option value="nifty50">Nifty 50</option>
-      <option value="nifty100" selected>Nifty 50 + Next 50</option>
+      <option value="nifty100" selected>Nifty 100</option>
+      <option value="midcap150">Midcap 150</option>
+      <option value="smallcap250">Smallcap 250</option>
+      <option value="watchlist">My Watchlist</option>
+    </select>
+    <select id="sectorSelect" class="inp" title="Filter by sector (optional)">
+      <option value="">All Sectors</option>
+      <option value="banks">Banks &amp; Finance</option>
+      <option value="it">IT &amp; Technology</option>
+      <option value="pharma">Pharma</option>
+      <option value="metals">Metals</option>
+      <option value="auto">Auto &amp; EV</option>
+      <option value="fmcg">FMCG &amp; Consumer</option>
+      <option value="energy">Energy</option>
+      <option value="chemicals">Chemicals</option>
+      <option value="realty">Real Estate</option>
+      <option value="infra">Infra &amp; Telecom</option>
     </select>
     <button id="scanBtn" class="btn btn-primary" onclick="startScan()">
-      <span>⚡</span> Scan Universe
+      <span>⚡</span> Scan
     </button>
     <button class="btn btn-secondary" onclick="clearAll()">✕ Clear</button>
   </div>
@@ -448,6 +468,7 @@ function renderSingle(d, fromScan) {
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span style="font-size:22px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;">${d.symbol}</span>
+          <button class="wl-star ${WL.has(d.symbol) ? 'active' : ''}" id="wlstar-hdr-${d.symbol}" onclick="toggleWatchlist('${d.symbol}')" title="Add to watchlist" style="font-size:20px;">${WL.has(d.symbol) ? "★" : "☆"}</button>
           <span style="font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--accent-bg);border:1px solid rgba(124,106,247,0.2);border-radius:5px;padding:2px 8px;color:var(--accent);">${PERIOD_LABEL[period] || period}</span>
         </div>
         <span class="stage-badge ${d.stage}" style="margin-top:6px;">${stageLabel(d.stage)}</span>
@@ -748,32 +769,48 @@ function showReason(key) {
 async function startScan() {
   clearAll();
   const universe = document.getElementById("universeSelect").value;
-  const scanBtn = document.getElementById("scanBtn");
+  const sector   = document.getElementById("sectorSelect").value;
+  const scanBtn  = document.getElementById("scanBtn");
   scanBtn.disabled = true;
   document.getElementById("emptyState").style.display = "none";
 
   const period = getPeriod();
-  const label = universe === "nifty100" ? "Nifty 100" : "Nifty 50";
-  setStatus("scanning", `Scanning ${label} · ${PERIOD_LABEL[period]}… may take 2–3 minutes`);
+  const UNIVERSE_LABEL = { nifty50: "Nifty 50", nifty100: "Nifty 100", midcap150: "Midcap 150", smallcap250: "Smallcap 250", watchlist: "My Watchlist" };
+  const SECTOR_LABEL   = { banks: "Banks", it: "IT", pharma: "Pharma", metals: "Metals", auto: "Auto", fmcg: "FMCG", energy: "Energy", chemicals: "Chemicals", realty: "Realty", infra: "Infra" };
+  const TIMEOUT_MS     = { nifty50: 120000, nifty100: 200000, midcap150: 360000, smallcap250: 600000, watchlist: 120000 };
 
-  // Show loading card
+  // Watchlist guard
+  if (universe === "watchlist" && WL.count() === 0) {
+    setStatus("error", "Watchlist is empty — add stocks using the ★ button on any scan result.");
+    scanBtn.disabled = false;
+    return;
+  }
+
+  const uLabel = UNIVERSE_LABEL[universe] || universe;
+  const sLabel = sector ? ` · ${SECTOR_LABEL[sector] || sector}` : "";
+  const timeHint = universe === "smallcap250" ? "may take 8–10 minutes" : universe === "midcap150" ? "may take 4–5 minutes" : "may take 2–3 minutes";
+  setStatus("scanning", `Scanning ${uLabel}${sLabel} · ${PERIOD_LABEL[period]}… ${timeHint}`);
+
   document.getElementById("scanSection").style.display = "block";
   document.getElementById("cardsGrid").innerHTML = `
     <div style="grid-column:1/-1;text-align:center;padding:3rem;">
       <div class="spinner"></div>
-      <p style="color:var(--muted);font-size:13px;">Fetching 1-year daily data for each stock…</p>
+      <p style="color:var(--muted);font-size:13px;">Fetching daily data for each stock…</p>
     </div>`;
 
+  let url = `${API}/patterns/cup-handle/scan?universe=${universe}&period=${period}`;
+  if (sector) url += `&sector=${sector}`;
+  if (universe === "watchlist") url += `&symbols=${encodeURIComponent(WL.get().join(","))}`;
+
   try {
-    const resp = await fetch(`${API}/patterns/cup-handle/scan?universe=${universe}&period=${period}`, {
-      signal: AbortSignal.timeout(200000),
-    });
+    const resp = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS[universe] || 200000) });
     const data = await resp.json();
 
     if (data.error) throw new Error(data.error);
 
     _allResults = data.results || [];
-    setStatus("done", `Scanned ${data.scanned} stocks — ${data.count} pattern(s) found`);
+    const sectorNote = data.sector ? ` (${SECTOR_LABEL[data.sector] || data.sector})` : "";
+    setStatus("done", `Scanned ${data.scanned} stocks${sectorNote} — ${data.count} pattern(s) found`);
     document.getElementById("filterTabs").style.display = "flex";
     renderCards(_allResults);
   } catch (e) {
@@ -863,7 +900,10 @@ function cardHtml(d) {
         <div class="card-sym">${d.symbol}</div>
         <span class="stage-badge ${d.stage}">${stageLabel(d.stage)}</span>
       </div>
-      <div class="score-circle" style="border-color:${col};color:${col};">${fmt(score, 0)}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="wl-star" id="wlstar-${d.symbol}" onclick="event.stopPropagation();toggleWatchlist('${d.symbol}')" title="Add to watchlist">${WL.has(d.symbol) ? "★" : "☆"}</button>
+        <div class="score-circle" style="border-color:${col};color:${col};">${fmt(score, 0)}</div>
+      </div>
     </div>
 
     <div class="metrics">
@@ -921,6 +961,33 @@ function showCard(symbol) {
 document.getElementById("symInput").addEventListener("keydown", e => {
   if (e.key === "Enter") analyseOne();
 });
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Watchlist                                                                   */
+/* ─────────────────────────────────────────────────────────────────────────── */
+function toggleWatchlist(sym) {
+  WL.toggle(sym);
+  const inWL = WL.has(sym);
+  document.querySelectorAll(`#wlstar-${sym}`).forEach(btn => {
+    btn.textContent = inWL ? "★" : "☆";
+    btn.classList.toggle("active", inWL);
+  });
+  const hdr = document.getElementById("wlstar-hdr-" + sym);
+  if (hdr) { hdr.textContent = inWL ? "★" : "☆"; hdr.classList.toggle("active", inWL); }
+}
+
+// Keep universe dropdown label synced when watchlist changes
+document.addEventListener("tz-wl-change", () => {
+  const sel = document.getElementById("universeSelect");
+  const opt = [...sel.options].find(o => o.value === "watchlist");
+  if (opt) opt.text = `My Watchlist (${WL.count()})`;
+});
+// Init label
+(function() {
+  const sel = document.getElementById("universeSelect");
+  const opt = [...sel.options].find(o => o.value === "watchlist");
+  if (opt && WL.count() > 0) opt.text = `My Watchlist (${WL.count()})`;
+})();
 </script>
 </body>
 </html>
