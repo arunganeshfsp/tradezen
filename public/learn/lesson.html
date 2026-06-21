@@ -25,11 +25,12 @@
     .workspace { position: relative; z-index: 1; width: 100%; max-width: 1280px; padding: 24px; display: grid; gap: 24px; align-items: center; grid-template-columns: 280px minmax(0, 460px) 280px; justify-content: center; min-height: 100vh; }
     @media (max-width: 1199.98px) { .workspace { grid-template-columns: 240px minmax(0, 440px) 240px; gap: 18px; padding: 18px; } }
     @media (max-width: 991.98px)  { .workspace { grid-template-columns: 1fr; max-width: 460px; padding: 24px 12px; } .rail { display: none !important; } }
-    @media (max-width: 575.98px)  { .workspace { padding: 0; align-items: stretch; max-width: none; min-height: 100vh; gap: 0; } }
+    @media (max-width: 575.98px)  { .workspace { padding: 0; align-items: stretch; max-width: none; min-height: 100vh; min-height: 100dvh; gap: 0; } }
 
     /* Stage */
     .stage { position: relative; width: 100%; aspect-ratio: 9 / 16; max-height: calc(100vh - 48px); background: var(--tz-bg-elev); border: 1px solid var(--tz-border); border-radius: 32px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--tz-border); display: flex; flex-direction: column; justify-self: center; }
-    @media (max-width: 575.98px) { .stage { aspect-ratio: auto; height: 100vh; max-height: none; border-radius: 0; border: none; box-shadow: none; } }
+    @media (max-width: 575.98px) { .stage { aspect-ratio: auto; height: 100vh; height: 100dvh; max-height: none; border-radius: 0; border: none; box-shadow: none; } }
+    @media (max-width: 575.98px) { .stage-bottom { bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px)); } }
 
     /* Rail */
     .rail { align-self: stretch; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 48px); overflow-y: auto; scrollbar-width: none; padding: 4px; }
@@ -85,10 +86,11 @@
     .stage .lang-toggle { transform: scale(0.85); transform-origin: right center; }
     .deck { flex: 1; position: relative; overflow: hidden; }
     .deck::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 110px; background: linear-gradient(to bottom, transparent 0%, var(--tz-bg-elev) 100%); pointer-events: none; z-index: 3; }
-    .card-slide { position: absolute; inset: 0; padding: 28px 24px 120px; display: flex; flex-direction: column; opacity: 0; transform: translateX(40px); pointer-events: none; transition: transform 320ms var(--tz-ease-out), opacity 240ms; overflow-y: auto; scrollbar-width: none; }
+    .card-slide { position: absolute; inset: 0; padding: 28px 24px 120px; display: flex; flex-direction: column; opacity: 0; transform: translateX(var(--enter-from,52px)) scale(0.97); pointer-events: none; transition: transform 390ms cubic-bezier(0.16,1,0.3,1), opacity 280ms ease; overflow-y: auto; scrollbar-width: none; will-change: transform, opacity; }
     .card-slide::-webkit-scrollbar { display: none; }
-    .card-slide.is-active { opacity: 1; transform: none; pointer-events: auto; }
-    .card-slide.is-prev   { transform: translateX(-40px); }
+    .card-slide.is-active { opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; }
+    .card-slide.is-prev   { opacity: 0; transform: translateX(var(--exit-to,-52px)) scale(0.97); pointer-events: none; }
+    @media (prefers-reduced-motion: reduce) { .card-slide, .card-slide.is-active, .card-slide.is-prev { transition: opacity 200ms ease; transform: none !important; } }
     .card-level { align-self: flex-start; margin-bottom: 20px; }
     .card-emoji { font-size: 64px; line-height: 1; display: block; margin-bottom: 14px; }
     .visual-hero { font-size: 108px; line-height: 1; text-align: center; flex: 1; display: flex; align-items: center; justify-content: center; }
@@ -683,20 +685,30 @@
           if (!answered) return;
         }
       }
-      cards[current].classList.remove('is-active');
-      cards[current].classList.add('is-prev');
+      const dir = idx > current ? 1 : -1;
+      const leaving = cards[current];
+      const entering = cards[idx];
+
+      leaving.style.setProperty('--exit-to', (dir * -52) + 'px');
+      entering.style.setProperty('--enter-from', (dir * 52) + 'px');
+
+      leaving.classList.remove('is-active');
+      leaving.classList.add('is-prev');
+
       segs[current].classList.remove('is-active');
-      segs[current].classList.add('is-done');
-      if (idx < current) {
-        cards[current].classList.remove('is-prev');
+      if (dir > 0) {
+        segs[current].classList.add('is-done');
+      } else {
         segs[current].classList.remove('is-done');
-        cards[idx].classList.remove('is-prev');
+        for (let i = idx; i < cards.length; i++) segs[i].classList.remove('is-done');
       }
+
+      entering.classList.remove('is-prev');
+      entering.classList.add('is-active');
+      segs[idx].classList.remove('is-done');
+      segs[idx].classList.add('is-active');
+
       current = idx;
-      cards[current].classList.remove('is-prev');
-      cards[current].classList.add('is-active');
-      segs[current].classList.remove('is-done');
-      segs[current].classList.add('is-active');
       prevBtn.disabled = current === 0;
       nextBtn.disabled = false;
       $('cardNum').textContent = current + 1;
@@ -706,6 +718,7 @@
         const j = parseInt(li.dataset.jump, 10) - 1;
         li.classList.toggle('is-active', j === current);
         if (j < current) li.classList.add('is-done');
+        else li.classList.remove('is-done');
       });
       if (current === cards.length - 1) {
         TZTutor.renderResult('#resultCard');
@@ -724,6 +737,28 @@
     outItems.forEach(li => {
       li.addEventListener('click', () => goTo(parseInt(li.dataset.jump, 10) - 1));
     });
+
+    /* touch swipe */
+    let tx0 = 0, ty0 = 0, axis = null;
+    const deck = $('deck');
+    deck.addEventListener('touchstart', e => {
+      tx0 = e.touches[0].clientX;
+      ty0 = e.touches[0].clientY;
+      axis = null;
+    }, { passive: true });
+    deck.addEventListener('touchmove', e => {
+      if (!axis) {
+        const dx = Math.abs(e.touches[0].clientX - tx0);
+        const dy = Math.abs(e.touches[0].clientY - ty0);
+        if (dx > 10 || dy > 10) axis = dx >= dy ? 'h' : 'v';
+      }
+    }, { passive: true });
+    deck.addEventListener('touchend', e => {
+      if (axis !== 'h') return;
+      const delta = e.changedTouches[0].clientX - tx0;
+      if (Math.abs(delta) < 50) return;
+      goTo(delta < 0 ? current + 1 : current - 1);
+    }, { passive: true });
     document.addEventListener('tz-answered', () => {
       const xp  = TZTutor.scoreBook.correct * 10;
       const pct = TZTutor.scoreBook.answered.size

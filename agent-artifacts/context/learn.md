@@ -5,7 +5,7 @@
 **Admin CMS:** `public/mgmt/learn-admin.html`  
 **Legacy pages (kept but no longer linked from nav):** `public/learn_dashboard.html`, `public/learn_technical.html`, `public/learn_quiz.html`, `public/learn_ch_ta_1.html` … `learn_ch_ta_10.html`  
 **Deprecated (for removal):** `public/training/learn_home.html`, `public/training/learn_m1_l1.html`, `public/training/learn_m1_l2.html`, `public/training/learn_m1_l3.html`  
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-21
 
 ---
 
@@ -152,6 +152,27 @@ Shared sidebar used across all chapter pages. Renders chapter list with completi
 - Subject colours cycle through a 6-colour PALETTE array
 - Draft lessons show with a 🔒 lock icon and `is-draft` class (not clickable)
 - Catalog API: tries `/api/learn/catalog` first, falls back to `/learn/catalog.json`
+
+---
+
+## lesson.html — Animation + Mobile CTA fix (2026-06-21)
+
+**What changed:**
+- Card-slide animation upgraded: directional slide+scale (`translateX(var(--enter-from)) scale(0.97)` → `scale(1)`) using CSS custom properties set per-transition in JS. Spring-like cubic-bezier (0.16,1,0.3,1) at 390ms.
+- `is-prev` now also scales down to 0.97 (exit-to custom prop). `prefers-reduced-motion` collapses to opacity-only.
+- `goTo()` in `setupNav` sets `--exit-to` on the leaving card and `--enter-from` on the entering card before class switches. `dir = idx > current ? 1 : -1`. Forward: enter from +52px, exit to -52px. Backward: reversed.
+- Dot progress bar logic improved: backward navigation removes `is-done` from segs at/after the target index.
+- Touch swipe added on `.deck`: `touchstart`/`touchmove`/`touchend` with axis detection (after 10px movement, horizontal if |dx| ≥ |dy|). Swipe ≥ 50px triggers `goTo`. All listeners `passive: true`.
+- Mobile viewport fix: `.stage` height changed from `100vh` to `100vh; height: 100dvh` (dvh fallback-after-vh pattern). `.workspace` min-height same. `dvh` = dynamic viewport that shrinks when browser chrome is visible.
+- Bottom CTA safe-area: mobile media query adds `.stage-bottom { bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px)) }` — keeps Continue button above Android nav bar.
+
+**Why:**
+- On Android Chrome, `100vh` equals viewport-with-browser-chrome-hidden. When the URL bar and system nav bar are visible, the `.stage-bottom` button at `bottom: 16px` inside a `100vh` stage ends up behind or at the very edge of the nav bar. `dvh` tracks the actual visible area.
+- User screenshot showed Continue button as a barely-visible purple sliver at screen bottom.
+
+**Known caveats:**
+- `dvh` is supported Chrome 108+, Firefox 110+, Safari 15.4+. Phones older than ~2022 fall back to `vh` (button may still be clipped on very old devices).
+- `env(safe-area-inset-bottom)` is 0 on Android; non-zero on notched iPhones — the `max()` handles both.
 
 ---
 
