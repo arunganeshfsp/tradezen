@@ -183,10 +183,20 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(50% 40
 .stage .lang-toggle{transform:scale(0.85);transform-origin:right center;}
 .deck{flex:1;position:relative;overflow:hidden;}
 .deck::after{content:'';position:absolute;bottom:0;left:0;right:0;height:110px;background:linear-gradient(to bottom,transparent 0%,var(--tz-bg-elev) 100%);pointer-events:none;z-index:3;}
-.card-slide{position:absolute;inset:0;padding:28px 24px 120px;display:flex;flex-direction:column;opacity:0;transform:translateX(40px);pointer-events:none;transition:transform 320ms var(--tz-ease-out),opacity 240ms;overflow-y:auto;scrollbar-width:none;}
+.card-slide{
+  position:absolute;inset:0;padding:28px 24px 120px;display:flex;flex-direction:column;
+  opacity:0;
+  transform:translateX(var(--enter-from,52px)) scale(0.97);
+  pointer-events:none;
+  transition:transform 390ms cubic-bezier(0.16,1,0.3,1),opacity 280ms ease;
+  overflow-y:auto;scrollbar-width:none;will-change:transform,opacity;
+}
 .card-slide::-webkit-scrollbar{display:none;}
-.card-slide.is-active{opacity:1;transform:none;pointer-events:auto;}
-.card-slide.is-prev{transform:translateX(-40px);}
+.card-slide.is-active{opacity:1;transform:translateX(0) scale(1);pointer-events:auto;}
+.card-slide.is-prev{opacity:0;transform:translateX(var(--exit-to,-52px)) scale(0.97);pointer-events:none;}
+@media(prefers-reduced-motion:reduce){
+  .card-slide,.card-slide.is-active,.card-slide.is-prev{transition:opacity 200ms ease;transform:none!important;}
+}
 .card-level{align-self:flex-start;margin-bottom:20px;}
 .card-emoji{font-size:64px;line-height:1;display:block;margin-bottom:14px;}
 .visual-hero{font-size:108px;line-height:1;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;}
@@ -458,24 +468,52 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(50% 40
   function setupNav(cards){
     const slides=Array.from(document.querySelectorAll('.card-slide')),dotsEl=$('dots'),prevBtn=$('prevBtn'),nextBtn=$('nextBtn');
     const outItems=Array.from(document.querySelectorAll('#outline li[data-jump]'));
+    const deckEl=$('deck');
     let cur=0;
     $('cardTotal').textContent=slides.length;
     slides.forEach((_,i)=>{const seg=document.createElement('div');seg.className='seg'+(i===0?' is-active':'');seg.innerHTML='<div class="fill"></div>';dotsEl.appendChild(seg);});
+
     function goTo(idx){
       if(idx<0||idx>=slides.length)return;
-      const segs=dotsEl.querySelectorAll('.seg');
       if(idx>cur&&slides[cur].dataset.needsAnswer!==undefined&&!slides[cur].querySelector('[data-q][data-locked]'))return;
-      slides[cur].classList.remove('is-active');slides[cur].classList.add('is-prev');segs[cur].classList.remove('is-active');segs[cur].classList.add('is-done');
-      if(idx<cur){slides[cur].classList.remove('is-prev');segs[cur].classList.remove('is-done');slides[idx].classList.remove('is-prev');}
-      cur=idx;slides[cur].classList.remove('is-prev');slides[cur].classList.add('is-active');segs[cur].classList.remove('is-done');segs[cur].classList.add('is-active');
+      const dir=idx>cur?1:-1;
+      const leaving=slides[cur],entering=slides[idx];
+      // Set directional positions via CSS custom properties
+      leaving.style.setProperty('--exit-to',(dir*-52)+'px');
+      entering.style.setProperty('--enter-from',(dir*52)+'px');
+      // Animate out / in
+      leaving.classList.remove('is-active');leaving.classList.add('is-prev');
+      entering.classList.remove('is-prev');entering.classList.add('is-active');
+      // Sync progress dots
+      const segs=dotsEl.querySelectorAll('.seg');
+      segs.forEach((s,i)=>{s.classList.toggle('is-done',i<idx);s.classList.toggle('is-active',i===idx);});
+      cur=idx;
       prevBtn.disabled=cur===0;nextBtn.disabled=false;$('cardNum').textContent=cur+1;
-      outItems.forEach(li=>{const j=parseInt(li.dataset.jump,10)-1;li.classList.toggle('is-active',j===cur);if(j<cur)li.classList.add('is-done');});
+      outItems.forEach(li=>{const j=parseInt(li.dataset.jump,10)-1;li.classList.toggle('is-active',j===cur);li.classList.toggle('is-done',j<cur);});
       if(cur===slides.length-1){TZTutor.renderResult('#resultCard');nextBtn.disabled=true;}
     }
-    prevBtn.addEventListener('click',()=>goTo(cur-1));nextBtn.addEventListener('click',()=>goTo(cur+1));
+
+    prevBtn.addEventListener('click',()=>goTo(cur-1));
+    nextBtn.addEventListener('click',()=>goTo(cur+1));
     document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')goTo(cur+1);if(e.key==='ArrowLeft')goTo(cur-1);});
     outItems.forEach(li=>li.addEventListener('click',()=>goTo(parseInt(li.dataset.jump,10)-1)));
     document.addEventListener('tz-answered',()=>setTimeout(()=>{if(slides[cur].dataset.needsAnswer!==undefined)nextBtn.disabled=false;},300));
+
+    // Touch swipe — horizontal axis detection, 50px threshold
+    let _sx=0,_sy=0,_axis=null;
+    deckEl.addEventListener('touchstart',e=>{_sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_axis=null;},{passive:true});
+    deckEl.addEventListener('touchmove',e=>{
+      if(_axis)return;
+      const dx=Math.abs(e.touches[0].clientX-_sx),dy=Math.abs(e.touches[0].clientY-_sy);
+      if(dx>10||dy>10)_axis=dx>dy?'h':'v';
+    },{passive:true});
+    deckEl.addEventListener('touchend',e=>{
+      if(_axis!=='h')return;
+      const dx=e.changedTouches[0].clientX-_sx;
+      if(Math.abs(dx)<50)return;
+      if(dx<0)goTo(cur+1);else goTo(cur-1);
+      _axis=null;
+    });
   }
 
   function renderLesson(lesson){
