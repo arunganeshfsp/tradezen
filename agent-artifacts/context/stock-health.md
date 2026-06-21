@@ -96,12 +96,19 @@ Each of the 4 metrics contributes max 2.5 points:
 Pattern detected: Peak → significant decline → support touch → 2-month+ sustained recovery.
 
 **User-configurable filters:**
-- Universe: nifty50 (50 stocks) | nifty500 (~250 stocks — Nifty50 + Midcap100 + Smallcap100 combined)
+- Universe: nifty50 / midcap100 / smallcap100 / nifty500 (~250 stocks) / watchlist
 - Price range: optional min/max
-- Min decline %: how far the stock must have fallen from peak (default 30%)
+- Min decline %: how far the stock must have fallen from peak (default **15%**, was 20%)
 - Min recovery %: how far it has recovered from the support (default 10%)
 - Support type: single | double bottom
-- Reversal age: min/max trading days since the trough (default 40–130 days)
+- Reversal age: min/max trading days since the trough (default 15–150 days)
+- **Presets**: Relaxed (12%/7%/10–180d) | Balanced (15%/10%/15–150d) | Strict (25%/15%/20–130d)
+
+**Trough detection (2026-06-21):** Replaced global-min-in-window with local-minima detection (`_find_local_troughs`, order=10). Finds genuine swing lows rather than oldest/deepest point in the window. Falls back to global min if no local trough qualifies. Applied to both `scan_reversals` and `check_single_stock`.
+
+**Data length requirement (2026-06-21):** Changed from `max_days + 60` to `max(180, max_days + 30)` — fewer stocks skipped due to missing data.
+
+**check_single_stock defaults (2026-06-21):** `min_decline` 30→15, `min_days` 40→15, `max_days` 130→150. Now matches scan defaults.
 
 **Performance:** Uses `yf.download()` batch download — one API call for all tickers.  
 Nifty50 ≈ 10s. Nifty500 proxy ≈ 30–60s.

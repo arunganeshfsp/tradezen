@@ -86,9 +86,29 @@ def _vol_signal(vol_at_trough: float, vol_base: float, vol_recovery: float) -> s
     return "weak"
 
 
+def _find_local_troughs(prices_arr, order: int = 10) -> list:
+    """Return sorted 0-based indices of local minima with `order` bars of context on each side.
+    Falls back to global minimum if no local minimum is found.
+    """
+    n = len(prices_arr)
+    raw = []
+    for i in range(order, n - order):
+        lo, hi = max(0, i - order), i + order + 1
+        if prices_arr[i] <= prices_arr[lo:hi].min():
+            raw.append(i)
+    # Within each cluster of nearby raw minima, keep only the deepest
+    deduped = []
+    for idx in raw:
+        if not deduped or idx - deduped[-1] >= order:
+            deduped.append(idx)
+        elif prices_arr[idx] < prices_arr[deduped[-1]]:
+            deduped[-1] = idx
+    return deduped
+
+
 def scan_reversals(
     universe:     str   = "nifty50",
-    min_decline:  float = 20.0,
+    min_decline:  float = 15.0,
     min_recovery: float = 10.0,
     support_type: str   = "single",
     min_days:     int   = 15,
@@ -133,8 +153,7 @@ def scan_reversals(
                 close  = raw["Close"].dropna()
                 volume = raw["Volume"].reindex(close.index).fillna(0)
 
-            # Need max_days trough window + 90 peak window + 50 SMA buffer
-            min_required = max_days + 60
+            min_required = max(180, max_days + 30)
             if len(close) < min_required:
                 continue
 
@@ -145,16 +164,29 @@ def scan_reversals(
             if max_price and current_price > max_price:
                 continue
 
-            # ── Trough in the age window ──────────────────────────────────────
-            lookback_end   = len(close) - min_days
-            lookback_start = max(0, len(close) - max_days)
-            lookback = close.iloc[lookback_start:lookback_end]
-            if len(lookback) < 5:
+            # ── Trough: local-minima detection with global-min fallback ──────
+            look_start  = max(0, len(close) - 200)
+            look_prices = close.iloc[look_start:].values.astype(float)
+            look_offset = look_start
+            n_look = len(look_prices)
+
+            local_troughs = _find_local_troughs(look_prices, order=10)
+            valid = [i for i in local_troughs
+                     if min_days <= (n_look - 1 - i) <= max_days]
+
+            if not valid:
+                # Fallback: global min in the age window
+                w_end   = n_look - min_days
+                w_start = max(0, n_look - max_days)
+                if w_end > w_start:
+                    sub = look_prices[w_start:w_end]
+                    valid = [w_start + int(sub.argmin())]
+            if not valid:
                 continue
 
-            trough_pos_in_lookback = int(lookback.values.argmin())
-            trough_val  = float(lookback.iloc[trough_pos_in_lookback])
-            trough_iloc = lookback_start + trough_pos_in_lookback
+            trough_pos_in_lookback = valid[-1]
+            trough_val  = float(look_prices[trough_pos_in_lookback])
+            trough_iloc = look_offset + trough_pos_in_lookback
 
             # ── Peak: highest close in 90-day window before trough ────────────
             # Bounded to 90 days to avoid ancient peaks inflating decline_pct
@@ -177,7 +209,6 @@ def scan_reversals(
             # SMAs
             sma20 = float(close.iloc[-20:].mean())
             sma50 = float(close.iloc[-50:].mean()) if len(close) >= 50 else sma20
-            sma20_above_sma50 = sma20 >= sma50 * 0.99
 
             # Volume: capitulation at trough + expansion on recovery
             t_s = max(0, trough_iloc - 2)
@@ -325,11 +356,11 @@ def scan_reversals(
 
 def check_single_stock(
     symbol:       str,
-    min_decline:  float = 30.0,
+    min_decline:  float = 15.0,
     min_recovery: float = 10.0,
     support_type: str   = "single",
-    min_days:     int   = 40,
-    max_days:     int   = 130,
+    min_days:     int   = 15,
+    max_days:     int   = 150,
 ) -> dict:
     import yfinance as yf
 
@@ -348,15 +379,27 @@ def check_single_stock(
     current_price = float(close.iloc[-1])
     n             = len(close)
 
-    # ── Trough in the age window ──────────────────────────────────────────────
-    win_end   = max(0, n - min_days)
-    win_start = max(0, n - max_days)
-    lookback  = close.iloc[win_start:win_end]
+    # ── Trough: local-minima detection with global-min fallback ──────────────
+    look_start  = max(0, n - 200)
+    look_prices = close.iloc[look_start:].values.astype(float)
+    look_offset = look_start
+    n_look = len(look_prices)
 
-    if len(lookback) >= 5:
-        tp          = int(lookback.values.argmin())
-        trough_val  = float(lookback.iloc[tp])
-        trough_iloc = win_start + tp
+    local_troughs = _find_local_troughs(look_prices, order=10)
+    valid = [i for i in local_troughs
+             if min_days <= (n_look - 1 - i) <= max_days]
+
+    if not valid:
+        w_end   = n_look - min_days
+        w_start = max(0, n_look - max_days)
+        if w_end > w_start:
+            sub = look_prices[w_start:w_end]
+            valid = [w_start + int(sub.argmin())]
+
+    if valid:
+        trough_pos  = valid[-1]
+        trough_val  = float(look_prices[trough_pos])
+        trough_iloc = look_offset + trough_pos
     else:
         trough_iloc = int(close.values.argmin())
         trough_val  = float(close.iloc[trough_iloc])

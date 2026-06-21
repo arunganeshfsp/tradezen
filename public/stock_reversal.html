@@ -94,22 +94,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 @keyframes spin{to{transform:rotate(360deg);}}
 .state-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);margin-top:6px;}
 
-/* ── Skeleton shimmer ────────────────────────── */
-@keyframes sk-shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
-.sk-line{
-  border-radius:6px;
-  background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
-  background-size:600px 100%;
-  animation:sk-shimmer 1.4s infinite linear;
-}
-.sk-card{
-  background:var(--bg1);border:1px solid var(--border);border-radius:12px;
-  padding:18px;display:flex;flex-direction:column;gap:12px;
-}
-.sk-head{display:flex;justify-content:space-between;align-items:flex-start;}
-.sk-stats{display:flex;gap:8px;}
-.sk-stat{flex:1;display:flex;flex-direction:column;gap:6px;}
-.sk-badges{display:flex;gap:6px;}
 
 /* ── Results header ───────────────────────────── */
 #results{display:none;}
@@ -386,9 +370,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
       <!-- Min Decline -->
       <div class="filter-group">
-        <label>Min Decline <span class="filter-val" id="declineVal">20%</span></label>
+        <label>Min Decline <span class="filter-val" id="declineVal">15%</span></label>
         <div class="range-wrap">
-          <input type="range" id="minDecline" min="10" max="70" value="20" step="5"/>
+          <input type="range" id="minDecline" min="10" max="70" value="15" step="5"/>
         </div>
       </div>
 
@@ -411,6 +395,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <div class="age-hint">5–30 days = fresh · 70+ days = confirmed uptrend required</div>
       </div>
 
+    </div>
+
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);">PRESET:</span>
+      <div class="pill-row" id="presetGroup">
+        <button class="pill" data-preset="relaxed">Relaxed</button>
+        <button class="pill active" data-preset="balanced">Balanced</button>
+        <button class="pill" data-preset="strict">Strict</button>
+      </div>
     </div>
 
     <button class="scan-btn" id="scanBtn">
@@ -437,76 +430,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <!-- Single Stock Result -->
   <div id="checkResult" style="display:none;"></div>
 
-  <!-- State -->
-  <div id="stateBox" class="state-box" style="display:none;">
-    <div id="spinner" class="spinner" style="display:none;"></div>
-    <div id="stateMsg"></div>
-    <div id="stateSub" class="state-sub"></div>
-  </div>
-
-  <!-- Skeleton loading cards -->
-  <div id="skeletonBox" style="display:none;">
-    <div class="cards-grid">
-      <div class="sk-card" aria-hidden="true">
-        <div class="sk-head">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="sk-line" style="width:72px;height:14px"></div>
-            <div class="sk-line" style="width:130px;height:11px"></div>
-          </div>
-          <div class="sk-line" style="width:40px;height:40px;border-radius:8px"></div>
-        </div>
-        <div class="sk-stats">
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-        </div>
-        <div class="sk-badges">
-          <div class="sk-line" style="width:68px;height:22px;border-radius:11px"></div>
-          <div class="sk-line" style="width:80px;height:22px;border-radius:11px"></div>
-          <div class="sk-line" style="width:60px;height:22px;border-radius:11px"></div>
-        </div>
-      </div>
-      <div class="sk-card" aria-hidden="true">
-        <div class="sk-head">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="sk-line" style="width:80px;height:14px"></div>
-            <div class="sk-line" style="width:110px;height:11px"></div>
-          </div>
-          <div class="sk-line" style="width:40px;height:40px;border-radius:8px"></div>
-        </div>
-        <div class="sk-stats">
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-        </div>
-        <div class="sk-badges">
-          <div class="sk-line" style="width:80px;height:22px;border-radius:11px"></div>
-          <div class="sk-line" style="width:60px;height:22px;border-radius:11px"></div>
-          <div class="sk-line" style="width:75px;height:22px;border-radius:11px"></div>
-        </div>
-      </div>
-      <div class="sk-card" aria-hidden="true">
-        <div class="sk-head">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="sk-line" style="width:65px;height:14px"></div>
-            <div class="sk-line" style="width:140px;height:11px"></div>
-          </div>
-          <div class="sk-line" style="width:40px;height:40px;border-radius:8px"></div>
-        </div>
-        <div class="sk-stats">
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-          <div class="sk-stat"><div class="sk-line" style="height:10px"></div><div class="sk-line" style="height:17px;margin-top:4px"></div></div>
-        </div>
-        <div class="sk-badges">
-          <div class="sk-line" style="width:72px;height:22px;border-radius:11px"></div>
-          <div class="sk-line" style="width:55px;height:22px;border-radius:11px"></div>
-          <div class="sk-line" style="width:88px;height:22px;border-radius:11px"></div>
-        </div>
-      </div>
-    </div>
-    <p class="state-sub" id="skeletonMsg" style="text-align:center;margin-top:20px"></p>
-  </div>
 
   <!-- Results -->
   <div id="results">
@@ -599,9 +522,34 @@ wirePills('supportGroup',  v => { _support  = v; });
 
 document.getElementById('minDecline').addEventListener('input', function() {
   document.getElementById('declineVal').textContent = this.value + '%';
+  document.querySelectorAll('#presetGroup .pill').forEach(b => b.classList.remove('active'));
 });
 document.getElementById('minRecovery').addEventListener('input', function() {
   document.getElementById('recoveryVal').textContent = this.value + '%';
+  document.querySelectorAll('#presetGroup .pill').forEach(b => b.classList.remove('active'));
+});
+
+// ── Presets ───────────────────────────────────────────────────────────────────
+const _PRESETS = {
+  relaxed:  { decline: 12, recovery: 7,  minDays: 10, maxDays: 180 },
+  balanced: { decline: 15, recovery: 10, minDays: 15, maxDays: 150 },
+  strict:   { decline: 25, recovery: 15, minDays: 20, maxDays: 130 },
+};
+function applyPreset(name) {
+  const p = _PRESETS[name];
+  if (!p) return;
+  document.getElementById('minDecline').value   = p.decline;
+  document.getElementById('declineVal').textContent = p.decline + '%';
+  document.getElementById('minRecovery').value  = p.recovery;
+  document.getElementById('recoveryVal').textContent = p.recovery + '%';
+  document.getElementById('minDays').value      = p.minDays;
+  document.getElementById('maxDays').value      = p.maxDays;
+  document.querySelectorAll('#presetGroup .pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.preset === name);
+  });
+}
+document.getElementById('presetGroup').querySelectorAll('.pill').forEach(btn => {
+  btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
 });
 
 document.querySelectorAll('.sort-btn').forEach(btn => {
@@ -664,19 +612,25 @@ document.addEventListener('click', e => {
 
 // ── State helpers ─────────────────────────────────────────────────────────────
 function showState(loading, msg, sub) {
-  document.getElementById('results').style.display = 'none';
-  const box  = document.getElementById('stateBox');
-  const skel = document.getElementById('skeletonBox');
+  const grid = document.getElementById('cardsGrid');
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('nearMissSection').style.display = 'none';
   if (loading) {
-    box.style.display  = 'none';
-    skel.style.display = 'block';
-    document.getElementById('skeletonMsg').textContent = msg + (sub ? ' — ' + sub : '');
+    document.getElementById('resultsCount').innerHTML =
+      `<span style="color:var(--muted)">${esc(msg)}</span>`;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:3.5rem 0;">
+        <div class="spinner"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);margin-top:10px;">${esc(sub || '')}</div>
+      </div>`;
   } else {
-    skel.style.display = 'none';
-    box.style.display  = 'block';
-    document.getElementById('spinner').style.display = 'none';
-    document.getElementById('stateMsg').textContent  = msg;
-    document.getElementById('stateSub').textContent  = sub || '';
+    document.getElementById('resultsCount').innerHTML = '';
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">⚠️</div>
+        <div>${esc(msg)}</div>
+        ${sub ? `<div style="margin-top:6px;font-size:12px;color:var(--faint);">${esc(sub)}</div>` : ''}
+      </div>`;
   }
 }
 
@@ -823,22 +777,28 @@ function buildCardHtml(r, isNear) {
 // ── Render cards ──────────────────────────────────────────────────────────────
 function renderCards(rows) {
   const grid = document.getElementById('cardsGrid');
+  document.getElementById('results').style.display = 'block';
 
   if (!rows.length) {
+    const nmCount = _data && _data.near_misses ? _data.near_misses.length : 0;
+    const hint = nmCount > 0
+      ? `<div style="margin-top:10px;font-size:12px;color:var(--amber);">↓ ${nmCount} Near Miss${nmCount > 1 ? 'es' : ''} just below — expanded automatically.</div>`
+      : `<div style="margin-top:10px;font-size:12px;color:var(--faint);">Try the <strong style="color:var(--text)">Relaxed</strong> preset or lower Min Decline to find candidates.</div>`;
     grid.innerHTML =
       `<div class="empty-state" style="grid-column:1/-1">
         <div class="empty-icon">🔍</div>
         <div>No stocks fully matched the current filters.</div>
-        <div style="margin-top:6px;font-size:12px;color:var(--faint);">Check Near Misses below, or try lowering Min Decline / widening the Reversal Age range.</div>
+        ${hint}
       </div>`;
-    document.getElementById('results').style.display = 'block';
-    document.getElementById('stateBox').style.display = 'none';
+    if (nmCount > 0 && !_nmOpen) {
+      _nmOpen = true;
+      document.getElementById('nmBody').style.display      = 'block';
+      document.getElementById('nmChevron').style.transform = 'rotate(180deg)';
+    }
     return;
   }
 
   grid.innerHTML = rows.map(r => buildCardHtml(r, false)).join('');
-  document.getElementById('results').style.display = 'block';
-  document.getElementById('stateBox').style.display = 'none';
 }
 
 // ── Near Misses ───────────────────────────────────────────────────────────────

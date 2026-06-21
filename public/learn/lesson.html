@@ -12,6 +12,7 @@
 
   <style>
     body { min-height: 100vh; padding: 0; background: var(--tz-bg); display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 575.98px) { body { height: 100dvh; min-height: unset; overflow: hidden; align-items: flex-start; } }
     body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(50% 40% at 20% 20%, rgba(124,106,247,0.16) 0%, transparent 60%), radial-gradient(50% 40% at 80% 80%, rgba(91,138,245,0.14) 0%, transparent 60%); pointer-events: none; z-index: 0; }
 
     /* Loading */
