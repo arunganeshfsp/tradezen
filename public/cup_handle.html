@@ -359,6 +359,7 @@ function setStatus(state, text) {
 }
 
 function clearAll() {
+  if (_cupChartInstance) { _cupChartInstance.destroy(); _cupChartInstance = null; }
   document.getElementById("singleResult").className = "single-result";
   document.getElementById("singleResult").innerHTML = "";
   document.getElementById("scanSection").style.display = "none";
@@ -385,15 +386,6 @@ function stageLabel(stage) {
   }[stage] || stage;
 }
 
-function stageBgColor(stage) {
-  return {
-    complete: "#34d399",
-    handle_forming: "#f5a524",
-    cup_complete: "#7c6af7",
-    early_cup: "#9ea3c0",
-  }[stage] || "#9ea3c0";
-}
-
 function scoreColor(s) {
   if (s >= 70) return "#34d399";
   if (s >= 50) return "#f5a524";
@@ -413,7 +405,7 @@ async function analyseOne() {
   document.getElementById("emptyState").style.display = "none";
 
   try {
-    const resp = await fetch(`${API}/patterns/cup-handle/analyse?symbol=${sym}&period=${period}`);
+    const resp = await fetch(`${API}/patterns/cup-handle/analyse?symbol=${encodeURIComponent(sym)}&period=${period}`);
     const data = await resp.json();
 
     if (data.error) throw new Error(data.error);
@@ -890,8 +882,7 @@ function cardHtml(d) {
       &nbsp;·&nbsp; ${cup.depth_pct}% depth
     </div>`}
 
-    ${vol.is_dry ? `<span class="vol-pill dry">▼ Volume dry-up</span>` :
-      (handle.len_days >= 3 ? `<span class="vol-pill wet">▲ Volume expanding</span>` : "")}
+    ${vol.is_dry ? `<span class="vol-pill dry">▼ Volume dry-up</span>` : ""}
 
     <div class="score-bar" style="margin-top:10px;">
       <div class="score-bar-fill" style="width:${score}%;background:${col};"></div>

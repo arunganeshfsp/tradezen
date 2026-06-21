@@ -906,7 +906,8 @@ async function fetchCandles() {
 function detectEvents(candles, lv) {
   const events = [];
   const { tc, bc, atr } = lv;
-  const { h3, h4, l3, l4 } = lv.cam;
+  const cam = lv.cam || {};
+  const { h3 = null, h4 = null, l3 = null, l4 = null } = cam;
 
   const CONFIRM_BODY = 0.45;    // candle body ≥ 45% of range for breakout confirmation
 
@@ -928,6 +929,11 @@ function detectEvents(candles, lv) {
     const range   = curr.high - curr.low || 1;
     const body    = Math.abs(curr.close - curr.open);
     const bodyPct = body / range;
+
+    // Suppress new-entry alerts after 15:10 IST on daily 5m — square-off window
+    const _cd = new Date(curr.time * 1000);
+    const isLate = _timeframe === 'daily' &&
+                   (_cd.getUTCHours() * 60 + _cd.getUTCMinutes()) >= 15 * 60 + 10;
 
     const prevInsideCPR = prev.close >= bc && prev.close <= tc;
     const currInsideCPR = curr.close >= bc && curr.close <= tc;
@@ -956,7 +962,7 @@ function detectEvents(candles, lv) {
     if ((prevInsideCPR || prevBelowBC) && currAboveTC && bodyPct >= CONFIRM_BODY) {
       // Priority 2: Bullish breakout
       _breakoutDir = 'bull'; _breakoutTime = curr.time;
-      events.push({
+      if (!isLate) events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'CPR_BREAKOUT', price: curr.close, direction: 'Bullish',
         confidence: bodyPct > 0.65 ? 'High' : 'Medium',
@@ -965,7 +971,7 @@ function detectEvents(candles, lv) {
     } else if ((prevInsideCPR || prevAboveTC) && currBelowBC && bodyPct >= CONFIRM_BODY) {
       // Priority 2: Bearish breakout
       _breakoutDir = 'bear'; _breakoutTime = curr.time;
-      events.push({
+      if (!isLate) events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'CPR_BREAKOUT', price: curr.close, direction: 'Bearish',
         confidence: bodyPct > 0.65 ? 'High' : 'Medium',
@@ -989,14 +995,14 @@ function detectEvents(candles, lv) {
       _breakoutDir = null; _breakoutTime = null;
     } else if (prev.close > tc + cprW && currInsideCPR) {
       // Priority 4: Reversal into CPR from above
-      events.push({
+      if (!isLate) events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'REVERSAL_CPR', price: curr.close, direction: 'Bearish', confidence: 'Medium',
         reason: `Price crossed into CPR from above — possible bearish trend reversal`
       });
     } else if (prev.close < bc - cprW && currInsideCPR) {
       // Priority 4: Reversal into CPR from below
-      events.push({
+      if (!isLate) events.push({
         time: formatTime(curr.time), rawTime: curr.time,
         type: 'REVERSAL_CPR', price: curr.close, direction: 'Bullish', confidence: 'Medium',
         reason: `Price crossed into CPR from below — possible bullish trend reversal`
@@ -1005,7 +1011,7 @@ function detectEvents(candles, lv) {
       // Priority 5: Bullish retest — at least one full candle after breakout
       const retestTC = curr.low <= tc + NEAR_LEVEL && curr.low >= tc - NEAR_LEVEL && curr.close > tc;
       if (retestTC) {
-        events.push({
+        if (!isLate) events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CPR_RETEST', price: curr.close, direction: 'Bullish', confidence: 'High',
           reason: `Bullish retest of TC (${fmt(tc)}) holding — bullish continuation setup confirmed`
@@ -1016,7 +1022,7 @@ function detectEvents(candles, lv) {
       // Priority 5: Bearish retest
       const retestBC = curr.high >= bc - NEAR_LEVEL && curr.high <= bc + NEAR_LEVEL && curr.close < bc;
       if (retestBC) {
-        events.push({
+        if (!isLate) events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CPR_RETEST', price: curr.close, direction: 'Bearish', confidence: 'High',
           reason: `Bearish retest of BC (${fmt(bc)}) holding — bearish continuation setup confirmed`
@@ -1036,28 +1042,28 @@ function detectEvents(candles, lv) {
       // Counter-trend mean-reversion (H3 short / L3 long) is suppressed while a
       // CPR breakout is active in the opposite direction — avoids shorting into a
       // bull breakout or longing into a bear breakdown.
-      if (_camL3Armed && _breakoutDir !== 'bear' && curr.low <= l3 + CAM_OFFSET && curr.low >= l3 - NEAR_LEVEL && curr.close > l3) {
+      if (_camL3Armed && _breakoutDir !== 'bear' && l3 !== null && curr.low <= l3 + CAM_OFFSET && curr.low >= l3 - NEAR_LEVEL && curr.close > l3) {
         _camL3Armed = false;
-        events.push({
+        if (!isLate) events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CAMARILLA_L3', price: curr.close, direction: 'Bullish', confidence: 'Medium',
           reason: `Bounce off Camarilla L3 (${fmt(l3)}) support — bullish mean-reversion setup`
         });
-      } else if (_camH3Armed && _breakoutDir !== 'bull' && curr.high >= h3 - CAM_OFFSET && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
+      } else if (_camH3Armed && _breakoutDir !== 'bull' && h3 !== null && curr.high >= h3 - CAM_OFFSET && curr.high <= h3 + NEAR_LEVEL && curr.close < h3) {
         _camH3Armed = false;
-        events.push({
+        if (!isLate) events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CAMARILLA_H3', price: curr.close, direction: 'Bearish', confidence: 'Medium',
           reason: `Rejection at Camarilla H3 (${fmt(h3)}) resistance — bearish mean-reversion setup`
         });
-      } else if (curr.close > h4 && prev.close <= h4 && bodyPct >= CONFIRM_BODY) {
-        events.push({
+      } else if (h4 !== null && curr.close > h4 && prev.close <= h4 && bodyPct >= CONFIRM_BODY) {
+        if (!isLate) events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CAMARILLA_H4_BREAK', price: curr.close, direction: 'Bullish', confidence: 'High',
           reason: `Breakout above Camarilla H4 (${fmt(h4)}) — strong bullish trend continuation (body ${Math.round(bodyPct*100)}%)`
         });
-      } else if (curr.close < l4 && prev.close >= l4 && bodyPct >= CONFIRM_BODY) {
-        events.push({
+      } else if (l4 !== null && curr.close < l4 && prev.close >= l4 && bodyPct >= CONFIRM_BODY) {
+        if (!isLate) events.push({
           time: formatTime(curr.time), rawTime: curr.time,
           type: 'CAMARILLA_L4_BREAK', price: curr.close, direction: 'Bearish', confidence: 'High',
           reason: `Breakdown below Camarilla L4 (${fmt(l4)}) — strong bearish trend continuation (body ${Math.round(bodyPct*100)}%)`
@@ -1570,11 +1576,10 @@ function renderTradePlan(ltp) {
     biasColor = 'var(--green)'; biasArrow = '▲'; biasLabel = 'BULLISH';
     biasSub = 'Price above TC — upside momentum';
     invalidVal = fmt(bc); invalidNote = 'Close below BC';
-    // Reference: TC is the pullback level. When ltp is already well above TC, compute R/R
-    // from live ltp so the displayed ratio is realistic, not hypothetical.
-    const entry = ltp;
+    const entry = tc;
     entryVal  = fmt(tc);
-    entryNote = ltp > tc ? `TC pullback · live: ${fmt(ltp)}` : 'TC retest reference';
+    const ptAway = (ltp - tc).toFixed(0);
+    entryNote = `TC pullback reference · current ${ptAway > 0 ? '+' : ''}${ptAway} pts away`;
     if (r1 && r2) {
       t1Val = fmt(r1); t1RR = r1 > entry ? ((r1 - entry) / risk).toFixed(1) + '×' : '—';
       t2Val = fmt(r2); t2RR = r2 > entry ? ((r2 - entry) / risk).toFixed(1) + '×' : '—';
@@ -1584,9 +1589,10 @@ function renderTradePlan(ltp) {
     biasColor = 'var(--red)'; biasArrow = '▼'; biasLabel = 'BEARISH';
     biasSub = 'Price below BC — downside momentum';
     invalidVal = fmt(tc); invalidNote = 'Close above TC';
-    const entry = ltp;
+    const entry = bc;
     entryVal  = fmt(bc);
-    entryNote = ltp < bc ? `BC bounce level · live: ${fmt(ltp)}` : 'BC retest reference';
+    const ptAway = (bc - ltp).toFixed(0);
+    entryNote = `BC bounce reference · current ${ptAway > 0 ? '+' : ''}${ptAway} pts away`;
     if (s1 && s2) {
       t1Val = fmt(s1); t1RR = s1 < entry ? ((entry - s1) / risk).toFixed(1) + '×' : '—';
       t2Val = fmt(s2); t2RR = s2 < entry ? ((entry - s2) / risk).toFixed(1) + '×' : '—';
