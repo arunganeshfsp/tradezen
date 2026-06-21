@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="tradezen.css">
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
+<script src="watchlist.js"></script>
 
 <style>
 :root{
@@ -54,6 +55,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
   background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;}
 .pill:hover{color:var(--text);border-color:rgba(255,255,255,.3);}
 .pill.active{background:var(--accent-bg);border-color:var(--accent);color:var(--text);}
+
+/* Select dropdowns */
+.filter-sel{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;
+  padding:7px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);
+  outline:none;cursor:pointer;transition:border-color .15s;}
+.filter-sel:focus{border-color:var(--accent);}
 
 /* Range sliders */
 .range-wrap{display:flex;flex-direction:column;gap:5px;}
@@ -118,11 +125,18 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
 /* Card header */
 .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-sym-row{display:flex;align-items:center;gap:6px;}
 .card-sym{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text);}
 .card-price{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--text);
   text-align:right;}
 .card-days{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);
   text-align:right;margin-top:2px;}
+
+/* Watchlist star */
+.wl-star{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;
+  padding:0 2px;line-height:1;transition:color .15s;}
+.wl-star:hover{color:var(--amber);}
+.wl-star.active{color:var(--amber);}
 
 /* Reversal visual: Peak → Support → Current */
 .rv-viz{display:flex;align-items:center;gap:0;}
@@ -137,6 +151,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .rv-line{width:100%;height:2px;border-radius:1px;}
 .rv-line.fall{background:linear-gradient(90deg,var(--red) 0%,rgba(248,113,113,0.3) 100%);}
 .rv-line.rise{background:linear-gradient(90deg,rgba(52,211,153,0.3) 0%,var(--green) 100%);}
+
+/* Signal badges row */
+.signal-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.sig-badge{display:inline-flex;align-items:center;gap:4px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;
+  padding:2px 8px;border-radius:999px;border:1px solid;}
+.sig-badge.fib-61{color:var(--green);border-color:var(--green-border);background:var(--green-bg);}
+.sig-badge.fib-50{color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg);}
+.sig-badge.fib-38{color:var(--accent2);border-color:rgba(91,138,245,0.3);background:rgba(91,138,245,0.08);}
+.sig-badge.fib-early{color:var(--muted);border-color:var(--border2);background:transparent;}
+.sig-badge.vol-strong{color:var(--green);border-color:var(--green-border);background:var(--green-bg);}
+.sig-badge.vol-moderate{color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg);}
+.sig-badge.vol-weak{color:var(--muted);border-color:var(--border2);background:transparent;}
+.sig-badge.sma-ok{color:var(--green);border-color:var(--green-border);background:var(--green-bg);}
+.sig-badge.sma-no{color:var(--muted);border-color:var(--border2);background:transparent;}
 
 /* Recovery strength badge */
 .recovery-badge{display:inline-flex;align-items:center;gap:5px;
@@ -155,20 +184,32 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   background:var(--accent-bg);transition:all .15s;}
 .health-link:hover{background:rgba(124,106,247,0.18);border-color:var(--accent);}
 
+/* ── Symbol Autocomplete ──────────────────────── */
+.sym-wrap{position:relative;flex:1;min-width:180px;}
+.sym-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:200px;
+  background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
+  z-index:400;max-height:240px;overflow-y:auto;display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.sym-dropdown.open{display:block;}
+.sym-item{padding:8px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--dim);cursor:pointer;border-bottom:1px solid var(--border);}
+.sym-item:last-child{border:none;}
+.sym-item:hover,.sym-item.ac-active{background:rgba(124,106,247,0.12);color:var(--text);}
+
 /* ── Single-stock check ───────────────────────── */
 .single-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
   padding:22px 24px;margin-bottom:2rem;}
 .single-head{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
 .single-row{display:flex;gap:10px;flex-wrap:wrap;}
-.single-input{flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border2);
+.single-input{width:100%;background:var(--bg3);border:1px solid var(--border2);
   border-radius:10px;padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:14px;
   color:var(--text);outline:none;transition:border-color .15s;}
 .single-input::placeholder{color:var(--muted);}
 .single-input:focus{border-color:var(--accent);}
 .single-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;
   padding:11px 22px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
-  color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap;}
+  color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
 .single-btn:hover{border-color:var(--accent);color:var(--text);}
 .single-btn:disabled{opacity:.5;cursor:default;}
 
@@ -268,7 +309,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       Stock Health Story
     </a>
     <h1>Reversal Screener</h1>
-    <p>Scans a stock universe for the pattern: significant price fall → support touch → sustained 2-month+ recovery. Set your filters and run the scan.</p>
+    <p>Scans a stock universe for: significant decline → support touch → sustained recovery. Fibonacci retracement, volume confirmation, and structural trend gate included.</p>
   </div>
 
   <!-- Filter Panel -->
@@ -280,8 +321,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <label>Universe</label>
         <div class="pill-row" id="universeGroup">
           <button class="pill active" data-val="nifty50">Nifty 50</button>
+          <button class="pill" data-val="midcap100">Midcap 100</button>
+          <button class="pill" data-val="smallcap100">Smallcap 100</button>
           <button class="pill" data-val="nifty500">Nifty 500 <span style="font-size:9px;opacity:.6">~250</span></button>
+          <button class="pill" data-val="watchlist" id="wlPill">★ Watchlist <span id="wlPillCount" style="font-size:9px;opacity:.7"></span></button>
         </div>
+      </div>
+
+      <!-- Sector -->
+      <div class="filter-group">
+        <label>Sector Filter</label>
+        <select id="sectorSel" class="filter-sel">
+          <option value="">All Sectors</option>
+          <option value="banks">Banks</option>
+          <option value="it">IT</option>
+          <option value="pharma">Pharma</option>
+          <option value="metals">Metals</option>
+          <option value="auto">Auto</option>
+          <option value="fmcg">FMCG</option>
+          <option value="energy">Energy</option>
+          <option value="chemicals">Chemicals</option>
+          <option value="realty">Realty</option>
+          <option value="infra">Infra</option>
+        </select>
       </div>
 
       <!-- Support Quality -->
@@ -325,11 +387,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <div class="filter-group">
         <label>Reversal Age (trading days)</label>
         <div class="num-row">
-          <input class="num-input" id="minDays" type="number" value="40" min="20" max="200" step="5"/>
+          <input class="num-input" id="minDays" type="number" value="40" min="5" max="200" step="5"/>
           <span class="num-sep">—</span>
           <input class="num-input" id="maxDays" type="number" value="130" min="30" max="250" step="5"/>
         </div>
-        <div class="age-hint">40 days ≈ 2 months · 130 days ≈ 6 months</div>
+        <div class="age-hint">5–25 days = fresh · 40+ days = confirmed</div>
       </div>
 
     </div>
@@ -344,9 +406,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="single-section">
     <div class="single-head">Check a specific stock against the filters above</div>
     <div class="single-row">
-      <input id="singleInput" class="single-input" type="text"
-        placeholder="e.g. TATAMOTORS, HDFCBANK, ZOMATO"
-        autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+      <div class="sym-wrap">
+        <input id="singleInput" class="single-input" type="text"
+          placeholder="e.g. TATAMOTORS, HDFCBANK, ZOMATO"
+          autocomplete="off" autocapitalize="characters" spellcheck="false"
+          oninput="_revSymInput(event)" onkeydown="_revSymKeydown(event)"/>
+        <div class="sym-dropdown" id="revSymDropdown"></div>
+      </div>
       <button class="single-btn" id="checkBtn">Check Reversal</button>
     </div>
   </div>
@@ -369,6 +435,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <span class="sort-label">Sort:</span>
         <button class="sort-btn active" data-sort="recovery">Recovery %</button>
         <button class="sort-btn" data-sort="decline">Decline %</button>
+        <button class="sort-btn" data-sort="fib">Fib Level</button>
         <button class="sort-btn" data-sort="age">Freshest</button>
       </div>
     </div>
@@ -388,16 +455,53 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   </div>
 
   <div class="disclaimer">
-    For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before making any trading decisions.
+    For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
   </div>
 
 </div>
 
 <script>
+// ── Symbol list for autocomplete ──────────────────────────────────────────────
+const _REV_SYMBOLS = [
+  "RELIANCE","TCS","HDFCBANK","ICICIBANK","INFY","SBIN","HINDUNILVR","BHARTIARTL",
+  "ITC","KOTAKBANK","LT","AXISBANK","BAJFINANCE","WIPRO","MARUTI","NTPC",
+  "POWERGRID","SUNPHARMA","HCLTECH","ONGC","TATAMOTORS","TATASTEEL","ADANIENT",
+  "ADANIPORTS","ULTRACEMCO","BAJAJFINSV","TITAN","NESTLEIND","TECHM","M&M",
+  "DRREDDY","ASIANPAINT","COALINDIA","HDFCLIFE","BRITANNIA","DIVISLAB","CIPLA",
+  "GRASIM","INDUSINDBK","SBILIFE","HINDALCO","JSWSTEEL","APOLLOHOSP","BAJAJ-AUTO",
+  "BPCL","HEROMOTOCO","TATACONSUM","EICHERMOT","LTIM","VEDL","ICICIGI",
+  "PIDILITIND","HAVELLS","SIEMENS","ABB","VOLTAS","WHIRLPOOL","CROMPTON",
+  "GODREJCP","MARICO","DABUR","EMAMILTD","COLPAL","UBL","MCDOWELL-N",
+  "IPCALAB","TORNTPHARM","AUROPHARMA","LUPIN","BIOCON","ALKEM","ZYDUSLIFE",
+  "GLENMARK","ABBOTINDIA","SUNPHARMA","GRANULES","NATCOPHARM",
+  "HDFCAMC","ICICIPRU","SBICARD","CHOLAFIN","MANAPPURAM","MUTHOOTFIN",
+  "PNB","BANKBARODA","CANARABANK","FEDERALBNK","IDFCFIRSTB","BANDHANBNK",
+  "AUBANK","RBLBANK","YESBANK","KARURVYSYA","DCBBANK",
+  "NMDC","MOIL","NATIONALUM","HINDZINC","APLAPOLLO","RATNAMANI","WELSPUNLIV",
+  "JINDALSTEL","SAIL","TATAPOWER","TORNTPOWER","CESC","NHPC","SJVN","IGL","MGL",
+  "DLF","GODREJPROP","OBEROIRLTY","PRESTIGE","BRIGADE","PHOENIXLTD",
+  "LTF","IRFC","PFC","RECLTD","HUDCO","RVNL","IRCON","RITES","IRB","KNR",
+  "RAMCOCEM","ACC","SHREECEM","JKCEMENT","AMBUJACEMENT","NUVOCO",
+  "TVSMOTOR","ASHOKLEY","BALKRISIND","MRF","APOLLOTYRE","CEATLTD","BOSCHLTD",
+  "ADANIGREEN","IOC","BPCL","HINDPETRO","MRPL",
+  "TATACHEM","PIDILITIND","SRF","AARTI","DEEPAKNTR","ATUL","VINATIORG","FINEORG",
+  "NAVINFLUOR","CLEAN","ROSSARI","PERSISTENT","LTTS","KPITTECH","TATAELXSI",
+  "OFSS","COFORGE","MPHASIS","WIPRO","HEXAWARE","CYIENT",
+  "ZOMATO","NYKAA","PAYTM","POLICYBZR","DELHIVERY","NAZARA","IRCTC","AAVAS",
+  "HAPPYROUTE","DEVYANI","BARBEQUE","EASEMYTRIP","KAYNES","SYRMA","SENCO",
+  "DIXON","AMBER","BHEL","BEL","HAL","BEML","COCHINSHIP","GRSE","MAZAGON",
+  "MOTHERSON","SCHAEFFLER","TIMKEN","SKFINDIA","FINOLEX","POLYCAB","KEI",
+  "VEDL","GMRINFRA","ADANIPOWER","ADANITRANS","TORNTPOWER","CESC",
+  "SHOPERSTOP","PVRINOX","INOXLEISUR","WONDERLA","MAHINDRALOG",
+  "ASTRAL","SUPREMEIND","PRINCEPIPE","FINOLEX","JSWENERGY","RENEW"
+].sort();
+
+// ── State ─────────────────────────────────────────────────────────────────────
 let _data     = null;
 let _sortKey  = 'recovery';
 let _universe = 'nifty50';
 let _support  = 'single';
+let _revAcIdx = -1;
 
 // ── Filter wiring ─────────────────────────────────────────────────────────────
 function wirePills(groupId, onSelect) {
@@ -425,8 +529,56 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.classList.add('active');
     _sortKey = btn.dataset.sort;
     if (_data) renderCards(sortResults(_data.results));
-    // near misses always sorted by recovery — no re-sort needed
   });
+});
+
+// ── Watchlist pill label ───────────────────────────────────────────────────────
+function refreshWlPill() {
+  const n = window.WL ? window.WL.count() : 0;
+  document.getElementById('wlPillCount').textContent = n > 0 ? `(${n})` : '';
+}
+if (window.WL) refreshWlPill();
+document.addEventListener('tz-wl-change', refreshWlPill);
+
+// ── Autocomplete ──────────────────────────────────────────────────────────────
+function _revSymInput(e) {
+  const q  = (e.target.value || '').toUpperCase().trim();
+  const dd = document.getElementById('revSymDropdown');
+  if (!q) { dd.classList.remove('open'); return; }
+  const matches = _REV_SYMBOLS.filter(s => s.startsWith(q)).slice(0, 10);
+  if (!matches.length) { dd.classList.remove('open'); return; }
+  dd.innerHTML = matches.map(s =>
+    `<div class="sym-item" data-val="${s}" onmousedown="event.preventDefault();_revPickSym('${s}')">${s}</div>`
+  ).join('');
+  dd.classList.add('open');
+  _revAcIdx = -1;
+}
+function _revSymKeydown(e) {
+  const dd    = document.getElementById('revSymDropdown');
+  const items = dd.querySelectorAll('.sym-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _revAcIdx = Math.min(_revAcIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('ac-active', i === _revAcIdx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _revAcIdx = Math.max(_revAcIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('ac-active', i === _revAcIdx));
+  } else if (e.key === 'Enter' && _revAcIdx >= 0) {
+    e.preventDefault();
+    _revPickSym(items[_revAcIdx].dataset.val);
+  } else if (e.key === 'Escape') {
+    dd.classList.remove('open');
+  }
+}
+function _revPickSym(s) {
+  document.getElementById('singleInput').value = s;
+  document.getElementById('revSymDropdown').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.sym-wrap'))
+    document.getElementById('revSymDropdown').classList.remove('open');
 });
 
 // ── State helpers ─────────────────────────────────────────────────────────────
@@ -443,31 +595,140 @@ function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-function fmt(v, dec=2) {
-  if (v == null) return '—';
-  return Number(v).toFixed(dec);
-}
-
+function fmt(v, dec=2) { return v == null ? '—' : Number(v).toFixed(dec); }
 function fmtPrice(v) {
   if (v == null) return '—';
   return '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+// ── Watchlist ─────────────────────────────────────────────────────────────────
+function toggleWatchlist(sym) {
+  if (!window.WL) return;
+  WL.toggle(sym);
+  document.querySelectorAll(`[data-wlsym="${sym}"]`).forEach(btn => {
+    btn.classList.toggle('active', WL.has(sym));
+    btn.title = WL.has(sym) ? 'Remove from watchlist' : 'Add to watchlist';
+    btn.textContent = WL.has(sym) ? '★' : '☆';
+  });
+}
+document.addEventListener('tz-wl-change', () => {
+  if (!window.WL) return;
+  document.querySelectorAll('.wl-star').forEach(btn => {
+    const sym = btn.dataset.wlsym;
+    btn.classList.toggle('active', WL.has(sym));
+    btn.textContent = WL.has(sym) ? '★' : '☆';
+  });
+  refreshWlPill();
+});
 
 // ── Sort ──────────────────────────────────────────────────────────────────────
 function sortResults(rows) {
   const copy = [...rows];
   if (_sortKey === 'recovery') copy.sort((a, b) => b.recovery_pct - a.recovery_pct);
   if (_sortKey === 'decline')  copy.sort((a, b) => b.decline_pct  - a.decline_pct);
+  if (_sortKey === 'fib')      copy.sort((a, b) => b.fib_pct      - a.fib_pct);
   if (_sortKey === 'age')      copy.sort((a, b) => a.days_since_trough - b.days_since_trough);
   return copy;
 }
 
-// ── Badge ─────────────────────────────────────────────────────────────────────
+// ── Badge builders ────────────────────────────────────────────────────────────
 function recoveryBadge(pct) {
   if (pct >= 30) return `<span class="recovery-badge strong">Strong +${pct}%</span>`;
   if (pct >= 15) return `<span class="recovery-badge moderate">Moderate +${pct}%</span>`;
   return `<span class="recovery-badge early">Early +${pct}%</span>`;
+}
+
+function fibBadge(r) {
+  const lvl = r.fib_level || '';
+  const pct = r.fib_pct || 0;
+  if (pct >= 61.8) return `<span class="sig-badge fib-61">FIB 61.8%</span>`;
+  if (pct >= 50)   return `<span class="sig-badge fib-50">FIB 50%</span>`;
+  if (pct >= 38.2) return `<span class="sig-badge fib-38">FIB 38.2%</span>`;
+  return `<span class="sig-badge fib-early">FIB &lt;38%</span>`;
+}
+
+function volBadge(sig) {
+  if (sig === 'strong')   return `<span class="sig-badge vol-strong">● VOL CONF</span>`;
+  if (sig === 'moderate') return `<span class="sig-badge vol-moderate">◐ VOL PART</span>`;
+  return `<span class="sig-badge vol-weak">○ VOL WEAK</span>`;
+}
+
+function smaBadge(r) {
+  return r.sma20_above_sma50
+    ? `<span class="sig-badge sma-ok">SMA ↑</span>`
+    : `<span class="sig-badge sma-no">SMA ↓</span>`;
+}
+
+// ── Card HTML (shared by scan + near-miss) ────────────────────────────────────
+function buildCardHtml(r, isNear) {
+  const wlHas  = window.WL && WL.has(r.symbol);
+  const dNote  = r.days_since_trough < 50
+    ? `${r.days_since_trough} trading days ago`
+    : `${r.days_since_trough} trading days ago (~${Math.round(r.days_since_trough / 21)}M)`;
+
+  const cardClass = isNear ? 'near-card' : 'result-card';
+
+  return `
+  <div class="${cardClass}">
+    <div class="card-head">
+      <div class="card-sym-row">
+        <div class="card-sym">${esc(r.symbol)}</div>
+        <button class="wl-star${wlHas ? ' active' : ''}" data-wlsym="${esc(r.symbol)}"
+          title="${wlHas ? 'Remove from watchlist' : 'Add to watchlist'}"
+          onclick="event.stopPropagation();toggleWatchlist('${esc(r.symbol)}')">${wlHas ? '★' : '☆'}</button>
+      </div>
+      <div>
+        <div class="card-price">${fmtPrice(r.current_price)}</div>
+        <div class="card-days">${dNote}</div>
+      </div>
+    </div>
+
+    <div class="rv-viz">
+      <div class="rv-point">
+        <div class="rv-price">${fmtPrice(r.peak)}</div>
+        <div class="rv-tag">Peak</div>
+      </div>
+      <div class="rv-bridge">
+        <div class="rv-pct fall">−${fmt(r.decline_pct, 1)}%</div>
+        <div class="rv-line fall"></div>
+      </div>
+      <div class="rv-point">
+        <div class="rv-price">${fmtPrice(r.support)}</div>
+        <div class="rv-tag">Support</div>
+      </div>
+      <div class="rv-bridge">
+        <div class="rv-pct rise">+${fmt(r.recovery_pct, 1)}%</div>
+        <div class="rv-line rise"></div>
+      </div>
+      <div class="rv-point">
+        <div class="rv-price">${fmtPrice(r.current_price)}</div>
+        <div class="rv-tag">Now</div>
+      </div>
+    </div>
+
+    <div class="signal-row">
+      ${fibBadge(r)}
+      ${volBadge(r.vol_signal)}
+      ${smaBadge(r)}
+    </div>
+
+    ${isNear ? `
+    <div class="miss-reason">
+      <span class="miss-label">Missed:</span>
+      <span class="miss-cname">${esc(r.failed_criterion.name)}</span>
+      <span class="miss-val">${esc(r.failed_criterion.value)}</span>
+      <span class="miss-need">needed ${esc(r.failed_criterion.required)}</span>
+      <span class="miss-gap">${esc(r.failed_criterion.gap)}</span>
+    </div>` : ''}
+
+    <div class="card-foot">
+      ${recoveryBadge(r.recovery_pct)}
+      <a href="/stock_health.html?symbol=${esc(r.symbol)}" class="health-link">
+        Health Story
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>`;
 }
 
 // ── Render cards ──────────────────────────────────────────────────────────────
@@ -486,57 +747,7 @@ function renderCards(rows) {
     return;
   }
 
-  grid.innerHTML = rows.map(r => {
-    const tradingDaysNote = r.days_since_trough < 50
-      ? `${r.days_since_trough} trading days ago`
-      : `${r.days_since_trough} trading days ago (~${Math.round(r.days_since_trough / 21)}M)`;
-
-    return `
-    <div class="result-card">
-      <div class="card-head">
-        <div>
-          <div class="card-sym">${esc(r.symbol)}</div>
-        </div>
-        <div>
-          <div class="card-price">${fmtPrice(r.current_price)}</div>
-          <div class="card-days">${tradingDaysNote}</div>
-        </div>
-      </div>
-
-      <!-- Peak → Support → Current visualization -->
-      <div class="rv-viz">
-        <div class="rv-point">
-          <div class="rv-price">${fmtPrice(r.peak)}</div>
-          <div class="rv-tag">Peak</div>
-        </div>
-        <div class="rv-bridge">
-          <div class="rv-pct fall">−${fmt(r.decline_pct, 1)}%</div>
-          <div class="rv-line fall"></div>
-        </div>
-        <div class="rv-point">
-          <div class="rv-price">${fmtPrice(r.support)}</div>
-          <div class="rv-tag">Support</div>
-        </div>
-        <div class="rv-bridge">
-          <div class="rv-pct rise">+${fmt(r.recovery_pct, 1)}%</div>
-          <div class="rv-line rise"></div>
-        </div>
-        <div class="rv-point">
-          <div class="rv-price">${fmtPrice(r.current_price)}</div>
-          <div class="rv-tag">Now</div>
-        </div>
-      </div>
-
-      <div class="card-foot">
-        ${recoveryBadge(r.recovery_pct)}
-        <a href="/stock_health.html?symbol=${esc(r.symbol)}" class="health-link">
-          Health Story
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
-      </div>
-    </div>`;
-  }).join('');
-
+  grid.innerHTML = rows.map(r => buildCardHtml(r, false)).join('');
   document.getElementById('results').style.display = 'block';
   document.getElementById('stateBox').style.display = 'none';
 }
@@ -553,68 +764,15 @@ document.getElementById('nmToggle').addEventListener('click', () => {
 function renderNearMisses(rows) {
   const section = document.getElementById('nearMissSection');
   if (!rows || !rows.length) { section.style.display = 'none'; return; }
-
   document.getElementById('nmCount').textContent = rows.length;
   section.style.display = 'block';
-
-  document.getElementById('nmGrid').innerHTML = rows.map(r => {
-    const f = r.failed_criterion;
-    const daysNote = r.days_since_trough < 50
-      ? `${r.days_since_trough} trading days ago`
-      : `${r.days_since_trough} trading days ago (~${Math.round(r.days_since_trough / 21)}M)`;
-    return `
-    <div class="near-card">
-      <div class="card-head">
-        <div><div class="card-sym">${esc(r.symbol)}</div></div>
-        <div>
-          <div class="card-price">${fmtPrice(r.current_price)}</div>
-          <div class="card-days">${daysNote}</div>
-        </div>
-      </div>
-      <div class="rv-viz">
-        <div class="rv-point">
-          <div class="rv-price">${fmtPrice(r.peak)}</div>
-          <div class="rv-tag">Peak</div>
-        </div>
-        <div class="rv-bridge">
-          <div class="rv-pct fall">−${fmt(r.decline_pct, 1)}%</div>
-          <div class="rv-line fall"></div>
-        </div>
-        <div class="rv-point">
-          <div class="rv-price">${fmtPrice(r.support)}</div>
-          <div class="rv-tag">Support</div>
-        </div>
-        <div class="rv-bridge">
-          <div class="rv-pct rise">+${fmt(r.recovery_pct, 1)}%</div>
-          <div class="rv-line rise"></div>
-        </div>
-        <div class="rv-point">
-          <div class="rv-price">${fmtPrice(r.current_price)}</div>
-          <div class="rv-tag">Now</div>
-        </div>
-      </div>
-      <div class="miss-reason">
-        <span class="miss-label">Missed:</span>
-        <span class="miss-cname">${esc(f.name)}</span>
-        <span class="miss-val">${esc(f.value)}</span>
-        <span class="miss-need">needed ${esc(f.required)}</span>
-        <span class="miss-gap">${esc(f.gap)}</span>
-      </div>
-      <div class="card-foot">
-        ${recoveryBadge(r.recovery_pct)}
-        <a href="/stock_health.html?symbol=${esc(r.symbol)}" class="health-link">
-          Health Story
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
-      </div>
-    </div>`;
-  }).join('');
+  document.getElementById('nmGrid').innerHTML = rows.map(r => buildCardHtml(r, true)).join('');
 }
 
 // ── Single stock check ────────────────────────────────────────────────────────
 document.getElementById('checkBtn').addEventListener('click', runSingleCheck);
 document.getElementById('singleInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') runSingleCheck();
+  if (e.key === 'Enter' && _revAcIdx < 0) runSingleCheck();
 });
 
 async function runSingleCheck() {
@@ -659,6 +817,7 @@ function renderCheckResult(d) {
   const passClass = d.passed ? 'pass' : 'fail';
   const passLabel = d.passed ? 'Reversal Confirmed' : 'No Reversal Pattern';
   const passIcon  = d.passed ? '✓' : '✗';
+  const wlHas = window.WL && WL.has(d.symbol);
 
   const criteriaHTML = d.criteria.map(c => `
     <div class="criterion ${c.passed ? 'pass' : 'fail'}">
@@ -679,11 +838,17 @@ function renderCheckResult(d) {
     <div class="check-verdict">
       <div class="verdict-icon ${passClass}">${passIcon}</div>
       <div>
-        <div class="verdict-sym">${esc(d.symbol)}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="verdict-sym">${esc(d.symbol)}</div>
+          <button class="wl-star${wlHas ? ' active' : ''}" data-wlsym="${esc(d.symbol)}"
+            title="${wlHas ? 'Remove from watchlist' : 'Add to watchlist'}"
+            onclick="toggleWatchlist('${esc(d.symbol)}')">${wlHas ? '★' : '☆'}</button>
+        </div>
         <div class="verdict-label ${passClass}">${passLabel}</div>
       </div>
       <div class="verdict-right">
         <div class="verdict-price">${fmtPrice(d.current_price)}</div>
+        ${d.fib_level ? `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;">FIB ${esc(d.fib_level)} · ${volBadge(d.vol_signal)}</div>` : ''}
       </div>
     </div>
 
@@ -724,6 +889,11 @@ function renderCheckResult(d) {
 document.getElementById('scanBtn').addEventListener('click', runScan);
 
 async function runScan() {
+  if (_universe === 'watchlist' && window.WL && WL.count() === 0) {
+    showState(false, 'Your watchlist is empty.', 'Star stocks from any scanner page first.');
+    return;
+  }
+
   const btn      = document.getElementById('scanBtn');
   const minDecl  = document.getElementById('minDecline').value;
   const minRec   = document.getElementById('minRecovery').value;
@@ -731,15 +901,26 @@ async function runScan() {
   const maxDays  = document.getElementById('maxDays').value;
   const minPrice = document.getElementById('minPrice').value;
   const maxPrice = document.getElementById('maxPrice').value;
+  const sector   = document.getElementById('sectorSel').value;
 
   btn.disabled = true;
 
-  const universeLabel = _universe === 'nifty50' ? 'Nifty 50 (50 stocks)' : 'Nifty 500 proxy (~250 stocks)';
-  showState(
-    true,
-    `Scanning ${universeLabel}…`,
-    _universe === 'nifty500' ? 'This may take 30–60 seconds. Batch downloading price history.' : 'Fetching 9 months of price history…'
-  );
+  const labelMap = {
+    nifty50: 'Nifty 50 (50 stocks)',
+    midcap100: 'Midcap 100 (100 stocks)',
+    smallcap100: 'Smallcap 100 (100 stocks)',
+    nifty500: 'Nifty 500 proxy (~250 stocks)',
+    watchlist: `My Watchlist (${window.WL ? WL.count() : 0} stocks)`,
+  };
+  const subMap = {
+    nifty50: 'Fetching 1 year of price history…',
+    midcap100: 'This may take 30–60 seconds.',
+    smallcap100: 'This may take 30–60 seconds.',
+    nifty500: 'This may take 60–120 seconds.',
+    watchlist: 'Fetching price history for your watchlist…',
+  };
+
+  showState(true, `Scanning ${labelMap[_universe] || _universe}…`, subMap[_universe] || '');
 
   const params = new URLSearchParams({
     universe:     _universe,
@@ -751,16 +932,21 @@ async function runScan() {
   });
   if (minPrice) params.set('min_price', minPrice);
   if (maxPrice) params.set('max_price', maxPrice);
+  if (sector)   params.set('sector', sector);
+  if (_universe === 'watchlist' && window.WL) params.set('symbols', WL.get().join(','));
+
+  const timeoutMap = { nifty50: 120000, midcap100: 180000, smallcap100: 180000, nifty500: 230000, watchlist: 90000 };
+  const timeout    = timeoutMap[_universe] || 180000;
 
   try {
-    const res  = await fetch(`/api/stock/reversal-scan?${params}`);
+    const res  = await fetch(`/api/stock/reversal-scan?${params}`, { signal: AbortSignal.timeout(timeout) });
     const data = await res.json();
 
     if (data.error) { showState(false, data.error, ''); return; }
 
     _data = data;
     document.getElementById('resultsCount').innerHTML =
-      `<strong>${data.matched}</strong> of ${data.universe_size} stocks matched · ${_universe === 'nifty50' ? 'Nifty 50' : 'Nifty 500 proxy'}`;
+      `<strong>${data.matched}</strong> of ${data.universe_size} stocks matched`;
 
     renderCards(sortResults(data.results));
     renderNearMisses(data.near_misses || []);

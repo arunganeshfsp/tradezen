@@ -107,6 +107,88 @@ When touching a legacy page (uses `theme.js` + `theme.css`): migrate the nav to 
 
 ---
 
+## Symbol Autocomplete Pattern
+
+A **reusable NSE symbol autocomplete** already exists — do not reinvent it.
+
+### Where it lives
+
+| Page | Input ID | Dropdown ID | Pick function |
+|---|---|---|---|
+| `public/stock_options.html` | `symbolInput` | `symDropdown` | `_pickSym(s)` → calls `loadExpiries()` |
+| `public/cup_handle.html` | `symInput` | `chSymDropdown` | `_chPickSym(s)` → fills input only |
+
+### How to add to a new page
+
+**1. HTML** — wrap the input in `.sym-wrap`, add `.sym-dropdown` sibling:
+```html
+<div class="sym-wrap">
+  <input id="myInput" autocomplete="off"
+         oninput="_mySymInput(event)" onkeydown="_mySymKeydown(event)">
+  <div class="sym-dropdown" id="myDropdown"></div>
+</div>
+```
+
+**2. CSS** — paste once per page (or centralise in a shared CSS file if migrating many pages):
+```css
+.sym-wrap { position: relative; }
+.sym-dropdown { position: absolute; top: calc(100% + 4px); left: 0; min-width: 180px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r);
+  z-index: 400; max-height: 240px; overflow-y: auto; display: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.sym-dropdown.open { display: block; }
+.sym-item { padding: 8px 13px; font-family: 'JetBrains Mono',monospace; font-size: 12px;
+  color: var(--dim); cursor: pointer; border-bottom: 1px solid var(--border); }
+.sym-item:last-child { border: none; }
+.sym-item:hover, .sym-item.ac-active { background: rgba(124,106,247,0.12); color: var(--text); }
+```
+> For halo-aurora pages use `--tz-surface-2`, `--tz-border` instead of `--bg3`, `--border2`.
+
+**3. Symbol list** — reuse `SYMBOLS_FO` from `stock_options.html` (≈100 F&O stocks) or `_CH_SYMBOLS` from `cup_handle.html` (≈250 stocks incl. midcap/smallcap). Copy the relevant list into the new page or extract to a shared `nse-symbols.js` if needed on 3+ pages.
+
+**4. JS** — the three functions (prefix them uniquely per page to avoid collisions):
+```js
+let _myAcIdx = -1;
+function _mySymInput(e) {
+  const q = (e.target.value || '').toUpperCase().trim();
+  const dd = document.getElementById('myDropdown');
+  if (!q) { dd.classList.remove('open'); return; }
+  const matches = MY_SYMBOLS.filter(s => s.startsWith(q)).slice(0, 10);
+  if (!matches.length) { dd.classList.remove('open'); return; }
+  dd.innerHTML = matches.map(s =>
+    `<div class="sym-item" data-val="${s}" onmousedown="event.preventDefault();_myPickSym('${s}')">${s}</div>`
+  ).join('');
+  dd.classList.add('open'); _myAcIdx = -1;
+}
+function _mySymKeydown(e) {
+  const dd = document.getElementById('myDropdown');
+  const items = dd.querySelectorAll('.sym-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown')  { e.preventDefault(); _myAcIdx = Math.min(_myAcIdx+1, items.length-1); items.forEach((el,i) => el.classList.toggle('ac-active', i===_myAcIdx)); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); _myAcIdx = Math.max(_myAcIdx-1, 0); items.forEach((el,i) => el.classList.toggle('ac-active', i===_myAcIdx)); }
+  else if (e.key === 'Enter' && _myAcIdx >= 0) { e.preventDefault(); _myPickSym(items[_myAcIdx].dataset.val); }
+  else if (e.key === 'Escape') { dd.classList.remove('open'); }
+}
+function _myPickSym(s) {
+  document.getElementById('myInput').value = s;
+  document.getElementById('myDropdown').classList.remove('open');
+  // call whatever function loads data for the chosen symbol here
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.sym-wrap')) document.getElementById('myDropdown').classList.remove('open');
+});
+```
+
+**5. Enter-key guard** — if the input also fires a load on Enter, add `e.preventDefault()` inside `_mySymKeydown` when a dropdown item is selected (already done in cup_handle.html) so it doesn't double-fire.
+
+### Key behaviours
+- Filters by **symbol prefix** only (startsWith) — keeps it fast and predictable
+- Max 10 results shown
+- Arrow ↑↓ to navigate, Enter to pick, Escape to dismiss
+- `onmousedown` + `preventDefault()` on items prevents the input losing focus before the click registers
+
+---
+
 ## Known Caveats
 
 - `halo-tokens.css` and `theme.css` define overlapping CSS variables. On migrated pages, only include `halo-tokens.css` — not both.

@@ -5760,6 +5760,8 @@ async def stock_reversal_scan(
     max_days:     int   = 130,
     min_price:    float = None,
     max_price:    float = None,
+    sector:       str   = "",
+    symbols:      str   = "",
 ):
     from core.patterns.reversal_scanner import scan_reversals
     loop = asyncio.get_event_loop()
@@ -5773,6 +5775,8 @@ async def stock_reversal_scan(
             max_days=max_days,
             min_price=min_price if min_price else None,
             max_price=max_price if max_price else None,
+            sector=sector,
+            symbols=symbols,
         ))
         return result
     except Exception as e:
