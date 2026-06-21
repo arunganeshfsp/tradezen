@@ -423,7 +423,16 @@ async function analyseOne() {
   }
 }
 
-function renderSingle(d) {
+function backToScan() {
+  if (_cupChartInstance) { _cupChartInstance.destroy(); _cupChartInstance = null; }
+  const el = document.getElementById("singleResult");
+  el.className = "single-result";
+  el.innerHTML = "";
+  const tabs = document.getElementById("filterTabs");
+  if (tabs) tabs.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderSingle(d, fromScan) {
   const el = document.getElementById("singleResult");
   const score = (d.score || {}).total || 0;
   const cup = d.cup || {};
@@ -432,7 +441,9 @@ function renderSingle(d) {
   const vol = d.volume || {};
   const period = d.period || "1y";
 
-  el.innerHTML = `
+  el.innerHTML =
+    (fromScan ? `<div style="margin-bottom:1rem;"><button onclick="backToScan()" style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:7px 14px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--dim);cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--dim)'">← Back to scan results</button></div>` : "")
+    + `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;gap:1rem;flex-wrap:wrap;">
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -534,7 +545,7 @@ function renderSingle(d) {
   _activeReason = null;
   showReason("shape");
   setTimeout(() => drawCupChart(d), 30);
-  renderTable([d], "PATTERN SUMMARY");
+  if (!fromScan) renderTable([d], "PATTERN SUMMARY");
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -892,9 +903,16 @@ function cardHtml(d) {
 }
 
 function showCard(symbol) {
-  document.getElementById("symInput").value = symbol;
-  analyseOne();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const cached = _allResults.find(r => r.symbol === symbol);
+  if (cached) {
+    document.getElementById("emptyState").style.display = "none";
+    renderSingle(cached, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    document.getElementById("symInput").value = symbol;
+    analyseOne();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
