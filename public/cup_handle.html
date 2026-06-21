@@ -113,6 +113,13 @@ select.inp{cursor:pointer;}
 .wl-star{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:0 2px;line-height:1;transition:color .15s;flex-shrink:0;}
 .wl-star:hover,.wl-star.active{color:#f5a623;}
 
+.sym-wrap{position:relative;}
+.sym-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:180px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);z-index:400;max-height:240px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.sym-dropdown.open{display:block;}
+.sym-item{padding:8px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);cursor:pointer;border-bottom:1px solid var(--border);}
+.sym-item:last-child{border:none;}
+.sym-item:hover,.sym-item.ac-active{background:rgba(124,106,247,0.12);color:var(--text);}
+
 .score-bar{height:3px;border-radius:2px;background:var(--bg4);margin-top:8px;overflow:hidden;}
 .score-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease;}
 
@@ -212,16 +219,25 @@ select.inp{cursor:pointer;}
     <p class="ph-sub">
       Multi-week / multi-month pattern detection across Nifty 50 &amp; Next 50.
       Deterministic geometric engine — no ML, no guessing.
-      3 detection stages: complete breakout setup, handle forming, early cup.
+      3 detection stages: pattern complete, handle forming, early cup.
     </p>
     <a href="cup_handle_tutorial.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--accent);border:1px solid rgba(124,106,247,0.3);border-radius:6px;padding:4px 12px;text-decoration:none;transition:background .15s;" onmouseover="this.style.background='rgba(124,106,247,0.08)'" onmouseout="this.style.background='transparent'">
       📖 How to use this tool? — Tutorial &amp; Guide →
     </a>
   </div>
 
+  <!-- ── SEBI Disclaimer ── -->
+  <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;margin-bottom:1rem;line-height:1.5;">
+    ⚠ For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+  </div>
+
   <!-- ── Controls ── -->
   <div class="controls">
-    <input id="symInput" class="inp inp-sym" placeholder="Symbol (e.g. INFY)" maxlength="20">
+    <div class="sym-wrap">
+      <input id="symInput" class="inp inp-sym" placeholder="Symbol (e.g. INFY)" maxlength="20"
+             autocomplete="off" oninput="_chSymInput(event)" onkeydown="_chSymKeydown(event)">
+      <div class="sym-dropdown" id="chSymDropdown"></div>
+    </div>
     <select id="periodSelect" class="inp" title="Chart lookback duration" onchange="updatePeriodHint()">
       <option value="3mo">3 Months</option>
       <option value="6mo">6 Months</option>
@@ -303,9 +319,9 @@ select.inp{cursor:pointer;}
           <th>LEFT RIM</th>
           <th>BOTTOM</th>
           <th>RIGHT RIM</th>
-          <th>ENTRY</th>
-          <th>STOP</th>
-          <th>T1</th>
+          <th>REF. LEVEL</th>
+          <th>RISK LEVEL</th>
+          <th>T1 PROJ.</th>
           <th>R:R</th>
           <th>CURRENT</th>
         </tr>
@@ -498,7 +514,7 @@ function renderSingle(d, fromScan) {
         <span><span class="dot" style="background:#f5a524;"></span>Left Rim</span>
         <span><span class="dot" style="background:#34d399;"></span>Cup Bottom</span>
         <span><span class="dot" style="background:#5b8af5;"></span>Right Rim</span>
-        ${(targets ? `<span><span class="line" style="background:#34d399;border-top:2px dashed #34d399;height:0;"></span>Breakout Level</span>` : "")}
+        ${(targets ? `<span><span class="line" style="background:#34d399;border-top:2px dashed #34d399;height:0;"></span>Reference Level</span>` : "")}
       </div>
     </div>
 
@@ -549,13 +565,13 @@ function renderSingle(d, fromScan) {
 
     ${targets ? `
     <div class="targets" style="margin-bottom:1rem;">
-      <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:8px;letter-spacing:.5px;">TRADE PLAN</div>
-      <div class="targets-row"><span>Entry (breakout)</span><span class="t-entry">₹${fmt(targets.entry)}</span></div>
-      <div class="targets-row"><span>Stop-loss</span><span class="t-sl">₹${fmt(targets.stop_loss)}</span></div>
-      <div class="targets-row"><span>Target 1 (1× depth)</span><span class="t-t1">₹${fmt(targets.target1)}</span></div>
-      <div class="targets-row"><span>Target 2 (2× depth)</span><span class="t-t1">₹${fmt(targets.target2)}</span></div>
-      <div class="targets-row"><span>R:R ratio</span><span>${fmt(targets.rr_ratio, 1)}×</span></div>
-      <div class="targets-row"><span>% to entry</span><span>${fmt(targets.pct_to_entry)}%</span></div>
+      <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:8px;letter-spacing:.5px;">PATTERN LEVELS</div>
+      <div class="targets-row"><span>Reference Level</span><span class="t-entry">₹${fmt(targets.entry)}</span></div>
+      <div class="targets-row"><span>Risk Level</span><span class="t-sl">₹${fmt(targets.stop_loss)}</span></div>
+      <div class="targets-row"><span>Projection 1 (1× depth)</span><span class="t-t1">₹${fmt(targets.target1)}</span></div>
+      <div class="targets-row"><span>Projection 2 (2× depth)</span><span class="t-t1">₹${fmt(targets.target2)}</span></div>
+      <div class="targets-row"><span>Reward:Risk</span><span>${fmt(targets.rr_ratio, 1)}×</span></div>
+      <div class="targets-row"><span>% to ref. level</span><span>${fmt(targets.pct_to_entry)}%</span></div>
     </div>` : ""}
 
     ${vol ? `<span class="vol-pill ${vol.is_dry ? "dry" : "wet"}">
@@ -643,7 +659,7 @@ function drawCupChart(d) {
     boPtRadius[n - 1] = 5;
     boPtColor[n - 1]  = '#34d399';
     datasets.push({
-      label: 'Breakout Level',
+      label: 'Reference Level',
       data: new Array(n).fill(breakoutPx),
       borderColor: '#34d399',
       backgroundColor: 'transparent',
@@ -923,9 +939,9 @@ function cardHtml(d) {
 
     ${targets ? `
     <div class="targets">
-      <div class="targets-row"><span>Entry</span><span class="t-entry">₹${fmt(targets.entry)}</span></div>
-      <div class="targets-row"><span>Stop</span><span class="t-sl">₹${fmt(targets.stop_loss)}</span></div>
-      <div class="targets-row"><span>T1 target</span><span class="t-t1">₹${fmt(targets.target1)}</span></div>
+      <div class="targets-row"><span>Ref. Level</span><span class="t-entry">₹${fmt(targets.entry)}</span></div>
+      <div class="targets-row"><span>Risk Level</span><span class="t-sl">₹${fmt(targets.stop_loss)}</span></div>
+      <div class="targets-row"><span>T1 Projection</span><span class="t-t1">₹${fmt(targets.target1)}</span></div>
       <div class="targets-row"><span>R:R</span><span>${fmt(targets.rr_ratio, 1)}×</span></div>
     </div>` : `
     <div class="targets" style="color:var(--muted);font-size:12px;">
@@ -958,6 +974,80 @@ function showCard(symbol) {
 /* ─────────────────────────────────────────────────────────────────────────── */
 /* Keyboard shortcut                                                           */
 /* ─────────────────────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Symbol Autocomplete                                                         */
+/* ─────────────────────────────────────────────────────────────────────────── */
+const _CH_SYMBOLS = [
+  'RELIANCE','TCS','INFY','HDFCBANK','ICICIBANK','SBIN','BAJFINANCE','WIPRO',
+  'AXISBANK','LT','HCLTECH','SUNPHARMA','TITAN','NESTLEIND','MARUTI','ASIANPAINT',
+  'KOTAKBANK','ULTRACEMCO','TECHM','POWERGRID','NTPC','COALINDIA','ONGC','TATASTEEL',
+  'JSWSTEEL','HINDALCO','ADANIENT','ADANIPORTS','TATAMOTORS','M&M','BAJAJFINSV',
+  'DMART','GRASIM','HAVELLS','HEROMOTOCO','ITC','INDUSINDBK','DIVISLAB','BPCL',
+  'CIPLA','DRREDDY','EICHERMOT','FEDERALBNK','GAIL','GODREJCP','HDFCLIFE',
+  'HINDUNILVR','IPCALAB','JKCEMENT','LUPIN','MANAPPURAM','MARICO','MFSL','MPHASIS',
+  'MRF','MUTHOOTFIN','NAUKRI','BANKBARODA','BIOCON','BOSCHLTD','BRITANNIA','CANBK',
+  'CHOLAFIN','DLF','HINDZINC','IDFCFIRSTB','IEX','JINDALSTEL','JUBLFOOD',
+  'LALPATHLAB','LAURUSLABS','MAXHEALTH','METROPOLIS','MOTHERSON','NATIONALUM',
+  'NMDC','OBEROIRLTY','OFSS','PAGEIND','PIDILITIND','PIIND','SAIL','SBILIFE',
+  'SIEMENS','SRF','TATACOMM','TATACONSUM','TATACHEM','TVSMOTOR','UBL','UPL',
+  'VEDL','VOLTAS','BEL','SHRIRAMFIN','TRENT','POLYCAB','RECLTD','PFC','LICI',
+  'LODHA','LTTS','VBL','GODREJPROP','ABBOTINDIA','ALKEM','CONCOR','DABUR',
+  'ICICIGI','ICICIPRULI','INDHOTEL','INDUSTOWER','IOC','IRCTC','COLPAL',
+  'AMBUJACEM','BERGEPAINT','HDFCAMC','TATAPOWER','TORNTPHARM','TORNTPOWER',
+  'TIINDIA','PERSISTENT','NYKAA','ZOMATO','ETERNAL','HAL','IRFC','RVNL',
+  // Midcap 150
+  'ABFRL','AIAENG','APLAPOLLO','APOLLOTYRE','BALRAMCHIN','BATAINDIA','BHARATFORG',
+  'BLUESTARINDIA','CANFINHOME','CESC','COFORGE','CROMPTON','CYIENT','DALBHARAT',
+  'DEEPAKNTR','DIXON','EMAMILTD','GLENMARK','GRANULES','HAPPSTMNDS','ISGEC',
+  'INTELLECT','IPCA','JINDALSAW','JSPL','KALYANKJIL','KPITTECH','LICHSGFIN',
+  'LTTS','MASTEK','MSTC','NATCOPHARM','NAVINFLUOR','NHPC','OLECTRA','PBFINTECH',
+  'PIRAMALENT','POLICYBZR','RAMCOCEM','RATEGAIN','RBLBANK','REDINGTON','RVNL',
+  'SCHAEFFLER','SJVN','SONATSOFTW','SUNDARMFIN','SUZLON','SYNGENE','TATAELXSI',
+  'TATATECH','TITAGARH','TRIDENT','UNOMINDA','UTIAMC','MCX','VGUARD','WELCORP',
+  'ZENSARTECH','DELHIVERY','KAYNES','ABB','CUMMINSIND','BHEL','RAILTEL',
+  // Smallcap / Sector
+  'AJANTPHARM','ALKYLAMINE','ANGELONE','ATUL','AVANTIFEED','BALAMINES','BEML',
+  'BIRLACORPN','BSOFT','CAMS','CAPLIPOINT','CARBORUNIV','CENTURYPLY','CLEAN',
+  'CRAFTSMAN','ECLERX','ENDURANCE','EPIGRAL','EQUITAS','FINEORG','FINOLEXCAB',
+  'FORCEMOT','GALAXYSURF','GNFC','GRINDWELL','GSPL','IIFLWAM','JBCHEPHARM',
+  'JKPAPER','KAJARIACER','KANSAINER','KIMS','KIRLOSENG','LATENTVIEW','LUXIND',
+  'MAHINDCIE','NAZARA','NOCIL','NUVOCO','PAYTM','PGHL','RADICO','RAILTEL',
+  'REPCO','ROUTE','SAFARI','SOLARINDS','SPANDANA','SUNTECK','SUPRAJIT',
+  'TEAMLEASE','TIMKEN','TINPLATE','UJJIVANSFB','VINATIORGA','WABAG','WESTLIFE',
+  'MOIL','NBCC','ANUPAM','HFCL','INOXWIND','ATGL','IGL','MGL','PETRONET',
+  'ADANIPOWER','ADANIGREEN','PNB','UNIONBANK','BANDHANBNK','PNBHOUSING',
+  'ASHOKLEY','BALKRISIND','CEATLTD','PRESTIGE','BRIGADE','SOBHA','PHOENIXLTD',
+  'ANANTRAJ','KOLTEPATIL','WABAG','PBFINTECH',
+];
+
+let _chAcIdx = -1;
+function _chSymInput(e) {
+  const q = (e.target.value || '').toUpperCase().trim();
+  const dd = document.getElementById('chSymDropdown');
+  if (!q) { dd.classList.remove('open'); return; }
+  const matches = _CH_SYMBOLS.filter(s => s.startsWith(q)).slice(0, 10);
+  if (!matches.length) { dd.classList.remove('open'); return; }
+  dd.innerHTML = matches.map(s => `<div class="sym-item" data-val="${s}" onmousedown="event.preventDefault();_chPickSym('${s}')">${s}</div>`).join('');
+  dd.classList.add('open');
+  _chAcIdx = -1;
+}
+function _chSymKeydown(e) {
+  const dd = document.getElementById('chSymDropdown');
+  const items = dd.querySelectorAll('.sym-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); _chAcIdx = Math.min(_chAcIdx + 1, items.length - 1); items.forEach((el, i) => el.classList.toggle('ac-active', i === _chAcIdx)); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); _chAcIdx = Math.max(_chAcIdx - 1, 0); items.forEach((el, i) => el.classList.toggle('ac-active', i === _chAcIdx)); }
+  else if (e.key === 'Enter' && _chAcIdx >= 0) { e.preventDefault(); _chPickSym(items[_chAcIdx].dataset.val); }
+  else if (e.key === 'Escape') { dd.classList.remove('open'); }
+}
+function _chPickSym(s) {
+  document.getElementById('symInput').value = s;
+  document.getElementById('chSymDropdown').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.sym-wrap')) document.getElementById('chSymDropdown').classList.remove('open');
+});
+
 document.getElementById("symInput").addEventListener("keydown", e => {
   if (e.key === "Enter") analyseOne();
 });

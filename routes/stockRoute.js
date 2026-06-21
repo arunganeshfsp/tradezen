@@ -769,7 +769,7 @@ router.get("/patterns/cup-handle/analyse", async (req, res) => {
 router.get("/patterns/cup-handle/scan", async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
-    const data = await aiService.proxy("GET", `/patterns/cup-handle/scan?${params}`, 180000);
+    const data = await aiService.proxy("GET", `/patterns/cup-handle/scan?${params}`, 660000);
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

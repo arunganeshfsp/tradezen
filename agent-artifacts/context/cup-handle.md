@@ -89,7 +89,30 @@ New module `ai_engine/core/patterns/` — 5-file package for deterministic Cup &
 - Scan timeout: 180 seconds in Node proxy; large scans can hit it on slow connections
 - The "left rim" detection algorithm looks at max in first portion before cup bottom — can occasionally pick a sub-optimal left rim if the actual left rim is not the global max in that window
 
+## Recent changes (2026-06)
+
+### Scan expansion + Watchlist
+- **Universe dropdown** expanded: Nifty 50 / Nifty 100 / Midcap 150 / Smallcap 250 / My Watchlist
+- **Sector filter** added: 10 sectors (Banks, IT, Pharma, Metals, Auto, FMCG, Energy, Chemicals, Realty, Infra) — filters within the selected universe or returns sector list when no intersection
+- **Watchlist** (`public/watchlist.js`): localStorage-based, `WL.add/remove/toggle/has/count`, fires `tz-wl-change` CustomEvent; star (☆/★) button on every scan card and detail view
+- Backend `_get_ch_symbols()` helper resolves final symbol list; NSE live fetch for Midcap150/Smallcap250 with fallback static lists
+- Scan endpoint now accepts `sector` and `symbols` params; timeout varies by universe (2–10 min)
+- Node proxy route timeout needs increasing for Midcap/Smallcap scans (currently 180s — too short)
+
+### SEBI compliance
+- Renamed all user-facing labels: "Entry" → "Reference Level", "Stop-loss" → "Risk Level", "Target 1/2" → "Projection 1/2", "TRADE PLAN" → "PATTERN LEVELS"
+- Chart legend: "Breakout Level" → "Reference Level"
+- Table headers: ENTRY → REF. LEVEL, STOP → RISK LEVEL, T1 → T1 PROJ.
+- Page subtitle: "complete breakout setup" → "pattern complete"
+- SEBI disclaimer banner added below page header
+- scoring.py: "Look for volume to contract before entering" → "Observe if volume contracts further"
+
+### Cup detection tuning (TATAPOWER fix)
+- `_PERIOD_PARAMS["1y"]`: min_cup 20→45, max_cup 180→240
+- `_PERIOD_PARAMS["2y"]`: min_cup 20→60, max_cup 180→460
+- Prevents micro-cups (< 9 weeks) from scoring above large year-long bases
+
 ## Open issues
 
-- Consider adding SQLite caching of scan results (24h TTL) to avoid repeated yfinance calls
-- Consider adding a "watchlist" scan option (user-defined symbols)
+- Node proxy timeout for `/api/patterns/cup-handle/scan` is 180s — needs increase to 600s for Smallcap 250 scans
+- No SQLite caching of scan results — each scan re-fetches yfinance

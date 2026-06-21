@@ -124,7 +124,7 @@ def score(
         vol_reason = (
             f"Handle volume is {dry_pct:.0f}% of cup average — volume is not drying up. "
             "Expanding volume during a handle often indicates distribution, reducing pattern reliability. "
-            "Look for volume to contract before entering."
+            "Observe if volume contracts further as the handle develops."
         )
 
     # ── Prior trend (10 pts) ───────────────────────────────────────────────
