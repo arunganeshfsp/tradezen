@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TradeZen Learn — Financial Education for Everyone</title>
+<meta name="description" content="Learn how money actually works — in simple steps, your language, and at your own pace. Foundation, Fundamental Analysis, and Technical Analysis tracks.">
+<link rel="stylesheet" href="/halo-aurora/css/halo-tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--tz-bg);
+  color: var(--tz-fg-1);
+  font-family: var(--tz-font-ui), 'Noto Sans Tamil', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Tokens (fallback if halo-tokens doesn't load) ── */
+:root {
+  --bg: #06070f;
+  --bg2: #0e1124;
+  --bg3: #161a32;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f1f8;
+  --dim: #9ea3c0;
+  --muted: #585d7e;
+  --accent: #7c6af7;
+  --accent2: #5b8af5;
+  --green: #34d399;
+  --amber: #f5a524;
+  --r: 14px;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* ── Nav ── */
+.lnav {
+  position: sticky; top: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(16px, 5vw, 48px);
+  height: 60px;
+  background: rgba(6, 7, 15, 0.88);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.lnav-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
+  color: var(--text);
+}
+.lnav-brand span { color: var(--accent); }
+.lnav-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+  letter-spacing: .12em; background: rgba(124,106,247,.15); color: var(--accent);
+  border: 1px solid rgba(124,106,247,.3); border-radius: 4px; padding: 2px 7px;
+}
+.lnav-right { display: flex; align-items: center; gap: 10px; }
+.btn-signin {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .08em; padding: 7px 16px; border-radius: 8px;
+  border: 1px solid var(--border2); background: transparent; color: var(--dim);
+  cursor: pointer; transition: all .15s;
+}
+.btn-signin:hover { border-color: var(--accent); color: var(--text); }
+.btn-start-sm {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .08em; padding: 7px 18px; border-radius: 8px;
+  border: none; background: var(--accent); color: #fff;
+  cursor: pointer; transition: opacity .15s;
+}
+.btn-start-sm:hover { opacity: .88; }
+
+/* ── Lang toggle ── */
+.lang-btn {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .1em; padding: 5px 10px; border-radius: 6px;
+  border: 1px solid var(--border2); background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .15s;
+}
+.lang-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(124,106,247,.1); }
+
+/* ── Page wrapper ── */
+.page { max-width: 1060px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 48px); }
+
+/* ── HERO ── */
+.hero-wrap {
+  position: relative; overflow: hidden;
+  padding: clamp(64px, 10vh, 100px) 0 clamp(56px, 8vh, 80px);
+  text-align: center;
+}
+.hero-wrap::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(65% 60% at 50% -10%, rgba(124,106,247,.28) 0%, transparent 60%),
+    radial-gradient(40% 40% at 10% 90%, rgba(91,138,245,.14) 0%, transparent 55%),
+    radial-gradient(30% 35% at 90% 80%, rgba(52,211,153,.10) 0%, transparent 50%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 22px;
+  background: rgba(124,106,247,.08); border: 1px solid rgba(124,106,247,.2);
+  border-radius: 20px; padding: 6px 16px;
+}
+.hero-eyebrow svg { flex-shrink: 0; }
+.hero-h1 {
+  font-size: clamp(28px, 6vw, 54px); font-weight: 800; line-height: 1.15;
+  letter-spacing: -.02em; color: var(--text); margin-bottom: 18px;
+  max-width: 720px; margin-left: auto; margin-right: auto;
+}
+.hero-h1 em { font-style: normal; color: var(--accent); }
+.hero-sub {
+  font-size: clamp(14px, 2.5vw, 17px); color: var(--dim); line-height: 1.7;
+  max-width: 540px; margin: 0 auto 18px;
+}
+.hero-nudge {
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--muted);
+  margin-bottom: 36px; letter-spacing: .03em;
+}
+.hero-nudge strong { color: var(--text); }
+.btn-hero {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
+  letter-spacing: .06em; padding: 16px 36px; border-radius: 12px;
+  border: none; background: var(--accent); color: #fff;
+  cursor: pointer; transition: opacity .15s, transform .12s;
+  box-shadow: 0 8px 32px rgba(124,106,247,.35);
+}
+.btn-hero:hover { opacity: .9; transform: translateY(-1px); }
+.hero-trust {
+  margin-top: 20px; font-size: 12px; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.hero-trust strong { color: var(--green); }
+
+/* ── Divider ── */
+.section-div { height: 1px; background: var(--border); margin: 0; }
+
+/* ── Section wrapper ── */
+.section { padding: clamp(48px, 8vh, 80px) 0; }
+
+/* ── Section eyebrow + heading ── */
+.sec-eye {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+  font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+}
+.sec-eye::before { content: ''; display: block; width: 20px; height: 1.5px; background: var(--accent); border-radius: 1px; }
+.sec-h2 {
+  font-size: clamp(22px, 4vw, 34px); font-weight: 800; letter-spacing: -.02em;
+  color: var(--text); line-height: 1.2; margin-bottom: 8px;
+}
+.sec-h2 em { font-style: normal; color: var(--accent); }
+.sec-sub { font-size: 14px; color: var(--dim); max-width: 500px; }
+
+/* ── WHO SECTION ── */
+.who-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-top: 36px;
+}
+@media(max-width: 720px) { .who-grid { grid-template-columns: 1fr; } }
+
+.who-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 26px 24px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: border-color .2s;
+}
+.who-card:hover { border-color: rgba(255,255,255,.18); }
+.who-icon { font-size: 28px; line-height: 1; }
+.who-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.who-body { font-size: 13.5px; color: var(--dim); line-height: 1.65; }
+.who-body em { font-style: normal; color: var(--text); font-weight: 600; }
+
+/* ── TRACKS SECTION ── */
+.tracks-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-top: 36px;
+}
+@media(max-width: 820px) { .tracks-grid { grid-template-columns: 1fr; } }
+
+.track-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 26px 24px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: border-color .2s;
+  position: relative; overflow: hidden;
+}
+.track-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top, rgba(124,106,247,.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.track-card.t2::before { background: radial-gradient(ellipse at top, rgba(91,138,245,.07) 0%, transparent 65%); }
+.track-card.t3::before { background: radial-gradient(ellipse at top, rgba(52,211,153,.07) 0%, transparent 65%); }
+.track-card:hover { border-color: rgba(255,255,255,.18); }
+
+.track-icon { font-size: 28px; line-height: 1; }
+.track-meta {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  font-weight: 700; letter-spacing: .12em; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.track-meta .xp-pill {
+  background: rgba(124,106,247,.1); border: 1px solid rgba(124,106,247,.2);
+  color: var(--accent); border-radius: 4px; padding: 1px 7px; font-size: 9.5px;
+}
+.track-h3 { font-size: 18px; font-weight: 800; color: var(--text); }
+.track-body { font-size: 13px; color: var(--dim); line-height: 1.65; flex: 1; }
+.track-footer {
+  margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--muted); letter-spacing: .06em;
+}
+
+/* ── HOW IT WORKS ── */
+.steps-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0; margin-top: 40px; position: relative;
+}
+.steps-row::before {
+  content: '';
+  position: absolute; top: 32px; left: calc(16.66% + 8px); right: calc(16.66% + 8px);
+  height: 1px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--green));
+  opacity: .25;
+}
+@media(max-width: 600px) { .steps-row { grid-template-columns: 1fr; gap: 24px; } .steps-row::before { display: none; } }
+
+.step {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 14px; padding: 0 20px;
+}
+.step-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; position: relative; z-index: 1;
+  border: 1px solid var(--border);
+}
+.step-icon.s1 { background: rgba(124,106,247,.12); }
+.step-icon.s2 { background: rgba(91,138,245,.12); }
+.step-icon.s3 { background: rgba(52,211,153,.12); }
+
+.step-num {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  font-weight: 700; letter-spacing: .18em; color: var(--muted); text-transform: uppercase;
+}
+.step-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.step-body { font-size: 13px; color: var(--dim); line-height: 1.6; }
+
+/* ── FINAL CTA ── */
+.cta-wrap {
+  text-align: center;
+  padding: clamp(56px, 10vh, 88px) clamp(16px, 5vw, 48px);
+  position: relative; overflow: hidden;
+}
+.cta-wrap::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(55% 70% at 50% 100%, rgba(124,106,247,.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+.cta-h2 {
+  font-size: clamp(22px, 4vw, 38px); font-weight: 800; letter-spacing: -.02em;
+  color: var(--text); margin-bottom: 10px; line-height: 1.2;
+}
+.cta-sub { font-size: 14px; color: var(--dim); margin-bottom: 32px; }
+
+/* ── Disclaimer ── */
+.disclaimer-bar {
+  background: var(--bg2); border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 14px clamp(16px, 5vw, 48px);
+  font-size: 11.5px; color: var(--muted);
+  text-align: center; line-height: 1.6;
+}
+
+/* ── Footer ── */
+.learn-footer {
+  padding: 28px clamp(16px, 5vw, 48px);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: var(--muted);
+}
+.learn-footer a { color: var(--muted); transition: color .15s; }
+.learn-footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ── Nav ────────────────────────────────────────────────────── -->
+<nav class="lnav">
+  <a href="/" class="lnav-brand">
+    Trade<span>Zen</span>
+    <span class="lnav-badge">LEARN</span>
+  </a>
+  <div class="lnav-right">
+    <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="langTa" onclick="setLang('ta')">தமிழ்</button>
+    <a href="/learn/auth.html" class="btn-signin" data-en="Sign In" data-ta="உள்நுழைய">Sign In</a>
+    <a href="/learn/auth.html?mode=register" class="btn-start-sm" data-en="Start Free" data-ta="இலவசமாக தொடங்கு">Start Free</a>
+  </div>
+</nav>
+
+<!-- ── HERO ───────────────────────────────────────────────────── -->
+<div class="hero-wrap">
+  <div class="page">
+    <div class="hero-eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span data-en="TradeZen Learn · Financial Education for Everyone" data-ta="டிரேட்ஜென் லர்ன் · அனைவருக்கும் நிதி கல்வி">TradeZen Learn · Financial Education for Everyone</span>
+    </div>
+
+    <h1 class="hero-h1">
+      <span data-en="Your money deserves better than " data-ta="உங்கள் பணம் ">Your money deserves better than </span><em data-en="guesswork." data-ta="ஊகங்களை தாண்டி வளர வேண்டும்.">guesswork.</em>
+    </h1>
+
+    <p class="hero-sub" data-en="TradeZen Learn teaches you how money actually works — in simple steps, your language, and at your own pace." data-ta="பணம் எப்படி வேலை செய்கிறது என்பதை — எளிய படிகளில், உங்கள் மொழியில், உங்கள் வேகத்தில் — TradeZen Learn கற்றுத் தருகிறது.">
+      TradeZen Learn teaches you how money actually works — in simple steps, your language, and at your own pace.
+    </p>
+
+    <p class="hero-nudge" data-en="No tips. No noise. Just the building blocks." data-ta="டிப்ஸ் இல்லை. சத்தம் இல்லை. அடிப்படை அறிவு மட்டுமே.">No tips. No noise. Just the building blocks.</p>
+
+    <a href="/learn/auth.html" class="btn-hero">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span data-en="Start Learning — it's free" data-ta="இலவசமாக கற்றல் தொடங்குங்கள்">Start Learning — it's free</span>
+    </a>
+
+    <p class="hero-trust">
+      <strong data-en="59 lessons" data-ta="59 பாடங்கள்">59 lessons</strong>
+      <span data-en=" · 3 tracks · 2520 XP to earn · Tamil + English" data-ta=" · 3 பாதைகள் · 2520 XP · தமிழ் + ஆங்கிலம்"> · 3 tracks · 2520 XP to earn · Tamil + English</span>
+    </p>
+  </div>
+</div>
+
+<div class="section-div"></div>
+
+<!-- ── WHO THIS IS FOR ────────────────────────────────────────── -->
+<div class="section">
+  <div class="page">
+    <div class="sec-eye" data-en="BUILT FOR YOU" data-ta="உங்களுக்காக உருவாக்கப்பட்டது">BUILT FOR YOU</div>
+    <h2 class="sec-h2" data-en="You don't need a background in finance." data-ta="உங்களுக்கு நிதி பின்னணி தேவையில்லை.">You don't need a background in finance.</h2>
+    <p class="sec-sub" data-en="Three kinds of people find this useful. See if you're one of them." data-ta="மூன்று வகை மனிதர்களுக்கு இது பயனுள்ளது. நீங்கள் அவர்களில் ஒருவரா என்று பாருங்கள்.">Three kinds of people find this useful. See if you're one of them.</p>
+
+    <div class="who-grid">
+
+      <div class="who-card">
+        <div class="who-icon">🎓</div>
+        <div class="who-title" data-en="Just starting out?" data-ta="இப்போதுதான் தொடங்குகிறீர்களா?">Just starting out?</div>
+        <div class="who-body">
+          <span data-en="You don't need a finance degree to understand money. Start with the basics and build from there." data-ta="பணத்தை புரிந்துகொள்ள Finance படிப்பு தேவையில்லை. அடிப்படையிலிருந்து ஆரம்பியுங்கள்.">You don't need a finance degree to understand money. Start with the basics and build from there.</span>
+        </div>
+      </div>
+
+      <div class="who-card">
+        <div class="who-icon">🏠</div>
+        <div class="who-title" data-en="Managing a household?" data-ta="வீட்டை நிர்வகிக்கிறீர்களா?">Managing a household?</div>
+        <div class="who-body">
+          <em data-en="Managing the household already means managing money." data-ta="வீட்டை நிர்வகிப்பது என்பதே பணத்தை நிர்வகிப்பதுதான்.">Managing the household already means managing money.</em>
+          <br><br>
+          <span data-en="Learn what SIPs, gold, stocks, and FDs actually are — explained simply." data-ta="SIP, தங்கம், பங்குகள், FD என்ன, எப்படி வேலை செய்கின்றன என்பதை எளிமையாக தெரிந்துகொள்ளுங்கள்.">Learn what SIPs, gold, stocks, and FDs actually are — explained simply.</span>
+        </div>
+      </div>
+
+      <div class="who-card">
+        <div class="who-icon">📈</div>
+        <div class="who-title" data-en="Already investing, but not sure why?" data-ta="ஏற்கனவே முதலீடு செய்கிறீர்களா, ஏன் என்று தெரியவில்லையா?">Already investing, but not sure why?</div>
+        <div class="who-body">
+          <span data-en="Learn to read charts, understand companies, and make sense of the market — not just follow tips." data-ta="சார்ட் படிக்க, நிறுவனங்களை புரிந்துகொள்ள, சந்தையை அர்த்தப்படுத்திக்கொள்ள — டிப்ஸ் பின்பற்றுவதை விட்டுவிடுங்கள்.">Learn to read charts, understand companies, and make sense of the market — not just follow tips.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section-div"></div>
+
+<!-- ── TRACKS ──────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="page">
+    <div class="sec-eye" data-en="WHAT YOU'LL LEARN" data-ta="நீங்கள் என்ன கற்றுக்கொள்வீர்கள்">WHAT YOU'LL LEARN</div>
+    <h2 class="sec-h2">
+      <span data-en="3 tracks. Clear path. " data-ta="3 பாதைகள். தெளிவான திட்டம். ">3 tracks. Clear path. </span><em data-en="Real knowledge." data-ta="உண்மையான அறிவு.">Real knowledge.</em>
+    </h2>
+    <p class="sec-sub" data-en="Go at your own pace. Each lesson is 3–5 minutes." data-ta="உங்கள் வேகத்தில் செல்லுங்கள். ஒவ்வொரு பாடமும் 3–5 நிமிடங்கள்.">Go at your own pace. Each lesson is 3–5 minutes.</p>
+
+    <div class="tracks-grid">
+
+      <div class="track-card t1">
+        <div class="track-icon">📚</div>
+        <div class="track-meta">
+          <span data-en="15 LESSONS" data-ta="15 பாடங்கள்">15 LESSONS</span>
+          <span class="xp-pill">510 XP</span>
+        </div>
+        <div class="track-h3" data-en="Foundation" data-ta="அடித்தளம்">Foundation</div>
+        <div class="track-body">
+          <span data-en="Why money should grow. How markets work. What a share really is. Everything that should have been taught in school — finally explained." data-ta="பணம் ஏன் வளர வேண்டும். சந்தைகள் எப்படி செயல்படுகின்றன. பங்கு என்றால் என்ன. பள்ளியில் கற்றுத் தரப்பிருக்க வேண்டியதை — இப்போது தெரிந்துகொள்ளுங்கள்.">Why money should grow. How markets work. What a share really is. Everything that should have been taught in school — finally explained.</span>
+        </div>
+        <div class="track-footer">
+          <span data-en="Compounding · SIP · NSE & BSE · Portfolio · FII/DII" data-ta="Compounding · SIP · NSE & BSE · Portfolio · FII/DII">Compounding · SIP · NSE & BSE · Portfolio · FII/DII</span>
+        </div>
+      </div>
+
+      <div class="track-card t2">
+        <div class="track-icon">🔍</div>
+        <div class="track-meta">
+          <span data-en="23 LESSONS" data-ta="23 பாடங்கள்">23 LESSONS</span>
+          <span class="xp-pill" style="background:rgba(91,138,245,.1);border-color:rgba(91,138,245,.2);color:var(--accent2);">935 XP</span>
+        </div>
+        <div class="track-h3" data-en="Fundamental Analysis" data-ta="அடிப்படை பகுப்பாய்வு">Fundamental Analysis</div>
+        <div class="track-body">
+          <span data-en="How to read a company's results. PE ratio, EPS, ROE — decoded. Understand what a company really is before following anyone's tips." data-ta="நிறுவனத்தின் முடிவுகளை எப்படி படிப்பது. PE ratio, EPS, ROE — எளிய விளக்கம். யாரின் டிப்ஸ் பின்பற்றுவதற்கும் முன்பு நிறுவனம் என்னவென்று புரிந்துகொள்ளுங்கள்.">How to read a company's results. PE ratio, EPS, ROE — decoded. Understand what a company really is before following anyone's tips.</span>
+        </div>
+        <div class="track-footer" style="color:var(--accent2);">
+          <span data-en="PE · EPS · ROE · Revenue · Debt · Dividends · Mutual Funds" data-ta="PE · EPS · ROE · வருவாய் · கடன் · ஈவுத்தொகை · Mutual Funds">PE · EPS · ROE · Revenue · Debt · Dividends · Mutual Funds</span>
+        </div>
+      </div>
+
+      <div class="track-card t3">
+        <div class="track-icon">📊</div>
+        <div class="track-meta">
+          <span data-en="21 LESSONS" data-ta="21 பாடங்கள்">21 LESSONS</span>
+          <span class="xp-pill" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.2);color:var(--green);">1075 XP</span>
+        </div>
+        <div class="track-h3" data-en="Technical Analysis" data-ta="தொழில்நுட்ப பகுப்பாய்வு">Technical Analysis</div>
+        <div class="track-body">
+          <span data-en="Charts, candlesticks, support levels, breakouts — the language of price. Understand how traders read the market in real time." data-ta="சார்ட்கள், கேண்டில்ஸ்டிக், support levels, breakouts — விலையின் மொழி. வர்த்தகர்கள் சந்தையை நேரடியாக எப்படி படிக்கிறார்கள் என்று புரிந்துகொள்ளுங்கள்.">Charts, candlesticks, support levels, breakouts — the language of price. Understand how traders read the market in real time.</span>
+        </div>
+        <div class="track-footer" style="color:var(--green);">
+          <span data-en="Candlesticks · Breakouts · Risk Mgmt · Stop Loss · Psychology" data-ta="Candlesticks · Breakouts · Risk Mgmt · Stop Loss · Psychology">Candlesticks · Breakouts · Risk Mgmt · Stop Loss · Psychology</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section-div"></div>
+
+<!-- ── HOW IT WORKS ───────────────────────────────────────────── -->
+<div class="section">
+  <div class="page">
+    <div class="sec-eye" data-en="HOW IT WORKS" data-ta="இது எப்படி வேலை செய்கிறது">HOW IT WORKS</div>
+    <h2 class="sec-h2">
+      <em data-en="Minutes," data-ta="நிமிடங்களில்,">Minutes,</em>
+      <span data-en=" not months." data-ta=" மாதங்கள் அல்ல."> not months.</span>
+    </h2>
+    <p class="sec-sub" data-en="Three steps. No prior knowledge needed. No deadlines." data-ta="மூன்று படிகள். முன் அறிவு தேவையில்லை. காலக்கெடு இல்லை.">Three steps. No prior knowledge needed. No deadlines.</p>
+
+    <div class="steps-row">
+
+      <div class="step">
+        <div class="step-icon s1">▶️</div>
+        <div class="step-num" data-en="STEP 01" data-ta="படி 01">STEP 01</div>
+        <div class="step-title" data-en="Pick a lesson" data-ta="ஒரு பாடம் தேர்வு செய்யுங்கள்">Pick a lesson</div>
+        <div class="step-body" data-en="Each one takes 3–5 minutes. Start anywhere — no order required." data-ta="ஒவ்வொன்றும் 3–5 நிமிடங்கள். எங்கும் தொடங்கலாம் — வரிசை தேவையில்லை.">Each one takes 3–5 minutes. Start anywhere — no order required.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon s2">🧩</div>
+        <div class="step-num" data-en="STEP 02" data-ta="படி 02">STEP 02</div>
+        <div class="step-title" data-en="Answer quick quizzes" data-ta="சிறு வினாடி வினாக்கள்">Answer quick quizzes</div>
+        <div class="step-body" data-en="Lock in what you learned. Instant feedback, no pressure." data-ta="கற்றதை நினைவில் வைக்க வினாக்கள். உடனடி பதில், அழுத்தம் இல்லை.">Lock in what you learned. Instant feedback, no pressure.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon s3">⭐</div>
+        <div class="step-num" data-en="STEP 03" data-ta="படி 03">STEP 03</div>
+        <div class="step-title" data-en="Earn XP, build a streak" data-ta="XP சம்பாதியுங்கள், streak தொடருங்கள்">Earn XP, build a streak</div>
+        <div class="step-body" data-en="Watch your knowledge compound — just like a good investment." data-ta="உங்கள் அறிவு வளரட்டும் — ஒரு நல்ல முதலீடு போல.">Watch your knowledge compound — just like a good investment.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section-div"></div>
+
+<!-- ── FINAL CTA ──────────────────────────────────────────────── -->
+<div class="cta-wrap">
+  <h2 class="cta-h2" data-en="Ready to take control of your financial future?" data-ta="உங்கள் நிதி எதிர்காலத்தை நீங்களே வழிநடத்த தயாரா?">Ready to take control of your financial future?</h2>
+  <p class="cta-sub" data-en="Join learners building real knowledge — one lesson at a time." data-ta="ஒரு பாடத்தில் ஆரம்பித்து உண்மையான அறிவை கட்டமைக்கும் கற்பவர்களுடன் சேருங்கள்.">Join learners building real knowledge — one lesson at a time.</p>
+  <a href="/learn/auth.html" class="btn-hero">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    <span data-en="Start Learning — it's free" data-ta="இலவசமாக கற்றல் தொடங்குங்கள்">Start Learning — it's free</span>
+  </a>
+</div>
+
+<!-- ── Disclaimer ─────────────────────────────────────────────── -->
+<div class="disclaimer-bar">
+  <span data-en="For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before making investment decisions." data-ta="இது கல்வி நோக்கத்திற்காக மட்டுமே. இது முதலீட்டு ஆலோசனை அல்ல. முதலீட்டு முடிவுகள் எடுப்பதற்கு முன் SEBI பதிவு பெற்ற ஆலோசகரை அணுகவும்.">
+    For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before making investment decisions.
+  </span>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<div class="learn-footer">
+  <span>© 2026 TradeZen</span>
+  <div style="display:flex;gap:20px;">
+    <a href="/" data-en="Dashboard" data-ta="டாஷ்போர்ட்">Dashboard</a>
+    <a href="/learn/auth.html" data-en="Sign In" data-ta="உள்நுழைய">Sign In</a>
+  </div>
+</div>
+
+<script>
+// Redirect to dashboard if already logged in
+(function() {
+  const token = localStorage.getItem('tz_learn_token') || localStorage.getItem('learn_token');
+  if (token) window.location.replace('/learn/');
+})();
+
+// Language toggle
+let _lang = localStorage.getItem('tz_lang') || localStorage.getItem('halo-lang') || 'en';
+
+function setLang(l) {
+  _lang = l;
+  localStorage.setItem('tz_lang', l);
+  localStorage.setItem('halo-lang', l);
+  applyLang();
+}
+
+function applyLang() {
+  document.documentElement.lang = _lang;
+  const ta = _lang === 'ta';
+  document.getElementById('langEn').classList.toggle('active', !ta);
+  document.getElementById('langTa').classList.toggle('active', ta);
+  document.querySelectorAll('[data-en][data-ta]').forEach(el => {
+    el.textContent = ta ? el.dataset.ta : el.dataset.en;
+  });
+}
+
+applyLang();
+</script>
+</body>
+</html>
