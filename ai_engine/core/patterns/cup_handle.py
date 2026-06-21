@@ -30,10 +30,10 @@ MIN_PATTERN_SCORE = 25.0   # minimum score to report a detection
 
 # Per-period tuning: shorter windows need a tighter pivot search and smaller cup limits
 _PERIOD_PARAMS: dict[str, dict] = {
-    "3mo": {"pivot_window": 4,  "min_cup": 8,  "max_cup":  45, "max_handle": 20},
+    "3mo": {"pivot_window": 4,  "min_cup":  8, "max_cup":  45, "max_handle": 20},
     "6mo": {"pivot_window": 7,  "min_cup": 15, "max_cup": 100, "max_handle": 30},
-    "1y":  {"pivot_window": 10, "min_cup": 20, "max_cup": 240, "max_handle": 35},
-    "2y":  {"pivot_window": 10, "min_cup": 20, "max_cup": 460, "max_handle": 35},
+    "1y":  {"pivot_window": 10, "min_cup": 45, "max_cup": 240, "max_handle": 35},
+    "2y":  {"pivot_window": 10, "min_cup": 60, "max_cup": 460, "max_handle": 35},
 }
 
 
