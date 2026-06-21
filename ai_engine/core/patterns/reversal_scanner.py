@@ -530,6 +530,25 @@ def check_single_stock(
 
     passed = all(c["passed"] for c in criteria)
 
+    # ── Chart data — last 200 bars ────────────────────────────────────────────
+    chart_start  = max(0, n - 200)
+    chart_close  = close.iloc[chart_start:]
+    chart_dates  = [d.strftime('%Y-%m-%d') for d in chart_close.index]
+    chart_closes = [round(float(v), 2) for v in chart_close.values]
+
+    sma20_s = close.rolling(20).mean().iloc[chart_start:]
+    sma50_s = close.rolling(50).mean().iloc[chart_start:]
+    chart_sma20 = [round(float(v), 2) if pd.notna(v) else None for v in sma20_s.values]
+    chart_sma50 = [round(float(v), 2) if pd.notna(v) else None for v in sma50_s.values]
+
+    trough_chart_idx = trough_iloc - chart_start
+
+    peak_chart_idx = None
+    if len(pre_window) >= 3:
+        peak_iloc_abs = peak_start + int(pre_window.values.argmax())
+        if peak_iloc_abs >= chart_start:
+            peak_chart_idx = peak_iloc_abs - chart_start
+
     return {
         "symbol":            raw,
         "passed":            passed,
@@ -546,4 +565,12 @@ def check_single_stock(
         "fib_level":         _fib_level(fib_pct),
         "vol_signal":        vsig,
         "criteria":          criteria,
+        "chart": {
+            "dates":      chart_dates,
+            "closes":     chart_closes,
+            "sma20":      chart_sma20,
+            "sma50":      chart_sma50,
+            "trough_idx": trough_chart_idx,
+            "peak_idx":   peak_chart_idx,
+        },
     }

@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
 <script src="watchlist.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <style>
 :root{
@@ -277,6 +278,35 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .disclaimer{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--amber);
   border-radius:0 8px 8px 0;padding:10px 14px;margin-top:2rem;
   font-size:12px;color:var(--muted);line-height:1.55;}
+
+/* ── Reversal modal ───────────────────────────── */
+.rev-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;
+  display:none;align-items:flex-start;justify-content:center;
+  padding:1.25rem 1rem 2rem;overflow-y:auto;}
+.rev-overlay.open{display:flex;}
+.rev-dialog{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;
+  width:100%;max-width:560px;padding:1.5rem 1.25rem 1.25rem;
+  position:relative;margin:auto;}
+.rev-close{position:absolute;top:12px;right:14px;background:none;border:none;
+  color:var(--muted);font-size:15px;cursor:pointer;padding:4px 8px;border-radius:6px;
+  line-height:1;transition:color .15s;}
+.rev-close:hover{color:var(--text);}
+.rev-chart-wrap{height:220px;margin:.75rem 0;position:relative;}
+.rev-legend{display:flex;gap:16px;flex-wrap:wrap;
+  font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
+.rev-legend span{display:flex;align-items:center;gap:5px;}
+.rev-legend .swatch{width:20px;height:2px;display:inline-block;border-radius:1px;}
+.rev-criteria{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.rev-crit{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+  border-radius:8px;background:var(--bg3);}
+.rev-crit.pass{border-left:3px solid var(--green);}
+.rev-crit.fail{border-left:3px solid var(--red);}
+.rev-crit-icon{font-size:13px;font-weight:700;min-width:18px;padding-top:1px;}
+.rev-crit.pass .rev-crit-icon{color:var(--green);}
+.rev-crit.fail .rev-crit-icon{color:var(--red);}
+.rev-crit-name{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text);}
+.rev-crit-detail{font-size:11px;color:var(--dim);margin-top:2px;}
+.rev-crit-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;}
 </style>
 </head>
 <body>
@@ -712,7 +742,7 @@ function buildCardHtml(r, isNear) {
   const cardClass = isNear ? 'near-card' : 'result-card';
 
   return `
-  <div class="${cardClass}">
+  <div class="${cardClass}" style="cursor:pointer;" onclick="openRevModal('${esc(r.symbol)}')">
     <div class="card-head">
       <div class="card-sym-row">
         <div class="card-sym">${esc(r.symbol)}</div>
@@ -766,7 +796,7 @@ function buildCardHtml(r, isNear) {
 
     <div class="card-foot">
       ${recoveryBadge(r.recovery_pct)}
-      <a href="/stock_health.html?symbol=${esc(r.symbol)}" class="health-link">
+      <a href="/stock_health.html?symbol=${esc(r.symbol)}" class="health-link" onclick="event.stopPropagation()">
         Health Story
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
@@ -1005,7 +1035,225 @@ async function runScan() {
     btn.disabled = false;
   }
 }
+
+// ── Reversal modal ────────────────────────────────────────────────────────────
+let _revModalChart = null;
+
+function closeRevModal() {
+  document.getElementById('revModal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (_revModalChart) { _revModalChart.destroy(); _revModalChart = null; }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRevModal(); });
+
+async function openRevModal(sym) {
+  const modal = document.getElementById('revModal');
+  const body  = document.getElementById('revModalBody');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (_revModalChart) { _revModalChart.destroy(); _revModalChart = null; }
+
+  body.innerHTML = `
+    <div style="text-align:center;padding:3rem 0;">
+      <div class="spinner"></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);margin-top:10px;">Fetching ${esc(sym)}…</div>
+    </div>`;
+
+  const params = new URLSearchParams({
+    min_decline:  document.getElementById('minDecline').value,
+    min_recovery: document.getElementById('minRecovery').value,
+    support_type: _support,
+    min_days:     document.getElementById('minDays').value,
+    max_days:     document.getElementById('maxDays').value,
+  });
+
+  try {
+    const res  = await fetch(`/api/stock/reversal-check/${encodeURIComponent(sym)}?${params}`);
+    const data = await res.json();
+    if (data.error) {
+      body.innerHTML = `<div style="color:var(--red);padding:2rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;">${esc(data.error)}</div>`;
+    } else {
+      _renderRevModal(data);
+    }
+  } catch {
+    body.innerHTML = `<div style="color:var(--red);padding:2rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;">Connection error.</div>`;
+  }
+}
+
+function _renderRevModal(d) {
+  const body   = document.getElementById('revModalBody');
+  const wlHas  = window.WL && WL.has(d.symbol);
+  const passed = d.passed;
+
+  const criteriaHTML = (d.criteria || []).map(c => `
+    <div class="rev-crit ${c.passed ? 'pass' : 'fail'}">
+      <div class="rev-crit-icon">${c.passed ? '✓' : '✗'}</div>
+      <div>
+        <div class="rev-crit-name">${esc(c.name)}</div>
+        <div class="rev-crit-detail">${esc(c.detail)}</div>
+        <div class="rev-crit-meta">${esc(c.value)} · required: ${esc(c.required)}</div>
+      </div>
+    </div>`).join('');
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;">${esc(d.symbol)}</span>
+          <button class="wl-star${wlHas ? ' active' : ''}" data-wlsym="${esc(d.symbol)}"
+            onclick="toggleWatchlist('${esc(d.symbol)}')">${wlHas ? '★' : '☆'}</button>
+        </div>
+        <div class="verdict-label ${passed ? 'pass' : 'fail'}" style="margin-top:4px;">${passed ? 'Reversal Confirmed' : 'No Reversal Pattern'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--text);">${fmtPrice(d.current_price)}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;">
+          FIB ${esc(d.fib_level || '—')} &nbsp;·&nbsp; ${volBadge(d.vol_signal)}
+        </div>
+      </div>
+    </div>
+
+    ${d.peak && d.support ? `
+    <div class="rv-viz" style="margin-bottom:14px;">
+      <div class="rv-point"><div class="rv-price">${fmtPrice(d.peak)}</div><div class="rv-tag">Peak</div></div>
+      <div class="rv-bridge"><div class="rv-pct fall">−${fmt(d.decline_pct, 1)}%</div><div class="rv-line fall"></div></div>
+      <div class="rv-point"><div class="rv-price">${fmtPrice(d.support)}</div><div class="rv-tag">Support</div></div>
+      <div class="rv-bridge"><div class="rv-pct rise">+${fmt(d.recovery_pct, 1)}%</div><div class="rv-line rise"></div></div>
+      <div class="rv-point"><div class="rv-price">${fmtPrice(d.current_price)}</div><div class="rv-tag">Now</div></div>
+    </div>` : ''}
+
+    ${d.chart ? `
+    <div class="rev-legend">
+      <span><span class="swatch" style="background:#7c6af7;"></span>Price</span>
+      <span><span class="swatch" style="background:#f5a524;"></span>SMA20</span>
+      <span><span class="swatch" style="background:#5b8af5;"></span>SMA50</span>
+    </div>
+    <div class="rev-chart-wrap"><canvas id="revChartCanvas"></canvas></div>` : ''}
+
+    <div class="rev-criteria">${criteriaHTML}</div>
+
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);
+      font-size:10px;color:var(--faint);line-height:1.5;">
+      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </div>`;
+
+  if (d.chart) setTimeout(() => _drawRevChart(d), 30);
+}
+
+function _drawRevChart(d) {
+  const canvas = document.getElementById('revChartCanvas');
+  if (!canvas || !d.chart) return;
+  if (_revModalChart) { _revModalChart.destroy(); _revModalChart = null; }
+
+  const { dates, closes, sma20, sma50, trough_idx, peak_idx } = d.chart;
+  const n = closes.length;
+
+  const dotR = new Array(n).fill(0);
+  const dotC = new Array(n).fill('transparent');
+  if (trough_idx != null && trough_idx < n) { dotR[trough_idx] = 6; dotC[trough_idx] = '#34d399'; }
+  if (peak_idx   != null && peak_idx   < n) { dotR[peak_idx]   = 6; dotC[peak_idx]   = '#f5a524'; }
+
+  _revModalChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        {
+          label: 'Close',
+          data: closes,
+          borderColor: '#7c6af7',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: dotR,
+          pointBackgroundColor: dotC,
+          pointBorderColor: dotC,
+          pointHoverRadius: 5,
+          tension: 0.2,
+          order: 3,
+        },
+        {
+          label: 'SMA20',
+          data: sma20,
+          borderColor: '#f5a524',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          spanGaps: true,
+          tension: 0.2,
+          order: 2,
+        },
+        {
+          label: 'SMA50',
+          data: sma50,
+          borderColor: '#5b8af5',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          spanGaps: true,
+          tension: 0.2,
+          order: 2,
+        },
+        {
+          label: 'Support',
+          data: new Array(n).fill(d.support),
+          borderColor: 'rgba(52,211,153,0.35)',
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          order: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0e1124',
+          borderColor: 'rgba(124,106,247,0.3)',
+          borderWidth: 1,
+          titleColor: '#9ea3c0',
+          bodyColor: '#f0f1f8',
+          callbacks: {
+            label: ctx => ctx.parsed.y == null ? null : `${ctx.dataset.label}: ₹${ctx.parsed.y.toFixed(2)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#585d7e', maxTicksLimit: 6, maxRotation: 0,
+            callback: (_, i) => {
+              const raw = dates[i];
+              if (!raw) return '';
+              return new Date(raw).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+            },
+          },
+          grid: { color: 'rgba(255,255,255,0.05)' },
+        },
+        y: {
+          position: 'right',
+          ticks: { color: '#585d7e', callback: v => '₹' + Math.round(v).toLocaleString('en-IN') },
+          grid: { color: 'rgba(255,255,255,0.05)' },
+        },
+      },
+    },
+  });
+}
 </script>
+
+<!-- Reversal chart modal -->
+<div id="revModal" class="rev-overlay" onclick="if(event.target===this)closeRevModal()">
+  <div class="rev-dialog">
+    <button class="rev-close" onclick="closeRevModal()" aria-label="Close">✕</button>
+    <div id="revModalBody"></div>
+  </div>
+</div>
 
 </body>
 </html>

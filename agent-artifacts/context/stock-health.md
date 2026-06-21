@@ -113,6 +113,21 @@ Pattern detected: Peak → significant decline → support touch → 2-month+ su
 **Performance:** Uses `yf.download()` batch download — one API call for all tickers.  
 Nifty50 ≈ 10s. Nifty500 proxy ≈ 30–60s.
 
+**Batch download fix (2026-06-21):** `yf.download(group_by="ticker")` was silently failing — with that setting, columns are `(ticker, field)` but code accessed `raw["Close"][ticker]` which assumes `(field, ticker)`. Changed to `group_by="column"` (default). This was the root cause of scan returning 0 results while single-stock checks passed.
+
+**Card tap → modal (2026-06-21):**  
+Tapping any result card (or near-miss card) opens a modal with:
+- Price journey (Peak → Support → Now)
+- Chart.js chart: 200-day close price + SMA20 (amber) + SMA50 (blue) + support dashed line; green dot at trough, amber dot at peak
+- Full criteria checklist (pass/fail per criterion with detail text)
+- SEBI disclaimer
+
+Implementation:
+- `check_single_stock` now returns `chart: { dates, closes, sma20, sma50, trough_idx, peak_idx }` (last 200 bars)
+- `buildCardHtml` adds `onclick="openRevModal('SYM')"` on the card div; `health-link` stops propagation
+- Modal: `.rev-overlay` / `.rev-dialog` CSS; `openRevModal(sym)` fetches `/api/stock/reversal-check/{sym}` with current filter params; `_renderRevModal(d)` builds content; `_drawRevChart(d)` draws Chart.js chart
+- Chart.js 4.4.3 added via CDN in `<head>`
+
 **Sort options:** Recovery % | Decline % | Freshest (fewest days since trough)
 
 **Cross-link:** Each result card links to `/stock_health.html?symbol=X` for health persona.  
