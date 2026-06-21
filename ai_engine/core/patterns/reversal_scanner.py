@@ -131,7 +131,7 @@ def scan_reversals(
             tickers,
             period="1y",
             interval="1d",
-            group_by="ticker",
+            group_by="column",
             auto_adjust=True,
             progress=False,
             threads=True,
