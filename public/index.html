@@ -38,6 +38,8 @@
     .strategy-card.kf-card::before { background: radial-gradient(ellipse at top left, rgba(124,106,247,.14) 0%, transparent 65%); }
     .strategy-card.orca-card::before { background: radial-gradient(ellipse at top right, rgba(91,138,245,.14) 0%, transparent 65%); }
     .strategy-card.osprey-card::before { background: radial-gradient(ellipse at bottom center, rgba(0,212,255,.12) 0%, transparent 65%); }
+    .strategy-card.cup-card::before { background: radial-gradient(ellipse at top left, rgba(16,185,129,.13) 0%, transparent 65%); }
+    .strategy-card.rev-card::before { background: radial-gradient(ellipse at top right, rgba(245,165,36,.13) 0%, transparent 65%); }
     .strategy-card:hover { border-color: var(--tz-border-strong); background: var(--tz-surface-2); transform: translateY(-3px); color: var(--tz-fg-1); }
     .strategy-card:hover::before { opacity: 1; }
     .strategy-icon {
@@ -47,6 +49,8 @@
     .strategy-icon.kf { background: linear-gradient(135deg, rgba(124,106,247,.2), rgba(91,138,245,.12)); color: var(--tz-accent-1); }
     .strategy-icon.oc { background: linear-gradient(135deg, rgba(91,138,245,.2), rgba(52,211,153,.12)); color: var(--tz-accent-2); }
     .strategy-icon.os { background: linear-gradient(135deg, rgba(0,212,255,.18), rgba(91,138,245,.10)); color: #00d4ff; }
+    .strategy-icon.ch { background: linear-gradient(135deg, rgba(16,185,129,.2), rgba(52,211,153,.10)); color: #10b981; }
+    .strategy-icon.rv { background: linear-gradient(135deg, rgba(245,165,36,.22), rgba(248,113,113,.10)); color: #f5a524; }
     .strategy-eyebrow {
       display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px;
       font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
@@ -105,6 +109,7 @@
     <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
       <li class="nav-item"><a class="nav-link" href="#tools" data-en="Tools" data-ta="கருவிகள்">Tools</a></li>
       <li class="nav-item"><a class="nav-link" href="#strategies" data-en="Strategies" data-ta="மூலோபாயங்கள்">Strategies</a></li>
+      <li class="nav-item"><a class="nav-link" href="#positional" data-en="Positional" data-ta="பொசிஷனல்">Positional</a></li>
       <li class="nav-item"><a class="nav-link" href="#learn" data-en="Learn" data-ta="கற்க">Learn</a></li>
       <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
     </ul>
@@ -610,6 +615,91 @@
               <span class="tool-tag">VWAP</span>
               <span class="tool-tag">Risk Ref</span>
               <span class="tool-tag">Live Calc</span>
+            </div>
+            <span class="strategy-cta">
+              <span data-en="Launch" data-ta="தொடங்கு">Launch</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     POSITIONAL STRATEGIES
+     ============================================================ -->
+<section id="positional" class="py-5 py-md-6">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 section-header">
+      <div>
+        <span class="eyebrow">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          POSITIONAL STRATEGIES
+        </span>
+        <h2>
+          <span data-en="Pattern-driven " data-ta="முறை-சார்ந்த ">Pattern-driven </span>
+          <span class="text-gradient fst-italic" data-en="multi-week setups." data-ta="பல வார அமைப்புகள்.">multi-week setups.</span>
+        </h2>
+      </div>
+      <p class="text-fg-2 m-0 small" style="max-width:380px"
+         data-en="Two geometric scanners — cup & handle patterns and support-reversal structures — for swing and positional traders."
+         data-ta="இரண்டு வடிவ ஸ்கேனர்கள் — கப் & ஹேண்டில் மற்றும் சப்போர்ட் ரிவர்சல் — ஸ்விங் மற்றும் பொசிஷனல் வர்த்தகர்களுக்காக.">
+        Two geometric scanners — cup &amp; handle patterns and support-reversal structures — for swing and positional traders.
+      </p>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- Cup & Handle Scanner -->
+      <div class="col-md-6">
+        <a href="/cup_handle.html" class="strategy-card cup-card">
+          <div class="strategy-icon ch">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+          </div>
+          <div class="strategy-eyebrow">S5 &nbsp;·&nbsp; PATTERN SCANNER</div>
+          <h3 data-en="Cup &amp; Handle Scanner" data-ta="கப் &amp; ஹேண்டில் ஸ்கேனர்">Cup &amp; Handle Scanner</h3>
+          <p class="strategy-sub">Geometric U-Shape · 5 Detection Stages · Confidence Score</p>
+          <p data-en="Scans Nifty 50 to Smallcap 250 for multi-week cup &amp; handle formations. Validates depth (12–30%), roundness, symmetry, and handle pullback quality — then scores each pattern across 5 pillars (shape, handle, volume, trend, recovery). Sector filter and watchlist universe included."
+             data-ta="நிஃப்டி 50 முதல் ஸ்மால்கேப் 250 வரை பல வார கப் & ஹேண்டில் அமைப்புகளை கண்டறிகிறது. ஆழம், வட்ட வடிவம், சமச்சீர், ஹேண்டில் தரம் — 5 தூண்களில் மதிப்பிடப்படுகிறது.">
+            Scans Nifty 50 to Smallcap 250 for multi-week cup &amp; handle formations. Validates depth (12–30%), roundness, symmetry, and handle pullback quality — then scores each pattern across 5 pillars (shape, handle, volume, trend, recovery). Sector filter and watchlist universe included.
+          </p>
+          <div class="strategy-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">Pattern</span>
+              <span class="tool-tag">Multi-week</span>
+              <span class="tool-tag">Score 0–100</span>
+              <span class="tool-tag">Sector Filter</span>
+            </div>
+            <span class="strategy-cta">
+              <span data-en="Launch" data-ta="தொடங்கு">Launch</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Reversal Screener -->
+      <div class="col-md-6">
+        <a href="/stock_reversal.html" class="strategy-card rev-card">
+          <div class="strategy-icon rv">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+          </div>
+          <div class="strategy-eyebrow">S6 &nbsp;·&nbsp; SUPPORT REVERSAL</div>
+          <h3 data-en="Reversal Screener" data-ta="ரிவர்சல் ஸ்கேனர்">Reversal Screener</h3>
+          <p class="strategy-sub">Fibonacci Gate · Volume Confirmation · SMA Trend</p>
+          <p data-en="Finds stocks that declined significantly, formed a support base, and are recovering with structure. Volume capitulation at the low, Fibonacci retracement level (38.2/50/61.8%), and SMA20 &gt; SMA50 structural trend gate — all evaluated per stock, with near-miss reporting."
+             data-ta="கணிசமாக சரிந்து, சப்போர்ட் அடித்தளம் அமைத்து, கட்டமைப்புடன் மீளும் பங்குகளை கண்டறிகிறது. Fibonacci, Volume, SMA20>SMA50 — ஒவ்வொரு பங்கிற்கும் மதிப்பிடப்படுகிறது.">
+            Finds stocks that declined significantly, formed a support base, and are recovering with structure. Volume capitulation at the low, Fibonacci retracement level (38.2/50/61.8%), and SMA20 &gt; SMA50 structural trend gate — all evaluated per stock, with near-miss reporting.
+          </p>
+          <div class="strategy-foot">
+            <div class="tool-tags">
+              <span class="tool-tag">Fibonacci</span>
+              <span class="tool-tag">Volume</span>
+              <span class="tool-tag">SMA Gate</span>
+              <span class="tool-tag">Near Miss</span>
             </div>
             <span class="strategy-cta">
               <span data-en="Launch" data-ta="தொடங்கு">Launch</span>
