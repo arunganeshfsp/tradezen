@@ -35,9 +35,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 .back-link{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
   font-size:11px;letter-spacing:.08em;color:var(--muted);text-decoration:none;margin-bottom:1.25rem;transition:color .15s;}
 .back-link:hover{color:var(--text);}
-.hero{margin-bottom:2rem;}
-.hero h1{font-size:clamp(22px,4vw,30px);font-weight:700;color:var(--text);margin-bottom:6px;}
-.hero p{font-size:13.5px;color:var(--dim);max-width:560px;}
 
 /* ── Filter Panel ─────────────────────────────── */
 .filter-panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
@@ -307,9 +304,24 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .rev-crit-name{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text);}
 .rev-crit-detail{font-size:11px;color:var(--dim);margin-top:2px;}
 .rev-crit-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;}
+
+/* ── Page header (matches cup_handle pattern) ── */
+.ph-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);
+  border:1px solid rgba(124,106,247,0.25);border-radius:20px;padding:4px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);
+  letter-spacing:1.2px;margin-bottom:0.9rem;}
+.ph-title{font-size:clamp(22px,4vw,30px);font-weight:700;color:var(--text);
+  line-height:1.25;margin-bottom:0.4rem;}
+.ph-sub{font-size:13px;color:var(--muted);max-width:640px;}
+.sebi-bar{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:8px 14px;margin-bottom:1.5rem;line-height:1.5;}
 </style>
 </head>
 <body>
+<div class="tz-bg-orb tz-orb1"></div>
+<div class="tz-bg-orb tz-orb2"></div>
+<div class="tz-grid"></div>
 
 <nav class="tz-nav">
   <div class="tz-nav-inner">
@@ -332,16 +344,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   </div>
 </nav>
 
-<div class="page">
+<div class="page" style="position:relative;z-index:1;">
 
-  <div class="hero">
+  <!-- ── Page Header ── -->
+  <div style="margin-bottom:2rem;">
     <a href="/stock_health.html" class="back-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       Stock Health Story
     </a>
-    <h1>Reversal Screener</h1>
-    <p>Scans a stock universe for: significant decline → support touch → sustained recovery. Fibonacci retracement, volume confirmation, and structural trend gate included.</p>
+    <div class="ph-badge">📈 REVERSAL SCREENER</div>
+    <h1 class="ph-title">Reversal Pattern Scanner</h1>
+    <p class="ph-sub">Scans a stock universe for: significant decline → support touch → sustained recovery. Fibonacci retracement, volume confirmation, and structural trend gate included.</p>
   </div>
+
+  <!-- SEBI Disclaimer -->
+  <div class="sebi-bar">⚠ For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>
 
   <!-- Filter Panel -->
   <div class="filter-panel">
