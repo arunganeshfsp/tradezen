@@ -316,6 +316,26 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .sebi-bar{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;
   background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
   padding:8px 14px;margin-bottom:1.5rem;line-height:1.5;}
+
+/* ── Controls row (cup_handle pattern) ── */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;}
+.inp{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
+  padding:9px 14px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;
+  outline:none;transition:border-color .15s;}
+.inp:focus{border-color:var(--accent);}
+select.inp{cursor:pointer;}
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:var(--r);
+  padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;
+  font-family:'Noto Sans Tamil',sans-serif;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px);}
+.btn-secondary{background:var(--bg3);border:1px solid var(--border2);color:var(--dim);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--text);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none !important;}
+.sep{width:1px;height:28px;background:var(--border2);}
+.adv-item{display:flex;flex-direction:column;gap:6px;}
+.adv-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -360,103 +380,75 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <!-- SEBI Disclaimer -->
   <div class="sebi-bar">⚠ For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>
 
-  <!-- Filter Panel -->
-  <div class="filter-panel">
-    <div class="filter-grid">
+  <!-- Controls -->
+  <div class="controls">
+    <select id="universeSelect" class="inp" title="Stock universe to scan">
+      <option value="nifty50">Nifty 50</option>
+      <option value="midcap100">Midcap 100</option>
+      <option value="smallcap100">Smallcap 100</option>
+      <option value="nifty500">Nifty 500 (~250)</option>
+      <option value="watchlist" id="wlOption">My Watchlist</option>
+    </select>
+    <select id="sectorSel" class="inp" title="Filter by sector">
+      <option value="">All Sectors</option>
+      <option value="banks">Banks</option>
+      <option value="it">IT</option>
+      <option value="pharma">Pharma</option>
+      <option value="metals">Metals</option>
+      <option value="auto">Auto</option>
+      <option value="fmcg">FMCG</option>
+      <option value="energy">Energy</option>
+      <option value="chemicals">Chemicals</option>
+      <option value="realty">Realty</option>
+      <option value="infra">Infra</option>
+    </select>
+    <select id="supportSelect" class="inp" title="Support quality">
+      <option value="single">Single Touch</option>
+      <option value="double">Double Bottom</option>
+    </select>
+    <div class="sep"></div>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);">Preset</span>
+    <div id="presetGroup" style="display:flex;gap:6px;">
+      <button class="pill" data-preset="relaxed">Relaxed</button>
+      <button class="pill active" data-preset="balanced">Balanced</button>
+      <button class="pill" data-preset="strict">Strict</button>
+    </div>
+    <div class="sep"></div>
+    <button class="btn btn-primary" id="scanBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Run Scan
+    </button>
+    <button class="btn btn-secondary" onclick="clearScan()">✕ Clear</button>
+  </div>
 
-      <!-- Universe -->
-      <div class="filter-group">
-        <label>Universe</label>
-        <div class="pill-row" id="universeGroup">
-          <button class="pill active" data-val="nifty50">Nifty 50</button>
-          <button class="pill" data-val="midcap100">Midcap 100</button>
-          <button class="pill" data-val="smallcap100">Smallcap 100</button>
-          <button class="pill" data-val="nifty500">Nifty 500 <span style="font-size:9px;opacity:.6">~250</span></button>
-          <button class="pill" data-val="watchlist" id="wlPill">★ Watchlist <span id="wlPillCount" style="font-size:9px;opacity:.7"></span></button>
-        </div>
+  <!-- Advanced Filters -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:1.75rem;">
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="adv-item">
+        <label class="adv-label">Min Decline <span class="filter-val" id="declineVal">15%</span></label>
+        <input type="range" id="minDecline" min="10" max="70" value="15" step="5" style="width:130px;"/>
       </div>
-
-      <!-- Sector -->
-      <div class="filter-group">
-        <label>Sector Filter</label>
-        <select id="sectorSel" class="filter-sel">
-          <option value="">All Sectors</option>
-          <option value="banks">Banks</option>
-          <option value="it">IT</option>
-          <option value="pharma">Pharma</option>
-          <option value="metals">Metals</option>
-          <option value="auto">Auto</option>
-          <option value="fmcg">FMCG</option>
-          <option value="energy">Energy</option>
-          <option value="chemicals">Chemicals</option>
-          <option value="realty">Realty</option>
-          <option value="infra">Infra</option>
-        </select>
+      <div class="adv-item">
+        <label class="adv-label">Min Recovery <span class="filter-val" id="recoveryVal">10%</span></label>
+        <input type="range" id="minRecovery" min="5" max="50" value="10" step="5" style="width:130px;"/>
       </div>
-
-      <!-- Support Quality -->
-      <div class="filter-group">
-        <label>Support Quality</label>
-        <div class="pill-row" id="supportGroup">
-          <button class="pill active" data-val="single">Single Touch</button>
-          <button class="pill" data-val="double">Double Bottom</button>
-        </div>
-      </div>
-
-      <!-- Price Range -->
-      <div class="filter-group">
-        <label>Price Range</label>
-        <div class="num-row">
-          <span class="num-pfx">₹</span>
-          <input class="num-input" id="minPrice" type="number" placeholder="Min" min="0" step="10"/>
-          <span class="num-sep">—</span>
-          <span class="num-pfx">₹</span>
-          <input class="num-input" id="maxPrice" type="number" placeholder="Max" min="0" step="10"/>
-        </div>
-      </div>
-
-      <!-- Min Decline -->
-      <div class="filter-group">
-        <label>Min Decline <span class="filter-val" id="declineVal">15%</span></label>
-        <div class="range-wrap">
-          <input type="range" id="minDecline" min="10" max="70" value="15" step="5"/>
-        </div>
-      </div>
-
-      <!-- Min Recovery -->
-      <div class="filter-group">
-        <label>Min Recovery from Low <span class="filter-val" id="recoveryVal">10%</span></label>
-        <div class="range-wrap">
-          <input type="range" id="minRecovery" min="5" max="50" value="10" step="5"/>
-        </div>
-      </div>
-
-      <!-- Reversal Age -->
-      <div class="filter-group">
-        <label>Reversal Age (trading days)</label>
+      <div class="adv-item">
+        <label class="adv-label">Reversal Age (days)</label>
         <div class="num-row">
           <input class="num-input" id="minDays" type="number" value="15" min="5" max="200" step="5"/>
           <span class="num-sep">—</span>
           <input class="num-input" id="maxDays" type="number" value="150" min="30" max="250" step="5"/>
         </div>
-        <div class="age-hint">5–30 days = fresh · 70+ days = confirmed uptrend required</div>
       </div>
-
-    </div>
-
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);">PRESET:</span>
-      <div class="pill-row" id="presetGroup">
-        <button class="pill" data-preset="relaxed">Relaxed</button>
-        <button class="pill active" data-preset="balanced">Balanced</button>
-        <button class="pill" data-preset="strict">Strict</button>
+      <div class="adv-item">
+        <label class="adv-label">Price Range (₹)</label>
+        <div class="num-row">
+          <input class="num-input" id="minPrice" type="number" placeholder="Min" min="0" step="10"/>
+          <span class="num-sep">—</span>
+          <input class="num-input" id="maxPrice" type="number" placeholder="Max" min="0" step="10"/>
+        </div>
       </div>
     </div>
-
-    <button class="scan-btn" id="scanBtn">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      Run Scan
-    </button>
   </div>
 
   <!-- Single Stock Check -->
@@ -564,8 +556,8 @@ function wirePills(groupId, onSelect) {
     });
   });
 }
-wirePills('universeGroup', v => { _universe = v; });
-wirePills('supportGroup',  v => { _support  = v; });
+document.getElementById('universeSelect').addEventListener('change', function() { _universe = this.value; });
+document.getElementById('supportSelect').addEventListener('change',  function() { _support  = this.value; });
 
 document.getElementById('minDecline').addEventListener('input', function() {
   document.getElementById('declineVal').textContent = this.value + '%';
@@ -608,13 +600,14 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
   });
 });
 
-// ── Watchlist pill label ───────────────────────────────────────────────────────
-function refreshWlPill() {
+// ── Watchlist option label ────────────────────────────────────────────────────
+function refreshWlOption() {
   const n = window.WL ? window.WL.count() : 0;
-  document.getElementById('wlPillCount').textContent = n > 0 ? `(${n})` : '';
+  const el = document.getElementById('wlOption');
+  if (el) el.textContent = n > 0 ? `My Watchlist (${n})` : 'My Watchlist';
 }
-if (window.WL) refreshWlPill();
-document.addEventListener('tz-wl-change', refreshWlPill);
+if (window.WL) refreshWlOption();
+document.addEventListener('tz-wl-change', refreshWlOption);
 
 // ── Autocomplete ──────────────────────────────────────────────────────────────
 function _revSymInput(e) {
@@ -708,7 +701,7 @@ document.addEventListener('tz-wl-change', () => {
     btn.classList.toggle('active', WL.has(sym));
     btn.textContent = WL.has(sym) ? '★' : '☆';
   });
-  refreshWlPill();
+  refreshWlOption();
 });
 
 // ── Sort ──────────────────────────────────────────────────────────────────────
@@ -982,6 +975,12 @@ function renderCheckResult(d) {
 }
 
 // ── Scan ──────────────────────────────────────────────────────────────────────
+function clearScan() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('nearMissSection').style.display = 'none';
+  document.getElementById('checkResult').style.display = 'none';
+  _data = null;
+}
 document.getElementById('scanBtn').addEventListener('click', runScan);
 
 async function runScan() {
