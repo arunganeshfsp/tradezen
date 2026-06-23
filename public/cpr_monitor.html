@@ -283,6 +283,71 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 :root[data-theme="light"] .app-main{background:#f3f4f6}
 :root[data-theme="light"] .app-bottombar{background:#ffffff;border-top-color:#e5e7eb}
 :root[data-theme="light"] .btab.active{color:var(--cyan);background:rgba(2,132,199,0.06);border-color:rgba(2,132,199,0.2)}
+
+/* Mob-chev: hidden on desktop, accordion toggle on mobile */
+.mob-chev{display:none}
+
+/* ════════════════════════════════════════════════════
+   MOBILE LAYOUT ≤ 768px
+   Desktop untouched — all rules are inside this block.
+   ════════════════════════════════════════════════════ */
+@media(max-width:768px){
+  html{height:auto}
+  body{overflow-y:auto !important;height:auto !important}
+
+  /* ── Topbar: compact wrap ── */
+  .app-topbar{
+    height:auto !important;overflow:visible !important;
+    flex-wrap:wrap;padding:6px 10px !important;
+    gap:5px;row-gap:3px;align-items:center
+  }
+  .app-topbar .topbar-sep{display:none}
+  .app-topbar .ltp-display{font-size:16px !important}
+  .app-topbar .zone-pill,
+  .app-topbar .cpr-type-badge{font-size:9px !important;padding:2px 7px !important;letter-spacing:.6px}
+  .app-topbar .bias-chip{font-size:9px !important;padding:2px 7px !important}
+  .app-topbar .tb-stat{font-size:9px}
+  #selInfo{display:none}
+  #alertCount{display:none}
+  #toggleBtn{font-size:9px;padding:3px 8px}
+
+  /* ── Workspace: vertical stack ── */
+  .app-workspace{flex-direction:column !important;overflow:visible !important;height:auto !important}
+
+  /* ── Sidebar: full-width, existing accordion panels work as-is ── */
+  .app-sidebar{
+    width:100% !important;border-right:none !important;
+    border-bottom:1px solid var(--border);
+    overflow:visible !important;max-height:none !important
+  }
+
+  /* ── Main panel: full-width, normal page scroll ── */
+  .app-main{overflow:visible !important;padding-bottom:56px}
+  .main-content{padding:12px 10px}
+  .chart-section{padding:0 !important;margin:0 0 12px !important}
+  .sec-panel{padding:12px 10px !important}
+
+  /* ── Chart: shorter height ── */
+  #cprChart{height:200px !important}
+
+  /* ── Chart section accordion on mobile ── */
+  .mob-chev{
+    display:inline-block;font-size:13px;color:var(--muted);
+    transition:transform .2s;margin-left:8px;flex-shrink:0
+  }
+  .chart-head{cursor:pointer;user-select:none}
+  .chart-card.mob-collapsed .mob-chev{transform:rotate(-90deg)}
+  .chart-card.mob-collapsed #cprChart{display:none !important}
+  .chart-card.mob-collapsed #chartLegend{display:none !important}
+  .chart-card.mob-collapsed #chartAsOf{display:none !important}
+
+  /* ── Bottom bar: fixed to viewport bottom ── */
+  .app-bottombar{
+    position:fixed;bottom:0;left:0;right:0;
+    z-index:200;height:48px;overflow:hidden
+  }
+  .bbar-disclaimer{display:none}
+}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
@@ -486,12 +551,13 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
     <!-- Chart -->
     <div class="chart-section">
       <div class="chart-card">
-        <div class="chart-head">
+        <div class="chart-head" onclick="mobToggleChart()">
           <span class="chart-title" id="chartTitle">📈 5-Min Chart with CPR Levels & Alert Markers</span>
           <div class="chart-legend" id="chartLegend">
             <span style="color:var(--muted)">Loading…</span>
           </div>
           <span id="chartAsOf" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)"></span>
+          <span class="mob-chev">▾</span>
         </div>
         <div id="cprChart"></div>
       </div>
@@ -583,6 +649,11 @@ function spToggle(head) {
     p.classList.add('sp-collapsed');
   });
   if (wasCollapsed) panel.classList.remove('sp-collapsed');
+}
+
+function mobToggleChart() {
+  if (window.innerWidth > 768) return;
+  document.querySelector('.chart-card').classList.toggle('mob-collapsed');
 }
 
 // ─────────────────────────────────────────────
