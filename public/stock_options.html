@@ -866,13 +866,17 @@ async function runAnalysis(){
   chainEl.innerHTML='<div class="chain-empty"><span class="spinner"></span></div>';
   document.getElementById('ctxRows').innerHTML='<div style="display:flex;gap:8px;align-items:center;color:var(--fg2);font-size:13px"><span class="spinner"></span>Loading…</div>';
   try{
-    const [chainRes,scoreRes,ctxRes]=await Promise.all([
-      fetch(`/api/options/chain?symbol=${sym}&expiry=${exp}`),
-      fetch(`/api/options/score?symbol=${sym}&expiry=${exp}`),
-      fetch(`/api/options/context?symbol=${sym}`)
+    // Fetch context first so we have spot_price for the chain request
+    const ctxRes=await fetch(`/api/options/context?symbol=${sym}`);
+    const ctxData=await ctxRes.json();
+    _lastCtx=ctxData;
+    const spotParam=ctxData.spot?`&spot_price=${ctxData.spot}`:'';
+    const [chainRes,scoreRes]=await Promise.all([
+      fetch(`/api/options/chain?symbol=${sym}&expiry=${exp}${spotParam}`),
+      fetch(`/api/options/score?symbol=${sym}&expiry=${exp}`)
     ]);
-    const [chainData,scoreData,ctxData]=await Promise.all([chainRes.json(),scoreRes.json(),ctxRes.json()]);
-    _lastChain=chainData;_lastScore=scoreData;_lastCtx=ctxData;
+    const [chainData,scoreData]=await Promise.all([chainRes.json(),scoreRes.json()]);
+    _lastChain=chainData;_lastScore=scoreData;
     renderChain(chainData);
     renderScore(scoreData);
     renderContext(ctxData);
@@ -1099,7 +1103,7 @@ function populateSpreadSelectors(data){
   if(!data||!data.chain)return;
   const longEl=document.getElementById('spreadLongStrike');
   const shortEl=document.getElementById('spreadShortStrike');
-  const spot=data.spot||(_lastCtx&&_lastCtx.price)||0;
+  const spot=data.spot||(_lastCtx&&_lastCtx.spot)||0;
   const atmStrike=data.atm||data.chain.reduce((a,r)=>Math.abs(r.strike-spot)<Math.abs(a-spot)?r.strike:a,data.chain[0].strike);
   const valid=data.chain.filter(r=>{const opt=_spreadType==='CE'?r.ce:r.pe;return opt&&opt.ltp&&opt.ltp>0.5;});
   const opts=valid.map(r=>`<option value="${r.strike}">${fmtN(r.strike)}${r.strike===atmStrike?' (ATM)':''}</option>`).join('');
