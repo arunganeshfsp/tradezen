@@ -1099,11 +1099,10 @@ function populateSpreadSelectors(data){
   if(!data||!data.chain)return;
   const longEl=document.getElementById('spreadLongStrike');
   const shortEl=document.getElementById('spreadShortStrike');
-  const spot=data.spot||0;
-  const step=getChainStep(spot);
+  const spot=data.spot||(_lastCtx&&_lastCtx.price)||0;
   const atmStrike=data.atm||data.chain.reduce((a,r)=>Math.abs(r.strike-spot)<Math.abs(a-spot)?r.strike:a,data.chain[0].strike);
   const valid=data.chain.filter(r=>{const opt=_spreadType==='CE'?r.ce:r.pe;return opt&&opt.ltp&&opt.ltp>0.5;});
-  const opts=valid.map(r=>`<option value="${r.strike}">${fmtN(r.strike)}${Math.abs(r.strike-atmStrike)<step/2?' (ATM)':''}</option>`).join('');
+  const opts=valid.map(r=>`<option value="${r.strike}">${fmtN(r.strike)}${r.strike===atmStrike?' (ATM)':''}</option>`).join('');
   longEl.innerHTML=opts;shortEl.innerHTML=opts;
   const atmIdx=valid.findIndex(r=>r.strike>=atmStrike);
   if(atmIdx>=0){

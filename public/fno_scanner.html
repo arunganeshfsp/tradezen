@@ -341,6 +341,16 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
   </div>
 
   <div class="ctrl-group">
+    <div class="ctrl-label">Min Move %</div>
+    <div class="toggle-group" id="minChgGroup">
+      <button class="tog-btn active" data-val="1" onclick="setMinChg(1)">≥1%</button>
+      <button class="tog-btn"        data-val="2" onclick="setMinChg(2)">≥2%</button>
+      <button class="tog-btn"        data-val="3" onclick="setMinChg(3)">≥3%</button>
+      <button class="tog-btn"        data-val="5" onclick="setMinChg(5)">≥5%</button>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
     <div class="ctrl-label">Auto Refresh</div>
     <label class="auto-toggle">
       <input type="checkbox" id="autoRefresh" checked onchange="toggleAuto()">
@@ -446,6 +456,7 @@ let intervalSec     = 5;
 let limitCount      = 10;
 let dominanceFilter = 'all';
 let universeFilter  = 'all';
+let minChgFilter    = 1;
 let autoOn          = true;
 let timer       = null;
 let countdown   = 0;
@@ -541,63 +552,73 @@ async function fetchScanner() {
       return;
     }
 
-    const visibleStocks = data.stocks.filter(s => Math.abs(s.change_pct) >= 1);
-    window._scanStocks = visibleStocks;
-
-    if (visibleStocks.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No stocks with ≥1% move right now</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = visibleStocks.map((s, i) => {
-      const chgClass = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'dn' : 'flat';
-      const chgSign  = s.change_pct > 0 ? '+' : '';
-      const domClass = s.dominance === 'BUYER' ? 'dom-buyer' : 'dom-seller';
-      const domText  = s.dominance === 'BUYER' ? '▲ BUYER' : '▼ SELLER';
-
-      return `
-        <tr onclick="openStockRow(window._scanStocks[${i}])" title="Click for trend & options" style="cursor:pointer">
-          <td class="rank">${i + 1}</td>
-          <td class="sym">${s.symbol}</td>
-          <td>
-            <div class="ltp">₹${fmtPrice(s.ltp)}</div>
-          </td>
-          <td><span class="chg ${chgClass}">${chgSign}${s.change_pct}%</span></td>
-          <td>
-            <div class="dom-bar-wrap">
-              <div class="dom-bar">
-                <div class="dom-buy"  style="width:${s.buy_pct}%"></div>
-                <div class="dom-sell" style="width:${s.sell_pct}%"></div>
-              </div>
-              <div class="dom-pcts">
-                <span class="b">B ${s.buy_pct}%</span>
-                <span class="s">S ${s.sell_pct}%</span>
-              </div>
-            </div>
-          </td>
-          <td><span class="dom-badge ${domClass}">${domText}</span></td>
-          <td class="strength">${s.strength}%</td>
-          <td class="vol" style="color:var(--green)">${fmtVol(s.buy_qty)}</td>
-          <td class="vol" style="color:var(--red)">${fmtVol(s.sell_qty)}</td>
-          <td>
-            <div class="action-btns">
-              <button class="act-btn act-buy"  disabled title="Coming Soon">Buy ▲</button>
-              <button class="act-btn act-sell" disabled title="Coming Soon">Sell ▼</button>
-            </div>
-          </td>
-          <td onclick="event.stopPropagation()">
-            <a href="/stock_s1_monitor.html?symbol=${s.symbol}" target="_blank"
-               style="display:inline-block;padding:5px 12px;border-radius:6px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-decoration:none;transition:all .15s;white-space:nowrap"
-               onmouseover="this.style.background='rgba(0,212,255,0.22)'"
-               onmouseout="this.style.background='rgba(0,212,255,0.12)'">Monitor →</a>
-          </td>
-        </tr>`;
-    }).join('');
+    window._allStocks = data.stocks;
+    _applyAndRender();
   } catch (err) {
     console.error(err);
     document.getElementById('tableBody').innerHTML =
       `<tr class="empty-row"><td colspan="10">⚠ Engine unreachable — retrying…</td></tr>`;
   }
+}
+
+// ── MIN CHANGE FILTER ──────────────────────────────────────────────────────
+function setMinChg(v) {
+  minChgFilter = v;
+  document.querySelectorAll('#minChgGroup .tog-btn').forEach(b =>
+    b.classList.toggle('active', Number(b.dataset.val) === v));
+  _applyAndRender();
+}
+
+function _applyAndRender() {
+  const tbody = document.getElementById('tableBody');
+  if (!window._allStocks) return;
+  const visibleStocks = window._allStocks.filter(s => Math.abs(s.change_pct) >= minChgFilter);
+  window._scanStocks = visibleStocks;
+  if (!visibleStocks.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No stocks with ≥${minChgFilter}% move right now</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = visibleStocks.map((s, i) => {
+    const chgClass = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'dn' : 'flat';
+    const chgSign  = s.change_pct > 0 ? '+' : '';
+    const domClass = s.dominance === 'BUYER' ? 'dom-buyer' : 'dom-seller';
+    const domText  = s.dominance === 'BUYER' ? '▲ BUYER' : '▼ SELLER';
+    return `
+      <tr onclick="openStockRow(window._scanStocks[${i}])" title="Click for trend & options" style="cursor:pointer">
+        <td class="rank">${i + 1}</td>
+        <td class="sym">${s.symbol}</td>
+        <td><div class="ltp">₹${fmtPrice(s.ltp)}</div></td>
+        <td><span class="chg ${chgClass}">${chgSign}${s.change_pct}%</span></td>
+        <td>
+          <div class="dom-bar-wrap">
+            <div class="dom-bar">
+              <div class="dom-buy"  style="width:${s.buy_pct}%"></div>
+              <div class="dom-sell" style="width:${s.sell_pct}%"></div>
+            </div>
+            <div class="dom-pcts">
+              <span class="b">B ${s.buy_pct}%</span>
+              <span class="s">S ${s.sell_pct}%</span>
+            </div>
+          </div>
+        </td>
+        <td><span class="dom-badge ${domClass}">${domText}</span></td>
+        <td class="strength">${s.strength}%</td>
+        <td class="vol" style="color:var(--green)">${fmtVol(s.buy_qty)}</td>
+        <td class="vol" style="color:var(--red)">${fmtVol(s.sell_qty)}</td>
+        <td>
+          <div class="action-btns">
+            <button class="act-btn act-buy"  disabled title="Coming Soon">Buy ▲</button>
+            <button class="act-btn act-sell" disabled title="Coming Soon">Sell ▼</button>
+          </div>
+        </td>
+        <td onclick="event.stopPropagation()">
+          <a href="/stock_s1_monitor.html?symbol=${s.symbol}" target="_blank"
+             style="display:inline-block;padding:5px 12px;border-radius:6px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-decoration:none;transition:all .15s;white-space:nowrap"
+             onmouseover="this.style.background='rgba(0,212,255,0.22)'"
+             onmouseout="this.style.background='rgba(0,212,255,0.12)'">Monitor →</a>
+        </td>
+      </tr>`;
+  }).join('');
 }
 
 // ── MODAL ──────────────────────────────────────────────────────────────────

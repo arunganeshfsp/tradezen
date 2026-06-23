@@ -3457,7 +3457,8 @@ def _options_chain_sync(symbol: str, expiry: str, spot_price: float | None) -> d
     # No 5-min snapshot yet — derive OI signals from NSE daily change data instead
     if not oi_signals and chain_data.get("source") == "NSE":
         oi_signals = _oc_daily_oi_signals(chain)
-    return {**chain_data, "chain": chain, "analytics": analytics, "oi_signals": oi_signals}
+    # Always return the resolved spot (may differ from chain_data["spot"] when fallback was used)
+    return {**chain_data, "chain": chain, "analytics": analytics, "oi_signals": oi_signals, "spot": spot}
 
 
 def _trim_chain_atm(chain: list, spot: float | None, n: int = 5) -> list:
