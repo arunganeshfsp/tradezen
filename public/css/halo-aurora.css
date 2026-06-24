@@ -219,6 +219,16 @@ body { overflow-x: hidden; }
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--tz-border);
 }
+/* Override Bootstrap's space-between so hamburger + brand stay left-grouped */
+.halo-navbar .container-fluid {
+  justify-content: flex-start !important;
+  gap: 12px;
+}
+/* Push the right-side actions div to the far right */
+.halo-navbar .container-fluid > .d-flex:last-child {
+  margin-left: auto;
+}
+
 .halo-navbar .navbar-brand {
   display: inline-flex;
   align-items: center;
