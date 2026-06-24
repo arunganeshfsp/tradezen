@@ -180,6 +180,17 @@ router.get("/market-summary", async (req, res) => {
   }
 });
 
+// ─── GET /api/sector-spotlight ───────────────────────────────────────────────
+// Daily % change for 6 key NSE sector indices (10-min cache)
+router.get("/sector-spotlight", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/sector-spotlight", 20000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/candles ────────────────────────────────────────────────────────
 // Live 5-min intraday candles for NIFTY 50 (today's session)
 router.get("/candles", async (req, res) => {

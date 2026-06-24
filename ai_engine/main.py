@@ -2385,6 +2385,64 @@ async def market_summary_endpoint():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Sector Spotlight — daily % change for 6 key NSE sector indices
+# ══════════════════════════════════════════════════════════════════════════════
+
+_SECTOR_SPOTLIGHT = [
+    ("Banking",  "^NSEBANK"),
+    ("IT",       "^CNXIT"),
+    ("Auto",     "^CNXAUTO"),
+    ("Pharma",   "^CNXPHARMA"),
+    ("FMCG",     "^CNXFMCG"),
+    ("Metal",    "^CNXMETAL"),
+]
+
+_sector_spotlight_cache: dict = {}
+_sector_spotlight_ts: float = 0.0
+_SECTOR_CACHE_TTL = 600  # 10 min
+
+
+def _sector_spotlight_sync() -> list:
+    global _sector_spotlight_cache, _sector_spotlight_ts
+    import time as _time
+    import yfinance as yf
+    import datetime as _dt
+
+    now = _time.time()
+    if _sector_spotlight_cache and (now - _sector_spotlight_ts) < _SECTOR_CACHE_TTL:
+        return _sector_spotlight_cache
+
+    IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    result = []
+    for name, sym in _SECTOR_SPOTLIGHT:
+        try:
+            hist = yf.Ticker(sym).history(period="5d", interval="1d").dropna()
+            if len(hist) < 2:
+                result.append({"name": name, "pct": 0.0, "ltp": None})
+                continue
+            ltp  = round(float(hist["Close"].iloc[-1]), 2)
+            prev = round(float(hist["Close"].iloc[-2]), 2)
+            pct  = round((ltp - prev) / prev * 100, 2)
+            result.append({"name": name, "pct": pct, "ltp": ltp})
+        except Exception as ex:
+            result.append({"name": name, "pct": 0.0, "ltp": None, "error": str(ex)})
+
+    _sector_spotlight_cache = result
+    _sector_spotlight_ts = now
+    return result
+
+
+@app.get("/sector-spotlight")
+async def sector_spotlight_endpoint():
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _sector_spotlight_sync)
+    except Exception as e:
+        log.error(f"[SECTOR-SPOTLIGHT] error: {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Breakout Screener — on-demand Nifty-500 scan
 # ══════════════════════════════════════════════════════════════════════════════
 try:

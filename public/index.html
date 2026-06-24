@@ -170,6 +170,48 @@
       display: block;
     }
 
+    /* ── Sector Spotlight ── */
+    .sector-section { padding: 20px 0 0; }
+    .sector-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+    .sector-strip::-webkit-scrollbar { display: none; }
+    .sector-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      background: var(--tz-surface);
+      border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-md);
+      padding: 8px 16px;
+      min-width: 80px;
+      transition: border-color .15s, background .15s;
+      cursor: default;
+    }
+    .sector-chip:hover { border-color: rgba(var(--tz-accent-rgb),.4); background: rgba(var(--tz-accent-rgb),.04); }
+    .sector-name {
+      font-family: var(--tz-font-mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--tz-fg-3);
+      white-space: nowrap;
+    }
+    .sector-pct {
+      font-family: var(--tz-font-mono);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .sector-pct.up   { color: #2ecc71; }
+    .sector-pct.down { color: #e74c3c; }
+    .sector-pct.flat { color: var(--tz-fg-3); }
+
     /* ── Market strip ── */
     #market-strip {
       background: var(--tz-surface);
@@ -425,6 +467,22 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTOR SPOTLIGHT
+     ============================================================ -->
+<div class="sector-section">
+  <div class="container">
+    <div class="sector-strip" id="sectorStrip">
+      <div class="sector-chip"><span class="sector-name">Banking</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip"><span class="sector-name">IT</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip"><span class="sector-name">Auto</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip"><span class="sector-name">Pharma</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip"><span class="sector-name">FMCG</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip"><span class="sector-name">Metal</span><span class="sector-pct flat">—</span></div>
     </div>
   </div>
 </div>
@@ -1342,11 +1400,35 @@
       .catch(function () { /* keep dashes on error */ });
   }
 
+  function _fetchSectors() {
+    fetch('/api/sector-spotlight')
+      .then(function (r) { return r.json(); })
+      .then(function (sectors) {
+        if (!Array.isArray(sectors)) return;
+        var strip = document.getElementById('sectorStrip');
+        if (!strip) return;
+        var chips = strip.querySelectorAll('.sector-chip');
+        sectors.forEach(function (s, i) {
+          var chip = chips[i];
+          if (!chip) return;
+          var pctEl = chip.querySelector('.sector-pct');
+          if (!pctEl) return;
+          var cls  = s.pct > 0.01 ? 'up' : s.pct < -0.01 ? 'down' : 'flat';
+          var sign = s.pct >= 0 ? '+' : '';
+          pctEl.textContent = sign + s.pct.toFixed(2) + '%';
+          pctEl.className   = 'sector-pct ' + cls;
+        });
+      })
+      .catch(function () {});
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     _tick();
     setInterval(_tick, 1000);
     _fetchStrip();
     setInterval(_fetchStrip, 60000);
+    _fetchSectors();
+    setInterval(_fetchSectors, 600000);
   });
 })();
 </script>
