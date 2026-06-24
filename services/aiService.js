@@ -232,9 +232,9 @@ class AIService {
     // path: "/options/context?symbol=NIFTY"
     // data: optional JSON body for POST/PUT. Python error responses (4xx) are
     // passed through with their status so the frontend can show the message.
-    async proxy(method, path, timeoutMs = 30000, data = undefined) {
+    async proxy(method, path, timeoutMs = 30000, data = undefined, headers = {}) {
         try {
-            const res = await axios({ method, url: `${AI_ENGINE_URL}${path}`, timeout: timeoutMs, data });
+            const res = await axios({ method, url: `${AI_ENGINE_URL}${path}`, timeout: timeoutMs, data, headers });
             return res.data;
         } catch (err) {
             console.error(`AI proxy ${method} ${path} error:`, err.message);

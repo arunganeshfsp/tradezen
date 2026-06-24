@@ -1,8 +1,23 @@
 const express = require("express");
 const router  = express.Router();
+const jwt     = require("jsonwebtoken");
 
 const stockService = require("../services/stockService");
 const aiService    = require("../services/aiService");
+
+function _paperAuth(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Sign in to use Paper Trading" });
+  }
+  try {
+    const payload = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+    req.paperUserId = String(payload.user_id);
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid or expired session — please sign in again" });
+  }
+}
 
 // ─── GET /api/ai-signal ───────────────────────────────────────────────────────
 // Proxies to Python FastAPI engine → /signal
@@ -847,61 +862,61 @@ router.get("/stock/reversal-check/:symbol", async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 // ─── GET /api/paper/account ──────────────────────────────────────────────────
-router.get("/paper/account", async (req, res) => {
+router.get("/paper/account", _paperAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("GET", "/paper/account", 8000);
+    const data = await aiService.proxy("GET", "/paper/account", 8000, undefined, { "X-User-Id": req.paperUserId });
     res.json(data);
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── GET /api/paper/positions ────────────────────────────────────────────────
 // Open positions marked to live LTPs (stock + option batch lookups)
-router.get("/paper/positions", async (req, res) => {
+router.get("/paper/positions", _paperAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("GET", "/paper/positions", 20000);
+    const data = await aiService.proxy("GET", "/paper/positions", 20000, undefined, { "X-User-Id": req.paperUserId });
     res.json(data);
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── GET /api/paper/history ──────────────────────────────────────────────────
-router.get("/paper/history", async (req, res) => {
+router.get("/paper/history", _paperAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("GET", "/paper/history", 8000);
+    const data = await aiService.proxy("GET", "/paper/history", 8000, undefined, { "X-User-Id": req.paperUserId });
     res.json(data);
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── GET /api/paper/quote?instrument=STOCK&symbol=RELIANCE ───────────────────
-router.get("/paper/quote", async (req, res) => {
+router.get("/paper/quote", _paperAuth, async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
-    const data = await aiService.proxy("GET", `/paper/quote?${params}`, 15000);
+    const data = await aiService.proxy("GET", `/paper/quote?${params}`, 15000, undefined, { "X-User-Id": req.paperUserId });
     res.json(data);
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── POST /api/paper/order ───────────────────────────────────────────────────
 // Body: { instrument, symbol, side, qty | lots+lot_size, token?, price?, ... }
-router.post("/paper/order", async (req, res) => {
+router.post("/paper/order", _paperAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", "/paper/order", 20000, req.body);
+    const data = await aiService.proxy("POST", "/paper/order", 20000, req.body, { "X-User-Id": req.paperUserId });
     res.json(data);
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── POST /api/paper/close/:id ───────────────────────────────────────────────
 // Body: { price? }  — closes at live LTP when price omitted
-router.post("/paper/close/:id", async (req, res) => {
+router.post("/paper/close/:id", _paperAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", `/paper/close/${req.params.id}`, 20000, req.body || {});
+    const data = await aiService.proxy("POST", `/paper/close/${req.params.id}`, 20000, req.body || {}, { "X-User-Id": req.paperUserId });
     res.json(data);
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── POST /api/paper/reset ───────────────────────────────────────────────────
-router.post("/paper/reset", async (req, res) => {
+router.post("/paper/reset", _paperAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", "/paper/reset", 8000, req.body || {});
+    const data = await aiService.proxy("POST", "/paper/reset", 8000, req.body || {}, { "X-User-Id": req.paperUserId });
     res.json(data);
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });

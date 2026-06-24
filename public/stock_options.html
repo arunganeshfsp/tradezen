@@ -362,6 +362,26 @@ input:focus,select:focus{border-color:var(--tz-purple)}
 .chain-cell.ce-ltp,.chain-cell.pe-ltp{cursor:pointer}
 .chain-cell.ce-ltp:hover{background:rgba(52,211,153,0.08)}
 .chain-cell.pe-ltp:hover{background:rgba(248,113,113,0.08)}
+
+/* ── Paper Trade Section (inside strike drawer) ── */
+.pt-section{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
+.pt-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--fg3);margin-bottom:10px}
+.pt-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pt-ltp{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;flex:1;min-width:80px}
+.pt-lots{width:60px;padding:8px;background:var(--inset);border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--fg1);outline:none;text-align:center;-moz-appearance:textfield}
+.pt-lots:focus{border-color:var(--tz-purple)}
+.pt-buy-btn,.pt-sell-btn{flex:1;padding:10px 0;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .15s}
+.pt-buy-btn{border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.08);color:var(--tz-gain)}
+.pt-buy-btn:hover:not(:disabled){background:rgba(52,211,153,0.2)}
+.pt-sell-btn{border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--tz-loss)}
+.pt-sell-btn:hover:not(:disabled){background:rgba(248,113,113,0.2)}
+.pt-buy-btn:disabled,.pt-sell-btn:disabled{opacity:.45;cursor:not-allowed}
+.pt-signin{display:block;width:100%;padding:10px;border-radius:9px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;text-decoration:none;color:var(--tz-purple);border:1px solid rgba(124,106,247,0.35);background:rgba(124,106,247,0.08)}
+.pt-hint{font-size:10px;color:var(--fg3);margin-top:6px}
+/* ── Toast ── */
+.so-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:11px 20px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:9999;display:none;max-width:90vw;text-align:center;backdrop-filter:blur(8px)}
+.so-toast.ok{background:rgba(18,22,42,0.92);border:1px solid rgba(52,211,153,0.4);color:var(--tz-gain)}
+.so-toast.err{background:rgba(18,22,42,0.92);border:1px solid rgba(248,113,113,0.4);color:var(--tz-loss)}
 </style>
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
@@ -689,6 +709,8 @@ input:focus,select:focus{border-color:var(--tz-purple)}
 
 </div><!-- /main -->
 
+<div class="so-toast" id="soToast"></div>
+
 <!-- Strike Detail Drawer -->
 <div id="strikeDrawer" class="strike-drawer-backdrop" onclick="closeStrikeDrawer(event)">
   <div class="strike-drawer">
@@ -734,6 +756,7 @@ input:focus,select:focus{border-color:var(--tz-purple)}
 let _mode='spread',_spreadType='CE',_dir='CE';
 let _lastChain=null,_lastScore=null,_lastCtx=null,_lastStf=null;
 let _chDir='CE',_chChart=null,_chIvChart=null;
+let _sdStrike=null,_sdDir=null,_sdOpt=null,_sdUnderlying=null,_sdExpiry=null;
 
 const SIG_TONE={long_buildup:'gain',short_buildup:'loss',short_covering:'info',long_unwinding:'warn',unchanged:'dim'};
 const OI_COL={long_buildup:'rgba(52,211,153,',short_buildup:'rgba(248,113,113,',short_covering:'rgba(96,165,250,',long_unwinding:'rgba(251,191,36,',unchanged:'rgba(255,255,255,'};
@@ -1409,6 +1432,8 @@ function openStrikeDetail(strike,dir){
   const opt=dir==='CE'?row.ce:row.pe;
   if(!opt)return;
   const sym=document.getElementById('symbolInput').value||'';
+  _sdStrike=strike;_sdDir=dir;_sdOpt=opt;
+  _sdUnderlying=sym;_sdExpiry=document.getElementById('expirySelect').value||'';
   document.getElementById('sdTitle').textContent=`${sym} ${fmtN(strike)} ${dir}`;
   const _oiLookupD={};
   Object.entries(_lastChain.oi_signals||{}).forEach(([k,v])=>{_oiLookupD[parseFloat(k)]=v;});
@@ -1421,6 +1446,21 @@ function openStrikeDetail(strike,dir){
   const pdl=stf.pdl||(_lastCtx&&_lastCtx.pdl)||null;
   const hasGreeks=opt.delta!=null||opt.gamma!=null||opt.theta!=null||opt.vega!=null;
   const hasCpr=_cprD.tc||_cprD.bc||_cprD.pp||pdh||pdl||spotVal;
+  const isLoggedIn=!!(localStorage.getItem('tz_learn_token'));
+  const lotSize=opt.lot_size||(_lastChain&&_lastChain.lot_size)||1;
+  const ptSection=`
+    <div class="pt-section">
+      <div class="pt-title">Paper Trade (Simulated)</div>
+      ${isLoggedIn?`
+      <div class="pt-row">
+        <span class="pt-ltp ${dir==='CE'?'gain':'loss'}">${opt.ltp!=null?'₹'+fmtN(opt.ltp):'—'}</span>
+        <input class="pt-lots" type="number" id="ptLots" min="1" value="1" title="Lots">
+        <button class="pt-buy-btn" id="ptBuyBtn" onclick="paperTrade('BUY')">▲ BUY</button>
+        <button class="pt-sell-btn" id="ptSellBtn" onclick="paperTrade('SELL')">▼ SELL</button>
+      </div>
+      <div class="pt-hint">1 lot = ${lotSize} units · Virtual money only</div>`
+      :`<a class="pt-signin" href="/learn/auth.html">Sign in to paper trade</a>`}
+    </div>`;
   const body=`
     <div class="sd-stats">
       <div class="sd-stat"><div class="sd-lbl">LTP</div><div class="sd-val ${dir==='CE'?'gain':'loss'}">${fmtN(opt.ltp)}</div></div>
@@ -1445,13 +1485,60 @@ function openStrikeDetail(strike,dir){
       ${pdh?`<div class="level-row"><span class="level-key">Prev Day High</span><span class="level-val warn">${fmtN(pdh)}</span></div>`:''}
       ${pdl?`<div class="level-row"><span class="level-key">Prev Day Low</span><span class="level-val warn">${fmtN(pdl)}</span></div>`:''}
     </div>`:''}
-    <div style="margin-top:20px;font-size:10px;color:var(--fg3);text-align:center">For educational purposes only. Not investment advice.</div>`;
+    ${ptSection}
+    <div style="margin-top:14px;font-size:10px;color:var(--fg3);text-align:center">For educational purposes only. Not investment advice. Paper trades use virtual money only.</div>`;
   document.getElementById('sdBody').innerHTML=body;
   document.getElementById('strikeDrawer').classList.add('open');
 }
 function closeStrikeDrawer(e){
   if(e&&e.target!==document.getElementById('strikeDrawer'))return;
   document.getElementById('strikeDrawer').classList.remove('open');
+}
+
+/* ── Paper Trade ───────────────────────────────────────────────── */
+function soToast(msg,ok){
+  const t=document.getElementById('soToast');
+  t.textContent=msg;
+  t.className='so-toast '+(ok?'ok':'err');
+  t.style.display='block';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{t.style.display='none';},4000);
+}
+async function paperTrade(side){
+  if(!_sdOpt||!_sdStrike)return;
+  const token=localStorage.getItem('tz_learn_token');
+  if(!token){window.location.href='/learn/auth.html';return;}
+  const lots=Math.max(1,Number(document.getElementById('ptLots').value)||1);
+  const lotSize=_sdOpt.lot_size||(_lastChain&&_lastChain.lot_size)||1;
+  const buyBtn=document.getElementById('ptBuyBtn');
+  const sellBtn=document.getElementById('ptSellBtn');
+  if(buyBtn)buyBtn.disabled=true;
+  if(sellBtn)sellBtn.disabled=true;
+  try{
+    const body={
+      instrument:'OPTION',
+      symbol:_sdOpt.symbol||`${_sdUnderlying}${_sdExpiry}${_sdStrike}${_sdDir}`,
+      token:_sdOpt.token||'',
+      underlying:_sdUnderlying,
+      expiry:_sdExpiry,
+      strike:_sdStrike,
+      option_type:_sdDir,
+      side,
+      lots,
+      lot_size:lotSize,
+      price:_sdOpt.ltp||null
+    };
+    const _tok=localStorage.getItem('tz_learn_token');
+    const r=await fetch('/api/paper/order',{method:'POST',headers:{'Content-Type':'application/json',...(_tok?{'Authorization':'Bearer '+_tok}:{})},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||d.detail||'Order failed');
+    document.getElementById('strikeDrawer').classList.remove('open');
+    soToast(`Paper ${side} · ${_sdUnderlying} ${fmtN(_sdStrike)} ${_sdDir} × ${lots} lot${lots>1?'s':''} @ ₹${fmtN(_sdOpt.ltp)}`,true);
+  }catch(e){
+    soToast(e.message,false);
+    if(buyBtn)buyBtn.disabled=false;
+    if(sellBtn)sellBtn.disabled=false;
+  }
 }
 
 /* ── Init ──────────────────────────────────────────────────────── */

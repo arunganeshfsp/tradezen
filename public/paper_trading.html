@@ -374,6 +374,19 @@ let pnlChart   = null;
 let _lastPositions = [];
 let _lastHistory   = [];
 
+function _authHdr() {
+  const t = localStorage.getItem('tz_learn_token');
+  return t ? { 'Authorization': 'Bearer ' + t } : {};
+}
+
+function _requireAuth() {
+  if (!localStorage.getItem('tz_learn_token')) {
+    window.location.href = '/learn/auth.html?next=' + encodeURIComponent(window.location.pathname);
+    return false;
+  }
+  return true;
+}
+
 const fmt = n => n == null ? '—' : '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 const T = (en, ta) => document.documentElement.getAttribute('data-lang') === 'ta' ? ta : en;
 
@@ -426,7 +439,7 @@ async function fetchStockQuote() {
   const btn = document.getElementById('stockQuoteBtn');
   btn.disabled = true;
   try {
-    const r = await fetch(`/api/paper/quote?instrument=STOCK&symbol=${encodeURIComponent(sym)}`);
+    const r = await fetch(`/api/paper/quote?instrument=STOCK&symbol=${encodeURIComponent(sym)}`, { headers: _authHdr() });
     const d = await r.json();
     if (d.error) throw new Error(d.error);
     showQuote(d.ltp, Number(document.getElementById('stockQty').value) || 0);
@@ -469,7 +482,7 @@ async function onContractChange() {
   if (!c) return;
   document.getElementById('lotSizeHint').textContent = `1 lot = ${c.lot_size} units`;
   try {
-    const r = await fetch(`/api/paper/quote?instrument=OPTION&symbol=${encodeURIComponent(c.symbol)}&token=${encodeURIComponent(c.token)}`);
+    const r = await fetch(`/api/paper/quote?instrument=OPTION&symbol=${encodeURIComponent(c.symbol)}&token=${encodeURIComponent(c.token)}`, { headers: _authHdr() });
     const d = await r.json();
     const lots = Number(document.getElementById('optLots').value) || 1;
     showQuote(d.ltp, lots * c.lot_size);
@@ -505,7 +518,7 @@ async function placeOrder() {
   try {
     const r = await fetch('/api/paper/order', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ..._authHdr() },
       body: JSON.stringify(body),
     });
     const d = await r.json();
@@ -522,7 +535,7 @@ async function closePosition(id, btn) {
   try {
     const r = await fetch(`/api/paper/close/${id}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ..._authHdr() },
       body: '{}',
     });
     const d = await r.json();
@@ -541,7 +554,7 @@ async function resetAccount() {
   try {
     const r = await fetch('/api/paper/reset', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ..._authHdr() },
       body: '{}',
     });
     const d = await r.json();
@@ -565,7 +578,9 @@ function describe(p) {
 async function refreshAll() {
   try {
     const [acctR, posR, histR] = await Promise.all([
-      fetch('/api/paper/account'), fetch('/api/paper/positions'), fetch('/api/paper/history'),
+      fetch('/api/paper/account',   { headers: _authHdr() }),
+      fetch('/api/paper/positions', { headers: _authHdr() }),
+      fetch('/api/paper/history',   { headers: _authHdr() }),
     ]);
     const acct = await acctR.json();
     const pos  = await posR.json();
@@ -724,8 +739,10 @@ document.getElementById('stockQty').addEventListener('input', () => {
   if (!isNaN(ltp)) showQuote(ltp, Number(document.getElementById('stockQty').value) || 0);
 });
 
-refreshAll();
-setInterval(refreshAll, 15000);
+if (_requireAuth()) {
+  refreshAll();
+  setInterval(refreshAll, 15000);
+}
 </script>
 <script src="halo-aurora.js"></script>
 </body>

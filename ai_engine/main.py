@@ -4313,24 +4313,30 @@ def _paper_ltp(instrument: str, symbol: str, token=None):
     return _paper_stock_ltps([symbol.upper()]).get(symbol.upper())
 
 
+def _paper_user_id(request: Request) -> str:
+    """Extract user_id forwarded by Node after JWT verification."""
+    return request.headers.get("X-User-Id", "anonymous")
+
+
 @app.get("/paper/account")
-def paper_account():
+def paper_account(request: Request):
     """Virtual account summary: cash, realized P&L, position counts."""
     from storage.sqlite_store import get_conn
     try:
-        return _pt_account(get_conn())
+        return _pt_account(get_conn(), _paper_user_id(request))
     except Exception as e:
         log.error(f"paper/account error: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.get("/paper/positions")
-def paper_positions():
+def paper_positions(request: Request):
     """Open positions marked to live LTPs with unrealized P&L."""
     from storage.sqlite_store import get_conn
     try:
+        user_id   = _paper_user_id(request)
         conn      = get_conn()
-        positions = _pt_list(conn, "OPEN")
+        positions = _pt_list(conn, user_id, "OPEN")
 
         stock_syms = sorted({p["symbol"] for p in positions if p["instrument"] == "STOCK"})
         opt_tokens = sorted({p["token"]  for p in positions if p["instrument"] == "OPTION" and p["token"]})
@@ -4356,11 +4362,11 @@ def paper_positions():
 
 
 @app.get("/paper/history")
-def paper_history():
+def paper_history(request: Request):
     """Closed trades, most recent first."""
     from storage.sqlite_store import get_conn
     try:
-        return {"trades": _pt_list(get_conn(), "CLOSED")}
+        return {"trades": _pt_list(get_conn(), _paper_user_id(request), "CLOSED")}
     except Exception as e:
         log.error(f"paper/history error: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -4379,7 +4385,7 @@ def paper_quote(instrument: str, symbol: str = "", token: str = ""):
 
 
 @app.post("/paper/order")
-def paper_order(payload: dict):
+def paper_order(request: Request, payload: dict):
     """
     Place a simulated order. Body:
       {instrument: STOCK|OPTION, symbol, side: BUY|SELL,
@@ -4389,6 +4395,7 @@ def paper_order(payload: dict):
     """
     from storage.sqlite_store import get_conn
     try:
+        user_id    = _paper_user_id(request)
         instrument = (payload.get("instrument") or "").upper()
         symbol     = (payload.get("symbol") or "").strip().upper()
         if not symbol:
@@ -4408,6 +4415,7 @@ def paper_order(payload: dict):
 
         result = _pt_place(
             get_conn(),
+            user_id=user_id,
             instrument=instrument, symbol=symbol,
             side=payload.get("side", ""), qty=qty, price=price,
             token=payload.get("token"), underlying=payload.get("underlying"),
@@ -4425,14 +4433,15 @@ def paper_order(payload: dict):
 
 
 @app.post("/paper/close/{trade_id}")
-def paper_close(trade_id: int, payload: dict = None):
+def paper_close(trade_id: int, request: Request, payload: dict = None):
     """Close an open position at live LTP (or manual price override in body)."""
     from storage.sqlite_store import get_conn
     try:
-        conn = get_conn()
+        user_id = _paper_user_id(request)
+        conn    = get_conn()
         row = conn.execute(
-            "SELECT instrument, symbol, token FROM paper_trades WHERE id = ? AND status = 'OPEN'",
-            (trade_id,),
+            "SELECT instrument, symbol, token FROM paper_trades WHERE id = ? AND status = 'OPEN' AND user_id = ?",
+            (trade_id, user_id),
         ).fetchone()
         if not row:
             return JSONResponse(status_code=404, content={"error": "Open position not found"})
@@ -4440,7 +4449,7 @@ def paper_close(trade_id: int, payload: dict = None):
         price = (payload or {}).get("price")
         price = float(price) if price else _paper_ltp(row["instrument"], row["symbol"], row["token"])
 
-        result = _pt_close(conn, trade_id, price)
+        result = _pt_close(conn, trade_id, price, user_id)
         if "error" in result:
             return JSONResponse(status_code=400, content=result)
         return result
@@ -4450,12 +4459,13 @@ def paper_close(trade_id: int, payload: dict = None):
 
 
 @app.post("/paper/reset")
-def paper_reset(payload: dict = None):
+def paper_reset(request: Request, payload: dict = None):
     """Wipe all paper trades and restore virtual cash. Body: {capital?}"""
     from storage.sqlite_store import get_conn
     try:
+        user_id = _paper_user_id(request)
         capital = float((payload or {}).get("capital") or _PT_DEFAULT_CAPITAL)
-        return _pt_reset(get_conn(), capital)
+        return _pt_reset(get_conn(), user_id, capital)
     except Exception as e:
         log.error(f"paper/reset error: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
