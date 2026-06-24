@@ -92,6 +92,59 @@
       letter-spacing: 0;
     }
 
+    /* ── Title panel ── */
+    .title-panel {
+      padding: 40px 0 32px;
+      border-bottom: 1px solid var(--tz-border);
+      background: radial-gradient(ellipse 80% 60% at 50% -10%,
+        rgba(var(--tz-accent-rgb), .08) 0%, transparent 70%);
+      text-align: center;
+    }
+    .title-panel-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--tz-font-mono);
+      font-size: 9.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--tz-accent-1);
+      background: rgba(var(--tz-accent-rgb), .08);
+      border: 1px solid rgba(var(--tz-accent-rgb), .2);
+      padding: 4px 14px;
+      border-radius: var(--tz-radius-full);
+      margin-bottom: 16px;
+    }
+    .title-panel h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      color: var(--tz-fg-1);
+      line-height: 1.1;
+      letter-spacing: -.5px;
+      margin-bottom: 10px;
+    }
+    .title-panel h1 em {
+      font-style: italic;
+      background: var(--tz-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .title-panel-sub {
+      font-size: 14px;
+      color: var(--tz-fg-3);
+      max-width: 480px;
+      margin: 0 auto 24px;
+      line-height: 1.6;
+    }
+    .title-panel-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     /* ── Market Overview (pulse cards + sectors unified) ── */
     .pulse-section { padding: 28px 0 0; }
     .pulse-grid {
@@ -486,6 +539,36 @@
   </div>
 </nav>
 
+
+<!-- ============================================================
+     TITLE PANEL
+     ============================================================ -->
+<div class="title-panel">
+  <div class="container">
+    <div class="title-panel-eyebrow">
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span data-en="Analysis Tools · NSE · Live" data-ta="பகுப்பாய்வு கருவிகள் · NSE · நேரடி">Analysis Tools · NSE · Live</span>
+    </div>
+    <h1>
+      <span data-en="Analyse smarter with " data-ta="சந்தை கருவிகளுடன் ">Analyse smarter with </span><em data-en="market-grade tools." data-ta="திறமையாக பகுப்பாய்வு செய்யுங்கள்.">market-grade tools.</em>
+    </h1>
+    <p class="title-panel-sub"
+       data-en="CPR levels, F&amp;O scanner, options intelligence, and market structure — all in one place."
+       data-ta="CPR நிலைகள், F&amp;O ஸ்கேனர், ஆப்ஷன்ஸ் நுண்ணறிவு — ஒரே இடத்தில்.">
+      CPR levels, F&amp;O scanner, options intelligence, and market structure — all in one place.
+    </p>
+    <div class="title-panel-cta">
+      <a href="/learn/intro.html" class="btn btn-aurora text-decoration-none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span data-en="Learn" data-ta="கற்கலாம்">Learn</span>
+      </a>
+      <a href="/contact.html" class="btn btn-ghost text-decoration-none">
+        <span data-en="Contact us" data-ta="தொடர்பு கொள்ளுங்கள்">Contact us</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
 
 <!-- ============================================================
      MARKET OVERVIEW — pulse cards + sector chips
