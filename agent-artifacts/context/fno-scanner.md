@@ -1,7 +1,7 @@
 # Context: fno-scanner
 
 **File:** `public/fno_scanner.html`  
-**Last updated:** 2026-05-23
+**Last updated:** 2026-06-24
 
 ---
 
@@ -34,9 +34,21 @@ F&O momentum scanner — filters stocks by price range, dominance (buyer/seller)
 | `setUniverse(val)` | Filter by index universe + re-fetch |
 | `setDominance(val)` | Filter by buyer/seller + re-fetch |
 | `toggleAuto()` | Start/stop auto-refresh |
+| `openStockRow(stock)` | Calls both `openConfirm` and `openOptSheet` — row click + Analyse button |
 | `openConfirm(stock)` | GET `/api/stock-indicators/{symbol}` → render indicator modal |
 | `closeModal(e)` | Close overlay on outside click |
 | `restartTimer()` | Clears + restarts countdown timer |
+
+---
+
+## Recent Changes (2026-06-24)
+
+- **Removed** Trade column (disabled Buy/Sell buttons) — SEBI compliance: "Buy/Sell" as action directives not allowed
+- **Removed** Monitor column ("Monitor →" link to stock_s1_monitor.html)
+- **Added** Analyse button (`.analyse-btn`) in place of both removed columns — calls `openStockRow()` same as row click; uses `event.stopPropagation()` so row click doesn't double-fire
+- **SEBI compliance pass**: hero tag "Buy / Sell Dominance" → "Buyer · Seller Dominance"; signal labels "BUY CALL ▲" → "BULLISH SETUP ▲", "BUY PUT ▼" → "BEARISH SETUP ▼"; "WAIT" → "OBSERVE"; "avoid" removed from vol warning; "avoid" removed from SKIP reason
+- **Added** SEBI disclaimer footer: "For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading."
+- Table now has 10 columns (was 11)
 
 ---
 

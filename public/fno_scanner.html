@@ -113,12 +113,9 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 /* VOLUME */
 .vol{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
 
-/* ACTION BUTTONS */
-.action-btns{display:flex;gap:6px}
-.act-btn{padding:5px 14px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:not-allowed;border:none;opacity:.4;position:relative}
-.act-buy{background:rgba(46,204,113,0.2);color:var(--green);border:1px solid var(--green-border)}
-.act-sell{background:rgba(231,76,60,0.2);color:var(--red);border:1px solid var(--red-border)}
-.act-btn:hover::after{content:'Coming Soon';position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border2);color:var(--dim);font-size:10px;padding:3px 8px;border-radius:4px;white-space:nowrap;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+/* ANALYSE BUTTON */
+.analyse-btn{padding:5px 14px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(124,106,247,0.4);background:rgba(124,106,247,0.1);color:var(--accent);transition:all .15s;white-space:nowrap}
+.analyse-btn:hover{background:rgba(124,106,247,0.22);border-color:var(--accent)}
 
 /* EMPTY / LOADING */
 .empty-row td{text-align:center;padding:48px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
@@ -289,9 +286,9 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 </nav>
 
 <div class="hero">
-  <div class="hero-tag">&#9679; Buy / Sell Dominance</div>
+  <div class="hero-tag">&#9679; Buyer · Seller Dominance</div>
   <h1>F&amp;O <em>Scanner</em></h1>
-  <p class="hero-sub">Real-time buyer vs seller dominance for F&amp;O stocks in your price range</p>
+  <p class="hero-sub">Real-time buyer vs seller dominance analysis for F&amp;O stocks — for educational purposes only</p>
 </div>
 
 <!-- CONTROLS -->
@@ -384,14 +381,13 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
           <th>Buyer / Seller Dominance</th>
           <th>Dominance</th>
           <th>Strength</th>
-          <th>Buy Vol</th>
-          <th>Sell Vol</th>
-          <th>Trade</th>
-          <th>Monitor</th>
+          <th>Buyer Vol</th>
+          <th>Seller Vol</th>
+          <th>Analyse</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr class="empty-row"><td colspan="11"><span class="spinner"></span>Loading…</td></tr>
+        <tr class="empty-row"><td colspan="10"><span class="spinner"></span>Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -548,7 +544,7 @@ async function fetchScanner() {
     }
 
     if (!data.stocks || data.stocks.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No stocks found in this price range</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No stocks matched the current filters</td></tr>';
       return;
     }
 
@@ -605,17 +601,8 @@ function _applyAndRender() {
         <td class="strength">${s.strength}%</td>
         <td class="vol" style="color:var(--green)">${fmtVol(s.buy_qty)}</td>
         <td class="vol" style="color:var(--red)">${fmtVol(s.sell_qty)}</td>
-        <td>
-          <div class="action-btns">
-            <button class="act-btn act-buy"  disabled title="Coming Soon">Buy ▲</button>
-            <button class="act-btn act-sell" disabled title="Coming Soon">Sell ▼</button>
-          </div>
-        </td>
         <td onclick="event.stopPropagation()">
-          <a href="/stock_s1_monitor.html?symbol=${s.symbol}" target="_blank"
-             style="display:inline-block;padding:5px 12px;border-radius:6px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-decoration:none;transition:all .15s;white-space:nowrap"
-             onmouseover="this.style.background='rgba(0,212,255,0.22)'"
-             onmouseout="this.style.background='rgba(0,212,255,0.12)'">Monitor →</a>
+          <button class="analyse-btn" onclick="openStockRow(window._scanStocks[${i}])">▶ Analyse</button>
         </td>
       </tr>`;
   }).join('');
@@ -662,32 +649,32 @@ function renderConfirm(stock, ind) {
   const bearAlign = dom === 'SELLER' && trend === 'DOWN' && rsi !== null && rsi > 35;
 
   if (bullAlign && domStr >= 55) {
-    signal   = vol === 'HIGH' ? 'STRONG BUY CALL ▲' : 'BUY CALL ▲';
+    signal   = vol === 'HIGH' ? 'STRONG BULLISH SETUP ▲' : 'BULLISH SETUP ▲';
     reason   = `Buyers dominating (${stock.buy_pct}%) · EMA trend bullish · RSI ${rsiStr} (room to run)${vol === 'HIGH' ? ' · Volume confirms' : ''}`;
     sigClass = 'sig-call';
   } else if (bearAlign && domStr >= 55) {
-    signal   = vol === 'HIGH' ? 'STRONG BUY PUT ▼' : 'BUY PUT ▼';
+    signal   = vol === 'HIGH' ? 'STRONG BEARISH SETUP ▼' : 'BEARISH SETUP ▼';
     reason   = `Sellers dominating (${stock.sell_pct}%) · EMA trend bearish · RSI ${rsiStr} (room to fall)${vol === 'HIGH' ? ' · Volume confirms' : ''}`;
     sigClass = 'sig-put';
   } else if (dom === 'BUYER' && rsi !== null && rsi >= 65) {
-    signal   = 'WAIT — Overbought';
-    reason   = `Buyers dominating but RSI ${rsiStr} is overbought. Wait for pullback before entering CALL.`;
+    signal   = 'OBSERVE — Overbought';
+    reason   = `Buyers dominating but RSI ${rsiStr} is overbought. Study a pullback before observing CALL setups.`;
     sigClass = 'sig-wait';
   } else if (dom === 'SELLER' && rsi !== null && rsi <= 35) {
-    signal   = 'WAIT — Oversold';
-    reason   = `Sellers dominating but RSI ${rsiStr} is oversold. Bounce risk — wait before entering PUT.`;
+    signal   = 'OBSERVE — Oversold';
+    reason   = `Sellers dominating but RSI ${rsiStr} is oversold. Bounce risk — observe before studying PUT setups.`;
     sigClass = 'sig-wait';
   } else if (dom === 'BUYER' && trend === 'DOWN') {
-    signal   = 'SKIP — Trend Conflict';
-    reason   = `Buyers in order book but EMA trend is bearish. Conflicting signals — avoid.`;
+    signal   = 'MIXED — Trend Conflict';
+    reason   = `Buyers in order book but EMA trend is bearish. Conflicting signals — observe further.`;
     sigClass = 'sig-skip';
   } else if (dom === 'SELLER' && trend === 'UP') {
-    signal   = 'SKIP — Trend Conflict';
-    reason   = `Sellers in order book but EMA trend is bullish. Conflicting signals — avoid.`;
+    signal   = 'MIXED — Trend Conflict';
+    reason   = `Sellers in order book but EMA trend is bullish. Conflicting signals — observe further.`;
     sigClass = 'sig-skip';
   } else {
-    signal   = 'WAIT';
-    reason   = `Signals are mixed. Dominance: ${domStr}%, RSI: ${rsiStr}, Trend: ${trend}. Wait for clearer setup.`;
+    signal   = 'OBSERVE';
+    reason   = `Signals are mixed. Dominance: ${domStr}%, RSI: ${rsiStr}, Trend: ${trend}. Study for a clearer setup.`;
     sigClass = 'sig-wait';
   }
 
@@ -722,8 +709,8 @@ function renderConfirm(stock, ind) {
 
   // 2. Intraday volatility — premium inflation check
   const chgAbs = Math.abs(stock.change_pct);
-  const volWarn = chgAbs >= 3   ? ['ib-red',    `${stock.change_pct}% move — Premium inflated, avoid`] :
-                  chgAbs >= 1.5 ? ['ib-yellow', `${stock.change_pct}% move — Slightly expensive`]       :
+  const volWarn = chgAbs >= 3   ? ['ib-red',    `${stock.change_pct}% move — Premium inflated`] :
+                  chgAbs >= 1.5 ? ['ib-yellow', `${stock.change_pct}% move — Slightly elevated`] :
                                   ['ib-green',  `${stock.change_pct}% move — Premium fair`];
 
   // 3. Options liquidity — based on underlying volume
@@ -941,5 +928,9 @@ restartTimer();
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
+
+<div style="text-align:center;padding:24px 16px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);line-height:1.6;max-width:640px;margin:0 auto">
+  For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+</div>
 </body>
 </html>

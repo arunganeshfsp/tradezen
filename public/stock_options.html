@@ -779,7 +779,7 @@ async function pingEngine(){
 }
 
 /* ── Expiry load ───────────────────────────────────────────────── */
-async function loadExpiries(){
+async function loadExpiries(opts){
   const sym=document.getElementById('symbolInput').value.trim().toUpperCase()||'RELIANCE';
   const sel=document.getElementById('expirySelect');
   sel.innerHTML='<option>Loading…</option>';
@@ -792,6 +792,11 @@ async function loadExpiries(){
     const chExp=document.getElementById('chExpiry');
     if(chExp&&!chExp.value)chExp.value=exp[0];
     onChExpiryChange();
+    if(opts){
+      if(opts.expiry&&exp.includes(opts.expiry))sel.value=opts.expiry;
+      if(opts.dir)setDir(opts.dir);
+      if(opts.run)runAnalysis();
+    }
   }catch(e){sel.innerHTML='<option>Error — retry</option>';}
 }
 
@@ -1546,7 +1551,10 @@ async function paperTrade(side){
 /* ── Init ──────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded',()=>{
   pingEngine();
-  loadExpiries();
+  const _p=new URLSearchParams(location.search);
+  const _pSym=_p.get('symbol'),_pExp=_p.get('expiry'),_pDir=_p.get('direction');
+  if(_pSym)document.getElementById('symbolInput').value=_pSym.toUpperCase();
+  loadExpiries(_pExp?{expiry:_pExp,dir:_pDir||null,run:true}:undefined);
   _setThemeIcon();
   if(localStorage.getItem('tz_tamil')==='1'){
     document.getElementById('tamilPill').classList.add('visible');
