@@ -738,6 +738,46 @@ function renderConfirm(stock, ind) {
                    candle === 'INSIDE_BAR'        ? ['INSIDE BAR',   'ib-yellow'] :
                                                    ['NONE',          'ib-grey'];
 
+  // ── Futures OI section ─────────────────────────────────────────────
+  const _fo = ind.fut_oi;
+  let futOIHtml = '';
+  if (_fo && _fo.oi) {
+    const _sigMap = {
+      long_buildup:   ['LONG BUILDUP',   'ib-green',  'Price ↑ + OI ↑'],
+      short_buildup:  ['SHORT BUILDUP',  'ib-red',    'Price ↓ + OI ↑'],
+      short_covering: ['SHORT COVERING', 'ib-yellow', 'Price ↑ + OI ↓'],
+      long_unwinding: ['LONG UNWINDING', 'ib-yellow', 'Price ↓ + OI ↓'],
+    };
+    const _sig   = _fo.signal ? _sigMap[_fo.signal] : ['—', 'ib-grey', 'Insufficient data'];
+    const _fmtOI = v => v >= 1e5 ? (v/1e5).toFixed(1)+'L' : v >= 1000 ? (v/1000).toFixed(1)+'K' : String(v);
+    const _oiChgRow = _fo.oi_chg != null ? `
+      <div class="ind-row">
+        <span class="ind-name">OI Change</span>
+        <span class="ind-val">${(_fo.oi_chg>0?'+':'')+_fmtOI(Math.abs(_fo.oi_chg))}</span>
+        <span class="ind-badge ${_fo.oi_chg>0?'ib-green':'ib-red'}">${_fo.oi_chg>0?'BUILDING':'UNWINDING'}</span>
+      </div>` : '';
+    futOIHtml = `
+    <div class="fno-section-label">Futures OI Confirmation</div>
+    <div class="ind-list">
+      <div class="ind-row">
+        <span class="ind-name">Signal</span>
+        <span class="ind-val">${_sig[2]}</span>
+        <span class="ind-badge ${_sig[1]}">${_sig[0]}</span>
+      </div>
+      <div class="ind-row">
+        <span class="ind-name">Open Interest</span>
+        <span class="ind-val">${_fmtOI(_fo.oi)}</span>
+        <span class="ind-badge ib-grey">CONTRACTS</span>
+      </div>
+      ${_oiChgRow}
+      <div class="ind-row">
+        <span class="ind-name">Fut Price · Expiry</span>
+        <span class="ind-val">${_fo.ltp ? '₹'+fmtPrice(_fo.ltp) : '—'}</span>
+        <span class="ind-badge ib-grey">${_fo.expiry||'—'}</span>
+      </div>
+    </div>`;
+  }
+
   document.getElementById('mBody').innerHTML = `
     <div class="sig-banner ${sigClass}">
       <div class="sig-label">${signal}</div>
@@ -794,6 +834,7 @@ function renderConfirm(stock, ind) {
         <span class="ind-badge ${liqBadge[0]}">${liqBadge[1]}</span>
       </div>
     </div>
+    ${futOIHtml}
   `;
 }
 

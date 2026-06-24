@@ -3484,6 +3484,40 @@ def _stock_indicators_sync(symbol: str) -> dict:
         support    = round(min(recent), 2)
         resistance = round(max(recent), 2)
 
+        # Futures OI — Angel One near-month FUTSTK data
+        fut_oi = None
+        try:
+            _s = smart or _get_smart()
+            _ft, _fexp = im.get_stock_futures_token(symbol)
+            if _ft and _s:
+                _fr = _s.getMarketData("FULL", {"NFO": [str(_ft)]})
+                for _fi in (_fr or {}).get("data", {}).get("fetched", []):
+                    if str(_fi.get("symbolToken")) == str(_ft):
+                        _foi  = _fi.get("opnInterest")
+                        _fltp = _fi.get("ltp")
+                        _fpct = _fi.get("percentChange")
+                        _fchg = _fi.get("netChangeInOI")
+                        if _foi:
+                            _foi_int  = int(float(_foi))
+                            _price_up = float(_fpct) > 0 if _fpct is not None else None
+                            _oi_up    = float(_fchg) > 0 if _fchg is not None else None
+                            _signal   = None
+                            if _price_up is not None and _oi_up is not None:
+                                if   _price_up and _oi_up:      _signal = "long_buildup"
+                                elif not _price_up and _oi_up:  _signal = "short_buildup"
+                                elif _price_up and not _oi_up:  _signal = "short_covering"
+                                else:                           _signal = "long_unwinding"
+                            fut_oi = {
+                                "oi":     _foi_int,
+                                "oi_chg": int(float(_fchg)) if _fchg is not None else None,
+                                "signal": _signal,
+                                "ltp":    round(float(_fltp), 2) if _fltp else None,
+                                "expiry": _fexp,
+                            }
+                        break
+        except Exception as _fe:
+            log.warning(f"[INDICATORS] {symbol} futures OI: {_fe}")
+
         return {
             "symbol":       symbol.upper(),
             "rsi":          rsi_val,
@@ -3495,6 +3529,7 @@ def _stock_indicators_sync(symbol: str) -> dict:
             "candlePattern":candle,
             "support":      support,
             "resistance":   resistance,
+            "fut_oi":       fut_oi,
         }
     except Exception as e:
         log.error(f"[INDICATORS] {symbol}: {e}")

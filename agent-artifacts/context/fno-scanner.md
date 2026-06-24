@@ -1,7 +1,7 @@
 # Context: fno-scanner
 
 **File:** `public/fno_scanner.html`  
-**Last updated:** 2026-06-24
+**Last updated:** 2026-06-24 (Futures OI)
 
 ---
 
@@ -49,6 +49,13 @@ F&O momentum scanner — filters stocks by price range, dominance (buyer/seller)
 - **SEBI compliance pass**: hero tag "Buy / Sell Dominance" → "Buyer · Seller Dominance"; signal labels "BUY CALL ▲" → "BULLISH SETUP ▲", "BUY PUT ▼" → "BEARISH SETUP ▼"; "WAIT" → "OBSERVE"; "avoid" removed from vol warning; "avoid" removed from SKIP reason
 - **Added** SEBI disclaimer footer: "For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading."
 - Table now has 10 columns (was 11)
+
+### Futures OI Confirmation (added same session)
+- `_stock_indicators_sync()` in `main.py` now also fetches near-month FUTSTK OI from Angel One via `im.get_stock_futures_token(symbol)` (new method in `instrument_master.py`)
+- Returns `fut_oi: {oi, oi_chg, signal, ltp, expiry}` or `null` if not an F&O stock / market closed
+- Signal logic: Long Buildup (price↑+OI↑), Short Buildup (price↓+OI↑), Short Covering (price↑+OI↓), Long Unwinding (price↓+OI↓)
+- `oi_chg` comes from `netChangeInOI` in Angel One response — may be `null` outside market hours; signal is null when either direction is unknown
+- Frontend renders a "Futures OI Confirmation" section at the bottom of the indicator modal
 
 ---
 

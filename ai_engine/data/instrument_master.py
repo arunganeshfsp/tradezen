@@ -198,6 +198,30 @@ class InstrumentMaster:
         except Exception:
             return None
 
+    def get_stock_futures_token(self, name: str):
+        """
+        Return (token, expiry_str) for the nearest stock futures contract (FUTSTK on NFO).
+        Returns (None, None) if not found.
+        """
+        try:
+            with open(DATA_FILE, "r") as f:
+                raw = json.load(f)
+            today = datetime.now().date()
+            name_upper = name.upper()
+            futures = [
+                i for i in raw
+                if i.get("name", "").upper() == name_upper
+                and i.get("instrumenttype") == "FUTSTK"
+                and i.get("exch_seg") == "NFO"
+                and datetime.strptime(i["expiry"], "%d%b%Y").date() >= today
+            ]
+            if not futures:
+                return None, None
+            nearest = min(futures, key=lambda i: datetime.strptime(i["expiry"], "%d%b%Y"))
+            return nearest["token"], nearest["expiry"]
+        except Exception:
+            return None, None
+
     def get_option_token(self, strike: float, option_type: str, expiry: str = None):
         """Return (token, sapi_symbol, expiry_str) for given strike/type, nearest expiry by default."""
         if not self.data:
