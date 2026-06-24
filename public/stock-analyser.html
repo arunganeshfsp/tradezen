@@ -83,6 +83,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 .price-block{text-align:right;}
 .price-block .ltp{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--text);}
 .price-block .chg{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:2px;}
+.tl-trigger-btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
+  border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  cursor:pointer;border:1px solid rgba(124,106,247,0.4);background:rgba(124,106,247,0.1);
+  color:#7c6af7;transition:all .15s}
+.tl-trigger-btn:hover{background:rgba(124,106,247,0.2);border-color:rgba(124,106,247,0.7)}
 .chg.pos{color:var(--green);}
 .chg.neg{color:var(--red);}
 
@@ -304,6 +309,7 @@ let priceChart = null;
 let _chartData = null;
 let _analysedSymbol = '';
 let _cprLoaded = false;
+let _tlName = '', _tlPrice = 0;
 
 document.querySelectorAll('.qp').forEach(b =>
   b.addEventListener('click', () => { input.value = b.dataset.sym; doAnalyse(); })
@@ -537,6 +543,9 @@ function renderResults(d) {
   _chartData = d.chart;
   if (priceChart) { priceChart.destroy(); priceChart = null; }
 
+  _tlName  = d.company || d.symbol;
+  _tlPrice = p.last || 0;
+
   const chgCls  = p.change_pct >= 0 ? 'pos' : 'neg';
   const chgSign = p.change_pct >= 0 ? '+' : '';
 
@@ -561,6 +570,7 @@ function renderResults(d) {
       <div class="price-block">
         <div class="ltp">₹${fmt(p.last, 2)}</div>
         <div class="chg ${chgCls}">${chgSign}${fmt(p.change_pct, 2)}% today</div>
+        <button class="tl-trigger-btn" onclick="tradeLabModal.open({symbol:_analysedSymbol,name:_tlName,price:_tlPrice})">⚗ Trade Lab</button>
       </div>
     </div>
 
@@ -890,6 +900,6 @@ document.addEventListener('DOMContentLoaded', () => {
 const urlSym = new URLSearchParams(location.search).get('symbol');
 if (urlSym) { input.value = urlSym.toUpperCase(); doAnalyse(); }
 </script>
-
+<script src="/js/trade-lab-modal.js"></script>
 </body>
 </html>
