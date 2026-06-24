@@ -2448,7 +2448,7 @@ async def sector_spotlight_endpoint():
 
 _news_cache: list = []
 _news_cache_ts: float = 0.0
-_NEWS_CACHE_TTL = 900  # 15 min
+_NEWS_CACHE_TTL = 600  # 10 min
 
 _NEWS_RSS = (
     "https://news.google.com/rss/search"
@@ -2479,26 +2479,32 @@ def _news_feed_sync() -> list:
         log.warning(f"[NEWS] RSS fetch failed: {ex}")
         return _news_cache or []
 
+    cutoff = _dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(hours=12)
+
     items = []
     for item in root.iter("item"):
         def _t(tag):
             el = item.find(tag)
             return el.text.strip() if el is not None and el.text else ""
 
+        pub_raw = _t("pubDate")
+        try:
+            pub_dt = parsedate_to_datetime(pub_raw)
+            # ensure tz-aware for comparison
+            if pub_dt.tzinfo is None:
+                pub_dt = pub_dt.replace(tzinfo=_dt.timezone.utc)
+            if pub_dt < cutoff:
+                continue  # older than 12 hours — skip
+            pub_iso = pub_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        except Exception:
+            pub_iso = ""  # unparseable date — include anyway
+
         raw_title = _t("title")
-        # Google News titles end with " - Source Name"
         if " - " in raw_title:
             parts = raw_title.rsplit(" - ", 1)
             title, source = parts[0].strip(), parts[1].strip()
         else:
             title, source = raw_title, ""
-
-        pub_raw = _t("pubDate")
-        try:
-            pub_dt  = parsedate_to_datetime(pub_raw)
-            pub_iso = pub_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-        except Exception:
-            pub_iso = ""
 
         link = _t("link")
         items.append({"title": title, "source": source, "link": link, "pub": pub_iso})
