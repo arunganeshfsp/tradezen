@@ -205,6 +205,87 @@
     .sector-pct.down { color: #e74c3c; }
     .sector-pct.flat { color: var(--tz-fg-3); }
 
+    /* ── Trending Stocks ── */
+    .trending-section { padding: 20px 0 0; }
+    .trending-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 575px) { .trending-grid { grid-template-columns: 1fr; } }
+    .trending-card {
+      background: var(--tz-surface);
+      border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-lg);
+      overflow: hidden;
+    }
+    .trending-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px 8px;
+      border-bottom: 1px solid var(--tz-border);
+    }
+    .trending-title {
+      font-family: var(--tz-font-mono);
+      font-size: 9.5px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--tz-fg-3);
+    }
+    .trending-badge {
+      font-family: var(--tz-font-mono);
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: var(--tz-radius-full);
+    }
+    .trending-badge.up   { background: rgba(46,204,113,.12); color: #2ecc71; }
+    .trending-badge.down { background: rgba(231,76,60,.12);  color: #e74c3c; }
+    .trending-row {
+      display: flex;
+      align-items: center;
+      padding: 9px 16px;
+      gap: 10px;
+      border-bottom: 1px solid rgba(var(--tz-border-rgb, 255,255,255),.04);
+      transition: background .12s;
+    }
+    .trending-row:last-child { border-bottom: none; }
+    .trending-row:hover { background: rgba(var(--tz-accent-rgb),.04); }
+    .t-arrow {
+      font-size: 10px;
+      flex-shrink: 0;
+      width: 14px;
+    }
+    .t-arrow.up   { color: #2ecc71; }
+    .t-arrow.down { color: #e74c3c; }
+    .t-sym {
+      font-family: var(--tz-font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--tz-fg-1);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .t-ltp {
+      font-family: var(--tz-font-mono);
+      font-size: 12px;
+      color: var(--tz-fg-2);
+      text-align: right;
+      min-width: 62px;
+    }
+    .t-pct {
+      font-family: var(--tz-font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: right;
+      min-width: 52px;
+    }
+    .t-pct.up   { color: #2ecc71; }
+    .t-pct.down { color: #e74c3c; }
+
     /* ── Market strip ── */
     #market-strip {
       background: var(--tz-surface);
@@ -466,6 +547,41 @@
       <div class="sector-chip" id="sc3"><span class="sector-name">Pharma</span><span class="sector-pct flat">—</span></div>
       <div class="sector-chip" id="sc4"><span class="sector-name">FMCG</span><span class="sector-pct flat">—</span></div>
       <div class="sector-chip" id="sc5"><span class="sector-name">Metal</span><span class="sector-pct flat">—</span></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TRENDING STOCKS
+     ============================================================ -->
+<div class="trending-section">
+  <div class="container">
+    <div class="trending-grid">
+
+      <div class="trending-card">
+        <div class="trending-head">
+          <span class="trending-title">Top Gainers</span>
+          <span class="trending-badge up">Nifty 50</span>
+        </div>
+        <div id="trendingGainers">
+          <div class="trending-row"><span class="t-arrow up">▲</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct up">—</span></div>
+          <div class="trending-row"><span class="t-arrow up">▲</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct up">—</span></div>
+          <div class="trending-row"><span class="t-arrow up">▲</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct up">—</span></div>
+        </div>
+      </div>
+
+      <div class="trending-card">
+        <div class="trending-head">
+          <span class="trending-title">Top Losers</span>
+          <span class="trending-badge down">Nifty 50</span>
+        </div>
+        <div id="trendingLosers">
+          <div class="trending-row"><span class="t-arrow down">▼</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct down">—</span></div>
+          <div class="trending-row"><span class="t-arrow down">▼</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct down">—</span></div>
+          <div class="trending-row"><span class="t-arrow down">▼</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct down">—</span></div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -1403,6 +1519,34 @@
       .catch(function () {});
   }
 
+  function _renderMovers(containerId, stocks, dir) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = stocks.slice(0, 3).map(function (s) {
+      var sign = s.pct_change >= 0 ? '+' : '';
+      var ltp  = s.ltp >= 1000
+        ? s.ltp.toLocaleString('en-IN', { maximumFractionDigits: 2 })
+        : s.ltp.toFixed(2);
+      return '<div class="trending-row">' +
+        '<span class="t-arrow ' + dir + '">' + (dir === 'up' ? '▲' : '▼') + '</span>' +
+        '<span class="t-sym">' + s.symbol + '</span>' +
+        '<span class="t-ltp">' + ltp + '</span>' +
+        '<span class="t-pct ' + dir + '">' + sign + s.pct_change.toFixed(2) + '%</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function _fetchMovers() {
+    fetch('/api/stocks/movers?index=nifty50')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.error) return;
+        _renderMovers('trendingGainers', d.gainers || [], 'up');
+        _renderMovers('trendingLosers',  d.losers  || [], 'down');
+      })
+      .catch(function () {});
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     _tick();
     setInterval(_tick, 1000);
@@ -1410,6 +1554,8 @@
     setInterval(_fetchStrip, 60000);
     _fetchSectors();
     setInterval(_fetchSectors, 600000);
+    _fetchMovers();
+    setInterval(_fetchMovers, 300000);
   });
 })();
 </script>
