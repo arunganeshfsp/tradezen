@@ -1459,7 +1459,7 @@ function openStrikeDetail(strike,dir){
         <button class="pt-sell-btn" id="ptSellBtn" onclick="paperTrade('SELL')">▼ SELL</button>
       </div>
       <div class="pt-hint">1 lot = ${lotSize} units · Virtual money only</div>`
-      :`<a class="pt-signin" href="/learn/auth.html">Sign in to paper trade</a>`}
+      :`<a class="pt-signin" href="/learn/auth.html?next=${encodeURIComponent(window.location.pathname)}">Sign in to paper trade</a>`}
     </div>`;
   const body=`
     <div class="sd-stats">
@@ -1533,7 +1533,8 @@ async function paperTrade(side){
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||d.detail||'Order failed');
     document.getElementById('strikeDrawer').classList.remove('open');
-    soToast(`Paper ${side} · ${_sdUnderlying} ${fmtN(_sdStrike)} ${_sdDir} × ${lots} lot${lots>1?'s':''} @ ₹${fmtN(_sdOpt.ltp)}`,true);
+    soToast(`Paper ${side} · ${_sdUnderlying} ${fmtN(_sdStrike)} ${_sdDir} × ${lots} lot${lots>1?'s':''} @ ₹${fmtN(_sdOpt.ltp)} · Opening portfolio…`,true);
+    setTimeout(()=>{ window.location.href='/paper_trading.html'; },1500);
   }catch(e){
     soToast(e.message,false);
     if(buyBtn)buyBtn.disabled=false;
