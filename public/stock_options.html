@@ -1452,7 +1452,7 @@ function openStrikeDetail(strike,dir){
   const lotSize=opt.lot_size||(_lastChain&&_lastChain.lot_size)||1;
   const ptSection=`
     <div class="pt-section">
-      <div class="pt-title">Paper Trade (Simulated)</div>
+      <div class="pt-title">Trade Lab (Simulated)</div>
       ${isLoggedIn?`
       <div class="pt-row">
         <span class="pt-ltp ${dir==='CE'?'gain':'loss'}">${opt.ltp!=null?'₹'+fmtN(opt.ltp):'—'}</span>
@@ -1535,7 +1535,7 @@ async function paperTrade(side){
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||d.detail||'Order failed');
     document.getElementById('strikeDrawer').classList.remove('open');
-    soToast(`Paper ${side} · ${_sdUnderlying} ${fmtN(_sdStrike)} ${_sdDir} × ${lots} lot${lots>1?'s':''} @ ₹${fmtN(_sdOpt.ltp)}<br><a href="/paper_trading.html">→ View Paper Portfolio</a>`,true,5000);
+    soToast(`Paper ${side} · ${_sdUnderlying} ${fmtN(_sdStrike)} ${_sdDir} × ${lots} lot${lots>1?'s':''} @ ₹${fmtN(_sdOpt.ltp)}<br><a href="/paper_trading.html">→ View Trade Lab</a>`,true,5000);
   }catch(e){
     soToast(e.message,false);
     if(buyBtn)buyBtn.disabled=false;
