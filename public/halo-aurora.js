@@ -107,6 +107,7 @@
     window.location.href = '/learn/auth.html';
   };
 
+  // ── Compact profile icon (signed in = initial circle, signed out = person icon) ──
   function _renderHaloAuthBtn() {
     var existing = document.getElementById('tz-auth-btn');
     if (existing) existing.remove();
@@ -117,19 +118,20 @@
 
     var slot = document.createElement('span');
     slot.id = 'tz-auth-btn';
-    slot.style.cssText = 'display:flex;align-items:center;gap:6px';
 
     if (token && user) {
-      var name = _tzEsc((user.display_name || user.email || 'Account').split(' ')[0]);
+      var initial = _tzEsc((user.display_name || user.email || 'A')[0].toUpperCase());
+      var name    = _tzEsc((user.display_name || user.email || 'Account'));
       slot.innerHTML =
-        '<span style="font-family:var(--tz-font-mono);font-size:10.5px;color:var(--tz-fg-2)">👤 ' + name + '</span>' +
-        '<button onclick="tzSignOut()" style="font-family:var(--tz-font-mono);font-size:10.5px;color:var(--tz-fg-3);background:none;border:1px solid var(--tz-border);border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap">Sign Out</button>';
+        '<button class="tz-profile-btn signed-in" onclick="tzSignOut()" title="' + name + ' — click to sign out">' +
+        initial + '</button>';
     } else {
       slot.innerHTML =
-        '<a href="/learn/auth.html" style="font-family:var(--tz-font-mono);font-size:10.5px;color:var(--tz-fg-2);text-decoration:none;border:1px solid var(--tz-border);border-radius:8px;padding:4px 12px;white-space:nowrap;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--tz-border-strong)\'" onmouseout="this.style.borderColor=\'var(--tz-border)\'">Sign In</a>';
+        '<a class="tz-profile-btn" href="/learn/auth.html" title="Sign in">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+        '</a>';
     }
 
-    // Insert before the last item in the halo navbar actions row
     var navActions = document.querySelector('.halo-navbar .d-flex:last-child');
     if (navActions) {
       navActions.insertBefore(slot, navActions.lastElementChild);
@@ -137,6 +139,108 @@
   }
 
   document.addEventListener('DOMContentLoaded', _renderHaloAuthBtn);
+
+  // ── Side drawer navigation ────────────────────────────────────
+  var TZ_NAV_PAGES = [
+    { icon: '📈', label: 'Trade Flow',    href: '/trade_flow.html' },
+    { icon: '📊', label: 'CPR Monitor',   href: '/cpr_monitor.html' },
+    { icon: '🔍', label: 'F&O Screener',  href: '/fno_scanner.html' },
+    { icon: '⚙️', label: 'Stock Options', href: '/stock_options.html' },
+    { icon: '🧠', label: 'Trade Fun',     href: '/market_psychology.html' },
+    { icon: '▶️', label: 'Trade Player',  href: '/trade_player.html' },
+  ];
+
+  window._tzCloseDrawer = function () {
+    var o = document.getElementById('tzDrawerOverlay');
+    var d = document.getElementById('tzDrawer');
+    if (o) o.classList.remove('open');
+    if (d) d.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  function _tzOpenDrawer() {
+    var o = document.getElementById('tzDrawerOverlay');
+    var d = document.getElementById('tzDrawer');
+    if (o) o.classList.add('open');
+    if (d) d.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function _buildTzDrawer() {
+    if (document.getElementById('tzDrawer')) return; // already built
+
+    var curPath = window.location.pathname.replace(/\/$/, '') || '/';
+
+    // Overlay
+    var overlay = document.createElement('div');
+    overlay.className = 'tz-drawer-overlay';
+    overlay.id = 'tzDrawerOverlay';
+    overlay.addEventListener('click', window._tzCloseDrawer);
+
+    // Drawer panel
+    var drawer = document.createElement('div');
+    drawer.className = 'tz-drawer';
+    drawer.id = 'tzDrawer';
+    drawer.setAttribute('role', 'navigation');
+    drawer.setAttribute('aria-label', 'Main menu');
+
+    // Head
+    var html = '<div class="tz-drawer-head">' +
+      '<a class="tz-drawer-brand" href="/">' +
+      '<img src="/app-icon.svg" width="26" height="26" style="border-radius:6px" alt="TradeZen">' +
+      'TradeZen</a>' +
+      '<button class="tz-drawer-close" onclick="_tzCloseDrawer()" aria-label="Close menu">✕</button>' +
+      '</div>';
+
+    // Main tools section
+    html += '<nav class="tz-drawer-nav">';
+    html += '<div class="tz-drawer-section">';
+    html += '<span class="tz-drawer-section-label">Tools</span>';
+    TZ_NAV_PAGES.forEach(function (p) {
+      var active = curPath === p.href.replace(/\/$/, '');
+      html += '<a class="tz-drawer-link' + (active ? ' is-active' : '') + '" href="' + p.href + '">' +
+        '<span class="tz-dl-icon">' + p.icon + '</span>' + p.label + '</a>';
+    });
+    html += '</div>';
+
+    // Learn section
+    var learnActive = curPath === '/learn' || curPath.startsWith('/learn/');
+    html += '<div class="tz-drawer-section">';
+    html += '<span class="tz-drawer-section-label">Learn</span>';
+    html += '<a class="tz-drawer-link' + (learnActive ? ' is-active' : '') + '" href="/learn/">' +
+      '<span class="tz-dl-icon">📚</span>Learn</a>';
+    html += '</div>';
+    html += '</nav>';
+
+    // Footer
+    html += '<div class="tz-drawer-foot">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>';
+
+    drawer.innerHTML = html;
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(drawer);
+
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') window._tzCloseDrawer();
+    });
+  }
+
+  function _renderHaloHamburger() {
+    _buildTzDrawer();
+
+    var btn = document.createElement('button');
+    btn.className = 'tz-hamburger';
+    btn.setAttribute('aria-label', 'Open menu');
+    btn.setAttribute('aria-controls', 'tzDrawer');
+    btn.innerHTML = '<span></span><span></span><span></span>';
+    btn.addEventListener('click', _tzOpenDrawer);
+
+    var navActions = document.querySelector('.halo-navbar .d-flex:last-child');
+    if (navActions) navActions.appendChild(btn);
+  }
+
+  document.addEventListener('DOMContentLoaded', _renderHaloHamburger);
 
   // ── Favicon ───────────────────────────────────────────────────
   if (!document.querySelector('link[rel~="icon"]')) {

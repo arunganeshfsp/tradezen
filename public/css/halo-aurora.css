@@ -230,25 +230,154 @@ body { overflow-x: hidden; }
   letter-spacing: -0.01em;
 }
 .halo-navbar .navbar-brand:hover { color: var(--tz-fg-1); }
-.halo-navbar .navbar-nav .nav-link {
+/* Nav links + Bootstrap toggler hidden — replaced by side drawer */
+.halo-navbar .navbar-nav        { display: none !important; }
+.halo-navbar .navbar-toggler    { display: none !important; }
+/* Hide the "Home" aurora button that lives in the nav actions row */
+.halo-navbar .d-flex .btn-aurora { display: none !important; }
+
+/* ── Hamburger button ── */
+.tz-hamburger {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--tz-border);
+  border-radius: var(--tz-radius-sm);
+  cursor: pointer;
   color: var(--tz-fg-2);
+  flex-shrink: 0;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.tz-hamburger:hover { background: var(--tz-surface-2); border-color: var(--tz-border-strong); color: var(--tz-fg-1); }
+.tz-hamburger span { display: block; width: 16px; height: 2px; background: currentColor; border-radius: 2px; }
+
+/* ── Drawer overlay ── */
+.tz-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 1040;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s;
+}
+.tz-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+/* ── Drawer panel ── */
+.tz-drawer {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 272px;
+  background: var(--tz-surface);
+  border-right: 1px solid var(--tz-border);
+  z-index: 1050;
+  transform: translateX(-100%);
+  transition: transform .24s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.tz-drawer.open { transform: translateX(0); }
+
+.tz-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid var(--tz-border);
+  flex-shrink: 0;
+}
+.tz-drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--tz-font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tz-fg-1);
+  text-decoration: none;
+}
+.tz-drawer-brand:hover { color: var(--tz-fg-1); text-decoration: none; }
+.tz-drawer-close {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none;
+  color: var(--tz-fg-3); font-size: 18px; line-height: 1;
+  cursor: pointer;
+  border-radius: var(--tz-radius-sm);
+  transition: background .15s, color .15s;
+}
+.tz-drawer-close:hover { background: var(--tz-surface-2); color: var(--tz-fg-1); }
+
+.tz-drawer-nav { flex: 1; padding: 6px 0; }
+.tz-drawer-section { padding: 0 10px 4px; }
+.tz-drawer-section-label {
+  display: block;
+  font-family: var(--tz-font-mono);
+  font-size: 9px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--tz-fg-3);
+  padding: 10px 10px 5px;
+}
+.tz-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: var(--tz-radius-md);
+  color: var(--tz-fg-2);
+  text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  padding: 6px 0;
-  margin: 0 14px;
+  transition: background .14s, color .14s;
 }
-.halo-navbar .navbar-nav .nav-link:hover  { color: var(--tz-fg-1); }
-.halo-navbar .navbar-nav .nav-link.active { color: var(--tz-fg-1); }
-.halo-navbar .navbar-toggler {
+.tz-drawer-link:hover { background: var(--tz-surface-2); color: var(--tz-fg-1); text-decoration: none; }
+.tz-drawer-link.is-active { background: rgba(var(--tz-accent-rgb),.1); color: var(--tz-accent-1); }
+.tz-dl-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+
+.tz-drawer-foot {
+  padding: 12px 20px;
+  border-top: 1px solid var(--tz-border);
+  font-family: var(--tz-font-mono);
+  font-size: 9px;
+  letter-spacing: .3px;
+  color: var(--tz-fg-3);
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+/* ── Profile / auth icon ── */
+.tz-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   border: 1px solid var(--tz-border);
-  color: var(--tz-fg-1);
-  padding: 4px 10px;
+  background: var(--tz-surface-2);
+  color: var(--tz-fg-2);
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--tz-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: border-color .15s, background .15s, color .15s;
 }
-.halo-navbar .navbar-toggler-icon {
-  filter: invert(1) opacity(0.7);
-}
-[data-bs-theme="light"] .halo-navbar .navbar-toggler-icon {
-  filter: none;
+.tz-profile-btn:hover { border-color: var(--tz-border-strong); color: var(--tz-fg-1); text-decoration: none; }
+.tz-profile-btn.signed-in {
+  background: rgba(var(--tz-accent-rgb),.12);
+  border-color: rgba(var(--tz-accent-rgb),.3);
+  color: var(--tz-accent-1);
 }
 
 .changelog-badge {
