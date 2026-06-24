@@ -1,7 +1,7 @@
 # Context: s1-monitor
 
 **Files:** `public/s1_monitor.html`, `public/stock_s1_monitor.html`  
-**Last updated:** 2026-05-23
+**Last updated:** 2026-06-24 (full layout redesign + SEBI pass)
 
 ---
 
@@ -76,6 +76,30 @@ Lot size is hardcoded as 65 — Nifty lot size. **Must be updated if SEBI change
 `stock_s1_monitor.html` uses `/api/stock-monitor` instead of `/api/s1-monitor`. Accepts a stock symbol parameter. Otherwise identical layout and logic.
 
 ---
+
+## Layout (2026-06-24 redesign)
+
+- **4-panel symmetric grid** at top (Setup Conditions | Opening Range | Readiness Score | EMA & RSI) — collapses to 2-col at 1100px, 1-col at 580px
+- **Score ring**: SVG circle with `stroke-dasharray` updated in JS via `id="scoreRing"`; label via `id="scoreLabel"` (INCOMPLETE / FORMING / SETUP READY)
+- **Signal card** is hidden by default; `.waiting-card` shows until signal fires
+- **Bottom grid**: signal card (3fr) + alert log (2fr) side by side, stacks on mobile
+- `scorePercent` element retained (hidden) so JS doesn't throw on the old assignment
+- CSS uses local variables (`--bg`, `--bg2`, etc.) for compatibility with theme.css — same palette as before but cleaner layout classes
+
+## SEBI Changes (2026-06-24)
+
+- "CALL ENTRY (CE)" → "CALL SETUP (CE)"
+- "PUT ENTRY (PE)" → "PUT SETUP (PE)"
+- "Entry Details" → "Setup Details"
+- "Entry Premium" → "Reference Premium"
+- "Entry Time" → "Alert Time"
+- "Risk Management" → "Risk Parameters"
+- "Capital Required" → "Capital Reference"
+- "Max Loss" → "Max Notional Loss"; "Potential Profit" → "Notional Gain Ref"
+- Action buttons: TAKE → TRACK, HOLD → WATCH, SKIP → PASS
+- Hero sub text: removed "entry signals" → "live setup conditions monitoring"
+- Disclaimer added at bottom
+- EMA/RSI status text: removed emoji flags (🟢/🔴), plain descriptive text only
 
 ## Known Caveats
 
