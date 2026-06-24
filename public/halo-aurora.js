@@ -107,7 +107,23 @@
     window.location.href = '/learn/auth.html';
   };
 
-  // ── Compact profile icon (signed in = initial circle, signed out = person icon) ──
+  // ── Profile avatar with dropdown ──────────────────────────────
+  function _tzToggleProfileDrop(e) {
+    e.stopPropagation();
+    var drop = document.getElementById('tzProfileDrop');
+    if (!drop) return;
+    var isOpen = drop.classList.contains('open');
+    drop.classList.toggle('open', !isOpen);
+  }
+
+  // Close dropdown when clicking anywhere outside
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#tz-auth-btn')) {
+      var drop = document.getElementById('tzProfileDrop');
+      if (drop) drop.classList.remove('open');
+    }
+  });
+
   function _renderHaloAuthBtn() {
     var existing = document.getElementById('tz-auth-btn');
     if (existing) existing.remove();
@@ -116,26 +132,49 @@
     try { token = localStorage.getItem('tz_learn_token'); } catch (_) {}
     try { user  = JSON.parse(localStorage.getItem('tz_learn_user') || 'null'); } catch (_) {}
 
-    var slot = document.createElement('span');
-    slot.id = 'tz-auth-btn';
+    var wrap = document.createElement('div');
+    wrap.id = 'tz-auth-btn';
+    wrap.className = 'tz-profile-wrap';
 
     if (token && user) {
-      var initial = _tzEsc((user.display_name || user.email || 'A')[0].toUpperCase());
-      var name    = _tzEsc((user.display_name || user.email || 'Account'));
-      slot.innerHTML =
-        '<button class="tz-profile-btn signed-in" onclick="tzSignOut()" title="' + name + ' — click to sign out">' +
-        initial + '</button>';
+      var initial  = _tzEsc((user.display_name || user.email || 'A')[0].toUpperCase());
+      var fullName = _tzEsc(user.display_name || user.email || 'Account');
+      var email    = _tzEsc(user.email || '');
+      wrap.innerHTML =
+        '<button class="tz-profile-btn signed-in" aria-label="Account menu" aria-expanded="false">' +
+        initial + '</button>' +
+        '<div class="tz-profile-drop" id="tzProfileDrop" role="menu">' +
+          '<div class="tz-pd-info">' +
+            '<div class="tz-pd-name">' + fullName + '</div>' +
+            (email ? '<div class="tz-pd-email">' + email + '</div>' : '') +
+          '</div>' +
+          '<div class="tz-pd-actions">' +
+            '<button class="tz-pd-btn danger" onclick="tzSignOut()">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>' +
+              'Sign Out' +
+            '</button>' +
+          '</div>' +
+        '</div>';
     } else {
-      slot.innerHTML =
-        '<a class="tz-profile-btn" href="/learn/auth.html" title="Sign in">' +
+      wrap.innerHTML =
+        '<button class="tz-profile-btn" aria-label="Account menu" aria-expanded="false">' +
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
-        '</a>';
+        '</button>' +
+        '<div class="tz-profile-drop" id="tzProfileDrop" role="menu">' +
+          '<div class="tz-pd-actions">' +
+            '<a class="tz-pd-btn" href="/learn/auth.html">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' +
+              'Sign In' +
+            '</a>' +
+          '</div>' +
+        '</div>';
     }
 
+    // Wire the avatar button to toggle the dropdown
+    wrap.querySelector('.tz-profile-btn').addEventListener('click', _tzToggleProfileDrop);
+
     var navActions = document.querySelector('.halo-navbar .d-flex:last-child');
-    if (navActions) {
-      navActions.appendChild(slot);
-    }
+    if (navActions) navActions.appendChild(wrap);
   }
 
   document.addEventListener('DOMContentLoaded', _renderHaloAuthBtn);

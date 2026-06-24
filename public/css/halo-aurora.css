@@ -396,6 +396,74 @@ body { overflow-x: hidden; }
   background: var(--tz-surface-2);
 }
 
+/* ── Profile dropdown ── */
+.tz-profile-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.tz-profile-drop {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-border);
+  border-radius: var(--tz-radius-md);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  z-index: 1060;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .16s, transform .16s;
+}
+.tz-profile-drop.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.tz-pd-info {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--tz-border);
+}
+.tz-pd-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tz-fg-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tz-pd-email {
+  font-family: var(--tz-font-mono);
+  font-size: 10px;
+  color: var(--tz-fg-3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tz-pd-actions { padding: 6px; }
+.tz-pd-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--tz-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  background: none;
+  border: none;
+  color: var(--tz-fg-2);
+  transition: background .14s, color .14s;
+}
+.tz-pd-btn:hover { background: var(--tz-surface-2); color: var(--tz-fg-1); text-decoration: none; }
+.tz-pd-btn.danger:hover { background: rgba(231,76,60,.1); color: #e74c3c; }
+
 .changelog-badge {
   font-size: 10px;
   padding: 2px 7px;
