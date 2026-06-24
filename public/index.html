@@ -91,6 +91,87 @@
       background: var(--tz-grad); color: #fff;
       letter-spacing: 0;
     }
+
+    /* ── Market strip ── */
+    #market-strip {
+      background: var(--tz-surface);
+      border-bottom: 1px solid var(--tz-border);
+      padding: 0 0;
+      overflow: hidden;
+    }
+    .ms-inner {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 38px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .ms-inner::-webkit-scrollbar { display: none; }
+    .ms-session {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px 0 20px;
+      border-right: 1px solid var(--tz-border);
+      height: 100%;
+      flex-shrink: 0;
+      font-family: var(--tz-font-mono);
+      font-size: 9.5px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--tz-fg-3);
+    }
+    .ms-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--tz-fg-3);
+      flex-shrink: 0;
+    }
+    .ms-dot.live { background: #2ecc71; animation: msPulse 1.4s infinite; }
+    @keyframes msPulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .ms-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      height: 100%;
+      border-right: 1px solid var(--tz-border);
+      flex-shrink: 0;
+    }
+    .ms-label {
+      font-family: var(--tz-font-mono);
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--tz-fg-3);
+      min-width: 62px;
+    }
+    .ms-val {
+      font-family: var(--tz-font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--tz-fg-1);
+      letter-spacing: .3px;
+    }
+    .ms-pct {
+      font-family: var(--tz-font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      min-width: 54px;
+    }
+    .ms-pct.up   { color: #2ecc71; }
+    .ms-pct.down { color: #e74c3c; }
+    .ms-pct.flat { color: var(--tz-fg-3); }
+    .ms-clock {
+      margin-left: auto;
+      padding: 0 20px 0 18px;
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-fg-3);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 
@@ -135,6 +216,36 @@
     </div>
   </div>
 </nav>
+
+<!-- ============================================================
+     MARKET STRIP
+     ============================================================ -->
+<div id="market-strip">
+  <div class="container">
+    <div class="ms-inner">
+      <div class="ms-session">
+        <span class="ms-dot" id="msDot"></span>
+        <span id="msSessionLabel">—</span>
+      </div>
+      <div class="ms-item">
+        <span class="ms-label">NIFTY</span>
+        <span class="ms-val" id="msNiftyVal">—</span>
+        <span class="ms-pct flat" id="msNiftyPct">—</span>
+      </div>
+      <div class="ms-item">
+        <span class="ms-label">BANK NIFTY</span>
+        <span class="ms-val" id="msBankVal">—</span>
+        <span class="ms-pct flat" id="msBankPct">—</span>
+      </div>
+      <div class="ms-item">
+        <span class="ms-label">INDIA VIX</span>
+        <span class="ms-val" id="msVixVal">—</span>
+        <span class="ms-pct flat" id="msVixPct">—</span>
+      </div>
+      <div class="ms-clock" id="msClock">—</div>
+    </div>
+  </div>
+</div>
 
 <!-- ============================================================
      HERO
@@ -1005,6 +1116,75 @@
 <!-- Lucide icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>lucide.createIcons({ attrs: { 'stroke-width': '1.5' } });</script>
+
+<!-- Market Strip -->
+<script>
+(function () {
+  'use strict';
+
+  function _fmt(n) {
+    return n >= 10000 ? n.toLocaleString('en-IN', { maximumFractionDigits: 2 }) :
+           n.toFixed(2);
+  }
+
+  function _pctClass(p) {
+    return p > 0.01 ? 'up' : p < -0.01 ? 'down' : 'flat';
+  }
+
+  function _pctStr(p) {
+    return (p >= 0 ? '+' : '') + p.toFixed(2) + '%';
+  }
+
+  function _tick() {
+    var IST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    var h = IST.getHours(), m = IST.getMinutes(), s = IST.getSeconds();
+    var hh = String(h).padStart(2, '0');
+    var mm = String(m).padStart(2, '0');
+    var ss = String(s).padStart(2, '0');
+    var el = document.getElementById('msClock');
+    if (el) el.textContent = hh + ':' + mm + ':' + ss + ' IST';
+  }
+
+  function _setItem(valId, pctId, data) {
+    var vEl = document.getElementById(valId);
+    var pEl = document.getElementById(pctId);
+    if (!data || data.error) return;
+    if (vEl) vEl.textContent = _fmt(data.ltp);
+    if (pEl) {
+      pEl.textContent = _pctStr(data.pct);
+      pEl.className = 'ms-pct ' + _pctClass(data.pct);
+    }
+  }
+
+  function _fetchStrip() {
+    fetch('/api/market-summary')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        _setItem('msNiftyVal', 'msNiftyPct', d.nifty);
+        _setItem('msBankVal',  'msBankPct',  d.banknifty);
+        _setItem('msVixVal',   'msVixPct',   d.vix);
+
+        var dot   = document.getElementById('msDot');
+        var label = document.getElementById('msSessionLabel');
+        if (d.is_open) {
+          if (dot)   { dot.className = 'ms-dot live'; }
+          if (label) { label.textContent = 'OPEN'; }
+        } else {
+          if (dot)   { dot.className = 'ms-dot'; }
+          if (label) { label.textContent = 'CLOSED'; }
+        }
+      })
+      .catch(function () { /* keep dashes on error */ });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    _tick();
+    setInterval(_tick, 1000);
+    _fetchStrip();
+    setInterval(_fetchStrip, 60000);
+  });
+})();
+</script>
 
 </body>
 </html>
