@@ -258,6 +258,43 @@
     .sector-pct.down { color: #e74c3c; }
     .sector-pct.flat { color: var(--tz-fg-3); }
 
+    /* ── Shimmer: pulse cards ── */
+    .pulse-card.loading .pulse-ltp,
+    .pulse-card.loading .pulse-change,
+    .pulse-card.loading .pulse-spark-wrap svg { visibility: hidden; }
+    .pulse-card-skel { display: none; position: absolute; inset: 16px 18px 0; pointer-events: none; }
+    .pulse-card.loading .pulse-card-skel { display: block; }
+    .p-sk {
+      border-radius: 5px;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,.06) 25%,
+        rgba(255,255,255,.13) 50%,
+        rgba(255,255,255,.06) 75%);
+      background-size: 400px 100%;
+      animation: tSkelShimmer 1.4s ease-in-out infinite;
+    }
+    .p-sk-ltp   { height: 26px; width: 52%; margin-bottom: 10px; }
+    .p-sk-chg   { height: 13px; width: 65%; margin-bottom: 12px; }
+    .p-sk-spark { height: 44px; margin: 0 -18px; width: calc(100% + 36px); }
+
+    /* ── Shimmer: sector chips ── */
+    .sector-chip.loading .sector-pct { color: transparent; position: relative; }
+    .sector-chip.loading .sector-pct::after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 50%; left: 0;
+      transform: translateY(-50%);
+      width: 48px; height: 13px;
+      border-radius: 4px;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,.06) 25%,
+        rgba(255,255,255,.13) 50%,
+        rgba(255,255,255,.06) 75%);
+      background-size: 400px 100%;
+      animation: tSkelShimmer 1.4s ease-in-out infinite;
+    }
+
     /* ── Trending Stocks ── */
     .trending-section { padding: 20px 0 0; }
     .trending-grid {
@@ -577,7 +614,7 @@
   <div class="container">
     <div class="pulse-grid">
 
-      <div class="pulse-card">
+      <div class="pulse-card loading">
         <div class="pulse-card-head">
           <span class="pulse-name">Nifty 50</span>
           <span class="pulse-badge" id="ppNiftyBadge">NSE</span>
@@ -590,9 +627,14 @@
         <div class="pulse-spark-wrap">
           <svg class="spark" id="ppNiftySpark" data-points="" data-color="#2ecc71"></svg>
         </div>
+        <div class="pulse-card-skel">
+          <div class="p-sk p-sk-ltp"></div>
+          <div class="p-sk p-sk-chg"></div>
+          <div class="p-sk p-sk-spark"></div>
+        </div>
       </div>
 
-      <div class="pulse-card">
+      <div class="pulse-card loading">
         <div class="pulse-card-head">
           <span class="pulse-name">Bank Nifty</span>
           <span class="pulse-badge" id="ppBankBadge">NSE</span>
@@ -605,9 +647,14 @@
         <div class="pulse-spark-wrap">
           <svg class="spark" id="ppBankSpark" data-points="" data-color="#2ecc71"></svg>
         </div>
+        <div class="pulse-card-skel">
+          <div class="p-sk p-sk-ltp"></div>
+          <div class="p-sk p-sk-chg"></div>
+          <div class="p-sk p-sk-spark"></div>
+        </div>
       </div>
 
-      <div class="pulse-card">
+      <div class="pulse-card loading">
         <div class="pulse-card-head">
           <span class="pulse-name">India VIX</span>
           <span class="pulse-badge" id="ppVixBadge">NSE</span>
@@ -620,14 +667,19 @@
         <div class="pulse-spark-wrap">
           <svg class="spark" id="ppVixSpark" data-points="" data-color="#5b8af5"></svg>
         </div>
+        <div class="pulse-card-skel">
+          <div class="p-sk p-sk-ltp"></div>
+          <div class="p-sk p-sk-chg"></div>
+          <div class="p-sk p-sk-spark"></div>
+        </div>
       </div>
 
-      <div class="sector-chip" id="sc0"><span class="sector-name">Banking</span><span class="sector-pct flat">—</span></div>
-      <div class="sector-chip" id="sc1"><span class="sector-name">IT</span><span class="sector-pct flat">—</span></div>
-      <div class="sector-chip" id="sc2"><span class="sector-name">Auto</span><span class="sector-pct flat">—</span></div>
-      <div class="sector-chip" id="sc3"><span class="sector-name">Pharma</span><span class="sector-pct flat">—</span></div>
-      <div class="sector-chip" id="sc4"><span class="sector-name">FMCG</span><span class="sector-pct flat">—</span></div>
-      <div class="sector-chip" id="sc5"><span class="sector-name">Metal</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip loading" id="sc0"><span class="sector-name">Banking</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip loading" id="sc1"><span class="sector-name">IT</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip loading" id="sc2"><span class="sector-name">Auto</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip loading" id="sc3"><span class="sector-name">Pharma</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip loading" id="sc4"><span class="sector-name">FMCG</span><span class="sector-pct flat">—</span></div>
+      <div class="sector-chip loading" id="sc5"><span class="sector-name">Metal</span><span class="sector-pct flat">—</span></div>
 
     </div>
   </div>
@@ -1629,6 +1681,8 @@
       sEl.setAttribute('data-points', data.spark.join(','));
       sEl.setAttribute('data-color', color);
     }
+    var card = lEl && lEl.closest('.pulse-card');
+    if (card) card.classList.remove('loading');
   }
 
   function _fetchStrip() {
@@ -1673,6 +1727,7 @@
           var sign = s.pct >= 0 ? '+' : '';
           pctEl.textContent = sign + s.pct.toFixed(2) + '%';
           pctEl.className   = 'sector-pct ' + cls;
+          chip.classList.remove('loading');
         });
       })
       .catch(function () {});
