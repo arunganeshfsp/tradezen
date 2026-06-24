@@ -301,6 +301,86 @@
       100% { background-position:  400px 0; }
     }
 
+    /* ── News Feed ── */
+    .news-section { padding: 20px 0 0; }
+    .news-card {
+      background: var(--tz-surface);
+      border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-lg);
+      overflow: hidden;
+    }
+    .news-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px 8px;
+      border-bottom: 1px solid var(--tz-border);
+    }
+    .news-head-title {
+      font-family: var(--tz-font-mono);
+      font-size: 9.5px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--tz-fg-3);
+    }
+    .news-src-badge {
+      font-family: var(--tz-font-mono);
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: var(--tz-radius-full);
+      background: rgba(var(--tz-accent-rgb),.1);
+      color: var(--tz-accent-1);
+    }
+    .news-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 11px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      text-decoration: none;
+      transition: background .12s;
+    }
+    .news-item:last-child { border-bottom: none; }
+    .news-item:hover { background: rgba(var(--tz-accent-rgb),.04); }
+    .news-headline {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--tz-fg-1);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .news-item:hover .news-headline { color: var(--tz-accent-1); }
+    .news-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .news-source {
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-accent-1);
+      opacity: .8;
+    }
+    .news-time {
+      font-family: var(--tz-font-mono);
+      font-size: 10px;
+      color: var(--tz-fg-3);
+    }
+    .news-skel-line {
+      display: block;
+      height: 11px;
+      border-radius: 5px;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,.06) 25%,
+        rgba(255,255,255,.12) 50%,
+        rgba(255,255,255,.06) 75%);
+      background-size: 400px 100%;
+      animation: tSkelShimmer 1.4s ease-in-out infinite;
+    }
+
     /* ── Market strip ── */
     #market-strip {
       background: var(--tz-surface);
@@ -598,6 +678,28 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     NEWS FEED
+     ============================================================ -->
+<div class="news-section">
+  <div class="container">
+    <div class="news-card">
+      <div class="news-head">
+        <span class="news-head-title">Market News</span>
+        <span class="news-src-badge">Google News</span>
+      </div>
+      <div id="newsFeed">
+        <div class="news-item"><div class="news-headline"><span class="news-skel-line" style="width:85%"></span><span class="news-skel-line" style="width:60%;margin-top:5px"></span></div><div class="news-meta"><span class="news-skel-line" style="width:80px;height:9px"></span><span class="news-skel-line" style="width:50px;height:9px"></span></div></div>
+        <div class="news-item"><div class="news-headline"><span class="news-skel-line" style="width:90%"></span><span class="news-skel-line" style="width:55%;margin-top:5px"></span></div><div class="news-meta"><span class="news-skel-line" style="width:70px;height:9px"></span><span class="news-skel-line" style="width:50px;height:9px"></span></div></div>
+        <div class="news-item"><div class="news-headline"><span class="news-skel-line" style="width:75%"></span><span class="news-skel-line" style="width:65%;margin-top:5px"></span></div><div class="news-meta"><span class="news-skel-line" style="width:90px;height:9px"></span><span class="news-skel-line" style="width:50px;height:9px"></span></div></div>
+        <div class="news-item"><div class="news-headline"><span class="news-skel-line" style="width:80%"></span><span class="news-skel-line" style="width:50%;margin-top:5px"></span></div><div class="news-meta"><span class="news-skel-line" style="width:75px;height:9px"></span><span class="news-skel-line" style="width:50px;height:9px"></span></div></div>
+        <div class="news-item"><div class="news-headline"><span class="news-skel-line" style="width:88%"></span><span class="news-skel-line" style="width:45%;margin-top:5px"></span></div><div class="news-meta"><span class="news-skel-line" style="width:85px;height:9px"></span><span class="news-skel-line" style="width:50px;height:9px"></span></div></div>
+        <div class="news-item"><div class="news-headline"><span class="news-skel-line" style="width:78%"></span><span class="news-skel-line" style="width:58%;margin-top:5px"></span></div><div class="news-meta"><span class="news-skel-line" style="width:68px;height:9px"></span><span class="news-skel-line" style="width:50px;height:9px"></span></div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1562,6 +1664,40 @@
       .catch(function () {});
   }
 
+  function _timeAgo(isoStr) {
+    if (!isoStr) return '';
+    var diff = Math.floor((Date.now() - new Date(isoStr).getTime()) / 60000);
+    if (diff < 1)  return 'just now';
+    if (diff < 60) return diff + 'm ago';
+    var h = Math.floor(diff / 60);
+    if (h < 24)    return h + 'h ago';
+    return Math.floor(h / 24) + 'd ago';
+  }
+
+  function _fetchNews() {
+    fetch('/api/news-feed')
+      .then(function (r) { return r.json(); })
+      .then(function (items) {
+        if (!Array.isArray(items) || !items.length) return;
+        var el = document.getElementById('newsFeed');
+        if (!el) return;
+        el.innerHTML = items.map(function (n) {
+          var title  = n.title  ? n.title.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+          var source = n.source ? n.source.replace(/</g, '&lt;') : 'News';
+          var ago    = _timeAgo(n.pub);
+          var href   = n.link || '#';
+          return '<a class="news-item" href="' + href + '" target="_blank" rel="noopener noreferrer">' +
+            '<div class="news-headline">' + title + '</div>' +
+            '<div class="news-meta">' +
+              '<span class="news-source">' + source + '</span>' +
+              (ago ? '<span class="news-time">' + ago + '</span>' : '') +
+            '</div>' +
+            '</a>';
+        }).join('');
+      })
+      .catch(function () {});
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     _tick();
     setInterval(_tick, 1000);
@@ -1571,6 +1707,8 @@
     setInterval(_fetchSectors, 600000);
     _fetchMovers();
     setInterval(_fetchMovers, 300000);
+    _fetchNews();
+    setInterval(_fetchNews, 900000);
   });
 })();
 </script>

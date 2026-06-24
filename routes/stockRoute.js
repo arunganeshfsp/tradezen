@@ -180,6 +180,17 @@ router.get("/market-summary", async (req, res) => {
   }
 });
 
+// ─── GET /api/news-feed ───────────────────────────────────────────────────────
+// Google News RSS — 6 Indian market headlines, 15-min cache
+router.get("/news-feed", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/news-feed", 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/sector-spotlight ───────────────────────────────────────────────
 // Daily % change for 6 key NSE sector indices (10-min cache)
 router.get("/sector-spotlight", async (req, res) => {

@@ -2443,6 +2443,84 @@ async def sector_spotlight_endpoint():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# News Feed — Google News RSS for Indian market headlines
+# ══════════════════════════════════════════════════════════════════════════════
+
+_news_cache: list = []
+_news_cache_ts: float = 0.0
+_NEWS_CACHE_TTL = 900  # 15 min
+
+_NEWS_RSS = (
+    "https://news.google.com/rss/search"
+    "?q=india+stock+market+nifty+NSE"
+    "&hl=en-IN&gl=IN&ceid=IN:en"
+)
+
+
+def _news_feed_sync() -> list:
+    global _news_cache, _news_cache_ts
+    import time as _time
+    import requests as _req
+    import xml.etree.ElementTree as _ET
+    import datetime as _dt
+    from email.utils import parsedate_to_datetime
+
+    now = _time.time()
+    if _news_cache and (now - _news_cache_ts) < _NEWS_CACHE_TTL:
+        return _news_cache
+
+    try:
+        resp = _req.get(_NEWS_RSS, timeout=10, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; TradeZen/1.0)"
+        })
+        resp.raise_for_status()
+        root = _ET.fromstring(resp.content)
+    except Exception as ex:
+        log.warning(f"[NEWS] RSS fetch failed: {ex}")
+        return _news_cache or []
+
+    items = []
+    for item in root.iter("item"):
+        def _t(tag):
+            el = item.find(tag)
+            return el.text.strip() if el is not None and el.text else ""
+
+        raw_title = _t("title")
+        # Google News titles end with " - Source Name"
+        if " - " in raw_title:
+            parts = raw_title.rsplit(" - ", 1)
+            title, source = parts[0].strip(), parts[1].strip()
+        else:
+            title, source = raw_title, ""
+
+        pub_raw = _t("pubDate")
+        try:
+            pub_dt  = parsedate_to_datetime(pub_raw)
+            pub_iso = pub_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        except Exception:
+            pub_iso = ""
+
+        link = _t("link")
+        items.append({"title": title, "source": source, "link": link, "pub": pub_iso})
+        if len(items) >= 6:
+            break
+
+    _news_cache    = items
+    _news_cache_ts = now
+    return items
+
+
+@app.get("/news-feed")
+async def news_feed_endpoint():
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _news_feed_sync)
+    except Exception as e:
+        log.error(f"[NEWS] error: {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Breakout Screener — on-demand Nifty-500 scan
 # ══════════════════════════════════════════════════════════════════════════════
 try:
