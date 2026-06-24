@@ -1353,7 +1353,7 @@
     var cls   = _pctClass(data.pct);
     var sign  = data.pct >= 0 ? '+' : '';
     var abs   = data.ltp - data.prev;
-    var absTxt = (abs >= 0 ? '+' : '') + _fmt(Math.abs(abs));
+    var absTxt = (abs >= 0 ? '+' : '-') + _fmt(Math.abs(abs));
 
     var lEl   = document.getElementById(id + 'Ltp');
     var pEl   = document.getElementById(id + 'Pct');
