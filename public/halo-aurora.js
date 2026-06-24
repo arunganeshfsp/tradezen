@@ -128,13 +128,13 @@
     } else {
       slot.innerHTML =
         '<a class="tz-profile-btn" href="/learn/auth.html" title="Sign in">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
         '</a>';
     }
 
     var navActions = document.querySelector('.halo-navbar .d-flex:last-child');
     if (navActions) {
-      navActions.insertBefore(slot, navActions.lastElementChild);
+      navActions.appendChild(slot);
     }
   }
 
@@ -236,8 +236,12 @@
     btn.innerHTML = '<span></span><span></span><span></span>';
     btn.addEventListener('click', _tzOpenDrawer);
 
-    var navActions = document.querySelector('.halo-navbar .d-flex:last-child');
-    if (navActions) navActions.appendChild(btn);
+    // Place hamburger at the far left — before the brand
+    var brand = document.querySelector('.halo-navbar .navbar-brand');
+    var container = brand && brand.parentElement;
+    if (container) {
+      container.insertBefore(btn, brand);
+    }
   }
 
   document.addEventListener('DOMContentLoaded', _renderHaloHamburger);

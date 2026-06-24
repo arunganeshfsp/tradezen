@@ -354,30 +354,45 @@ body { overflow-x: hidden; }
   flex-shrink: 0;
 }
 
-/* ── Profile / auth icon ── */
+/* ── Profile avatar ── */
 .tz-profile-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--tz-border);
+  border: 2px solid transparent;
   background: var(--tz-surface-2);
-  color: var(--tz-fg-2);
+  color: var(--tz-fg-3);
   cursor: pointer;
   text-decoration: none;
   font-family: var(--tz-font-mono);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   flex-shrink: 0;
-  transition: border-color .15s, background .15s, color .15s;
+  outline: none;
+  transition: box-shadow .18s, border-color .18s, opacity .15s;
 }
-.tz-profile-btn:hover { border-color: var(--tz-border-strong); color: var(--tz-fg-1); text-decoration: none; }
+.tz-profile-btn:hover {
+  box-shadow: 0 0 0 3px rgba(var(--tz-accent-rgb),.25);
+  text-decoration: none;
+  opacity: .9;
+}
+/* Signed-in: gradient avatar with white initial */
 .tz-profile-btn.signed-in {
-  background: rgba(var(--tz-accent-rgb),.12);
-  border-color: rgba(var(--tz-accent-rgb),.3);
-  color: var(--tz-accent-1);
+  background: linear-gradient(135deg, var(--tz-accent-1) 0%, #5b8af5 100%);
+  border-color: rgba(var(--tz-accent-rgb),.35);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(var(--tz-accent-rgb),.3);
+}
+.tz-profile-btn.signed-in:hover {
+  box-shadow: 0 0 0 3px rgba(var(--tz-accent-rgb),.35), 0 2px 8px rgba(var(--tz-accent-rgb),.3);
+}
+/* Signed-out: subtle ring avatar */
+.tz-profile-btn:not(.signed-in) {
+  border-color: var(--tz-border);
+  background: var(--tz-surface-2);
 }
 
 .changelog-badge {
