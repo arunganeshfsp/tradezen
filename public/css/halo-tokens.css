@@ -29,6 +29,10 @@
   --tz-fg-2:            #9ea3c0;
   --tz-fg-3:            #585d7e;
 
+  /* ── Legacy aliases (used by older page styles) ─────────── */
+  --muted:              #7b84a8;
+  --dim:                #9ba3bf;
+
   /* ── Aurora gradients for halo bg layers ──────────────── */
   --tz-halo-a:          radial-gradient(60% 60% at 20% 0%,  rgba(124,106,247,0.28) 0%, rgba(124,106,247,0) 60%);
   --tz-halo-b:          radial-gradient(50% 50% at 80% 10%, rgba(91,138,245,0.22) 0%,  rgba(91,138,245,0) 60%);

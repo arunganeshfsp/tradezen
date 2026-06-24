@@ -17,7 +17,7 @@
       color:#00d4ff;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);
       padding:3px 10px;border-radius:12px;margin-bottom:8px}
     .tlm-company{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;line-height:1.2}
-    .tlm-symbol{font-family:'JetBrains Mono',monospace;font-size:11px;color:#4a5070;margin-top:3px}
+    .tlm-symbol{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7b84a8;margin-top:3px}
     .tlm-close{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
       border-radius:8px;color:#9ba3bf;cursor:pointer;font-size:16px;line-height:1;
       padding:5px 9px;transition:all .15s;flex-shrink:0}
@@ -25,10 +25,10 @@
     .tlm-price-block{background:rgba(255,255,255,0.03);border:1px solid #252a44;
       border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:baseline;gap:10px}
     .tlm-price-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
-      text-transform:uppercase;color:#4a5070;flex-shrink:0}
+      text-transform:uppercase;color:#7b84a8;flex-shrink:0}
     .tlm-price-val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:#e8ecf4}
     .tlm-qty-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
-      text-transform:uppercase;color:#4a5070;margin-bottom:8px}
+      text-transform:uppercase;color:#7b84a8;margin-bottom:8px}
     .tlm-qty-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
     .tlm-qty-btn{background:rgba(255,255,255,0.06);border:1px solid #323868;border-radius:8px;
       color:#e8ecf4;cursor:pointer;font-size:18px;font-family:'JetBrains Mono',monospace;
@@ -39,7 +39,7 @@
       padding:8px 12px;text-align:center;outline:none;-moz-appearance:textfield}
     #tlm-qty::-webkit-inner-spin-button,#tlm-qty::-webkit-outer-spin-button{-webkit-appearance:none}
     #tlm-qty:focus{border-color:#7c6af7}
-    .tlm-est{font-family:'JetBrains Mono',monospace;font-size:11px;color:#4a5070;
+    .tlm-est{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7b84a8;
       margin-bottom:20px;text-align:center}
     #tlm-actions{display:flex;gap:10px}
     .tlm-long{flex:1;padding:13px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;
@@ -57,7 +57,7 @@
       color:#7c6af7;border:1px solid rgba(124,106,247,0.35);background:rgba(124,106,247,0.08);
       transition:all .15s}
     #tlm-signin:hover{background:rgba(124,106,247,0.16)}
-    .tlm-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:#4a5070;
+    .tlm-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:#7b84a8;
       text-align:center;margin-top:14px;line-height:1.5}
     .tlm-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
       padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;
