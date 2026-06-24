@@ -379,9 +379,11 @@ input:focus,select:focus{border-color:var(--tz-purple)}
 .pt-signin{display:block;width:100%;padding:10px;border-radius:9px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;text-decoration:none;color:var(--tz-purple);border:1px solid rgba(124,106,247,0.35);background:rgba(124,106,247,0.08)}
 .pt-hint{font-size:10px;color:var(--fg3);margin-top:6px}
 /* ── Toast ── */
-.so-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:11px 20px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:9999;display:none;max-width:90vw;text-align:center;backdrop-filter:blur(8px)}
-.so-toast.ok{background:rgba(18,22,42,0.92);border:1px solid rgba(52,211,153,0.4);color:var(--tz-gain)}
-.so-toast.err{background:rgba(18,22,42,0.92);border:1px solid rgba(248,113,113,0.4);color:var(--tz-loss)}
+.so-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:9999;display:none;max-width:92vw;text-align:center;backdrop-filter:blur(10px);line-height:1.6}
+.so-toast.ok{background:rgba(14,18,38,0.95);border:1px solid rgba(52,211,153,0.45);color:var(--tz-gain)}
+.so-toast.err{background:rgba(14,18,38,0.95);border:1px solid rgba(248,113,113,0.45);color:var(--tz-loss)}
+.so-toast a{display:inline-block;margin-top:6px;color:#fff;font-weight:600;font-size:11px;letter-spacing:.5px;text-decoration:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:4px 14px;border-radius:20px;transition:background .15s}
+.so-toast a:hover{background:rgba(255,255,255,0.2)}
 </style>
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
@@ -1496,13 +1498,13 @@ function closeStrikeDrawer(e){
 }
 
 /* ── Paper Trade ───────────────────────────────────────────────── */
-function soToast(msg,ok){
+function soToast(msg,ok,dur=4500){
   const t=document.getElementById('soToast');
-  t.textContent=msg;
+  t.innerHTML=msg;
   t.className='so-toast '+(ok?'ok':'err');
   t.style.display='block';
   clearTimeout(t._timer);
-  t._timer=setTimeout(()=>{t.style.display='none';},4000);
+  t._timer=setTimeout(()=>{t.style.display='none';},dur);
 }
 async function paperTrade(side){
   if(!_sdOpt||!_sdStrike)return;
@@ -1533,8 +1535,7 @@ async function paperTrade(side){
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||d.detail||'Order failed');
     document.getElementById('strikeDrawer').classList.remove('open');
-    soToast(`Paper ${side} · ${_sdUnderlying} ${fmtN(_sdStrike)} ${_sdDir} × ${lots} lot${lots>1?'s':''} @ ₹${fmtN(_sdOpt.ltp)} · Opening portfolio…`,true);
-    setTimeout(()=>{ window.location.href='/paper_trading.html'; },1500);
+    soToast(`Paper ${side} · ${_sdUnderlying} ${fmtN(_sdStrike)} ${_sdDir} × ${lots} lot${lots>1?'s':''} @ ₹${fmtN(_sdOpt.ltp)}<br><a href="/paper_trading.html">→ View Paper Portfolio</a>`,true,5000);
   }catch(e){
     soToast(e.message,false);
     if(buyBtn)buyBtn.disabled=false;

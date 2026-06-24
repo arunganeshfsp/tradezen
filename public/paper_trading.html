@@ -23,100 +23,151 @@
   --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);--yellow-border:rgba(245,166,35,0.25);
   --cyan:#00d4ff;
   --text:#e8ecf4;--dim:#9ba3bf;--muted:#4a5070;
-  --r:10px;--r2:6px;
+  --r:12px;--r2:8px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
 
-.hero{padding:40px 28px 32px;text-align:center;border-bottom:1px solid var(--border);
-  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(124,106,247,0.12) 0%,transparent 65%),var(--bg)}
-.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:5px 16px;border-radius:20px;margin-bottom:14px}
-.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:6px}
-.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{font-size:13px;color:var(--dim)}
+/* ── Hero ── */
+.hero{padding:52px 28px 44px;text-align:center;border-bottom:1px solid var(--border);
+  background:
+    radial-gradient(ellipse 70% 50% at 30% 120%,rgba(46,204,113,0.05) 0%,transparent 60%),
+    radial-gradient(ellipse 80% 60% at 70% -20%,rgba(124,106,247,0.12) 0%,transparent 65%),
+    var(--bg)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);
+  background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);
+  padding:5px 16px;border-radius:20px;margin-bottom:18px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(24px,3.8vw,42px);font-weight:800;
+  color:#fff;line-height:1.1;margin-bottom:10px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:14px;color:var(--dim);max-width:480px;margin:0 auto 28px}
+.hero-actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.btn-chain{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;
+  border-radius:24px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  background:linear-gradient(90deg,var(--accent),var(--blue));color:#fff;
+  text-decoration:none;border:none;cursor:pointer;transition:opacity .15s;letter-spacing:.3px}
+.btn-chain:hover{opacity:.88;color:#fff}
+.btn-chain svg{width:16px;height:16px;flex-shrink:0}
 
-.main{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+/* ── Layout ── */
+.main{max-width:1100px;margin:0 auto;padding:36px 24px 80px}
 
-.card-z{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px}
-.card-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+/* ── Section label ── */
+.section-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px}
+.section-label::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--accent);margin-right:8px;flex-shrink:0}
 
-.acct-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-@media(max-width:860px){.acct-grid{grid-template-columns:repeat(2,1fr)}}
-.acct-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
-.acct-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.acct-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--text)}
+/* ── Account panel ── */
+.acct-panel{background:linear-gradient(135deg,#111429 0%,#0f1325 60%,#131728 100%);
+  border:1px solid var(--border2);border-radius:var(--r);padding:28px;
+  position:relative;overflow:hidden}
+.acct-panel::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;
+  background:radial-gradient(circle,rgba(46,204,113,0.07) 0%,transparent 70%);pointer-events:none}
+.acct-panel-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.acct-equity-block{display:flex;flex-direction:column;gap:4px}
+.acct-equity-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted)}
+.acct-equity-val{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;
+  color:#fff;line-height:1}
+.acct-equity-val.pos{color:var(--green)}
+.acct-equity-val.neg{color:var(--red)}
+.acct-badge{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:10px;padding:4px 12px;border-radius:12px;border:1px solid var(--green-border);
+  background:var(--green-bg);color:var(--green);margin-top:8px;width:fit-content}
+.acct-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--green);
+  animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.reset-btn{padding:7px 16px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--red-border);
+  background:transparent;color:var(--red);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.reset-btn:hover{background:var(--red-bg)}
+
+.acct-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:860px){.acct-stats{grid-template-columns:repeat(2,1fr)}}
+.acct-stat{background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:var(--r2);padding:14px 16px;transition:border-color .2s}
+.acct-stat:hover{border-color:var(--border2)}
+.acct-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.acct-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:var(--text)}
 .acct-val.pos{color:var(--green)}
 .acct-val.neg{color:var(--red)}
 
-.field{display:flex;flex-direction:column;gap:6px}
-.field label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
-.field input,.field select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;padding:10px 14px;border-radius:var(--r2);outline:none;transition:border .15s;width:100%}
-.field input:focus,.field select:focus{border-color:var(--accent)}
-.field input::placeholder{color:var(--muted)}
-.field-hint{font-size:11px;color:var(--muted)}
+/* ── Cards ── */
+.card-z{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px}
 
-.tog-group{display:flex;gap:4px}
-.tog{padding:7px 18px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
-.tog:hover{color:var(--text)}
-.tog.active-idx{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.1)}
-
-.fetch-btn{padding:9px 16px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--cyan);transition:all .15s;white-space:nowrap}
-.fetch-btn:hover:not(:disabled){border-color:var(--cyan);background:rgba(0,212,255,0.08)}
-.fetch-btn:disabled{opacity:.45;cursor:not-allowed}
-
-.side-btn{flex:1;padding:12px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--dim);transition:all .15s}
-.side-btn.buy.active{border-color:var(--green);color:var(--green);background:var(--green-bg)}
-.side-btn.sell.active{border-color:var(--red);color:var(--red);background:var(--red-bg)}
-
-.place-btn{width:100%;padding:14px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;background:linear-gradient(90deg,var(--accent),var(--blue));color:#fff;transition:opacity .15s}
-.place-btn:hover:not(:disabled){opacity:.88}
-.place-btn:disabled{opacity:.4;cursor:not-allowed}
-
-.quote-strip{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.q-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
-.q-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--cyan)}
-.q-cost{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim)}
-
+/* ── Table ── */
 .pos-table{width:100%;border-collapse:collapse;font-size:13px}
-.pos-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
-.pos-table td{padding:10px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);vertical-align:middle}
+.pos-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 12px;
+  border-bottom:1px solid var(--border);background:var(--bg3)}
+.pos-table td{padding:12px;border-bottom:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);vertical-align:middle}
+.pos-table tbody tr:hover td{background:rgba(255,255,255,0.02)}
 .pos-table tr:last-child td{border-bottom:none}
-.pos-sym{font-weight:600}
-.pos-sub{font-size:10px;color:var(--muted)}
-.badge-side{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;border:1px solid}
+.pos-sym{font-weight:600;font-size:13px}
+.pos-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.badge-side{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+  padding:3px 10px;border-radius:12px;border:1px solid}
 .badge-side.buy{color:var(--green);border-color:var(--green-border);background:var(--green-bg)}
 .badge-side.sell{color:var(--red);border-color:var(--red-border);background:var(--red-bg)}
 .pnl-pos{color:var(--green)!important}
 .pnl-neg{color:var(--red)!important}
-.close-btn{padding:5px 14px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--yellow-border);background:var(--yellow-bg);color:var(--yellow);transition:all .15s;white-space:nowrap}
+.close-btn{padding:5px 14px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--yellow-border);
+  background:var(--yellow-bg);color:var(--yellow);transition:all .15s;white-space:nowrap}
 .close-btn:hover:not(:disabled){background:rgba(245,166,35,0.18)}
 .close-btn:disabled{opacity:.5;cursor:not-allowed}
 
-.empty-msg{text-align:center;color:var(--muted);font-size:13px;padding:24px 0}
-.reset-btn{padding:6px 14px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--red-border);background:transparent;color:var(--red);transition:all .15s;text-transform:none;letter-spacing:.5px}
-.reset-btn:hover{background:var(--red-bg)}
+/* ── Empty states ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:40px 24px;text-align:center}
+.empty-state-icon{font-size:32px;opacity:.35}
+.empty-state-text{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.empty-state-cta{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;
+  border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  color:var(--accent);border:1px solid rgba(124,106,247,0.3);background:rgba(124,106,247,0.08);
+  text-decoration:none;transition:all .15s;margin-top:4px}
+.empty-state-cta:hover{background:rgba(124,106,247,0.15);color:var(--accent)}
 
-.toast-msg{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 22px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:9999;display:none;max-width:90vw}
+.table-wrap{overflow-x:auto}
+
+/* ── Toast ── */
+.toast-msg{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r2);
+  padding:12px 22px;font-family:'JetBrains Mono',monospace;font-size:12px;
+  z-index:9999;display:none;max-width:90vw;text-align:center}
 .toast-msg.ok{border-color:var(--green-border);color:var(--green)}
 .toast-msg.err{border-color:var(--red-border);color:var(--red)}
 
+/* ── Disclaimer ── */
 .disclaimer{margin-top:28px;text-align:center;font-size:11px;color:var(--muted);line-height:1.6}
-.table-wrap{overflow-x:auto}
 
-/* Mobile: tables become stacked cards */
+/* ── Refresh btn ── */
+.refresh-btn{padding:5px 13px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border2);
+  background:transparent;color:var(--cyan);transition:all .15s}
+.refresh-btn:hover{border-color:var(--cyan);background:rgba(0,212,255,0.06)}
+
+/* ── Mobile cards ── */
 .m-cards{display:none}
-.m-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
-.m-card .m-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
-.m-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.m-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:10px}
+.m-card .m-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.m-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 .m-stat{display:flex;flex-direction:column;gap:2px}
 .m-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
 .m-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text)}
-.m-foot{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.m-foot{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px}
 @media(max-width:700px){
   .table-wrap{display:none}
-  .m-cards{display:flex;flex-direction:column;gap:10px}
-  .side-btn{padding:14px 8px}
-  .place-btn{padding:16px}
+  .m-cards{display:block}
+  .acct-stats{grid-template-columns:repeat(2,1fr)}
+  .hero-actions{flex-direction:column;align-items:stretch;padding:0 8px}
+  .btn-chain{justify-content:center}
 }
 </style>
 </head>
@@ -154,148 +205,57 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 <div class="hero">
   <div class="hero-tag" data-en="&#9679; Practice Simulator" data-ta="&#9679; பயிற்சி சிமுலேட்டர்">&#9679; Practice Simulator</div>
-  <h1>Paper <em>Trading</em></h1>
-  <p class="hero-sub" data-en="Practise with virtual money — simulate stock and option trades at live prices and track your progress" data-ta="மெய்நிகர் பணத்துடன் பயிற்சி — நேரடி விலைகளில் பங்கு மற்றும் ஆப்ஷன் வர்த்தகங்களை உருவகப்படுத்தி உங்கள் முன்னேற்றத்தை கண்காணிக்கவும்">Practise with virtual money — simulate stock and option trades at live prices and track your progress</p>
+  <h1>Paper <em>Portfolio</em></h1>
+  <p class="hero-sub" data-en="Track your simulated options trades with virtual money. Practice at live market prices without any risk." data-ta="மெய்நிகர் பணத்துடன் உங்கள் ஆப்ஷன் வர்த்தகங்களை கண்காணிக்கவும். எந்த ஆபத்தும் இல்லாமல் நேரடி சந்தை விலைகளில் பயிற்சி பெறுங்கள்.">Track your simulated options trades with virtual money. Practice at live market prices without any risk.</p>
+  <div class="hero-actions">
+    <a href="/stock_options.html" class="btn-chain">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h12M9 4l5 4-5 4"/></svg>
+      Open Options Chain
+    </a>
+  </div>
 </div>
 
 <div class="main">
   <div class="d-flex flex-column gap-4">
 
     <!-- ACCOUNT SUMMARY -->
-    <div class="card-z">
-      <div class="card-title">
-        <span data-en="Virtual Account" data-ta="மெய்நிகர் கணக்கு">Virtual Account</span>
+    <div class="acct-panel">
+      <div class="acct-panel-top">
+        <div class="acct-equity-block">
+          <div class="acct-equity-lbl" data-en="Total Portfolio Value" data-ta="மொத்த போர்ட்ஃபோலியோ மதிப்பு">Total Portfolio Value</div>
+          <div class="acct-equity-val" id="acctEquity">—</div>
+          <div class="acct-badge" id="acctBadge">
+            <span class="acct-badge-dot"></span>
+            <span id="acctBadgeText">Virtual Account</span>
+          </div>
+        </div>
         <button class="reset-btn" onclick="resetAccount()" data-en="Reset Account" data-ta="கணக்கை மீட்டமை">Reset Account</button>
       </div>
-      <div class="acct-grid">
-        <div class="acct-box">
+      <div class="acct-stats">
+        <div class="acct-stat">
           <div class="acct-lbl" data-en="Available Cash" data-ta="கையிருப்பு பணம்">Available Cash</div>
           <div class="acct-val" id="acctCash">—</div>
         </div>
-        <div class="acct-box">
+        <div class="acct-stat">
           <div class="acct-lbl" data-en="In Positions" data-ta="பொசிஷன்களில்">In Positions</div>
           <div class="acct-val" id="acctInvested">—</div>
         </div>
-        <div class="acct-box">
+        <div class="acct-stat">
           <div class="acct-lbl" data-en="Unrealized P&amp;L" data-ta="நிகழா லாப/நட்டம்">Unrealized P&amp;L</div>
           <div class="acct-val" id="acctUnrealized">—</div>
         </div>
-        <div class="acct-box">
+        <div class="acct-stat">
           <div class="acct-lbl" data-en="Realized P&amp;L" data-ta="நிகழ்ந்த லாப/நட்டம்">Realized P&amp;L</div>
           <div class="acct-val" id="acctRealized">—</div>
-        </div>
-        <div class="acct-box">
-          <div class="acct-lbl" data-en="Total Equity" data-ta="மொத்த மதிப்பு">Total Equity</div>
-          <div class="acct-val" id="acctEquity">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ORDER TICKET -->
-    <div class="card-z">
-      <div class="card-title"><span data-en="New Simulated Trade" data-ta="புதிய உருவக வர்த்தகம்">New Simulated Trade</span></div>
-
-      <div class="d-flex flex-column gap-3">
-        <div class="tog-group">
-          <button class="tog active-idx" id="togStock" onclick="setInstrument('STOCK')" data-en="Stock" data-ta="பங்கு">Stock</button>
-          <button class="tog" id="togOption" onclick="setInstrument('OPTION')" data-en="Option Contract" data-ta="ஆப்ஷன் ஒப்பந்தம்">Option Contract</button>
-        </div>
-
-        <!-- Stock fields -->
-        <div id="stockFields">
-          <div class="row g-3 align-items-end">
-            <div class="col-md-5">
-              <div class="field">
-                <label data-en="NSE Symbol" data-ta="NSE குறியீடு">NSE Symbol</label>
-                <input type="text" id="stockSymbol" placeholder="RELIANCE" autocomplete="off">
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="field">
-                <label data-en="Quantity (Shares)" data-ta="அளவு (பங்குகள்)">Quantity (Shares)</label>
-                <input type="number" id="stockQty" min="1" value="1">
-              </div>
-            </div>
-            <div class="col-md-4">
-              <button class="fetch-btn w-100" id="stockQuoteBtn" onclick="fetchStockQuote()" data-en="&#8635; Get Live Price" data-ta="&#8635; நேரடி விலை">&#8635; Get Live Price</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Option fields -->
-        <div id="optionFields" style="display:none">
-          <div class="row g-3 align-items-end">
-            <div class="col-md-4">
-              <div class="field">
-                <label data-en="Underlying" data-ta="அடிப்படை">Underlying</label>
-                <input type="text" id="optUnderlying" placeholder="NIFTY / BANKNIFTY / RELIANCE" autocomplete="off">
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="field">
-                <label data-en="Expiry" data-ta="காலாவதி">Expiry</label>
-                <select id="optExpiryType">
-                  <option value="weekly" data-en="Weekly (nearest)" data-ta="வாராந்திர (அருகில்)">Weekly (nearest)</option>
-                  <option value="monthly" data-en="Monthly" data-ta="மாதாந்திர">Monthly</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-5">
-              <button class="fetch-btn w-100" id="optSearchBtn" onclick="searchContracts()" data-en="&#128269; Search Contracts" data-ta="&#128269; ஒப்பந்தங்களை தேடு">&#128269; Search Contracts</button>
-            </div>
-            <div class="col-md-8">
-              <div class="field">
-                <label data-en="Contract" data-ta="ஒப்பந்தம்">Contract</label>
-                <select id="optContract" disabled>
-                  <option value="" data-en="Search an underlying first" data-ta="முதலில் தேடவும்">Search an underlying first</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="field">
-                <label data-en="Lots" data-ta="லாட்கள்">Lots</label>
-                <input type="number" id="optLots" min="1" value="1">
-                <span class="field-hint" id="lotSizeHint"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quote preview -->
-        <div class="quote-strip" id="quoteStrip" style="display:none">
-          <div>
-            <div class="q-lbl" data-en="Live Price (LTP)" data-ta="நேரடி விலை (LTP)">Live Price (LTP)</div>
-            <div class="q-val" id="quoteLtp">—</div>
-          </div>
-          <div class="q-cost" id="quoteCost"></div>
-        </div>
-
-        <div class="row g-3 align-items-end">
-          <div class="col-md-4">
-            <div class="field">
-              <label data-en="Execution Price (₹)" data-ta="நிறைவேற்று விலை (₹)">Execution Price (₹)</label>
-              <input type="number" id="orderPrice" min="0" step="0.05" placeholder="Auto = live LTP">
-              <span class="field-hint" data-en="Leave blank to execute at live price" data-ta="நேரடி விலையில் நிறைவேற்ற காலியாக விடவும்">Leave blank to execute at live price</span>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="d-flex gap-2">
-              <button class="side-btn buy active" id="sideBuy" onclick="setSide('BUY')" data-en="BUY (Simulated)" data-ta="வாங்கு (உருவகம்)">BUY (Simulated)</button>
-              <button class="side-btn sell" id="sideSell" onclick="setSide('SELL')" data-en="SELL (Simulated)" data-ta="விற்க (உருவகம்)">SELL (Simulated)</button>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <button class="place-btn" id="placeBtn" onclick="placeOrder()" data-en="Place Paper Order" data-ta="பேப்பர் ஆர்டர் வை">Place Paper Order</button>
-          </div>
         </div>
       </div>
     </div>
 
     <!-- OPEN POSITIONS -->
     <div class="card-z">
-      <div class="card-title">
+      <div class="section-label">
         <span data-en="Open Positions" data-ta="திறந்த பொசிஷன்கள்">Open Positions</span>
-        <button class="fetch-btn" style="padding:5px 12px;font-size:10px" onclick="refreshAll()" data-en="&#8635; Refresh" data-ta="&#8635; புதுப்பி">&#8635; Refresh</button>
+        <button class="refresh-btn" onclick="refreshAll()" data-en="&#8635; Refresh" data-ta="&#8635; புதுப்பி">&#8635; Refresh</button>
       </div>
       <div class="table-wrap">
         <table class="pos-table" id="posTable">
@@ -312,25 +272,42 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             </tr>
           </thead>
           <tbody id="posBody">
-            <tr><td colspan="8"><div class="empty-msg" data-en="No open positions" data-ta="திறந்த பொசிஷன்கள் இல்லை">No open positions</div></td></tr>
+            <tr><td colspan="8">
+              <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-text" data-en="No open positions yet" data-ta="திறந்த பொசிஷன்கள் இல்லை">No open positions yet</div>
+                <a href="/stock_options.html" class="empty-state-cta">Open Options Chain →</a>
+              </div>
+            </td></tr>
           </tbody>
         </table>
       </div>
       <div class="m-cards" id="posCards">
-        <div class="empty-msg" data-en="No open positions" data-ta="திறந்த பொசிஷன்கள் இல்லை">No open positions</div>
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-text" data-en="No open positions yet" data-ta="திறந்த பொசிஷன்கள் இல்லை">No open positions yet</div>
+          <a href="/stock_options.html" class="empty-state-cta">Open Options Chain →</a>
+        </div>
       </div>
     </div>
 
     <!-- PROGRESS CHART -->
     <div class="card-z">
-      <div class="card-title"><span data-en="Progress — Cumulative Realized P&amp;L" data-ta="முன்னேற்றம் — மொத்த நிகழ்ந்த லாப/நட்டம்">Progress — Cumulative Realized P&amp;L</span></div>
+      <div class="section-label">
+        <span data-en="Progress — Cumulative Realized P&amp;L" data-ta="முன்னேற்றம் — மொத்த நிகழ்ந்த லாப/நட்டம்">Progress — Cumulative Realized P&amp;L</span>
+      </div>
       <div style="height:240px"><canvas id="pnlChart"></canvas></div>
-      <div class="empty-msg" id="chartEmpty" data-en="Close a trade to start tracking progress" data-ta="முன்னேற்றத்தை கண்காணிக்க ஒரு வர்த்தகத்தை மூடவும்">Close a trade to start tracking progress</div>
+      <div class="empty-state" id="chartEmpty" style="padding:20px 0">
+        <div class="empty-state-icon">📈</div>
+        <div class="empty-state-text" data-en="Close a trade to start tracking your progress" data-ta="முன்னேற்றத்தை கண்காணிக்க ஒரு வர்த்தகத்தை மூடவும்">Close a trade to start tracking your progress</div>
+      </div>
     </div>
 
     <!-- TRADE HISTORY -->
     <div class="card-z">
-      <div class="card-title"><span data-en="Trade History" data-ta="வர்த்தக வரலாறு">Trade History</span></div>
+      <div class="section-label">
+        <span data-en="Trade History" data-ta="வர்த்தக வரலாறு">Trade History</span>
+      </div>
       <div class="table-wrap">
         <table class="pos-table">
           <thead>
@@ -345,12 +322,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             </tr>
           </thead>
           <tbody id="histBody">
-            <tr><td colspan="7"><div class="empty-msg" data-en="No closed trades yet" data-ta="இன்னும் மூடிய வர்த்தகங்கள் இல்லை">No closed trades yet</div></td></tr>
+            <tr><td colspan="7">
+              <div class="empty-state">
+                <div class="empty-state-icon">🕐</div>
+                <div class="empty-state-text" data-en="No closed trades yet" data-ta="இன்னும் மூடிய வர்த்தகங்கள் இல்லை">No closed trades yet</div>
+              </div>
+            </td></tr>
           </tbody>
         </table>
       </div>
       <div class="m-cards" id="histCards">
-        <div class="empty-msg" data-en="No closed trades yet" data-ta="இன்னும் மூடிய வர்த்தகங்கள் இல்லை">No closed trades yet</div>
+        <div class="empty-state">
+          <div class="empty-state-icon">🕐</div>
+          <div class="empty-state-text" data-en="No closed trades yet" data-ta="இன்னும் மூடிய வர்த்தகங்கள் இல்லை">No closed trades yet</div>
+        </div>
       </div>
     </div>
 
@@ -367,9 +352,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-let instrument = 'STOCK';
-let side       = 'BUY';
-let contracts  = [];
 let pnlChart   = null;
 let _lastPositions = [];
 let _lastHistory   = [];
@@ -402,132 +384,6 @@ function toast(msg, ok = true) {
   t.style.display = 'block';
   clearTimeout(t._timer);
   t._timer = setTimeout(() => { t.style.display = 'none'; }, 4000);
-}
-
-function setInstrument(v) {
-  instrument = v;
-  document.getElementById('togStock').classList.toggle('active-idx', v === 'STOCK');
-  document.getElementById('togOption').classList.toggle('active-idx', v === 'OPTION');
-  document.getElementById('stockFields').style.display  = v === 'STOCK'  ? '' : 'none';
-  document.getElementById('optionFields').style.display = v === 'OPTION' ? '' : 'none';
-  document.getElementById('quoteStrip').style.display = 'none';
-}
-
-function setSide(v) {
-  side = v;
-  document.getElementById('sideBuy').classList.toggle('active',  v === 'BUY');
-  document.getElementById('sideSell').classList.toggle('active', v === 'SELL');
-}
-
-function selectedContract() {
-  const idx = document.getElementById('optContract').value;
-  return idx === '' ? null : contracts[Number(idx)];
-}
-
-function showQuote(ltp, units) {
-  const strip = document.getElementById('quoteStrip');
-  strip.style.display = '';
-  document.getElementById('quoteLtp').textContent = ltp == null ? 'unavailable' : fmt(ltp);
-  document.getElementById('quoteCost').textContent =
-    (ltp != null && units > 0) ? `≈ ${fmt(ltp * units)} (${units} units)` : '';
-  if (ltp != null) document.getElementById('orderPrice').value = ltp;
-}
-
-async function fetchStockQuote() {
-  const sym = document.getElementById('stockSymbol').value.trim().toUpperCase();
-  if (!sym) return toast('Enter an NSE symbol first', false);
-  const btn = document.getElementById('stockQuoteBtn');
-  btn.disabled = true;
-  try {
-    const r = await fetch(`/api/paper/quote?instrument=STOCK&symbol=${encodeURIComponent(sym)}`, { headers: _authHdr() });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
-    showQuote(d.ltp, Number(document.getElementById('stockQty').value) || 0);
-    if (d.ltp == null) toast(`No live price for ${sym} — enter a price manually`, false);
-  } catch (e) { toast(e.message, false); }
-  btn.disabled = false;
-}
-
-async function searchContracts() {
-  const q = document.getElementById('optUnderlying').value.trim().toUpperCase();
-  if (q.length < 2) return toast('Enter an underlying (e.g. NIFTY)', false);
-  const btn = document.getElementById('optSearchBtn');
-  btn.disabled = true;
-  try {
-    const et = document.getElementById('optExpiryType').value;
-    const r  = await fetch(`/api/options/search?query=${encodeURIComponent(q)}&expiry_type=${et}`);
-    const d  = await r.json();
-    if (d.error) throw new Error(d.error);
-    contracts = d.contracts || [];
-    const sel = document.getElementById('optContract');
-    if (!contracts.length) {
-      sel.innerHTML = '<option value="">No contracts found</option>';
-      sel.disabled = true;
-      toast(`No contracts found for ${q}`, false);
-    } else {
-      sel.innerHTML = contracts.map((c, i) =>
-        `<option value="${i}">${c.strike} ${c.type} · ${c.expiry} · lot ${c.lot_size}${c.is_atm ? ' · ATM' : ''}</option>`
-      ).join('');
-      sel.disabled = false;
-      const atm = contracts.findIndex(c => c.is_atm);
-      if (atm >= 0) sel.value = String(atm);
-      onContractChange();
-    }
-  } catch (e) { toast(e.message, false); }
-  btn.disabled = false;
-}
-
-async function onContractChange() {
-  const c = selectedContract();
-  if (!c) return;
-  document.getElementById('lotSizeHint').textContent = `1 lot = ${c.lot_size} units`;
-  try {
-    const r = await fetch(`/api/paper/quote?instrument=OPTION&symbol=${encodeURIComponent(c.symbol)}&token=${encodeURIComponent(c.token)}`, { headers: _authHdr() });
-    const d = await r.json();
-    const lots = Number(document.getElementById('optLots').value) || 1;
-    showQuote(d.ltp, lots * c.lot_size);
-    if (d.ltp == null) toast('Live premium unavailable — enter a price manually', false);
-  } catch (e) { toast(e.message, false); }
-}
-
-async function placeOrder() {
-  const btn = document.getElementById('placeBtn');
-  const priceRaw = document.getElementById('orderPrice').value;
-  const body = { instrument, side, price: priceRaw ? Number(priceRaw) : null };
-
-  if (instrument === 'STOCK') {
-    body.symbol = document.getElementById('stockSymbol').value.trim().toUpperCase();
-    body.qty    = Number(document.getElementById('stockQty').value) || 0;
-    if (!body.symbol) return toast('Enter an NSE symbol', false);
-    if (body.qty <= 0) return toast('Quantity must be at least 1', false);
-  } else {
-    const c = selectedContract();
-    if (!c) return toast('Search and select an option contract first', false);
-    body.symbol      = c.symbol;
-    body.token       = c.token;
-    body.underlying  = c.name;
-    body.expiry      = c.expiry;
-    body.strike      = c.strike;
-    body.option_type = c.type;
-    body.lots        = Number(document.getElementById('optLots').value) || 0;
-    body.lot_size    = c.lot_size;
-    if (body.lots <= 0) return toast('Lots must be at least 1', false);
-  }
-
-  btn.disabled = true;
-  try {
-    const r = await fetch('/api/paper/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ..._authHdr() },
-      body: JSON.stringify(body),
-    });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
-    toast(`${d.side} ${d.qty} × ${d.symbol} @ ${fmt(d.price)} — simulated order filled`);
-    document.getElementById('orderPrice').value = '';
-    refreshAll();
-  } catch (e) { toast(e.message, false); }
-  btn.disabled = false;
 }
 
 async function closePosition(id, btn) {
@@ -591,12 +447,26 @@ async function refreshAll() {
     const invested  = positions.reduce((s, p) => s + p.entry_price * p.qty, 0);
     const unreal    = pos.unrealized_pnl ?? 0;
     const equity    = acct.cash + invested + unreal;
+    const realPnl   = acct.realized_pnl ?? 0;
+    const totalPnl  = unreal + realPnl;
+
+    // Equity
+    const eqEl = document.getElementById('acctEquity');
+    eqEl.textContent = fmt(equity);
+    eqEl.className = 'acct-equity-val' + (totalPnl > 0 ? ' pos' : totalPnl < 0 ? ' neg' : '');
+
+    // Badge
+    const badge = document.getElementById('acctBadgeText');
+    if (totalPnl !== 0) {
+      badge.textContent = (totalPnl >= 0 ? '▲ ' : '▼ ') + pnlTxt(totalPnl) + ' overall';
+    } else {
+      badge.textContent = 'Virtual Account · Live';
+    }
 
     document.getElementById('acctCash').textContent     = fmt(acct.cash);
     document.getElementById('acctInvested').textContent = fmt(invested);
     setVal('acctUnrealized', unreal);
-    setVal('acctRealized', acct.realized_pnl);
-    document.getElementById('acctEquity').textContent = fmt(equity);
+    setVal('acctRealized', realPnl);
 
     renderPositions(positions);
     renderHistory(hist.trades || []);
@@ -612,14 +482,25 @@ function setVal(id, v) {
   el.className = 'acct-val ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
 }
 
+const _emptyPos = `<tr><td colspan="8">
+  <div class="empty-state">
+    <div class="empty-state-icon">📋</div>
+    <div class="empty-state-text">No open positions</div>
+    <a href="/stock_options.html" class="empty-state-cta">Open Options Chain →</a>
+  </div></td></tr>`;
+const _emptyPosCard = `<div class="empty-state">
+  <div class="empty-state-icon">📋</div>
+  <div class="empty-state-text">No open positions</div>
+  <a href="/stock_options.html" class="empty-state-cta">Open Options Chain →</a>
+</div>`;
+
 function renderPositions(list) {
   _lastPositions = list;
   const body  = document.getElementById('posBody');
   const cards = document.getElementById('posCards');
   if (!list.length) {
-    const empty = `<div class="empty-msg">${T('No open positions', 'திறந்த பொசிஷன்கள் இல்லை')}</div>`;
-    body.innerHTML  = `<tr><td colspan="8">${empty}</td></tr>`;
-    cards.innerHTML = empty;
+    body.innerHTML  = _emptyPos;
+    cards.innerHTML = _emptyPosCard;
     return;
   }
   body.innerHTML = list.map(p => `
@@ -655,10 +536,11 @@ function renderHistory(list) {
   _lastHistory = list;
   const body  = document.getElementById('histBody');
   const cards = document.getElementById('histCards');
+  const emptyRow = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🕐</div><div class="empty-state-text">${T('No closed trades yet', 'இன்னும் மூடிய வர்த்தகங்கள் இல்லை')}</div></div></td></tr>`;
+  const emptyCard = `<div class="empty-state"><div class="empty-state-icon">🕐</div><div class="empty-state-text">${T('No closed trades yet', 'இன்னும் மூடிய வர்த்தகங்கள் இல்லை')}</div></div>`;
   if (!list.length) {
-    const empty = `<div class="empty-msg">${T('No closed trades yet', 'இன்னும் மூடிய வர்த்தகங்கள் இல்லை')}</div>`;
-    body.innerHTML  = `<tr><td colspan="7">${empty}</td></tr>`;
-    cards.innerHTML = empty;
+    body.innerHTML  = emptyRow;
+    cards.innerHTML = emptyCard;
     return;
   }
   body.innerHTML = list.map(p => `
@@ -712,8 +594,8 @@ function renderChart(trades) {
     type: 'line',
     data: { labels, datasets: [{
       data, borderColor: color, borderWidth: 2, pointRadius: 3,
-      pointBackgroundColor: color, fill: true, tension: 0.25,
-      backgroundColor: last >= 0 ? 'rgba(46,204,113,0.08)' : 'rgba(231,76,60,0.08)',
+      pointBackgroundColor: color, fill: true, tension: 0.3,
+      backgroundColor: last >= 0 ? 'rgba(46,204,113,0.07)' : 'rgba(231,76,60,0.07)',
     }]},
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -727,17 +609,6 @@ function renderChart(trades) {
     },
   });
 }
-
-document.getElementById('optContract').addEventListener('change', onContractChange);
-document.getElementById('optLots').addEventListener('input', () => {
-  const c = selectedContract();
-  const ltp = parseFloat(document.getElementById('orderPrice').value);
-  if (c && !isNaN(ltp)) showQuote(ltp, (Number(document.getElementById('optLots').value) || 1) * c.lot_size);
-});
-document.getElementById('stockQty').addEventListener('input', () => {
-  const ltp = parseFloat(document.getElementById('orderPrice').value);
-  if (!isNaN(ltp)) showQuote(ltp, Number(document.getElementById('stockQty').value) || 0);
-});
 
 if (_requireAuth()) {
   refreshAll();
