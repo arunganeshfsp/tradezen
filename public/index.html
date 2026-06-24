@@ -92,6 +92,84 @@
       letter-spacing: 0;
     }
 
+    /* ── Market Pulse cards ── */
+    .pulse-section { padding: 28px 0 0; }
+    .pulse-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 767px) {
+      .pulse-grid { grid-template-columns: 1fr; gap: 10px; }
+    }
+    .pulse-card {
+      background: var(--tz-surface);
+      border: 1px solid var(--tz-border);
+      border-radius: var(--tz-radius-lg);
+      padding: 16px 18px 0;
+      overflow: hidden;
+      position: relative;
+      transition: border-color .15s;
+    }
+    .pulse-card:hover { border-color: rgba(var(--tz-accent-rgb),.4); }
+    .pulse-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .pulse-name {
+      font-family: var(--tz-font-mono);
+      font-size: 9.5px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--tz-fg-3);
+    }
+    .pulse-badge {
+      font-family: var(--tz-font-mono);
+      font-size: 9px;
+      letter-spacing: .8px;
+      padding: 2px 7px;
+      border-radius: var(--tz-radius-full);
+      background: rgba(var(--tz-accent-rgb),.1);
+      color: var(--tz-fg-3);
+    }
+    .pulse-ltp {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tz-fg-1);
+      letter-spacing: -.4px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .pulse-change {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pulse-pct {
+      font-family: var(--tz-font-mono);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .pulse-abs {
+      font-family: var(--tz-font-mono);
+      font-size: 11px;
+      color: var(--tz-fg-3);
+    }
+    .pulse-pct.up, .pulse-abs.up   { color: #2ecc71; }
+    .pulse-pct.down, .pulse-abs.down { color: #e74c3c; }
+    .pulse-pct.flat                { color: var(--tz-fg-3); }
+    .pulse-spark-wrap {
+      height: 44px;
+      margin: 0 -18px;
+    }
+    .pulse-spark-wrap svg {
+      width: 100%; height: 100%;
+      display: block;
+    }
+
     /* ── Market strip ── */
     #market-strip {
       background: var(--tz-surface);
@@ -294,6 +372,62 @@
     </div>
   </div>
 </section>
+
+<!-- ============================================================
+     MARKET PULSE
+     ============================================================ -->
+<div class="pulse-section">
+  <div class="container">
+    <div class="pulse-grid">
+
+      <div class="pulse-card">
+        <div class="pulse-card-head">
+          <span class="pulse-name">Nifty 50</span>
+          <span class="pulse-badge" id="ppNiftyBadge">NSE</span>
+        </div>
+        <div class="pulse-ltp" id="ppNiftyLtp">—</div>
+        <div class="pulse-change">
+          <span class="pulse-pct flat" id="ppNiftyPct">—</span>
+          <span class="pulse-abs flat" id="ppNiftyAbs">—</span>
+        </div>
+        <div class="pulse-spark-wrap">
+          <svg class="spark" id="ppNiftySpark" data-points="" data-color="#2ecc71"></svg>
+        </div>
+      </div>
+
+      <div class="pulse-card">
+        <div class="pulse-card-head">
+          <span class="pulse-name">Bank Nifty</span>
+          <span class="pulse-badge" id="ppBankBadge">NSE</span>
+        </div>
+        <div class="pulse-ltp" id="ppBankLtp">—</div>
+        <div class="pulse-change">
+          <span class="pulse-pct flat" id="ppBankPct">—</span>
+          <span class="pulse-abs flat" id="ppBankAbs">—</span>
+        </div>
+        <div class="pulse-spark-wrap">
+          <svg class="spark" id="ppBankSpark" data-points="" data-color="#2ecc71"></svg>
+        </div>
+      </div>
+
+      <div class="pulse-card">
+        <div class="pulse-card-head">
+          <span class="pulse-name">India VIX</span>
+          <span class="pulse-badge" id="ppVixBadge">NSE</span>
+        </div>
+        <div class="pulse-ltp" id="ppVixLtp">—</div>
+        <div class="pulse-change">
+          <span class="pulse-pct flat" id="ppVixPct">—</span>
+          <span class="pulse-abs flat" id="ppVixAbs">—</span>
+        </div>
+        <div class="pulse-spark-wrap">
+          <svg class="spark" id="ppVixSpark" data-points="" data-color="#5b8af5"></svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- ============================================================
      TOOLS
@@ -1156,10 +1290,35 @@
     }
   }
 
+  function _populatePulse(id, data) {
+    if (!data || data.error) return;
+    var cls   = _pctClass(data.pct);
+    var sign  = data.pct >= 0 ? '+' : '';
+    var abs   = data.ltp - data.prev;
+    var absTxt = (abs >= 0 ? '+' : '') + _fmt(Math.abs(abs));
+
+    var lEl   = document.getElementById(id + 'Ltp');
+    var pEl   = document.getElementById(id + 'Pct');
+    var aEl   = document.getElementById(id + 'Abs');
+    var sEl   = document.getElementById(id + 'Spark');
+    var bEl   = document.getElementById(id + 'Badge');
+
+    if (lEl) lEl.textContent = _fmt(data.ltp);
+    if (pEl) { pEl.textContent = sign + data.pct.toFixed(2) + '%'; pEl.className = 'pulse-pct ' + cls; }
+    if (aEl) { aEl.textContent = absTxt; aEl.className = 'pulse-abs ' + cls; }
+    if (bEl) { bEl.textContent = data.pct >= 0 ? '▲' : '▼'; bEl.className = 'pulse-badge ' + cls; }
+    if (sEl && data.spark && data.spark.length) {
+      var color = cls === 'up' ? '#2ecc71' : cls === 'down' ? '#e74c3c' : '#5b8af5';
+      sEl.setAttribute('data-points', data.spark.join(','));
+      sEl.setAttribute('data-color', color);
+    }
+  }
+
   function _fetchStrip() {
     fetch('/api/market-summary')
       .then(function (r) { return r.json(); })
       .then(function (d) {
+        // Strip
         _setItem('msNiftyVal', 'msNiftyPct', d.nifty);
         _setItem('msBankVal',  'msBankPct',  d.banknifty);
         _setItem('msVixVal',   'msVixPct',   d.vix);
@@ -1173,6 +1332,12 @@
           if (dot)   { dot.className = 'ms-dot'; }
           if (label) { label.textContent = 'CLOSED'; }
         }
+
+        // Pulse cards
+        _populatePulse('ppNifty', d.nifty);
+        _populatePulse('ppBank',  d.banknifty);
+        _populatePulse('ppVix',   d.vix);
+        if (typeof window.renderSparks === 'function') window.renderSparks();
       })
       .catch(function () { /* keep dashes on error */ });
   }
