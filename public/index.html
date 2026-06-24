@@ -285,6 +285,21 @@
     }
     .t-pct.up   { color: #2ecc71; }
     .t-pct.down { color: #e74c3c; }
+    .t-skel {
+      display: inline-block;
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,.06) 25%,
+        rgba(255,255,255,.12) 50%,
+        rgba(255,255,255,.06) 75%);
+      background-size: 400px 100%;
+      animation: tSkelShimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes tSkelShimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
 
     /* ── Market strip ── */
     #market-strip {
@@ -565,9 +580,9 @@
           <span class="trending-badge up">Nifty 50</span>
         </div>
         <div id="trendingGainers">
-          <div class="trending-row"><span class="t-arrow up">▲</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct up">—</span></div>
-          <div class="trending-row"><span class="t-arrow up">▲</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct up">—</span></div>
-          <div class="trending-row"><span class="t-arrow up">▲</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct up">—</span></div>
+          <div class="trending-row"><span class="t-arrow up" style="opacity:.2">▲</span><span class="t-sym"><span class="t-skel" style="width:72px"></span></span><span class="t-ltp"><span class="t-skel" style="width:52px"></span></span><span class="t-pct"><span class="t-skel" style="width:40px"></span></span></div>
+          <div class="trending-row"><span class="t-arrow up" style="opacity:.2">▲</span><span class="t-sym"><span class="t-skel" style="width:60px"></span></span><span class="t-ltp"><span class="t-skel" style="width:48px"></span></span><span class="t-pct"><span class="t-skel" style="width:40px"></span></span></div>
+          <div class="trending-row"><span class="t-arrow up" style="opacity:.2">▲</span><span class="t-sym"><span class="t-skel" style="width:80px"></span></span><span class="t-ltp"><span class="t-skel" style="width:44px"></span></span><span class="t-pct"><span class="t-skel" style="width:40px"></span></span></div>
         </div>
       </div>
 
@@ -577,9 +592,9 @@
           <span class="trending-badge down">Nifty 50</span>
         </div>
         <div id="trendingLosers">
-          <div class="trending-row"><span class="t-arrow down">▼</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct down">—</span></div>
-          <div class="trending-row"><span class="t-arrow down">▼</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct down">—</span></div>
-          <div class="trending-row"><span class="t-arrow down">▼</span><span class="t-sym">—</span><span class="t-ltp">—</span><span class="t-pct down">—</span></div>
+          <div class="trending-row"><span class="t-arrow down" style="opacity:.2">▼</span><span class="t-sym"><span class="t-skel" style="width:68px"></span></span><span class="t-ltp"><span class="t-skel" style="width:52px"></span></span><span class="t-pct"><span class="t-skel" style="width:40px"></span></span></div>
+          <div class="trending-row"><span class="t-arrow down" style="opacity:.2">▼</span><span class="t-sym"><span class="t-skel" style="width:76px"></span></span><span class="t-ltp"><span class="t-skel" style="width:44px"></span></span><span class="t-pct"><span class="t-skel" style="width:40px"></span></span></div>
+          <div class="trending-row"><span class="t-arrow down" style="opacity:.2">▼</span><span class="t-sym"><span class="t-skel" style="width:56px"></span></span><span class="t-ltp"><span class="t-skel" style="width:48px"></span></span><span class="t-pct"><span class="t-skel" style="width:40px"></span></span></div>
         </div>
       </div>
 
