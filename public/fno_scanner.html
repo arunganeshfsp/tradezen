@@ -117,9 +117,6 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 /* ANALYSE BUTTON */
 .analyse-btn{padding:5px 14px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(124,106,247,0.4);background:rgba(124,106,247,0.1);color:var(--accent);transition:all .15s;white-space:nowrap}
 .analyse-btn:hover{background:rgba(124,106,247,0.22);border-color:var(--accent)}
-.univ-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.8px;padding:2px 5px;border-radius:4px;vertical-align:middle;margin-left:5px}
-.ub-fno{background:rgba(124,106,247,0.12);color:var(--accent);border:1px solid rgba(124,106,247,0.3)}
-.ub-eq{background:rgba(0,212,255,0.08);color:#00d4ff;border:1px solid rgba(0,212,255,0.25)}
 
 /* EMPTY / LOADING */
 .empty-row td{text-align:center;padding:48px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
@@ -318,7 +315,6 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
     <div class="ctrl-label">Universe</div>
     <div class="toggle-group" id="universeGroup">
       <button class="tog-btn active" data-val="all"       onclick="setUniverse('all')">All F&amp;O</button>
-      <button class="tog-btn"        data-val="all_nse"  onclick="setUniverse('all_nse')">All Stocks</button>
       <button class="tog-btn"        data-val="nifty50"  onclick="setUniverse('nifty50')">Nifty 50</button>
       <button class="tog-btn"        data-val="nifty500" onclick="setUniverse('nifty500')">Nifty 500</button>
     </div>
@@ -530,19 +526,15 @@ function fmtPrice(v) {
 async function fetchScanner() {
   const btn   = document.querySelector('.scan-btn');
   const tbody = document.getElementById('tableBody');
-  const isAllNse = universeFilter === 'all_nse';
-  const scanMsg  = isAllNse ? 'Scanning all NSE stocks — this may take up to 30s…' : 'Scanning…';
-
   btn.disabled   = true;
-  btn.innerHTML  = `<span class="spinner"></span>${isAllNse ? 'Scanning all NSE…' : 'Scanning…'}`;
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="10"><span class="spinner"></span>${scanMsg}</td></tr>`;
+  btn.innerHTML  = `<span class="spinner"></span>Scanning…`;
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="10"><span class="spinner"></span>Scanning…</td></tr>`;
 
-  const min   = document.getElementById('minPrice').value || 1000;
-  const max   = document.getElementById('maxPrice').value || 2000;
-  const n50   = universeFilter === 'nifty50'   ? '&nifty50=true'    : '';
-  const n500  = universeFilter === 'nifty500'  ? '&nifty500=true'   : '';
-  const allEq = universeFilter === 'all_nse'   ? '&all_stocks=true' : '';
-  const url   = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}${n50}${n500}${allEq}`;
+  const min  = document.getElementById('minPrice').value || 1000;
+  const max  = document.getElementById('maxPrice').value || 2000;
+  const n50  = universeFilter === 'nifty50'  ? '&nifty50=true'  : '';
+  const n500 = universeFilter === 'nifty500' ? '&nifty500=true' : '';
+  const url  = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}${n50}${n500}`;
 
   try {
     const res  = await fetch(url);
@@ -588,20 +580,15 @@ function _applyAndRender() {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No stocks with ≥${minChgFilter}% move right now</td></tr>`;
     return;
   }
-  const showBadge = universeFilter === 'all_nse';
   tbody.innerHTML = visibleStocks.map((s, i) => {
     const chgClass = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'dn' : 'flat';
     const chgSign  = s.change_pct > 0 ? '+' : '';
     const domClass = s.dominance === 'BUYER' ? 'dom-buyer' : 'dom-seller';
     const domText  = s.dominance === 'BUYER' ? '▲ BUYER' : '▼ SELLER';
-    const badge    = showBadge
-      ? `<span class="univ-badge ${s.is_fno ? 'ub-fno' : 'ub-eq'}">${s.is_fno ? 'F&O' : 'EQ'}</span>`
-      : '';
-    const rowTitle = s.is_fno ? 'Click for trend & options' : 'Click to open Stock Analyser';
     return `
-      <tr onclick="openStockRow(window._scanStocks[${i}])" title="${rowTitle}" style="cursor:pointer">
+      <tr onclick="openStockRow(window._scanStocks[${i}])" title="Click for trend &amp; options" style="cursor:pointer">
         <td class="rank">${i + 1}</td>
-        <td class="sym">${s.symbol}${badge}</td>
+        <td class="sym">${s.symbol}</td>
         <td><div class="ltp">₹${fmtPrice(s.ltp)}</div></td>
         <td><span class="chg ${chgClass}">${chgSign}${s.change_pct}%</span></td>
         <td>
@@ -863,10 +850,6 @@ let _selectedStock  = null;
 let _selectedExpiry = null;
 
 function openStockRow(stock) {
-  if (!stock.is_fno) {
-    window.open(`/stock-analyser.html?symbol=${encodeURIComponent(stock.symbol)}`, '_blank');
-    return;
-  }
   openConfirm(stock);
   openOptSheet(stock);
 }

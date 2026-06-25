@@ -3329,18 +3329,15 @@ def _fetch_nifty500_symbols() -> set:
     return _NIFTY500_FALLBACK
 
 
-def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance: str = "all", nifty50: bool = False, nifty500: bool = False, all_stocks: bool = False) -> dict:
+def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance: str = "all", nifty50: bool = False, nifty500: bool = False) -> dict:
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     smart = _get_smart()
     if not smart:
         return {"error": "SmartAPI auth failed", "stocks": []}
 
-    stocks = _load_all_eq_stocks() if all_stocks else _load_fno_stocks()
+    stocks = _load_fno_stocks()
     if not stocks:
         return {"error": "Instrument master unavailable", "stocks": []}
-
-    # Build a set of F&O symbols for tagging (free after first call — _load_fno_stocks is cached)
-    fno_syms = {s["symbol"] for s in _load_fno_stocks()} if all_stocks else None
 
     n50 = _fetch_nifty50_symbols()
     if nifty500:
@@ -3348,7 +3345,7 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
         stocks = [s for s in stocks if s["symbol"].upper() in n500]
     elif nifty50:
         stocks = [s for s in stocks if s["symbol"].upper() in n50]
-    elif not all_stocks:
+    else:
         # "All F&O" mode excludes Nifty 50 to avoid duplicating the Nifty 50 tab
         stocks = [s for s in stocks if s["symbol"].upper() not in n50]
 
@@ -3398,7 +3395,6 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
             "dominance":   "BUYER" if buy_pct >= sell_pct else "SELLER",
             "strength":    round(abs(buy_pct - sell_pct), 1),
             "volume":      int(d.get("tradeVolume") or 0),
-            "is_fno":      fno_syms is None or s["symbol"] in fno_syms,
         })
 
     # Apply dominance filter
@@ -3430,13 +3426,112 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
 
 
 @app.get("/fno-scanner")
-async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10, dominance: str = "all", nifty50: bool = False, nifty500: bool = False, all_stocks: bool = False):
+async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10, dominance: str = "all", nifty50: bool = False, nifty500: bool = False):
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit, dominance, nifty50, nifty500, all_stocks)
+        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit, dominance, nifty50, nifty500)
         return result
     except Exception as e:
         log.error(f"[FNO-SCANNER] error: {e}")
+        return {"error": str(e), "stocks": []}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Stock Dominance Scanner — buy/sell dominance for NSE EQ stocks (not F&O)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
+                         dominance: str = "all", universe: str = "nifty50") -> dict:
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    smart = _get_smart()
+    if not smart:
+        return {"error": "SmartAPI auth failed", "stocks": []}
+
+    all_eq = _load_all_eq_stocks()
+    if not all_eq:
+        return {"error": "Instrument master unavailable", "stocks": []}
+
+    is_n50  = universe == "nifty50"
+    is_n500 = universe == "nifty500"
+
+    if is_n50:
+        n50 = _fetch_nifty50_symbols()
+        stocks = [s for s in all_eq if s["symbol"].upper() in n50]
+    elif is_n500:
+        n500 = _fetch_nifty500_symbols()
+        stocks = [s for s in all_eq if s["symbol"].upper() in n500]
+    else:
+        stocks = all_eq
+
+    import time as _time
+    depth_map: dict = {}
+    batch_size = 50
+    for i in range(0, len(stocks), batch_size):
+        if i > 0:
+            _time.sleep(0.15)
+        batch_tokens = [s["token"] for s in stocks[i: i + batch_size]]
+        try:
+            resp = smart.getMarketData("FULL", {"NSE": batch_tokens})
+            if resp and resp.get("data") and resp["data"].get("fetched"):
+                for item in resp["data"]["fetched"]:
+                    depth_map[str(item.get("symbolToken"))] = item
+        except Exception as e:
+            log.warning(f"[STOCK-SCANNER] batch {i} failed: {e}")
+
+    result = []
+    for s in stocks:
+        d = depth_map.get(s["token"])
+        if not d:
+            continue
+        ltp = float(d.get("ltp") or 0)
+        if not is_n50 and not is_n500 and not (min_price <= ltp <= max_price):
+            continue
+
+        buy_qty  = int(d.get("totBuyQuan") or 0)
+        sell_qty = int(d.get("totSellQuan") or 0)
+        total    = buy_qty + sell_qty
+        if total == 0:
+            continue
+
+        buy_pct  = round(buy_qty  / total * 100, 1)
+        sell_pct = round(sell_qty / total * 100, 1)
+        result.append({
+            "symbol":     s["symbol"],
+            "ltp":        round(ltp, 2),
+            "change_pct": round(float(d.get("percentChange") or 0), 2),
+            "buy_qty":    buy_qty,
+            "sell_qty":   sell_qty,
+            "buy_pct":    buy_pct,
+            "sell_pct":   sell_pct,
+            "dominance":  "BUYER" if buy_pct >= sell_pct else "SELLER",
+            "strength":   round(abs(buy_pct - sell_pct), 1),
+            "volume":     int(d.get("tradeVolume") or 0),
+        })
+
+    if dominance == "buyer":
+        result = [r for r in result if r["dominance"] == "BUYER" and r["change_pct"] >= 0]
+    elif dominance == "seller":
+        result = [r for r in result if r["dominance"] == "SELLER" and r["change_pct"] <= 0]
+    else:
+        result.sort(key=lambda x: (0 if x["dominance"] == "BUYER" else 1, -x["strength"]))
+        return {"stocks": result[:limit], "total_matched": len(result),
+                "timestamp": now_ist.strftime("%H:%M:%S")}
+
+    result.sort(key=lambda x: -x["strength"])
+    return {"stocks": result[:limit], "total_matched": len(result),
+            "timestamp": now_ist.strftime("%H:%M:%S")}
+
+
+@app.get("/stock-scanner")
+async def stock_scanner(min_price: float = 100, max_price: float = 5000, limit: int = 20,
+                         dominance: str = "all", universe: str = "nifty50"):
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(
+            None, _stock_scanner_sync, min_price, max_price, limit, dominance, universe)
+        return result
+    except Exception as e:
+        log.error(f"[STOCK-SCANNER] error: {e}")
         return {"error": str(e), "stocks": []}
 
 
@@ -4353,14 +4448,20 @@ from execution.paper_trader import (
 )
 
 
+_ltp_cache: dict = {}   # key → {"data": {...}, "ts": float}
+_LTP_TTL = 4.0          # seconds — shared across all callers / machines
+
 def _paper_stock_ltps(symbols: list) -> dict:
     """LTPs for NSE equity symbols via Angel One → {symbol: ltp}."""
     _s = smart or _get_smart()
     if not _s:
         return {}
+    cache_key = "stk:" + ",".join(sorted(s.upper() for s in symbols))
+    entry = _ltp_cache.get(cache_key)
+    if entry and (_time.time() - entry["ts"]) < _LTP_TTL:
+        return entry["data"]
     try:
         sym_set = {s.upper() for s in symbols}
-        # Resolve tokens from cached EQ list (avoids re-reading instrument master)
         token_map: dict[str, str] = {}   # token → symbol
         for stock in _load_all_eq_stocks():
             name = stock["symbol"].upper()
@@ -4377,6 +4478,7 @@ def _paper_stock_ltps(symbols: list) -> dict:
             ltp = item.get("ltp")
             if sym and ltp is not None:
                 prices[sym] = round(float(ltp), 2)
+        _ltp_cache[cache_key] = {"data": prices, "ts": _time.time()}
         return prices
     except Exception as e:
         log.warning(f"paper stock ltp error: {e}")
@@ -4389,9 +4491,15 @@ def _paper_option_ltps(tokens: list) -> dict:
     _s = smart or _get_smart()
     if not _s:
         return {}
+    cache_key = "opt:" + ",".join(sorted(str(t) for t in tokens))
+    entry = _ltp_cache.get(cache_key)
+    if entry and (_time.time() - entry["ts"]) < _LTP_TTL:
+        return entry["data"]
     try:
         mdata = _batch_market_data(_s, [str(t) for t in tokens])
-        return {t: float(r["ltp"]) for t, r in mdata.items() if r.get("ltp") is not None}
+        prices = {t: float(r["ltp"]) for t, r in mdata.items() if r.get("ltp") is not None}
+        _ltp_cache[cache_key] = {"data": prices, "ts": _time.time()}
+        return prices
     except Exception as e:
         log.warning(f"paper option ltp error: {e}")
         return {}

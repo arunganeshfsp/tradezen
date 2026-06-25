@@ -736,9 +736,26 @@ router.get("/fno-scanner", async (req, res) => {
     if (req.query.dominance)   params.set("dominance",   req.query.dominance);
     if (req.query.nifty50)     params.set("nifty50",     req.query.nifty50);
     if (req.query.nifty500)    params.set("nifty500",    req.query.nifty500);
-    if (req.query.all_stocks)  params.set("all_stocks",  req.query.all_stocks);
-    const timeout = req.query.all_stocks === "true" ? 90000 : 15000;
-    const data = await aiService.proxy("GET", `/fno-scanner?${params}`, timeout);
+    const data = await aiService.proxy("GET", `/fno-scanner?${params}`, 15000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/stock-scanner ───────────────────────────────────────────────────
+// Buy/sell dominance scanner for NSE EQ stocks (not F&O)
+// ?universe=nifty50|nifty500|all&min_price=100&max_price=5000&limit=20&dominance=all
+router.get("/stock-scanner", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.universe)   params.set("universe",   req.query.universe);
+    if (req.query.min_price)  params.set("min_price",  req.query.min_price);
+    if (req.query.max_price)  params.set("max_price",  req.query.max_price);
+    if (req.query.limit)      params.set("limit",      req.query.limit);
+    if (req.query.dominance)  params.set("dominance",  req.query.dominance);
+    const timeout = req.query.universe === "all" ? 90000 : 15000;
+    const data = await aiService.proxy("GET", `/stock-scanner?${params}`, timeout);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

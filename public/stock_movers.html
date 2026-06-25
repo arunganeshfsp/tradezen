@@ -153,6 +153,55 @@
     .rsi-bar-dot{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:2px solid #0f1225}
     .rsi-zone-badge{display:inline-block;font-size:9px;letter-spacing:.8px;font-weight:700;padding:2px 7px;border-radius:8px}
 
+    /* ── Mode tabs ── */
+    --r2:6px;
+    .mode-tabs{display:flex;gap:4px;margin-top:14px}
+    .mode-tab{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.6px;padding:6px 16px;
+              border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--dim);
+              cursor:pointer;transition:all .15s}
+    .mode-tab.active{background:rgba(124,106,247,.14);border-color:rgba(124,106,247,.4);color:#9585f9}
+
+    /* ── Scanner controls ── */
+    .ctrl-bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;padding:14px 28px 12px;
+              border-bottom:1px solid var(--border);background:var(--bg2)}
+    .ctrl-group{display:flex;flex-direction:column;gap:5px}
+    .ctrl-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase}
+    .toggle-group{display:flex;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r2);padding:2px}
+    .tog-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;padding:4px 10px;
+             border-radius:4px;border:none;background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap}
+    .tog-btn.active{background:#7c6af7;color:#fff}
+    .price-input{width:74px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;
+                 color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:5px 8px;outline:none}
+    .price-input:focus{border-color:#7c6af7}
+    .scan-btn{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:.5px;padding:7px 18px;
+              border-radius:var(--r2);border:1px solid rgba(124,106,247,.5);background:rgba(124,106,247,.14);
+              color:#9585f9;cursor:pointer;transition:all .15s;align-self:flex-end}
+    .scan-btn:hover{background:rgba(124,106,247,.28)}
+    .scan-btn:disabled{opacity:.6;cursor:not-allowed}
+
+    /* ── Scanner table ── */
+    .sc-table{width:100%;border-collapse:collapse;font-size:12px}
+    .sc-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.2px;color:var(--muted);
+                 text-transform:uppercase;padding:9px 12px;text-align:right;background:var(--bg3);border-bottom:1px solid var(--border)}
+    .sc-table th:nth-child(-n+2){text-align:left}
+    .sc-table td{padding:9px 12px;text-align:right;border-bottom:1px solid rgba(255,255,255,.03)}
+    .sc-table td:nth-child(-n+2){text-align:left}
+    .sc-table tr:last-child td{border-bottom:none}
+    .sc-table tr:hover td{background:rgba(255,255,255,.025);cursor:pointer}
+    .sc-sym{font-weight:600;color:#fff}
+    .sc-chg.up{color:var(--green)}.sc-chg.dn{color:var(--red)}.sc-chg.fl{color:var(--muted)}
+    .dom-bar-wrap{display:flex;flex-direction:column;gap:2px}
+    .dom-bar{display:flex;height:4px;border-radius:2px;overflow:hidden;width:60px;background:rgba(255,255,255,.08)}
+    .dom-buy{background:var(--green)}.dom-sell{background:var(--red)}
+    .dom-pcts{display:flex;gap:4px;font-size:9px}.dom-pcts .b{color:var(--green)}.dom-pcts .s{color:var(--red)}
+    .dom-badge{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:4px}
+    .dom-buyer{background:rgba(46,204,113,.12);color:var(--green);border:1px solid rgba(46,204,113,.25)}
+    .dom-seller{background:rgba(231,76,60,.1);color:var(--red);border:1px solid rgba(231,76,60,.2)}
+    .sc-analyse{padding:4px 12px;border-radius:4px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
+                cursor:pointer;border:1px solid rgba(124,106,247,.4);background:rgba(124,106,247,.1);
+                color:#9585f9;transition:all .15s;white-space:nowrap}
+    .sc-analyse:hover{background:rgba(124,106,247,.22)}
+
     /* ── Live price flash ── */
     @keyframes flashUp  {0%{background:rgba(46,204,113,.35)}100%{background:transparent}}
     @keyframes flashDown{0%{background:rgba(231,76,60,.35)} 100%{background:transparent}}
@@ -201,19 +250,103 @@
 
 <!-- ── Hero ── -->
 <div class="hero">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
-    <div>
-      <div class="hero-title">Market Movers</div>
-      <div class="hero-sub">Top &amp; Bottom 10 stocks of the day — Nifty 50, 500, Bank, IT and more</div>
-      <div class="filter-bar">
-        <button class="f-btn active" onclick="loadMovers('nifty50',this)">NIFTY 50</button>
-        <button class="f-btn" onclick="loadMovers('nifty500',this)">NIFTY 500</button>
-        <button class="f-btn" onclick="loadMovers('banknifty',this)">BANK NIFTY</button>
-        <button class="f-btn" onclick="loadMovers('niftyit',this)">NIFTY IT</button>
-        <button class="f-btn" onclick="loadMovers('midcap100',this)">MIDCAP 100</button>
-        <button class="f-btn" onclick="loadMovers('smallcap',this)">SMALLCAP 100</button>
+  <div class="hero-title">Market Movers</div>
+  <div class="hero-sub">Top &amp; Bottom stocks by index · Dominance Scanner for NSE equities</div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="movers" onclick="setMode('movers')">▲▼ Movers</button>
+    <button class="mode-tab" data-mode="scanner" onclick="setMode('scanner')">⚡ Dominance Scan</button>
+  </div>
+
+  <!-- Movers index filter (visible in movers mode) -->
+  <div id="moversControls" class="filter-bar" style="margin-top:12px">
+    <button class="f-btn active" onclick="loadMovers('nifty50',this)">NIFTY 50</button>
+    <button class="f-btn" onclick="loadMovers('nifty500',this)">NIFTY 500</button>
+    <button class="f-btn" onclick="loadMovers('banknifty',this)">BANK NIFTY</button>
+    <button class="f-btn" onclick="loadMovers('niftyit',this)">NIFTY IT</button>
+    <button class="f-btn" onclick="loadMovers('midcap100',this)">MIDCAP 100</button>
+    <button class="f-btn" onclick="loadMovers('smallcap',this)">SMALLCAP 100</button>
+  </div>
+</div>
+
+<!-- ── Dominance Scanner (hidden until scanner mode active) ── -->
+<div id="scannerSection" style="display:none">
+  <!-- Controls -->
+  <div class="ctrl-bar">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Universe</div>
+      <div class="toggle-group" id="scanUnivGrp">
+        <button class="tog-btn active" data-val="nifty50"  onclick="setScanUniv('nifty50')">Nifty 50</button>
+        <button class="tog-btn"        data-val="nifty500" onclick="setScanUniv('nifty500')">Nifty 500</button>
+        <button class="tog-btn"        data-val="all"      onclick="setScanUniv('all')">All NSE</button>
       </div>
     </div>
+    <div class="ctrl-group" id="scanPriceGrp" style="display:none">
+      <div class="ctrl-label">Price Range (₹)</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input id="scanMinPrice" class="price-input" type="number" value="100" min="1">
+        <span style="color:var(--muted);font-size:12px">–</span>
+        <input id="scanMaxPrice" class="price-input" type="number" value="5000" min="1">
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Min Move</div>
+      <div class="toggle-group" id="scanChgGrp">
+        <button class="tog-btn"        data-val="0" onclick="setScanChg(0)">Any</button>
+        <button class="tog-btn active" data-val="2" onclick="setScanChg(2)">≥2%</button>
+        <button class="tog-btn"        data-val="4" onclick="setScanChg(4)">≥4%</button>
+        <button class="tog-btn"        data-val="8" onclick="setScanChg(8)">≥8%</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Dominance</div>
+      <div class="toggle-group" id="scanDomGrp">
+        <button class="tog-btn active" data-val="all"    onclick="setScanDom('all')">All</button>
+        <button class="tog-btn"        data-val="buyer"  onclick="setScanDom('buyer')">Buyer ▲</button>
+        <button class="tog-btn"        data-val="seller" onclick="setScanDom('seller')">Seller ▼</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Results</div>
+      <div class="toggle-group" id="scanLimitGrp">
+        <button class="tog-btn active" data-val="20"  onclick="setScanLimit(20)">20</button>
+        <button class="tog-btn"        data-val="50"  onclick="setScanLimit(50)">50</button>
+        <button class="tog-btn"        data-val="100" onclick="setScanLimit(100)">100</button>
+      </div>
+    </div>
+    <button class="scan-btn" id="scanNowBtn" onclick="fetchStockScanner()">&#9654; Scan Now</button>
+  </div>
+
+  <!-- Results -->
+  <div style="padding:16px 28px 24px">
+    <div id="scanMeta" style="display:none;font-family:'JetBrains Mono',monospace;font-size:10px;
+         color:var(--muted);margin-bottom:10px;display:flex;gap:14px;align-items:center"></div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th style="text-align:left">#</th>
+            <th style="text-align:left">Symbol</th>
+            <th>LTP</th>
+            <th>Chg %</th>
+            <th>Buy/Sell</th>
+            <th>Dominance</th>
+            <th>Strength</th>
+            <th>Buy Qty</th>
+            <th>Sell Qty</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="scanBody">
+          <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">
+            Select a universe and tap Scan Now
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:10px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5">
+      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </p>
   </div>
 </div>
 
@@ -705,6 +838,130 @@ function _startPricePoll() {
 loadMovers('nifty50', document.querySelector('.f-btn.active'));
 _startCountdown();
 _startPricePoll();
+
+// ── Mode toggle ──────────────────────────────────────────────────────────────
+
+let _currentMode = 'movers';
+
+function setMode(mode) {
+  _currentMode = mode;
+  const isScanner = mode === 'scanner';
+  document.querySelectorAll('.mode-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.mode === mode));
+  document.getElementById('moversControls').style.display  = isScanner ? 'none' : '';
+  document.getElementById('statsStrip').style.display      = isScanner ? 'none' : '';
+  document.getElementById('moversWrap').style.display      = isScanner ? 'none' : '';
+  document.getElementById('scannerSection').style.display  = isScanner ? 'block' : 'none';
+  if (isScanner) {
+    // Stop movers auto-refresh timers while in scanner mode
+    if (_autoTimer)     { clearInterval(_autoTimer);     _autoTimer = null; }
+    if (_countdownTimer){ clearInterval(_countdownTimer); _countdownTimer = null; }
+    if (_priceTimer)    { clearInterval(_priceTimer);    _priceTimer = null; }
+  } else {
+    _startCountdown();
+    _startPricePoll();
+  }
+}
+
+// ── Scanner state ─────────────────────────────────────────────────────────────
+
+let _scanUniv  = 'nifty50';
+let _scanDom   = 'all';
+let _scanLimit = 20;
+let _scanChg   = 2;
+let _allScanStocks = [];
+
+function setScanUniv(val) {
+  _scanUniv = val;
+  _togActive('scanUnivGrp', val);
+  document.getElementById('scanPriceGrp').style.display = val === 'all' ? 'flex' : 'none';
+}
+function setScanDom(val)   { _scanDom   = val; _togActive('scanDomGrp',   val); }
+function setScanLimit(val) { _scanLimit = val; _togActive('scanLimitGrp', String(val)); }
+function setScanChg(val)   { _scanChg   = val; _togActive('scanChgGrp',   String(val)); _applyScanFilter(); }
+
+function _togActive(grpId, val) {
+  document.querySelectorAll(`#${grpId} .tog-btn`).forEach(b =>
+    b.classList.toggle('active', b.dataset.val === val));
+}
+
+// ── Scan fetch ────────────────────────────────────────────────────────────────
+
+async function fetchStockScanner() {
+  const btn   = document.getElementById('scanNowBtn');
+  const tbody = document.getElementById('scanBody');
+  const isAll = _scanUniv === 'all';
+
+  btn.disabled  = true;
+  btn.innerHTML = `<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>${isAll ? 'Scanning all NSE…' : 'Scanning…'}`;
+  tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">
+    <div class="spinner" style="margin:0 auto 10px"></div>
+    ${isAll ? 'Scanning all NSE stocks — this may take up to 30s…' : 'Scanning…'}
+  </td></tr>`;
+
+  const min = document.getElementById('scanMinPrice').value || 100;
+  const max = document.getElementById('scanMaxPrice').value || 5000;
+  const url = `/api/stock-scanner?universe=${_scanUniv}&min_price=${min}&max_price=${max}&limit=${_scanLimit}&dominance=${_scanDom}`;
+
+  try {
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.error) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--red)">⚠ ${data.error}</td></tr>`;
+      return;
+    }
+    _allScanStocks = data.stocks || [];
+    const meta = document.getElementById('scanMeta');
+    meta.style.display = 'flex';
+    meta.innerHTML = `<span>${data.total_matched} stocks matched</span><span style="color:var(--border)">|</span><span>Showing top ${_allScanStocks.length}</span><span style="color:var(--border)">|</span><span>Updated ${data.timestamp}</span>`;
+    _applyScanFilter();
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--red)">⚠ ${e.message}</td></tr>`;
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '&#9654; Scan Now';
+  }
+}
+
+function _applyScanFilter() {
+  const tbody   = document.getElementById('scanBody');
+  const visible = _scanChg === 0
+    ? _allScanStocks
+    : _allScanStocks.filter(s => Math.abs(s.change_pct) >= _scanChg);
+
+  if (!visible.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">No stocks with ≥${_scanChg}% move right now</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = visible.map((s, i) => {
+    const chgCls = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'dn' : 'fl';
+    const chgSign = s.change_pct > 0 ? '+' : '';
+    const domCls  = s.dominance === 'BUYER' ? 'dom-buyer' : 'dom-seller';
+    const domTxt  = s.dominance === 'BUYER' ? '▲ BUYER'  : '▼ SELLER';
+    const sym     = encodeURIComponent(s.symbol);
+    return `
+    <tr onclick="window.open('/stock-analyser.html?symbol=${sym}','_blank')" title="Open Stock Analyser">
+      <td style="color:var(--muted);font-size:11px">${i+1}</td>
+      <td class="sc-sym">${s.symbol}</td>
+      <td style="font-weight:600">₹${s.ltp.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td><span class="sc-chg ${chgCls}">${chgSign}${s.change_pct}%</span></td>
+      <td>
+        <div class="dom-bar-wrap">
+          <div class="dom-bar"><div class="dom-buy" style="width:${s.buy_pct}%"></div><div class="dom-sell" style="width:${s.sell_pct}%"></div></div>
+          <div class="dom-pcts"><span class="b">B ${s.buy_pct}%</span><span class="s">S ${s.sell_pct}%</span></div>
+        </div>
+      </td>
+      <td><span class="dom-badge ${domCls}">${domTxt}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${s.strength}%</td>
+      <td style="font-size:11px;color:var(--dim)">${_fmtVol(s.buy_qty)}</td>
+      <td style="font-size:11px;color:var(--dim)">${_fmtVol(s.sell_qty)}</td>
+      <td onclick="event.stopPropagation()">
+        <button class="sc-analyse" onclick="window.open('/stock-analyser.html?symbol=${sym}','_blank')">▶ Analyse</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
