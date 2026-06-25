@@ -3554,47 +3554,51 @@ def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
 @app.get("/debug/nifty500")
 def debug_nifty500():
     """Debug endpoint: tests each step of the Nifty500 constituent fetch."""
-    import requests as _req, csv as _csv, io as _io, traceback as _tb
+    global _nifty500_cache, _nifty500_cache_ts
+    import requests as _req
+    import csv as _csv
+    import io as _io
+    import traceback as _tb
     result = {}
 
-    # Step 1: CSV archive
+    # Step 1: NSE static CSV archive (no cookies needed)
     try:
         r = _req.get(
             "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv",
             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
             timeout=15,
         )
-        result["csv_status"] = r.status_code
-        result["csv_content_length"] = len(r.text)
-        result["csv_first_200"] = r.text[:200]
+        result["csv_status"]          = r.status_code
+        result["csv_content_length"]  = len(r.text)
+        result["csv_first_200"]       = r.text[:200]
         if r.status_code == 200:
             reader = _csv.DictReader(_io.StringIO(r.text))
-            syms = [row.get("Symbol","").strip() for row in reader if row.get("Symbol","").strip()]
+            syms   = [row.get("Symbol","").strip() for row in reader
+                      if row.get("Symbol","").strip()]
             result["csv_symbols_count"] = len(syms)
-            result["csv_sample"] = syms[:10]
+            result["csv_sample"]        = syms[:10]
     except Exception as e:
-        result["csv_error"] = str(e)
+        result["csv_error"]     = str(e)
         result["csv_traceback"] = _tb.format_exc()
 
-    # Step 2: Cache state
+    # Step 2: current cache state
     result["cache_size"] = len(_nifty500_cache)
-    result["cache_ts"] = str(_nifty500_cache_ts)
+    result["cache_ts"]   = str(_nifty500_cache_ts)
 
-    # Step 3: movers session API
+    # Step 3: movers session-gated API
     try:
         from core.movers import _fetch_nse
         rows = _fetch_nse("NIFTY 500")
         result["api_rows_count"] = len(rows)
-        result["api_sample"] = [r["symbol"] for r in rows[:5]]
+        result["api_sample"]     = [r["symbol"] for r in rows[:5]]
     except Exception as e:
         result["api_error"] = str(e)
 
-    # Step 4: full _fetch_nifty500_symbols call (force bypass cache)
-    global _nifty500_cache_ts
-    _nifty500_cache_ts = None   # bust cache for this debug call
+    # Step 4: full _fetch_nifty500_symbols (bust cache first)
+    _nifty500_cache_ts = None
     try:
         syms = _fetch_nifty500_symbols()
-        result["fetch_fn_count"] = len(syms)
+        result["fetch_fn_count"]  = len(syms)
         result["fetch_fn_sample"] = sorted(syms)[:10]
     except Exception as e:
         result["fetch_fn_error"] = str(e)
