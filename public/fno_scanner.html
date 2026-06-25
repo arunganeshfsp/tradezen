@@ -116,6 +116,9 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 /* ANALYSE BUTTON */
 .analyse-btn{padding:5px 14px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(124,106,247,0.4);background:rgba(124,106,247,0.1);color:var(--accent);transition:all .15s;white-space:nowrap}
 .analyse-btn:hover{background:rgba(124,106,247,0.22);border-color:var(--accent)}
+.univ-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.8px;padding:2px 5px;border-radius:4px;vertical-align:middle;margin-left:5px}
+.ub-fno{background:rgba(124,106,247,0.12);color:var(--accent);border:1px solid rgba(124,106,247,0.3)}
+.ub-eq{background:rgba(0,212,255,0.08);color:#00d4ff;border:1px solid rgba(0,212,255,0.25)}
 
 /* EMPTY / LOADING */
 .empty-row td{text-align:center;padding:48px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
@@ -576,15 +579,20 @@ function _applyAndRender() {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No stocks with ≥${minChgFilter}% move right now</td></tr>`;
     return;
   }
+  const showBadge = universeFilter === 'all_nse';
   tbody.innerHTML = visibleStocks.map((s, i) => {
     const chgClass = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'dn' : 'flat';
     const chgSign  = s.change_pct > 0 ? '+' : '';
     const domClass = s.dominance === 'BUYER' ? 'dom-buyer' : 'dom-seller';
     const domText  = s.dominance === 'BUYER' ? '▲ BUYER' : '▼ SELLER';
+    const badge    = showBadge
+      ? `<span class="univ-badge ${s.is_fno ? 'ub-fno' : 'ub-eq'}">${s.is_fno ? 'F&O' : 'EQ'}</span>`
+      : '';
+    const rowTitle = s.is_fno ? 'Click for trend & options' : 'Click to open Stock Analyser';
     return `
-      <tr onclick="openStockRow(window._scanStocks[${i}])" title="Click for trend & options" style="cursor:pointer">
+      <tr onclick="openStockRow(window._scanStocks[${i}])" title="${rowTitle}" style="cursor:pointer">
         <td class="rank">${i + 1}</td>
-        <td class="sym">${s.symbol}</td>
+        <td class="sym">${s.symbol}${badge}</td>
         <td><div class="ltp">₹${fmtPrice(s.ltp)}</div></td>
         <td><span class="chg ${chgClass}">${chgSign}${s.change_pct}%</span></td>
         <td>
@@ -846,8 +854,12 @@ let _selectedStock  = null;
 let _selectedExpiry = null;
 
 function openStockRow(stock) {
-  openConfirm(stock);   // keep existing trend modal
-  openOptSheet(stock);  // also load options panel
+  if (!stock.is_fno) {
+    window.open(`/stock-analyser.html?symbol=${encodeURIComponent(stock.symbol)}`, '_blank');
+    return;
+  }
+  openConfirm(stock);
+  openOptSheet(stock);
 }
 
 function openOptSheet(stock) {

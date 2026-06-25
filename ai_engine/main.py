@@ -3339,6 +3339,9 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
     if not stocks:
         return {"error": "Instrument master unavailable", "stocks": []}
 
+    # Build a set of F&O symbols for tagging (free after first call — _load_fno_stocks is cached)
+    fno_syms = {s["symbol"] for s in _load_fno_stocks()} if all_stocks else None
+
     n50 = _fetch_nifty50_symbols()
     if nifty500:
         n500 = _fetch_nifty500_symbols()
@@ -3395,6 +3398,7 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
             "dominance":   "BUYER" if buy_pct >= sell_pct else "SELLER",
             "strength":    round(abs(buy_pct - sell_pct), 1),
             "volume":      int(d.get("tradeVolume") or 0),
+            "is_fno":      fno_syms is None or s["symbol"] in fno_syms,
         })
 
     # Apply dominance filter

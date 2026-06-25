@@ -730,13 +730,15 @@ router.get("/stock-indicators/:symbol", async (req, res) => {
 router.get("/fno-scanner", async (req, res) => {
   try {
     const params = new URLSearchParams();
-    if (req.query.min_price)  params.set("min_price",  req.query.min_price);
-    if (req.query.max_price)  params.set("max_price",  req.query.max_price);
-    if (req.query.limit)      params.set("limit",      req.query.limit);
-    if (req.query.dominance)  params.set("dominance",  req.query.dominance);
-    if (req.query.nifty50)    params.set("nifty50",    req.query.nifty50);
-    if (req.query.nifty500)   params.set("nifty500",   req.query.nifty500);
-    const data = await aiService.proxy("GET", `/fno-scanner?${params}`, 15000);
+    if (req.query.min_price)   params.set("min_price",   req.query.min_price);
+    if (req.query.max_price)   params.set("max_price",   req.query.max_price);
+    if (req.query.limit)       params.set("limit",       req.query.limit);
+    if (req.query.dominance)   params.set("dominance",   req.query.dominance);
+    if (req.query.nifty50)     params.set("nifty50",     req.query.nifty50);
+    if (req.query.nifty500)    params.set("nifty500",    req.query.nifty500);
+    if (req.query.all_stocks)  params.set("all_stocks",  req.query.all_stocks);
+    const timeout = req.query.all_stocks === "true" ? 90000 : 15000;
+    const data = await aiService.proxy("GET", `/fno-scanner?${params}`, timeout);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
