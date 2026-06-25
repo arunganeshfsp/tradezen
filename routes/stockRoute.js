@@ -764,6 +764,7 @@ router.get("/stock-scanner", async (req, res) => {
     if (req.query.max_price)  params.set("max_price",  req.query.max_price);
     if (req.query.limit)      params.set("limit",      req.query.limit);
     if (req.query.dominance)  params.set("dominance",  req.query.dominance);
+    if (req.query.sort_by)    params.set("sort_by",    req.query.sort_by);
     const timeout = req.query.universe === "all" ? 90000 : 15000;
     const data = await aiService.proxy("GET", `/stock-scanner?${params}`, timeout);
     res.json(data);

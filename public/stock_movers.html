@@ -910,7 +910,7 @@ async function fetchStockScanner() {
 
   const min = document.getElementById('scanMinPrice').value || 100;
   const max = document.getElementById('scanMaxPrice').value || 5000;
-  const url = `/api/stock-scanner?universe=${_scanUniv}&min_price=${min}&max_price=${max}&limit=${_scanLimit}&dominance=${_scanDom}`;
+  const url = `/api/stock-scanner?universe=${_scanUniv}&min_price=${min}&max_price=${max}&limit=${_scanLimit}&dominance=${_scanDom}&sort_by=${_scanSort}`;
 
   try {
     const res  = await fetch(url);
@@ -934,15 +934,9 @@ async function fetchStockScanner() {
 
 function _applyScanFilter() {
   const tbody   = document.getElementById('scanBody');
-  let visible = _scanChg === 0
-    ? [..._allScanStocks]
+  const visible = _scanChg === 0
+    ? _allScanStocks
     : _allScanStocks.filter(s => Math.abs(s.change_pct) >= _scanChg);
-
-  if (_scanSort === 'change') {
-    visible.sort((a, b) => Math.abs(b.change_pct) - Math.abs(a.change_pct));
-  } else {
-    visible.sort((a, b) => b.strength - a.strength);
-  }
 
   if (!visible.length) {
     tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">No stocks with ≥${_scanChg}% move right now</td></tr>`;

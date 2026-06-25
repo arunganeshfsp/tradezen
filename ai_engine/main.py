@@ -3470,7 +3470,8 @@ async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: i
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
-                         dominance: str = "all", universe: str = "nifty50") -> dict:
+                         dominance: str = "all", universe: str = "nifty50",
+                         sort_by: str = "dominance") -> dict:
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     smart = _get_smart()
     if not smart:
@@ -3541,12 +3542,14 @@ def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
         result = [r for r in result if r["dominance"] == "BUYER" and r["change_pct"] >= 0]
     elif dominance == "seller":
         result = [r for r in result if r["dominance"] == "SELLER" and r["change_pct"] <= 0]
-    else:
-        result.sort(key=lambda x: (0 if x["dominance"] == "BUYER" else 1, -x["strength"]))
-        return {"stocks": result[:limit], "total_matched": len(result),
-                "timestamp": now_ist.strftime("%H:%M:%S")}
 
-    result.sort(key=lambda x: -x["strength"])
+    if sort_by == "change":
+        result.sort(key=lambda x: -abs(x["change_pct"]))
+    elif dominance == "all":
+        result.sort(key=lambda x: (0 if x["dominance"] == "BUYER" else 1, -x["strength"]))
+    else:
+        result.sort(key=lambda x: -x["strength"])
+
     return {"stocks": result[:limit], "total_matched": len(result),
             "timestamp": now_ist.strftime("%H:%M:%S")}
 
@@ -3608,11 +3611,12 @@ def debug_nifty500():
 
 @app.get("/stock-scanner")
 async def stock_scanner(min_price: float = 100, max_price: float = 5000, limit: int = 20,
-                         dominance: str = "all", universe: str = "nifty50"):
+                         dominance: str = "all", universe: str = "nifty50",
+                         sort_by: str = "dominance"):
     loop = asyncio.get_event_loop()
     try:
         result = await loop.run_in_executor(
-            None, _stock_scanner_sync, min_price, max_price, limit, dominance, universe)
+            None, _stock_scanner_sync, min_price, max_price, limit, dominance, universe, sort_by)
         return result
     except Exception as e:
         log.error(f"[STOCK-SCANNER] error: {e}")
