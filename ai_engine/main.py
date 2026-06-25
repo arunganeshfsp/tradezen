@@ -4208,6 +4208,7 @@ def _nifty500_movers_sync() -> dict:
         "unchanged":  len(rows) - advancing - declining,
         "gainers":    rows[:10],
         "losers":     list(reversed(rows[-10:])),
+        "all_rows":   rows,
         "fetched_at": int(now),
     }
     _ltp_cache["_n500_movers"] = {"data": result, "ts": now}
@@ -4215,20 +4216,39 @@ def _nifty500_movers_sync() -> dict:
 
 
 @app.get("/stocks/movers")
-def stocks_movers(index: str = "nifty50"):
-    """Top/bottom 10 movers for the given NSE index. 5-minute cache."""
-    if index == "nifty500":
-        try:
-            return _nifty500_movers_sync()
-        except Exception as e:
-            log.error(f"stocks/movers nifty500 error: {e}")
-            return {"error": str(e)}
-    from core.movers import fetch_movers as _fetch_movers
+def stocks_movers(index: str = "nifty50", min_price: float = 0,
+                  max_price: float = 0, min_change: float = 0):
+    """Top/bottom 10 movers for the given NSE index. Supports price and % filters."""
     try:
-        return _fetch_movers(index)
+        if index == "nifty500":
+            result = _nifty500_movers_sync()
+        else:
+            from core.movers import fetch_movers as _fetch_movers
+            result = _fetch_movers(index)
     except Exception as e:
         log.error(f"stocks/movers error: {e}")
         return {"error": str(e)}
+
+    if result.get("error"):
+        return result
+
+    if min_price > 0 or max_price > 0 or min_change > 0:
+        all_rows = result.get("all_rows", [])
+        filtered = [r for r in all_rows
+                    if (min_price == 0 or r.get("ltp", 0) >= min_price)
+                    and (max_price == 0 or r.get("ltp", 0) <= max_price)
+                    and (min_change == 0 or abs(r.get("pct_change", 0)) >= min_change)]
+        advancing = sum(1 for r in filtered if r.get("pct_change", 0) > 0)
+        declining = sum(1 for r in filtered if r.get("pct_change", 0) < 0)
+        result = {**result,
+                  "count":     len(filtered),
+                  "advancing": advancing,
+                  "declining": declining,
+                  "unchanged": len(filtered) - advancing - declining,
+                  "gainers":   filtered[:10],
+                  "losers":    list(reversed(filtered[-10:])) if filtered else []}
+
+    return result
 
 
 @app.get("/stocks/live-prices")

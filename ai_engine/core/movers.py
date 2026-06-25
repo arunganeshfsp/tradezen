@@ -321,6 +321,7 @@ def fetch_movers(index: str = "nifty50") -> dict:
         "unchanged":  unchanged,
         "gainers":    rows[:10],
         "losers":     list(reversed(rows[-10:])),
+        "all_rows":   rows,
         "fetched_at": int(now),
     }
     _cache[index] = {"ts": now, "data": result}
