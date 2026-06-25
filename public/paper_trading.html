@@ -77,6 +77,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .strip-val.pos{color:var(--green)}
 .strip-val.neg{color:var(--red)}
 .strip-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.auto-live{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:livePulse 2s ease-in-out infinite;flex-shrink:0}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
 .reset-btn{padding:5px 12px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;
   font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--red-border);
   background:transparent;color:var(--red);transition:all .15s;white-space:nowrap}
@@ -228,6 +231,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </div>
         </div>
         <div class="strip-actions">
+          <div class="auto-live"><div class="live-dot"></div>Auto · <span id="lastRefreshed">—</span></div>
           <button class="refresh-btn" onclick="refreshAll()" data-en="&#8635; Refresh" data-ta="&#8635; புதுப்பி">&#8635; Refresh</button>
           <button class="reset-btn" onclick="resetAccount()" data-en="Reset" data-ta="மீட்டமை">Reset</button>
         </div>
@@ -429,6 +433,8 @@ async function refreshAll() {
     renderPositions(positions);
     renderHistory(hist.trades || []);
     renderChart(hist.trades || []);
+    const lr = document.getElementById('lastRefreshed');
+    if (lr) lr.textContent = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
   } catch (e) {
     toast('Refresh failed: ' + e.message, false);
   }
@@ -570,7 +576,7 @@ function renderChart(trades) {
 
 if (_requireAuth()) {
   refreshAll();
-  setInterval(refreshAll, 15000);
+  setInterval(refreshAll, 5000);
 }
 </script>
 <script src="halo-aurora.js"></script>

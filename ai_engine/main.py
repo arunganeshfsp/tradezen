@@ -4354,10 +4354,30 @@ from execution.paper_trader import (
 
 
 def _paper_stock_ltps(symbols: list) -> dict:
-    """LTPs for NSE stock symbols → {symbol: ltp}."""
-    from core.swing_analyzer import fetch_swing_prices
+    """LTPs for NSE equity symbols via Angel One → {symbol: ltp}."""
+    _s = smart or _get_smart()
+    if not _s:
+        return {}
     try:
-        return fetch_swing_prices(symbols).get("prices", {})
+        sym_set = {s.upper() for s in symbols}
+        # Resolve tokens from cached EQ list (avoids re-reading instrument master)
+        token_map: dict[str, str] = {}   # token → symbol
+        for stock in _load_all_eq_stocks():
+            name = stock["symbol"].upper()
+            if name in sym_set and stock["token"] not in token_map:
+                token_map[stock["token"]] = name
+        if not token_map:
+            return {}
+        resp = _s.getMarketData("LTP", {"NSE": list(token_map.keys())})
+        prices: dict[str, float] = {}
+        fetched = (resp or {}).get("data", {}).get("fetched") or []
+        for item in fetched:
+            tok = str(item.get("symbolToken", ""))
+            sym = token_map.get(tok)
+            ltp = item.get("ltp")
+            if sym and ltp is not None:
+                prices[sym] = round(float(ltp), 2)
+        return prices
     except Exception as e:
         log.warning(f"paper stock ltp error: {e}")
         return {}
