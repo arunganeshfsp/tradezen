@@ -3555,47 +3555,55 @@ def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
 def debug_nifty500():
     global _nifty500_cache, _nifty500_cache_ts
     import traceback as _tb
-    result = {}
 
-    # Get 500 symbols + matched EQ stocks
     _nifty500_cache_ts = None
     n500    = _fetch_nifty500_symbols()
     all_eq  = _load_all_eq_stocks()
     matched = [s for s in all_eq if s["symbol"].upper() in n500]
-    result["n500_count"]    = len(n500)
-    result["matched_count"] = len(matched)
 
-    # Fetch Angel One market data for first 50 matched stocks
     smart = _get_smart()
     if not smart:
-        result["angel_error"] = "SmartAPI not authenticated"
-        return result
+        return {"error": "SmartAPI not authenticated"}
 
-    sample50  = matched[:50]
-    tokens50  = [s["token"] for s in sample50]
-    try:
-        resp = smart.getMarketData("FULL", {"NSE": tokens50})
-        fetched = (resp or {}).get("data", {}).get("fetched") or []
-        result["tokens_sent"]    = len(tokens50)
-        result["tokens_returned"] = len(fetched)
+    # Run all batches — same as the real scanner
+    depth_map: dict = {}
+    batch_results = []
+    batch_size = 50
+    for i in range(0, len(matched), batch_size):
+        batch = matched[i: i + batch_size]
+        tokens = [s["token"] for s in batch]
+        try:
+            resp    = smart.getMarketData("FULL", {"NSE": tokens})
+            fetched = (resp or {}).get("data", {}).get("fetched") or []
+            for item in fetched:
+                depth_map[str(item.get("symbolToken"))] = item
+            batch_results.append({"batch": i // batch_size, "sent": len(tokens), "returned": len(fetched)})
+        except Exception as e:
+            batch_results.append({"batch": i // batch_size, "sent": len(tokens), "error": str(e)})
+        _time.sleep(0.15)
 
-        # Breakdown: has ltp / has depth
-        has_ltp   = sum(1 for f in fetched if float(f.get("ltp") or 0) > 0)
-        has_depth = sum(1 for f in fetched
-                        if int(f.get("totBuyQuan") or 0) + int(f.get("totSellQuan") or 0) > 0)
-        result["has_ltp"]   = has_ltp
-        result["has_depth"] = has_depth
+    # Tally outcomes for all 500 stocks
+    no_data, zero_depth, has_depth = [], [], []
+    for s in matched:
+        d = depth_map.get(s["token"])
+        if not d:
+            no_data.append(s["symbol"])
+        elif int(d.get("totBuyQuan") or 0) + int(d.get("totSellQuan") or 0) == 0:
+            zero_depth.append(s["symbol"])
+        else:
+            has_depth.append(s["symbol"])
 
-        # Show raw fields for first 3 stocks so we can see what Angel One returns
-        result["raw_sample"] = [
-            {k: f.get(k) for k in ("symbolToken","ltp","totBuyQuan","totSellQuan",
-                                    "tradeVolume","percentChange")}
-            for f in fetched[:3]
-        ]
-    except Exception as e:
-        result["angel_fetch_error"] = _tb.format_exc()
-
-    return result
+    return {
+        "n500_count":       len(n500),
+        "matched_count":    len(matched),
+        "depth_map_size":   len(depth_map),
+        "has_depth_count":  len(has_depth),
+        "zero_depth_count": len(zero_depth),
+        "no_data_count":    len(no_data),
+        "no_data_sample":   no_data[:20],
+        "zero_depth_sample": zero_depth[:20],
+        "batch_results":    batch_results,
+    }
 
 
 @app.get("/stock-scanner")
