@@ -3557,29 +3557,43 @@ def debug_nifty500():
     import traceback as _tb
     result = {}
 
-    # 1. Refresh Nifty 500 symbol list
+    # Get 500 symbols + matched EQ stocks
     _nifty500_cache_ts = None
-    try:
-        n500 = _fetch_nifty500_symbols()
-        result["n500_count"] = len(n500)
-    except Exception as e:
-        result["n500_error"] = _tb.format_exc()
+    n500    = _fetch_nifty500_symbols()
+    all_eq  = _load_all_eq_stocks()
+    matched = [s for s in all_eq if s["symbol"].upper() in n500]
+    result["n500_count"]    = len(n500)
+    result["matched_count"] = len(matched)
+
+    # Fetch Angel One market data for first 50 matched stocks
+    smart = _get_smart()
+    if not smart:
+        result["angel_error"] = "SmartAPI not authenticated"
         return result
 
-    # 2. Load all EQ stocks from instrument master
-    all_eq = _load_all_eq_stocks()
-    result["all_eq_count"] = len(all_eq)
+    sample50  = matched[:50]
+    tokens50  = [s["token"] for s in sample50]
+    try:
+        resp = smart.getMarketData("FULL", {"NSE": tokens50})
+        fetched = (resp or {}).get("data", {}).get("fetched") or []
+        result["tokens_sent"]    = len(tokens50)
+        result["tokens_returned"] = len(fetched)
 
-    # 3. How many EQ stocks match Nifty 500 symbols?
-    matched = [s for s in all_eq if s["symbol"].upper() in n500]
-    result["matched_count"] = len(matched)
-    result["matched_sample"] = [s["symbol"] for s in matched[:10]]
+        # Breakdown: has ltp / has depth
+        has_ltp   = sum(1 for f in fetched if float(f.get("ltp") or 0) > 0)
+        has_depth = sum(1 for f in fetched
+                        if int(f.get("totBuyQuan") or 0) + int(f.get("totSellQuan") or 0) > 0)
+        result["has_ltp"]   = has_ltp
+        result["has_depth"] = has_depth
 
-    # 4. Which Nifty 500 symbols are NOT found in instrument master?
-    eq_names = {s["symbol"].upper() for s in all_eq}
-    missing  = sorted(n500 - eq_names)
-    result["missing_from_master_count"] = len(missing)
-    result["missing_from_master"]       = missing[:30]
+        # Show raw fields for first 3 stocks so we can see what Angel One returns
+        result["raw_sample"] = [
+            {k: f.get(k) for k in ("symbolToken","ltp","totBuyQuan","totSellQuan",
+                                    "tradeVolume","percentChange")}
+            for f in fetched[:3]
+        ]
+    except Exception as e:
+        result["angel_fetch_error"] = _tb.format_exc()
 
     return result
 
