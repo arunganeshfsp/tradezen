@@ -255,7 +255,7 @@
 
   <div class="mode-tabs">
     <button class="mode-tab active" data-mode="movers" onclick="setMode('movers')">▲▼ Movers</button>
-    <button class="mode-tab" data-mode="scanner" onclick="setMode('scanner')">⚡ Dominance Scan</button>
+    <button class="mode-tab" data-mode="scanner" onclick="setMode('scanner')">📊 Stock Scanner</button>
   </div>
 
   <!-- Movers index filter (visible in movers mode) -->
@@ -269,12 +269,12 @@
   </div>
 </div>
 
-<!-- ── Dominance Scanner (hidden until scanner mode active) ── -->
+<!-- ── Stock Scanner (hidden until scanner mode active) ── -->
 <div id="scannerSection" style="display:none">
   <!-- Controls -->
   <div class="ctrl-bar">
     <div class="ctrl-group">
-      <div class="ctrl-label">Universe</div>
+      <div class="ctrl-label">Index</div>
       <div class="toggle-group" id="scanUnivGrp">
         <button class="tog-btn active" data-val="nifty50"  onclick="setScanUniv('nifty50')">Nifty 50</button>
         <button class="tog-btn"        data-val="nifty500" onclick="setScanUniv('nifty500')">Nifty 500</button>
@@ -290,7 +290,7 @@
       </div>
     </div>
     <div class="ctrl-group">
-      <div class="ctrl-label">Min Move</div>
+      <div class="ctrl-label">Min Change</div>
       <div class="toggle-group" id="scanChgGrp">
         <button class="tog-btn"        data-val="0" onclick="setScanChg(0)">Any</button>
         <button class="tog-btn active" data-val="2" onclick="setScanChg(2)">≥2%</button>
@@ -299,29 +299,22 @@
       </div>
     </div>
     <div class="ctrl-group">
-      <div class="ctrl-label">Dominance</div>
+      <div class="ctrl-label">Direction</div>
       <div class="toggle-group" id="scanDomGrp">
         <button class="tog-btn active" data-val="all"    onclick="setScanDom('all')">All</button>
-        <button class="tog-btn"        data-val="buyer"  onclick="setScanDom('buyer')">Buyer ▲</button>
-        <button class="tog-btn"        data-val="seller" onclick="setScanDom('seller')">Seller ▼</button>
+        <button class="tog-btn"        data-val="buyer"  onclick="setScanDom('buyer')">▲ Rising</button>
+        <button class="tog-btn"        data-val="seller" onclick="setScanDom('seller')">▼ Falling</button>
       </div>
     </div>
     <div class="ctrl-group">
-      <div class="ctrl-label">Sort By</div>
-      <div class="toggle-group" id="scanSortGrp">
-        <button class="tog-btn active" data-val="dominance" onclick="setScanSort('dominance')">Dominance</button>
-        <button class="tog-btn"        data-val="change"    onclick="setScanSort('change')">% Change</button>
-      </div>
-    </div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">Results</div>
+      <div class="ctrl-label">Show</div>
       <div class="toggle-group" id="scanLimitGrp">
         <button class="tog-btn active" data-val="20"  onclick="setScanLimit(20)">20</button>
         <button class="tog-btn"        data-val="50"  onclick="setScanLimit(50)">50</button>
         <button class="tog-btn"        data-val="100" onclick="setScanLimit(100)">100</button>
       </div>
     </div>
-    <button class="scan-btn" id="scanNowBtn" onclick="fetchStockScanner()">&#9654; Scan Now</button>
+    <button class="scan-btn" id="scanNowBtn" onclick="fetchStockScanner()">&#9654; Scan</button>
   </div>
 
   <!-- Results -->
@@ -333,20 +326,15 @@
         <thead>
           <tr>
             <th style="text-align:left">#</th>
-            <th style="text-align:left">Symbol</th>
-            <th>LTP</th>
-            <th>Chg %</th>
-            <th>Buy/Sell</th>
-            <th>Dominance</th>
-            <th>Strength</th>
-            <th>Buy Qty</th>
-            <th>Sell Qty</th>
+            <th style="text-align:left">Stock</th>
+            <th>Price</th>
+            <th>Change</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="scanBody">
-          <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">
-            Select a universe and tap Scan Now
+          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">
+            Select an index and tap Scan
           </td></tr>
         </tbody>
       </table>
@@ -876,7 +864,6 @@ let _scanUniv  = 'nifty50';
 let _scanDom   = 'all';
 let _scanLimit = 20;
 let _scanChg   = 2;
-let _scanSort  = 'dominance';
 let _allScanStocks = [];
 
 function setScanUniv(val) {
@@ -887,7 +874,6 @@ function setScanUniv(val) {
 function setScanDom(val)   { _scanDom   = val; _togActive('scanDomGrp',   val); }
 function setScanLimit(val) { _scanLimit = val; _togActive('scanLimitGrp', String(val)); }
 function setScanChg(val)   { _scanChg   = val; _togActive('scanChgGrp',   String(val)); _applyScanFilter(); }
-function setScanSort(val)  { _scanSort  = val; _togActive('scanSortGrp',  val); _applyScanFilter(); }
 
 function _togActive(grpId, val) {
   document.querySelectorAll(`#${grpId} .tog-btn`).forEach(b =>
@@ -910,13 +896,13 @@ async function fetchStockScanner() {
 
   const min = document.getElementById('scanMinPrice').value || 100;
   const max = document.getElementById('scanMaxPrice').value || 5000;
-  const url = `/api/stock-scanner?universe=${_scanUniv}&min_price=${min}&max_price=${max}&limit=${_scanLimit}&dominance=${_scanDom}&sort_by=${_scanSort}`;
+  const url = `/api/stock-scanner?universe=${_scanUniv}&min_price=${min}&max_price=${max}&limit=${_scanLimit}&dominance=${_scanDom}&sort_by=change`;
 
   try {
     const res  = await fetch(url);
     const data = await res.json();
     if (data.error) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--red)">⚠ ${data.error}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--red)">⚠ ${data.error}</td></tr>`;
       return;
     }
     _allScanStocks = data.stocks || [];
@@ -925,7 +911,7 @@ async function fetchStockScanner() {
     meta.innerHTML = `<span>${data.total_matched} stocks matched</span><span style="color:var(--border)">|</span><span>Showing top ${_allScanStocks.length}</span><span style="color:var(--border)">|</span><span>Updated ${data.timestamp}</span>`;
     _applyScanFilter();
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--red)">⚠ ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--red)">⚠ ${e.message}</td></tr>`;
   } finally {
     btn.disabled  = false;
     btn.innerHTML = '&#9654; Scan Now';
@@ -939,32 +925,25 @@ function _applyScanFilter() {
     : _allScanStocks.filter(s => Math.abs(s.change_pct) >= _scanChg);
 
   if (!visible.length) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">No stocks with ≥${_scanChg}% move right now</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">No stocks with ≥${_scanChg}% move right now</td></tr>`;
     return;
   }
 
   tbody.innerHTML = visible.map((s, i) => {
-    const chgCls = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'dn' : 'fl';
-    const chgSign = s.change_pct > 0 ? '+' : '';
-    const domCls  = s.dominance === 'BUYER' ? 'dom-buyer' : 'dom-seller';
-    const domTxt  = s.dominance === 'BUYER' ? '▲ BUYER'  : '▼ SELLER';
+    const isUp    = s.change_pct > 0;
+    const chgSign = isUp ? '+' : '';
+    const chgClr  = isUp ? 'var(--green)' : s.change_pct < 0 ? 'var(--red)' : 'var(--muted)';
+    const bgClr   = isUp ? 'rgba(46,204,113,.10)' : s.change_pct < 0 ? 'rgba(231,76,60,.10)' : 'rgba(255,255,255,.04)';
     const sym     = encodeURIComponent(s.symbol);
     return `
-    <tr onclick="window.open('/stock-analyser.html?symbol=${sym}','_blank')" title="Open Stock Analyser">
+    <tr onclick="window.open('/stock-analyser.html?symbol=${sym}','_blank')" title="View analysis">
       <td style="color:var(--muted);font-size:11px">${i+1}</td>
       <td class="sc-sym">${s.symbol}</td>
       <td style="font-weight:600">₹${s.ltp.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td><span class="sc-chg ${chgCls}">${chgSign}${s.change_pct}%</span></td>
       <td>
-        <div class="dom-bar-wrap">
-          <div class="dom-bar"><div class="dom-buy" style="width:${s.buy_pct}%"></div><div class="dom-sell" style="width:${s.sell_pct}%"></div></div>
-          <div class="dom-pcts"><span class="b">B ${s.buy_pct}%</span><span class="s">S ${s.sell_pct}%</span></div>
-        </div>
+        <span style="display:inline-block;padding:4px 10px;border-radius:8px;font-weight:700;font-size:12px;
+              background:${bgClr};color:${chgClr}">${chgSign}${s.change_pct}%</span>
       </td>
-      <td><span class="dom-badge ${domCls}">${domTxt}</span></td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${s.strength}%</td>
-      <td style="font-size:11px;color:var(--dim)">${_fmtVol(s.buy_qty)}</td>
-      <td style="font-size:11px;color:var(--dim)">${_fmtVol(s.sell_qty)}</td>
       <td onclick="event.stopPropagation()">
         <button class="sc-analyse" onclick="window.open('/stock-analyser.html?symbol=${sym}','_blank')">▶ Analyse</button>
       </td>
