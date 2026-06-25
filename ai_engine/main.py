@@ -3276,17 +3276,54 @@ _NIFTY500_FALLBACK = {
 _nifty50_cache: set = set()
 _nifty50_cache_ts: datetime = None
 _nifty500_cache: set = set()
-_nifty500_cache_ts: datetime = None   # set to None to force re-fetch on next request
+_nifty500_cache_ts: datetime = None
 
+
+_NSE_CSV_MAP = {
+    "NIFTY 50":  "ind_nifty50list.csv",
+    "NIFTY 500": "ind_nifty500list.csv",
+}
 
 def _fetch_nse_constituents(nse_index_name: str, min_count: int) -> set:
-    """Fetch index constituents using the robust movers session (2-page warmup, correct headers)."""
-    from core.movers import _fetch_nse
-    rows = _fetch_nse(nse_index_name)
-    symbols = {r["symbol"] for r in rows if r.get("symbol")}
-    if len(symbols) < min_count:
-        raise ValueError(f"only {len(symbols)} symbols returned for {nse_index_name}, expected >= {min_count}")
-    return symbols
+    """Fetch index constituents.
+    1. NSE static CSV archive (no cookies needed — works from any server).
+    2. Session-gated live API via movers session (browser-like warmup).
+    Raises ValueError if neither returns enough symbols.
+    """
+    import requests as _req
+    import csv as _csv, io as _io
+
+    # ── Try static CSV first (most reliable from server IPs) ──
+    csv_file = _NSE_CSV_MAP.get(nse_index_name)
+    if csv_file:
+        try:
+            r = _req.get(
+                f"https://nsearchives.nseindia.com/content/indices/{csv_file}",
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+                timeout=15,
+            )
+            if r.status_code == 200:
+                reader = _csv.DictReader(_io.StringIO(r.text))
+                symbols = {row.get("Symbol", "").strip() for row in reader
+                           if row.get("Symbol", "").strip()}
+                if len(symbols) >= min_count:
+                    log.info(f"[NSE-CSV] {nse_index_name}: {len(symbols)} symbols")
+                    return symbols
+                log.debug(f"[NSE-CSV] {nse_index_name}: only {len(symbols)} — trying API")
+        except Exception as e:
+            log.debug(f"[NSE-CSV] {nse_index_name} failed: {e}")
+
+    # ── Fall back to session-gated API ──
+    try:
+        from core.movers import _fetch_nse
+        rows    = _fetch_nse(nse_index_name)
+        symbols = {r["symbol"] for r in rows if r.get("symbol")}
+        if len(symbols) >= min_count:
+            log.info(f"[NSE-API] {nse_index_name}: {len(symbols)} symbols")
+            return symbols
+        raise ValueError(f"only {len(symbols)} symbols from API for {nse_index_name}")
+    except Exception as e:
+        raise ValueError(str(e))
 
 
 def _fetch_nifty50_symbols() -> set:
