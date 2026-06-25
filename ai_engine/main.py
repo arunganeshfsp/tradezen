@@ -3554,37 +3554,32 @@ def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
 @app.get("/debug/nifty500")
 def debug_nifty500():
     global _nifty500_cache, _nifty500_cache_ts
-    import requests as _req, csv as _csv, io as _io, traceback as _tb
+    import traceback as _tb
     result = {}
-    try:
-        r = _req.get(
-            "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv",
-            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
-            timeout=15,
-        )
-        result["csv_status"] = r.status_code
-        result["csv_len"]    = len(r.text)
-        result["csv_first_300"] = r.text[:300]
-        if r.status_code == 200:
-            reader = _csv.DictReader(_io.StringIO(r.text))
-            syms   = [row.get("Symbol","").strip() for row in reader if row.get("Symbol","").strip()]
-            result["csv_count"]  = len(syms)
-            result["csv_sample"] = syms[:10]
-    except Exception as e:
-        result["csv_error"] = _tb.format_exc()
 
-    result["cache_size"] = len(_nifty500_cache)
-    result["cache_ts"]   = str(_nifty500_cache_ts)
-
-    # Force-repopulate cache now
+    # 1. Refresh Nifty 500 symbol list
     _nifty500_cache_ts = None
     try:
-        syms = _fetch_nifty500_symbols()
-        result["after_bust_count"]  = len(syms)
-        result["after_bust_sample"] = sorted(syms)[:10]
-        result["cache_size_after"]  = len(_nifty500_cache)
+        n500 = _fetch_nifty500_symbols()
+        result["n500_count"] = len(n500)
     except Exception as e:
-        result["bust_error"] = _tb.format_exc()
+        result["n500_error"] = _tb.format_exc()
+        return result
+
+    # 2. Load all EQ stocks from instrument master
+    all_eq = _load_all_eq_stocks()
+    result["all_eq_count"] = len(all_eq)
+
+    # 3. How many EQ stocks match Nifty 500 symbols?
+    matched = [s for s in all_eq if s["symbol"].upper() in n500]
+    result["matched_count"] = len(matched)
+    result["matched_sample"] = [s["symbol"] for s in matched[:10]]
+
+    # 4. Which Nifty 500 symbols are NOT found in instrument master?
+    eq_names = {s["symbol"].upper() for s in all_eq}
+    missing  = sorted(n500 - eq_names)
+    result["missing_from_master_count"] = len(missing)
+    result["missing_from_master"]       = missing[:30]
 
     return result
 
