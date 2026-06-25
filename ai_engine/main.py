@@ -4180,6 +4180,9 @@ def _nifty500_movers_sync() -> dict:
         prev = float(d.get("close") or 0)
         if not prev and pct != -100:
             prev = round(ltp / (1 + pct / 100), 2)
+        buy_qty  = int(d.get("totBuyQuan") or 0)
+        sell_qty = int(d.get("totSellQuan") or 0)
+        _total   = buy_qty + sell_qty
         rows.append({
             "symbol":     s["symbol"],
             "ltp":        round(ltp, 2),
@@ -4190,6 +4193,10 @@ def _nifty500_movers_sync() -> dict:
             "high":       round(float(d.get("high") or 0), 2),
             "low":        round(float(d.get("low") or 0), 2),
             "volume":     int(d.get("tradeVolume") or 0),
+            "buy_qty":    buy_qty,
+            "sell_qty":   sell_qty,
+            "buy_pct":    round(buy_qty / _total * 100, 1) if _total > 0 else 0,
+            "sell_pct":   round(sell_qty / _total * 100, 1) if _total > 0 else 0,
         })
 
     if not rows:
@@ -4213,6 +4220,37 @@ def _nifty500_movers_sync() -> dict:
     }
     _ltp_cache["_n500_movers"] = {"data": result, "ts": now}
     return result
+
+
+def _enrich_with_depth(rows: list) -> list:
+    if not rows or "buy_qty" in rows[0]:
+        return rows
+    smart = _get_smart()
+    if not smart:
+        return rows
+    sym_set   = {r["symbol"].upper() for r in rows}
+    all_eq    = _load_all_eq_stocks()
+    token_map = {s["token"]: s["symbol"].upper()
+                 for s in all_eq if s["symbol"].upper() in sym_set}
+    if not token_map:
+        return rows
+    try:
+        resp = smart.getMarketData("FULL", {"NSE": list(token_map.keys())})
+        depth: dict = {}
+        for item in (resp or {}).get("data", {}).get("fetched") or []:
+            sym = token_map.get(str(item.get("symbolToken", "")))
+            if not sym:
+                continue
+            bq = int(item.get("totBuyQuan") or 0)
+            sq = int(item.get("totSellQuan") or 0)
+            t  = bq + sq
+            depth[sym] = {"buy_qty": bq, "sell_qty": sq,
+                          "buy_pct":  round(bq / t * 100, 1) if t else 0,
+                          "sell_pct": round(sq / t * 100, 1) if t else 0}
+    except Exception as e:
+        log.warning(f"[ENRICH-DEPTH] {e}")
+        return rows
+    return [{**r, **depth.get(r["symbol"].upper(), {})} for r in rows]
 
 
 @app.get("/stocks/movers")
@@ -4248,6 +4286,8 @@ def stocks_movers(index: str = "nifty50", min_price: float = 0,
                   "gainers":   filtered[:10],
                   "losers":    list(reversed(filtered[-10:])) if filtered else []}
 
+    result["gainers"] = _enrich_with_depth(result.get("gainers", []))
+    result["losers"]  = _enrich_with_depth(result.get("losers",  []))
     return result
 
 

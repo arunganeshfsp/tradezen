@@ -358,6 +358,22 @@ function _ywBar(ltp, yl, yh) {
 
 // ── Render ───────────────────────────────────────────────────────────────────
 
+function _depthCell(r) {
+  if (r.buy_qty == null || (r.buy_qty + r.sell_qty) === 0)
+    return '<span style="color:var(--muted);font-size:10px">—</span>';
+  return `
+    <div style="min-width:80px">
+      <div style="display:flex;height:5px;border-radius:3px;overflow:hidden;margin-bottom:3px">
+        <div style="width:${r.buy_pct}%;background:#22c55e"></div>
+        <div style="width:${r.sell_pct}%;background:#ef4444"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;font-family:'JetBrains Mono',monospace">
+        <span style="color:#22c55e">B ${r.buy_pct}%</span>
+        <span style="color:#ef4444">S ${r.sell_pct}%</span>
+      </div>
+    </div>`;
+}
+
 function _renderRows(rows, isGainer) {
   return rows.map((r, i) => {
     _rowCache[r.symbol] = r;  // store for modal lookup
@@ -378,6 +394,7 @@ function _renderRows(rows, isGainer) {
       <td><span class="${_pctClass(r.pct_change)}">${sign}${r.pct_change.toFixed(2)}%</span></td>
       <td>${_rangeBar(r.ltp, r.low, r.high, isGainer)}</td>
       <td class="vol">${_fmtVol(r.volume)}</td>
+      <td>${_depthCell(r)}</td>
       ${r.year_high ? `<td>${_ywBar(r.ltp, r.year_low, r.year_high)}</td>` : '<td></td>'}
     </tr>`;
   }).join('');
@@ -406,6 +423,7 @@ function _renderPanel(rows, isGainer) {
           <th>Chg %</th>
           <th>Day Range</th>
           <th>Volume</th>
+          <th>Buy / Sell</th>
           ${hasYW ? '<th>52W</th>' : '<th></th>'}
         </tr>
       </thead>
