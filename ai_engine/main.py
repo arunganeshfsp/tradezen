@@ -3276,24 +3276,16 @@ _NIFTY500_FALLBACK = {
 _nifty50_cache: set = set()
 _nifty50_cache_ts: datetime = None
 _nifty500_cache: set = set()
-_nifty500_cache_ts: datetime = None
+_nifty500_cache_ts: datetime = None   # set to None to force re-fetch on next request
 
 
-def _fetch_nse_index(index_slug: str, min_count: int) -> set:
-    import requests as _req
-    hdrs = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "*/*",
-        "Referer": "https://www.nseindia.com/",
-    }
-    s = _req.Session()
-    s.get("https://www.nseindia.com", headers=hdrs, timeout=8)
-    r = s.get(f"https://www.nseindia.com/api/equity-stockIndices?index={index_slug}",
-              headers=hdrs, timeout=10)
-    data = r.json().get("data", [])
-    symbols = {item["symbol"] for item in data[1:] if item.get("symbol")}
+def _fetch_nse_constituents(nse_index_name: str, min_count: int) -> set:
+    """Fetch index constituents using the robust movers session (2-page warmup, correct headers)."""
+    from core.movers import _fetch_nse
+    rows = _fetch_nse(nse_index_name)
+    symbols = {r["symbol"] for r in rows if r.get("symbol")}
     if len(symbols) < min_count:
-        raise ValueError(f"only {len(symbols)} symbols returned, expected >= {min_count}")
+        raise ValueError(f"only {len(symbols)} symbols returned for {nse_index_name}, expected >= {min_count}")
     return symbols
 
 
@@ -3303,7 +3295,7 @@ def _fetch_nifty50_symbols() -> set:
     if _nifty50_cache and _nifty50_cache_ts and (now - _nifty50_cache_ts).total_seconds() < 86400:
         return _nifty50_cache
     try:
-        symbols = _fetch_nse_index("NIFTY%2050", 45)
+        symbols = _fetch_nse_constituents("NIFTY 50", 45)
         _nifty50_cache    = symbols
         _nifty50_cache_ts = now
         log.info(f"[NIFTY50] fetched {len(symbols)} constituents from NSE")
@@ -3319,7 +3311,7 @@ def _fetch_nifty500_symbols() -> set:
     if _nifty500_cache and _nifty500_cache_ts and (now - _nifty500_cache_ts).total_seconds() < 86400:
         return _nifty500_cache
     try:
-        symbols = _fetch_nse_index("NIFTY%20500", 450)
+        symbols = _fetch_nse_constituents("NIFTY 500", 450)
         _nifty500_cache    = symbols
         _nifty500_cache_ts = now
         log.info(f"[NIFTY500] fetched {len(symbols)} constituents from NSE")
