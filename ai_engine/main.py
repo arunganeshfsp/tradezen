@@ -3140,6 +3140,36 @@ import time as _time
 
 _fno_stock_cache: list = []
 _fno_stock_cache_ts: float = 0.0
+_all_eq_cache: list = []
+_all_eq_cache_ts: float = 0.0
+
+
+def _load_all_eq_stocks() -> list:
+    global _all_eq_cache, _all_eq_cache_ts
+    now = _time.time()
+    if _all_eq_cache and (now - _all_eq_cache_ts) < 86400:
+        return _all_eq_cache
+    try:
+        with open("data/instrument_master.json", "r") as f:
+            raw = json.load(f)
+        seen: set = set()
+        stocks = []
+        for inst in raw:
+            name = inst.get("name", "").strip()
+            sym  = inst.get("symbol", "")
+            if (inst.get("exch_seg") == "NSE"
+                    and inst.get("instrumenttype") == ""
+                    and sym.endswith("-EQ")
+                    and name not in seen):
+                seen.add(name)
+                stocks.append({"symbol": name, "token": str(inst["token"])})
+        _all_eq_cache    = stocks
+        _all_eq_cache_ts = now
+        log.info(f"[ALL-EQ] {len(stocks)} NSE EQ stocks loaded")
+        return stocks
+    except Exception as e:
+        log.error(f"[ALL-EQ] load failed: {e}")
+        return []
 
 
 def _load_fno_stocks() -> list:
@@ -3213,7 +3243,7 @@ _NIFTY500_FALLBACK = {
     "BANDHANBNK","BEL","BERGEPAINT","BHEL","BOSCHLTD",
     "CANBK","CHOLAFIN","COLPAL","CONCOR","DLF",
     "GAIL","GODREJCP","GODREJPROP","HAL","HAVELLS",
-    "ICICIGI","ICICIlombard","INDHOTEL","IOC","IGL",
+    "ICICIGI","ICICILOMBARD","INDHOTEL","IOC","IGL",
     "IRCTC","JINDALSTEL","LICI","LTIM","LUPIN",
     "MARICO","MUTHOOTFIN","NAUKRI","PFC","PIDILITIND",
     "PNB","RECLTD","SAIL","SIEMENS","SRF",
@@ -3299,13 +3329,13 @@ def _fetch_nifty500_symbols() -> set:
     return _NIFTY500_FALLBACK
 
 
-def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance: str = "all", nifty50: bool = False, nifty500: bool = False) -> dict:
+def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance: str = "all", nifty50: bool = False, nifty500: bool = False, all_stocks: bool = False) -> dict:
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     smart = _get_smart()
     if not smart:
         return {"error": "SmartAPI auth failed", "stocks": []}
 
-    stocks = _load_fno_stocks()
+    stocks = _load_all_eq_stocks() if all_stocks else _load_fno_stocks()
     if not stocks:
         return {"error": "Instrument master unavailable", "stocks": []}
 
@@ -3315,7 +3345,8 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
         stocks = [s for s in stocks if s["symbol"].upper() in n500]
     elif nifty50:
         stocks = [s for s in stocks if s["symbol"].upper() in n50]
-    else:
+    elif not all_stocks:
+        # "All F&O" mode excludes Nifty 50 to avoid duplicating the Nifty 50 tab
         stocks = [s for s in stocks if s["symbol"].upper() not in n50]
 
     # Batch getMarketData FULL — 50 tokens per call, 150ms gap to stay within rate limit
@@ -3341,7 +3372,7 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
         if not d:
             continue
         ltp = float(d.get("ltp") or 0)
-        if not nifty50 and not (min_price <= ltp <= max_price):
+        if not nifty50 and not nifty500 and not (min_price <= ltp <= max_price):
             continue
 
         buy_qty  = int(d.get("totBuyQuan") or 0)
@@ -3395,10 +3426,10 @@ def _fno_scanner_sync(min_price: float, max_price: float, limit: int, dominance:
 
 
 @app.get("/fno-scanner")
-async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10, dominance: str = "all", nifty50: bool = False, nifty500: bool = False):
+async def fno_scanner(min_price: float = 1000, max_price: float = 2000, limit: int = 10, dominance: str = "all", nifty50: bool = False, nifty500: bool = False, all_stocks: bool = False):
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit, dominance, nifty50, nifty500)
+        result = await loop.run_in_executor(None, _fno_scanner_sync, min_price, max_price, limit, dominance, nifty50, nifty500, all_stocks)
         return result
     except Exception as e:
         log.error(f"[FNO-SCANNER] error: {e}")
