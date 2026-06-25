@@ -307,6 +307,13 @@
       </div>
     </div>
     <div class="ctrl-group">
+      <div class="ctrl-label">Sort By</div>
+      <div class="toggle-group" id="scanSortGrp">
+        <button class="tog-btn active" data-val="dominance" onclick="setScanSort('dominance')">Dominance</button>
+        <button class="tog-btn"        data-val="change"    onclick="setScanSort('change')">% Change</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
       <div class="ctrl-label">Results</div>
       <div class="toggle-group" id="scanLimitGrp">
         <button class="tog-btn active" data-val="20"  onclick="setScanLimit(20)">20</button>
@@ -869,6 +876,7 @@ let _scanUniv  = 'nifty50';
 let _scanDom   = 'all';
 let _scanLimit = 20;
 let _scanChg   = 2;
+let _scanSort  = 'dominance';
 let _allScanStocks = [];
 
 function setScanUniv(val) {
@@ -879,6 +887,7 @@ function setScanUniv(val) {
 function setScanDom(val)   { _scanDom   = val; _togActive('scanDomGrp',   val); }
 function setScanLimit(val) { _scanLimit = val; _togActive('scanLimitGrp', String(val)); }
 function setScanChg(val)   { _scanChg   = val; _togActive('scanChgGrp',   String(val)); _applyScanFilter(); }
+function setScanSort(val)  { _scanSort  = val; _togActive('scanSortGrp',  val); _applyScanFilter(); }
 
 function _togActive(grpId, val) {
   document.querySelectorAll(`#${grpId} .tog-btn`).forEach(b =>
@@ -925,9 +934,15 @@ async function fetchStockScanner() {
 
 function _applyScanFilter() {
   const tbody   = document.getElementById('scanBody');
-  const visible = _scanChg === 0
-    ? _allScanStocks
+  let visible = _scanChg === 0
+    ? [..._allScanStocks]
     : _allScanStocks.filter(s => Math.abs(s.change_pct) >= _scanChg);
+
+  if (_scanSort === 'change') {
+    visible.sort((a, b) => Math.abs(b.change_pct) - Math.abs(a.change_pct));
+  } else {
+    visible.sort((a, b) => b.strength - a.strength);
+  }
 
   if (!visible.length) {
     tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">No stocks with ≥${_scanChg}% move right now</td></tr>`;
