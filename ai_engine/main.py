@@ -3551,6 +3551,44 @@ def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
             "timestamp": now_ist.strftime("%H:%M:%S")}
 
 
+@app.get("/debug/nifty500")
+def debug_nifty500():
+    global _nifty500_cache, _nifty500_cache_ts
+    import requests as _req, csv as _csv, io as _io, traceback as _tb
+    result = {}
+    try:
+        r = _req.get(
+            "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv",
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+            timeout=15,
+        )
+        result["csv_status"] = r.status_code
+        result["csv_len"]    = len(r.text)
+        result["csv_first_300"] = r.text[:300]
+        if r.status_code == 200:
+            reader = _csv.DictReader(_io.StringIO(r.text))
+            syms   = [row.get("Symbol","").strip() for row in reader if row.get("Symbol","").strip()]
+            result["csv_count"]  = len(syms)
+            result["csv_sample"] = syms[:10]
+    except Exception as e:
+        result["csv_error"] = _tb.format_exc()
+
+    result["cache_size"] = len(_nifty500_cache)
+    result["cache_ts"]   = str(_nifty500_cache_ts)
+
+    # Force-repopulate cache now
+    _nifty500_cache_ts = None
+    try:
+        syms = _fetch_nifty500_symbols()
+        result["after_bust_count"]  = len(syms)
+        result["after_bust_sample"] = sorted(syms)[:10]
+        result["cache_size_after"]  = len(_nifty500_cache)
+    except Exception as e:
+        result["bust_error"] = _tb.format_exc()
+
+    return result
+
+
 @app.get("/stock-scanner")
 async def stock_scanner(min_price: float = 100, max_price: float = 5000, limit: int = 20,
                          dominance: str = "all", universe: str = "nifty50"):
