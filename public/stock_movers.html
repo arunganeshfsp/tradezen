@@ -254,12 +254,13 @@
   <div class="hero-sub">Top gainers &amp; losers across NSE indices · Tap any stock to analyse</div>
 
   <div class="filter-bar" style="margin-top:14px">
-    <button class="f-btn active" onclick="loadMovers('nifty50',this)">NIFTY 50</button>
-    <button class="f-btn" onclick="loadMovers('nifty500',this)">NIFTY 500</button>
-    <button class="f-btn" onclick="loadMovers('banknifty',this)">BANK NIFTY</button>
-    <button class="f-btn" onclick="loadMovers('niftyit',this)">NIFTY IT</button>
-    <button class="f-btn" onclick="loadMovers('midcap100',this)">MIDCAP 100</button>
-    <button class="f-btn" onclick="loadMovers('smallcap',this)">SMALLCAP 100</button>
+    <button class="f-btn active" data-index="nifty50"   onclick="selectIndex('nifty50',this)">NIFTY 50</button>
+    <button class="f-btn"        data-index="nifty500"  onclick="selectIndex('nifty500',this)">NIFTY 500</button>
+    <button class="f-btn"        data-index="banknifty" onclick="selectIndex('banknifty',this)">BANK NIFTY</button>
+    <button class="f-btn"        data-index="niftyit"   onclick="selectIndex('niftyit',this)">NIFTY IT</button>
+    <button class="f-btn"        data-index="midcap100" onclick="selectIndex('midcap100',this)">MIDCAP 100</button>
+    <button class="f-btn"        data-index="smallcap"  onclick="selectIndex('smallcap',this)">SMALLCAP 100</button>
+    <button class="scan-btn" id="scanNowBtn" onclick="scanNow()" style="margin-left:6px">&#9654; Scan Now</button>
   </div>
 </div>
 
@@ -272,9 +273,7 @@
   <span class="s-chip"       id="chipUnch">— unchanged</span>
   <span class="s-sep">|</span>
   <span class="s-chip cyan"  id="chipTime">Loading…</span>
-  <span class="s-source" id="chipSource"><span id="liveDot" style="display:none" class="live-dot"></span><span id="chipSourceTxt"></span></span>
-  <span id="countdownBadge" style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-left:4px"></span>
-  <button class="refresh-btn" onclick="refresh()">↻ Refresh</button>
+  <span class="s-source" id="chipSource"><span id="chipSourceTxt"></span></span>
 </div>
 
 <!-- ── Main content ── -->
@@ -292,13 +291,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 const API = '/api';
-let _currentIndex  = 'nifty50';
-let _autoTimer     = null;
-let _countdownTimer= null;
-let _priceTimer    = null;
-let _nextRefresh   = 0;
-const REFRESH_SEC  = 30;
-const PRICE_SEC    = 5;
+let _currentIndex = 'nifty50';
 
 // Row cache: symbol → row data (avoids embedding JSON in HTML attributes)
 const _rowCache = {};
@@ -414,9 +407,6 @@ function _renderData(d) {
   document.getElementById('chipUnch').textContent  = `${d.unchanged} unchanged`;
   document.getElementById('chipTime').textContent  = `Updated ${_fmtTime(d.fetched_at)}`;
   document.getElementById('chipSourceTxt').textContent = d.source;
-  document.getElementById('liveDot').style.display = d.source === 'NSE Live' ? 'inline-block' : 'none';
-  const lastBadge = document.getElementById('lastUpdateBadge');
-  if (lastBadge) lastBadge.textContent = d.index;
 
   // A/D ratio colour
   const ratio = d.advancing / (d.declining || 1);
@@ -429,21 +419,22 @@ function _renderData(d) {
 
 // ── Fetch ────────────────────────────────────────────────────────────────────
 
-async function loadMovers(index, btn) {
+function selectIndex(index, btn) {
   _currentIndex = index;
-  _resetCountdown();
-  _startPricePoll();
-
-  // Update active button (btn is undefined on auto-refresh — find by index)
   document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
-  const activeBtn = btn || document.querySelector(`.f-btn[onclick*="'${index}'"]`);
-  if (activeBtn) activeBtn.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+async function scanNow() {
+  const btn = document.getElementById('scanNowBtn');
+  btn.disabled  = true;
+  btn.innerHTML = `<span class="spinner" style="width:11px;height:11px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px"></span>Scanning…`;
 
   document.getElementById('moversWrap').innerHTML =
     '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div><br>Fetching data…</div>';
 
   try {
-    const d = await fetch(`${API}/stocks/movers?index=${index}`).then(r => r.json());
+    const d = await fetch(`${API}/stocks/movers?index=${_currentIndex}`).then(r => r.json());
     if (d.error) {
       document.getElementById('moversWrap').innerHTML =
         `<div class="error-state" style="grid-column:1/-1">⚠ ${d.error}</div>`;
@@ -453,80 +444,18 @@ async function loadMovers(index, btn) {
   } catch(e) {
     document.getElementById('moversWrap').innerHTML =
       `<div class="error-state" style="grid-column:1/-1">Failed to load: ${e.message}</div>`;
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '&#9654; Scan Now';
   }
 }
 
-function refresh() {
-  _resetCountdown();
-  loadMovers(_currentIndex, document.querySelector('.f-btn.active'));
-}
-
-function _resetCountdown() {
-  _nextRefresh = Date.now() + REFRESH_SEC * 1000;
-}
-
-function _startCountdown() {
-  if (_countdownTimer) clearInterval(_countdownTimer);
-  _resetCountdown();
-  _countdownTimer = setInterval(() => {
-    const secs = Math.max(0, Math.round((_nextRefresh - Date.now()) / 1000));
-    const el   = document.getElementById('countdownBadge');
-    if (el) el.textContent = secs > 0 ? `↻ ${secs}s` : '';
-    if (secs === 0) {
-      _resetCountdown();
-      loadMovers(_currentIndex);
-    }
-  }, 1000);
-}
 
 
 
-
-// ── Live price polling ────────────────────────────────────────────────────────
-
-function _updateLtp(sym, newLtp) {
-  const row = document.querySelector(`tr[data-sym="${sym}"]`);
-  if (!row) return;
-  const cell = row.querySelector('.ltp-val');
-  if (!cell) return;
-  const oldLtp = parseFloat(cell.dataset.ltp || '0');
-  if (newLtp === oldLtp) return;
-  cell.dataset.ltp = newLtp;
-  cell.textContent = _fmtPrice(newLtp);
-  // Flash green if price went up, red if down
-  cell.classList.remove('flash-up', 'flash-down');
-  void cell.offsetWidth; // force reflow to restart animation
-  cell.classList.add(newLtp > oldLtp ? 'flash-up' : 'flash-down');
-  if (_rowCache[sym]) _rowCache[sym].ltp = newLtp;
-}
-
-async function _pollPrices() {
-  if (!document.querySelector('tr[data-sym]')) return; // table not rendered yet
-  try {
-    const d = await fetch(`${API}/stocks/live-prices?index=${_currentIndex}`).then(r => r.json());
-    if (d.prices) {
-      Object.entries(d.prices).forEach(([sym, info]) => {
-        const ltp = typeof info === 'object' ? info.ltp : info;
-        if (ltp != null) _updateLtp(sym, ltp);
-      });
-      // Update source indicator
-      if (d.source) {
-        document.getElementById('chipSourceTxt').textContent = d.source;
-        document.getElementById('liveDot').style.display = d.source === 'NSE Live' ? 'inline-block' : 'none';
-      }
-    }
-  } catch (_) {}  // silent fail — stale data is fine
-}
-
-function _startPricePoll() {
-  if (_priceTimer) clearInterval(_priceTimer);
-  _priceTimer = setInterval(_pollPrices, PRICE_SEC * 1000);
-}
-
-// Init
-loadMovers('nifty50', document.querySelector('.f-btn.active'));
-_startCountdown();
-_startPricePoll();
+// Init — no auto-refresh; user taps Scan Now
+document.getElementById('moversWrap').innerHTML =
+  '<div class="loading-state" style="grid-column:1/-1" style="color:var(--muted);font-size:13px;padding:40px;text-align:center">Select an index above and tap <strong>Scan Now</strong></div>';
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

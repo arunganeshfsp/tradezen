@@ -4141,9 +4141,88 @@ def stocks_indicators(symbol: str = "RELIANCE"):
         return {"error": str(e)}
 
 
+def _nifty500_movers_sync() -> dict:
+    import time as _time
+    _TTL = 300
+    cached = _ltp_cache.get("_n500_movers")
+    if cached and (_time.time() - cached["ts"]) < _TTL:
+        return cached["data"]
+
+    smart = _get_smart()
+    if not smart:
+        return {"error": "SmartAPI auth failed"}
+
+    n500    = _fetch_nifty500_symbols()
+    all_eq  = _load_all_eq_stocks()
+    matched = [s for s in all_eq if s["symbol"].upper() in n500]
+
+    depth_map: dict = {}
+    for i in range(0, len(matched), 50):
+        if i > 0:
+            _time.sleep(0.15)
+        batch = [s["token"] for s in matched[i: i + 50]]
+        try:
+            resp = smart.getMarketData("FULL", {"NSE": batch})
+            for item in (resp or {}).get("data", {}).get("fetched") or []:
+                depth_map[str(item.get("symbolToken"))] = item
+        except Exception as e:
+            log.warning(f"[N500-MOVERS] batch {i}: {e}")
+
+    rows = []
+    for s in matched:
+        d = depth_map.get(s["token"])
+        if not d:
+            continue
+        ltp = float(d.get("ltp") or 0)
+        if not ltp:
+            continue
+        pct  = round(float(d.get("percentChange") or 0), 2)
+        prev = float(d.get("close") or 0)
+        if not prev and pct != -100:
+            prev = round(ltp / (1 + pct / 100), 2)
+        rows.append({
+            "symbol":     s["symbol"],
+            "ltp":        round(ltp, 2),
+            "change":     round(ltp - prev, 2),
+            "pct_change": pct,
+            "prev_close": round(prev, 2),
+            "open":       round(float(d.get("open") or 0), 2),
+            "high":       round(float(d.get("high") or 0), 2),
+            "low":        round(float(d.get("low") or 0), 2),
+            "volume":     int(d.get("tradeVolume") or 0),
+        })
+
+    if not rows:
+        return {"error": "No Nifty 500 data available"}
+
+    rows.sort(key=lambda r: r["pct_change"], reverse=True)
+    now = _time.time()
+    advancing = sum(1 for r in rows if r["pct_change"] > 0)
+    declining = sum(1 for r in rows if r["pct_change"] < 0)
+    result = {
+        "index":      "NIFTY 500",
+        "source":     "Angel One",
+        "count":      len(rows),
+        "advancing":  advancing,
+        "declining":  declining,
+        "unchanged":  len(rows) - advancing - declining,
+        "gainers":    rows[:10],
+        "losers":     list(reversed(rows[-10:])),
+        "fetched_at": int(now),
+    }
+    _ltp_cache["_n500_movers"] = {"data": result, "ts": now}
+    return result
+
+
 @app.get("/stocks/movers")
 def stocks_movers(index: str = "nifty50"):
     """Top/bottom 10 movers for the given NSE index. 5-minute cache."""
+    if index == "nifty500":
+        try:
+            return _nifty500_movers_sync()
+        except Exception as e:
+            log.error(f"stocks/movers nifty500 error: {e}")
+            return {"error": str(e)}
     from core.movers import fetch_movers as _fetch_movers
     try:
         return _fetch_movers(index)
