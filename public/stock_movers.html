@@ -251,15 +251,9 @@
 <!-- ── Hero ── -->
 <div class="hero">
   <div class="hero-title">Market Movers</div>
-  <div class="hero-sub">Top &amp; Bottom stocks by index · Dominance Scanner for NSE equities</div>
+  <div class="hero-sub">Top gainers &amp; losers across NSE indices · Tap any stock to analyse</div>
 
-  <div class="mode-tabs">
-    <button class="mode-tab active" data-mode="movers" onclick="setMode('movers')">▲▼ Movers</button>
-    <button class="mode-tab" data-mode="scanner" onclick="setMode('scanner')">📊 Stock Scanner</button>
-  </div>
-
-  <!-- Movers index filter (visible in movers mode) -->
-  <div id="moversControls" class="filter-bar" style="margin-top:12px">
+  <div class="filter-bar" style="margin-top:14px">
     <button class="f-btn active" onclick="loadMovers('nifty50',this)">NIFTY 50</button>
     <button class="f-btn" onclick="loadMovers('nifty500',this)">NIFTY 500</button>
     <button class="f-btn" onclick="loadMovers('banknifty',this)">BANK NIFTY</button>
@@ -267,91 +261,6 @@
     <button class="f-btn" onclick="loadMovers('midcap100',this)">MIDCAP 100</button>
     <button class="f-btn" onclick="loadMovers('smallcap',this)">SMALLCAP 100</button>
   </div>
-</div>
-
-<!-- ── Stock Scanner (hidden until scanner mode active) ── -->
-<div id="scannerSection" style="display:none">
-  <!-- Controls -->
-  <div class="ctrl-bar">
-    <div class="ctrl-group">
-      <div class="ctrl-label">Index</div>
-      <div class="toggle-group" id="scanUnivGrp">
-        <button class="tog-btn active" data-val="nifty50"  onclick="setScanUniv('nifty50')">Nifty 50</button>
-        <button class="tog-btn"        data-val="nifty500" onclick="setScanUniv('nifty500')">Nifty 500</button>
-        <button class="tog-btn"        data-val="all"      onclick="setScanUniv('all')">All NSE</button>
-      </div>
-    </div>
-    <div class="ctrl-group" id="scanPriceGrp" style="display:none">
-      <div class="ctrl-label">Price Range (₹)</div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <input id="scanMinPrice" class="price-input" type="number" value="100" min="1">
-        <span style="color:var(--muted);font-size:12px">–</span>
-        <input id="scanMaxPrice" class="price-input" type="number" value="5000" min="1">
-      </div>
-    </div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">Min Change</div>
-      <div class="toggle-group" id="scanChgGrp">
-        <button class="tog-btn"        data-val="0" onclick="setScanChg(0)">Any</button>
-        <button class="tog-btn active" data-val="2" onclick="setScanChg(2)">≥2%</button>
-        <button class="tog-btn"        data-val="4" onclick="setScanChg(4)">≥4%</button>
-        <button class="tog-btn"        data-val="8" onclick="setScanChg(8)">≥8%</button>
-      </div>
-    </div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">Direction</div>
-      <div class="toggle-group" id="scanDomGrp">
-        <button class="tog-btn active" data-val="all"    onclick="setScanDom('all')">All</button>
-        <button class="tog-btn"        data-val="buyer"  onclick="setScanDom('buyer')">▲ Rising</button>
-        <button class="tog-btn"        data-val="seller" onclick="setScanDom('seller')">▼ Falling</button>
-      </div>
-    </div>
-    <div class="ctrl-group">
-      <div class="ctrl-label">Show</div>
-      <div class="toggle-group" id="scanLimitGrp">
-        <button class="tog-btn active" data-val="20"  onclick="setScanLimit(20)">20</button>
-        <button class="tog-btn"        data-val="50"  onclick="setScanLimit(50)">50</button>
-        <button class="tog-btn"        data-val="100" onclick="setScanLimit(100)">100</button>
-      </div>
-    </div>
-    <button class="scan-btn" id="scanNowBtn" onclick="fetchStockScanner()">&#9654; Scan</button>
-  </div>
-
-  <!-- Results -->
-  <div style="padding:16px 28px 24px">
-    <div id="scanMeta" style="display:none;font-family:'JetBrains Mono',monospace;font-size:10px;
-         color:var(--muted);margin-bottom:10px;display:flex;gap:14px;align-items:center"></div>
-    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
-      <table class="sc-table">
-        <thead>
-          <tr>
-            <th style="text-align:left">#</th>
-            <th style="text-align:left">Stock</th>
-            <th>Price</th>
-            <th>Change</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="scanBody">
-          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">
-            Select an index and tap Scan
-          </td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p style="font-size:10px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5">
-      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
-    </p>
-  </div>
-</div>
-
-<!-- ── Indicators Modal ── -->
-<div id="indOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;backdrop-filter:blur(4px)"
-     onclick="if(event.target===this)closeModal()"></div>
-<div id="indModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-     width:min(520px,95vw);max-height:90vh;overflow-y:auto;background:#0f1225;
-     border:1px solid rgba(255,255,255,.1);border-radius:14px;z-index:501;box-shadow:0 24px 60px rgba(0,0,0,.6)">
-  <!-- Modal content injected by JS -->
 </div>
 
 <!-- ── Stats strip ── -->
@@ -447,11 +356,11 @@ function _renderRows(rows, isGainer) {
     const sign    = r.pct_change >= 0 ? '+' : '';
     const chgSign = r.change >= 0 ? '+' : '';
     return `
-    <tr data-sym="${r.symbol}" style="cursor:pointer" onclick="openModal('${r.symbol}')" title="Tap for entry signals">
+    <tr data-sym="${r.symbol}" style="cursor:pointer" onclick="window.open('/stock-analyser.html?symbol=${encodeURIComponent(r.symbol)}','_blank')" title="Tap to analyse this stock">
       <td><span class="rank ${isGainer?'top':'bot'}">${i+1}</span></td>
       <td>
         <div class="sym-cell">
-          <span class="sym-name">${r.symbol} <span style="font-size:9px;color:var(--muted)">↗</span></span>
+          <span class="sym-name">${r.symbol}</span>
           <span class="sym-meta">PREV ₹${r.prev_close}</span>
         </div>
       </td>
@@ -570,222 +479,8 @@ function _startCountdown() {
   }, 1000);
 }
 
-// ── Indicators Modal ─────────────────────────────────────────────────────────
 
-async function openModal(sym) {
-  const row     = _rowCache[sym] || {symbol: sym, ltp: null, pct_change: 0};
-  const overlay = document.getElementById('indOverlay');
-  const modal   = document.getElementById('indModal');
-  modal.innerHTML = _modalLoading(row);
-  overlay.style.display = 'block';
-  modal.style.display   = 'block';
-  try {
-    const d = await fetch(`${API}/stocks/indicators?symbol=${encodeURIComponent(sym)}`).then(r => r.json());
-    modal.innerHTML = d.error ? _modalError(row, d.error) : _modalContent(row, d);
-  } catch(e) {
-    modal.innerHTML = _modalError(row, e.message);
-  }
-}
 
-function closeModal() {
-  document.getElementById('indOverlay').style.display = 'none';
-  document.getElementById('indModal').style.display   = 'none';
-}
-
-function _closeBtn() {
-  return `<button onclick="closeModal()" style="position:absolute;top:14px;right:16px;
-    background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;line-height:1;z-index:1">✕</button>`;
-}
-
-function _fmtInd(v) {
-  if (v == null) return '—';
-  return '₹' + v.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-function _modalLoading(row) {
-  const sign = row.pct_change >= 0 ? '+' : '';
-  const clr  = row.pct_change >= 0 ? 'var(--green)' : 'var(--red)';
-  return `
-  <div style="padding:20px 22px 26px;position:relative">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-right:28px;margin-bottom:20px">
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff">${row.symbol}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.5px">NSE • Entry Indicators</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:16px;font-weight:700;color:#fff">${_fmtPrice(row.ltp)}</div>
-        <div style="font-size:12px;font-weight:600;color:${clr}">${sign}${row.pct_change.toFixed(2)}%</div>
-      </div>
-    </div>
-    <div style="text-align:center;padding:30px 0;color:var(--muted)">
-      <div class="spinner"></div><br>Loading indicators…
-    </div>
-  </div>
-  ${_closeBtn()}`;
-}
-
-function _modalError(row, msg) {
-  return `
-  <div style="padding:20px 22px 26px;position:relative">
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;margin-bottom:16px">${row.symbol}</div>
-    <div style="color:var(--red);font-size:13px;padding:20px;text-align:center">⚠ ${msg}</div>
-  </div>
-  ${_closeBtn()}`;
-}
-
-function _indCard(name, tf, val, dist, isAbove, isST, stDir) {
-  const bull = isST ? stDir === 'up' : isAbove;
-  if (val == null) return `
-  <div class="ind-card">
-    <div class="ind-label">${name}<span class="ind-tf">${tf}</span></div>
-    <div class="ind-val" style="color:var(--muted)">—</div>
-  </div>`;
-
-  const distStr = dist != null ? `${dist >= 0 ? '+' : ''}${dist.toFixed(2)}%` : '';
-  const distClr = dist != null ? (dist >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
-  let statusTxt, statusClr;
-  if (isST) {
-    statusTxt = stDir === 'up' ? '▲ BULLISH' : stDir === 'down' ? '▼ BEARISH' : '— NEUTRAL';
-    statusClr = stDir === 'up' ? 'var(--green)' : stDir === 'down' ? 'var(--red)' : 'var(--muted)';
-  } else {
-    statusTxt = isAbove ? '▲ ABOVE' : '▼ BELOW';
-    statusClr = isAbove ? 'var(--green)' : 'var(--red)';
-  }
-  return `
-  <div class="ind-card ${bull ? 'ind-bull' : 'ind-bear'}">
-    <div class="ind-label">${name}<span class="ind-tf">${tf}</span></div>
-    <div class="ind-val">${_fmtInd(val)}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
-      <span style="font-size:10px;color:${distClr}">${distStr}</span>
-      <span class="ind-status" style="color:${statusClr}">${statusTxt}</span>
-    </div>
-  </div>`;
-}
-
-function _rsiCard(rsiObj, label, isBullish) {
-  if (!rsiObj || rsiObj.value == null) return `
-  <div class="rsi-card">
-    <div class="ind-label">${label}<span class="ind-tf">${rsiObj ? rsiObj.timeframe : '—'}</span></div>
-    <div class="ind-val" style="color:var(--muted)">—</div>
-  </div>`;
-
-  const v = rsiObj.value;
-  const zone = rsiObj.zone;
-  const zoneMap = {
-    overbought: {txt:'OVERBOUGHT', clr:'#e67e22', bg:'rgba(230,126,34,.15)'},
-    bullish:    {txt:'BULLISH',    clr:'#2ecc71', bg:'rgba(46,204,113,.12)'},
-    bearish:    {txt:'BEARISH',    clr:'#e74c3c', bg:'rgba(231,76,60,.12)'},
-    oversold:   {txt:'OVERSOLD',   clr:'#e67e22', bg:'rgba(230,126,34,.15)'},
-  };
-  const z    = zoneMap[zone] || zoneMap.bearish;
-  const pct  = Math.min(100, v);                          // 0-100 maps to 0-100%
-  const dotClr = z.clr;
-  const barClr = zone === 'overbought' ? 'rgba(230,126,34,.5)'
-               : zone === 'bullish'    ? 'rgba(46,204,113,.5)'
-               : zone === 'oversold'   ? 'rgba(230,126,34,.5)'
-               :                         'rgba(231,76,60,.5)';
-  const borderClr = isBullish ? 'rgba(46,204,113,.2)' : 'rgba(231,76,60,.15)';
-  return `
-  <div class="rsi-card" style="border-color:${borderClr}">
-    <div class="ind-label">${label}<span class="ind-tf">${rsiObj.timeframe}</span></div>
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:16px;font-weight:700;color:#fff">${v}</span>
-      <span class="rsi-zone-badge" style="color:${z.clr};background:${z.bg}">${z.txt}</span>
-    </div>
-    <div class="rsi-bar-wrap">
-      <div class="rsi-bar-fill" style="width:${pct}%;background:${barClr}"></div>
-      <div class="rsi-bar-mid"></div>
-      <div class="rsi-bar-dot" style="left:${pct}%;background:${dotClr}"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
-      <span>0 oversold</span><span>50</span><span>70 overbought</span>
-    </div>
-  </div>`;
-}
-
-function _modalContent(row, d) {
-  const sign   = row.pct_change >= 0 ? '+' : '';
-  const chgClr = row.pct_change >= 0 ? 'var(--green)' : 'var(--red)';
-  const ind    = d.indicators;
-  const checks = d.checks;
-  const biasHex = {green:'#2ecc71', cyan:'#00d4ff', yellow:'#f1c40f', orange:'#e67e22', red:'#e74c3c'};
-  const biasClr = biasHex[d.bias_color] || '#fff';
-  const scorePct = Math.round((d.score / d.max_score) * 100);
-
-  const cards = [
-    _indCard('VWAP',       ind.vwap.timeframe,        ind.vwap.value,        ind.vwap.dist_pct,        checks.above_vwap,    false),
-    _indCard('EMA 9',      ind.ema9.timeframe,         ind.ema9.value,        ind.ema9.dist_pct,        checks.above_ema9,    false),
-    _indCard('EMA 21',     ind.ema21.timeframe,        ind.ema21.value,       ind.ema21.dist_pct,       checks.above_ema21,   false),
-    _indCard('EMA 50',     ind.ema50.timeframe,        ind.ema50.value,       ind.ema50.dist_pct,       checks.above_ema50,   false),
-    _indCard('EMA 200',    ind.ema200.timeframe,       ind.ema200.value,      ind.ema200.dist_pct,      checks.above_ema200,  false),
-    _indCard('Supertrend', ind.supertrend.timeframe,   ind.supertrend.value,  ind.supertrend.dist_pct,  false, true, ind.supertrend.direction),
-  ].join('');
-
-  const rsiCards =
-    _rsiCard(ind.rsi_5m, 'RSI 14', checks.rsi_5m_bullish) +
-    _rsiCard(ind.rsi_1d, 'RSI 14', checks.rsi_1d_bullish);
-
-  const checkRows = [
-    {k:'above_vwap',       l:'Above VWAP (Today)'},
-    {k:'above_ema9',       l:'Above EMA 9  (5-min)'},
-    {k:'above_ema21',      l:'Above EMA 21 (5-min)'},
-    {k:'ema9_above_ema21', l:'EMA 9 > EMA 21'},
-    {k:'above_ema50',      l:'Above EMA 50 (Daily)'},
-    {k:'above_ema200',     l:'Above EMA 200 (Daily)'},
-    {k:'supertrend_up',    l:'Supertrend Bullish (5-min)'},
-    {k:'rsi_5m_bullish',   l:'RSI 14 > 50  (5-min)'},
-    {k:'rsi_1d_bullish',   l:'RSI 14 > 50  (Daily)'},
-  ].map(c => `
-    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-      <span style="font-size:13px;line-height:1">${checks[c.k] ? '✅' : '❌'}</span>
-      <span style="font-size:11px;color:${checks[c.k] ? '#fff' : 'var(--muted)'}">${c.l}</span>
-    </div>`).join('');
-
-  return `
-  <div style="padding:20px 22px 22px;position:relative">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-right:28px;margin-bottom:18px">
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff">${d.symbol}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.5px">NSE • Entry Signals</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:16px;font-weight:700;color:#fff">${_fmtInd(d.ltp)}</div>
-        <div style="font-size:12px;font-weight:600;color:${chgClr}">${sign}${row.pct_change.toFixed(2)}%</div>
-      </div>
-    </div>
-
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span style="font-size:10px;letter-spacing:1px;color:var(--muted)">ENTRY BIAS</span>
-        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:${biasClr}">${d.bias}</span>
-      </div>
-      <div style="background:rgba(255,255,255,.08);border-radius:4px;height:8px;overflow:hidden">
-        <div style="height:100%;width:${scorePct}%;background:${biasClr};border-radius:4px"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px">
-        <span style="font-size:10px;color:var(--muted)">BEARISH</span>
-        <span style="font-size:10px;color:var(--muted)">${d.score} / ${d.max_score} signals</span>
-        <span style="font-size:10px;color:var(--muted)">BULLISH</span>
-      </div>
-    </div>
-
-    <div class="ind-grid">${cards}</div>
-
-    <div style="font-size:10px;letter-spacing:.8px;color:var(--muted);margin:14px 0 6px">RSI 14 — MOMENTUM</div>
-    <div class="rsi-row">${rsiCards}</div>
-
-    <div style="margin-top:14px;padding:12px 16px;background:rgba(255,255,255,.03);
-                border:1px solid rgba(255,255,255,.07);border-radius:10px">
-      <div style="font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:8px">SIGNAL CHECKLIST</div>
-      ${checkRows}
-    </div>
-
-    <div style="margin-top:12px;font-size:10px;color:var(--muted);text-align:center">
-      5-min intraday • Daily • RSI 14 • cached 3 min
-    </div>
-  </div>
-  ${_closeBtn()}`;
-}
 
 // ── Live price polling ────────────────────────────────────────────────────────
 
@@ -802,7 +497,6 @@ function _updateLtp(sym, newLtp) {
   cell.classList.remove('flash-up', 'flash-down');
   void cell.offsetWidth; // force reflow to restart animation
   cell.classList.add(newLtp > oldLtp ? 'flash-up' : 'flash-down');
-  // Also update _rowCache so modal shows fresh price
   if (_rowCache[sym]) _rowCache[sym].ltp = newLtp;
 }
 
@@ -834,122 +528,6 @@ loadMovers('nifty50', document.querySelector('.f-btn.active'));
 _startCountdown();
 _startPricePoll();
 
-// ── Mode toggle ──────────────────────────────────────────────────────────────
-
-let _currentMode = 'movers';
-
-function setMode(mode) {
-  _currentMode = mode;
-  const isScanner = mode === 'scanner';
-  document.querySelectorAll('.mode-tab').forEach(b =>
-    b.classList.toggle('active', b.dataset.mode === mode));
-  document.getElementById('moversControls').style.display  = isScanner ? 'none' : '';
-  document.getElementById('statsStrip').style.display      = isScanner ? 'none' : '';
-  document.getElementById('moversWrap').style.display      = isScanner ? 'none' : '';
-  document.getElementById('scannerSection').style.display  = isScanner ? 'block' : 'none';
-  if (isScanner) {
-    // Stop movers auto-refresh timers while in scanner mode
-    if (_autoTimer)     { clearInterval(_autoTimer);     _autoTimer = null; }
-    if (_countdownTimer){ clearInterval(_countdownTimer); _countdownTimer = null; }
-    if (_priceTimer)    { clearInterval(_priceTimer);    _priceTimer = null; }
-  } else {
-    _startCountdown();
-    _startPricePoll();
-  }
-}
-
-// ── Scanner state ─────────────────────────────────────────────────────────────
-
-let _scanUniv  = 'nifty50';
-let _scanDom   = 'all';
-let _scanLimit = 20;
-let _scanChg   = 2;
-let _allScanStocks = [];
-
-function setScanUniv(val) {
-  _scanUniv = val;
-  _togActive('scanUnivGrp', val);
-  document.getElementById('scanPriceGrp').style.display = val === 'all' ? 'flex' : 'none';
-}
-function setScanDom(val)   { _scanDom   = val; _togActive('scanDomGrp',   val); }
-function setScanLimit(val) { _scanLimit = val; _togActive('scanLimitGrp', String(val)); }
-function setScanChg(val)   { _scanChg   = val; _togActive('scanChgGrp',   String(val)); _applyScanFilter(); }
-
-function _togActive(grpId, val) {
-  document.querySelectorAll(`#${grpId} .tog-btn`).forEach(b =>
-    b.classList.toggle('active', b.dataset.val === val));
-}
-
-// ── Scan fetch ────────────────────────────────────────────────────────────────
-
-async function fetchStockScanner() {
-  const btn   = document.getElementById('scanNowBtn');
-  const tbody = document.getElementById('scanBody');
-  const isAll = _scanUniv === 'all';
-
-  btn.disabled  = true;
-  btn.innerHTML = `<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>${isAll ? 'Scanning all NSE…' : 'Scanning…'}`;
-  tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">
-    <div class="spinner" style="margin:0 auto 10px"></div>
-    ${isAll ? 'Scanning all NSE stocks — this may take up to 30s…' : 'Scanning…'}
-  </td></tr>`;
-
-  const min = document.getElementById('scanMinPrice').value || 100;
-  const max = document.getElementById('scanMaxPrice').value || 5000;
-  const url = `/api/stock-scanner?universe=${_scanUniv}&min_price=${min}&max_price=${max}&limit=${_scanLimit}&dominance=${_scanDom}&sort_by=change`;
-
-  try {
-    const res  = await fetch(url);
-    const data = await res.json();
-    if (data.error) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--red)">⚠ ${data.error}</td></tr>`;
-      return;
-    }
-    _allScanStocks = data.stocks || [];
-    const meta = document.getElementById('scanMeta');
-    meta.style.display = 'flex';
-    meta.innerHTML = `<span>${data.total_matched} stocks matched</span><span style="color:var(--border)">|</span><span>Showing top ${_allScanStocks.length}</span><span style="color:var(--border)">|</span><span>Updated ${data.timestamp}</span>`;
-    _applyScanFilter();
-  } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--red)">⚠ ${e.message}</td></tr>`;
-  } finally {
-    btn.disabled  = false;
-    btn.innerHTML = '&#9654; Scan Now';
-  }
-}
-
-function _applyScanFilter() {
-  const tbody   = document.getElementById('scanBody');
-  const visible = _scanChg === 0
-    ? _allScanStocks
-    : _allScanStocks.filter(s => Math.abs(s.change_pct) >= _scanChg);
-
-  if (!visible.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">No stocks with ≥${_scanChg}% move right now</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = visible.map((s, i) => {
-    const isUp    = s.change_pct > 0;
-    const chgSign = isUp ? '+' : '';
-    const chgClr  = isUp ? 'var(--green)' : s.change_pct < 0 ? 'var(--red)' : 'var(--muted)';
-    const bgClr   = isUp ? 'rgba(46,204,113,.10)' : s.change_pct < 0 ? 'rgba(231,76,60,.10)' : 'rgba(255,255,255,.04)';
-    const sym     = encodeURIComponent(s.symbol);
-    return `
-    <tr onclick="window.open('/stock-analyser.html?symbol=${sym}','_blank')" title="View analysis">
-      <td style="color:var(--muted);font-size:11px">${i+1}</td>
-      <td class="sc-sym">${s.symbol}</td>
-      <td style="font-weight:600">₹${s.ltp.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td>
-        <span style="display:inline-block;padding:4px 10px;border-radius:8px;font-weight:700;font-size:12px;
-              background:${bgClr};color:${chgClr}">${chgSign}${s.change_pct}%</span>
-      </td>
-      <td onclick="event.stopPropagation()">
-        <button class="sc-analyse" onclick="window.open('/stock-analyser.html?symbol=${sym}','_blank')">▶ Analyse</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
