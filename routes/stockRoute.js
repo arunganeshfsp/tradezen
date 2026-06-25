@@ -743,16 +743,6 @@ router.get("/fno-scanner", async (req, res) => {
   }
 });
 
-// ─── GET /api/debug/nifty500 ─────────────────────────────────────────────────
-router.get("/debug/nifty500", async (req, res) => {
-  try {
-    const data = await aiService.proxy("GET", "/debug/nifty500", 30000);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // ─── GET /api/stock-scanner ───────────────────────────────────────────────────
 // Buy/sell dominance scanner for NSE EQ stocks (not F&O)
 // ?universe=nifty50|nifty500|all&min_price=100&max_price=5000&limit=20&dominance=all
