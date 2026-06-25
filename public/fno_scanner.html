@@ -57,6 +57,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 .tog-btn.active{background:var(--bg3);border-color:var(--accent);color:var(--accent)}
 .scan-btn{padding:8px 24px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;transition:all .15s;margin-left:auto}
 .scan-btn:hover{opacity:.85;transform:translateY(-1px)}
+.scan-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
 .auto-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--dim)}
 .auto-toggle input{display:none}
 .switch{width:36px;height:20px;background:var(--bg4);border-radius:10px;position:relative;transition:background .2s;border:1px solid var(--border2)}
@@ -527,12 +528,21 @@ function fmtPrice(v) {
 }
 
 async function fetchScanner() {
-  const min    = document.getElementById('minPrice').value || 1000;
-  const max    = document.getElementById('maxPrice').value || 2000;
-  const n50    = universeFilter === 'nifty50'   ? '&nifty50=true'     : '';
-  const n500   = universeFilter === 'nifty500'  ? '&nifty500=true'    : '';
-  const allEq  = universeFilter === 'all_nse'   ? '&all_stocks=true'  : '';
-  const url = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}${n50}${n500}${allEq}`;
+  const btn   = document.querySelector('.scan-btn');
+  const tbody = document.getElementById('tableBody');
+  const isAllNse = universeFilter === 'all_nse';
+  const scanMsg  = isAllNse ? 'Scanning all NSE stocks — this may take up to 30s…' : 'Scanning…';
+
+  btn.disabled   = true;
+  btn.innerHTML  = `<span class="spinner"></span>${isAllNse ? 'Scanning all NSE…' : 'Scanning…'}`;
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="10"><span class="spinner"></span>${scanMsg}</td></tr>`;
+
+  const min   = document.getElementById('minPrice').value || 1000;
+  const max   = document.getElementById('maxPrice').value || 2000;
+  const n50   = universeFilter === 'nifty50'   ? '&nifty50=true'    : '';
+  const n500  = universeFilter === 'nifty500'  ? '&nifty500=true'   : '';
+  const allEq = universeFilter === 'all_nse'   ? '&all_stocks=true' : '';
+  const url   = `/api/fno-scanner?min_price=${min}&max_price=${max}&limit=${limitCount}&dominance=${dominanceFilter}${n50}${n500}${allEq}`;
 
   try {
     const res  = await fetch(url);
@@ -541,15 +551,12 @@ async function fetchScanner() {
     document.getElementById('lastUpdated').textContent  = data.timestamp || '—';
     document.getElementById('matchedCount').textContent = data.total_matched != null ? `${data.total_matched} stocks` : '—';
 
-    const tbody = document.getElementById('tableBody');
-
     if (data.error) {
       tbody.innerHTML = `<tr class="empty-row"><td colspan="10">⚠ ${data.error}</td></tr>`;
       return;
     }
-
     if (!data.stocks || data.stocks.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No stocks matched the current filters</td></tr>';
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="10">No stocks matched the current filters</td></tr>`;
       return;
     }
 
@@ -557,8 +564,10 @@ async function fetchScanner() {
     _applyAndRender();
   } catch (err) {
     console.error(err);
-    document.getElementById('tableBody').innerHTML =
-      `<tr class="empty-row"><td colspan="10">⚠ Engine unreachable — retrying…</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">⚠ Engine unreachable — retrying…</td></tr>`;
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '&#9654; Scan Now';
   }
 }
 
