@@ -632,7 +632,7 @@ body.is-fullscreen .fs-close-btn{display:flex}
   <button class="tab-btn active" onclick="showTab('chain',this)">Option Chain</button>
   <button class="tab-btn" onclick="showTab('analytics',this)">Max Pain &amp; PCR</button>
   <button class="tab-btn" onclick="showTab('monitor',this)">Trade Monitor</button>
-  <button class="tab-btn" onclick="showTab('history',this)">Contract History</button>
+  <a class="tab-btn" style="text-decoration:none" href="#" onclick="event.preventDefault();window.open('/theta_decay.html?symbol='+(document.getElementById('symbolInput').value.trim().toUpperCase()||'NIFTY'),'_blank')">Theta Decay ↗</a>
 </div>
 
 <!-- Tab: Option Chain -->
@@ -700,45 +700,6 @@ body.is-fullscreen .fs-close-btn{display:flex}
   <div id="monitorResult"></div>
 </div>
 
-<!-- Tab: Contract History -->
-<div class="tab-panel" id="tab-history">
-  <div class="tab-bar-actions">
-    <div class="tb-field"><label>Strike</label><input type="number" id="chStrike" placeholder="e.g. 24100" step="50" style="width:110px"></div>
-    <div class="tb-field"><label>Type</label>
-      <div class="dir-toggle">
-        <button class="dir-btn active-CE" id="chBtnCE" onclick="chSetDir('CE')">CE</button>
-        <button class="dir-btn" id="chBtnPE" onclick="chSetDir('PE')">PE</button>
-      </div>
-    </div>
-    <div class="tb-field"><label>Expiry</label>
-      <div class="select-wrap" style="width:155px">
-        <select id="chExpiry" onchange="onChExpiryChange()">
-          <option value="">Select expiry…</option>
-        </select>
-        <svg class="sel-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
-    </div>
-    <div class="tb-field"><label>From Date</label><input type="date" id="chFromDate" style="width:130px"></div>
-    <div class="tb-field"><label>To Date</label><input type="date" id="chToDate" style="width:130px"></div>
-    <div class="tb-field" style="align-self:flex-end">
-      <button class="btn-primary" id="chLoadBtn" onclick="fetchContractHistoryNSE()" style="padding:8px 16px">Fetch from NSE</button>
-    </div>
-  </div>
-  <div class="notice" style="font-size:11px;margin-bottom:12px">
-    &#9432; Select expiry — From/To dates auto-fill (28 days). Enter strike and hit Fetch.
-    <span style="display:block;margin-top:4px;color:var(--fg3)">If fetch fails, <a href="#" onclick="document.getElementById('chFile').click();return false" style="color:var(--tz-info);text-decoration:underline">upload Bhavcopy files manually</a>.</span>
-  </div>
-  <input type="file" id="chFile" accept=".csv,.zip" multiple style="display:none" onchange="loadContractHistory()">
-  <div id="chStats" class="ch-stats" style="display:none"></div>
-  <div id="chLegend" class="ch-legend" style="display:none">
-    <span><span class="ch-leg-line" style="background:#7c6af7"></span>Actual LTP</span>
-    <span><span class="ch-leg-line" style="background:#fbbf24"></span>Theoretical Decay</span>
-    <span style="color:var(--fg3);font-size:10px">IV chart below</span>
-  </div>
-  <div id="chChartWrap" style="height:300px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;display:none"></div>
-  <div id="chIvWrap" style="height:120px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:12px;display:none"></div>
-  <div id="chTable"></div>
-</div>
 
 <!-- SEBI Disclaimer -->
 <div class="sebi-disclaimer">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>
@@ -791,7 +752,6 @@ body.is-fullscreen .fs-close-btn{display:flex}
 /* ── State ─────────────────────────────────────────────────────── */
 let _mode='spread',_spreadType='CE',_dir='CE';
 let _lastChain=null,_lastScore=null,_lastCtx=null,_lastStf=null;
-let _chDir='CE',_chChart=null,_chIvChart=null;
 let _sdStrike=null,_sdDir=null,_sdOpt=null,_sdUnderlying=null,_sdExpiry=null;
 
 const SIG_TONE={long_buildup:'gain',short_buildup:'loss',short_covering:'info',long_unwinding:'warn',unchanged:'dim'};
@@ -823,22 +783,6 @@ async function loadExpiries(opts){
     const exp=d.expiries||d.data||[];
     if(!exp.length){sel.innerHTML='<option>No expiries</option>';return;}
     sel.innerHTML=exp.map(e=>`<option value="${e}">${e}</option>`).join('');
-    const chExp=document.getElementById('chExpiry');
-    if(chExp){
-      const _MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      chExp.innerHTML='<option value="">Loading past expiries…</option>';
-      fetch(`/api/options/past-expiries?symbol=${sym}`)
-        .then(r=>r.json())
-        .then(pd=>{
-          const past=pd.expiries||[];
-          if(!past.length){chExp.innerHTML='<option value="">No past expiries</option>';return;}
-          chExp.innerHTML=past.map(iso=>{
-            const[y,m,d]=iso.split('-');
-            return `<option value="${iso}">${d} ${_MN[+m-1]} ${y}</option>`;
-          }).join('');
-          onChExpiryChange();
-        }).catch(()=>{chExp.innerHTML='<option value="">Error — retry</option>';});
-    }
     if(opts){
       if(opts.expiry&&exp.includes(opts.expiry))sel.value=opts.expiry;
       if(opts.dir)setDir(opts.dir);
@@ -1324,120 +1268,6 @@ function runMonitor(){
     </div>`;
 }
 
-/* ── Contract History ──────────────────────────────────────────── */
-function chSetDir(d){
-  _chDir=d;
-  document.getElementById('chBtnCE').className='dir-btn'+(d==='CE'?' active-CE':'');
-  document.getElementById('chBtnPE').className='dir-btn'+(d==='PE'?' active-PE':'');
-}
-function onChExpiryChange(){
-  const exp=document.getElementById('chExpiry').value;  // "2025-04-24" ISO
-  if(!exp)return;
-  const to=new Date(exp+'T00:00:00');
-  const from=new Date(to);from.setDate(from.getDate()-28);
-  document.getElementById('chFromDate').value=from.toISOString().split('T')[0];
-  document.getElementById('chToDate').value=to.toISOString().split('T')[0];
-}
-async function fetchContractHistoryNSE(){
-  const sym=document.getElementById('symbolInput').value.trim().toUpperCase();
-  const strike=document.getElementById('chStrike').value;
-  const exp=document.getElementById('chExpiry').value;
-  const from=document.getElementById('chFromDate').value;
-  const to=document.getElementById('chToDate').value;
-  if(!sym||!strike||!exp||!from||!to){alert('Fill all fields.');return;}
-  const btn=document.getElementById('chLoadBtn');
-  btn.disabled=true;btn.textContent='Fetching…';
-  try{
-    // All three dates (expiry, from, to) are YYYY-MM-DD ISO; backend expects DD-MMM-YYYY.
-    const _MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const toNSE=v=>{const[y,m,d]=v.split('-');return `${d}-${_MN[+m-1]}-${y}`;};
-    const r=await fetch(`/api/options/contract-history-nse?symbol=${sym}&strike=${strike}&expiry=${toNSE(exp)}&from_date=${toNSE(from)}&to_date=${toNSE(to)}&opt_type=${_chDir}`);
-    const d=await r.json();
-    if(d.error)throw new Error(d.error);
-    // Normalise backend field names (open_int/contracts/iv_pct) to what _renderChHistory expects
-    const rows=(d.days||[]).map(r=>({...r,
-      oi:     r.open_int  ?? r.oi,
-      volume: r.contracts ?? r.volume,
-      iv:     r.iv_pct    ?? r.iv,
-    }));
-    _renderChHistory(rows,strike,_chDir);
-  }catch(e){
-    document.getElementById('chTable').innerHTML=`<div class="err-msg">Fetch failed: ${e.message}. Try uploading Bhavcopy manually.</div>`;
-  }
-  btn.disabled=false;btn.textContent='Fetch from NSE';
-}
-async function loadContractHistory(){
-  const files=document.getElementById('chFile').files;
-  if(!files.length)return;
-  const strike=Number(document.getElementById('chStrike').value);
-  if(!strike){alert('Enter strike first.');return;}
-  const rows=[];
-  for(const f of files){
-    const txt=await f.text();
-    const lines=txt.split('\n');
-    for(const ln of lines){
-      const p=ln.split(',');
-      if(p.length<10)continue;
-      const sym=p[0].trim();const typ=p[1].trim();const st=Number(p[2]);const exp=p[3].trim();
-      if(st!==strike||typ!==_chDir)continue;
-      rows.push({date:p[10]?.trim()||p[9]?.trim(),open:Number(p[4]),high:Number(p[5]),low:Number(p[6]),close:Number(p[7]),volume:Number(p[8]),oi:Number(p[9])});
-    }
-  }
-  if(!rows.length){document.getElementById('chTable').innerHTML='<div class="err-msg">No matching rows found. Check strike/type.</div>';return;}
-  rows.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  _renderChHistory(rows,strike,_chDir);
-}
-function _renderChHistory(data,strike,dir){
-  if(!data||!data.length){document.getElementById('chTable').innerHTML='<div class="notice">No data.</div>';return;}
-  const prices=data.map(r=>r.close);
-  const maxP=Math.max(...prices),minP=Math.min(...prices);
-  const firstP=prices[0],lastP=prices[prices.length-1];
-  const pct=((lastP-firstP)/firstP*100).toFixed(1);
-  const maxOi=Math.max(...data.map(r=>r.oi||0));
-  document.getElementById('chStats').style.display='flex';
-  document.getElementById('chStats').innerHTML=`
-    <div class="ch-stat"><div class="k">FIRST</div><div class="v">${fmtN(firstP)}</div></div>
-    <div class="ch-stat"><div class="k">LAST</div><div class="v" style="color:${lastP>=firstP?'var(--tz-gain)':'var(--tz-loss)'}">${fmtN(lastP)}</div></div>
-    <div class="ch-stat"><div class="k">CHANGE</div><div class="v ${parseFloat(pct)>=0?'gain':'loss'}">${pct>0?'+':''}${pct}%</div></div>
-    <div class="ch-stat"><div class="k">HIGH</div><div class="v warn">${fmtN(maxP)}</div></div>
-    <div class="ch-stat"><div class="k">LOW</div><div class="v info">${fmtN(minP)}</div></div>
-    <div class="ch-stat"><div class="k">PEAK OI</div><div class="v purple">${fmtOi(maxOi)}</div></div>`;
-  const chartWrap=document.getElementById('chChartWrap');
-  const ivWrap=document.getElementById('chIvWrap');
-  chartWrap.style.display='block';ivWrap.style.display='none';
-  chartWrap.innerHTML='';
-  if(_chChart)_chChart.remove();
-  if(typeof LightweightCharts!=='undefined'){
-    const isDark=document.documentElement.getAttribute('data-theme')!=='light';
-    const chartOpts={width:chartWrap.clientWidth||600,height:290,layout:{background:{color:isDark?'#171a30':'#f4f5f9'},textColor:isDark?'#9ea3c0':'#4a4f6e'},grid:{vertLines:{color:isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)'},horzLines:{color:isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)'}},crosshair:{mode:1},rightPriceScale:{borderColor:'transparent'},timeScale:{borderColor:'transparent',timeVisible:true}};
-    _chChart=LightweightCharts.createChart(chartWrap,chartOpts);
-    const series=_chChart.addAreaSeries({lineColor:'#7c6af7',topColor:'rgba(124,106,247,0.28)',bottomColor:'rgba(124,106,247,0.02)',lineWidth:2});
-    series.setData(data.map(r=>({time:r.date,value:r.close})));
-    if(data[0].iv!=null){
-      ivWrap.style.display='block';ivWrap.innerHTML='';
-      if(_chIvChart)_chIvChart.remove();
-      _chIvChart=LightweightCharts.createChart(ivWrap,{...chartOpts,height:115});
-      const ivS=_chIvChart.addLineSeries({color:'#fbbf24',lineWidth:1.5});
-      ivS.setData(data.map(r=>({time:r.date,value:r.iv})));
-    }
-    _chChart.timeScale().fitContent();
-  }
-  document.getElementById('chLegend').style.display='flex';
-  const tbl=`<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono',monospace">
-    <thead><tr>${['Date','Open','High','Low','Close','Volume','OI','IV%'].map(h=>`<th style="padding:7px 10px;text-align:right;color:var(--fg3);font-size:10px;border-bottom:1px solid var(--border);letter-spacing:1px">${h}</th>`).join('')}</tr></thead>
-    <tbody>${data.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
-      <td style="padding:6px 10px;color:var(--fg2);text-align:left">${r.date}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--fg1)">${fmtN(r.open)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--tz-gain)">${fmtN(r.high)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--tz-loss)">${fmtN(r.low)}</td>
-      <td style="padding:6px 10px;text-align:right;font-weight:700;color:var(--fg1)">${fmtN(r.close)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--fg2)">${fmtOi(r.volume)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--fg2)">${fmtOi(r.oi)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--fg2)">${r.iv!=null?fmtP(r.iv):'—'}</td>
-    </tr>`).reverse().join('')}</tbody>
-  </table>`;
-  document.getElementById('chTable').innerHTML=tbl;
-}
 
 /* ── Symbol Autocomplete ───────────────────────────────────────── */
 let _acIdx=-1;
