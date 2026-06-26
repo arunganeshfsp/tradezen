@@ -67,7 +67,7 @@
     }
     .welcome-text h1 {
       font-family: var(--tz-font-display);
-      font-size: clamp(26px, 3.8vw, 38px);
+      font-size: clamp(18px, 2.2vw, 24px);
       font-weight: 400; letter-spacing: -.025em; line-height: 1.12; color: var(--tz-fg-1);
     }
     .welcome-text h1 em { font-style: italic; background: var(--tz-grad-h); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
@@ -81,24 +81,38 @@
       font-family: var(--tz-font-mono); font-size: 12px; font-weight: 600; color: var(--tz-accent-1);
     }
 
-    /* ── PROGRESS CARDS ── */
-    .progress-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .prog-card {
+    /* ── METRICS RING GRID ── */
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric-card {
       background: var(--tz-surface);
       border: 1px solid var(--tz-border);
       border-radius: 20px;
-      padding: 18px 20px;
-      display: flex; align-items: center; gap: 14px;
+      padding: 18px 12px 14px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      position: relative; overflow: hidden;
       transition: border-color .2s, transform .15s;
     }
-    .prog-card:hover { border-color: var(--tz-border-strong); transform: translateY(-1px); }
-    .prog-card .pc-icon { font-size: 30px; line-height: 1; flex-shrink: 0; }
-    .prog-card .pc-info { display: flex; flex-direction: column; gap: 3px; }
-    .prog-card .pc-label { font-family: var(--tz-font-mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--tz-fg-3); }
-    .prog-card .pc-val { font-family: var(--tz-font-mono); font-size: 24px; font-weight: 700; color: var(--tz-fg-1); line-height: 1; }
-    .prog-card .pc-val.fire  { color: #fb923c; }
-    .prog-card .pc-val.gain  { color: var(--tz-gain); }
-    .prog-card .pc-val.xp    { color: var(--tz-accent-1); }
+    .metric-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: var(--mc-color, var(--tz-accent-1)); opacity: .55;
+      border-radius: 0 0 20px 20px;
+    }
+    .metric-card:hover { border-color: var(--tz-border-strong); transform: translateY(-1px); }
+    .ring-wrap { position: relative; width: 88px; height: 88px; }
+    .ring-svg { width: 88px; height: 88px; }
+    .ring-track { fill: none; stroke: rgba(255,255,255,.05); stroke-width: 5; stroke-linecap: round; }
+    .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round;
+      transition: stroke-dasharray .6s ease, stroke .3s;
+      stroke-dasharray: 0 213.6; }
+    .ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; pointer-events: none; width: 58px; }
+    .ring-val { font-family: var(--tz-font-mono); font-size: 14px; font-weight: 700;
+      color: var(--tz-fg-1); line-height: 1; white-space: nowrap; display: block;
+      font-variant-numeric: tabular-nums; }
+    .ring-sub { font-size: 8px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--tz-fg-3); display: block; margin-top: 3px; }
+    .metric-name { font-size: 10px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--tz-fg-3); text-align: center; }
 
     /* ── CONTINUE CARD ── */
     .continue-card {
@@ -234,9 +248,10 @@
         radial-gradient(45% 45% at 100% 100%, rgba(91,138,245,.06) 0%, transparent 55%);
     }
     [data-bs-theme="light"] .topbar { background: rgba(244,245,249,.92); border-bottom-color: rgba(0,0,0,.08); }
-    [data-bs-theme="light"] .prog-card,
+    [data-bs-theme="light"] .metric-card,
     [data-bs-theme="light"] .subj-card { background: #ffffff; border-color: rgba(0,0,0,.09); }
-    [data-bs-theme="light"] .prog-card:hover { border-color: rgba(0,0,0,.18); }
+    [data-bs-theme="light"] .metric-card:hover { border-color: rgba(0,0,0,.18); }
+    [data-bs-theme="light"] .ring-track { stroke: rgba(0,0,0,.07); }
     [data-bs-theme="light"] .subj-lessons { border-top-color: rgba(0,0,0,.08); }
     [data-bs-theme="light"] .lp-row + .lp-row { border-top-color: rgba(0,0,0,.06); }
     [data-bs-theme="light"] .subj-prog-bar { background: rgba(0,0,0,.08); }
@@ -252,13 +267,12 @@
       .subjects-grid { grid-template-columns: 1fr; }
       .cc-cta { display: none; }
       .page-wrap { padding: 24px 16px 60px; gap: 22px; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     }
     @media (max-width: 480px) {
-      .progress-row { gap: 8px; }
-      .prog-card { padding: 14px 12px; gap: 10px; }
-      .prog-card .pc-icon { font-size: 24px; }
-      .prog-card .pc-val { font-size: 20px; }
       .welcome-row { flex-direction: column; align-items: flex-start; }
+      .ring-wrap { width: 76px; height: 76px; }
+      .ring-svg { width: 76px; height: 76px; }
     }
 
     /* ── Page fullscreen — desktop + tablet only ── */
@@ -327,28 +341,63 @@
     </div>
   </div>
 
-  <!-- Progress stat cards -->
-  <div class="progress-row">
-    <div class="prog-card">
-      <span class="pc-icon">🔥</span>
-      <div class="pc-info">
-        <span class="pc-label" data-en="Day Streak" data-ta="தொடர்ச்சி">Day Streak</span>
-        <span class="pc-val fire" id="stat-streak">0</span>
+  <!-- Metrics ring cards -->
+  <div class="metrics-grid">
+    <!-- Day Streak -->
+    <div class="metric-card" style="--mc-color:#fb923c">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-streak" cx="44" cy="44" r="34" stroke="#fb923c" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="stat-streak">0</span>
+          <span class="ring-sub">Days</span>
+        </div>
       </div>
+      <div class="metric-name" data-en="Day Streak" data-ta="தொடர்ச்சி">Day Streak</div>
     </div>
-    <div class="prog-card">
-      <span class="pc-icon">✅</span>
-      <div class="pc-info">
-        <span class="pc-label" data-en="Completed" data-ta="முடிந்தவை">Completed</span>
-        <span class="pc-val gain" id="stat-done">0</span>
+    <!-- Completed -->
+    <div class="metric-card" style="--mc-color:var(--tz-gain)">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-done" cx="44" cy="44" r="34" stroke="var(--tz-gain)" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="stat-done">0</span>
+          <span class="ring-sub">Lessons</span>
+        </div>
       </div>
+      <div class="metric-name" data-en="Completed" data-ta="முடிந்தவை">Completed</div>
     </div>
-    <div class="prog-card">
-      <span class="pc-icon">⭐</span>
-      <div class="pc-info">
-        <span class="pc-label" data-en="XP Earned" data-ta="XP சம்பாதித்தது">XP Earned</span>
-        <span class="pc-val xp" id="stat-xp">0</span>
+    <!-- XP Earned -->
+    <div class="metric-card" style="--mc-color:var(--tz-accent-1)">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-xp" cx="44" cy="44" r="34" stroke="var(--tz-accent-1)" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="stat-xp">0</span>
+          <span class="ring-sub">XP</span>
+        </div>
       </div>
+      <div class="metric-name" data-en="XP Earned" data-ta="XP சம்பாதித்தது">XP Earned</div>
+    </div>
+    <!-- Progress % -->
+    <div class="metric-card" style="--mc-color:#60a5fa">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-progress" cx="44" cy="44" r="34" stroke="#60a5fa" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="stat-progress">0%</span>
+          <span class="ring-sub">Complete</span>
+        </div>
+      </div>
+      <div class="metric-name" data-en="Progress" data-ta="முன்னேற்றம்">Progress</div>
     </div>
   </div>
 
@@ -458,15 +507,36 @@ function renderGreeting() {
   g.innerHTML = `${esc(greet)} <em>${currentLang === 'ta' ? 'கற்போம்.' : 'Let\'s learn.'}</em>`;
 }
 
+// ── Ring helper ───────────────────────────────────────────────────────────────
+function setRing(ringId, pct, color) {
+  const el = document.getElementById(ringId);
+  if (!el) return;
+  const fill = Math.max(0, Math.min(1, pct)) * 160.2;
+  el.style.strokeDasharray = fill.toFixed(1) + ' 213.6';
+  if (color) el.style.stroke = color;
+}
+
 // ── Stats bar ─────────────────────────────────────────────────────────────────
 function renderStats(catalog) {
   const done   = getProgress().lessons_done || [];
   const streak = computeStreak();
   const xp     = computeXP(catalog);
 
-  document.getElementById('stat-streak').textContent = streak;
-  document.getElementById('stat-done').textContent   = done.length;
-  document.getElementById('stat-xp').textContent     = xp;
+  let totalLessons = 0;
+  (catalog.subjects || []).forEach(s =>
+    s.modules.forEach(m => totalLessons += m.lessons.length)
+  );
+  const progressPct = totalLessons > 0 ? done.length / totalLessons : 0;
+
+  document.getElementById('stat-streak').textContent  = streak;
+  document.getElementById('stat-done').textContent    = done.length;
+  document.getElementById('stat-xp').textContent      = xp;
+  document.getElementById('stat-progress').textContent = Math.round(progressPct * 100) + '%';
+
+  setRing('ring-streak',  Math.min(1, streak / 30), '#fb923c');
+  setRing('ring-done',    progressPct,               'var(--tz-gain)');
+  setRing('ring-xp',      Math.min(1, xp / 1000),   'var(--tz-accent-1)');
+  setRing('ring-progress', progressPct,              '#60a5fa');
 
   const xpBadge = document.getElementById('xp-badge');
   const xpVal   = document.getElementById('xp-badge-val');
