@@ -765,11 +765,14 @@ function _epochToISO(epochSec) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
 }
 
-function showHolidayOverlay(name) {
+function showChartOverlay(icon, title, subtitle, footer) {
   const el = document.getElementById('holidayOverlay');
   if (!el) return;
-  const hn = document.getElementById('holidayName');
-  if (hn) hn.textContent = name;
+  el.innerHTML = `
+    <span style="font-size:28px;line-height:1">${icon}</span>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--text)">${title}</div>
+    ${subtitle ? `<div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);letter-spacing:.5px">${subtitle}</div>` : ''}
+    <div style="font-size:11px;color:var(--muted)">${footer || 'Chart resumes next trading session'}</div>`;
   el.style.display = 'flex';
 }
 
@@ -1006,8 +1009,22 @@ async function fetchCandles() {
     if (_gen !== gen) return;
     if (!d.candles || !d.candles.length) {
       if (_timeframe === 'daily') {
-        const holiday = NSE_HOLIDAYS[_todayIST()];
-        if (holiday) showHolidayOverlay(holiday);
+        const today = _todayIST();
+        const holiday = NSE_HOLIDAYS[today];
+        const nowIST  = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+        const dow     = nowIST.getUTCDay();                                    // 0=Sun, 6=Sat
+        const istMin  = nowIST.getUTCHours() * 60 + nowIST.getUTCMinutes();   // minutes since midnight IST
+        if (holiday) {
+          showChartOverlay('🏛️', 'Market Holiday', holiday, 'NSE / BSE closed today');
+        } else if (dow === 0 || dow === 6) {
+          showChartOverlay('📅', 'Weekend', 'Markets closed on Saturday & Sunday', 'Resumes Monday 9:15 AM IST');
+        } else if (istMin < 9 * 60 + 15) {
+          showChartOverlay('⏰', 'Pre-Market', 'Trading begins at 9:15 AM IST', 'Chart will populate at market open');
+        } else if (istMin > 15 * 60 + 30) {
+          showChartOverlay('🔔', 'Market Closed', 'Session ended at 3:30 PM IST', 'Historical data may be delayed — check again shortly');
+        } else {
+          showChartOverlay('📡', 'Awaiting Intraday Data', 'Data feed initialising…', 'Auto-refreshes every 30 seconds');
+        }
       }
       return;
     }
