@@ -1325,10 +1325,19 @@ async function fetchContractHistoryNSE(){
   const btn=document.getElementById('chLoadBtn');
   btn.disabled=true;btn.textContent='Fetching…';
   try{
-    const r=await fetch(`/api/options/history?symbol=${sym}&strike=${strike}&expiry=${exp}&from=${from}&to=${to}&type=${_chDir}`);
+    // Dates from <input type="date"> are YYYY-MM-DD; backend expects DD-MMM-YYYY
+    const _MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const toNSE=v=>{const[y,m,d]=v.split('-');return `${d}-${_MONTHS[+m-1]}-${y}`;};
+    const r=await fetch(`/api/options/contract-history-nse?symbol=${sym}&strike=${strike}&expiry=${toNSE(exp)}&from_date=${toNSE(from)}&to_date=${toNSE(to)}&opt_type=${_chDir}`);
     const d=await r.json();
     if(d.error)throw new Error(d.error);
-    _renderChHistory(d.data||d,strike,_chDir);
+    // Normalise backend field names (open_int/contracts/iv_pct) to what _renderChHistory expects
+    const rows=(d.days||[]).map(r=>({...r,
+      oi:     r.open_int  ?? r.oi,
+      volume: r.contracts ?? r.volume,
+      iv:     r.iv_pct    ?? r.iv,
+    }));
+    _renderChHistory(rows,strike,_chDir);
   }catch(e){
     document.getElementById('chTable').innerHTML=`<div class="err-msg">Fetch failed: ${e.message}. Try uploading Bhavcopy manually.</div>`;
   }
