@@ -482,12 +482,16 @@ let chainData = null;
 let analyticsData = null;
 
 // ── Engine ping ──────────────────────────────────────────────────────────────
+let _pinging = false;
 async function pingEngine() {
+  if (_pinging) return;
+  _pinging = true;
   try {
     const r = await fetch(`${API}/health`);
     const d = await r.json();
     document.getElementById("engineStatus").style.opacity = d.status === "ok" ? "1" : ".3";
   } catch { document.getElementById("engineStatus").style.opacity = ".3"; }
+  finally { _pinging = false; }
 }
 pingEngine(); setInterval(pingEngine, 15000);
 

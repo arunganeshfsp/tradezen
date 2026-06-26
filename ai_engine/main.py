@@ -2175,9 +2175,6 @@ def _nifty_candles_sync() -> dict:
 
 def _fetch_iv_sync() -> dict:
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
-    smart   = _get_smart()
-    if not smart:
-        return {"error": "SmartAPI auth failed"}
 
     # ── Spot price ───────────────────────────────────────────────────────────
     spot = trade_flow_data.get("spot_price") or trade_flow_data.get("nifty_price")
@@ -2245,22 +2242,17 @@ def _fetch_iv_sync() -> dict:
     from core.options.greeks import implied_volatility as _bs_iv
     T_years = max((nearest_exp - today).days, 1) / 365.0
 
-    # ── Fetch market data from Angel One ────────────────────────────────────
-    resp = smart.getMarketData("FULL", {"NFO": [ce_token, pe_token]})
+    # ── Fetch ATM CE + PE via provider ───────────────────────────────────────
+    snaps = get_provider().get_option_market_data([str(ce_token), str(pe_token)])
 
     ce_ltp = pe_ltp = ce_oi = pe_oi = None
-    if resp and resp.get("data") and resp["data"].get("fetched"):
-        for item in resp["data"]["fetched"]:
-            tok = str(item.get("symbolToken", ""))
-            ltp = item.get("ltp")
-            # Angel One returns OI as 'opnInterest', not 'openInterest'
-            oi  = item.get("opnInterest")
-            if tok == str(ce_token):
-                ce_ltp = round(float(ltp), 2) if ltp is not None else None
-                ce_oi  = int(float(oi))        if oi  is not None else None
-            elif tok == str(pe_token):
-                pe_ltp = round(float(ltp), 2) if ltp is not None else None
-                pe_oi  = int(float(oi))        if oi  is not None else None
+    for snap in snaps:
+        if snap.token == str(ce_token):
+            ce_ltp = snap.ltp if snap.ltp else None
+            ce_oi  = snap.open_interest if snap.open_interest else None
+        elif snap.token == str(pe_token):
+            pe_ltp = snap.ltp if snap.ltp else None
+            pe_oi  = snap.open_interest if snap.open_interest else None
 
     if ce_ltp is None and pe_ltp is None:
         return {"error": "No LTP returned — market may be closed or contracts illiquid"}
@@ -3709,37 +3701,26 @@ def _stock_indicators_sync(symbol: str) -> dict:
         support    = round(min(recent), 2)
         resistance = round(max(recent), 2)
 
-        # Futures OI — Angel One near-month FUTSTK data
+        # Futures OI — near-month FUTSTK data via provider
         fut_oi = None
         try:
-            _s = smart or _get_smart()
             _ft, _fexp = im.get_stock_futures_token(symbol)
-            if _ft and _s:
-                _fr = _s.getMarketData("FULL", {"NFO": [str(_ft)]})
-                for _fi in (_fr or {}).get("data", {}).get("fetched", []):
-                    if str(_fi.get("symbolToken")) == str(_ft):
-                        _foi  = _fi.get("opnInterest")
-                        _fltp = _fi.get("ltp")
-                        _fpct = _fi.get("percentChange")
-                        _fchg = _fi.get("netChangeInOI")
-                        if _foi:
-                            _foi_int  = int(float(_foi))
-                            _price_up = float(_fpct) > 0 if _fpct is not None else None
-                            _oi_up    = float(_fchg) > 0 if _fchg is not None else None
-                            _signal   = None
-                            if _price_up is not None and _oi_up is not None:
-                                if   _price_up and _oi_up:      _signal = "long_buildup"
-                                elif not _price_up and _oi_up:  _signal = "short_buildup"
-                                elif _price_up and not _oi_up:  _signal = "short_covering"
-                                else:                           _signal = "long_unwinding"
-                            fut_oi = {
-                                "oi":     _foi_int,
-                                "oi_chg": int(float(_fchg)) if _fchg is not None else None,
-                                "signal": _signal,
-                                "ltp":    round(float(_fltp), 2) if _fltp else None,
-                                "expiry": _fexp,
-                            }
-                        break
+            if _ft:
+                _snaps = get_provider().get_option_market_data([str(_ft)])
+                _snap  = next((s for s in _snaps if s.token == str(_ft)), None)
+                if _snap and _snap.open_interest:
+                    _price_up = _snap.pct_change > 0 if _snap.pct_change is not None else None
+                    # OI change not in MarketSnapshot — derive from open_interest vs prev if available
+                    _signal   = None
+                    if _price_up is not None:
+                        _signal = "long_buildup" if _price_up else "short_buildup"
+                    fut_oi = {
+                        "oi":     _snap.open_interest,
+                        "oi_chg": None,
+                        "signal": _signal,
+                        "ltp":    _snap.ltp,
+                        "expiry": _fexp,
+                    }
         except Exception as _fe:
             log.warning(f"[INDICATORS] {symbol} futures OI: {_fe}")
 
