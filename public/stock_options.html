@@ -384,6 +384,22 @@ input:focus,select:focus{border-color:var(--tz-purple)}
 .so-toast.err{background:rgba(14,18,38,0.95);border:1px solid rgba(248,113,113,0.45);color:var(--tz-loss)}
 .so-toast a{display:inline-block;margin-top:6px;color:#fff;font-weight:600;font-size:11px;letter-spacing:.5px;text-decoration:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:4px 14px;border-radius:20px;transition:background .15s}
 .so-toast a:hover{background:rgba(255,255,255,0.2)}
+
+/* ── Page fullscreen — desktop + tablet only (nav-r already hidden on mobile) ── */
+.fs-nav-btn{width:34px;height:34px;border-radius:var(--r-sm);display:grid;place-items:center;cursor:pointer;color:var(--fg2);background:transparent;border:1px solid var(--border-s);flex-shrink:0;transition:color .15s}
+.fs-nav-btn:hover{color:var(--fg1)}
+.fs-close-btn{
+  display:none;position:fixed;top:18px;right:22px;z-index:99999;
+  align-items:center;gap:7px;
+  padding:7px 16px;border-radius:var(--r-sm);
+  border:1px solid var(--border-s);
+  background:rgba(10,12,24,0.88);
+  color:var(--fg2);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  backdrop-filter:blur(12px);transition:all .15s
+}
+.fs-close-btn:hover{color:var(--fg1);background:rgba(10,12,24,0.96)}
+body.is-fullscreen .fs-close-btn{display:flex}
 </style>
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
@@ -411,10 +427,19 @@ input:focus,select:focus{border-color:var(--tz-purple)}
   <div class="nav-r">
     <button class="tamil-btn" id="tamilToggle" onclick="toggleTamil()">தமிழ்</button>
     <span class="engine-dot" id="engineStatus" title="Engine status"></span>
+    <button class="fs-nav-btn" id="fs-btn" onclick="togglePageFullscreen()" title="Enter full screen" aria-label="Toggle full screen">
+      <svg id="fs-icon-expand" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.5V1h3.5M8.5 1H12v3.5M12 8.5V12H8.5M4.5 12H1V8.5"/></svg>
+      <svg id="fs-icon-compress" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="display:none"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+    </button>
     <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme"></button>
   </div>
   <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
+
+<button class="fs-close-btn" id="fs-close-btn" onclick="exitPageFullscreen()" title="Exit full screen">
+  <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+  Exit Full Screen
+</button>
 
 <!-- TITLE BLOCK -->
 <div class="title-block">
@@ -1566,6 +1591,25 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   const orig=window.toggleTheme;
   window.toggleTheme=()=>{if(orig)orig();setTimeout(_setThemeIcon,50);};
+});
+
+// ── Page fullscreen ───────────────────────────────────────────────────────────
+function togglePageFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+function exitPageFullscreen() {
+  document.exitFullscreen().catch(() => {});
+}
+document.addEventListener('fullscreenchange', function () {
+  const isFs = !!document.fullscreenElement;
+  document.body.classList.toggle('is-fullscreen', isFs);
+  document.getElementById('fs-icon-expand').style.display   = isFs ? 'none'  : 'block';
+  document.getElementById('fs-icon-compress').style.display = isFs ? 'block' : 'none';
+  document.getElementById('fs-btn').title = isFs ? 'Exit full screen' : 'Enter full screen';
 });
 </script>
 </body>

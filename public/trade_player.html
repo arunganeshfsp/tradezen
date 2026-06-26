@@ -63,6 +63,29 @@
 .tp-crtlog-outcome.up{color:var(--tz-gain)}
 .tp-crtlog-outcome.dn{color:var(--tz-loss)}
 .tp-crtlog-outcome.flat{color:var(--tz-fg-3)}
+
+/* ── Page fullscreen — desktop + tablet only ── */
+.tp-fs-btn{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  border:1px solid var(--tz-border);background:var(--tz-surface-2);
+  color:var(--tz-fg-2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 140ms var(--tz-ease-out)
+}
+.tp-fs-btn:hover{border-color:var(--tz-border-strong);color:var(--tz-fg-1)}
+@media(max-width:768px){.tp-fs-btn{display:none}}
+.tp-fs-close-btn{
+  display:none;position:fixed;top:18px;right:22px;z-index:99999;
+  align-items:center;gap:7px;
+  padding:7px 16px;border-radius:8px;
+  border:1px solid var(--tz-border-strong);
+  background:rgba(10,12,24,0.88);
+  color:var(--tz-fg-2);cursor:pointer;
+  font:500 12px/1 var(--tz-font-mono);
+  backdrop-filter:blur(12px);transition:all .15s
+}
+.tp-fs-close-btn:hover{color:var(--tz-fg-1);border-color:var(--tz-accent-1);background:rgba(10,12,24,0.96)}
+body.is-fullscreen .tp-fs-close-btn{display:flex}
 </style>
 </head>
 <body>
@@ -85,9 +108,18 @@
       </nav>
       <div class="tp-nav-right">
         <button class="tp-theme-btn" id="tp-theme-btn" onclick="tpToggleTheme()" title="Toggle theme"></button>
+        <button class="tp-fs-btn" id="fs-btn" onclick="togglePageFullscreen()" title="Enter full screen" aria-label="Toggle full screen">
+          <svg id="fs-icon-expand" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.5V1h3.5M8.5 1H12v3.5M12 8.5V12H8.5M4.5 12H1V8.5"/></svg>
+          <svg id="fs-icon-compress" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="display:none"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+        </button>
         <button class="tp-btn tp-btn-grad tp-nav-app-btn">Open app</button>
       </div>
     </header>
+
+    <button class="tp-fs-close-btn" id="fs-close-btn" onclick="exitPageFullscreen()" title="Exit full screen">
+      <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+      Exit Full Screen
+    </button>
 
     <!-- ── Hero ────────────────────────────────────────────────── -->
     <div class="tp-hero">
@@ -3692,6 +3724,25 @@ function tpPatternClose() {
   var _osm = setMode;
   setMode = function(mode) { _osm(mode); _tpSetMode(mode); };
 })();
+
+// ── Page fullscreen (separate from chart-level toggleFullscreen) ───────────────
+function togglePageFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+function exitPageFullscreen() {
+  document.exitFullscreen().catch(() => {});
+}
+document.addEventListener('fullscreenchange', function () {
+  var isFs = !!document.fullscreenElement;
+  document.body.classList.toggle('is-fullscreen', isFs);
+  document.getElementById('fs-icon-expand').style.display   = isFs ? 'none'  : 'block';
+  document.getElementById('fs-icon-compress').style.display = isFs ? 'block' : 'none';
+  document.getElementById('fs-btn').title = isFs ? 'Exit full screen' : 'Enter full screen';
+});
 </script>
 </body>
 </html>
