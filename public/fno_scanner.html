@@ -244,6 +244,21 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
 .oc-cancel:hover{color:var(--text);border-color:var(--accent)}
 .oc-confirm{padding:7px 18px;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),var(--blue));color:#fff;transition:all .15s}
 .oc-confirm:hover{opacity:.85;transform:translateY(-1px)}
+
+/* ── FULLSCREEN — desktop + tablet only ── */
+@media(max-width:900px){.fs-nav-btn{display:none !important}}
+.fs-close-btn{
+  display:none;position:fixed;top:18px;right:22px;z-index:99999;
+  align-items:center;gap:7px;
+  padding:7px 16px;border-radius:var(--r2);
+  border:1px solid var(--border2);
+  background:rgba(10,12,24,0.88);
+  color:var(--dim);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  backdrop-filter:blur(12px);transition:all .15s
+}
+.fs-close-btn:hover{color:#fff;border-color:var(--accent);background:rgba(10,12,24,0.96)}
+body.is-fullscreen .fs-close-btn{display:flex}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
@@ -281,10 +296,19 @@ input:checked + .switch::after{transform:translateX(16px);background:var(--green
         <svg data-icon="dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display:none"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/></svg>
         <svg data-icon="light" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
       </button>
+      <button type="button" class="btn-icon fs-nav-btn" id="fs-btn" onclick="togglePageFullscreen()" title="Enter full screen" aria-label="Toggle full screen">
+        <svg id="fs-icon-expand" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.5V1h3.5M8.5 1H12v3.5M12 8.5V12H8.5M4.5 12H1V8.5"/></svg>
+        <svg id="fs-icon-compress" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="display:none"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+      </button>
       <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
     </div>
   </div>
 </nav>
+
+<button class="fs-close-btn" id="fs-close-btn" onclick="exitPageFullscreen()" title="Exit full screen">
+  <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+  Exit Full Screen
+</button>
 
 <div class="hero">
   <div class="hero-tag">&#9679; Buyer · Seller Dominance</div>
@@ -971,6 +995,25 @@ function goToStockOptions() {
 // Init
 fetchScanner();
 restartTimer();
+
+// ── Page fullscreen ───────────────────────────────────────────────────────────
+function togglePageFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+function exitPageFullscreen() {
+  document.exitFullscreen().catch(() => {});
+}
+document.addEventListener('fullscreenchange', function () {
+  const isFs = !!document.fullscreenElement;
+  document.body.classList.toggle('is-fullscreen', isFs);
+  document.getElementById('fs-icon-expand').style.display   = isFs ? 'none'  : 'block';
+  document.getElementById('fs-icon-compress').style.display = isFs ? 'block' : 'none';
+  document.getElementById('fs-btn').title = isFs ? 'Exit full screen' : 'Enter full screen';
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -28,34 +28,74 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
 
-/* ── Hero ── */
-.hero{padding:32px 28px 28px;text-align:center;border-bottom:1px solid var(--border);
+/* ── Page Header (compact) ── */
+.page-header{
+  padding:16px 28px;border-bottom:1px solid var(--border);
   background:
-    radial-gradient(ellipse 70% 50% at 30% 120%,rgba(46,204,113,0.05) 0%,transparent 60%),
-    radial-gradient(ellipse 80% 60% at 70% -20%,rgba(124,106,247,0.12) 0%,transparent 65%),
-    var(--bg)}
-.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;
-  font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);
-  background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);
-  padding:5px 16px;border-radius:20px;margin-bottom:18px}
-.hero h1{font-family:'Syne',sans-serif;font-size:clamp(24px,3.8vw,42px);font-weight:800;
-  color:#fff;line-height:1.1;margin-bottom:10px}
-.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));
+    radial-gradient(ellipse 60% 60% at 10% 110%,rgba(46,204,113,0.05) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 50% at 85% -15%,rgba(124,106,247,0.10) 0%,transparent 60%),
+    var(--bg);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap
+}
+.ph-tag{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);
+  background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.18);
+  padding:3px 12px;border-radius:16px;margin-bottom:8px}
+.ph-title{font-family:'Syne',sans-serif;font-size:clamp(18px,2.2vw,24px);font-weight:800;
+  color:#fff;line-height:1.1;margin-bottom:3px}
+.ph-title em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{font-size:14px;color:var(--dim);max-width:480px;margin:0 auto 28px}
-.hero-actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
-.btn-chain{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;
-  border-radius:24px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+.ph-sub{font-size:12px;color:var(--dim);max-width:420px}
+.ph-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.btn-cta-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
+  border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
   background:linear-gradient(90deg,var(--accent),var(--blue));color:#fff;
-  text-decoration:none;border:none;cursor:pointer;transition:opacity .15s;letter-spacing:.3px}
-.btn-chain:hover{opacity:.88;color:#fff}
-.btn-chain svg{width:16px;height:16px;flex-shrink:0}
-.btn-chain-ghost{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;
-  border-radius:24px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  text-decoration:none;border:none;cursor:pointer;transition:opacity .15s}
+.btn-cta-sm:hover{opacity:.85;color:#fff}
+.btn-cta-sm svg{width:13px;height:13px;flex-shrink:0}
+.btn-cta-ghost-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
   background:transparent;color:var(--dim);text-decoration:none;border:1px solid var(--border2);
-  cursor:pointer;transition:all .15s;letter-spacing:.3px}
-.btn-chain-ghost:hover{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.08)}
-.btn-chain-ghost svg{width:16px;height:16px;flex-shrink:0}
+  cursor:pointer;transition:all .15s}
+.btn-cta-ghost-sm:hover{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,0.08)}
+.btn-cta-ghost-sm svg{width:13px;height:13px;flex-shrink:0}
+
+/* ── Metrics Ring Grid ── */
+.metrics-wrap{background:var(--bg1);border-bottom:1px solid var(--border);padding:20px 28px 20px}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1100px;margin:0 auto}
+.metric-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  position:relative;overflow:hidden;transition:border-color .2s
+}
+.metric-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:var(--mc-color,var(--accent));opacity:.55;border-radius:0 0 var(--r) var(--r)}
+.metric-card:hover{border-color:var(--border2)}
+.ring-wrap{position:relative;width:88px;height:88px}
+.ring-svg{width:88px;height:88px}
+.ring-track{fill:none;stroke:rgba(255,255,255,0.05);stroke-width:5;stroke-linecap:round}
+.ring-fill{fill:none;stroke-width:5;stroke-linecap:round;
+  transition:stroke-dasharray .6s ease,stroke .3s;
+  stroke-dasharray:0 213.6}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none;width:58px}
+.ring-val{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);
+  line-height:1;white-space:nowrap;display:block}
+.ring-val.pos{color:var(--green)}
+.ring-val.neg{color:var(--red)}
+.ring-sub{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted);display:block;margin-top:2px}
+.metric-name{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);text-align:center}
+
+/* ── Controls Row ── */
+.ctrl-row{background:var(--bg1);border-bottom:1px solid var(--border);
+  padding:9px 28px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl-live{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);
+  display:flex;align-items:center;gap:5px;margin-right:auto}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  animation:livePulse 2s ease-in-out infinite;flex-shrink:0}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── Layout ── */
 .main{max-width:1100px;margin:0 auto;padding:36px 24px 80px}
@@ -67,19 +107,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .section-label::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;
   background:var(--accent);margin-right:8px;flex-shrink:0}
 
-/* ── Account strip ── */
-.acct-strip{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-.strip-stats{display:flex;align-items:center;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
-.strip-chip{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;
-  font-size:11px;padding:4px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--border)}
-.strip-lbl{color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase}
-.strip-val{color:var(--text);font-weight:600}
-.strip-val.pos{color:var(--green)}
-.strip-val.neg{color:var(--red)}
-.strip-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.auto-live{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:livePulse 2s ease-in-out infinite;flex-shrink:0}
-@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── Reset btn ── */
 .reset-btn{padding:5px 12px;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;
   font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--red-border);
   background:transparent;color:var(--red);transition:all .15s;white-space:nowrap}
@@ -183,9 +211,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 @media(max-width:700px){
   .table-wrap{display:none}
   .m-cards{display:block}
-  .hero-actions{flex-direction:column;align-items:stretch;padding:0 8px}
-  .btn-chain{justify-content:center}
-  .acct-strip{flex-direction:column;align-items:flex-start}
+  .ph-actions{width:100%}
+  .metrics-grid{grid-template-columns:repeat(2,1fr)}
+  .metrics-wrap{padding:14px 16px 14px}
+  .ctrl-row{padding:8px 16px}
+  .page-header{padding:14px 16px}
 }
 </style>
 </head>
@@ -221,20 +251,95 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   </div>
 </nav>
 
-<div class="hero">
-  <div class="hero-tag" data-en="&#9679; Practice Simulator" data-ta="&#9679; பயிற்சி சிமுலேட்டர்">&#9679; Practice Simulator</div>
-  <h1>Trade <em>Lab</em></h1>
-  <p class="hero-sub" data-en="Track your simulated options trades with virtual money. Practice at live market prices without any risk." data-ta="மெய்நிகர் பணத்துடன் உங்கள் ஆப்ஷன் வர்த்தகங்களை கண்காணிக்கவும். எந்த ஆபத்தும் இல்லாமல் நேரடி சந்தை விலைகளில் பயிற்சி பெறுங்கள்.">Track your simulated options trades with virtual money. Practice at live market prices without any risk.</p>
-  <div class="hero-actions">
-    <a href="/stock_options.html" class="btn-chain">
+<!-- Compact page header -->
+<div class="page-header">
+  <div>
+    <div class="ph-tag" data-en="&#9679; Practice Simulator" data-ta="&#9679; பயிற்சி சிமுலேட்டர்">&#9679; Practice Simulator</div>
+    <h1 class="ph-title">Trade <em>Lab</em></h1>
+    <p class="ph-sub" data-en="Simulate options trades with virtual money at live prices." data-ta="நேரடி விலைகளில் மெய்நிகர் பணத்துடன் ஆப்ஷன் வர்த்தகங்களை பயிற்சி செய்யுங்கள்.">Simulate options trades with virtual money at live prices.</p>
+  </div>
+  <div class="ph-actions">
+    <a href="/stock_options.html" class="btn-cta-sm">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h12M9 4l5 4-5 4"/></svg>
-      Open Options Chain
+      Options Chain
     </a>
-    <a href="/stock-analyser.html" class="btn-chain-ghost">
+    <a href="/stock-analyser.html" class="btn-cta-ghost-sm">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4"/><path d="M11 11l3 3"/></svg>
       Stock Analyser
     </a>
   </div>
+</div>
+
+<!-- Metrics ring cards -->
+<div class="metrics-wrap">
+  <div class="metrics-grid">
+    <!-- Virtual Cash -->
+    <div class="metric-card" style="--mc-color:var(--cyan)">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-cash" cx="44" cy="44" r="34" stroke="var(--cyan)" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="acctCash">—</span>
+          <span class="ring-sub">CASH</span>
+        </div>
+      </div>
+      <div class="metric-name" data-en="Virtual Balance" data-ta="மெய்நிகர் இருப்பு">Virtual Balance</div>
+    </div>
+    <!-- Unrealized P&L -->
+    <div class="metric-card" style="--mc-color:var(--green)">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-unreal" cx="44" cy="44" r="34" stroke="var(--green)" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="acctUnrealized">—</span>
+          <span class="ring-sub">P&amp;L</span>
+        </div>
+      </div>
+      <div class="metric-name" data-en="Unrealized" data-ta="நிகழா">Unrealized</div>
+    </div>
+    <!-- Realized P&L -->
+    <div class="metric-card" style="--mc-color:var(--accent)">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-real" cx="44" cy="44" r="34" stroke="var(--accent)" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="acctRealized">—</span>
+          <span class="ring-sub">P&amp;L</span>
+        </div>
+      </div>
+      <div class="metric-name" data-en="Realized" data-ta="நிகழ்ந்த">Realized</div>
+    </div>
+    <!-- Win Rate -->
+    <div class="metric-card" style="--mc-color:var(--yellow)">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
+          <circle class="ring-fill" id="ring-winrate" cx="44" cy="44" r="34" stroke="var(--yellow)" transform="rotate(135 44 44)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-val" id="acctWinRate">—</span>
+          <span class="ring-sub">WINS</span>
+        </div>
+      </div>
+      <div class="metric-name" data-en="Win Rate" data-ta="வெற்றி விகிதம்">Win Rate</div>
+    </div>
+  </div>
+</div>
+
+<!-- Controls row -->
+<div class="ctrl-row">
+  <div class="ctrl-live">
+    <div class="live-dot"></div>
+    Auto · <span id="lastRefreshed">—</span>
+  </div>
+  <button class="refresh-btn" onclick="refreshAll(true)" data-en="&#8635; Refresh" data-ta="&#8635; புதுப்பி">&#8635; Refresh</button>
+  <button class="reset-btn" onclick="resetAccount()" data-en="Reset" data-ta="மீட்டமை">Reset</button>
 </div>
 
 <div class="main">
@@ -244,27 +349,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="card-z">
       <div class="section-label">
         <span data-en="Open Positions" data-ta="திறந்த பொசிஷன்கள்">Open Positions</span>
-      </div>
-      <div class="acct-strip">
-        <div class="strip-stats">
-          <div class="strip-chip">
-            <span class="strip-lbl" data-en="Cash" data-ta="பணம்">Cash</span>
-            <span class="strip-val" id="acctCash">—</span>
-          </div>
-          <div class="strip-chip">
-            <span class="strip-lbl" data-en="Unrealized" data-ta="நிகழா">Unrealized</span>
-            <span class="strip-val" id="acctUnrealized">—</span>
-          </div>
-          <div class="strip-chip">
-            <span class="strip-lbl" data-en="Realized" data-ta="நிகழ்ந்த">Realized</span>
-            <span class="strip-val" id="acctRealized">—</span>
-          </div>
-        </div>
-        <div class="strip-actions">
-          <div class="auto-live"><div class="live-dot"></div>Auto · <span id="lastRefreshed">—</span></div>
-          <button class="refresh-btn" onclick="refreshAll(true)" data-en="&#8635; Refresh" data-ta="&#8635; புதுப்பி">&#8635; Refresh</button>
-          <button class="reset-btn" onclick="resetAccount()" data-en="Reset" data-ta="மீட்டமை">Reset</button>
-        </div>
       </div>
       <div class="table-wrap">
         <table class="pos-table" id="posTable">
@@ -395,6 +479,29 @@ function _requireAuth() {
 const fmt = n => n == null ? '—' : '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 const T = (en, ta) => document.documentElement.getAttribute('data-lang') === 'ta' ? ta : en;
 
+const shortFmt = n => {
+  if (n == null) return '—';
+  const abs = Math.abs(n), s = n < 0 ? '−' : '';
+  if (abs >= 100000) return s + '₹' + (abs / 100000).toFixed(1) + 'L';
+  if (abs >= 1000)   return s + '₹' + (abs / 1000).toFixed(1) + 'K';
+  return s + '₹' + Math.round(abs);
+};
+const shortPnl = n => {
+  if (n == null) return '—';
+  const abs = Math.abs(n), s = n >= 0 ? '+₹' : '−₹';
+  if (abs >= 100000) return s + (abs / 100000).toFixed(1) + 'L';
+  if (abs >= 1000)   return s + (abs / 1000).toFixed(1) + 'K';
+  return s + Math.round(abs);
+};
+
+function setRing(ringId, pct, color) {
+  const el = document.getElementById(ringId);
+  if (!el) return;
+  const fill = Math.max(0, Math.min(1, pct)) * 160.2;
+  el.style.strokeDasharray = fill.toFixed(1) + ' 213.6';
+  if (color) el.style.stroke = color;
+}
+
 window.onLangChange = () => {
   renderPositions(_lastPositions);
   renderHistory(_lastHistory);
@@ -471,15 +578,43 @@ async function refreshAll(manual = false) {
     const positions = pos.positions || [];
     const unreal    = pos.unrealized_pnl ?? 0;
     const realPnl   = acct.realized_pnl ?? 0;
+    const trades    = hist.trades || [];
 
-    document.getElementById('acctCash').textContent = fmt(acct.cash);
-    setVal('acctUnrealized', unreal);
-    setVal('acctRealized', realPnl);
+    // Cash ring (full at ₹2L starting capital)
+    const cashEl = document.getElementById('acctCash');
+    if (cashEl) cashEl.textContent = shortFmt(acct.cash);
+    setRing('ring-cash', Math.min(1, (acct.cash || 0) / 200000), null);
+
+    // Unrealized ring (scaled to ±₹20K)
+    const unrealEl = document.getElementById('acctUnrealized');
+    if (unrealEl) {
+      unrealEl.textContent = shortPnl(unreal);
+      unrealEl.className = 'ring-val ' + (unreal > 0 ? 'pos' : unreal < 0 ? 'neg' : '');
+    }
+    setRing('ring-unreal', Math.min(1, Math.abs(unreal) / 20000),
+      unreal >= 0 ? 'var(--green)' : 'var(--red)');
+
+    // Realized ring (scaled to ±₹20K)
+    const realEl = document.getElementById('acctRealized');
+    if (realEl) {
+      realEl.textContent = shortPnl(realPnl);
+      realEl.className = 'ring-val ' + (realPnl > 0 ? 'pos' : realPnl < 0 ? 'neg' : '');
+    }
+    setRing('ring-real', Math.min(1, Math.abs(realPnl) / 20000),
+      realPnl >= 0 ? 'var(--accent)' : 'var(--red)');
+
+    // Win rate ring
+    const wins  = trades.filter(t => t.pnl > 0).length;
+    const total = trades.length;
+    const wr    = total > 0 ? wins / total : 0;
+    const wrEl  = document.getElementById('acctWinRate');
+    if (wrEl) wrEl.textContent = total > 0 ? Math.round(wr * 100) + '%' : '—';
+    setRing('ring-winrate', wr, null);
 
     renderPositions(positions);
-    renderHistory(hist.trades || []);
-    renderChart(hist.trades || []);
-    renderFeedback(hist.trades || []);
+    renderHistory(trades);
+    renderChart(trades);
+    renderFeedback(trades);
     const lr = document.getElementById('lastRefreshed');
     if (lr) lr.textContent = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
   } catch (e) {
@@ -491,12 +626,6 @@ async function refreshAll(manual = false) {
   } finally {
     _refreshing = false;
   }
-}
-
-function setVal(id, v) {
-  const el = document.getElementById(id);
-  el.textContent = pnlTxt(v);
-  el.className = 'strip-val ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
 }
 
 const _emptyPos = `<tr><td colspan="8">
