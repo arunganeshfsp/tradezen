@@ -349,6 +349,21 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
   }
   .bbar-disclaimer{display:none}
 }
+
+/* ── FULLSCREEN — desktop + tablet only ── */
+@media(max-width:900px){.fs-nav-btn{display:none !important}}
+.fs-close-btn{
+  display:none;position:fixed;top:18px;right:22px;z-index:99999;
+  align-items:center;gap:7px;
+  padding:7px 16px;border-radius:var(--r2);
+  border:1px solid var(--border2);
+  background:rgba(10,12,24,0.88);
+  color:var(--dim);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  backdrop-filter:blur(12px);transition:all .15s
+}
+.fs-close-btn:hover{color:#fff;border-color:var(--accent);background:rgba(10,12,24,0.96)}
+body.is-fullscreen .fs-close-btn{display:flex}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
@@ -387,10 +402,19 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
         <svg data-icon="dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/></svg>
         <svg data-icon="light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
+      <button type="button" class="btn-icon fs-nav-btn" id="fs-btn" onclick="toggleFullscreen()" title="Enter full screen" aria-label="Toggle full screen">
+        <svg id="fs-icon-expand" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.5V1h3.5M8.5 1H12v3.5M12 8.5V12H8.5M4.5 12H1V8.5"/></svg>
+        <svg id="fs-icon-compress" width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="display:none"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+      </button>
       <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
     </div>
   </div>
 </nav>
+
+<button class="fs-close-btn" id="fs-close-btn" onclick="exitFullscreen()" title="Exit full screen">
+  <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+  Exit Full Screen
+</button>
 
 <!-- TOP BAR -->
 <div class="app-topbar">
@@ -1937,6 +1961,25 @@ function _refreshWlSel() {
 }
 _refreshWlSel();
 document.addEventListener('tz-wl-change', _refreshWlSel);
+
+// ── Fullscreen ────────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+function exitFullscreen() {
+  document.exitFullscreen().catch(() => {});
+}
+document.addEventListener('fullscreenchange', function () {
+  const isFs = !!document.fullscreenElement;
+  document.body.classList.toggle('is-fullscreen', isFs);
+  document.getElementById('fs-icon-expand').style.display   = isFs ? 'none'  : 'block';
+  document.getElementById('fs-icon-compress').style.display = isFs ? 'block' : 'none';
+  document.getElementById('fs-btn').title = isFs ? 'Exit full screen' : 'Enter full screen';
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
