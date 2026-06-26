@@ -104,6 +104,13 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert
 .err-msg{color:var(--tz-loss);font-size:13px;background:var(--tz-loss-dim);border:1px solid rgba(248,113,113,0.25);border-radius:var(--r-xs);padding:10px 14px;margin:8px 0}
 .notice{color:var(--tz-warn);font-size:12px;background:var(--tz-warn-dim);border:1px solid rgba(251,191,36,0.2);border-radius:var(--r-xs);padding:8px 12px;margin:8px 0}
 .sebi-disclaimer{text-align:center;font-size:11px;color:var(--fg3);padding:20px 0 0;border-top:1px solid var(--border);margin-top:12px}
+.greeks-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.greek-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.greek-panel-hdr{display:flex;align-items:baseline;gap:8px;padding:8px 12px 4px}
+.greek-panel-name{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.greek-panel-desc{font-size:10px;color:var(--fg3)}
+.greek-panel-chart{height:90px}
+@media(max-width:600px){.greeks-grid{grid-template-columns:1fr}}
 
 @media(max-width:600px){.config-row{flex-direction:column}}
 </style>
@@ -200,7 +207,37 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert
   <span style="color:var(--fg3);font-size:10px">IV chart below</span>
 </div>
 <div id="chChartWrap" style="height:300px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;display:none"></div>
-<div id="chIvWrap" style="height:120px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:12px;display:none"></div>
+<div id="chIvWrap" style="height:120px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;display:none"></div>
+<div id="greeksGrid" class="greeks-grid" style="display:none">
+  <div class="greek-panel">
+    <div class="greek-panel-hdr">
+      <span class="greek-panel-name" style="color:#60a5fa">Delta</span>
+      <span class="greek-panel-desc">Rate of price change vs spot move</span>
+    </div>
+    <div class="greek-panel-chart" id="chDeltaWrap"></div>
+  </div>
+  <div class="greek-panel">
+    <div class="greek-panel-hdr">
+      <span class="greek-panel-name" style="color:#34d399">Gamma</span>
+      <span class="greek-panel-desc">Rate of delta change vs spot move</span>
+    </div>
+    <div class="greek-panel-chart" id="chGammaWrap"></div>
+  </div>
+  <div class="greek-panel">
+    <div class="greek-panel-hdr">
+      <span class="greek-panel-name" style="color:#fbbf24">Vega</span>
+      <span class="greek-panel-desc">Price change per 1% IV move</span>
+    </div>
+    <div class="greek-panel-chart" id="chVegaWrap"></div>
+  </div>
+  <div class="greek-panel">
+    <div class="greek-panel-hdr">
+      <span class="greek-panel-name" style="color:#f87171">Theta</span>
+      <span class="greek-panel-desc">Daily time decay (₹ per day)</span>
+    </div>
+    <div class="greek-panel-chart" id="chThetaWrap"></div>
+  </div>
+</div>
 <div id="chTable"></div>
 
 <div class="sebi-disclaimer">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</div>
@@ -209,7 +246,7 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert
 <script>
 const SYMBOLS_FO=['RELIANCE','TCS','INFY','HDFCBANK','ICICIBANK','SBIN','BAJFINANCE','WIPRO','AXISBANK','LT','HCLTECH','SUNPHARMA','TITAN','NESTLEIND','MARUTI','ASIANPAINT','KOTAKBANK','ULTRACEMCO','TECHM','POWERGRID','NTPC','COALINDIA','ONGC','TATASTEEL','JSWSTEEL','HINDALCO','ADANIENT','ADANIPORTS','TATAMOTORS','M&M','BAJAJFINSV','DMART','GRASIM','HAVELLS','HEROMOTOCO','ITC','INDUSINDBK','DIVISLAB','BPCL','CIPLA','DRREDDY','EICHERMOT','FEDERALBNK','GAIL','GODREJCP','HDFCLIFE','HINDUNILVR','IPCALAB','JKCEMENT','LUPIN','MANAPPURAM','MARICO','MFSL','MPHASIS','MRF','MUTHOOTFIN','NAUKRI','NIFTY','BANKNIFTY','AUBANK','BANKBARODA','BIOCON','BOSCHLTD','BRITANNIA','CANBK','CHOLAFIN','DLF','ESCORTS','EXIDEIND','FLUOROCHEM','GNFC','HINDZINC','IDFCFIRSTB','IEX','ITIIND','JINDALSTEL','JUBLFOOD','LALPATHLAB','LAURUSLABS','MAXHEALTH','MCDOWELL-N','METROPOLIS','MOTHERSON','NATIONALUM','NMDC','OBEROIRLTY','OFSS','PAGEIND','PEL','PIDILITIND','PIIND','PVR','SAIL','SBICARD','SBILIFE','SHREECEM','SIEMENS','SRF','STAR','TATACOMM','TATACONSUM','TATACHEM','TVSMOTOR','UBL','UPL','VEDL','VOLTAS','ZEEL','ZYDUSLIFE'];
 
-let _chDir='CE',_chChart=null,_chIvChart=null,_acIdx=-1;
+let _chDir='CE',_chChart=null,_chIvChart=null,_gCharts=[],_acIdx=-1;
 
 function fmtN(n){if(n==null||n===''||isNaN(n))return'—';const v=Number(n);return v.toLocaleString('en-IN',{minimumFractionDigits:v%1===0?0:2,maximumFractionDigits:2});}
 function fmtOi(n){if(n==null||n===0||n==='')return'—';const v=Number(n);if(v>=10000000)return(v/10000000).toFixed(2)+'Cr';if(v>=100000)return(v/100000).toFixed(2)+'L';if(v>=1000)return(v/1000).toFixed(1)+'K';return String(v);}
@@ -333,17 +370,42 @@ function _renderChHistory(data,strike,dir){
     _chChart.timeScale().fitContent();
   }
   document.getElementById('chLegend').style.display='flex';
+
+  // Greeks charts
+  _gCharts.forEach(c=>c.remove());_gCharts=[];
+  const hasGreeks=data[0].delta!=null;
+  document.getElementById('greeksGrid').style.display=hasGreeks?'grid':'none';
+  if(hasGreeks&&typeof LightweightCharts!=='undefined'){
+    const isDark2=document.documentElement.getAttribute('data-theme')!=='light';
+    const gBase={layout:{background:{color:isDark2?'#171a30':'#f4f5f9'},textColor:isDark2?'#9ea3c0':'#4a4f6e'},grid:{vertLines:{color:'transparent'},horzLines:{color:isDark2?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)'}},crosshair:{mode:1},rightPriceScale:{borderColor:'transparent',scaleMargins:{top:0.1,bottom:0.1}},timeScale:{borderColor:'transparent',timeVisible:true},handleScroll:false,handleScale:false};
+    const panels=[
+      {wrap:'chDeltaWrap', field:'delta', color:'#60a5fa'},
+      {wrap:'chGammaWrap', field:'gamma', color:'#34d399'},
+      {wrap:'chVegaWrap',  field:'vega',  color:'#fbbf24'},
+      {wrap:'chThetaWrap', field:'theta', color:'#f87171'},
+    ];
+    panels.forEach(({wrap,field,color})=>{
+      const el=document.getElementById(wrap);
+      el.innerHTML='';
+      const c=LightweightCharts.createChart(el,{...gBase,width:el.clientWidth||400,height:90});
+      const s=c.addLineSeries({color,lineWidth:1.5,priceLineVisible:false,lastValueVisible:true});
+      s.setData(data.filter(r=>r[field]!=null).map(r=>({time:r.date,value:r[field]})));
+      c.timeScale().fitContent();
+      _gCharts.push(c);
+    });
+  }
+
   const tbl=`<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono',monospace">
-    <thead><tr>${['Date','Open','High','Low','Close','Volume','OI','IV%'].map(h=>`<th style="padding:7px 10px;text-align:right;color:var(--fg3);font-size:10px;border-bottom:1px solid var(--border);letter-spacing:1px">${h}</th>`).join('')}</tr></thead>
+    <thead><tr>${['Date','Close','IV%','Delta','Gamma','Vega','Theta','OI'].map(h=>`<th style="padding:7px 10px;text-align:right;color:var(--fg3);font-size:10px;border-bottom:1px solid var(--border);letter-spacing:1px">${h}</th>`).join('')}</tr></thead>
     <tbody>${data.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
       <td style="padding:6px 10px;color:var(--fg2);text-align:left">${r.date}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--fg1)">${fmtN(r.open)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--tz-gain)">${fmtN(r.high)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--tz-loss)">${fmtN(r.low)}</td>
       <td style="padding:6px 10px;text-align:right;font-weight:700;color:var(--fg1)">${fmtN(r.close)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--fg2)">${fmtOi(r.volume)}</td>
-      <td style="padding:6px 10px;text-align:right;color:var(--fg2)">${fmtOi(r.oi)}</td>
       <td style="padding:6px 10px;text-align:right;color:var(--fg2)">${r.iv!=null?fmtP(r.iv):'—'}</td>
+      <td style="padding:6px 10px;text-align:right;color:#60a5fa">${r.delta!=null?Number(r.delta).toFixed(3):'—'}</td>
+      <td style="padding:6px 10px;text-align:right;color:#34d399">${r.gamma!=null?Number(r.gamma).toFixed(5):'—'}</td>
+      <td style="padding:6px 10px;text-align:right;color:#fbbf24">${r.vega!=null?fmtN(r.vega):'—'}</td>
+      <td style="padding:6px 10px;text-align:right;color:#f87171">${r.theta!=null?fmtN(r.theta):'—'}</td>
+      <td style="padding:6px 10px;text-align:right;color:var(--fg2)">${fmtOi(r.oi)}</td>
     </tr>`).reverse().join('')}</tbody>
   </table>`;
   document.getElementById('chTable').innerHTML=tbl;

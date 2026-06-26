@@ -356,6 +356,27 @@ def _bs_theta(S, K, T, r, sigma, opt):
                 else common + r * K * math.exp(-r * T) * _ncdf(-d2))
     return theta_yr / 365.0
 
+def _bs_delta(S, K, T, r, sigma, opt):
+    if T <= 0 or sigma <= 0 or S <= 0:
+        return (1.0 if S >= K else 0.0) if opt == "CE" else (-1.0 if S <= K else 0.0)
+    d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
+    return _ncdf(d1) if opt == "CE" else _ncdf(d1) - 1.0
+
+def _bs_gamma(S, K, T, r, sigma, opt):
+    if T <= 0 or sigma <= 0 or S <= 0:
+        return 0.0
+    sqT = math.sqrt(T)
+    d1  = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * sqT)
+    return _npdf(d1) / (S * sigma * sqT)
+
+def _bs_vega(S, K, T, r, sigma, opt):
+    """Vega per 1 % change in IV."""
+    if T <= 0 or sigma <= 0 or S <= 0:
+        return 0.0
+    sqT = math.sqrt(T)
+    d1  = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * sqT)
+    return S * _npdf(d1) * sqT * 0.01
+
 def _implied_vol(price, S, K, T, r, opt) -> Optional[float]:
     if T <= 0 or price <= 0 or S <= 0:
         return None
@@ -432,6 +453,9 @@ def enrich_rows(eod_rows: list[dict], symbol: str, strike: float, expiry: str, o
             "iv_pct":     round(iv * 100, 1) if iv else None,
             "theo_price": round(_bs_price(S, strike, T, _RISK_FREE, anchor_iv, opt_up), 2) if S else None,
             "theta":      round(_bs_theta(S, strike, T, _RISK_FREE, eff, opt_up), 2) if S else None,
+            "delta":      round(_bs_delta(S, strike, T, _RISK_FREE, eff, opt_up), 4) if S else None,
+            "gamma":      round(_bs_gamma(S, strike, T, _RISK_FREE, eff, opt_up), 6) if S else None,
+            "vega":       round(_bs_vega(S, strike, T, _RISK_FREE, eff, opt_up), 2)  if S else None,
         })
 
     return {
@@ -600,6 +624,9 @@ def build_history(symbol: str, strike: float, expiry: str, opt_type: str) -> dic
             "iv_pct":     round(iv * 100, 1) if iv else None,
             "theo_price": round(_bs_price(S, strike, T, _RISK_FREE, anchor_iv, opt_up), 2) if S else None,
             "theta":      round(_bs_theta(S, strike, T, _RISK_FREE, eff, opt_up), 2) if S else None,
+            "delta":      round(_bs_delta(S, strike, T, _RISK_FREE, eff, opt_up), 4) if S else None,
+            "gamma":      round(_bs_gamma(S, strike, T, _RISK_FREE, eff, opt_up), 6) if S else None,
+            "vega":       round(_bs_vega(S, strike, T, _RISK_FREE, eff, opt_up), 2)  if S else None,
         })
 
     result = {
