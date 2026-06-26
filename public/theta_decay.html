@@ -106,10 +106,12 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert
 .sebi-disclaimer{text-align:center;font-size:11px;color:var(--fg3);padding:20px 0 0;border-top:1px solid var(--border);margin-top:12px}
 .greeks-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .greek-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.greek-panel.full{grid-column:1/-1}
 .greek-panel-hdr{display:flex;align-items:baseline;gap:8px;padding:8px 12px 4px}
 .greek-panel-name{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
 .greek-panel-desc{font-size:10px;color:var(--fg3)}
 .greek-panel-chart{height:90px}
+.greek-panel.full .greek-panel-chart{height:110px}
 @media(max-width:600px){.greeks-grid{grid-template-columns:1fr}}
 
 @media(max-width:600px){.config-row{flex-direction:column}}
@@ -209,6 +211,13 @@ input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert
 <div id="chChartWrap" style="height:300px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;display:none"></div>
 <div id="chIvWrap" style="height:120px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;display:none"></div>
 <div id="greeksGrid" class="greeks-grid" style="display:none">
+  <div class="greek-panel full">
+    <div class="greek-panel-hdr">
+      <span class="greek-panel-name" style="color:#7c6af7">Premium</span>
+      <span class="greek-panel-desc">Actual option close price (₹) — anchor for all Greeks below</span>
+    </div>
+    <div class="greek-panel-chart" id="chPremiumWrap"></div>
+  </div>
   <div class="greek-panel">
     <div class="greek-panel-hdr">
       <span class="greek-panel-name" style="color:#60a5fa">Delta</span>
@@ -379,10 +388,11 @@ function _renderChHistory(data,strike,dir){
     const isDark2=document.documentElement.getAttribute('data-theme')!=='light';
     const gBase={layout:{background:{color:isDark2?'#171a30':'#f4f5f9'},textColor:isDark2?'#9ea3c0':'#4a4f6e'},grid:{vertLines:{color:'transparent'},horzLines:{color:isDark2?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)'}},crosshair:{mode:1},rightPriceScale:{borderColor:'transparent',scaleMargins:{top:0.1,bottom:0.1}},timeScale:{borderColor:'transparent',timeVisible:true},handleScroll:false,handleScale:false};
     const panels=[
-      {wrap:'chDeltaWrap', field:'delta', color:'#60a5fa'},
-      {wrap:'chGammaWrap', field:'gamma', color:'#34d399'},
-      {wrap:'chVegaWrap',  field:'vega',  color:'#fbbf24'},
-      {wrap:'chThetaWrap', field:'theta', color:'#f87171'},
+      {wrap:'chPremiumWrap', field:'close', color:'#7c6af7'},
+      {wrap:'chDeltaWrap',   field:'delta', color:'#60a5fa'},
+      {wrap:'chGammaWrap',   field:'gamma', color:'#34d399'},
+      {wrap:'chVegaWrap',    field:'vega',  color:'#fbbf24'},
+      {wrap:'chThetaWrap',   field:'theta', color:'#f87171'},
     ];
     panels.forEach(({wrap,field,color})=>{
       const el=document.getElementById(wrap);
