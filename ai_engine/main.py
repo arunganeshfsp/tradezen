@@ -4554,43 +4554,71 @@ async def ch_scan(universe: str = "nifty100", period: str = "1y",
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+_NSE_HOLIDAYS = {
+    _dt.date.fromisoformat(d) for d in [
+        "2025-02-26", "2025-03-14", "2025-03-31", "2025-04-06",
+        "2025-04-14", "2025-04-18", "2025-05-01", "2025-06-07",
+        "2025-08-15", "2025-08-27", "2025-10-02", "2025-10-20",
+        "2025-10-21", "2025-11-05",
+        "2026-01-26", "2026-02-17", "2026-03-03", "2026-04-03",
+        "2026-04-14", "2026-05-01", "2026-08-14", "2026-10-02",
+        "2026-10-22",
+    ]
+}
+
+def _nse_expiry_date(candidate: "_dt.date") -> "_dt.date":
+    """Shift a candidate expiry backward past weekends and holidays."""
+    d = candidate
+    while d.weekday() >= 5 or d in _NSE_HOLIDAYS:
+        d -= _dt.timedelta(days=1)
+    return d
+
+
 @app.get("/options/past-expiries")
 def options_past_expiries(symbol: str = "NIFTY"):
     """
     Return recent expiry dates for the given symbol.
-    NIFTY  → weekly Thursdays (weekday 3)
-    BANKNIFTY / MIDCPNIFTY → weekly Wednesdays (weekday 2)
-    FINNIFTY → weekly Tuesdays (weekday 1)
+    NIFTY / FINNIFTY → weekly Tuesdays
+    BANKNIFTY / MIDCPNIFTY → weekly Wednesdays
     Stocks / others → monthly last-Thursday of each month.
+    If an expiry day is a market holiday the date is shifted to the
+    previous trading day (NSE rule).
     Returns up to 12 dates in reverse-chronological order (most recent first),
     from 90 days ago up to 7 days ahead (current/next week included).
     """
     sym   = symbol.upper()
     today = _dt.date.today()
 
-    # Weekly index expiry day
-    weekly = {"NIFTY": 3, "BANKNIFTY": 2, "MIDCPNIFTY": 2, "FINNIFTY": 1}
+    weekly = {"NIFTY": 1, "BANKNIFTY": 2, "MIDCPNIFTY": 2, "FINNIFTY": 1}
 
     expiries: list[str] = []
+    seen:     set[str]  = set()          # deduplicate after holiday shifts
 
     if sym in weekly:
         target_wd = weekly[sym]
-        d = today + _dt.timedelta(days=7)          # start from 1 week ahead
+        d = today + _dt.timedelta(days=7)
         while d >= today - _dt.timedelta(days=90):
             if d.weekday() == target_wd:
-                expiries.append(d.isoformat())
+                actual = _nse_expiry_date(d)
+                iso = actual.isoformat()
+                if iso not in seen:
+                    expiries.append(iso)
+                    seen.add(iso)
             d -= _dt.timedelta(days=1)
     else:
-        # Monthly: last Thursday of each month
         import calendar
         yr, mo = today.year, today.month
         for _ in range(12):
             last_day = calendar.monthrange(yr, mo)[1]
             d = _dt.date(yr, mo, last_day)
-            while d.weekday() != 3:
+            while d.weekday() != 3:          # last Thursday of month
                 d -= _dt.timedelta(days=1)
-            if d <= today + _dt.timedelta(days=7):
-                expiries.append(d.isoformat())
+            actual = _nse_expiry_date(d)
+            if actual <= today + _dt.timedelta(days=7):
+                iso = actual.isoformat()
+                if iso not in seen:
+                    expiries.append(iso)
+                    seen.add(iso)
             mo -= 1
             if mo == 0:
                 mo = 12; yr -= 1
