@@ -460,6 +460,33 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
   }
   .mob-back-btn:hover{color:var(--text);background:var(--bg4)}
 }
+
+/* ── FULLSCREEN — desktop + tablet only ── */
+.fs-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:var(--r2);
+  border:1px solid var(--border);background:transparent;
+  color:var(--dim);cursor:pointer;font-size:12px;
+  font-family:'DM Sans',sans-serif;flex-shrink:0;
+  margin-left:8px;transition:all .15s;white-space:nowrap
+}
+.fs-btn:hover{color:var(--text);background:var(--bg3);border-color:var(--border2)}
+@media(max-width:900px){.fs-btn{display:none}}
+
+/* floating exit button — only shown while in fullscreen */
+.fs-close-btn{
+  display:none;position:fixed;top:18px;right:22px;z-index:99999;
+  align-items:center;gap:7px;
+  padding:7px 16px;border-radius:var(--r2);
+  border:1px solid var(--border2);
+  background:rgba(10,12,24,0.88);
+  color:var(--dim);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  backdrop-filter:blur(12px);
+  transition:all .15s
+}
+.fs-close-btn:hover{color:#fff;border-color:var(--accent);background:rgba(10,12,24,0.96)}
+body.is-fullscreen .fs-close-btn{display:flex}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
@@ -547,7 +574,17 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:18px 28p
     <span id="oi-scenario-note" style="display:none;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.18);padding:2px 10px;border-radius:20px;white-space:nowrap" title="Futures OI influence on scenario"></span>
   </div>
   <div class="refresh-note" id="refresh-note">Last update: --:--:--</div>
+  <button class="fs-btn" id="fs-btn" onclick="toggleFullscreen()" title="Enter full screen">
+    <svg id="fs-icon-expand" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.5V1h3.5M8.5 1H12v3.5M12 8.5V12H8.5M4.5 12H1V8.5"/></svg>
+    <svg id="fs-icon-compress" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="display:none"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+    <span id="fs-btn-label">Full Screen</span>
+  </button>
 </div>
+
+<button class="fs-close-btn" id="fs-close-btn" onclick="exitFullscreen()" title="Exit full screen">
+  <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
+  Exit Full Screen
+</button>
 
 <!-- WORKSPACE -->
 <div class="app-workspace">
@@ -3645,6 +3682,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     card.appendChild(btn);
   });
+});
+
+// ── Fullscreen ────────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+function exitFullscreen() {
+  document.exitFullscreen().catch(() => {});
+}
+document.addEventListener('fullscreenchange', function () {
+  const isFs = !!document.fullscreenElement;
+  document.body.classList.toggle('is-fullscreen', isFs);
+  document.getElementById('fs-icon-expand').style.display  = isFs ? 'none'  : 'block';
+  document.getElementById('fs-icon-compress').style.display = isFs ? 'block' : 'none';
+  document.getElementById('fs-btn-label').textContent = isFs ? 'Exit Full Screen' : 'Full Screen';
+  document.getElementById('fs-btn').title = isFs ? 'Exit full screen' : 'Enter full screen';
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
