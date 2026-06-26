@@ -234,7 +234,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,0.95);backdrop-fi
 
 /* CHART */
 .chart-section{max-width:1400px;margin:16px auto 0;padding:0 20px}
-.chart-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.chart-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative}
 .chart-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
 .chart-legend{display:flex;gap:12px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:10px;align-items:center}
@@ -584,7 +584,15 @@ body.is-fullscreen .fs-close-btn{display:flex}
           <span id="chartAsOf" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)"></span>
           <span class="mob-chev">▾</span>
         </div>
-        <div id="cprChart"></div>
+        <div style="position:relative">
+          <div id="cprChart"></div>
+          <div id="holidayOverlay" style="display:none;position:absolute;inset:0;background:var(--bg1);flex-direction:column;align-items:center;justify-content:center;gap:10px">
+            <span style="font-size:28px;line-height:1">🗓️</span>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--text)">Market Holiday</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);letter-spacing:.5px" id="holidayName"></div>
+            <div style="font-size:11px;color:var(--muted)">NSE / BSE closed today · Chart resumes next trading session</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -719,6 +727,56 @@ let _foiFetching = false; // concurrent-request guard
 // ─────────────────────────────────────────────
 const fmt  = v => v != null ? v.toLocaleString('en-IN', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
 const fmtP = v => v != null ? (v >= 0 ? '+' : '') + v.toFixed(2) : '';
+
+// NSE market holidays (ISO date → name). Weekends excluded — markets already closed.
+const NSE_HOLIDAYS = {
+  '2025-02-26': 'Mahashivratri',
+  '2025-03-14': 'Holi',
+  '2025-03-31': 'Id-Ul-Fitr (Ramzan Eid)',
+  '2025-04-06': 'Shri Ram Navami',
+  '2025-04-14': 'Dr. Ambedkar Jayanti',
+  '2025-04-18': 'Good Friday',
+  '2025-05-01': 'Maharashtra Day',
+  '2025-06-07': 'Eid ul-Adha (Bakri Eid)',
+  '2025-08-15': 'Independence Day',
+  '2025-08-27': 'Ganesh Chaturthi',
+  '2025-10-02': 'Gandhi Jayanti / Dussehra',
+  '2025-10-20': 'Diwali (Laxmi Puja)',
+  '2025-10-21': 'Diwali (Balipratipada)',
+  '2025-11-05': 'Prakash Gurpurab',
+  '2026-01-26': 'Republic Day',
+  '2026-02-17': 'Mahashivratri',
+  '2026-03-03': 'Holi',
+  '2026-04-03': 'Good Friday',
+  '2026-04-14': 'Dr. Ambedkar Jayanti',
+  '2026-05-01': 'Maharashtra Day',
+  '2026-08-14': 'Independence Day',
+  '2026-10-02': 'Gandhi Jayanti',
+  '2026-10-22': 'Dussehra',
+};
+
+function _todayIST() {
+  const d = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+}
+
+function _epochToISO(epochSec) {
+  const d = new Date(epochSec * 1000);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+}
+
+function showHolidayOverlay(name) {
+  const el = document.getElementById('holidayOverlay');
+  if (!el) return;
+  const hn = document.getElementById('holidayName');
+  if (hn) hn.textContent = name;
+  el.style.display = 'flex';
+}
+
+function hideHolidayOverlay() {
+  const el = document.getElementById('holidayOverlay');
+  if (el) el.style.display = 'none';
+}
 
 function formatTime(epochSec) {
   const d = new Date(epochSec * 1000);
@@ -946,7 +1004,14 @@ async function fetchCandles() {
     const r = await fetch(`${API}/candles-for-cpr?symbol=${_symbol}&timeframe=${_timeframe}`);
     const d = await r.json();
     if (_gen !== gen) return;
-    if (!d.candles || !d.candles.length) return;
+    if (!d.candles || !d.candles.length) {
+      if (_timeframe === 'daily') {
+        const holiday = NSE_HOLIDAYS[_todayIST()];
+        if (holiday) showHolidayOverlay(holiday);
+      }
+      return;
+    }
+    hideHolidayOverlay();
     _candles = d.candles;
 
     const last    = _candles[_candles.length - 1];
@@ -1647,7 +1712,7 @@ function drawChartLines() {
 }
 
 function updateChartMarkers() {
-  if (!_candleSerie || !_allAlerts.length) return;
+  if (!_candleSerie) return;
 
   const MARKER_COLORS = {
     VIRGIN_CPR:         '#7c6af7',
@@ -1684,7 +1749,30 @@ function updateChartMarkers() {
       size:     1,
     }));
 
-  _candleSerie.setMarkers(markers);
+  // Holiday gap markers — weekly/monthly daily-candle chart only.
+  // A holiday shows as a gap between two consecutive candles; mark the candle before the gap.
+  if (_timeframe !== 'daily' && _candles.length >= 2) {
+    for (let i = 0; i < _candles.length - 1; i++) {
+      const dateA = _epochToISO(_candles[i].time);
+      const dateB = _epochToISO(_candles[i + 1].time);
+      for (const [hDate, hName] of Object.entries(NSE_HOLIDAYS)) {
+        if (hDate > dateA && hDate < dateB) {
+          markers.push({
+            time:     _candles[i].time,
+            position: 'aboveBar',
+            color:    'rgba(155,163,191,0.6)',
+            shape:    'circle',
+            text:     '⛅ ' + hName,
+            size:     1,
+          });
+          break;
+        }
+      }
+    }
+    markers.sort((a, b) => a.time - b.time);
+  }
+
+  if (markers.length) _candleSerie.setMarkers(markers);
 }
 
 // ─────────────────────────────────────────────
@@ -1923,6 +2011,8 @@ function resetAndReload() {
   const tfTitles = {daily: '5-Min Chart with CPR Levels & Alert Markers', weekly: 'Daily Chart — Weekly CPR Levels', monthly: 'Daily Chart — Monthly CPR Levels'};
   const ctEl = document.getElementById('chartTitle');
   if (ctEl) ctEl.textContent = `📈 ${tfTitles[_timeframe] || '5-Min Chart with CPR Levels'}`;
+
+  hideHolidayOverlay();
 
   // Destroy chart
   if (_chart) { _chart.remove(); _chart = null; _candleSerie = null; }
