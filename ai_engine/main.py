@@ -4302,8 +4302,8 @@ def swing_analyse(symbol: str, capital: float = 75000, risk_pct: float = 2):
 @app.get("/swing/scan")
 def swing_scan(capital: float = 75000, risk_pct: float = 2, universe: str = "nifty100"):
     """Batch scan Nifty 50 + Next 50 stocks via S4 quick-filter. Returns top 3 + rejected."""
-    from core.swing_analyzer import scan_stocks, NIFTY50, NIFTY_NEXT50
     try:
+        from core.swing_analyzer import scan_stocks, NIFTY50, NIFTY_NEXT50
         symbols = NIFTY50 + NIFTY_NEXT50 if universe == "nifty100" else NIFTY50
         return scan_stocks(symbols, capital, risk_pct)
     except Exception as e:

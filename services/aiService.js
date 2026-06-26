@@ -243,7 +243,10 @@ class AIService {
                 e.status = err.response.status;
                 throw e;
             }
-            return { error: "Python engine unreachable" };
+            const reason = err.code === 'ECONNABORTED'
+                ? 'Request timed out — yfinance is slow, please try again'
+                : 'Python engine unreachable';
+            return { error: reason };
         }
     }
 }

@@ -114,7 +114,7 @@ router.get("/swing/analyse", async (req, res) => {
 router.get("/swing/scan", async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
-    const data = await aiService.proxy("GET", `/swing/scan?${params}`, 120000);
+    const data = await aiService.proxy("GET", `/swing/scan?${params}`, 300000);
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
