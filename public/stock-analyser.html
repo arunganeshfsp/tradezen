@@ -209,6 +209,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Tamil',sans-s
 .ret-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:.5rem;}
 @media(max-width:480px){.ret-grid{grid-template-columns:1fr 1fr;}}
 
+/* ── Volume pressure bar ─────────────────────────────────────────── */
+.vp-split-bar{height:8px;border-radius:999px;display:flex;overflow:hidden;background:var(--bg3);margin:8px 0 6px;}
+.vp-buy{background:var(--green);transition:width .4s;}
+.vp-sell{background:var(--red);transition:width .4s;}
+.vp-labels{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;}
+
 /* ── Results tables ──────────────────────────────────── */
 .results-sub-head{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
@@ -540,6 +546,7 @@ function renderResults(d) {
   const te = d.technicals;
   const re = d.returns;
   const sc = d.scorecard;
+  const vo = d.volume || {};
   _chartData = d.chart;
   if (priceChart) { priceChart.destroy(); priceChart = null; }
 
@@ -696,6 +703,37 @@ function renderResults(d) {
           <div class="m-val ${macdL.cls}">${macdL.text}</div>
           <div class="m-sub">${fmt(te.macd,4)} / sig ${fmt(te.macd_signal,4)}</div>
         </div>
+      </div>
+
+      <div class="sec-head">Volume Pressure — Last 20 Sessions</div>
+      <div class="range-bar-wrap" style="margin-bottom:.75rem">
+        <div class="rb-title" style="margin-bottom:0">Buyer vs Seller Volume</div>
+        <div class="vp-split-bar">
+          <div class="vp-buy"  style="width:${vo.buy_pct  ?? 50}%"></div>
+          <div class="vp-sell" style="width:${vo.sell_pct ?? 50}%"></div>
+        </div>
+        <div class="vp-labels">
+          <span style="color:var(--green)">▲ ${vo.buy_pct  ?? '—'}% Buyer</span>
+          <span style="color:var(--red)"  >▼ ${vo.sell_pct ?? '—'}% Seller</span>
+        </div>
+      </div>
+      <div class="tech-grid" style="margin-bottom:1rem">
+        <div class="metric">
+          <div class="m-label">Money Flow Score</div>
+          <div class="m-val ${(vo.mf_score??0) > 20 ? 'pos' : (vo.mf_score??0) < -20 ? 'neg' : ''}">${(vo.mf_score??0) > 0 ? '+' : ''}${vo.mf_score ?? '—'}</div>
+          <div class="m-sub">${(vo.mf_score??0) > 20 ? 'Buying pressure' : (vo.mf_score??0) < -20 ? 'Selling pressure' : 'Neutral flow'}</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Volume vs Avg (20d)</div>
+          <div class="m-val ${(vo.vol_ratio??1) >= 1.5 ? 'pos' : (vo.vol_ratio??1) <= 0.5 ? 'warn' : ''}">${vo.vol_ratio ?? '—'}x</div>
+          <div class="m-sub">today vs 20-day avg</div>
+        </div>
+        ${vo.bid && vo.ask && vo.bid > 0 && vo.ask > vo.bid ? `
+        <div class="metric">
+          <div class="m-label">Bid / Ask</div>
+          <div class="m-val">₹${fmt(vo.bid,2)} / ₹${fmt(vo.ask,2)}</div>
+          <div class="m-sub">Spread ₹${fmt(vo.ask - vo.bid, 2)}</div>
+        </div>` : ''}
       </div>
 
       <div class="sec-head">Moving Averages</div>

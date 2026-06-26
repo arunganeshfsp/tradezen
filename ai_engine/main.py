@@ -5689,6 +5689,23 @@ def _stock_analyse_sync(symbol: str) -> dict:
     avg_vol_20 = int(volumes.iloc[-21:-1].mean()) if len(volumes) >= 21 else int(volumes.mean())
     cur_vol    = int(volumes.iloc[-1])
 
+    # ── Volume pressure (last 20 sessions) ───────────────────────────────
+    _n  = min(20, len(closes))
+    _c  = closes.iloc[-_n:]
+    _o  = hist["Open"].squeeze().iloc[-_n:]
+    _h  = hist["High"].squeeze().iloc[-_n:]
+    _l  = hist["Low"].squeeze().iloc[-_n:]
+    _v  = volumes.iloc[-_n:]
+    _hl = (_h - _l).clip(lower=1e-6)
+    _up = _c > _o
+    _dn = _c < _o
+    _tv = float(_v.sum()) or 1.0
+    buy_pct_20  = round(float(_v[_up].sum()) / _tv * 100, 1)
+    sell_pct_20 = round(float(_v[_dn].sum()) / _tv * 100, 1)
+    _mfm = ((_c - _l) - (_h - _c)) / _hl
+    mf_score  = round(float((_mfm * _v).sum() / _tv * 100), 1)
+    vol_ratio = round(cur_vol / avg_vol_20, 2) if avg_vol_20 > 0 else 1.0
+
     # ── RSI (14) ─────────────────────────────────────────────────────────────
     rsi_series = calculate_rsi(closes, period=14)
     rsi_val    = round(float(rsi_series.iloc[-1]), 1)
@@ -6014,6 +6031,18 @@ def _stock_analyse_sync(symbol: str) -> dict:
         "chart": {
             "dates":  [d.strftime("%Y-%m-%d") for d in hist.index.date],
             "closes": [round(float(v), 2) for v in closes.tolist()],
+        },
+
+        # Volume pressure (calculated from last 20 sessions of daily OHLCV)
+        "volume": {
+            "buy_pct":   buy_pct_20,
+            "sell_pct":  sell_pct_20,
+            "mf_score":  mf_score,
+            "vol_ratio": vol_ratio,
+            "bid":       _f("bid", 2),
+            "ask":       _f("ask", 2),
+            "bid_size":  info.get("bidSize"),
+            "ask_size":  info.get("askSize"),
         },
 
         # Financial results — quarterly and annual income statement
