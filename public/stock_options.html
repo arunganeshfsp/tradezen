@@ -708,7 +708,14 @@ body.is-fullscreen .fs-close-btn{display:flex}
         <button class="dir-btn" id="chBtnPE" onclick="chSetDir('PE')">PE</button>
       </div>
     </div>
-    <div class="tb-field"><label>Expiry</label><input type="date" id="chExpiry" style="width:140px" onchange="onChExpiryChange()"></div>
+    <div class="tb-field"><label>Expiry</label>
+      <div class="select-wrap" style="width:155px">
+        <select id="chExpiry" onchange="onChExpiryChange()">
+          <option value="">Select expiry…</option>
+        </select>
+        <svg class="sel-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </div>
     <div class="tb-field"><label>From Date</label><input type="date" id="chFromDate" style="width:130px"></div>
     <div class="tb-field"><label>To Date</label><input type="date" id="chToDate" style="width:130px"></div>
     <div class="tb-field" style="align-self:flex-end">
@@ -815,8 +822,10 @@ async function loadExpiries(opts){
     if(!exp.length){sel.innerHTML='<option>No expiries</option>';return;}
     sel.innerHTML=exp.map(e=>`<option value="${e}">${e}</option>`).join('');
     const chExp=document.getElementById('chExpiry');
-    if(chExp&&!chExp.value)chExp.value=exp[0];
-    onChExpiryChange();
+    if(chExp){
+      chExp.innerHTML=exp.map(e=>`<option value="${e}">${e}</option>`).join('');
+      onChExpiryChange();
+    }
     if(opts){
       if(opts.expiry&&exp.includes(opts.expiry))sel.value=opts.expiry;
       if(opts.dir)setDir(opts.dir);
@@ -1309,9 +1318,13 @@ function chSetDir(d){
   document.getElementById('chBtnPE').className='dir-btn'+(d==='PE'?' active-PE':'');
 }
 function onChExpiryChange(){
-  const exp=document.getElementById('chExpiry').value;
+  const exp=document.getElementById('chExpiry').value;  // "24APR2025"
   if(!exp)return;
-  const to=new Date(exp);const from=new Date(to);from.setDate(from.getDate()-28);
+  const _MO={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  const m=exp.match(/^(\d{1,2})([A-Z]{3})(\d{4})$/i);
+  if(!m)return;
+  const to=new Date(+m[3],_MO[m[2].toLowerCase()],+m[1]);
+  const from=new Date(to);from.setDate(from.getDate()-28);
   document.getElementById('chFromDate').value=from.toISOString().split('T')[0];
   document.getElementById('chToDate').value=to.toISOString().split('T')[0];
 }
@@ -1325,10 +1338,15 @@ async function fetchContractHistoryNSE(){
   const btn=document.getElementById('chLoadBtn');
   btn.disabled=true;btn.textContent='Fetching…';
   try{
-    // Dates from <input type="date"> are YYYY-MM-DD; backend expects DD-MMM-YYYY
-    const _MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const toNSE=v=>{const[y,m,d]=v.split('-');return `${d}-${_MONTHS[+m-1]}-${y}`;};
-    const r=await fetch(`/api/options/contract-history-nse?symbol=${sym}&strike=${strike}&expiry=${toNSE(exp)}&from_date=${toNSE(from)}&to_date=${toNSE(to)}&opt_type=${_chDir}`);
+    // Expiry from <select> is "24APR2025"; from/to from <input type="date"> are YYYY-MM-DD
+    // Backend expects DD-MMM-YYYY for all three.
+    const _MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const _MO2={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+    const mExp=exp.match(/^(\d{1,2})([A-Z]{3})(\d{4})$/i);
+    if(!mExp)throw new Error(`Invalid expiry: ${exp}`);
+    const expNSE=`${String(mExp[1]).padStart(2,'0')}-${_MN[_MO2[mExp[2].toLowerCase()]]}-${mExp[3]}`;
+    const toNSE=v=>{const[y,m,d]=v.split('-');return `${d}-${_MN[+m-1]}-${y}`;};
+    const r=await fetch(`/api/options/contract-history-nse?symbol=${sym}&strike=${strike}&expiry=${expNSE}&from_date=${toNSE(from)}&to_date=${toNSE(to)}&opt_type=${_chDir}`);
     const d=await r.json();
     if(d.error)throw new Error(d.error);
     // Normalise backend field names (open_int/contracts/iv_pct) to what _renderChHistory expects
