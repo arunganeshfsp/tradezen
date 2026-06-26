@@ -323,6 +323,8 @@ nav{position:sticky;top:0;z-index:200;background:var(--void);border-bottom:1px s
 
 /* ── Shared inputs ─────────────────────────────────────────────── */
 input[type=text],input[type=number],input[type=date],select{background:var(--inset);border:1px solid var(--border-s);color:var(--fg1);font-family:'JetBrains Mono',monospace;font-size:13px;padding:7px 12px;border-radius:var(--r-xs);outline:none;transition:border-color .15s}
+input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert(1);opacity:.7}
+:root[data-theme="light"] input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0)}
 input:focus,select:focus{border-color:var(--tz-purple)}
 .tb-field{display:flex;flex-direction:column;gap:4px}
 .tb-field label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--fg3);text-transform:uppercase}
@@ -823,8 +825,19 @@ async function loadExpiries(opts){
     sel.innerHTML=exp.map(e=>`<option value="${e}">${e}</option>`).join('');
     const chExp=document.getElementById('chExpiry');
     if(chExp){
-      chExp.innerHTML=exp.map(e=>`<option value="${e}">${e}</option>`).join('');
-      onChExpiryChange();
+      const _MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      chExp.innerHTML='<option value="">Loading past expiries…</option>';
+      fetch(`/api/options/past-expiries?symbol=${sym}`)
+        .then(r=>r.json())
+        .then(pd=>{
+          const past=pd.expiries||[];
+          if(!past.length){chExp.innerHTML='<option value="">No past expiries</option>';return;}
+          chExp.innerHTML=past.map(iso=>{
+            const[y,m,d]=iso.split('-');
+            return `<option value="${iso}">${d} ${_MN[+m-1]} ${y}</option>`;
+          }).join('');
+          onChExpiryChange();
+        }).catch(()=>{chExp.innerHTML='<option value="">Error — retry</option>';});
     }
     if(opts){
       if(opts.expiry&&exp.includes(opts.expiry))sel.value=opts.expiry;
@@ -1318,12 +1331,9 @@ function chSetDir(d){
   document.getElementById('chBtnPE').className='dir-btn'+(d==='PE'?' active-PE':'');
 }
 function onChExpiryChange(){
-  const exp=document.getElementById('chExpiry').value;  // "24APR2025"
+  const exp=document.getElementById('chExpiry').value;  // "2025-04-24" ISO
   if(!exp)return;
-  const _MO={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
-  const m=exp.match(/^(\d{1,2})([A-Z]{3})(\d{4})$/i);
-  if(!m)return;
-  const to=new Date(+m[3],_MO[m[2].toLowerCase()],+m[1]);
+  const to=new Date(exp+'T00:00:00');
   const from=new Date(to);from.setDate(from.getDate()-28);
   document.getElementById('chFromDate').value=from.toISOString().split('T')[0];
   document.getElementById('chToDate').value=to.toISOString().split('T')[0];
@@ -1338,15 +1348,10 @@ async function fetchContractHistoryNSE(){
   const btn=document.getElementById('chLoadBtn');
   btn.disabled=true;btn.textContent='Fetching…';
   try{
-    // Expiry from <select> is "24APR2025"; from/to from <input type="date"> are YYYY-MM-DD
-    // Backend expects DD-MMM-YYYY for all three.
+    // All three dates (expiry, from, to) are YYYY-MM-DD ISO; backend expects DD-MMM-YYYY.
     const _MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const _MO2={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
-    const mExp=exp.match(/^(\d{1,2})([A-Z]{3})(\d{4})$/i);
-    if(!mExp)throw new Error(`Invalid expiry: ${exp}`);
-    const expNSE=`${String(mExp[1]).padStart(2,'0')}-${_MN[_MO2[mExp[2].toLowerCase()]]}-${mExp[3]}`;
     const toNSE=v=>{const[y,m,d]=v.split('-');return `${d}-${_MN[+m-1]}-${y}`;};
-    const r=await fetch(`/api/options/contract-history-nse?symbol=${sym}&strike=${strike}&expiry=${expNSE}&from_date=${toNSE(from)}&to_date=${toNSE(to)}&opt_type=${_chDir}`);
+    const r=await fetch(`/api/options/contract-history-nse?symbol=${sym}&strike=${strike}&expiry=${toNSE(exp)}&from_date=${toNSE(from)}&to_date=${toNSE(to)}&opt_type=${_chDir}`);
     const d=await r.json();
     if(d.error)throw new Error(d.error);
     // Normalise backend field names (open_int/contracts/iv_pct) to what _renderChHistory expects
