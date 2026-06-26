@@ -516,6 +516,7 @@ let _floatLabels   = [];
 let _isFullscreen  = false;
 let _histDate = null;        // null = today/live; 'YYYY-MM-DD' = historical session
 let _livePoll = null;        // setInterval id
+let _polling  = false;       // concurrent-request guard
 let _rpIdx    = 0;           // replay cursor
 let _rpTimer  = null;        // replay setInterval id
 let _rpMs     = 1000;        // replay speed ms
@@ -1495,6 +1496,8 @@ function stopLivePoll() {
 }
 
 async function pollTick() {
+  if (_polling) return;
+  _polling = true;
   try {
     const res  = await fetch(`/api/psychology/tick?symbol=${_sym}&interval=${_tf}`);
     const data = await res.json();
@@ -1527,6 +1530,7 @@ async function pollTick() {
     updatePanel(candle);
     clearError();
   } catch (_) {}
+  finally { _polling = false; }
 }
 
 // ─── Replay ───────────────────────────────────────────────────────────────────

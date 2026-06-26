@@ -262,7 +262,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </div>
         <div class="strip-actions">
           <div class="auto-live"><div class="live-dot"></div>Auto · <span id="lastRefreshed">—</span></div>
-          <button class="refresh-btn" onclick="refreshAll()" data-en="&#8635; Refresh" data-ta="&#8635; புதுப்பி">&#8635; Refresh</button>
+          <button class="refresh-btn" onclick="refreshAll(true)" data-en="&#8635; Refresh" data-ta="&#8635; புதுப்பி">&#8635; Refresh</button>
           <button class="reset-btn" onclick="resetAccount()" data-en="Reset" data-ta="மீட்டமை">Reset</button>
         </div>
       </div>
@@ -377,6 +377,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 let pnlChart   = null;
 let _lastPositions = [];
 let _lastHistory   = [];
+let _refreshing    = false;   // guard against concurrent auto-refresh calls
 
 function _authHdr() {
   const t = localStorage.getItem('tz_learn_token');
@@ -453,7 +454,9 @@ function describe(p) {
   return `<div class="pos-sym">${p.symbol}</div><div class="pos-sub">NSE · equity</div>`;
 }
 
-async function refreshAll() {
+async function refreshAll(manual = false) {
+  if (_refreshing) return;   // skip timer tick if previous call still in flight
+  _refreshing = true;
   try {
     const [acctR, posR, histR] = await Promise.all([
       fetch('/api/paper/account',   { headers: _authHdr() }),
@@ -480,7 +483,13 @@ async function refreshAll() {
     const lr = document.getElementById('lastRefreshed');
     if (lr) lr.textContent = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
   } catch (e) {
-    toast('Refresh failed: ' + e.message, false);
+    // Only show a toast on manual refresh or when nothing is loaded yet
+    if (manual || !_lastPositions.length) {
+      toast('Refresh failed: ' + e.message, false);
+    }
+    // Silent retry on background auto-refresh — old data stays on screen
+  } finally {
+    _refreshing = false;
   }
 }
 
@@ -718,8 +727,8 @@ function renderFeedback(trades) {
 }
 
 if (_requireAuth()) {
-  refreshAll();
-  setInterval(refreshAll, 5000);
+  refreshAll(true);
+  setInterval(refreshAll, 10000);   // 10 s — LTP cache TTL is 4 s, no need to hit Angel One every 5 s
 }
 </script>
 <script src="halo-aurora.js"></script>

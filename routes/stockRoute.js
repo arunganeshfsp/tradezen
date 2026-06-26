@@ -565,8 +565,10 @@ router.get("/stocks/indicators", async (req, res) => {
 // ─── GET /api/stocks/movers ───────────────────────────────────────────────────
 router.get("/stocks/movers", async (req, res) => {
   try {
-    const params = new URLSearchParams(req.query);
-    const data = await aiService.proxy("GET", `/stocks/movers?${params}`, 30000);
+    const params  = new URLSearchParams(req.query);
+    // Nifty 500 fetches 10 Angel One batches on first run — give it 75 s
+    const timeout = req.query.index === "nifty500" ? 75000 : 30000;
+    const data = await aiService.proxy("GET", `/stocks/movers?${params}`, timeout);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

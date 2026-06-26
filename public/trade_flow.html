@@ -1021,6 +1021,7 @@ let currentScenario = 'bull';
 let currentStep     = 1;
 let flowData        = null;   // latest /api/trade-flow response
 let mpData          = null;   // latest /api/market-profile/levels response (prev day)
+let _fetching       = false;  // concurrent-request guard
 let autoScenario    = null;   // scenario from server
 let editingOhlc          = false;  // true while OHLC edit form is open — pauses Step 2 re-render
 let editingGift          = false;  // true while GIFT Nifty form is open — pauses Step 1 re-render
@@ -2589,6 +2590,8 @@ async function submitOhlc(prefix) {
 }
 
 async function fetchFlowData() {
+  if (_fetching) return;
+  _fetching = true;
   try {
     const res = await fetch('/api/trade-flow');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -2654,6 +2657,8 @@ async function fetchFlowData() {
   } catch (err) {
     console.warn('Trade flow fetch error:', err.message);
     document.getElementById('chip-phase').textContent = '⚠️ Engine offline';
+  } finally {
+    _fetching = false;
   }
 }
 

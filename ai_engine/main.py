@@ -29,12 +29,27 @@ from data.websocket_client import start_websocket
 from core.market_state import MarketState
 from core.signal_engine import SignalEngine
 from core.indicators.constants import SPOT_TOKEN   # "26000" — single source of truth
+from providers.registry import get_provider
 
 # ──────────────────────────────────────────────
 # Logging
 # ──────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
+
+# ──────────────────────────────────────────────
+# Global Angel One request timeout
+# SmartApi uses requests internally with no timeout → calls can block forever
+# when Angel One's servers hang (rate limit, token expiry, network blip).
+# Patching Session.request here applies to every SmartApi call site automatically.
+# ──────────────────────────────────────────────
+import requests as _req_mod
+_orig_session_request = _req_mod.Session.request
+def _session_request_with_timeout(self, method, url, **kwargs):
+    if "timeout" not in kwargs:
+        kwargs["timeout"] = 12        # 12 s max for any Angel One API call
+    return _orig_session_request(self, method, url, **kwargs)
+_req_mod.Session.request = _session_request_with_timeout
 
 # ──────────────────────────────────────────────
 # Global state (single source of truth)
@@ -1155,24 +1170,44 @@ def _resolve_token_and_exchange(symbol_token: str, exchange: str, smart):
     return symbol_token, exchange   # candle_fetcher handles empty-result case internally
 
 
-_smart_lock = threading.Lock()
+_smart_lock    = threading.Lock()
+_smart_auth_ts = 0.0
+_SMART_TTL     = 8 * 3600       # re-auth every 8 hours (token valid 24 h but refresh proactively)
+_SMART_AUTH_ERR_CODES = {"AB1010", "AG8001", "AB8050", "AB1011", "AB8051"}
 
 
-def _get_smart():
-    """Return the shared SmartAPI session; re-auth only if the global is None."""
-    global smart
-    if smart:
+def _get_smart(force: bool = False):
+    """Return the shared SmartAPI session; re-auth on first call and every 8 hours."""
+    import time as _t
+    global smart, _smart_auth_ts
+    now = _t.time()
+    if not force and smart and (now - _smart_auth_ts) < _SMART_TTL:
         return smart
     with _smart_lock:
-        if smart:          # another thread may have re-authed while we waited
+        now = _t.time()
+        if not force and smart and (now - _smart_auth_ts) < _SMART_TTL:
             return smart
         try:
             smart = get_smart_api()
-            log.info("[SmartAPI] re-authenticated")
+            _smart_auth_ts = now
+            log.info("[SmartAPI] session refreshed")
             return smart
         except Exception as e:
-            log.warning(f"SmartAPI re-auth failed: {e}")
+            log.warning(f"[SmartAPI] re-auth failed: {e}")
             return None
+
+
+def _invalidate_smart_on_auth_err(resp: dict):
+    """If Angel One returns an auth-failure response, drop the cached session so the
+    next call triggers a fresh login instead of hammering with an expired token."""
+    global smart
+    if not resp:
+        return
+    if resp.get("status") is False:
+        ec = str(resp.get("errorcode", ""))
+        if ec in _SMART_AUTH_ERR_CODES:
+            log.warning(f"[SmartAPI] auth error {ec} — forcing re-login on next call")
+            smart = None
 
 
 def _build_daily_profile_with_smart(smart, symbol_token, exchange, date, tick_size, symbol, use_cache=True):
@@ -2282,33 +2317,28 @@ def _fetch_iv_sync() -> dict:
 def get_fut_oi():
     """Lightweight endpoint returning NIFTY near-month futures OI + intraday signal."""
     try:
-        _s = smart or _get_smart()
         _ft = im.get_nifty_futures_token()
-        if not _ft or not _s:
+        if not _ft:
             return {"error": "Futures token unavailable"}
-        _r = _s.getMarketData("FULL", {"NFO": [str(_ft)]})
-        for _item in (_r or {}).get("data", {}).get("fetched", []):
-            if str(_item.get("symbolToken")) == str(_ft):
-                _oi  = _item.get("opnInterest")
-                _ltp = _item.get("ltp")
-                if not _oi:
-                    return {"error": "No OI data"}
-                _oi_int  = int(float(_oi))
-                _base_oi = trade_flow_data.get("prev_fut_oi")
-                _oi_chg  = (_oi_int - _base_oi) if _base_oi else None
-                _prev_c  = (trade_flow_data.get("prev_ohlc") or {}).get("close")
-                _ltp_val = float(_ltp) if _ltp else None
-                _price_up = (_ltp_val > _prev_c) if (_ltp_val and _prev_c) else None
-                _oi_up    = (_oi_chg > 0)        if _oi_chg is not None else None
-                _signal   = None
-                if _price_up is not None and _oi_up is not None:
-                    if   _price_up and _oi_up:      _signal = "long_buildup"
-                    elif not _price_up and _oi_up:  _signal = "short_buildup"
-                    elif _price_up and not _oi_up:  _signal = "short_covering"
-                    else:                           _signal = "long_unwinding"
-                return {"oi": _oi_int, "oi_chg": _oi_chg, "signal": _signal,
-                        "ltp": round(_ltp_val, 2) if _ltp_val else None}
-        return {"error": "Token not found in response"}
+        snaps = get_provider().get_option_market_data([str(_ft)])
+        snap  = next((s for s in snaps if s.token == str(_ft)), None)
+        if not snap or not snap.open_interest:
+            return {"error": "No OI data"}
+        _oi_int  = snap.open_interest
+        _ltp_val = snap.ltp
+        _base_oi = trade_flow_data.get("prev_fut_oi")
+        _oi_chg  = (_oi_int - _base_oi) if _base_oi else None
+        _prev_c  = (trade_flow_data.get("prev_ohlc") or {}).get("close")
+        _price_up = (_ltp_val > _prev_c) if (_ltp_val and _prev_c) else None
+        _oi_up    = (_oi_chg > 0)        if _oi_chg is not None else None
+        _signal   = None
+        if _price_up is not None and _oi_up is not None:
+            if   _price_up and _oi_up:      _signal = "long_buildup"
+            elif not _price_up and _oi_up:  _signal = "short_buildup"
+            elif _price_up and not _oi_up:  _signal = "short_covering"
+            else:                           _signal = "long_unwinding"
+        return {"oi": _oi_int, "oi_chg": _oi_chg, "signal": _signal,
+                "ltp": round(_ltp_val, 2) if _ltp_val else None}
     except Exception as e:
         return {"error": str(e)}
 
@@ -2614,7 +2644,7 @@ async def debug_cache():
 from core.indicators.supertrend import compute as _compute_supertrend
 
 _PSYCH_CACHE: dict = {}          # {"{symbol}-{interval}": (unix_ts, result)}
-_PSYCH_CACHE_TTL   = 10          # seconds before re-fetching
+_PSYCH_CACHE_TTL   = 30          # seconds before re-fetching
 
 _YF_SYMBOLS = {
     "NIFTY":     "^NSEI",
@@ -3473,9 +3503,6 @@ def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
                          dominance: str = "all", universe: str = "nifty50",
                          sort_by: str = "dominance") -> dict:
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
-    smart = _get_smart()
-    if not smart:
-        return {"error": "SmartAPI auth failed", "stocks": []}
 
     all_eq = _load_all_eq_stocks()
     if not all_eq:
@@ -3485,57 +3512,37 @@ def _stock_scanner_sync(min_price: float, max_price: float, limit: int,
     is_n500 = universe == "nifty500"
 
     if is_n50:
-        n50 = _fetch_nifty50_symbols()
+        n50    = _fetch_nifty50_symbols()
         stocks = [s for s in all_eq if s["symbol"].upper() in n50]
     elif is_n500:
-        n500 = _fetch_nifty500_symbols()
+        n500   = _fetch_nifty500_symbols()
         stocks = [s for s in all_eq if s["symbol"].upper() in n500]
     else:
         stocks = all_eq
 
-    import time as _time
-    depth_map: dict = {}
-    batch_size = 50
-    for i in range(0, len(stocks), batch_size):
-        if i > 0:
-            _time.sleep(0.15)
-        batch_tokens = [s["token"] for s in stocks[i: i + batch_size]]
-        try:
-            resp = smart.getMarketData("FULL", {"NSE": batch_tokens})
-            if resp and resp.get("data") and resp["data"].get("fetched"):
-                for item in resp["data"]["fetched"]:
-                    depth_map[str(item.get("symbolToken"))] = item
-        except Exception as e:
-            log.warning(f"[STOCK-SCANNER] batch {i} failed: {e}")
+    token_to_sym = {s["token"]: s["symbol"] for s in stocks}
+    snapshots    = get_provider().get_market_data(list(token_to_sym.keys()), "NSE")
 
     result = []
-    for s in stocks:
-        d = depth_map.get(s["token"])
-        if not d:
+    for snap in snapshots:
+        sym = token_to_sym.get(snap.token)
+        if not sym:
             continue
-        ltp = float(d.get("ltp") or 0)
-        if not is_n50 and not is_n500 and not (min_price <= ltp <= max_price):
+        if not is_n50 and not is_n500 and not (min_price <= snap.ltp <= max_price):
             continue
-
-        buy_qty  = int(d.get("totBuyQuan") or 0)
-        sell_qty = int(d.get("totSellQuan") or 0)
-        total    = buy_qty + sell_qty
-        if total == 0:
+        if (snap.buy_qty + snap.sell_qty) == 0:
             continue
-
-        buy_pct  = round(buy_qty  / total * 100, 1)
-        sell_pct = round(sell_qty / total * 100, 1)
         result.append({
-            "symbol":     s["symbol"],
-            "ltp":        round(ltp, 2),
-            "change_pct": round(float(d.get("percentChange") or 0), 2),
-            "buy_qty":    buy_qty,
-            "sell_qty":   sell_qty,
-            "buy_pct":    buy_pct,
-            "sell_pct":   sell_pct,
-            "dominance":  "BUYER" if buy_pct >= sell_pct else "SELLER",
-            "strength":   round(abs(buy_pct - sell_pct), 1),
-            "volume":     int(d.get("tradeVolume") or 0),
+            "symbol":     sym,
+            "ltp":        snap.ltp,
+            "change_pct": snap.pct_change,
+            "buy_qty":    snap.buy_qty,
+            "sell_qty":   snap.sell_qty,
+            "buy_pct":    snap.buy_pct,
+            "sell_pct":   snap.sell_pct,
+            "dominance":  "BUYER" if snap.buy_pct >= snap.sell_pct else "SELLER",
+            "strength":   round(abs(snap.buy_pct - snap.sell_pct), 1),
+            "volume":     snap.volume,
         })
 
     if dominance == "buyer":
@@ -3823,10 +3830,8 @@ def _options_chain_sync(symbol: str, expiry: str, spot_price: float | None) -> d
     # Try NSE direct first — more accurate LTP for thinly-traded / far-dated contracts
     chain_data = _oc_fetch_chain_nse(symbol, expiry, spot_price)
     if "error" in chain_data:
-        log.info(f"NSE chain fallback to SmartAPI for {symbol} {expiry}: {chain_data['error']}")
-        global smart
-        _s = smart or _get_smart()
-        chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
+        log.info(f"NSE chain fallback to provider for {symbol} {expiry}: {chain_data['error']}")
+        chain_data = _oc_fetch_chain(symbol, expiry, spot_price)
     if "error" in chain_data:
         return chain_data
     chain     = chain_data.get("chain", [])
@@ -3986,9 +3991,7 @@ def options_score(
         try:
             chain_data = _oc_fetch_chain_nse(symbol, expiry, effective_spot)
             if "error" in chain_data:
-                global smart
-                _s = smart or _get_smart()
-                chain_data = _oc_fetch_chain(_s, symbol, expiry, effective_spot)
+                chain_data = _oc_fetch_chain(symbol, expiry, effective_spot)
             if "error" not in chain_data:
                 chain      = chain_data.get("chain", [])
                 analytics  = _oc_max_pain(chain, effective_spot)
@@ -4024,16 +4027,17 @@ def options_select_strike(
 ):
     """
     Pick the best CE or PE strike from the full chain using delta + liquidity filters.
+    Tries NSE first; falls back to Angel One via provider if NSE is unavailable.
     """
-    global smart
     try:
         if not expiry:
             exp_list = _oc_expiries(symbol)
             expiry   = exp_list[0] if exp_list else ""
         if not expiry:
             return {"error": "No expiry found"}
-        _s = smart or _get_smart()
-        chain_data = _oc_fetch_chain(_s, symbol, expiry, spot_price)
+        chain_data = _oc_fetch_chain_nse(symbol, expiry, spot_price)
+        if "error" in chain_data:
+            chain_data = _oc_fetch_chain(symbol, expiry, spot_price)
         if "error" in chain_data:
             return chain_data
         analytics = _oc_max_pain(chain_data["chain"], spot_price)
@@ -4143,72 +4147,62 @@ def stocks_indicators(symbol: str = "RELIANCE"):
 
 def _nifty500_movers_sync() -> dict:
     import time as _time
-    _TTL = 300
+    _TTL      = 300
+    _STALE_OK = 1800
     cached = _ltp_cache.get("_n500_movers")
     if cached and (_time.time() - cached["ts"]) < _TTL:
         return cached["data"]
 
-    smart = _get_smart()
-    if not smart:
-        return {"error": "SmartAPI auth failed"}
-
     n500    = _fetch_nifty500_symbols()
     all_eq  = _load_all_eq_stocks()
     matched = [s for s in all_eq if s["symbol"].upper() in n500]
+    if not matched:
+        if cached and (_time.time() - cached["ts"]) < _STALE_OK:
+            return {**cached["data"], "stale": True}
+        return {"error": "No Nifty 500 instruments found"}
 
-    depth_map: dict = {}
-    for i in range(0, len(matched), 50):
-        if i > 0:
-            _time.sleep(0.15)
-        batch = [s["token"] for s in matched[i: i + 50]]
-        try:
-            resp = smart.getMarketData("FULL", {"NSE": batch})
-            for item in (resp or {}).get("data", {}).get("fetched") or []:
-                depth_map[str(item.get("symbolToken"))] = item
-        except Exception as e:
-            log.warning(f"[N500-MOVERS] batch {i}: {e}")
+    token_to_sym = {s["token"]: s["symbol"] for s in matched}
+    snapshots    = get_provider().get_market_data(list(token_to_sym.keys()), "NSE")
+
+    if not snapshots:
+        if cached and (_time.time() - cached["ts"]) < _STALE_OK:
+            log.warning("[N500-MOVERS] provider returned no data — serving stale cache")
+            return {**cached["data"], "stale": True}
+        return {"error": "No Nifty 500 data available"}
 
     rows = []
-    for s in matched:
-        d = depth_map.get(s["token"])
-        if not d:
+    for snap in snapshots:
+        sym = token_to_sym.get(snap.token)
+        if not sym:
             continue
-        ltp = float(d.get("ltp") or 0)
-        if not ltp:
-            continue
-        pct  = round(float(d.get("percentChange") or 0), 2)
-        prev = float(d.get("close") or 0)
-        if not prev and pct != -100:
-            prev = round(ltp / (1 + pct / 100), 2)
-        buy_qty  = int(d.get("totBuyQuan") or 0)
-        sell_qty = int(d.get("totSellQuan") or 0)
-        _total   = buy_qty + sell_qty
         rows.append({
-            "symbol":     s["symbol"],
-            "ltp":        round(ltp, 2),
-            "change":     round(ltp - prev, 2),
-            "pct_change": pct,
-            "prev_close": round(prev, 2),
-            "open":       round(float(d.get("open") or 0), 2),
-            "high":       round(float(d.get("high") or 0), 2),
-            "low":        round(float(d.get("low") or 0), 2),
-            "volume":     int(d.get("tradeVolume") or 0),
-            "buy_qty":    buy_qty,
-            "sell_qty":   sell_qty,
-            "buy_pct":    round(buy_qty / _total * 100, 1) if _total > 0 else 0,
-            "sell_pct":   round(sell_qty / _total * 100, 1) if _total > 0 else 0,
+            "symbol":     sym,
+            "ltp":        snap.ltp,
+            "change":     round(snap.ltp - snap.prev_close, 2),
+            "pct_change": snap.pct_change,
+            "prev_close": snap.prev_close,
+            "open":       snap.open,
+            "high":       snap.high,
+            "low":        snap.low,
+            "volume":     snap.volume,
+            "buy_qty":    snap.buy_qty,
+            "sell_qty":   snap.sell_qty,
+            "buy_pct":    snap.buy_pct,
+            "sell_pct":   snap.sell_pct,
         })
 
     if not rows:
+        if cached and (_time.time() - cached["ts"]) < _STALE_OK:
+            return {**cached["data"], "stale": True}
         return {"error": "No Nifty 500 data available"}
 
     rows.sort(key=lambda r: r["pct_change"], reverse=True)
-    now = _time.time()
+    now       = _time.time()
     advancing = sum(1 for r in rows if r["pct_change"] > 0)
     declining = sum(1 for r in rows if r["pct_change"] < 0)
-    result = {
+    result    = {
         "index":      "NIFTY 500",
-        "source":     "Angel One",
+        "source":     "Live",
         "count":      len(rows),
         "advancing":  advancing,
         "declining":  declining,
@@ -4225,9 +4219,6 @@ def _nifty500_movers_sync() -> dict:
 def _enrich_with_depth(rows: list) -> list:
     if not rows or "buy_qty" in rows[0]:
         return rows
-    smart = _get_smart()
-    if not smart:
-        return rows
     sym_set   = {r["symbol"].upper() for r in rows}
     all_eq    = _load_all_eq_stocks()
     token_map = {s["token"]: s["symbol"].upper()
@@ -4235,18 +4226,14 @@ def _enrich_with_depth(rows: list) -> list:
     if not token_map:
         return rows
     try:
-        resp = smart.getMarketData("FULL", {"NSE": list(token_map.keys())})
-        depth: dict = {}
-        for item in (resp or {}).get("data", {}).get("fetched") or []:
-            sym = token_map.get(str(item.get("symbolToken", "")))
-            if not sym:
-                continue
-            bq = int(item.get("totBuyQuan") or 0)
-            sq = int(item.get("totSellQuan") or 0)
-            t  = bq + sq
-            depth[sym] = {"buy_qty": bq, "sell_qty": sq,
-                          "buy_pct":  round(bq / t * 100, 1) if t else 0,
-                          "sell_pct": round(sq / t * 100, 1) if t else 0}
+        snapshots = get_provider().get_market_data(list(token_map.keys()), "NSE")
+        depth = {
+            token_map[snap.token]: {
+                "buy_qty":  snap.buy_qty,  "sell_qty": snap.sell_qty,
+                "buy_pct":  snap.buy_pct,  "sell_pct": snap.sell_pct,
+            }
+            for snap in snapshots if snap.token in token_map
+        }
     except Exception as e:
         log.warning(f"[ENRICH-DEPTH] {e}")
         return rows
@@ -4676,35 +4663,25 @@ from execution.paper_trader import (
 
 
 _ltp_cache: dict = {}   # key → {"data": {...}, "ts": float}
-_LTP_TTL = 4.0          # seconds — shared across all callers / machines
+_LTP_TTL = 8.0          # seconds — Angel One LTP cache; frontend refreshes every 10 s
 
 def _paper_stock_ltps(symbols: list) -> dict:
-    """LTPs for NSE equity symbols via Angel One → {symbol: ltp}."""
-    _s = smart or _get_smart()
-    if not _s:
-        return {}
+    """LTPs for NSE equity symbols → {symbol: ltp}."""
     cache_key = "stk:" + ",".join(sorted(s.upper() for s in symbols))
     entry = _ltp_cache.get(cache_key)
     if entry and (_time.time() - entry["ts"]) < _LTP_TTL:
         return entry["data"]
     try:
-        sym_set = {s.upper() for s in symbols}
-        token_map: dict[str, str] = {}   # token → symbol
+        sym_set   = {s.upper() for s in symbols}
+        token_map = {}   # token → symbol
         for stock in _load_all_eq_stocks():
             name = stock["symbol"].upper()
             if name in sym_set and stock["token"] not in token_map:
                 token_map[stock["token"]] = name
         if not token_map:
             return {}
-        resp = _s.getMarketData("LTP", {"NSE": list(token_map.keys())})
-        prices: dict[str, float] = {}
-        fetched = (resp or {}).get("data", {}).get("fetched") or []
-        for item in fetched:
-            tok = str(item.get("symbolToken", ""))
-            sym = token_map.get(tok)
-            ltp = item.get("ltp")
-            if sym and ltp is not None:
-                prices[sym] = round(float(ltp), 2)
+        ltp_by_token = get_provider().get_ltp(list(token_map.keys()), "NSE")
+        prices = {token_map[tok]: ltp for tok, ltp in ltp_by_token.items()}
         _ltp_cache[cache_key] = {"data": prices, "ts": _time.time()}
         return prices
     except Exception as e:
@@ -4714,17 +4691,12 @@ def _paper_stock_ltps(symbols: list) -> dict:
 
 def _paper_option_ltps(tokens: list) -> dict:
     """LTPs for NFO option tokens → {token: ltp}."""
-    from core.options.option_chain_fetcher import _batch_market_data
-    _s = smart or _get_smart()
-    if not _s:
-        return {}
     cache_key = "opt:" + ",".join(sorted(str(t) for t in tokens))
     entry = _ltp_cache.get(cache_key)
     if entry and (_time.time() - entry["ts"]) < _LTP_TTL:
         return entry["data"]
     try:
-        mdata = _batch_market_data(_s, [str(t) for t in tokens])
-        prices = {t: float(r["ltp"]) for t, r in mdata.items() if r.get("ltp") is not None}
+        prices = get_provider().get_option_ltp([str(t) for t in tokens])
         _ltp_cache[cache_key] = {"data": prices, "ts": _time.time()}
         return prices
     except Exception as e:
@@ -5160,11 +5132,6 @@ def _cpr_levels_option_sync(symbol: str, underlying: str, strike: float, opt_typ
     today   = now_ist.date()
 
     try:
-        global smart
-        _s = smart or _get_smart()
-        if not _s:
-            return {"error": "SmartAPI session unavailable — option OHLC requires authenticated session"}
-
         lookup_expiry = chain_expiry.strip().upper() if chain_expiry else None
         if underlying.upper() in _INDEX_UNDERLYINGS:
             token, sapi_sym, expiry = im.get_option_token(strike, opt_type, expiry=lookup_expiry)
@@ -5177,7 +5144,6 @@ def _cpr_levels_option_sync(symbol: str, underlying: str, strike: float, opt_typ
         if not token:
             return {"error": f"Option not found: {symbol}. Strike/expiry may not be in InstrumentMaster."}
 
-        # Cache keyed by expiry so NIFTY24000CE@19JUN2026 and @23JUN2026 don't collide
         _evict_cpr_cache(today)
         cache_key = _cpr_cache_key(f"{symbol}@{expiry}", "daily", today)
         if cache_key in _cpr_cache:
@@ -5186,29 +5152,23 @@ def _cpr_levels_option_sync(symbol: str, underlying: str, strike: float, opt_typ
         expected_prev = today - _dt.timedelta(days=1)
         while expected_prev.weekday() >= 5:
             expected_prev -= _dt.timedelta(days=1)
-        from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
-        to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
-
-        H = L = C = None
+        from_dt    = expected_prev.strftime("%Y-%m-%d 09:15")
+        to_dt      = expected_prev.strftime("%Y-%m-%d 15:30")
         date_label = expected_prev.strftime("%Y-%m-%d")
 
-        # Try ONE_DAY first; NFO daily candles are often unavailable, fall back to FIVE_MINUTE
+        H = L = C = None
         for interval in ("ONE_DAY", "FIVE_MINUTE"):
-            try:
-                resp = _s.getCandleData({"exchange": "NFO", "symboltoken": token,
-                                          "interval": interval, "fromdate": from_dt, "todate": to_dt})
-                rows = (resp or {}).get("data") or []
-            except Exception:
-                rows = []
-            if not rows:
+            df = get_provider().get_candles(token, "NFO", interval, from_dt, to_dt)
+            if df.empty:
                 continue
             if interval == "ONE_DAY":
-                d = rows[-1]
-                H, L, C = float(d[2]), float(d[3]), float(d[4])
+                H = float(df["High"].iloc[-1])
+                L = float(df["Low"].iloc[-1])
+                C = float(df["Close"].iloc[-1])
             else:
-                H = max(float(r[2]) for r in rows)
-                L = min(float(r[3]) for r in rows)
-                C = float(rows[-1][4])
+                H = float(df["High"].max())
+                L = float(df["Low"].min())
+                C = float(df["Close"].iloc[-1])
             log.info(f"[CPR-OPTION] {symbol} {interval} OHLC: H={H} L={L} C={C}")
             break
 
@@ -5236,7 +5196,7 @@ def _cpr_levels_option_sync(symbol: str, underlying: str, strike: float, opt_typ
 
 
 def _candles_for_cpr_option_sync(symbol: str, underlying: str, strike: float, opt_type: str, timeframe: str) -> dict:
-    """5-min intraday candles (or daily for weekly/monthly) for an option via SmartAPI."""
+    """5-min intraday candles (or daily for weekly/monthly) for an option via provider."""
     import datetime as _dt
     _IST_OFF = 19800
 
@@ -5245,67 +5205,53 @@ def _candles_for_cpr_option_sync(symbol: str, underlying: str, strike: float, op
     today   = now_ist.date()
 
     try:
-        global smart
-        _s = smart or _get_smart()
-        if not _s:
-            return {"candles": [], "interval": "5m", "count": 0,
-                    "data_source": "smartapi", "as_of": None, "error": "SmartAPI unavailable"}
-
         if underlying.upper() in _INDEX_UNDERLYINGS:
             token, _, expiry = im.get_option_token(strike, opt_type)
         else:
             token, _, expiry = im.get_stock_option_token(underlying, strike, opt_type)
         if not token:
             return {"candles": [], "interval": "5m", "count": 0,
-                    "data_source": "smartapi", "as_of": None, "error": "Token not found"}
+                    "data_source": "provider", "as_of": None, "error": "Token not found"}
 
         if timeframe == "daily":
             from_dt  = today.strftime("%Y-%m-%d 09:15")
             to_dt    = today.strftime("%Y-%m-%d 15:30")
             interval = "FIVE_MINUTE"
         else:
-            if timeframe == "weekly":
-                from_d = today - _dt.timedelta(days=today.weekday())
-            else:
-                from_d = today.replace(day=1)
+            from_d   = (today - _dt.timedelta(days=today.weekday())) if timeframe == "weekly" else today.replace(day=1)
             from_dt  = from_d.strftime("%Y-%m-%d 09:15")
             to_dt    = today.strftime("%Y-%m-%d 15:30")
             interval = "ONE_DAY"
 
-        resp = _s.getCandleData({"exchange": "NFO", "symboltoken": token,
-                                  "interval": interval, "fromdate": from_dt, "todate": to_dt})
-        rows = (resp or {}).get("data") or []
-        if not rows:
-            return {"candles": [], "interval": "5m" if timeframe == "daily" else "1d",
-                    "count": 0, "data_source": "smartapi", "as_of": None}
+        df = get_provider().get_candles(token, "NFO", interval, from_dt, to_dt)
+        intv_label = "5m" if timeframe == "daily" else "1d"
+        if df.empty:
+            return {"candles": [], "interval": intv_label, "count": 0,
+                    "data_source": "provider", "as_of": None}
 
         candles = []
-        for r in rows:
+        for _, row in df.iterrows():
             try:
-                ts = _dt.datetime.fromisoformat(r[0])
-                if timeframe == "daily":
-                    epoch = int(ts.timestamp()) + _IST_OFF
-                else:
-                    epoch = int(_dt.datetime(ts.year, ts.month, ts.day).timestamp())
+                ts = _dt.datetime.strptime(row["DateTime"], "%Y-%m-%d %H:%M")
+                epoch = (int(ts.timestamp()) + _IST_OFF) if timeframe == "daily" else int(_dt.datetime(ts.year, ts.month, ts.day).timestamp())
                 candles.append({
                     "time":  epoch,
-                    "open":  round(float(r[1]), 2),
-                    "high":  round(float(r[2]), 2),
-                    "low":   round(float(r[3]), 2),
-                    "close": round(float(r[4]), 2),
+                    "open":  round(float(row["Open"]),  2),
+                    "high":  round(float(row["High"]),  2),
+                    "low":   round(float(row["Low"]),   2),
+                    "close": round(float(row["Close"]), 2),
                 })
             except Exception:
                 continue
 
-        intv_label = "5m" if timeframe == "daily" else "1d"
         as_of = (candles[-1]["time"] - _IST_OFF) if (candles and timeframe == "daily") else (candles[-1]["time"] if candles else None)
         return {"candles": candles, "interval": intv_label, "count": len(candles),
-                "data_source": "smartapi", "as_of": as_of}
+                "data_source": "provider", "as_of": as_of}
 
     except Exception as e:
         log.error(f"[CANDLES-OPTION] {symbol}/{timeframe}: {e}")
         return {"candles": [], "interval": "5m", "count": 0,
-                "data_source": "smartapi", "as_of": None, "error": str(e)}
+                "data_source": "provider", "as_of": None, "error": str(e)}
 
 
 def _cpr_levels_sync(symbol: str, timeframe: str, expiry: str = "") -> dict:
@@ -5379,41 +5325,37 @@ def _cpr_levels_sync(symbol: str, timeframe: str, expiry: str = "") -> dict:
                     expected_prev -= _dt.timedelta(days=1)
                 yf_date = _dt.datetime.strptime(date_label, "%Y-%m-%d").date()
                 if yf_date < expected_prev:
-                    log.info(f"[CPR] yfinance returned {yf_date}, expected {expected_prev} — trying SmartAPI")
+                    log.info(f"[CPR] yfinance returned {yf_date}, expected {expected_prev} — trying provider")
                     try:
-                        global smart
-                        _s = smart or _get_smart()
-                        if _s:
-                            _fut_tok = im.get_nifty_futures_token() or SPOT_TOKEN
-                            _from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
-                            _to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
-                            _attempts = [
-                                ("NSE", SPOT_TOKEN, "ONE_DAY"),
-                                ("NFO", _fut_tok,   "ONE_DAY"),
-                                ("NSE", SPOT_TOKEN, "ONE_HOUR"),
-                                ("NFO", _fut_tok,   "ONE_HOUR"),
-                            ]
-                            for _exch, _tok, _intv in _attempts:
-                                try:
-                                    _resp = _s.getCandleData({"exchange": _exch, "symboltoken": _tok,
-                                                              "interval": _intv, "fromdate": _from_dt, "todate": _to_dt})
-                                    _rows = (_resp or {}).get("data") or []
-                                    if not _rows:
-                                        continue
-                                    if _intv == "ONE_DAY":
-                                        d = _rows[-1]
-                                        H, L, C = float(d[2]), float(d[3]), float(d[4])
-                                    else:
-                                        H = max(float(r[2]) for r in _rows)
-                                        L = min(float(r[3]) for r in _rows)
-                                        C = float(_rows[-1][4])
-                                    date_label = expected_prev.strftime("%Y-%m-%d")
-                                    log.info(f"[CPR] SmartAPI OHLC ({_exch}/{_intv}): H={H} L={L} C={C} [{date_label}]")
-                                    break
-                                except Exception as _att_err:
-                                    log.debug(f"[CPR] SmartAPI {_exch}/{_intv} failed: {_att_err}")
+                        _fut_tok = im.get_nifty_futures_token() or SPOT_TOKEN
+                        _from_dt = expected_prev.strftime("%Y-%m-%d 09:15")
+                        _to_dt   = expected_prev.strftime("%Y-%m-%d 15:30")
+                        _attempts = [
+                            ("NSE", SPOT_TOKEN, "ONE_DAY"),
+                            ("NFO", _fut_tok,   "ONE_DAY"),
+                            ("NSE", SPOT_TOKEN, "ONE_HOUR"),
+                            ("NFO", _fut_tok,   "ONE_HOUR"),
+                        ]
+                        for _exch, _tok, _intv in _attempts:
+                            try:
+                                _df = get_provider().get_candles(_tok, _exch, _intv, _from_dt, _to_dt)
+                                if _df.empty:
+                                    continue
+                                if _intv == "ONE_DAY":
+                                    H = float(_df["High"].iloc[-1])
+                                    L = float(_df["Low"].iloc[-1])
+                                    C = float(_df["Close"].iloc[-1])
+                                else:
+                                    H = float(_df["High"].max())
+                                    L = float(_df["Low"].min())
+                                    C = float(_df["Close"].iloc[-1])
+                                date_label = expected_prev.strftime("%Y-%m-%d")
+                                log.info(f"[CPR] provider OHLC ({_exch}/{_intv}): H={H} L={L} C={C} [{date_label}]")
+                                break
+                            except Exception as _att_err:
+                                log.debug(f"[CPR] provider {_exch}/{_intv} failed: {_att_err}")
                     except Exception as _sapi_err:
-                        log.warning(f"[CPR] SmartAPI fallback failed: {_sapi_err}")
+                        log.warning(f"[CPR] provider fallback failed: {_sapi_err}")
 
             # Keep trade_flow_data in sync so other endpoints (trade-flow, WebSocket) also use correct prev OHLC
             if is_nifty:

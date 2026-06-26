@@ -143,7 +143,7 @@ def _nearest_monthly(sorted_expiries: list) -> str:
 
 # ── Public: full option chain ──────────────────────────────────────────────────
 
-def fetch_chain(smart, symbol: str, expiry: str,
+def fetch_chain(symbol: str, expiry: str,
                 spot_price: float | None = None) -> dict:
     """
     Fetch full option chain for symbol+expiry with OI, LTP, IV/greeks, depth.
@@ -168,7 +168,7 @@ def fetch_chain(smart, symbol: str, expiry: str,
     all_tokens = []
     for v in valid.values():
         all_tokens += [v["CE"]["token"], v["PE"]["token"]]
-    mdata = _batch_market_data(smart, all_tokens)
+    mdata = _batch_market_data(all_tokens)
 
     def _leg(inst: dict) -> dict:
         d = mdata.get(str(inst["token"]), {})
@@ -229,11 +229,22 @@ def _tokens_for(symbol: str, expiry: str) -> list[dict]:
     return result
 
 
-def _batch_market_data(smart, tokens: list[str], exchange: str = "NFO") -> dict:
+def _batch_market_data(tokens: list[str], exchange: str = "NFO") -> dict:
     """
-    Call SmartAPI getMarketData FULL for up to _BATCH_SIZE tokens at a time.
-    Returns {token_str: row_dict}.
+    Fetch full option market data via the active provider's underlying Angel One session.
+    Returns {token_str: raw_row_dict} preserving IV, delta, OI change and depth fields.
     """
+    from providers.angel_one import AngelOneProvider
+    from providers.registry import get_provider
+
+    prov = get_provider()
+    if not isinstance(prov, AngelOneProvider):
+        log.warning("[option_chain] active provider is not AngelOne — chain data unavailable")
+        return {}
+    smart = prov.get_session()
+    if not smart:
+        return {}
+
     result = {}
     for i in range(0, len(tokens), _BATCH_SIZE):
         batch = tokens[i:i + _BATCH_SIZE]

@@ -688,6 +688,7 @@ let _chartLines = [];   // tracks active price lines so they can be removed on r
 let _ltp        = null;   // last seen LTP — used in Futures OI CPR confirmation
 let _lastFutOI  = null;   // last fetched /api/fut-oi data
 let _foiTimer   = null;   // 60-second poll timer for Futures OI
+let _foiFetching = false; // concurrent-request guard
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -854,6 +855,8 @@ function _fmtOI(v) {
 }
 
 async function fetchFutOI() {
+  if (_foiFetching) return;
+  _foiFetching = true;
   try {
     const r = await fetch(`${API}/fut-oi`);
     const d = await r.json();
@@ -861,6 +864,7 @@ async function fetchFutOI() {
     _lastFutOI = d;
     renderFutOISidebar(d);
   } catch(e) { console.error('fetchFutOI', e); }
+  finally { _foiFetching = false; }
 }
 
 function renderFutOISidebar(d) {
