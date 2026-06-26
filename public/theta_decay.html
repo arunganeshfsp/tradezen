@@ -286,10 +286,30 @@ function chSetDir(d){
 }
 
 function onChExpiryChange(){
-  const exp=document.getElementById('chExpiry').value;
+  const sel=document.getElementById('chExpiry');
+  const exp=sel.value;
   if(!exp)return;
   const to=new Date(exp+'T00:00:00');
-  const from=new Date(to);from.setDate(from.getDate()-28);
+
+  // Use the previous expiry (next item in list — list is newest-first) as the
+  // cycle start, so from/to always covers exactly one expiry cycle.
+  // Fallback: estimate cycle length from the gap between the two most recent entries.
+  const opts=Array.from(sel.options).filter(o=>o.value);
+  const idx=opts.findIndex(o=>o.value===exp);
+  let from;
+  if(idx!==-1&&idx<opts.length-1){
+    // Day after the previous expiry = first day of this cycle
+    const prev=new Date(opts[idx+1].value+'T00:00:00');
+    from=new Date(prev);from.setDate(from.getDate()+1);
+  }else{
+    // Oldest entry in list — guess cycle from gap between first two entries
+    let cycleDays=7;
+    if(opts.length>=2){
+      const g=Math.round((new Date(opts[0].value)-new Date(opts[1].value))/(864e5));
+      cycleDays=g<=10?7:30;
+    }
+    from=new Date(to);from.setDate(from.getDate()-cycleDays);
+  }
   document.getElementById('chFromDate').value=from.toISOString().split('T')[0];
   document.getElementById('chToDate').value=to.toISOString().split('T')[0];
 }
@@ -345,10 +365,7 @@ async function loadContractHistory(){
 
 function _renderChHistory(data,strike,dir){
   if(!data||!data.length){document.getElementById('chTable').innerHTML='<div class="notice">No data.</div>';return;}
-  // Exclude expiry day everywhere — DTE=0 collapses B-S values and the settlement
-  // price is not a meaningful trading price for the cycle analysis.
-  const d = data.filter(r=>r.dte==null||r.dte>0);
-  if(!d.length){document.getElementById('chTable').innerHTML='<div class="notice">No data.</div>';return;}
+  const d=data;
   const prices=d.map(r=>r.close);
   const maxP=Math.max(...prices),minP=Math.min(...prices);
   const firstP=prices[0],lastP=prices[prices.length-1];
@@ -403,13 +420,13 @@ function _renderChHistory(data,strike,dir){
       el.innerHTML='';
       const c=LightweightCharts.createChart(el,{...gBase,width:el.clientWidth||400,height:90});
       const s=c.addLineSeries({color,lineWidth:1.5,priceLineVisible:false,lastValueVisible:true,priceFormat:fmt});
-      s.setData(d.filter(r=>r[field]!=null).map(r=>({time:r.date,value:r[field]})));
+      s.setData(d.filter(r=>r[field]!=null&&r[field]!==undefined).map(r=>({time:r.date,value:r[field]})));
       c.timeScale().fitContent();
       _gCharts.push(c);
     });
   }
 
-  const tableRows = d;
+  const tableRows = data;
   const tbl=`
   <div style="font-size:10px;color:var(--fg3);margin-bottom:6px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px">
     &#9432; Theta shows time-value decay only. Spot/delta moves are not reflected — those appear as close price changes.
