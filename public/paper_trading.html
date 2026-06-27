@@ -61,32 +61,28 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .btn-cta-ghost-sm svg{width:13px;height:13px;flex-shrink:0}
 
 /* ── Metrics Ring Grid ── */
-.metrics-wrap{background:var(--bg1);border-bottom:1px solid var(--border);padding:20px 28px 20px}
-.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1100px;margin:0 auto}
+.metrics-wrap{background:var(--bg);border-bottom:1px solid var(--border);padding:24px 28px}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1100px;margin:0 auto}
 .metric-card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
-  padding:18px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:#111426;border:1px solid rgba(255,255,255,0.07);border-radius:18px;
+  padding:32px 20px 28px;display:flex;flex-direction:column;align-items:center;
   position:relative;overflow:hidden;transition:border-color .2s
 }
-.metric-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
-  background:var(--mc-color,var(--accent));opacity:.55;border-radius:0 0 var(--r) var(--r)}
-.metric-card:hover{border-color:var(--border2)}
-.ring-wrap{position:relative;width:88px;height:88px}
-.ring-svg{width:88px;height:88px}
-.ring-track{fill:none;stroke:rgba(255,255,255,0.05);stroke-width:5;stroke-linecap:round}
-.ring-fill{fill:none;stroke-width:5;stroke-linecap:round;
-  transition:stroke-dasharray .6s ease,stroke .3s;
-  stroke-dasharray:0 213.6}
-.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  text-align:center;pointer-events:none;width:58px}
-.ring-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text);
-  line-height:1;white-space:nowrap;display:block;font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
-.ring-val.pos{color:var(--green)}
-.ring-val.neg{color:var(--red)}
-.ring-sub{font-size:8px;font-weight:600;letter-spacing:0.08em;
-  text-transform:uppercase;color:var(--muted);display:block;margin-top:3px}
-.metric-name{font-size:10px;font-weight:600;letter-spacing:0.08em;
-  text-transform:uppercase;color:var(--muted);text-align:center}
+.metric-card:hover{border-color:rgba(255,255,255,0.12)}
+.mc-glow{position:absolute;inset:0;border-radius:18px;pointer-events:none}
+.ring-wrap{position:relative;width:160px;height:160px}
+.ring-svg{width:160px;height:160px;overflow:visible}
+.ring-fill,.ring-glow{transition:stroke-dashoffset .6s cubic-bezier(0.16,1,0.3,1),stroke .3s}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:6px}
+.ring-val{font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:600;color:var(--text);
+  letter-spacing:-0.02em;line-height:1.1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ring-val.pos{color:#34d399}
+.ring-val.neg{color:#f87171}
+.ring-sub{font-size:10px;font-weight:600;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--muted);display:block;margin-top:5px}
+.metric-name{font-size:11px;font-weight:700;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--dim);text-align:center;margin-top:18px}
+.mc-bar{position:absolute;bottom:0;left:0;right:0;height:2px;opacity:.55;border-radius:0 0 18px 18px}
 
 /* ── Controls Row ── */
 .ctrl-row{background:var(--bg1);border-bottom:1px solid var(--border);
@@ -212,8 +208,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   .table-wrap{display:none}
   .m-cards{display:block}
   .ph-actions{width:100%}
-  .metrics-grid{grid-template-columns:repeat(2,1fr)}
-  .metrics-wrap{padding:14px 16px 14px}
+  .metrics-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .metrics-wrap{padding:16px}
   .ctrl-row{padding:8px 16px}
   .page-header{padding:14px 16px}
 }
@@ -271,14 +267,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
 
 <!-- Metrics ring cards -->
+<!-- Arc geometry: 240° horseshoe, R=65, cx=cy=80, start=150° (8 o'clock), total arc C≈272.27px -->
 <div class="metrics-wrap">
   <div class="metrics-grid">
     <!-- Virtual Cash -->
-    <div class="metric-card" style="--mc-color:var(--cyan)">
+    <div class="metric-card">
+      <div class="mc-glow" id="ring-glowbg-cash" style="background:radial-gradient(ellipse at 50% 0%,rgba(34,211,238,0.06) 0%,transparent 60%)"></div>
       <div class="ring-wrap">
-        <svg class="ring-svg" viewBox="0 0 88 88">
-          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
-          <circle class="ring-fill" id="ring-cash" cx="44" cy="44" r="34" stroke="var(--cyan)" transform="rotate(135 44 44)"/>
+        <svg class="ring-svg" viewBox="0 0 160 160">
+          <path class="ring-glow" id="ring-glow-cash" fill="none" stroke="#22d3ee" stroke-width="20" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27" style="opacity:0.12"/>
+          <path fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50"/>
+          <path class="ring-fill" id="ring-fill-cash" fill="none" stroke="#22d3ee" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27"/>
+          <circle id="ring-tip-cash" r="5" fill="#22d3ee" cx="23.71" cy="112.50" style="opacity:0;filter:drop-shadow(0 0 5px #22d3ee)"/>
         </svg>
         <div class="ring-center">
           <span class="ring-val" id="acctCash">—</span>
@@ -286,41 +286,53 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </div>
       </div>
       <div class="metric-name" data-en="Virtual Balance" data-ta="மெய்நிகர் இருப்பு">Virtual Balance</div>
+      <div class="mc-bar" id="mc-bar-cash" style="background:linear-gradient(90deg,transparent 0%,#22d3ee 50%,transparent 100%)"></div>
     </div>
     <!-- Unrealized P&L -->
-    <div class="metric-card" style="--mc-color:var(--green)">
+    <div class="metric-card">
+      <div class="mc-glow" id="ring-glowbg-unreal" style="background:radial-gradient(ellipse at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%)"></div>
       <div class="ring-wrap">
-        <svg class="ring-svg" viewBox="0 0 88 88">
-          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
-          <circle class="ring-fill" id="ring-unreal" cx="44" cy="44" r="34" stroke="var(--green)" transform="rotate(135 44 44)"/>
+        <svg class="ring-svg" viewBox="0 0 160 160">
+          <path class="ring-glow" id="ring-glow-unreal" fill="none" stroke="#34d399" stroke-width="20" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27" style="opacity:0.12"/>
+          <path fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50"/>
+          <path class="ring-fill" id="ring-fill-unreal" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27"/>
+          <circle id="ring-tip-unreal" r="5" fill="#34d399" cx="23.71" cy="112.50" style="opacity:0;filter:drop-shadow(0 0 5px #34d399)"/>
         </svg>
         <div class="ring-center">
           <span class="ring-val" id="acctUnrealized">—</span>
-          <span class="ring-sub">P&amp;L</span>
+          <span class="ring-sub">MTM</span>
         </div>
       </div>
       <div class="metric-name" data-en="Unrealized" data-ta="நிகழா">Unrealized</div>
+      <div class="mc-bar" id="mc-bar-unreal" style="background:linear-gradient(90deg,transparent 0%,#34d399 50%,transparent 100%)"></div>
     </div>
     <!-- Realized P&L -->
-    <div class="metric-card" style="--mc-color:var(--accent)">
+    <div class="metric-card">
+      <div class="mc-glow" id="ring-glowbg-real" style="background:radial-gradient(ellipse at 50% 0%,rgba(52,211,153,0.06) 0%,transparent 60%)"></div>
       <div class="ring-wrap">
-        <svg class="ring-svg" viewBox="0 0 88 88">
-          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
-          <circle class="ring-fill" id="ring-real" cx="44" cy="44" r="34" stroke="var(--accent)" transform="rotate(135 44 44)"/>
+        <svg class="ring-svg" viewBox="0 0 160 160">
+          <path class="ring-glow" id="ring-glow-real" fill="none" stroke="#34d399" stroke-width="20" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27" style="opacity:0.12"/>
+          <path fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50"/>
+          <path class="ring-fill" id="ring-fill-real" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27"/>
+          <circle id="ring-tip-real" r="5" fill="#34d399" cx="23.71" cy="112.50" style="opacity:0;filter:drop-shadow(0 0 5px #34d399)"/>
         </svg>
         <div class="ring-center">
           <span class="ring-val" id="acctRealized">—</span>
-          <span class="ring-sub">P&amp;L</span>
+          <span class="ring-sub">BOOKED</span>
         </div>
       </div>
       <div class="metric-name" data-en="Realized" data-ta="நிகழ்ந்த">Realized</div>
+      <div class="mc-bar" id="mc-bar-real" style="background:linear-gradient(90deg,transparent 0%,#34d399 50%,transparent 100%)"></div>
     </div>
     <!-- Win Rate -->
-    <div class="metric-card" style="--mc-color:var(--yellow)">
+    <div class="metric-card">
+      <div class="mc-glow" id="ring-glowbg-winrate" style="background:radial-gradient(ellipse at 50% 0%,rgba(251,191,36,0.06) 0%,transparent 60%)"></div>
       <div class="ring-wrap">
-        <svg class="ring-svg" viewBox="0 0 88 88">
-          <circle class="ring-track" cx="44" cy="44" r="34" stroke-dasharray="160.2 213.6" transform="rotate(135 44 44)"/>
-          <circle class="ring-fill" id="ring-winrate" cx="44" cy="44" r="34" stroke="var(--yellow)" transform="rotate(135 44 44)"/>
+        <svg class="ring-svg" viewBox="0 0 160 160">
+          <path class="ring-glow" id="ring-glow-winrate" fill="none" stroke="#fbbf24" stroke-width="20" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27" style="opacity:0.12"/>
+          <path fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50"/>
+          <path class="ring-fill" id="ring-fill-winrate" fill="none" stroke="#fbbf24" stroke-width="10" stroke-linecap="round" d="M 23.71 112.50 A 65 65 0 1 1 136.29 112.50" stroke-dasharray="272.27 272.27" stroke-dashoffset="272.27"/>
+          <circle id="ring-tip-winrate" r="5" fill="#fbbf24" cx="23.71" cy="112.50" style="opacity:0;filter:drop-shadow(0 0 5px #fbbf24)"/>
         </svg>
         <div class="ring-center">
           <span class="ring-val" id="acctWinRate">—</span>
@@ -328,6 +340,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </div>
       </div>
       <div class="metric-name" data-en="Win Rate" data-ta="வெற்றி விகிதம்">Win Rate</div>
+      <div class="mc-bar" id="mc-bar-winrate" style="background:linear-gradient(90deg,transparent 0%,#fbbf24 50%,transparent 100%)"></div>
     </div>
   </div>
 </div>
@@ -494,12 +507,29 @@ const shortPnl = n => {
   return s + Math.round(abs);
 };
 
-function setRing(ringId, pct, color) {
-  const el = document.getElementById(ringId);
-  if (!el) return;
-  const fill = Math.max(0, Math.min(1, pct)) * 160.2;
-  el.style.strokeDasharray = fill.toFixed(1) + ' 213.6';
-  if (color) el.style.stroke = color;
+// 240° horseshoe arc: R=65, cx=cy=80, start=150°, total arc C≈272.27px
+const _RC = 272.27, _RS = 150 * Math.PI / 180, _RR = 65;
+function setRing(id, pct, color) {
+  const f = Math.max(0, Math.min(pct || 0, 1));
+  const offset = (_RC * (1 - f)).toFixed(2);
+  const fill = document.getElementById('ring-fill-' + id);
+  const glow = document.getElementById('ring-glow-' + id);
+  const tip  = document.getElementById('ring-tip-'  + id);
+  const bar  = document.getElementById('mc-bar-'    + id);
+  const bg   = document.getElementById('ring-glowbg-' + id);
+  if (fill) { fill.style.strokeDashoffset = offset; if (color) fill.style.stroke = color; }
+  if (glow) { glow.style.strokeDashoffset = offset; if (color) glow.style.stroke = color; }
+  if (tip) {
+    const ang = _RS + f * (240 * Math.PI / 180);
+    tip.setAttribute('cx', (80 + _RR * Math.cos(ang)).toFixed(2));
+    tip.setAttribute('cy', (80 + _RR * Math.sin(ang)).toFixed(2));
+    if (color) { tip.style.fill = color; tip.style.filter = `drop-shadow(0 0 5px ${color})`; }
+    tip.style.opacity = f > 0.005 ? 1 : 0;
+  }
+  if (color) {
+    if (bar) bar.style.background = `linear-gradient(90deg,transparent 0%,${color} 50%,transparent 100%)`;
+    if (bg)  bg.style.background  = `radial-gradient(ellipse at 50% 0%,${color}10 0%,transparent 60%)`;
+  }
 }
 
 window.onLangChange = () => {
@@ -583,7 +613,7 @@ async function refreshAll(manual = false) {
     // Cash ring (full at ₹2L starting capital)
     const cashEl = document.getElementById('acctCash');
     if (cashEl) cashEl.textContent = shortFmt(acct.cash);
-    setRing('ring-cash', Math.min(1, (acct.cash || 0) / 200000), null);
+    setRing('cash', Math.min(1, (acct.cash || 0) / 200000), '#22d3ee');
 
     // Unrealized ring (scaled to ±₹20K)
     const unrealEl = document.getElementById('acctUnrealized');
@@ -591,8 +621,8 @@ async function refreshAll(manual = false) {
       unrealEl.textContent = shortPnl(unreal);
       unrealEl.className = 'ring-val ' + (unreal > 0 ? 'pos' : unreal < 0 ? 'neg' : '');
     }
-    setRing('ring-unreal', Math.min(1, Math.abs(unreal) / 20000),
-      unreal >= 0 ? 'var(--green)' : 'var(--red)');
+    const unrealColor = unreal >= 0 ? '#34d399' : '#f87171';
+    setRing('unreal', Math.min(1, Math.abs(unreal) / 20000), unrealColor);
 
     // Realized ring (scaled to ±₹20K)
     const realEl = document.getElementById('acctRealized');
@@ -600,8 +630,8 @@ async function refreshAll(manual = false) {
       realEl.textContent = shortPnl(realPnl);
       realEl.className = 'ring-val ' + (realPnl > 0 ? 'pos' : realPnl < 0 ? 'neg' : '');
     }
-    setRing('ring-real', Math.min(1, Math.abs(realPnl) / 20000),
-      realPnl >= 0 ? 'var(--accent)' : 'var(--red)');
+    const realColor = realPnl >= 0 ? '#34d399' : '#f87171';
+    setRing('real', Math.min(1, Math.abs(realPnl) / 20000), realColor);
 
     // Win rate ring
     const wins  = trades.filter(t => t.pnl > 0).length;
@@ -609,7 +639,7 @@ async function refreshAll(manual = false) {
     const wr    = total > 0 ? wins / total : 0;
     const wrEl  = document.getElementById('acctWinRate');
     if (wrEl) wrEl.textContent = total > 0 ? Math.round(wr * 100) + '%' : '—';
-    setRing('ring-winrate', wr, null);
+    setRing('winrate', wr, '#fbbf24');
 
     renderPositions(positions);
     renderHistory(trades);
