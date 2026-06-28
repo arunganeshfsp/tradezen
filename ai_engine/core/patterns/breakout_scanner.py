@@ -88,7 +88,7 @@ def _rsi(prices: np.ndarray, period: int = 14) -> float:
     d = np.diff(prices[-(period + 1):])
     up = d[d > 0].mean() if d[d > 0].size else 0.0
     dn = -d[d < 0].mean() if d[d < 0].size else 1e-9
-    return round(100 - 100 / (1 + up / dn), 1)
+    return round(float(100 - 100 / (1 + up / dn)), 1)
 
 
 def _macd_above_signal(prices: np.ndarray) -> bool:
@@ -180,22 +180,23 @@ def _analyse_one(
     prices = close.values.astype(float)
     vols   = volume.reindex(close.index).fillna(0).values.astype(float)
     n      = len(prices)
-    cur    = prices[-1]
+    cur    = float(prices[-1])
 
     if n < max_w * 5 + 30:
         return None
 
     # ── Step 1: Prior high & decline ────────────────────────────────────────
     prior_high_idx  = int(prices.argmax())
-    prior_high      = prices[prior_high_idx]
-    prior_high_date = close.index[prior_high_idx].strftime("%Y-%m-%d")
+    prior_high      = float(prices[prior_high_idx])
+    ts = close.index[prior_high_idx]
+    prior_high_date = ts.strftime("%Y-%m-%d") if hasattr(ts, "strftime") else str(ts)[:10]
 
     # Stock must not currently be AT its 52W high (no setup)
     if prior_high_idx >= n - 3:
         return None
 
     post_peak_low  = float(prices[prior_high_idx:].min())
-    decline_pct    = (prior_high - post_peak_low) / prior_high * 100
+    decline_pct    = round(float((prior_high - post_peak_low) / prior_high * 100), 1)
     if decline_pct < min_decline:
         return None
 
@@ -257,9 +258,9 @@ def _analyse_one(
 
     # ── Step 4: Breakout readiness ───────────────────────────────────────────
     resistance   = base_hi
-    dist_pct     = round((resistance - cur) / resistance * 100, 1)
-    breakout_now = cur > resistance
-    avg20_vol    = vols[-20:].mean() if n >= 20 else vols.mean()
+    dist_pct     = round(float((resistance - cur) / resistance * 100), 1)
+    breakout_now = bool(cur > resistance)
+    avg20_vol    = float(vols[-20:].mean()) if n >= 20 else float(vols.mean())
     vol_ok       = bool(breakout_now and vols[-1] >= 1.5 * avg20_vol)
 
     market_cond = "neutral"
@@ -309,18 +310,18 @@ def _analyse_one(
 
     return {
         "symbol":          sym,
-        "current_price":   round(float(cur), 2),
-        "prior_high":      round(float(prior_high), 2),
+        "current_price":   round(cur, 2),
+        "prior_high":      round(prior_high, 2),
         "prior_high_date": prior_high_date,
-        "decline_pct":     round(float(decline_pct), 1),
+        "decline_pct":     decline_pct,
         "base_low":        round(base_lo, 2),
         "base_high":       round(base_hi, 2),
-        "base_weeks":      base_weeks,
-        "base_range_pct":  base_range_pct,
+        "base_weeks":      int(base_weeks),
+        "base_range_pct":  float(base_range_pct),
         "volume_trend":    vol_trend,
-        "higher_lows":     hl,
-        "has_distribution": has_dist,
-        "accum_score":     score,
+        "higher_lows":     bool(hl),
+        "has_distribution": bool(has_dist),
+        "accum_score":     int(score),
         "accum_signals":   signals,
         "rsi":             rsi,
         "resistance":      round(base_hi, 2),
