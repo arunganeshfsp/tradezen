@@ -59,17 +59,30 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
 }
 
 /* ── Hero ─────────────────────────────────────────────────────────────────── */
-.hero{padding:32px 24px 24px;border-bottom:1px solid var(--border);
-      background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(46,204,113,.1) 0%,transparent 65%),var(--bg)}
+.hero{position:relative;overflow:hidden;padding:64px 28px 52px;text-align:center;
+      border-bottom:1px solid var(--border);
+      background:radial-gradient(ellipse 85% 60% at 50% -5%,rgba(0,212,255,.18) 0%,rgba(26,188,156,.08) 45%,transparent 70%),var(--bg)}
+.hero::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 35% 40% at 20% 110%,rgba(91,138,245,.08) 0%,transparent 60%),
+             radial-gradient(ellipse 25% 30% at 85% 105%,rgba(46,204,113,.06) 0%,transparent 55%);}
 .htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;
-      font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);
-      background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);
-      padding:5px 16px;border-radius:20px;margin-bottom:14px}
-.hero h1{font-family:'Syne',sans-serif;font-size:clamp(20px,3vw,32px);font-weight:800;
-         color:#fff;line-height:1.1;letter-spacing:-.5px;margin-bottom:6px}
-.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--cyan));
+      font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);
+      background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.22);
+      padding:5px 18px;border-radius:20px;margin-bottom:18px}
+.hero-orca-name{font-family:'Syne',sans-serif;font-size:clamp(11px,1.2vw,13px);
+  font-weight:700;letter-spacing:4px;text-transform:uppercase;
+  color:var(--cyan);opacity:.7;margin-bottom:6px;}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(30px,5.5vw,56px);font-weight:800;
+         color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:10px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--cyan),var(--teal));
             -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{font-size:13px;color:var(--dim)}
+.hero-sub{font-size:13.5px;color:var(--dim);max-width:580px;margin:0 auto 20px;}
+.hero-pillars{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.hero-pillar{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;
+  padding:4px 12px;border:1px solid rgba(0,212,255,.2);border-radius:999px;
+  color:rgba(0,212,255,.75);background:rgba(0,212,255,.06);}
+.hero-pillar-sep{color:var(--muted);font-size:11px;}
+@media(max-width:600px){.hero{padding:44px 16px 36px;}.hero h1{letter-spacing:-.5px;}}
 
 .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
 
@@ -360,9 +373,21 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,12,24,.95);backdrop-fil
 <!-- Hero -->
 <div class="hero">
   <div class="htag">📈 S4 SWING FRAMEWORK</div>
+  <div class="hero-orca-name">Orca Strategy</div>
   <h1>Swing Trading — <em>5-Pillar Analysis</em></h1>
-  <p class="hero-sub">Market Direction · Sector Strength · Stock Quality · Entry Setup · Risk/Reward</p>
-  <a href="/swing_trading_tutorial_tamil.html" target="_blank" style="display:inline-block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);padding:3px 12px;border-radius:20px;text-decoration:none;letter-spacing:0.5px">📖 S4 Framework எப்படி பயன்படுத்துவது? (தமிழ் வழிகாட்டி)</a>
+  <p class="hero-sub">Systematic swing trade evaluation across five layers — from broad market direction down to precise risk/reward. Built for patience, not impulse.</p>
+  <div class="hero-pillars">
+    <span class="hero-pillar">Market Direction</span>
+    <span class="hero-pillar-sep">›</span>
+    <span class="hero-pillar">Sector Strength</span>
+    <span class="hero-pillar-sep">›</span>
+    <span class="hero-pillar">Stock Quality</span>
+    <span class="hero-pillar-sep">›</span>
+    <span class="hero-pillar">Setup</span>
+    <span class="hero-pillar-sep">›</span>
+    <span class="hero-pillar">Risk / Reward</span>
+  </div>
+  <a href="/swing_trading_tutorial_tamil.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);padding:5px 14px;border-radius:20px;text-decoration:none;letter-spacing:0.5px">📖 S4 Framework எப்படி பயன்படுத்துவது? (தமிழ் வழிகாட்டி)</a>
 </div>
 
 <div class="wrap">
