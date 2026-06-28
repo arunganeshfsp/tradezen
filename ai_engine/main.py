@@ -6312,7 +6312,7 @@ def _stock_health_sync(symbol: str) -> dict:
 async def stock_reversal_scan(
     universe:     str   = "nifty50",
     min_decline:  float = 30.0,
-    min_recovery: float = 10.0,
+    max_recovery: float = 60.0,
     support_type: str   = "single",
     min_days:     int   = 40,
     max_days:     int   = 130,
@@ -6327,7 +6327,7 @@ async def stock_reversal_scan(
         result = await loop.run_in_executor(None, lambda: scan_reversals(
             universe=universe,
             min_decline=min_decline,
-            min_recovery=min_recovery,
+            max_recovery=max_recovery,
             support_type=support_type,
             min_days=min_days,
             max_days=max_days,
@@ -6346,7 +6346,7 @@ async def stock_reversal_scan(
 async def stock_reversal_check(
     symbol:       str,
     min_decline:  float = 30.0,
-    min_recovery: float = 10.0,
+    max_recovery: float = 60.0,
     support_type: str   = "single",
     min_days:     int   = 40,
     max_days:     int   = 130,
@@ -6357,7 +6357,7 @@ async def stock_reversal_check(
         result = await loop.run_in_executor(None, lambda: check_single_stock(
             symbol=symbol,
             min_decline=min_decline,
-            min_recovery=min_recovery,
+            max_recovery=max_recovery,
             support_type=support_type,
             min_days=min_days,
             max_days=max_days,

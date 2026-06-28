@@ -109,7 +109,7 @@ def _find_local_troughs(prices_arr, order: int = 10) -> list:
 def scan_reversals(
     universe:     str   = "nifty50",
     min_decline:  float = 15.0,
-    min_recovery: float = 10.0,
+    max_recovery: float = 60.0,
     support_type: str   = "single",
     min_days:     int   = 15,
     max_days:     int   = 150,
@@ -254,12 +254,12 @@ def scan_reversals(
                     "gap":      "too old" if days_since_trough > max_days else "too recent",
                 })
 
-            if recovery_pct < min_recovery:
+            if recovery_pct > max_recovery:
                 failures.append({
                     "name":     "Recovery",
                     "value":    f"+{recovery_pct:.1f}%",
-                    "required": f"≥ {min_recovery:.0f}%",
-                    "gap":      f"{min_recovery - recovery_pct:.1f}% short",
+                    "required": f"≤ {max_recovery:.0f}%",
+                    "gap":      f"{recovery_pct - max_recovery:.1f}% over cap",
                 })
 
             if post_min < trough_val * 0.97:
@@ -339,7 +339,7 @@ def scan_reversals(
         "near_misses":   near_misses,
         "filters": {
             "min_decline":   min_decline,
-            "min_recovery":  min_recovery,
+            "max_recovery":  max_recovery,
             "support_type":  support_type,
             "min_days":      min_days,
             "max_days":      max_days,
@@ -357,7 +357,7 @@ def scan_reversals(
 def check_single_stock(
     symbol:       str,
     min_decline:  float = 15.0,
-    min_recovery: float = 10.0,
+    max_recovery: float = 60.0,
     support_type: str   = "single",
     min_days:     int   = 15,
     max_days:     int   = 150,
@@ -476,9 +476,9 @@ def check_single_stock(
         },
         {
             "name":     "Recovery from Support",
-            "passed":   recovery_pct >= min_recovery,
+            "passed":   recovery_pct <= max_recovery,
             "value":    f"+{recovery_pct:.1f}%",
-            "required": f"≥ {min_recovery:.0f}%",
+            "required": f"≤ {max_recovery:.0f}% (cap — opportunity not exhausted)",
             "detail":   f"Bounced from ₹{trough_val:.2f} to ₹{current_price:.2f} · Fibonacci {fib_pct:.1f}% of decline recovered",
         },
         {
