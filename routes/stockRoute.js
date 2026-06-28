@@ -889,6 +889,28 @@ router.get("/stock/reversal-check/:symbol", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/stock/breakout-scan ────────────────────────────────────────────
+// Scans a stock universe for consolidation-breakout base patterns
+router.get("/stock/breakout-scan", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stock/breakout-scan?${params}`, 240000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── GET /api/stock/breakout-check/:symbol ───────────────────────────────────
+// Single-stock consolidation-breakout check with full criteria detail
+router.get("/stock/breakout-check/:symbol", async (req, res) => {
+  try {
+    const symbol = req.params.symbol.toUpperCase().replace(/[^A-Z0-9\-\.&]/g, "");
+    if (!symbol) return res.status(400).json({ error: "Symbol required" });
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stock/breakout-check/${symbol}?${params}`, 35000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ══════════════════════════════════════════════════════════════════════════════
 // Paper Trading routes — virtual portfolio simulator
 // ══════════════════════════════════════════════════════════════════════════════

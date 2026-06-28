@@ -6368,6 +6368,53 @@ async def stock_reversal_check(
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@app.get("/stock/breakout-scan")
+async def stock_breakout_scan(
+    universe:    str   = "nifty50",
+    min_decline: float = 20.0,
+    min_w:       int   = 4,
+    max_w:       int   = 12,
+    max_range:   float = 10.0,
+    near_res:    float = 5.0,
+    sector:      str   = "",
+    symbols:     str   = "",
+):
+    from core.patterns.breakout_scanner import scan_breakouts
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, lambda: scan_breakouts(
+            universe=universe, min_decline=min_decline,
+            min_w=min_w, max_w=max_w, max_range=max_range,
+            near_res=near_res, sector=sector, symbols=symbols,
+        ))
+        return result
+    except Exception as e:
+        log.error(f"[BREAKOUT-SCAN] {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/stock/breakout-check/{symbol}")
+async def stock_breakout_check(
+    symbol:      str,
+    min_decline: float = 20.0,
+    min_w:       int   = 4,
+    max_w:       int   = 12,
+    max_range:   float = 10.0,
+    near_res:    float = 5.0,
+):
+    from core.patterns.breakout_scanner import check_single_breakout
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, lambda: check_single_breakout(
+            symbol=symbol, min_decline=min_decline,
+            min_w=min_w, max_w=max_w, max_range=max_range, near_res=near_res,
+        ))
+        return result
+    except Exception as e:
+        log.error(f"[BREAKOUT-CHECK] {symbol}: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/stock/health/{symbol}")
 async def stock_health(symbol: str):
     loop = asyncio.get_event_loop()
