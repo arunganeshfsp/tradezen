@@ -4515,7 +4515,7 @@ def _get_ch_symbols(universe: str, sector: str, symbols: str) -> list:
 @app.get("/patterns/cup-handle/analyse")
 async def ch_analyse(symbol: str, period: str = "1y"):
     """Analyse a single NSE stock for Cup & Handle pattern (3-stage detection).
-    period: 3mo | 6mo | 1y | 2y"""
+    period: 3mo | 6mo | 1y | 2y | 3y | 5y"""
     from core.patterns.cup_handle import analyse as _ch_analyse
     loop = asyncio.get_event_loop()
     try:

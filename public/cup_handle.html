@@ -242,7 +242,9 @@ select.inp{cursor:pointer;}
       <option value="3mo">3 Months</option>
       <option value="6mo">6 Months</option>
       <option value="1y" selected>1 Year</option>
-      <option value="2y">Multi-Year (2Y)</option>
+      <option value="2y">2 Years</option>
+      <option value="3y">3 Years ★ Single only</option>
+      <option value="5y">5 Years ★ Single only</option>
     </select>
     <button class="btn btn-primary" onclick="analyseOne()">
       <span>🔍</span> Analyse
@@ -369,13 +371,15 @@ function getPeriod() {
   return document.getElementById("periodSelect").value;
 }
 
-const PERIOD_LABEL = { "3mo": "3 Months", "6mo": "6 Months", "1y": "1 Year", "2y": "2 Years" };
+const PERIOD_LABEL = { "3mo": "3 Months", "6mo": "6 Months", "1y": "1 Year", "2y": "2 Years", "3y": "3 Years", "5y": "5 Years" };
 
 const PERIOD_HINT = {
   "3mo": "3 months (~63 trading days) — detects short cups of 8–45 days. Fewer patterns; best for fast-moving stocks.",
   "6mo": "6 months (~126 days) — detects cups of 3–20 weeks. Good balance of recency and pattern maturity.",
   "1y":  "1 year (~252 days) — classic C&H range. Detects patterns of 4 weeks to 9 months. If results match 6-month, the best pattern formed within the last 6 months.",
   "2y":  "2 years (~500 days) — reveals long, large-base patterns that shorter windows miss. Ideal for positional swing trades.",
+  "3y":  "3 years (~750 days) — for very large multi-year cups. Single-stock analysis only; too slow for universe scans.",
+  "5y":  "5 years (~1250 days) — catches the longest institutional accumulation patterns. Single-stock analysis only.",
 };
 
 function updatePeriodHint() {
@@ -790,7 +794,12 @@ async function startScan() {
   scanBtn.disabled = true;
   document.getElementById("emptyState").style.display = "none";
 
-  const period = getPeriod();
+  let period = getPeriod();
+  if (period === "3y" || period === "5y") {
+    document.getElementById("periodSelect").value = "2y";
+    period = "2y";
+    setStatus("scanning", "3Y / 5Y is only available for single-stock analysis. Scan switched to 2Y.");
+  }
   const UNIVERSE_LABEL = { nifty50: "Nifty 50", nifty100: "Nifty 100", midcap150: "Midcap 150", smallcap250: "Smallcap 250", watchlist: "My Watchlist" };
   const SECTOR_LABEL   = { banks: "Banks", it: "IT", pharma: "Pharma", metals: "Metals", auto: "Auto", fmcg: "FMCG", energy: "Energy", chemicals: "Chemicals", realty: "Realty", infra: "Infra" };
   const TIMEOUT_MS     = { nifty50: 120000, nifty100: 200000, midcap150: 360000, smallcap250: 600000, watchlist: 120000 };

@@ -12,6 +12,7 @@ Cache: 1 hour (patterns on daily chart don't change intraday).
 
 import logging
 import time
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -30,22 +31,28 @@ MIN_PATTERN_SCORE = 25.0   # minimum score to report a detection
 
 # Per-period tuning: shorter windows need a tighter pivot search and smaller cup limits
 _PERIOD_PARAMS: dict[str, dict] = {
-    "3mo": {"pivot_window": 4,  "min_cup":  8, "max_cup":  45, "max_handle": 20},
-    "6mo": {"pivot_window": 7,  "min_cup": 15, "max_cup": 100, "max_handle": 30},
-    "1y":  {"pivot_window": 10, "min_cup": 45, "max_cup": 240, "max_handle": 35},
-    "2y":  {"pivot_window": 10, "min_cup": 60, "max_cup": 460, "max_handle": 35},
+    "3mo": {"pivot_window": 4,  "min_cup":   8, "max_cup":   45, "max_handle": 20},
+    "6mo": {"pivot_window": 7,  "min_cup":  15, "max_cup":  100, "max_handle": 30},
+    "1y":  {"pivot_window": 10, "min_cup":  45, "max_cup":  240, "max_handle": 35},
+    "2y":  {"pivot_window": 10, "min_cup":  60, "max_cup":  460, "max_handle": 35},
+    "3y":  {"pivot_window": 12, "min_cup":  80, "max_cup":  700, "max_handle": 40},
+    "5y":  {"pivot_window": 14, "min_cup": 120, "max_cup": 1150, "max_handle": 50},
 }
 
+# yfinance doesn't have a "3y" period — use start/end for it
+_YF_PERIOD = {
+    "3mo": "3mo", "6mo": "6mo", "1y": "1y", "2y": "2y", "5y": "5y",
+}
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Data fetching
 # ──────────────────────────────────────────────────────────────────────────────
 
-_VALID_PERIODS = {"3mo", "6mo", "1y", "2y"}
+_VALID_PERIODS = {"3mo", "6mo", "1y", "2y", "3y", "5y"}
 
 
 def _fetch_daily(symbol: str, period: str = "1y") -> pd.DataFrame:
-    """Daily OHLCV from yfinance with in-memory TTL cache. Period: 3mo|6mo|1y|2y."""
+    """Daily OHLCV from yfinance with in-memory TTL cache. Period: 3mo|6mo|1y|2y|3y|5y."""
     if period not in _VALID_PERIODS:
         period = "1y"
     key = f"__ch_{symbol}_{period}__"
@@ -54,7 +61,13 @@ def _fetch_daily(symbol: str, period: str = "1y") -> pd.DataFrame:
         return cached["data"]
 
     import yfinance as yf
-    df = yf.Ticker(symbol + ".NS").history(period=period, interval="1d", auto_adjust=True)
+    tk = yf.Ticker(symbol + ".NS")
+    if period == "3y":
+        start = (datetime.now() - timedelta(days=365 * 3)).strftime("%Y-%m-%d")
+        df = tk.history(start=start, interval="1d", auto_adjust=True)
+    else:
+        df = tk.history(period=_YF_PERIOD[period], interval="1d", auto_adjust=True)
+
     if df.empty or len(df) < 50:
         raise ValueError(f"Insufficient history for {symbol} ({len(df)} candles)")
     _CACHE[key] = {"ts": time.time(), "data": df}
