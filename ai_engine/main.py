@@ -4179,8 +4179,6 @@ def _nifty500_movers_sync() -> dict:
 
     gainers_pool = [r for r in rows if r.get("pct_change", 0) > 0]
     losers_pool  = [r for r in rows if r.get("pct_change", 0) < 0]
-    gainers_pool.sort(key=lambda r: _composite_score(r, True),  reverse=True)
-    losers_pool.sort( key=lambda r: _composite_score(r, False), reverse=True)
     rows.sort(key=lambda r: r["pct_change"], reverse=True)
     now       = _time.time()
     advancing = sum(1 for r in rows if r["pct_change"] > 0)
@@ -4192,8 +4190,8 @@ def _nifty500_movers_sync() -> dict:
         "advancing":  advancing,
         "declining":  declining,
         "unchanged":  len(rows) - advancing - declining,
-        "gainers":    gainers_pool[:10],
-        "losers":     losers_pool[:10],
+        "gainers":    _volume_rank(gainers_pool, True)[:10],
+        "losers":     _volume_rank(losers_pool, False)[:10],
         "all_rows":   rows,
         "fetched_at": int(now),
     }
@@ -4234,6 +4232,21 @@ def _composite_score(r: dict, is_gainer: bool) -> float:
     return pct * max(0.1, factor)
 
 
+def _volume_rank(rows: list, is_gainer: bool) -> list:
+    """
+    Two-tier sort: volume-confirmed moves first, unconfirmed moves second.
+    Tier 1: buy_pct >= 50 for gainers (or sell_pct >= 50 for losers) — direction confirmed by order book.
+    Tier 2: opposite dominance — price moved against the order book bias.
+    Within each tier, ranked by composite score (pct_change weighted by dominance).
+    """
+    dom_field  = "buy_pct" if is_gainer else "sell_pct"
+    confirmed   = [r for r in rows if (r.get(dom_field) or 50.0) >= 50.0]
+    unconfirmed = [r for r in rows if (r.get(dom_field) or 50.0) <  50.0]
+    confirmed.sort(  key=lambda r: _composite_score(r, is_gainer), reverse=True)
+    unconfirmed.sort(key=lambda r: _composite_score(r, is_gainer), reverse=True)
+    return confirmed + unconfirmed
+
+
 @app.get("/stocks/movers")
 def stocks_movers(index: str = "nifty50", min_price: float = 0,
                   max_price: float = 0, min_change: float = 0):
@@ -4267,12 +4280,8 @@ def stocks_movers(index: str = "nifty50", min_price: float = 0,
                   "gainers":   filtered[:10],
                   "losers":    list(reversed(filtered[-10:])) if filtered else []}
 
-    result["gainers"] = sorted(
-        _enrich_with_depth(result.get("gainers", [])),
-        key=lambda r: _composite_score(r, True), reverse=True)
-    result["losers"] = sorted(
-        _enrich_with_depth(result.get("losers", [])),
-        key=lambda r: _composite_score(r, False), reverse=True)
+    result["gainers"] = _volume_rank(_enrich_with_depth(result.get("gainers", [])), True)
+    result["losers"]  = _volume_rank(_enrich_with_depth(result.get("losers",  [])), False)
     return result
 
 
