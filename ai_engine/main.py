@@ -4272,16 +4272,20 @@ def stocks_movers(index: str = "nifty50", min_price: float = 0,
                     and (min_change == 0 or abs(r.get("pct_change", 0)) >= min_change)]
         advancing = sum(1 for r in filtered if r.get("pct_change", 0) > 0)
         declining = sum(1 for r in filtered if r.get("pct_change", 0) < 0)
+        # Take 20 candidates so volume ranking has room to promote buyer-confirmed
+        # stocks that sit outside the pure-pct_change top 10
+        pos = [r for r in filtered if r.get("pct_change", 0) > 0]
+        neg = [r for r in filtered if r.get("pct_change", 0) < 0]
         result = {**result,
                   "count":     len(filtered),
                   "advancing": advancing,
                   "declining": declining,
                   "unchanged": len(filtered) - advancing - declining,
-                  "gainers":   filtered[:10],
-                  "losers":    list(reversed(filtered[-10:])) if filtered else []}
+                  "gainers":   pos[:20],
+                  "losers":    neg[-20:] if neg else []}
 
-    result["gainers"] = _volume_rank(_enrich_with_depth(result.get("gainers", [])), True)
-    result["losers"]  = _volume_rank(_enrich_with_depth(result.get("losers",  [])), False)
+    result["gainers"] = _volume_rank(_enrich_with_depth(result.get("gainers", [])), True)[:10]
+    result["losers"]  = _volume_rank(_enrich_with_depth(result.get("losers",  [])), False)[:10]
     return result
 
 
