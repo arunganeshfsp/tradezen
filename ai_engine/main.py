@@ -4177,6 +4177,10 @@ def _nifty500_movers_sync() -> dict:
             return {**cached["data"], "stale": True}
         return {"error": "No Nifty 500 data available"}
 
+    gainers_pool = [r for r in rows if r.get("pct_change", 0) > 0]
+    losers_pool  = [r for r in rows if r.get("pct_change", 0) < 0]
+    gainers_pool.sort(key=lambda r: _composite_score(r, True),  reverse=True)
+    losers_pool.sort( key=lambda r: _composite_score(r, False), reverse=True)
     rows.sort(key=lambda r: r["pct_change"], reverse=True)
     now       = _time.time()
     advancing = sum(1 for r in rows if r["pct_change"] > 0)
@@ -4188,8 +4192,8 @@ def _nifty500_movers_sync() -> dict:
         "advancing":  advancing,
         "declining":  declining,
         "unchanged":  len(rows) - advancing - declining,
-        "gainers":    rows[:10],
-        "losers":     list(reversed(rows[-10:])),
+        "gainers":    gainers_pool[:10],
+        "losers":     losers_pool[:10],
         "all_rows":   rows,
         "fetched_at": int(now),
     }
@@ -4219,6 +4223,15 @@ def _enrich_with_depth(rows: list) -> list:
         log.warning(f"[ENRICH-DEPTH] {e}")
         return rows
     return [{**r, **depth.get(r["symbol"].upper(), {})} for r in rows]
+
+
+def _composite_score(r: dict, is_gainer: bool) -> float:
+    """Rank score weighting pct_change by buyer/seller dominance confirmation."""
+    pct      = abs(r.get("pct_change", 0))
+    buy_pct  = r.get("buy_pct")  or 50.0
+    sell_pct = r.get("sell_pct") or 50.0
+    factor   = (buy_pct / 50.0) if is_gainer else (sell_pct / 50.0)
+    return pct * max(0.1, factor)
 
 
 @app.get("/stocks/movers")
@@ -4254,8 +4267,12 @@ def stocks_movers(index: str = "nifty50", min_price: float = 0,
                   "gainers":   filtered[:10],
                   "losers":    list(reversed(filtered[-10:])) if filtered else []}
 
-    result["gainers"] = _enrich_with_depth(result.get("gainers", []))
-    result["losers"]  = _enrich_with_depth(result.get("losers",  []))
+    result["gainers"] = sorted(
+        _enrich_with_depth(result.get("gainers", [])),
+        key=lambda r: _composite_score(r, True), reverse=True)
+    result["losers"] = sorted(
+        _enrich_with_depth(result.get("losers", [])),
+        key=lambda r: _composite_score(r, False), reverse=True)
     return result
 
 
