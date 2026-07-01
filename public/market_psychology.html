@@ -519,6 +519,51 @@ body>*:not(#ambient-backdrop){position:relative;z-index:1}
 :root[data-theme="light"] div[style*="color:#fff"],
 :root[data-theme="light"] strong[style*="color:#fff"]{color:var(--text)!important}
 
+/* ── FUTURES OI SIGNAL ANIMATIONS ── */
+@keyframes foiFireGlow {
+  0%,100%{ box-shadow:0 0 0 1px rgba(46,204,113,.55),0 0 10px rgba(46,204,113,.14),0 0 22px rgba(46,204,113,.05) }
+  35%    { box-shadow:0 0 0 1px rgba(255,115,0,.55), 0 0 16px rgba(255,90,0,.22), 0 0 32px rgba(255,60,0,.09) }
+  65%    { box-shadow:0 0 0 1px rgba(46,204,113,.45),0 0 12px rgba(46,204,113,.10),0 0 26px rgba(46,204,113,.04) }
+}
+@keyframes foiFireFlicker {
+  0%,100%{ opacity:1;  transform:scaleY(1)    }
+  20%    { opacity:.75;transform:scaleY(.90)  }
+  50%    { opacity:1;  transform:scaleY(1.06) }
+  75%    { opacity:.85;transform:scaleY(.95)  }
+}
+@keyframes foiCoverSweep {
+  0%   { background-position:-250% 0 }
+  100% { background-position: 250% 0 }
+}
+@keyframes foiCoverBounce {
+  0%,100%{ transform:translateY(0)   }
+  45%    { transform:translateY(-3px) }
+}
+@keyframes foiShortPulse {
+  0%,100%{ box-shadow:0 0 0 1px rgba(231,76,60,.45),0 0 8px  rgba(231,76,60,.10) }
+  50%    { box-shadow:0 0 0 1px rgba(231,76,60,.70),0 0 18px rgba(231,76,60,.22) }
+}
+@keyframes foiUnwindFade {
+  0%,100%{ box-shadow:0 0 0 1px rgba(245,166,35,.50),0 0 10px rgba(245,166,35,.12) }
+  50%    { box-shadow:0 0 0 1px rgba(245,166,35,.20),0 0 4px  rgba(245,166,35,.04) }
+}
+
+#foi-pill.foi-fire    { animation:foiFireGlow  2s   ease-in-out infinite }
+#foi-pill.foi-short   { animation:foiShortPulse 1.6s ease-in-out infinite }
+#foi-pill.foi-unwind  { animation:foiUnwindFade 2.6s ease-in-out infinite }
+#foi-pill.foi-cover   {
+  background-image:linear-gradient(90deg,rgba(91,138,245,.06) 0%,rgba(91,138,245,.22) 50%,rgba(91,138,245,.06) 100%) !important;
+  background-size:200% 100% !important;
+  animation:foiCoverSweep 2.4s ease-in-out infinite !important;
+}
+#foi-sig.foi-flicker  { display:inline-block; animation:foiFireFlicker 1.9s ease-in-out infinite }
+#foi-sig.foi-bounce   { display:inline-block; animation:foiCoverBounce  1.5s ease-in-out infinite }
+
+@media(prefers-reduced-motion:reduce){
+  #foi-pill.foi-fire,#foi-pill.foi-short,#foi-pill.foi-unwind,#foi-pill.foi-cover,
+  #foi-sig.foi-flicker,#foi-sig.foi-bounce{ animation:none!important }
+}
+
 /* ── FULLSCREEN — desktop + tablet only ── */
 @media(max-width:900px){.fs-nav-btn{display:none !important}}
 .fs-close-btn{
@@ -3101,10 +3146,10 @@ function _gkSetType(type) {
 
 // ─── Futures OI ───────────────────────────────────────────────────────────────
 const _FOI_SIG_PSYCH = {
-  long_buildup:   { label: 'LONG BUILD',  color: '#2ecc71', bg: 'rgba(46,204,113,0.1)',  border: 'rgba(46,204,113,0.3)'  },
-  short_buildup:  { label: 'SHORT BUILD', color: '#e74c3c', bg: 'rgba(231,76,60,0.1)',   border: 'rgba(231,76,60,0.3)'   },
-  short_covering: { label: 'ST.COVER',    color: '#5b8af5', bg: 'rgba(91,138,245,0.1)',  border: 'rgba(91,138,245,0.3)'  },
-  long_unwinding: { label: 'LONG UNWIND', color: '#f5a623', bg: 'rgba(245,166,35,0.1)',  border: 'rgba(245,166,35,0.3)'  },
+  long_buildup:   { label: '🔥 LONG BUILD',   color: '#2ecc71', bg: 'rgba(46,204,113,0.1)',  border: 'rgba(46,204,113,0.3)',  pillCls:'foi-fire',   sigCls:'foi-flicker' },
+  short_buildup:  { label: '🔻 SHORT BUILD',  color: '#e74c3c', bg: 'rgba(231,76,60,0.1)',   border: 'rgba(231,76,60,0.3)',   pillCls:'foi-short',  sigCls:''            },
+  short_covering: { label: '⚡ SHORTS EXIT',  color: '#5b8af5', bg: 'rgba(91,138,245,0.1)',  border: 'rgba(91,138,245,0.3)',  pillCls:'foi-cover',  sigCls:'foi-bounce'  },
+  long_unwinding: { label: '💧 LONG UNWIND',  color: '#f5a623', bg: 'rgba(245,166,35,0.1)',  border: 'rgba(245,166,35,0.3)',  pillCls:'foi-unwind', sigCls:''            },
 };
 const _CPR_CONFIRM_PSYCH = {
   above: {
@@ -3154,6 +3199,14 @@ async function fetchFutOI() {
     pill.style.background   = s ? s.bg     : 'transparent';
     pill.style.borderColor  = s ? s.border : 'var(--border)';
     pill.style.color        = s ? s.color  : 'var(--dim)';
+
+    // Apply signal-specific animation classes
+    pill.classList.remove('foi-fire', 'foi-short', 'foi-cover', 'foi-unwind');
+    sigEl.classList.remove('foi-flicker', 'foi-bounce');
+    if (s) {
+      if (s.pillCls) pill.classList.add(s.pillCls);
+      if (s.sigCls)  sigEl.classList.add(s.sigCls);
+    }
 
     // CPR Confirmation pill
     const cc  = document.getElementById('foi-confirm');
