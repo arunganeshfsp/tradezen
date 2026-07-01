@@ -1785,9 +1785,6 @@ function updatePanel(candle) {
   const comp = d.components;
   const meta = STATE_META[d.state] || STATE_META.neutral;
 
-  // Ambient mood lighting
-  _updateAmbient(score);
-
   // Chart glow — preserve fs-mode when resetting glow classes
   const panel = document.getElementById('chart-panel');
   panel.classList.remove('glow-buy', 'glow-sell', 'glow-abs');
@@ -1797,6 +1794,7 @@ function updatePanel(candle) {
 
   // Dominance meter
   const score = d.score;
+  _updateAmbient(score);
   document.getElementById('buy-fill').style.width  = d.buyer_pct  + '%';
   document.getElementById('sell-fill').style.width = d.seller_pct + '%';
   document.getElementById('buy-pct').textContent   = d.buyer_pct  + '% Aggression';
