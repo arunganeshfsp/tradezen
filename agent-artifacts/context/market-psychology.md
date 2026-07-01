@@ -1,7 +1,7 @@
 # Context: market-psychology (TradeFun)
 
 **File:** `public/market_psychology.html`  
-**Last updated:** 2026-05-23
+**Last updated:** 2026-07-01
 
 ---
 
@@ -151,6 +151,39 @@ Collapsible sections:
 - Replay bar (`id="replay-bar"`) sits immediately after `</div><!-- /main-wrap -->` — the story viewer must stay inside main-wrap to keep the replay bar in its correct position.
 
 ---
+
+## Cinematic Greek Animations (added 2026-07-01)
+
+All four effects live in a new `// ─── CINEMATIC GREEK ANIMATIONS ───` block (~2730) inserted just before the ATM Greeks Strip section.
+
+| Feature | Key function / element |
+|---|---|
+| **Odometer tween** | `_tweenNum(el, from, to, dur, fmt)` — rAF cubic-ease-out from `prev→val`. Duration clamped to `min(340, _rpMs*0.78)` so it never overruns a frame at 4×. Active RAF ids stored in `_gkActiveRafs` to cancel in-flight tweens. |
+| **Sparklines** | `_gkSparkUpdate(id, val)` — rolling buffer (`_sparkBuf`, 40 values) → SVG `<polyline>` in viewBox `0 0 100 24` with `preserveAspectRatio="none"`. Inline SVG element `#gk-{id}-spark` inside each `.greek-box`. Color: delta green/red by trend; theta red (decay); vega cyan; gamma purple. |
+| **Magnitude gauges** | `_gkGaugeUpdate(id, val)` — Delta: needle (`#gk-delta-needle`) on `-1…+1` track via `left` %. Gamma/Theta/Vega: fill bar (`#gk-{id}-fill`) normalized against rolling max (`_sparkGaugeMax`). CSS `transition:.4s ease` for smooth movement. |
+| **Scaled glow ripple** | `_gkGlowRipple(box, diff, windowMax)` — intensity = `|diff| / windowMax`, sets `--glow-a / --glow-b` CSS vars, applies `gk-glow-up/dn` keyframes. Replaces old single-intensity `.gk-flash-*`. |
+| **Buffer reset** | `_resetCinematicBuffers()` — clears sparklines, gauges, narration state, `_freezeLastIdx`. Called on: `setMode('replay')`, `reload()`, `rpSeek()`, `_gkSetType()`. |
+
+## Cinematic Page Layers (added 2026-07-01)
+
+| Feature | Element / function |
+|---|---|
+| **Ambient backdrop** | `#ambient-backdrop` — fixed `z-index:0` div; all body children get `z-index:1`. `_updateAmbient(score)` sets a radial-gradient green/red aura scaled to `|score|/45`. Called from both `updatePanel` (live) and `rpRender` (replay). `transition:1.8s`. |
+| **Session intro card** | `#replay-intro` — fixed overlay, fades in/out via `.show` class. `_showIntroCard()` shows it once per replay session (gated by `_introShown` flag; reset in `setMode('replay')`). Triggered from `rpPlay()`. Auto-dissolves after 2s. |
+| **Narration ticker** | `#scene-narration` — strip below main-wrap, visible only in replay mode. `_updateNarration(candle)` cross-fades phrase on state change using `_NARRATION` map (8 states × 3 rotating phrases). Chapter label (`#narration-chapter`) shows the nearest previous chapter marker. SEBI-safe: all phrases are descriptive, no buy/sell/entry. |
+| **Chapter markers** | `_buildChapterMarkers(candles)` — scans candles for state entries of `buyer_domination / seller_domination / fake_breakout / absorption`; stores `{idx, label, time}` in `_chapterMarkers`. `_renderTimelineMarkers()` renders `.rp-chapter-tick` ticks inside `#rp-timeline-wrap` (wraps the slider). Called from `reload()`. |
+| **Freeze-frame** | `_checkFreezeFrame(candle, prevCandle)` — called per `rpRender`. On strong pattern (marubozu/engulfing) or dominance flip, calls `rpStop()` then auto-resumes via `setTimeout(rpPlay, 950)`. Gated by `_freezeEnabled` flag and `_freezeLastIdx` (prevents re-triggering same candle). Cancel on manual seek. |
+
+## Known Caveats (updated 2026-07-01)
+
+- `tryBuildStory()` is called from 3 places: `reload()`, `fetchAndDrawLevels()`, `pollTick()` (new candle). This is intentional — CPR and candles load asynchronously and either can arrive first.
+- `setChartLoading()` must clear `el.className = ''` before anything else — otherwise the `closed-hub` class persists and breaks chart height.
+- Story viewer is inside `chart-col` (not full-width after main-wrap) — this fills the vertical gap left by the shorter chart vs the taller sidebar. Do not move it out.
+- Replay bar (`id="replay-bar"`) and `#scene-narration` sit immediately after `</div><!-- /main-wrap -->`.
+- Sparkline SVG uses `viewBox="0 0 100 24" preserveAspectRatio="none"` — JS plots X in 0–100 range (independent of actual pixel width), so it stretches correctly without a resize listener.
+- `_updateAmbient` is called from both `updatePanel` (live) and `rpRender` (replay) — the `#ambient-backdrop` is always present and animates regardless of mode.
+- `@media(prefers-reduced-motion:reduce)` disables glow, ambient transition, narration fade, gauge transitions — core value display still works.
+- Freeze-frame auto-resume is cancelled if user manually calls `rpSeek`. `_freezeResumeTimer` is cleared in `_resetCinematicBuffers`.
 
 ## Open Issues
 

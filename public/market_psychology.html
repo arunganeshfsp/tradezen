@@ -429,6 +429,51 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .gk-flash-dn{animation:gkFlashDn .65s ease}
 @media(max-width:700px){.gs-body{grid-template-columns:repeat(2,1fr)}.greek-box:nth-child(2){border-right:none}.greek-box:nth-child(3),.greek-box:nth-child(4){border-top:1px solid var(--border)}.greek-box:nth-child(4){border-right:none}}
 
+/* ── CINEMATIC GREEK ANIMATIONS ── */
+.gk-gauge-wrap{margin-top:8px;position:relative;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:visible}
+.gk-gauge-fill{position:absolute;top:0;bottom:0;left:0;border-radius:3px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.gk-gauge-track{position:absolute;inset:0;border-radius:3px;overflow:visible}
+.gk-gauge-needle{position:absolute;top:-5px;width:3px;height:15px;border-radius:2px;background:var(--accent);transform:translateX(-50%);transition:left .45s cubic-bezier(.4,0,.2,1);box-shadow:0 0 6px rgba(124,106,247,0.5)}
+.gk-spark{display:block;width:100%;height:22px;margin-top:6px;overflow:visible}
+@keyframes gkGlowUp{0%{box-shadow:none}25%{box-shadow:0 0 0 1px rgba(46,204,113,var(--glow-a,0.2)),0 0 14px rgba(46,204,113,var(--glow-b,0.08))}100%{box-shadow:none}}
+@keyframes gkGlowDn{0%{box-shadow:none}25%{box-shadow:0 0 0 1px rgba(231,76,60,var(--glow-a,0.2)),0 0 14px rgba(231,76,60,var(--glow-b,0.08))}100%{box-shadow:none}}
+.gk-glow-up{animation:gkGlowUp .85s ease forwards}
+.gk-glow-dn{animation:gkGlowDn .85s ease forwards}
+
+/* ── AMBIENT BACKDROP ── */
+#ambient-backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background 1.8s ease;background:none}
+body>*:not(#ambient-backdrop){position:relative;z-index:1}
+
+/* ── SESSION INTRO CARD ── */
+#replay-intro{position:fixed;inset:0;z-index:950;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .55s ease;background:rgba(10,12,24,0.45)}
+#replay-intro.show{opacity:1}
+.ri-inner{background:rgba(14,16,32,0.92);border:1px solid rgba(124,106,247,0.35);border-radius:14px;padding:28px 48px;text-align:center;backdrop-filter:blur(20px);box-shadow:0 8px 48px rgba(0,0,0,0.6)}
+.ri-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+.ri-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.ri-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:.3px}
+
+/* ── SCENE NARRATION ── */
+.scene-narration{max-width:1240px;margin:0 auto;padding:0 28px;display:none}
+.narration-inner{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:9px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.narration-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan);flex-shrink:0;animation:pulseDot 2.2s ease-in-out infinite}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.65)}}
+.narration-text{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);transition:opacity .35s;flex:1;letter-spacing:.15px}
+.narration-text.nar-fade{opacity:0}
+.narration-chapter{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);flex-shrink:0}
+
+/* ── FILM TIMELINE ── */
+.rp-timeline-wrap{position:relative;flex:1;min-width:140px}
+.rp-timeline-wrap input[type=range]{width:100%}
+.rp-chapter-tick{position:absolute;bottom:calc(50% + 3px);width:2px;height:7px;border-radius:1px;background:var(--accent);opacity:0.55;transform:translateX(-50%);pointer-events:all;cursor:default;transition:opacity .15s}
+.rp-chapter-tick:hover{opacity:1}
+
+@media(prefers-reduced-motion:reduce){
+  .gk-glow-up,.gk-glow-dn,.gk-flash-up,.gk-flash-dn{animation:none!important}
+  #ambient-backdrop{transition:none!important}
+  .narration-text{transition:none!important}
+  .gk-gauge-fill,.gk-gauge-needle{transition:none!important}
+}
+
 /* ── CANDLE PATTERN TOAST ── */
 .cp-toast{position:fixed;bottom:24px;right:24px;z-index:500;max-width:290px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:13px 15px;box-shadow:0 8px 32px rgba(0,0,0,0.55);transform:translateY(24px);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);pointer-events:none}
 .cp-toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
@@ -526,6 +571,15 @@ body.is-fullscreen .fs-close-btn{display:flex}
     </div>
   </div>
 </nav>
+
+<div id="ambient-backdrop" aria-hidden="true"></div>
+<div id="replay-intro" aria-hidden="true">
+  <div class="ri-inner">
+    <div class="ri-label">▶ SESSION REPLAY</div>
+    <div class="ri-title" id="ri-title">NIFTY</div>
+    <div class="ri-sub" id="ri-sub">Loading…</div>
+  </div>
+</div>
 
 <button class="fs-close-btn" id="fs-close-btn" onclick="exitPageFullscreen()" title="Exit full screen">
   <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4.5 1v3.5H1M8.5 1v3.5H12M12 8.5H8.5V12M4.5 12V8.5H1"/></svg>
@@ -670,24 +724,32 @@ body.is-fullscreen .fs-close-btn{display:flex}
         <div class="gk-name">Delta</div>
         <div class="gk-val" id="gk-delta-val">—</div>
         <div class="gk-chg" id="gk-delta-chg"></div>
+        <div class="gk-gauge-wrap"><div class="gk-gauge-track"><div class="gk-gauge-needle" id="gk-delta-needle" style="left:50%"></div></div></div>
+        <svg class="gk-spark" id="gk-delta-spark" viewBox="0 0 100 24" preserveAspectRatio="none"></svg>
       </div>
       <div class="greek-box" id="gk-gamma-box">
         <div class="gk-sym">Γ</div>
         <div class="gk-name">Gamma</div>
         <div class="gk-val" id="gk-gamma-val">—</div>
         <div class="gk-chg" id="gk-gamma-chg"></div>
+        <div class="gk-gauge-wrap"><div class="gk-gauge-fill" id="gk-gamma-fill" style="width:0%;background:rgba(124,106,247,0.55)"></div></div>
+        <svg class="gk-spark" id="gk-gamma-spark" viewBox="0 0 100 24" preserveAspectRatio="none"></svg>
       </div>
       <div class="greek-box" id="gk-theta-box">
         <div class="gk-sym">Θ</div>
         <div class="gk-name">Theta / day</div>
         <div class="gk-val" id="gk-theta-val">—</div>
         <div class="gk-chg" id="gk-theta-chg"></div>
+        <div class="gk-gauge-wrap"><div class="gk-gauge-fill" id="gk-theta-fill" style="width:0%;background:rgba(231,76,60,0.55)"></div></div>
+        <svg class="gk-spark" id="gk-theta-spark" viewBox="0 0 100 24" preserveAspectRatio="none"></svg>
       </div>
       <div class="greek-box" id="gk-vega-box">
         <div class="gk-sym">V</div>
         <div class="gk-name">Vega / 1% IV</div>
         <div class="gk-val" id="gk-vega-val">—</div>
         <div class="gk-chg" id="gk-vega-chg"></div>
+        <div class="gk-gauge-wrap"><div class="gk-gauge-fill" id="gk-vega-fill" style="width:0%;background:rgba(0,212,255,0.5)"></div></div>
+        <svg class="gk-spark" id="gk-vega-spark" viewBox="0 0 100 24" preserveAspectRatio="none"></svg>
       </div>
     </div>
   </div>
@@ -884,6 +946,15 @@ body.is-fullscreen .fs-close-btn{display:flex}
 
 </div><!-- /main-wrap -->
 
+<!-- SCENE NARRATION (replay only) -->
+<div class="scene-narration" id="scene-narration">
+  <div class="narration-inner">
+    <div class="narration-dot"></div>
+    <span class="narration-text" id="narration-text">Analysing session…</span>
+    <span class="narration-chapter" id="narration-chapter"></span>
+  </div>
+</div>
+
 <!-- REPLAY CONTROLS -->
 <div class="replay-bar" id="replay-bar" style="display:none">
   <div class="replay-inner">
@@ -901,7 +972,9 @@ body.is-fullscreen .fs-close-btn{display:flex}
       <button class="rp-sp" data-ms="500"  onclick="rpSpeed(this)">2×</button>
       <button class="rp-sp" data-ms="250"  onclick="rpSpeed(this)">4×</button>
     </div>
-    <input type="range" class="rp-slider" id="rp-slider" min="0" value="0" oninput="rpSeek(this.value)">
+    <div class="rp-timeline-wrap" id="rp-timeline-wrap">
+      <input type="range" class="rp-slider" id="rp-slider" min="0" value="0" oninput="rpSeek(this.value)">
+    </div>
     <div class="rp-progress">Candle <span id="rp-pos">0</span> / <span id="rp-total">0</span></div>
   </div>
 </div>
@@ -981,7 +1054,9 @@ function setMode(mode) {
   document.getElementById('btn-live').classList.toggle('active',      mode === 'live');
   document.getElementById('btn-replay').classList.toggle('active',    mode === 'replay');
   document.getElementById('btn-practice').classList.toggle('active',  mode === 'practice');
-  document.getElementById('replay-bar').style.display = mode === 'replay' ? 'block' : 'none';
+  document.getElementById('replay-bar').style.display    = mode === 'replay' ? 'block' : 'none';
+  document.getElementById('scene-narration').style.display = mode === 'replay' ? 'block' : 'none';
+  if (mode === 'replay') { _introShown = false; _resetCinematicBuffers(); }
   document.getElementById('pulse-dot').classList.toggle('paused', mode !== 'live');
 
   if (mode === 'practice') {
@@ -1034,6 +1109,9 @@ async function reload() {
     document.getElementById('chart-asof').textContent =
       `${data.count} candles · last: ${data.as_of} IST`;
     document.getElementById('ctrl-asof').textContent = data.as_of + ' IST';
+
+    _resetCinematicBuffers();
+    _buildChapterMarkers(_candles);
 
     if (_mode === 'live') startLivePoll();
     else { _rpIdx = _candles.length - 1; rpInitSlider(); rpRender(); }
@@ -1707,6 +1785,9 @@ function updatePanel(candle) {
   const comp = d.components;
   const meta = STATE_META[d.state] || STATE_META.neutral;
 
+  // Ambient mood lighting
+  _updateAmbient(score);
+
   // Chart glow — preserve fs-mode when resetting glow classes
   const panel = document.getElementById('chart-panel');
   panel.classList.remove('glow-buy', 'glow-sell', 'glow-abs');
@@ -1909,10 +1990,17 @@ function rpRender() {
     _chart.timeScale().scrollToPosition(-2, false);
   }
 
-  updatePanel(_candles[_rpIdx]);
+  const rpCandle     = _candles[_rpIdx];
+  const rpPrevCandle = _rpIdx > 0 ? _candles[_rpIdx - 1] : null;
+  updatePanel(rpCandle);
   updateStoryReplayState(_rpIdx);
 
-  document.getElementById('rp-slider').value = _rpIdx;
+  // Cinematic layer updates
+  _updateNarration(rpCandle);
+  if (rpCandle?.dominance) _updateAmbient(rpCandle.dominance.score);
+  _checkFreezeFrame(rpCandle, rpPrevCandle);
+
+  document.getElementById('rp-slider').value    = _rpIdx;
   document.getElementById('rp-pos').textContent = _rpIdx + 1;
 }
 
@@ -1923,6 +2011,8 @@ function rpStep(n) {
 
 function rpSeek(v) {
   _rpIdx = parseInt(v, 10);
+  _resetCinematicBuffers();
+  if (_freezeResumeTimer) { clearTimeout(_freezeResumeTimer); _freezeResumeTimer = null; }
   rpRender();
 }
 
@@ -1937,6 +2027,7 @@ function rpToggle() {
 }
 
 function rpPlay() {
+  _showIntroCard();
   _rpPlaying = true;
   document.getElementById('rp-play-btn').textContent = '⏸ Pause';
   _rpTimer = setInterval(() => {
@@ -2642,6 +2733,223 @@ function updateCrtCard(candle) {
     </div>`;
 }
 
+// ─── CINEMATIC GREEK ANIMATIONS ──────────────────────────────────────────────
+const _sparkBuf = { delta: [], gamma: [], theta: [], vega: [] };
+const _SPARK_WIN = 40;
+const _sparkGaugeMax = { gamma: null, theta: null, vega: null };
+const _gkActiveRafs = {};
+let _introShown   = false;
+let _lastNarState = null;
+let _narIdxMap    = {};
+let _chapterMarkers = [];
+let _freezeEnabled  = true;
+let _freezeLastIdx  = -1;
+let _freezeResumeTimer = null;
+
+// ─ Odometer tween: smooth digit roll
+function _tweenNum(el, from, to, dur, fmt) {
+  const key = el.id;
+  if (_gkActiveRafs[key]) cancelAnimationFrame(_gkActiveRafs[key]);
+  const start = performance.now();
+  function step(now) {
+    const t    = Math.min(1, (now - start) / dur);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(from + (to - from) * ease);
+    if (t < 1) _gkActiveRafs[key] = requestAnimationFrame(step);
+    else        delete _gkActiveRafs[key];
+  }
+  _gkActiveRafs[key] = requestAnimationFrame(step);
+}
+
+// ─ Sparkline: SVG polyline in viewBox 0 0 100 24
+function _gkSparkUpdate(id, val) {
+  const buf = _sparkBuf[id];
+  buf.push(val);
+  if (buf.length > _SPARK_WIN) buf.shift();
+  const svgEl = document.getElementById(`gk-${id}-spark`);
+  if (!svgEl || buf.length < 2) return;
+  const mn = Math.min(...buf), mx = Math.max(...buf);
+  const range = mx - mn || Math.abs(mn) * 0.01 || 1e-6;
+  const pts = buf.map((v, i) => {
+    const x = (i / (_SPARK_WIN - 1)) * 100;
+    const y = 22 - ((v - mn) / range) * 20;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const trend = buf[buf.length - 1] >= buf[0];
+  const col = id === 'delta'
+    ? (trend ? 'rgba(46,204,113,0.7)' : 'rgba(231,76,60,0.7)')
+    : id === 'theta'
+    ? 'rgba(231,76,60,0.6)'
+    : id === 'vega'
+    ? 'rgba(0,212,255,0.6)'
+    : 'rgba(124,106,247,0.65)';
+  svgEl.innerHTML = `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+
+// ─ Magnitude gauge: delta needle, others fill
+function _gkGaugeUpdate(id, val) {
+  if (id === 'delta') {
+    const pct = Math.max(0, Math.min(100, ((val + 1) / 2) * 100));
+    const needle = document.getElementById('gk-delta-needle');
+    if (needle) needle.style.left = pct + '%';
+  } else {
+    const absVal = Math.abs(val);
+    if (_sparkGaugeMax[id] === null || absVal > _sparkGaugeMax[id]) _sparkGaugeMax[id] = absVal;
+    const mx  = _sparkGaugeMax[id] || 1;
+    const pct = Math.min(100, (absVal / mx) * 100);
+    const fill = document.getElementById(`gk-${id}-fill`);
+    if (fill) fill.style.width = pct + '%';
+  }
+}
+
+// ─ Scaled glow ripple
+function _gkGlowRipple(box, diff, windowMax) {
+  const ratio = windowMax > 0 ? Math.abs(diff) / windowMax : 0;
+  if (ratio < 0.04) return;
+  const intensity = Math.min(ratio * 2.5, 1);
+  box.style.setProperty('--glow-a', (intensity * 0.40).toFixed(2));
+  box.style.setProperty('--glow-b', (intensity * 0.12).toFixed(2));
+  box.classList.remove('gk-glow-up', 'gk-glow-dn');
+  void box.offsetWidth;
+  box.classList.add(diff > 0 ? 'gk-glow-up' : 'gk-glow-dn');
+}
+
+// ─ Chapter markers on timeline
+function _buildChapterMarkers(candles) {
+  _chapterMarkers = [];
+  let prevState = null;
+  candles.forEach((c, i) => {
+    if (!c.dominance) return;
+    const s = c.dominance.state;
+    if (s !== prevState && ['buyer_domination', 'seller_domination', 'fake_breakout', 'absorption'].includes(s)) {
+      const d   = new Date(c.time * 1000);
+      const tStr = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+      _chapterMarkers.push({ idx: i, label: (STATE_META[s]?.label || s), time: tStr });
+    }
+    prevState = s;
+  });
+  _renderTimelineMarkers();
+}
+
+function _renderTimelineMarkers() {
+  const wrap = document.getElementById('rp-timeline-wrap');
+  if (!wrap || !_candles.length) return;
+  document.querySelectorAll('.rp-chapter-tick').forEach(el => el.remove());
+  const total = Math.max(1, _candles.length - 1);
+  _chapterMarkers.forEach(m => {
+    const pct  = (m.idx / total) * 100;
+    const tick = document.createElement('div');
+    tick.className = 'rp-chapter-tick';
+    tick.style.left  = pct + '%';
+    tick.title = `${m.time} · ${m.label}`;
+    wrap.appendChild(tick);
+  });
+}
+
+// ─ Ambient backdrop mood lighting
+function _updateAmbient(score) {
+  const el = document.getElementById('ambient-backdrop');
+  if (!el) return;
+  const abs  = Math.min(Math.abs(score) / 45, 1);
+  const opac = (abs * 0.055).toFixed(3);
+  if (score > 6) {
+    el.style.background = `radial-gradient(ellipse 90% 55% at 50% 25%,rgba(46,204,113,${opac}) 0%,transparent 70%)`;
+  } else if (score < -6) {
+    el.style.background = `radial-gradient(ellipse 90% 55% at 50% 25%,rgba(231,76,60,${opac}) 0%,transparent 70%)`;
+  } else {
+    el.style.background = 'none';
+  }
+}
+
+// ─ Session intro card
+function _showIntroCard() {
+  if (_introShown) return;
+  _introShown = true;
+  const card = document.getElementById('replay-intro');
+  if (!card) return;
+  const d = _candles.length ? new Date(_candles[0].time * 1000) : new Date();
+  const dateStr = d.toLocaleDateString('en-IN', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+  document.getElementById('ri-title').textContent  = `${_sym} · ${_tf.toUpperCase()} SESSION`;
+  document.getElementById('ri-sub').textContent    = dateStr + ' · Educational replay';
+  card.classList.add('show');
+  setTimeout(() => { card.classList.remove('show'); }, 2000);
+}
+
+// ─ Narration ticker
+const _NARRATION = {
+  buyer_domination:   ['Bulls driving price — strong candle bodies', 'Buyers in control — momentum building', 'Aggressive buying — market showing strength'],
+  seller_domination:  ['Bears pressing lower — sellers in control', 'Strong selling pressure — downside momentum', 'Sellers dominating — bearish structure holding'],
+  absorption:         ['High volume, compressed price — absorption zone', 'Bulls and bears in balance — next move decisive', 'Volume spike with minimal movement — watch closely'],
+  momentum_weakening: ['Candle bodies shrinking — conviction fading', 'Momentum slowing — participants stepping back', 'Price action losing steam — wait for clarity'],
+  fake_breakout:      ['Wick trap forming — breakout without follow-through', 'False breakout signal — reversal possible', 'Price rejected at extreme — structure holding'],
+  buyer_pressure:     ['Mild bullish lean — buyers testing higher', 'Tentative buying — needs volume confirmation', 'Green lean, no conviction yet'],
+  seller_pressure:    ['Mild bearish lean — sellers testing lower', 'Tentative selling — needs follow-through', 'Red lean — structure uncertain'],
+  neutral:            ['Choppy price action — no directional edge', 'Market in balance — waiting for catalyst', 'Sideways consolidation — patience required'],
+};
+
+function _updateNarration(candle) {
+  if (!candle?.dominance) return;
+  const narEl = document.getElementById('scene-narration');
+  if (!narEl) return;
+  narEl.style.display = 'block';
+  const state  = candle.dominance.state;
+  const txtEl  = document.getElementById('narration-text');
+  const chapEl = document.getElementById('narration-chapter');
+  if (!txtEl) return;
+
+  if (state !== _lastNarState) {
+    _lastNarState = state;
+    if (!_narIdxMap[state]) _narIdxMap[state] = 0;
+    const phrases = _NARRATION[state] || _NARRATION.neutral;
+    const phrase  = phrases[_narIdxMap[state]++ % phrases.length];
+    txtEl.classList.add('nar-fade');
+    setTimeout(() => { txtEl.textContent = phrase; txtEl.classList.remove('nar-fade'); }, 320);
+  }
+
+  if (chapEl && _chapterMarkers.length) {
+    const curIdx = _mode === 'replay' ? _rpIdx : (_candles.length - 1);
+    const prev   = _chapterMarkers.filter(m => m.idx <= curIdx).pop();
+    chapEl.textContent = prev ? `${prev.time} · ${prev.label}` : '';
+  }
+}
+
+// ─ Key-moment freeze-frame during replay
+function _checkFreezeFrame(candle, prevCandle) {
+  if (!_freezeEnabled || !_rpPlaying || _rpIdx === _freezeLastIdx) return;
+  const pattern  = detectCandlePattern(candle, prevCandle);
+  const isStrong = pattern && ['bull_marubozu','bear_marubozu','bull_engulfing','bear_engulfing'].includes(pattern.id);
+  const isDomFlip = prevCandle?.dominance && candle?.dominance &&
+    ['buyer_domination','seller_domination'].includes(candle.dominance.state) &&
+    candle.dominance.state !== prevCandle.dominance.state;
+  if (!isStrong && !isDomFlip) return;
+  _freezeLastIdx = _rpIdx;
+  rpStop();
+  if (_freezeResumeTimer) clearTimeout(_freezeResumeTimer);
+  _freezeResumeTimer = setTimeout(() => {
+    if (_mode === 'replay' && !_rpPlaying) rpPlay();
+    _freezeResumeTimer = null;
+  }, 950);
+}
+
+// ─ Reset all animation buffers (on symbol/type change or seek)
+function _resetCinematicBuffers() {
+  Object.keys(_sparkBuf).forEach(k => { _sparkBuf[k] = []; });
+  Object.keys(_sparkGaugeMax).forEach(k => { _sparkGaugeMax[k] = null; });
+  ['delta','gamma','theta','vega'].forEach(id => {
+    const svg = document.getElementById(`gk-${id}-spark`);
+    if (svg) svg.innerHTML = '';
+  });
+  const needle = document.getElementById('gk-delta-needle');
+  if (needle) needle.style.left = '50%';
+  ['gamma','theta','vega'].forEach(id => {
+    const fill = document.getElementById(`gk-${id}-fill`);
+    if (fill) fill.style.width = '0%';
+  });
+  _lastNarState = null;
+  _freezeLastIdx = -1;
+  if (_freezeResumeTimer) { clearTimeout(_freezeResumeTimer); _freezeResumeTimer = null; }
+}
+
 // ─── ATM Greeks Strip ────────────────────────────────────────────────────────
 let _atmStrike      = null;
 let _atmType        = 'CE';
@@ -2746,34 +3054,51 @@ function updateGreeks(spot) {
 }
 
 function _gkBox(id, val, prev, fmt) {
-  const vEl=document.getElementById(`gk-${id}-val`);
-  const cEl=document.getElementById(`gk-${id}-chg`);
-  const box=document.getElementById(`gk-${id}-box`);
-  if(!vEl) return;
-  vEl.textContent=fmt(val);
-  if(prev!=null) {
-    const diff=val-prev;
-    if(Math.abs(diff)>1e-7) {
-      const up=diff>0;
-      cEl.textContent=(up?'▲ +':'▼ ')+fmt(diff);
-      cEl.className='gk-chg '+(up?'up':'dn');
-      box.classList.remove('gk-flash-up','gk-flash-dn');
-      void box.offsetWidth;
-      box.classList.add(up?'gk-flash-up':'gk-flash-dn');
+  const vEl = document.getElementById(`gk-${id}-val`);
+  const cEl = document.getElementById(`gk-${id}-chg`);
+  const box = document.getElementById(`gk-${id}-box`);
+  if (!vEl) return;
+
+  // Odometer tween — clamp duration so it never overruns the frame interval
+  const tweenDur = Math.min(340, _rpMs * 0.78);
+  if (prev != null && Math.abs(val - prev) > 1e-7) {
+    _tweenNum(vEl, prev, val, tweenDur, fmt);
+  } else {
+    vEl.textContent = fmt(val);
+  }
+
+  // Sparkline trail
+  _gkSparkUpdate(id, val);
+
+  // Magnitude gauge (delta needle | others fill bar)
+  _gkGaugeUpdate(id, val);
+
+  if (prev != null) {
+    const diff = val - prev;
+    if (Math.abs(diff) > 1e-7) {
+      const up = diff > 0;
+      cEl.textContent = (up ? '▲ +' : '▼ ') + fmt(diff);
+      cEl.className   = 'gk-chg ' + (up ? 'up' : 'dn');
+      // Scaled glow: intensity ∝ move relative to rolling window
+      const buf = _sparkBuf[id];
+      const diffs = buf.slice(1).map((v, i) => Math.abs(v - buf[i]));
+      const winMax = diffs.length ? Math.max(...diffs) : Math.abs(diff);
+      _gkGlowRipple(box, diff, winMax);
     } else {
-      cEl.textContent='—';
-      cEl.className='gk-chg flat';
+      cEl.textContent = '—';
+      cEl.className   = 'gk-chg flat';
     }
   }
 }
 
 function _gkSetType(type) {
-  _atmType=type;
-  document.getElementById('gs-ce-btn').classList.toggle('active',type==='CE');
-  document.getElementById('gs-pe-btn').classList.toggle('active',type==='PE');
-  _lastGreeks=null;
-  _lastIvFetchMs=0;
-  if(_candles.length) updateGreeks(_candles[_candles.length-1].close);
+  _atmType = type;
+  document.getElementById('gs-ce-btn').classList.toggle('active', type === 'CE');
+  document.getElementById('gs-pe-btn').classList.toggle('active', type === 'PE');
+  _lastGreeks    = null;
+  _lastIvFetchMs = 0;
+  _resetCinematicBuffers();
+  if (_candles.length) updateGreeks(_candles[_candles.length - 1].close);
 }
 
 // ─── Futures OI ───────────────────────────────────────────────────────────────
