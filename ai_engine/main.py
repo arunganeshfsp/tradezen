@@ -4234,17 +4234,14 @@ def _composite_score(r: dict, is_gainer: bool) -> float:
 
 def _volume_rank(rows: list, is_gainer: bool) -> list:
     """
-    Two-tier sort: volume-confirmed moves first, unconfirmed moves second.
-    Tier 1: buy_pct >= 50 for gainers (or sell_pct >= 50 for losers) — direction confirmed by order book.
-    Tier 2: opposite dominance — price moved against the order book bias.
-    Within each tier, ranked by composite score (pct_change weighted by dominance).
+    Returns only volume-confirmed movers, sorted by composite score.
+    Gainers must have buy_pct >= 50; losers must have sell_pct >= 50.
+    Stocks where the order book opposes the price move are excluded entirely.
     """
-    dom_field  = "buy_pct" if is_gainer else "sell_pct"
-    confirmed   = [r for r in rows if (r.get(dom_field) or 50.0) >= 50.0]
-    unconfirmed = [r for r in rows if (r.get(dom_field) or 50.0) <  50.0]
-    confirmed.sort(  key=lambda r: _composite_score(r, is_gainer), reverse=True)
-    unconfirmed.sort(key=lambda r: _composite_score(r, is_gainer), reverse=True)
-    return confirmed + unconfirmed
+    dom_field = "buy_pct" if is_gainer else "sell_pct"
+    confirmed = [r for r in rows if (r.get(dom_field) or 50.0) >= 50.0]
+    confirmed.sort(key=lambda r: _composite_score(r, is_gainer), reverse=True)
+    return confirmed
 
 
 @app.get("/stocks/movers")
