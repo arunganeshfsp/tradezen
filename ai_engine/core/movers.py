@@ -284,11 +284,11 @@ def fetch_live_prices(index: str = "nifty50") -> dict:
 # ── Public API ────────────────────────────────────────────────────────────────
 
 _cache: dict = {}
-_CACHE_TTL   = 300  # 5 minutes
+_CACHE_TTL   = 60  # 1 minute
 
 
 def fetch_movers(index: str = "nifty50") -> dict:
-    """Return top/bottom 10 movers. NSE API primary, yfinance fallback, 5-min cache."""
+    """Return top/bottom 10 movers. NSE API primary, yfinance fallback, 1-min cache."""
     now    = time.time()
     cached = _cache.get(index)
     if cached and now - cached["ts"] < _CACHE_TTL:

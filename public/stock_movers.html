@@ -275,6 +275,7 @@
       <button class="tog-btn"        data-val="3" onclick="setFilterChg(3)">≥3%</button>
       <button class="tog-btn"        data-val="5" onclick="setFilterChg(5)">≥5%</button>
     </div>
+    <button class="f-btn" id="fnoBtn" onclick="toggleFno()" style="margin-left:6px" title="Show only F&amp;O (derivatives-eligible) stocks">F&amp;O ONLY</button>
     <button class="scan-btn" id="scanNowBtn" onclick="scanNow()">&#9654; Scan Now</button>
   </div>
 </div>
@@ -308,6 +309,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 const API = '/api';
 let _currentIndex  = 'nifty50';
 let _filterMinChg  = 0;
+let _fnoOnly       = false;
 
 // Row cache: symbol → row data (avoids embedding JSON in HTML attributes)
 const _rowCache = {};
@@ -465,28 +467,55 @@ function setFilterChg(val) {
     b.classList.toggle('active', Number(b.dataset.val) === val));
 }
 
+function toggleFno() {
+  _fnoOnly = !_fnoOnly;
+  document.getElementById('fnoBtn').classList.toggle('active', _fnoOnly);
+}
+
+const AUTO_REFRESH_MS = 60000;   // 60s — matches the backend movers cache TTL
+let _autoTimer = null;
+
+function _buildParams() {
+  const minP = parseFloat(document.getElementById('fMinPrice').value) || 0;
+  const maxP = parseFloat(document.getElementById('fMaxPrice').value) || 0;
+  const params = new URLSearchParams({index: _currentIndex});
+  if (minP > 0) params.set('min_price', minP);
+  if (maxP > 0) params.set('max_price', maxP);
+  if (_filterMinChg > 0) params.set('min_change', _filterMinChg);
+  if (_fnoOnly) params.set('fno', 'true');
+  return params;
+}
+
+async function _fetchAndRender(showLoading) {
+  if (showLoading) {
+    document.getElementById('moversWrap').innerHTML =
+      '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div><br>Fetching data…</div>';
+  }
+  const d = await fetch(`${API}/stocks/movers?${_buildParams()}`).then(r => r.json());
+  if (d.error) {
+    if (showLoading) document.getElementById('moversWrap').innerHTML =
+      `<div class="error-state" style="grid-column:1/-1">⚠ ${d.error}</div>`;
+    return;
+  }
+  _renderData(d);
+}
+
+function _startAutoRefresh() {
+  if (_autoTimer) clearInterval(_autoTimer);
+  _autoTimer = setInterval(() => {
+    if (document.visibilityState !== 'visible') return;  // skip when tab hidden
+    _fetchAndRender(false).catch(() => {});               // silent — keep last data on failure
+  }, AUTO_REFRESH_MS);
+}
+
 async function scanNow() {
   const btn = document.getElementById('scanNowBtn');
   btn.disabled  = true;
   btn.innerHTML = `<span class="spinner" style="width:11px;height:11px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px"></span>Scanning…`;
 
-  document.getElementById('moversWrap').innerHTML =
-    '<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div><br>Fetching data…</div>';
-
   try {
-    const minP = parseFloat(document.getElementById('fMinPrice').value) || 0;
-    const maxP = parseFloat(document.getElementById('fMaxPrice').value) || 0;
-    const params = new URLSearchParams({index: _currentIndex});
-    if (minP > 0) params.set('min_price', minP);
-    if (maxP > 0) params.set('max_price', maxP);
-    if (_filterMinChg > 0) params.set('min_change', _filterMinChg);
-    const d = await fetch(`${API}/stocks/movers?${params}`).then(r => r.json());
-    if (d.error) {
-      document.getElementById('moversWrap').innerHTML =
-        `<div class="error-state" style="grid-column:1/-1">⚠ ${d.error}</div>`;
-      return;
-    }
-    _renderData(d);
+    await _fetchAndRender(true);
+    _startAutoRefresh();
   } catch(e) {
     document.getElementById('moversWrap').innerHTML =
       `<div class="error-state" style="grid-column:1/-1">Failed to load: ${e.message}</div>`;
@@ -496,12 +525,14 @@ async function scanNow() {
   }
 }
 
+// Re-sync immediately when the user returns to a stale tab
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && _autoTimer) _fetchAndRender(false).catch(() => {});
+});
 
-
-
-// Init — no auto-refresh; user taps Scan Now
+// Init — auto-refresh starts after the first Scan Now
 document.getElementById('moversWrap').innerHTML =
-  '<div class="loading-state" style="grid-column:1/-1" style="color:var(--muted);font-size:13px;padding:40px;text-align:center">Select an index above and tap <strong>Scan Now</strong></div>';
+  '<div class="loading-state" style="grid-column:1/-1" style="color:var(--muted);font-size:13px;padding:40px;text-align:center">Select an index above and tap <strong>Scan Now</strong> — data then refreshes every 60s</div>';
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

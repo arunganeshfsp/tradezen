@@ -4128,7 +4128,7 @@ def stocks_indicators(symbol: str = "RELIANCE"):
 
 def _nifty500_movers_sync() -> dict:
     import time as _time
-    _TTL      = 300
+    _TTL      = 60
     _STALE_OK = 1800
     cached = _ltp_cache.get("_n500_movers")
     if cached and (_time.time() - cached["ts"]) < _TTL:
@@ -4246,8 +4246,8 @@ def _volume_rank(rows: list, is_gainer: bool) -> list:
 
 @app.get("/stocks/movers")
 def stocks_movers(index: str = "nifty50", min_price: float = 0,
-                  max_price: float = 0, min_change: float = 0):
-    """Top/bottom 10 movers for the given NSE index. Supports price and % filters."""
+                  max_price: float = 0, min_change: float = 0, fno: bool = False):
+    """Top/bottom 10 movers for the given NSE index. Supports price, % and F&O filters."""
     try:
         if index == "nifty500":
             result = _nifty500_movers_sync()
@@ -4261,12 +4261,15 @@ def stocks_movers(index: str = "nifty50", min_price: float = 0,
     if result.get("error"):
         return result
 
-    if min_price > 0 or max_price > 0 or min_change > 0:
+    fno_set = {s["symbol"].upper() for s in _load_fno_stocks()} if fno else None
+
+    if min_price > 0 or max_price > 0 or min_change > 0 or fno:
         all_rows = result.get("all_rows", [])
         filtered = [r for r in all_rows
                     if (min_price == 0 or r.get("ltp", 0) >= min_price)
                     and (max_price == 0 or r.get("ltp", 0) <= max_price)
-                    and (min_change == 0 or abs(r.get("pct_change", 0)) >= min_change)]
+                    and (min_change == 0 or abs(r.get("pct_change", 0)) >= min_change)
+                    and (fno_set is None or r.get("symbol", "").upper() in fno_set)]
         advancing = sum(1 for r in filtered if r.get("pct_change", 0) > 0)
         declining = sum(1 for r in filtered if r.get("pct_change", 0) < 0)
         # Take 20 candidates so volume ranking has room to promote buyer-confirmed
