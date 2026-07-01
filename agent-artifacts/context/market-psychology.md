@@ -168,7 +168,7 @@ All four effects live in a new `// ─── CINEMATIC GREEK ANIMATIONS ──�
 
 | Feature | Element / function |
 |---|---|
-| **Ambient backdrop** | `#ambient-backdrop` — fixed `z-index:0` div; all body children get `z-index:1`. `_updateAmbient(score)` sets a radial-gradient green/red aura scaled to `|score|/45`. Called from both `updatePanel` (live) and `rpRender` (replay). `transition:1.8s`. |
+| **Ambient backdrop** | `#ambient-backdrop` — fixed `z-index:-1` div (sits behind all content naturally). `_updateAmbient(score)` sets a radial-gradient green/red aura scaled to `|score|/45`. Called from both `updatePanel` (live) and `rpRender` (replay). `transition:1.8s`. |
 | **Session intro card** | `#replay-intro` — fixed overlay, fades in/out via `.show` class. `_showIntroCard()` shows it once per replay session (gated by `_introShown` flag; reset in `setMode('replay')`). Triggered from `rpPlay()`. Auto-dissolves after 2s. |
 | **Narration ticker** | `#scene-narration` — strip below main-wrap, visible only in replay mode. `_updateNarration(candle)` cross-fades phrase on state change using `_NARRATION` map (8 states × 3 rotating phrases). Chapter label (`#narration-chapter`) shows the nearest previous chapter marker. SEBI-safe: all phrases are descriptive, no buy/sell/entry. |
 | **Chapter markers** | `_buildChapterMarkers(candles)` — scans candles for state entries of `buyer_domination / seller_domination / fake_breakout / absorption`; stores `{idx, label, time}` in `_chapterMarkers`. `_renderTimelineMarkers()` renders `.rp-chapter-tick` ticks inside `#rp-timeline-wrap` (wraps the slider). Called from `reload()`. |

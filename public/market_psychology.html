@@ -441,8 +441,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .gk-glow-dn{animation:gkGlowDn .85s ease forwards}
 
 /* ── AMBIENT BACKDROP ── */
-#ambient-backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background 1.8s ease;background:none}
-body>*:not(#ambient-backdrop){position:relative;z-index:1}
+#ambient-backdrop{position:fixed;inset:0;z-index:-1;pointer-events:none;transition:background 1.8s ease;background:none}
 
 /* ── SESSION INTRO CARD ── */
 #replay-intro{position:fixed;inset:0;z-index:950;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .55s ease;background:rgba(10,12,24,0.45)}
