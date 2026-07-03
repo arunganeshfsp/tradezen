@@ -1,7 +1,7 @@
 # Context: trade-flow
 
 **File:** `public/trade_flow.html`  
-**Last updated:** 2026-06-19
+**Last updated:** 2026-07-03
 
 ---
 
@@ -26,7 +26,7 @@ Full educational reframe of all user-facing directive language (English + Tamil)
 
 ---
 
-## Layout (Simulator Architecture — 2026-06-19)
+## Layout (Simulator Architecture — 2026-07-03)
 
 Fixed-viewport, no-scroll layout. `body` is `height:100vh, overflow:hidden, flex-column`.
 
@@ -36,7 +36,8 @@ app-topbar (52px)   — live chips | separator | scenario buttons | refresh-note
 app-workspace       — flex:1, overflow:hidden
   app-sidebar (236px) — phase heads (collapsible) + step tracker, overflow-y:auto
   app-main (flex:1)   — overflow-y:auto, background:var(--bg)
-    ohlc-banner       — shown only when CPR data is missing (inside main, not hero)
+    trend-panel       — "Today's Trend" at-a-glance card (ALWAYS first, hidden until data loads)
+    ohlc-banner       — shown only when CPR data is missing
     detail-area       — step detail cards (detail1..detail6, ind-card, iv-card)
     sec-panel#sec-rules  — rules grid (hidden until Rules tab clicked)
     sec-panel#sec-alerts — alert log (hidden until Alerts tab clicked)
@@ -61,6 +62,8 @@ app-bottombar (40px) — Rules tab | Alerts tab | SEBI disclaimer
 | `editingOhlc / editingGift / editingOrb / editingNiftyOpen` | Guards that pause re-renders while user is entering data |
 | `giftRefClose` | Reference close for GIFT Nifty gap = GIFT − giftRefClose |
 | `lastAutoAdvancePhase` | Prevents re-triggering auto step-advance |
+| `fiiDiiData` | FII/DII response cache — set by Phase 3 fetch wiring |
+| `indData` | Indicators snapshot cache — set by Phase 3 fetch wiring |
 
 ---
 
@@ -75,6 +78,11 @@ app-bottombar (40px) — Rules tab | Alerts tab | SEBI disclaimer
 | `renderStep2(d)` | CPR card — width, type (narrow/medium/wide), prev OHLC edit form |
 | `autoFetchGiftNifty()` | POST `/api/fetch-gift-nifty` to get live GIFT Nifty price |
 | `fmt(n)` | Locale-formatted number (en-IN, 0–2 decimal places) |
+| `_gapPts(d)` | Computes gap points: pre-market uses `d.gift_nifty − prev.close`; after open uses `d.nifty_open.price − prev.close`; returns null if data missing |
+| `_trendScore(d)` | Signal alignment score −10…+10: Gap ±2/±1 · CPR position ±2 · ORB vs_cpr ±2 · Fut OI signal ±1/±2 · PCR ±1 |
+| `renderTrendPanel(d)` | Renders `#trend-panel` card with verdict, conviction, alignment meter, and 8 signal rows (Gap/CPR/ORB/FutOI/PCR/FII-DII/TrendInd/VIX). Called from `fetchFlowData()` on every 30s poll, also from `_fetchFiiDiiSilent()` and `_fetchIndSilent()` when those caches update. |
+| `_fetchFiiDiiSilent()` | Silent fetch of `/api/fii-dii` → `fiiDiiData`. On load after 2s + every 30 min. |
+| `_fetchIndSilent()` | Silent fetch of `/api/indicators/snapshot` → `indData` + `renderIndicators(d)`. On load after 4s + every 5 min. Keeps the existing ind-card UI in sync alongside the trend panel row. |
 
 ---
 
@@ -90,6 +98,8 @@ app-bottombar (40px) — Rules tab | Alerts tab | SEBI disclaimer
 | `POST /api/set-prev-ohlc` | User override previous OHLC |
 | `POST /api/set-nifty-open` | Set opening price at 9:15 |
 | `POST /api/set-orb` | Set ORB high/low after 9:30 |
+| `GET /api/fii-dii` | FII/DII daily provisional cash-market flows — auto-fetched on load + every 30 min |
+| `GET /api/indicators/snapshot` | Indicators snapshot (VWAP/EMA/MACD/RSI) — auto-fetched on load + every 5 min |
 
 ---
 
@@ -100,6 +110,14 @@ The server returns `d.phase` which drives auto step-advance:
 - `market_open` → show Step 3 (opening price)
 - `orb_window` → show Step 5 (ORB)
 - `live` → show Step 6 (signal)
+
+---
+
+## Trend Panel — CSS Tokens
+
+`.tp-card` · `.tp-header` · `.tp-label-tag` · `.tp-verdict` · `.tp-verdict-bull/bear/skip/cond` · `.tp-meter-rail` · `.tp-meter-dot` · `.tp-rows` · `.tp-row` · `.tp-row-icon/name/val` · `.tp-row-val.tp-bull/bear/neutral/caution`.
+
+Light theme overrides live in the same `:root[data-theme="light"]` block. Mobile (≤900px): `.tp-header` becomes column layout.
 
 ---
 
