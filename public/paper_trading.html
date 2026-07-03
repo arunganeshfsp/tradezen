@@ -600,6 +600,11 @@ async function refreshAll(manual = false) {
       fetch('/api/paper/positions', { headers: _authHdr() }),
       fetch('/api/paper/history',   { headers: _authHdr() }),
     ]);
+    if (acctR.status === 401) {
+      localStorage.removeItem('tz_learn_token');
+      window.location.href = '/learn/auth.html?next=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
     const acct = await acctR.json();
     const pos  = await posR.json();
     const hist = await histR.json();
