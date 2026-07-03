@@ -2335,6 +2335,70 @@ def get_fut_oi():
         return {"error": str(e)}
 
 
+_fii_dii_cache: dict = {}
+_fii_dii_ts: float = 0.0
+_FII_DII_TTL = 1800  # data changes once daily (~6 PM IST); 30 min is generous
+
+
+def _fii_dii_sync() -> dict:
+    global _fii_dii_cache, _fii_dii_ts
+    now = _time.time()
+    if _fii_dii_cache and (now - _fii_dii_ts) < _FII_DII_TTL:
+        return _fii_dii_cache
+    from core.movers import _get_session
+    sess = _get_session()
+    resp = sess.get("https://www.nseindia.com/api/fiidiiTradeReact", timeout=20, headers={
+        "Referer":          "https://www.nseindia.com/reports/fii-dii",
+        "Accept":           "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        # NSE sends brotli if offered, which requests can't decode without the
+        # brotli package — restrict to codecs requests always handles
+        "Accept-Encoding":  "gzip, deflate",
+    })
+    if resp.status_code != 200:
+        raise RuntimeError(f"NSE FII/DII API: HTTP {resp.status_code}")
+
+    def _num(v):
+        try:
+            return round(float(str(v).replace(",", "")), 2)
+        except (TypeError, ValueError):
+            return 0.0
+
+    out = {"date": None, "fii": None, "dii": None, "bias": "neutral"}
+    for row in resp.json():
+        cat = (row.get("category") or "").upper()
+        rec = {"buy":  _num(row.get("buyValue")),
+               "sell": _num(row.get("sellValue")),
+               "net":  _num(row.get("netValue"))}
+        if "FII" in cat or "FPI" in cat:
+            out["fii"] = rec
+            out["date"] = row.get("date")
+        elif "DII" in cat:
+            out["dii"] = rec
+            out["date"] = out["date"] or row.get("date")
+    if not out["fii"] and not out["dii"]:
+        raise RuntimeError("NSE FII/DII API: no FII/DII rows in response")
+
+    fii_net = (out["fii"] or {}).get("net", 0)
+    out["bias"] = "bullish" if fii_net > 500 else ("bearish" if fii_net < -500 else "neutral")
+    _fii_dii_cache = out
+    _fii_dii_ts = now
+    return out
+
+
+@app.get("/fii-dii")
+async def fii_dii():
+    """FII/DII daily provisional cash-market flows (previous session, NSE)."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _fii_dii_sync)
+    except Exception as e:
+        log.warning(f"[FII-DII] {e}")
+        if _fii_dii_cache:
+            return {**_fii_dii_cache, "stale": True}
+        return {"error": str(e)}
+
+
 @app.get("/iv")
 async def fetch_iv():
     loop = asyncio.get_event_loop()

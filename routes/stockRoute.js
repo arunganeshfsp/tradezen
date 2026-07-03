@@ -639,6 +639,17 @@ router.post("/options/parse-bhavcopy", (req, res) => {
   req.pipe(proxyReq);
 });
 
+// ─── GET /api/fii-dii ────────────────────────────────────────────────────────
+// FII/DII daily provisional cash-market flows from NSE (previous session)
+router.get("/fii-dii", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/fii-dii", 25000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/iv ─────────────────────────────────────────────────────────────
 // ATM implied volatility for nearest NIFTY expiry via Angel One
 router.get("/iv", async (req, res) => {
