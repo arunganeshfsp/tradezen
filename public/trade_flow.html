@@ -2695,10 +2695,12 @@ function _trendScore(d) {
   if (ltp && cpr) {
     if (ltp > cpr.tc) s += 2; else if (ltp < cpr.bc) s -= 2;
   }
-  const orb = d.orb;
-  if (orb) {
-    if (orb.vs_cpr === 'above_tc') s += 2;
-    else if (orb.vs_cpr === 'below_bc') s -= 2;
+  const orb = d.orb, ltpS = d.nifty_ltp;
+  if (orb && ltpS) {
+    // post-9:30: score based on actual price position within the morning range
+    if (ltpS > orb.high) s += 2;
+    else if (ltpS < orb.low) s -= 2;
+    // inside ORB → 0 (ranging day, no directional edge)
   }
   const foiSig = d.fut_oi && d.fut_oi.signal;
   if (foiSig === 'long_buildup') s += 2;
@@ -2785,16 +2787,22 @@ function renderTrendPanel(d) {
     rows.push(['⏳', 'CPR', cpr ? '—' : 'loading', 'tp-neutral']);
   }
 
-  // ORB
+  // ORB — after 9:30 use actual LTP vs ORB range; inside = ranging (neutral)
   const orb = d.orb;
   if (!orb && (d.phase === 'pre_market' || d.phase === 'market_open')) {
     rows.push(['⏳', 'ORB', 'forms 9:15–9:30 AM', 'tp-neutral']);
-  } else if (orb) {
-    const abv = orb.vs_cpr === 'above_tc', blw = orb.vs_cpr === 'below_bc';
-    const icon = abv ? '✅' : blw ? '❌' : '🟡';
-    const cls  = abv ? 'tp-bull' : blw ? 'tp-bear' : 'tp-caution';
-    const txt  = abv ? 'breakout above ORB high' : blw ? 'breakdown below ORB low' : 'ORB straddles CPR band';
+  } else if (orb && ltp) {
+    const aboveH = ltp > orb.high, belowL = ltp < orb.low;
+    const icon = aboveH ? '✅' : belowL ? '❌' : '⚪';
+    const cls  = aboveH ? 'tp-bull' : belowL ? 'tp-bear' : 'tp-neutral';
+    const txt  = aboveH
+      ? `above ORB high ${fmt(orb.high)} · breakout`
+      : belowL
+      ? `below ORB low ${fmt(orb.low)} · breakdown`
+      : `inside ORB ${fmt(orb.low)}–${fmt(orb.high)} · ranging`;
     rows.push([icon, 'ORB', txt, cls]);
+  } else if (orb) {
+    rows.push(['⚪', 'ORB', `range ${fmt(orb.low)}–${fmt(orb.high)} · LTP pending`, 'tp-neutral']);
   } else {
     rows.push(['⏳', 'ORB', 'awaiting ORB data', 'tp-neutral']);
   }
