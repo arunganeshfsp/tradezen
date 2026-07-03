@@ -2756,7 +2756,7 @@ function renderTrendPanel(d) {
 
   // Score + meter needle
   const score   = _trendScore(d);
-  const mPct    = 50 + (score / 10) * 50;
+  const mPct    = 50 + (score / 12) * 50;
   document.getElementById('tp-meter-dot').style.left = mPct + '%';
   document.getElementById('tp-score-val').textContent = `alignment: ${score > 0 ? '+' : ''}${score}`;
 

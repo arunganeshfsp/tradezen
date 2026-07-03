@@ -1011,6 +1011,10 @@ async function fetchCandles() {
     const d = await r.json();
     if (_gen !== gen) return;
     if (!d.candles || !d.candles.length) {
+      if (d.error) {
+        showChartOverlay('⚠️', 'Data Unavailable', d.error, 'Check the option symbol — expiry or strike may not be active');
+        return;
+      }
       if (_timeframe === 'daily') {
         const today = _todayIST();
         const holiday = NSE_HOLIDAYS[today];

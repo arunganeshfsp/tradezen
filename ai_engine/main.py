@@ -5326,8 +5326,18 @@ def _candles_for_cpr_option_sync(symbol: str, underlying: str, strike: float, op
             to_dt    = today.strftime("%Y-%m-%d 15:30")
             interval = "ONE_DAY"
 
-        df = get_provider().get_candles(token, "NFO", interval, from_dt, to_dt)
         intv_label = "5m" if timeframe == "daily" else "1d"
+        if timeframe == "daily":
+            # Intraday: bypass SQLite cache so every 30s poll returns fresh candles
+            from data.candle_fetcher import fetch_candles as _fc_intra
+            _raw = getattr(get_provider(), "get_session", lambda: None)()
+            if _raw is None:
+                return {"candles": [], "interval": intv_label, "count": 0,
+                        "data_source": "provider", "as_of": None, "error": "Session unavailable"}
+            df = _fc_intra(_raw, token, "NFO", interval, from_dt, to_dt, use_cache=False)
+        else:
+            # Weekly/monthly: historical data — cache is fine
+            df = get_provider().get_candles(token, "NFO", interval, from_dt, to_dt)
         if df.empty:
             return {"candles": [], "interval": intv_label, "count": 0,
                     "data_source": "provider", "as_of": None}

@@ -79,7 +79,7 @@ app-bottombar (40px) — Rules tab | Alerts tab | SEBI disclaimer
 | `autoFetchGiftNifty()` | POST `/api/fetch-gift-nifty` to get live GIFT Nifty price |
 | `fmt(n)` | Locale-formatted number (en-IN, 0–2 decimal places) |
 | `_gapPts(d)` | Computes gap points: pre-market uses `d.gift_nifty − prev.close`; after open uses `d.nifty_open.price − prev.close`; returns null if data missing |
-| `_trendScore(d)` | Signal alignment score −10…+10: Gap ±2/±1 · CPR position ±2 · ORB vs_cpr ±2 · Fut OI signal ±1/±2 · PCR ±1 |
+| `_trendScore(d)` | Signal alignment score −12…+12: Gap ±2/±1 · CPR position ±2 · ORB: LTP vs orb.high/orb.low ±2 (inside=0) · Fut OI ±1/±2 · PCR ±1 · FII/DII bias ±1 · indicators bull−bear capped ±2 |
 | `renderTrendPanel(d)` | Renders `#trend-panel` card with verdict, conviction, alignment meter, and 8 signal rows (Gap/CPR/ORB/FutOI/PCR/FII-DII/TrendInd/VIX). Called from `fetchFlowData()` on every 30s poll, also from `_fetchFiiDiiSilent()` and `_fetchIndSilent()` when those caches update. |
 | `_fetchFiiDiiSilent()` | Silent fetch of `/api/fii-dii` → `fiiDiiData`. On load after 2s + every 30 min. |
 | `_fetchIndSilent()` | Silent fetch of `/api/indicators/snapshot` → `indData` + `renderIndicators(d)`. On load after 4s + every 5 min. Keeps the existing ind-card UI in sync alongside the trend panel row. |
