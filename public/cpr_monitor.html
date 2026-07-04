@@ -587,6 +587,7 @@ body.is-fullscreen .fs-close-btn{display:flex}
           <span id="chartAsOf" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)"></span>
           <span class="mob-chev">▾</span>
         </div>
+        <div id="lastSessionBanner" style="display:none;padding:5px 12px;background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.2);border-bottom:none;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);letter-spacing:.5px">📅 <span id="lastSessionMsg"></span></div>
         <div style="position:relative">
           <div id="cprChart"></div>
           <div id="holidayOverlay" style="display:none;position:absolute;inset:0;background:var(--bg1);flex-direction:column;align-items:center;justify-content:center;gap:10px">
@@ -1013,29 +1014,29 @@ async function fetchCandles() {
     if (!d.candles || !d.candles.length) {
       if (d.error) {
         showChartOverlay('⚠️', 'Data Unavailable', d.error, 'Check the option symbol — expiry or strike may not be active');
-        return;
-      }
-      if (_timeframe === 'daily') {
-        const today = _todayIST();
-        const holiday = NSE_HOLIDAYS[today];
-        const nowIST  = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
-        const dow     = nowIST.getUTCDay();                                    // 0=Sun, 6=Sat
-        const istMin  = nowIST.getUTCHours() * 60 + nowIST.getUTCMinutes();   // minutes since midnight IST
-        if (holiday) {
-          showChartOverlay('🏛️', 'Market Holiday', holiday, 'NSE / BSE closed today');
-        } else if (dow === 0 || dow === 6) {
-          showChartOverlay('📅', 'Weekend', 'Markets closed on Saturday & Sunday', 'Resumes Monday 9:15 AM IST');
-        } else if (istMin < 9 * 60 + 15) {
-          showChartOverlay('⏰', 'Pre-Market', 'Trading begins at 9:15 AM IST', 'Chart will populate at market open');
-        } else if (istMin > 15 * 60 + 30) {
-          showChartOverlay('🔔', 'Market Closed', 'Session ended at 3:30 PM IST', 'Historical data may be delayed — check again shortly');
-        } else {
-          showChartOverlay('📡', 'Awaiting Intraday Data', 'Data feed initialising…', 'Auto-refreshes every 30 seconds');
-        }
+      } else {
+        showChartOverlay('📡', 'No Data Available', 'No trading data found for recent sessions', 'Auto-refreshes every 30 seconds');
       }
       return;
     }
     hideHolidayOverlay();
+
+    // Last-session banner: shown when backend fell back to a prior trading day
+    const _lsBanner = document.getElementById('lastSessionBanner');
+    const _liveDot  = document.querySelector('.live-dot');
+    if (d.last_session && d.session_date) {
+      const _sd = new Date(d.session_date + 'T12:00:00+05:30');
+      const _DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const _MONS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const _dlbl = `${_DAYS[_sd.getDay()]} ${_sd.getDate()} ${_MONS[_sd.getMonth()]}`;
+      document.getElementById('lastSessionMsg').textContent = `LAST SESSION · ${_dlbl} — markets closed today`;
+      if (_lsBanner) _lsBanner.style.display = '';
+      if (_liveDot)  { _liveDot.style.opacity = '0.3'; _liveDot.style.animationPlayState = 'paused'; }
+    } else {
+      if (_lsBanner) _lsBanner.style.display = 'none';
+      if (_liveDot)  { _liveDot.style.opacity = ''; _liveDot.style.animationPlayState = ''; }
+    }
+
     _candles = d.candles;
 
     const last    = _candles[_candles.length - 1];
@@ -1049,9 +1050,9 @@ async function fetchCandles() {
     // Weekly/monthly candle timestamps are midnight UTC so delay math would always
     // read as many hours stale even for fresh data; skip for those timeframes.
     const _updBadge = document.getElementById('lastUpdateBadge');
-    const liveDot   = document.querySelector('.live-dot');
-    if (_timeframe === 'daily' && d.data_source === 'yfinance' && d.as_of) {
+    if (!d.last_session && _timeframe === 'daily' && d.data_source === 'yfinance' && d.as_of) {
       const delayMin = (Date.now() / 1000 - d.as_of) / 60;
+      const liveDot = document.querySelector('.live-dot');
       if (delayMin > 3) {
         if (_updBadge) { _updBadge.textContent = `DATA DELAYED ~${Math.round(delayMin)}m`; _updBadge.style.color = 'var(--yellow)'; }
         if (liveDot)   { liveDot.style.opacity = '0.25'; }
@@ -1059,9 +1060,6 @@ async function fetchCandles() {
         if (_updBadge) { _updBadge.textContent = 'UPDATED ' + fmtIST(); _updBadge.style.color = ''; }
         if (liveDot)   { liveDot.style.opacity = ''; }
       }
-    } else {
-      if (_updBadge) { _updBadge.textContent = 'UPDATED ' + fmtIST(); _updBadge.style.color = ''; }
-      if (liveDot)   { liveDot.style.opacity = ''; }
     }
 
     // Update live LTP and zone

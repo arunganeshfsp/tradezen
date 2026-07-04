@@ -5327,6 +5327,7 @@ def _candles_for_cpr_option_sync(symbol: str, underlying: str, strike: float, op
             interval = "ONE_DAY"
 
         intv_label = "5m" if timeframe == "daily" else "1d"
+        fetch_date = today
         if timeframe == "daily":
             # Intraday: bypass SQLite cache so every 30s poll returns fresh candles
             from data.candle_fetcher import fetch_candles as _fc_intra
@@ -5335,6 +5336,17 @@ def _candles_for_cpr_option_sync(symbol: str, underlying: str, strike: float, op
                 return {"candles": [], "interval": intv_label, "count": 0,
                         "data_source": "provider", "as_of": None, "error": "Session unavailable"}
             df = _fc_intra(_raw, token, "NFO", interval, from_dt, to_dt, use_cache=False)
+            if df.empty:
+                # Fallback to last business day (handles holidays, weekends, pre-market)
+                fb_date = today - _dt.timedelta(days=1)
+                while fb_date.weekday() >= 5:
+                    fb_date -= _dt.timedelta(days=1)
+                df = _fc_intra(_raw, token, "NFO", interval,
+                               fb_date.strftime("%Y-%m-%d 09:15"),
+                               fb_date.strftime("%Y-%m-%d 15:30"),
+                               use_cache=True)
+                if not df.empty:
+                    fetch_date = fb_date
         else:
             # Weekly/monthly: historical data — cache is fine
             df = get_provider().get_candles(token, "NFO", interval, from_dt, to_dt)
@@ -5358,8 +5370,10 @@ def _candles_for_cpr_option_sync(symbol: str, underlying: str, strike: float, op
                 continue
 
         as_of = (candles[-1]["time"] - _IST_OFF) if (candles and timeframe == "daily") else (candles[-1]["time"] if candles else None)
+        last_session = (fetch_date != today) if timeframe == "daily" else False
         return {"candles": candles, "interval": intv_label, "count": len(candles),
-                "data_source": "provider", "as_of": as_of}
+                "data_source": "provider", "as_of": as_of,
+                "session_date": str(fetch_date), "last_session": last_session}
 
     except Exception as e:
         log.error(f"[CANDLES-OPTION] {symbol}/{timeframe}: {e}")
@@ -5591,7 +5605,8 @@ def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
 
     try:
         if timeframe == "daily":
-            df = yf.Ticker(yf_sym).history(period="1d", interval="5m")
+            # 5d window so we always have the last complete session even on holidays/weekends/pre-market
+            df = yf.Ticker(yf_sym).history(period="5d", interval="5m")
             df = df.dropna()
             if df.empty:
                 return {"candles": [], "interval": "5m", "count": 0, "data_source": "yfinance", "as_of": None}
@@ -5600,6 +5615,11 @@ def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
                 df = df.between_time("09:15", "15:30")
             except Exception:
                 pass
+            if df.empty:
+                return {"candles": [], "interval": "5m", "count": 0, "data_source": "yfinance", "as_of": None}
+            session_date = df.index[-1].date()
+            df = df[df.index.date == session_date]
+            last_session = (session_date != today)
             candles = []
             for ts, row in df.iterrows():
                 candles.append({
@@ -5611,7 +5631,8 @@ def _candles_for_cpr_sync(symbol: str, timeframe: str) -> dict:
                 })
             as_of_utc = (candles[-1]["time"] - _IST_OFF) if candles else None
             return {"candles": candles, "interval": "5m", "count": len(candles),
-                    "data_source": "yfinance", "as_of": as_of_utc}
+                    "data_source": "yfinance", "as_of": as_of_utc,
+                    "session_date": str(session_date), "last_session": last_session}
 
         else:
             period = "3mo" if timeframe == "monthly" else "1mo"
