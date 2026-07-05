@@ -1026,6 +1026,19 @@ router.post("/simulator/square-off", async (req, res) => {
   }
 });
 
+// ─── POST /api/simulator/backtest ────────────────────────────────────────────
+// Body: { date: "YYYY-MM-DD", force?: bool }
+// Replays the ORB algorithm on historical candles. Timeout 5min (full universe).
+router.post("/simulator/backtest", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/simulator/backtest", 310000, req.body);
+    res.json(data);
+  } catch (err) {
+    const status = err.status === 400 ? 400 : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/simulator/settings ─────────────────────────────────────────────
 router.get("/simulator/settings", async (req, res) => {
   try {
