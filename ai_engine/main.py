@@ -7204,73 +7204,89 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
 
     log.info(f"[ORB-BT] {len(stocks)} stocks · universe={universe}")
 
-    # ── Phase 1: fetch candles, collect trigger events ────────────────────────
-    all_cands     = {}   # (symbol, side) → dict (written to DB in phase 3)
-    trigger_events = []  # sorted by trigger_dt for slot-cap ordering
+    # ── Phase 1: batch scan (100 stocks per batch), write candidates after each batch ──
+    BATCH_SIZE     = 100
+    batches        = [stocks[i:i+BATCH_SIZE] for i in range(0, len(stocks), BATCH_SIZE)]
+    all_cands      = {}   # (symbol, side) → candidate dict
+    trigger_events = []   # collected across all batches; sorted in phase 2
 
-    for s in stocks:
-        _t.sleep(0.35)
-        try:
-            df = fetch_candles(smart_s, s["token"], "NSE", "ONE_MINUTE",
-                               f"{date} 09:15", f"{date} 15:30", use_cache=True)
-        except Exception as e:
-            log.warning(f"[ORB-BT] {s['symbol']} candle error: {e}")
-            continue
+    for batch_num, batch in enumerate(batches):
+        log.info(f"[ORB-BT] batch {batch_num+1}/{len(batches)} · {len(batch)} stocks")
+        batch_cands = {}
 
-        if df.empty:
-            continue
+        for s in batch:
+            _t.sleep(0.35)
+            try:
+                df = fetch_candles(smart_s, s["token"], "NSE", "ONE_MINUTE",
+                                   f"{date} 09:15", f"{date} 15:30", use_cache=True)
+            except Exception as e:
+                log.warning(f"[ORB-BT] {s['symbol']} candle error: {e}")
+                continue
 
-        r0915 = df[df["DateTime"] == f"{date} 09:15"]
-        if r0915.empty:
-            continue
+            if df.empty:
+                continue
 
-        bench_high = round(float(r0915.iloc[0]["High"]), 2)
-        bench_low  = round(float(r0915.iloc[0]["Low"]),  2)
-        if bench_high <= bench_low:
-            continue
+            r0915 = df[df["DateTime"] == f"{date} 09:15"]
+            if r0915.empty:
+                continue
 
-        r0916    = df[df["DateTime"] == f"{date} 09:16"]
-        ltp_0916 = round(float(r0916.iloc[0]["Open"]) if not r0916.empty
-                         else float(r0915.iloc[0]["Close"]), 2)
+            bench_high = round(float(r0915.iloc[0]["High"]), 2)
+            bench_low  = round(float(r0915.iloc[0]["Low"]),  2)
+            if bench_high <= bench_low:
+                continue
 
-        if not (price_min <= ltp_0916 <= price_max):
-            continue
+            r0916    = df[df["DateTime"] == f"{date} 09:16"]
+            ltp_0916 = round(float(r0916.iloc[0]["Open"]) if not r0916.empty
+                             else float(r0915.iloc[0]["Close"]), 2)
 
-        orb_pct  = (bench_high - bench_low) / ltp_0916 * 100
-        strength = round(max(0.0, 5.0 - orb_pct), 2)
+            if not (price_min <= ltp_0916 <= price_max):
+                continue
 
-        entry_df = df[(df["DateTime"] >= f"{date} 09:16") &
-                      (df["DateTime"] <= f"{date} 10:30")]
-        buy_dt = sell_dt = None
-        for _, row in entry_df.iterrows():
-            if buy_dt  is None and float(row["High"]) > bench_high:
-                buy_dt  = row["DateTime"]
-            if sell_dt is None and float(row["Low"])  < bench_low:
-                sell_dt = row["DateTime"]
+            orb_pct  = (bench_high - bench_low) / ltp_0916 * 100
+            strength = round(max(0.0, 5.0 - orb_pct), 2)
 
-        base = {
-            "_tok":      s["token"],
-            "ltp_0916":  ltp_0916, "buy_pct": 0.0, "sell_pct": 0.0,
-            "strength":  strength, "bench_high": bench_high, "bench_low": bench_low,
-        }
-        for side, trig_dt in [("BUY", buy_dt), ("SELL", sell_dt)]:
-            resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
-            all_cands[(s["symbol"], side)] = {
-                **base,
-                "sl_basis": resolved_sl,
-                "status": "WAITING" if trig_dt else "WINDOW_CLOSED",
-                "remark": None if trig_dt else "No breakout in entry window",
+            entry_df = df[(df["DateTime"] >= f"{date} 09:16") &
+                          (df["DateTime"] <= f"{date} 10:30")]
+            buy_dt = sell_dt = None
+            for _, row in entry_df.iterrows():
+                if buy_dt  is None and float(row["High"]) > bench_high:
+                    buy_dt  = row["DateTime"]
+                if sell_dt is None and float(row["Low"])  < bench_low:
+                    sell_dt = row["DateTime"]
+
+            base = {
+                "_tok":     s["token"],
+                "ltp_0916": ltp_0916, "buy_pct": 0.0, "sell_pct": 0.0,
+                "strength": strength, "bench_high": bench_high, "bench_low": bench_low,
             }
-            if trig_dt:
-                trigger_events.append({
-                    "symbol": s["symbol"], "side": side,
-                    "trigger_dt":    trig_dt,
-                    "trigger_price": bench_high if side == "BUY" else bench_low,
-                    "bench_high": bench_high, "bench_low": bench_low,
-                    "df": df,
-                })
+            for side, trig_dt in [("BUY", buy_dt), ("SELL", sell_dt)]:
+                resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
+                batch_cands[(s["symbol"], side)] = {
+                    **base,
+                    "sl_basis": resolved_sl,
+                    "status":   "WAITING" if trig_dt else "WINDOW_CLOSED",
+                    "remark":   None if trig_dt else "No breakout in entry window",
+                }
+                if trig_dt:
+                    trigger_events.append({
+                        "symbol": s["symbol"], "side": side,
+                        "trigger_dt":    trig_dt,
+                        "trigger_price": bench_high if side == "BUY" else bench_low,
+                        "bench_high": bench_high, "bench_low": bench_low,
+                        "df": df,
+                    })
 
-    # Apply candidate cap per side (rank by strength desc; tight ORB = higher strength)
+        # Write this batch's candidates to DB so the frontend can see them immediately
+        conn = get_conn()
+        for (sym, side), cand in batch_cands.items():
+            tok  = cand["_tok"]
+            data = {k: v for k, v in cand.items() if k != "_tok"}
+            orb_upsert_candidate(conn, date, sym, tok, side, data)
+        conn.close()
+        all_cands.update(batch_cands)
+        log.info(f"[ORB-BT] batch {batch_num+1} written — {len(batch_cands)//2} stocks")
+
+    # ── Apply candidate cap globally (across all batches) ─────────────────────
     for side in ("BUY", "SELL"):
         side_keys = sorted(
             [(k, v) for k, v in all_cands.items() if k[1] == side],
@@ -7280,17 +7296,21 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             all_cands[k]["status"] = "WINDOW_CLOSED"
             all_cands[k]["remark"] = "Below candidate cap"
 
-    kept_keys = {k for k, v in all_cands.items() if v["status"] != "WINDOW_CLOSED"
-                 or all_cands[k].get("remark") != "Below candidate cap"}
+    # Update over-cap candidates in DB
+    conn = get_conn()
+    for (sym, side), cand in all_cands.items():
+        if cand.get("remark") == "Below candidate cap":
+            orb_update_candidate_status(conn, date, sym, side, "WINDOW_CLOSED", "Below candidate cap")
+    conn.close()
+
     trigger_events = [e for e in trigger_events
-                      if (e["symbol"], e["side"]) in all_cands
-                      and all_cands[(e["symbol"], e["side"])]["status"] == "WAITING"]
+                      if all_cands.get((e["symbol"], e["side"]), {}).get("status") == "WAITING"]
     trigger_events.sort(key=lambda x: x["trigger_dt"])
 
-    # ── Phase 2: apply slot cap, simulate trades ───────────────────────────────
+    # ── Phase 2: slot cap + trade simulation — write each trade immediately ────
     traded_syms = set()
     open_slots  = 0
-    trades_out  = []
+    trade_count = 0
 
     for evt in trigger_events:
         sym  = evt["symbol"]
@@ -7300,10 +7320,16 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
         if sym in traded_syms:
             all_cands[key]["status"] = "SKIPPED"
             all_cands[key]["remark"] = "Already traded today"
+            conn = get_conn()
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Already traded today")
+            conn.close()
             continue
         if open_slots >= max_slots:
             all_cands[key]["status"] = "SKIPPED"
             all_cands[key]["remark"] = f"All {max_slots} slots occupied"
+            conn = get_conn()
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", f"All {max_slots} slots occupied")
+            conn.close()
             continue
 
         df            = evt["df"]
@@ -7312,16 +7338,16 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
         bench_high    = evt["bench_high"]
         bench_low     = evt["bench_low"]
 
-        pre               = df[df["DateTime"] <= trigger_dt]
-        day_high_entry    = round(float(pre["High"].max()), 2)
-        day_low_entry     = round(float(pre["Low"].min()),  2)
-        vol               = float(pre["Volume"].sum())
-        vwap_entry        = None
+        pre            = df[df["DateTime"] <= trigger_dt]
+        day_high_entry = round(float(pre["High"].max()), 2)
+        day_low_entry  = round(float(pre["Low"].min()),  2)
+        vol            = float(pre["Volume"].sum())
+        vwap_entry     = None
         if vol > 0:
             typical    = (pre["High"] + pre["Low"] + pre["Close"]) / 3
             vwap_entry = round(float((typical * pre["Volume"]).sum() / vol), 2)
 
-        cand_sl_basis = all_cands[key]["sl_basis"]   # already translated from DAY_SMART
+        cand_sl_basis = all_cands[key]["sl_basis"]
         sl_price, sl_err = _orb_resolve_sl(
             direction=side, sl_basis=cand_sl_basis,
             bench_high=bench_high, bench_low=bench_low,
@@ -7331,12 +7357,18 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
         if sl_err:
             all_cands[key]["status"] = "SKIPPED"
             all_cands[key]["remark"] = f"SL error: {sl_err}"
+            conn = get_conn()
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", f"SL error: {sl_err}")
+            conn.close()
             continue
 
         qty = _orb_pos_size(trigger_price)
         if qty <= 0:
             all_cands[key]["status"] = "SKIPPED"
             all_cands[key]["remark"] = "Qty 0"
+            conn = get_conn()
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Qty 0")
+            conn.close()
             continue
 
         tgt_pts, tgt_price = _orb_target(side, trigger_price, qty, target_rupees=target_rupees)
@@ -7363,7 +7395,7 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
                     outcome, exit_price, exit_dt = "TARGET_HIT", tgt_price, row["DateTime"]; break
 
         if exit_price is None:
-            eod = df[df["DateTime"] <= f"{date} 15:30"]
+            eod  = df[df["DateTime"] <= f"{date} 15:30"]
             last = eod.iloc[-1] if not eod.empty else None
             exit_price = round(float(last["Close"]), 2) if last is not None else trigger_price
             exit_dt    = last["DateTime"] if last is not None else trigger_dt
@@ -7374,7 +7406,7 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             quantity=qty, target_points=tgt_pts, sl_pts=sl_pts,
         )
 
-        trades_out.append({
+        trade = {
             "id":                str(_uuid.uuid4()),
             "date":              date,
             "symbol":            sym,
@@ -7399,28 +7431,25 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             "return_amount":     round(investment + pnl, 2),
             "close_price":       exit_price,
             "remarks":           "backtest · DOM filter not applied",
-        })
+        }
+        conn = get_conn()
+        orb_insert_trade(conn, trade)
+        orb_update_candidate_status(conn, date, sym, side, "TRIGGERED")
+        conn.close()
+
         all_cands[key]["status"] = "TRIGGERED"
         traded_syms.add(sym)
-        open_slots += 1
+        open_slots  += 1
+        trade_count += 1
         log.info(f"[ORB-BT] {side} {sym} @ ₹{trigger_price} | {outcome} | ₹{pnl:+.2f}")
 
-    # ── Phase 3: write to DB ───────────────────────────────────────────────────
-    conn = get_conn()
-    for (sym, side), cand in all_cands.items():
-        tok  = cand["_tok"]
-        data = {k: v for k, v in cand.items() if k != "_tok"}
-        orb_upsert_candidate(conn, date, sym, tok, side, data)
-    for t in trades_out:
-        orb_insert_trade(conn, t)
-    conn.close()
-
-    log.info(f"[ORB-BT] done — {len(all_cands)//2} stocks, {len(trades_out)} trades for {date}")
+    log.info(f"[ORB-BT] done — {len(all_cands)//2} stocks, {trade_count} trades · {len(batches)} batches for {date}")
     return {
         "ok":         True,
         "date":       date,
         "candidates": len(all_cands),
-        "trades":     len(trades_out),
+        "trades":     trade_count,
+        "batches":    len(batches),
         "note":       "DOM filter not applied — historical order-book data unavailable. All price-qualified breakouts are shown.",
     }
 

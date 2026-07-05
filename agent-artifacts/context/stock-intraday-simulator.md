@@ -103,7 +103,7 @@ Universe symbol sets defined as frozen sets in `main.py`: `_NIFTY50_SYMS` (~50),
 | `stop_loss_price` | Invalidation |
 | `target_price` | Ref. Target |
 | `SL_HIT` | INVALIDATION HIT |
-| `TARGET_HIT` | TARGET REACHED |
+| `TARGET_HIT` | REF. LEVEL REACHED |
 | `pnl` | Study P/L |
 | `SQUARE_OFF` | SQUARED OFF |
 
