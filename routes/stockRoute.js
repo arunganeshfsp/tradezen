@@ -986,6 +986,46 @@ router.post("/paper/reset", _paperAuth, async (req, res) => {
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ORB Intraday Simulator routes
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── GET /api/simulator/state?date=YYYY-MM-DD ────────────────────────────────
+// Today's (or any past date's) candidates, trades, summary, and window phase
+router.get("/simulator/state", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.date) params.set("date", req.query.date);
+    const data = await aiService.proxy("GET", `/simulator/state?${params}`, 10000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── POST /api/simulator/sl-basis ────────────────────────────────────────────
+// Body: { date, symbol, side, basis, custom_price? }
+// Set SL basis for a WAITING candidate (locked once triggered)
+router.post("/simulator/sl-basis", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/simulator/sl-basis", 10000, req.body);
+    res.json(data);
+  } catch (err) {
+    const status = (err.status === 409 || err.status === 400) ? err.status : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/simulator/square-off ──────────────────────────────────────────
+// Body: { trade_id }  — exits OPEN trade at live LTP (or stored close_price post-EOD)
+router.post("/simulator/square-off", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/simulator/square-off", 15000, req.body);
+    res.json(data);
+  } catch (err) {
+    const status = (err.status === 404 || err.status === 409 || err.status === 503) ? err.status : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/stock/health/:symbol ───────────────────────────────────────────
 // 4-persona fundamental health report (Stock Health Story tool)
 router.get("/stock/health/:symbol", async (req, res) => {

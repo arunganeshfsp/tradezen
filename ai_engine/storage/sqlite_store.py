@@ -54,6 +54,56 @@ def _ensure_tables(conn: sqlite3.Connection):
             computed_at  TEXT NOT NULL,
             UNIQUE(symbol_token, exchange, date, tick_size)
         );
+
+        CREATE TABLE IF NOT EXISTS orb_candidates (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            date           TEXT NOT NULL,
+            symbol         TEXT NOT NULL,
+            token          TEXT NOT NULL,
+            side           TEXT NOT NULL,
+            ltp_0916       REAL,
+            buy_pct        REAL,
+            sell_pct       REAL,
+            strength       REAL,
+            bench_high     REAL,
+            bench_low      REAL,
+            sl_basis       TEXT DEFAULT 'VWAP',
+            custom_sl_price REAL,
+            status         TEXT DEFAULT 'WAITING',
+            remark         TEXT,
+            updated_at     TEXT,
+            UNIQUE(date, symbol, side)
+        );
+
+        CREATE TABLE IF NOT EXISTS orb_stock_trades (
+            id              TEXT PRIMARY KEY,
+            date            TEXT NOT NULL,
+            symbol          TEXT NOT NULL,
+            direction       TEXT NOT NULL,
+            day_high_at_entry REAL,
+            day_low_at_entry  REAL,
+            vwap_at_entry   REAL,
+            trigger_price   REAL,
+            entry_time      TEXT,
+            sl_basis        TEXT,
+            custom_sl_price REAL,
+            stop_loss_price REAL,
+            quantity        INTEGER,
+            investment      REAL,
+            sl_points       REAL,
+            target_points   REAL,
+            target_price    REAL,
+            risk_reward     REAL,
+            exit_price      REAL,
+            exit_time       TEXT,
+            outcome         TEXT DEFAULT 'OPEN',
+            pnl             REAL DEFAULT 0,
+            return_amount   REAL,
+            close_price     REAL,
+            remarks         TEXT,
+            created_at      TEXT,
+            updated_at      TEXT
+        );
     """)
     conn.commit()
 
@@ -136,4 +186,115 @@ def upsert_profile(conn, symbol_token, exchange, date, tick_size, profile):
            VALUES (?, ?, ?, ?, ?, ?)""",
         (symbol_token, exchange, date, tick_size, json.dumps(profile), now),
     )
+    conn.commit()
+
+
+# ── ORB Simulator helpers ──────────────────────────────────────────────────────
+
+def orb_upsert_candidate(conn, date: str, symbol: str, token: str, side: str, data: dict):
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        """INSERT INTO orb_candidates
+               (date, symbol, token, side, ltp_0916, buy_pct, sell_pct, strength,
+                bench_high, bench_low, sl_basis, custom_sl_price, status, remark, updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+           ON CONFLICT(date, symbol, side) DO UPDATE SET
+               token=excluded.token, ltp_0916=excluded.ltp_0916,
+               buy_pct=excluded.buy_pct, sell_pct=excluded.sell_pct,
+               strength=excluded.strength, bench_high=excluded.bench_high,
+               bench_low=excluded.bench_low, status=excluded.status,
+               remark=excluded.remark, updated_at=excluded.updated_at""",
+        (date, symbol, token, side,
+         data.get("ltp_0916"), data.get("buy_pct"), data.get("sell_pct"), data.get("strength"),
+         data.get("bench_high"), data.get("bench_low"),
+         data.get("sl_basis", "VWAP"), data.get("custom_sl_price"),
+         data.get("status", "WAITING"), data.get("remark"), now),
+    )
+    conn.commit()
+
+
+def orb_get_candidates(conn, date: str) -> list[dict]:
+    cur = conn.execute(
+        "SELECT * FROM orb_candidates WHERE date=? ORDER BY side, strength DESC",
+        (date,),
+    )
+    return [dict(r) for r in cur.fetchall()]
+
+
+def orb_update_candidate_sl(
+    conn, date: str, symbol: str, side: str, sl_basis: str, custom_sl_price=None
+) -> bool:
+    """Returns False if candidate is already TRIGGERED (locked)."""
+    cur = conn.execute(
+        "SELECT status FROM orb_candidates WHERE date=? AND symbol=? AND side=?",
+        (date, symbol, side),
+    )
+    row = cur.fetchone()
+    if not row or row["status"] == "TRIGGERED":
+        return False
+    conn.execute(
+        """UPDATE orb_candidates
+           SET sl_basis=?, custom_sl_price=?, updated_at=?
+           WHERE date=? AND symbol=? AND side=?""",
+        (sl_basis, custom_sl_price, datetime.utcnow().isoformat(), date, symbol, side),
+    )
+    conn.commit()
+    return True
+
+
+def orb_update_candidate_status(
+    conn, date: str, symbol: str, side: str, status: str, remark: str = None
+):
+    conn.execute(
+        """UPDATE orb_candidates
+           SET status=?, remark=?, updated_at=?
+           WHERE date=? AND symbol=? AND side=?""",
+        (status, remark, datetime.utcnow().isoformat(), date, symbol, side),
+    )
+    conn.commit()
+
+
+def orb_insert_trade(conn, trade: dict):
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        """INSERT OR IGNORE INTO orb_stock_trades
+               (id, date, symbol, direction, day_high_at_entry, day_low_at_entry,
+                vwap_at_entry, trigger_price, entry_time, sl_basis, custom_sl_price,
+                stop_loss_price, quantity, investment, sl_points, target_points,
+                target_price, risk_reward, outcome, pnl, return_amount, remarks,
+                created_at, updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (trade["id"], trade["date"], trade["symbol"], trade["direction"],
+         trade.get("day_high_at_entry"), trade.get("day_low_at_entry"),
+         trade.get("vwap_at_entry"), trade.get("trigger_price"), trade.get("entry_time"),
+         trade.get("sl_basis"), trade.get("custom_sl_price"), trade.get("stop_loss_price"),
+         trade.get("quantity"), trade.get("investment"), trade.get("sl_points"),
+         trade.get("target_points"), trade.get("target_price"), trade.get("risk_reward"),
+         trade.get("outcome", "OPEN"), trade.get("pnl", 0), trade.get("return_amount"),
+         trade.get("remarks"), now, now),
+    )
+    conn.commit()
+
+
+def orb_get_trades(conn, date: str) -> list[dict]:
+    cur = conn.execute(
+        "SELECT * FROM orb_stock_trades WHERE date=? ORDER BY entry_time",
+        (date,),
+    )
+    return [dict(r) for r in cur.fetchall()]
+
+
+def orb_get_open_trades(conn, date: str) -> list[dict]:
+    cur = conn.execute(
+        "SELECT * FROM orb_stock_trades WHERE date=? AND outcome='OPEN'",
+        (date,),
+    )
+    return [dict(r) for r in cur.fetchall()]
+
+
+def orb_update_trade(conn, trade_id: str, updates: dict):
+    updates["updated_at"] = datetime.utcnow().isoformat()
+    cols  = ", ".join(f"{k}=?" for k in updates)
+    vals  = list(updates.values()) + [trade_id]
+    conn.execute(f"UPDATE orb_stock_trades SET {cols} WHERE id=?", vals)
     conn.commit()

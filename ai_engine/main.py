@@ -547,6 +547,7 @@ async def lifespan(app: FastAPI):
             log.info("🔄 Intraday fields reset for new trading day")
 
     asyncio.create_task(_daily_instrument_refresh())
+    asyncio.create_task(_orb_simulator_loop())
 
     log.info("✅ AI Engine ready — WebSocket + signal loop running")
 
@@ -6548,6 +6549,561 @@ async def stock_health(symbol: str):
         return result
     except Exception as e:
         log.error(f"[STOCK-HEALTH] {symbol}: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ORB Stock Intraday Simulator — server-side background engine
+# Capture: 09:16 IST · Entry window: 09:16–10:30 · Outcome tracking: 09:16–15:30
+# ══════════════════════════════════════════════════════════════════════════════
+
+from core.orb_simulator import (
+    resolve_stop_loss    as _orb_resolve_sl,
+    position_size        as _orb_pos_size,
+    target_levels        as _orb_target,
+    sl_points_for        as _orb_sl_pts,
+    risk_reward          as _orb_rr,
+    check_outcome        as _orb_check_out,
+    pnl_for              as _orb_pnl,
+    in_price_band        as _orb_in_band,
+    passes_volume_filter as _orb_dom_ok,
+    SIM_MAX_SLOTS, SIM_CANDIDATE_CAP,
+    _IST as _SIM_IST, _FORCE as _SIM_FORCE,
+)
+from storage.sqlite_store import (
+    orb_get_candidates, orb_upsert_candidate, orb_update_candidate_sl,
+    orb_update_candidate_status, orb_insert_trade,
+    orb_get_trades, orb_get_open_trades, orb_update_trade,
+)
+
+
+def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
+    """Batch FULL market quote → {token_str: {ltp, high, low, vwap, buy_pct, sell_pct}}."""
+    import time as _t
+    if not smart_s or not tokens:
+        return {}
+    result = {}
+    for i in range(0, len(tokens), 50):
+        if i:
+            _t.sleep(0.15)
+        batch = tokens[i : i + 50]
+        try:
+            resp = smart_s.getMarketData("FULL", {exchange: batch})
+            for item in (resp or {}).get("data", {}).get("fetched") or []:
+                tok = str(item.get("symbolToken", ""))
+                ltp = float(item.get("ltp") or 0)
+                if not ltp:
+                    continue
+                bq    = int(item.get("totBuyQuan") or 0)
+                sq    = int(item.get("totSellQuan") or 0)
+                total = bq + sq
+                result[tok] = {
+                    "ltp":      round(ltp, 2),
+                    "high":     round(float(item.get("high")              or 0), 2),
+                    "low":      round(float(item.get("low")               or 0), 2),
+                    "vwap":     round(float(item.get("averageTradePrice") or 0), 2) or None,
+                    "buy_pct":  round(bq / total * 100, 1) if total else 0.0,
+                    "sell_pct": round(sq / total * 100, 1) if total else 0.0,
+                }
+        except Exception as e:
+            log.warning(f"[ORB-SIM] quote batch {i}: {e}")
+    return result
+
+
+def _orb_capture_sync(today: str):
+    """09:16 capture: quote Nifty500 F&O universe, filter/rank/cut, fetch 09:15 candles, persist."""
+    import time as _t
+    log.info(f"[ORB-SIM] capture starting for {today}")
+    smart_s = _get_smart()
+    if not smart_s:
+        log.error("[ORB-SIM] capture aborted — no SmartAPI session")
+        return
+
+    all_fno      = _load_fno_stocks()
+    n500         = _fetch_nifty500_symbols()
+    stocks       = [s for s in all_fno if s["symbol"].upper() in n500]
+    if not stocks:
+        log.error("[ORB-SIM] no Nifty500 F&O stocks available")
+        return
+
+    all_tokens   = [s["token"] for s in stocks]
+    token_to_sym = {s["token"]: s["symbol"] for s in stocks}
+    quotes       = _orb_raw_quotes(smart_s, all_tokens)
+
+    buy_cands, sell_cands = [], []
+    for s in stocks:
+        q = quotes.get(s["token"])
+        if not q:
+            continue
+        ltp = q["ltp"]
+        if not _orb_in_band(ltp):
+            continue
+        bp, sp   = q["buy_pct"], q["sell_pct"]
+        strength = round(abs(bp - sp), 1)
+        base     = {"symbol": s["symbol"], "token": s["token"],
+                    "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength}
+        if _orb_dom_ok("BUY",  bp, sp):
+            buy_cands.append(base)
+        if _orb_dom_ok("SELL", bp, sp):
+            sell_cands.append(base)
+
+    buy_cands.sort(key=lambda x: -x["strength"])
+    sell_cands.sort(key=lambda x: -x["strength"])
+    buy_cands  = buy_cands[:SIM_CANDIDATE_CAP]
+    sell_cands = sell_cands[:SIM_CANDIDATE_CAP]
+    log.info(f"[ORB-SIM] filter result — {len(buy_cands)} BUY, {len(sell_cands)} SELL candidates")
+
+    unique_tokens = {c["token"] for c in buy_cands + sell_cands}
+    candle_map    = {}
+    for tok in unique_tokens:
+        _t.sleep(0.35)
+        try:
+            df = fetch_candles(smart_s, tok, "NSE", "ONE_MINUTE",
+                               f"{today} 09:15", f"{today} 09:16", use_cache=False)
+            if not df.empty:
+                row = df.iloc[0]
+                candle_map[tok] = {
+                    "bench_high": round(float(row["High"]), 2),
+                    "bench_low":  round(float(row["Low"]),  2),
+                }
+            else:
+                log.debug(f"[ORB-SIM] no 09:15 candle: {token_to_sym.get(tok, tok)}")
+        except Exception as e:
+            log.warning(f"[ORB-SIM] candle error {token_to_sym.get(tok, tok)}: {e}")
+
+    conn  = get_conn()
+    saved = 0
+    for c, side in ([(c, "BUY") for c in buy_cands] + [(c, "SELL") for c in sell_cands]):
+        if c["token"] in candle_map:
+            orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
+                                 {**c, **candle_map[c["token"]], "status": "WAITING"})
+            saved += 1
+        else:
+            orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
+                                 {**c, "status": "SKIPPED", "remark": "09:15 candle unavailable"})
+    conn.close()
+    log.info(f"[ORB-SIM] capture done — {saved} WAITING candidates persisted for {today}")
+
+
+def _orb_trigger_poll_sync(today: str, now_ist):
+    """Check WAITING candidates vs benchmark; auto-create trades within slot cap."""
+    import uuid as _uuid
+    conn    = get_conn()
+    waiting = [c for c in orb_get_candidates(conn, today) if c["status"] == "WAITING"]
+    if not waiting:
+        conn.close()
+        return
+
+    open_trades    = orb_get_open_trades(conn, today)
+    open_count     = len(open_trades)
+    triggered_syms = {c["symbol"] for c in orb_get_candidates(conn, today)
+                      if c["status"] == "TRIGGERED"}
+
+    smart_s = _get_smart()
+    if not smart_s:
+        conn.close()
+        return
+
+    quotes = _orb_raw_quotes(smart_s, [c["token"] for c in waiting])
+
+    for c in waiting:
+        q    = quotes.get(c["token"])
+        if not q:
+            continue
+        ltp  = q["ltp"]
+        side = c["side"]
+        bh   = c["bench_high"]
+        bl   = c["bench_low"]
+
+        if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
+            continue
+
+        if c["symbol"] in triggered_syms:
+            orb_update_candidate_status(conn, today, c["symbol"], side,
+                                        "SKIPPED", "Already traded today")
+            continue
+
+        if open_count >= SIM_MAX_SLOTS:
+            orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
+                                        f"All {SIM_MAX_SLOTS} slots occupied at trigger")
+            continue
+
+        sl_price, sl_err = _orb_resolve_sl(
+            direction=side, sl_basis=c["sl_basis"] or "VWAP",
+            bench_high=bh, bench_low=bl,
+            vwap=q.get("vwap"), day_high=q.get("high"), day_low=q.get("low"),
+            custom=c.get("custom_sl_price"), entry_price=ltp,
+        )
+        if sl_err:
+            orb_update_candidate_status(conn, today, c["symbol"], side,
+                                        "SKIPPED", f"SL: {sl_err}")
+            continue
+
+        qty = _orb_pos_size(ltp)
+        if qty <= 0:
+            orb_update_candidate_status(conn, today, c["symbol"], side,
+                                        "SKIPPED", f"Qty 0 at price ₹{ltp}")
+            continue
+
+        tgt_pts, tgt_price = _orb_target(side, ltp, qty)
+        sl_pts             = _orb_sl_pts(side, ltp, sl_price)
+        rr                 = _orb_rr(tgt_pts, sl_pts)
+        investment         = round(qty * ltp, 2)
+
+        trade = {
+            "id":                str(_uuid.uuid4()),
+            "date":              today,
+            "symbol":            c["symbol"],
+            "direction":         side,
+            "day_high_at_entry": bh,
+            "day_low_at_entry":  bl,
+            "vwap_at_entry":     q.get("vwap"),
+            "trigger_price":     ltp,
+            "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+            "sl_basis":          c["sl_basis"] or "VWAP",
+            "custom_sl_price":   c.get("custom_sl_price"),
+            "stop_loss_price":   sl_price,
+            "quantity":          qty,
+            "investment":        investment,
+            "sl_points":         sl_pts,
+            "target_points":     tgt_pts,
+            "target_price":      tgt_price,
+            "risk_reward":       rr,
+            "outcome":           "OPEN",
+            "pnl":               0.0,
+            "return_amount":     investment,
+        }
+        orb_insert_trade(conn, trade)
+        orb_update_candidate_status(conn, today, c["symbol"], side, "TRIGGERED")
+        triggered_syms.add(c["symbol"])
+        open_count += 1
+        log.info(
+            f"[ORB-SIM] TRIGGER {side} {c['symbol']} @ ₹{ltp} | "
+            f"SL ₹{sl_price} | Tgt ₹{tgt_price} | Qty {qty} | R:R {rr}"
+        )
+
+    conn.close()
+
+
+def _orb_outcome_poll_sync(today: str, now_ist):
+    """Check OPEN trades vs target/SL; resolve on hit."""
+    conn        = get_conn()
+    open_trades = orb_get_open_trades(conn, today)
+    if not open_trades:
+        conn.close()
+        return
+
+    sym_to_token  = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
+    tokens_needed = list({sym_to_token[t["symbol"]] for t in open_trades
+                          if t["symbol"] in sym_to_token})
+    smart_s = _get_smart()
+    if not smart_s or not tokens_needed:
+        conn.close()
+        return
+
+    quotes    = _orb_raw_quotes(smart_s, tokens_needed)
+    exit_time = now_ist.strftime("%Y-%m-%d %H:%M:%S")
+
+    for trade in open_trades:
+        tok = sym_to_token.get(trade["symbol"])
+        q   = quotes.get(tok) if tok else None
+        if not q:
+            continue
+        result = _orb_check_out(
+            direction=trade["direction"],
+            ltp=q["ltp"],
+            target_price=trade["target_price"],
+            stop_loss_price=trade["stop_loss_price"],
+        )
+        if not result:
+            continue
+        pnl = _orb_pnl(
+            outcome=result, direction=trade["direction"],
+            entry_price=trade["trigger_price"], exit_price=q["ltp"],
+            quantity=trade["quantity"], target_points=trade["target_points"],
+            sl_pts=trade["sl_points"],
+        )
+        orb_update_trade(conn, trade["id"], {
+            "outcome":       result,
+            "exit_price":    q["ltp"],
+            "exit_time":     exit_time,
+            "pnl":           pnl,
+            "return_amount": round(trade["investment"] + pnl, 2),
+        })
+        log.info(
+            f"[ORB-SIM] RESOLVED {trade['direction']} {trade['symbol']} "
+            f"→ {result} | P/L ₹{pnl:+.2f}"
+        )
+
+    conn.close()
+
+
+def _orb_window_close_sync(today: str):
+    """Mark remaining WAITING candidates WINDOW_CLOSED after 10:30."""
+    conn    = get_conn()
+    waiting = [c for c in orb_get_candidates(conn, today) if c["status"] == "WAITING"]
+    for c in waiting:
+        orb_update_candidate_status(conn, today, c["symbol"], c["side"],
+                                    "WINDOW_CLOSED", "Entry window closed at 10:30")
+    conn.close()
+    if waiting:
+        log.info(f"[ORB-SIM] window closed — {len(waiting)} candidates marked WINDOW_CLOSED")
+
+
+def _orb_eod_sync(today: str):
+    """Fill close_price on still-OPEN trades at 15:30."""
+    conn        = get_conn()
+    open_trades = orb_get_open_trades(conn, today)
+    if not open_trades:
+        conn.close()
+        return
+
+    sym_to_token  = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
+    tokens_needed = list({sym_to_token[t["symbol"]] for t in open_trades
+                          if t["symbol"] in sym_to_token})
+    smart_s = _get_smart()
+    quotes  = _orb_raw_quotes(smart_s, tokens_needed) if smart_s and tokens_needed else {}
+
+    for trade in open_trades:
+        tok = sym_to_token.get(trade["symbol"])
+        q   = quotes.get(tok) if tok else None
+        orb_update_trade(conn, trade["id"], {"close_price": q["ltp"] if q else None})
+
+    conn.close()
+    log.info(f"[ORB-SIM] EOD fill done — {len(open_trades)} trade(s) updated with close_price")
+
+
+async def _orb_simulator_loop():
+    """
+    ORB simulator background task.
+    Weekday-gated (bypassed with SIM_FORCE_WINDOW=1). SQLite state survives restarts.
+    Crash-safe: outer while + try/except; each sync worker is independently guarded.
+    """
+    from datetime import time as dt_time
+    loop = asyncio.get_running_loop()
+    log.info("[ORB-SIM] background task started")
+
+    _window_closed_today = None
+    _eod_done_today      = None
+
+    while True:
+        try:
+            now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+            today   = now_ist.strftime("%Y-%m-%d")
+            t       = now_ist.time()
+
+            # Weekend gate
+            if not _SIM_FORCE and now_ist.weekday() >= 5:
+                days = (7 - now_ist.weekday()) % 7 or 7
+                target = (now_ist + timedelta(days=days)).replace(
+                    hour=9, minute=0, second=0, microsecond=0)
+                await asyncio.sleep(min((target - now_ist).total_seconds(), 3600))
+                continue
+
+            # Post-15:30 EOD gate
+            if not _SIM_FORCE and t > dt_time(15, 30):
+                if _eod_done_today != today:
+                    await loop.run_in_executor(None, _orb_eod_sync, today)
+                    _eod_done_today = today
+                target = (now_ist + timedelta(days=1)).replace(
+                    hour=9, minute=0, second=0, microsecond=0)
+                while target.weekday() >= 5:
+                    target += timedelta(days=1)
+                await asyncio.sleep(min((target - now_ist).total_seconds(), 3600))
+                continue
+
+            # Pre-capture wait (before 09:16)
+            if not _SIM_FORCE and t < dt_time(9, 16):
+                target = now_ist.replace(hour=9, minute=16, second=0, microsecond=0)
+                await asyncio.sleep(min((target - now_ist).total_seconds(), 60))
+                continue
+
+            # Ensure today's capture has run
+            conn       = get_conn()
+            candidates = orb_get_candidates(conn, today)
+            conn.close()
+
+            if not candidates:
+                await loop.run_in_executor(None, _orb_capture_sync, today)
+                continue
+
+            # Entry window: trigger poll
+            if _SIM_FORCE or t <= dt_time(10, 30):
+                await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
+            elif _window_closed_today != today:
+                await loop.run_in_executor(None, _orb_window_close_sync, today)
+                _window_closed_today = today
+
+            # Outcome tracking until 15:30
+            if _SIM_FORCE or t <= dt_time(15, 30):
+                await loop.run_in_executor(None, _orb_outcome_poll_sync, today, now_ist)
+
+            await asyncio.sleep(5)
+
+        except asyncio.CancelledError:
+            log.info("[ORB-SIM] background task cancelled")
+            break
+        except Exception as e:
+            log.error(f"[ORB-SIM] loop error: {e}", exc_info=True)
+            await asyncio.sleep(30)
+
+
+class _OrbSlBasisBody(BaseModel):
+    date: str
+    symbol: str
+    side: str
+    basis: str
+    custom_price: float | None = None
+
+
+class _OrbSquareOffBody(BaseModel):
+    trade_id: str
+
+
+def _orb_window_phase() -> dict:
+    """Returns the current window phase + slot counts for the state endpoint."""
+    from datetime import time as dt_time
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    if now_ist.weekday() >= 5:
+        return "WEEKEND"
+    t = now_ist.time()
+    if t < dt_time(9, 15):
+        return "PRE_MARKET"
+    if t < dt_time(9, 16):
+        return "CAPTURE_PENDING"
+    if t <= dt_time(10, 30):
+        return "ENTRY_WINDOW"
+    if t <= dt_time(15, 30):
+        return "TRACKING"
+    return "EOD"
+
+
+@app.get("/simulator/state")
+async def simulator_state(date: str = ""):
+    if not date:
+        date = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+    try:
+        conn       = get_conn()
+        candidates = orb_get_candidates(conn, date)
+        trades     = orb_get_trades(conn, date)
+        conn.close()
+
+        open_trades = [t for t in trades if t["outcome"] == "OPEN"]
+        resolved    = [t for t in trades if t["outcome"] != "OPEN"]
+        wins        = [t for t in resolved if t["outcome"] == "TARGET_HIT"]
+
+        summary = {
+            "total_pnl": round(sum(t["pnl"] for t in trades), 2),
+            "invested":  round(sum(t["investment"] for t in open_trades), 2),
+            "win_rate":  round(len(wins) / len(resolved) * 100, 1) if resolved else None,
+            "counts": {
+                "OPEN":       sum(1 for t in trades if t["outcome"] == "OPEN"),
+                "TARGET_HIT": sum(1 for t in trades if t["outcome"] == "TARGET_HIT"),
+                "SL_HIT":     sum(1 for t in trades if t["outcome"] == "SL_HIT"),
+                "SQUARE_OFF": sum(1 for t in trades if t["outcome"] == "SQUARE_OFF"),
+            },
+        }
+        return {
+            "date":       date,
+            "candidates": candidates,
+            "trades":     trades,
+            "summary":    summary,
+            "window": {
+                "phase":      _orb_window_phase(),
+                "slots_used": len(open_trades),
+                "slots_total": SIM_MAX_SLOTS,
+            },
+        }
+    except Exception as e:
+        log.error(f"[SIM-STATE] {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/simulator/sl-basis")
+async def simulator_sl_basis(body: _OrbSlBasisBody):
+    _VALID = {"VWAP", "DAY_HIGH", "DAY_LOW", "CUSTOM"}
+    if body.basis not in _VALID:
+        return JSONResponse(status_code=400,
+                            content={"error": f"basis must be one of {sorted(_VALID)}"})
+    if body.basis == "CUSTOM" and body.custom_price is None:
+        return JSONResponse(status_code=400,
+                            content={"error": "custom_price required when basis=CUSTOM"})
+    try:
+        conn    = get_conn()
+        updated = orb_update_candidate_sl(conn, body.date, body.symbol, body.side,
+                                          body.basis, body.custom_price)
+        conn.close()
+        if not updated:
+            return JSONResponse(
+                status_code=409,
+                content={"error": "Candidate already TRIGGERED — SL basis locked at entry"},
+            )
+        return {"ok": True, "symbol": body.symbol, "side": body.side, "basis": body.basis}
+    except Exception as e:
+        log.error(f"[SIM-SL-BASIS] {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/simulator/square-off")
+async def simulator_square_off(body: _OrbSquareOffBody):
+    from datetime import time as dt_time
+    now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    try:
+        conn  = get_conn()
+        cur   = conn.execute("SELECT * FROM orb_stock_trades WHERE id=?", (body.trade_id,))
+        row   = cur.fetchone()
+        trade = dict(row) if row else {}
+        conn.close()
+
+        if not trade:
+            return JSONResponse(status_code=404, content={"error": "Trade not found"})
+        if trade["outcome"] != "OPEN":
+            return JSONResponse(status_code=409,
+                                content={"error": f"Trade already {trade['outcome']}"})
+
+        # Exit price: use stored close_price if post-EOD, else fetch live LTP
+        exit_price = None
+        if trade.get("close_price") and now_ist.time() > dt_time(15, 30):
+            exit_price = float(trade["close_price"])
+        else:
+            conn    = get_conn()
+            sym_map = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, trade["date"])}
+            conn.close()
+            tok     = sym_map.get(trade["symbol"])
+            smart_s = _get_smart()
+            if smart_s and tok:
+                q = _orb_raw_quotes(smart_s, [tok]).get(tok)
+                exit_price = q["ltp"] if q else None
+
+        if exit_price is None:
+            return JSONResponse(status_code=503,
+                                content={"error": "Live price unavailable for square-off"})
+
+        pnl = _orb_pnl(
+            outcome="SQUARE_OFF", direction=trade["direction"],
+            entry_price=trade["trigger_price"], exit_price=exit_price,
+            quantity=trade["quantity"], target_points=trade["target_points"],
+            sl_pts=trade["sl_points"],
+        )
+        return_amount = round(trade["investment"] + pnl, 2)
+
+        conn = get_conn()
+        orb_update_trade(conn, body.trade_id, {
+            "outcome":       "SQUARE_OFF",
+            "exit_price":    exit_price,
+            "exit_time":     now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+            "pnl":           pnl,
+            "return_amount": return_amount,
+        })
+        conn.close()
+        log.info(
+            f"[SIM-SQUAREOFF] {trade['direction']} {trade['symbol']} "
+            f"@ ₹{exit_price} | P/L ₹{pnl:+.2f}"
+        )
+        return {"ok": True, "symbol": trade["symbol"],
+                "exit_price": exit_price, "pnl": pnl, "return_amount": return_amount}
+    except Exception as e:
+        log.error(f"[SIM-SQUAREOFF] {e}", exc_info=True)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 

@@ -35,6 +35,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | stock-options-tutorial-tamil | `stock_options_tutorial_tamil.md` | active |
 | stock-reversal | `stock-reversal.md` | active |
 | stock-breakout | `stock_breakout.md` | active |
+| stock-intraday-simulator | `stock-intraday-simulator.md` | active |
 
 ---
 
