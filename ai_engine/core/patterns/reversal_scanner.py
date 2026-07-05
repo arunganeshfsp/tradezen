@@ -129,7 +129,7 @@ def scan_reversals(
     try:
         raw = yf.download(
             tickers,
-            period="1y",
+            period="2y",
             interval="1d",
             group_by="column",
             auto_adjust=True,
@@ -165,7 +165,7 @@ def scan_reversals(
                 continue
 
             # ── Trough: local-minima detection with global-min fallback ──────
-            look_start  = max(0, len(close) - 200)
+            look_start  = max(0, len(close) - (max_days + 50))
             look_prices = close.iloc[look_start:].values.astype(float)
             look_offset = look_start
             n_look = len(look_prices)
@@ -368,7 +368,7 @@ def check_single_stock(
     ticker_sym = raw if raw.endswith(".NS") or raw.endswith(".BO") else raw + ".NS"
 
     tk   = yf.Ticker(ticker_sym)
-    hist = tk.history(period="1y", interval="1d", auto_adjust=True)
+    hist = tk.history(period="2y", interval="1d", auto_adjust=True)
 
     if hist.empty or len(hist) < 60:
         return {"error": f"Insufficient price history for '{raw}'. Verify the NSE symbol and try again."}
@@ -380,7 +380,7 @@ def check_single_stock(
     n             = len(close)
 
     # ── Trough: local-minima detection with global-min fallback ──────────────
-    look_start  = max(0, n - 200)
+    look_start  = max(0, n - (max_days + 50))
     look_prices = close.iloc[look_start:].values.astype(float)
     look_offset = look_start
     n_look = len(look_prices)
