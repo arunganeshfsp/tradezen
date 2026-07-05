@@ -1401,7 +1401,7 @@ function soToast(msg,ok,dur=4500){
 async function paperTrade(side){
   if(!_sdOpt||!_sdStrike)return;
   const token=localStorage.getItem('tz_learn_token');
-  if(!token){window.location.href='/learn/auth.html';return;}
+  if(!token){window.location.href='/learn/auth.html?next='+encodeURIComponent(window.location.pathname);return;}
   const lots=Math.max(1,Number(document.getElementById('ptLots').value)||1);
   const lotSize=_sdOpt.lot_size||(_lastChain&&_lastChain.lot_size)||1;
   const buyBtn=document.getElementById('ptBuyBtn');

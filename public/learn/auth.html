@@ -251,6 +251,7 @@
   const params  = new URLSearchParams(location.search);
   const nextUrl = params.get('next') || '/learn/index.html';
   if (localStorage.getItem('tz_learn_token')) location.replace(nextUrl);
+  if (params.get('mode') === 'register') showTab('signup');
 
   // ── Tab switch ────────────────────────────────────────────────────────────────
   function showTab(tab) {

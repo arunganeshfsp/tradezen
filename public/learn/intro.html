@@ -638,8 +638,8 @@ a { text-decoration: none; color: inherit; }
   <div class="lnav-right">
     <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
     <button class="lang-btn" id="langTa" onclick="setLang('ta')">தமிழ்</button>
-    <a href="/learn/auth.html" class="btn-signin" data-en="Sign In" data-ta="உள்நுழைய">Sign In</a>
-    <a href="/learn/auth.html?mode=register" class="btn-start-sm" data-en="Start Free" data-ta="இலவசமாக தொடங்கு">Start Free</a>
+    <a href="/learn/auth.html?next=/learn/" class="btn-signin" data-en="Sign In" data-ta="உள்நுழைய">Sign In</a>
+    <a href="/learn/auth.html?next=/learn/&mode=register" class="btn-start-sm" data-en="Start Free" data-ta="இலவசமாக தொடங்கு">Start Free</a>
   </div>
 </nav>
 
@@ -661,7 +661,7 @@ a { text-decoration: none; color: inherit; }
 
     <p class="hero-nudge" data-en="No tips. No noise. Just the building blocks." data-ta="டிப்ஸ் இல்லை. சத்தம் இல்லை. அடிப்படை அறிவு மட்டுமே.">No tips. No noise. Just the building blocks.</p>
 
-    <a href="/learn/auth.html" class="btn-hero">
+    <a href="/learn/auth.html?next=/learn/" class="btn-hero">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       <span data-en="Start Learning — it's free" data-ta="இலவசமாக கற்றல் தொடங்குங்கள்">Start Learning — it's free</span>
     </a>
@@ -821,7 +821,7 @@ a { text-decoration: none; color: inherit; }
 <div class="cta-wrap">
   <h2 class="cta-h2" data-en="Ready to take control of your financial future?" data-ta="உங்கள் நிதி எதிர்காலத்தை நீங்களே வழிநடத்த தயாரா?">Ready to take control of your financial future?</h2>
   <p class="cta-sub" data-en="Join learners building real knowledge — one lesson at a time." data-ta="ஒரு பாடத்தில் ஆரம்பித்து உண்மையான அறிவை கட்டமைக்கும் கற்பவர்களுடன் சேருங்கள்.">Join learners building real knowledge — one lesson at a time.</p>
-  <a href="/learn/auth.html" class="btn-hero">
+  <a href="/learn/auth.html?next=/learn/" class="btn-hero">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
     <span data-en="Start Learning — it's free" data-ta="இலவசமாக கற்றல் தொடங்குங்கள்">Start Learning — it's free</span>
   </a>
@@ -839,7 +839,7 @@ a { text-decoration: none; color: inherit; }
   <span>© 2026 TradeZen</span>
   <div style="display:flex;gap:20px;">
     <a href="/" data-en="Dashboard" data-ta="டாஷ்போர்ட்">Dashboard</a>
-    <a href="/learn/auth.html" data-en="Sign In" data-ta="உள்நுழைய">Sign In</a>
+    <a href="/learn/auth.html?next=/learn/" data-en="Sign In" data-ta="உள்நுழைய">Sign In</a>
   </div>
 </div>
 
@@ -919,7 +919,7 @@ applyLang();
       goTo(_slide + 1);
     } else {
       endTour();
-      window.location.href = '/learn/auth.html';
+      window.location.href = '/learn/auth.html?next=/learn/';
     }
   });
   document.querySelectorAll('.tour-dot').forEach(function(dot) {
