@@ -435,84 +435,127 @@ a { text-decoration: none; color: inherit; }
 <!-- ── First-visit Tour Overlay ─────────────────────────────── -->
 <div id="tourOverlay" class="tour-overlay" style="display:none;">
   <div class="tour-dialog">
-    <button class="tour-skip" id="tourSkip">SKIP TOUR ✕</button>
+    <button class="tour-skip" id="tourSkip"
+      data-en="SKIP TOUR ✕" data-ta="தவிர்க்க ✕">SKIP TOUR ✕</button>
 
     <!-- Slide 1: Welcome -->
     <div class="tour-slide t-active" id="tourSlide1">
-      <div class="tour-eyebrow">WELCOME TO TRADEZEN LEARN</div>
-      <h2 class="tour-h">Financial education that <em>actually makes sense.</em></h2>
-      <p class="tour-p">Built for people who want to understand money — not just follow someone else's tips. Learn at your own pace, in your language, completely free.</p>
+      <div class="tour-eyebrow"
+        data-en="WELCOME TO TRADEZEN LEARN"
+        data-ta="டிரேட்ஜென் லர்னிற்கு வரவேற்கிறோம்">WELCOME TO TRADEZEN LEARN</div>
+      <h2 class="tour-h">
+        <span data-en="Financial education that "
+              data-ta="நிதி கல்வி ">Financial education that </span><em
+          data-en="actually makes sense."
+          data-ta="உண்மையிலேயே புரியும் வகையில்.">actually makes sense.</em>
+      </h2>
+      <p class="tour-p"
+        data-en="Built for people who want to understand money — not just follow someone else's tips. Learn at your own pace, in your language, completely free."
+        data-ta="பணத்தை புரிந்துகொள்ள விரும்பும் மனிதர்களுக்காக — வேறொருவரின் டிப்ஸ் பின்பற்றுவதற்காக அல்ல. உங்கள் வேகத்தில், உங்கள் மொழியில், முற்றிலும் இலவசமாக கற்றுக்கொள்ளுங்கள்.">
+        Built for people who want to understand money — not just follow someone else's tips. Learn at your own pace, in your language, completely free.
+      </p>
       <div class="tour-stats">
-        <span class="tour-stat">59 Lessons</span>
-        <span class="tour-stat">3 Tracks</span>
+        <span class="tour-stat" data-en="59 Lessons" data-ta="59 பாடங்கள்">59 Lessons</span>
+        <span class="tour-stat" data-en="3 Tracks" data-ta="3 பாதைகள்">3 Tracks</span>
         <span class="tour-stat">2520 XP</span>
-        <span class="tour-stat">Tamil + English</span>
-        <span class="tour-stat">Free</span>
+        <span class="tour-stat" data-en="Tamil + English" data-ta="தமிழ் + ஆங்கிலம்">Tamil + English</span>
+        <span class="tour-stat" data-en="Free" data-ta="இலவசம்">Free</span>
       </div>
     </div>
 
     <!-- Slide 2: How a lesson works -->
     <div class="tour-slide" id="tourSlide2">
-      <div class="tour-eyebrow">HOW IT WORKS</div>
-      <h2 class="tour-h">3–5 minutes per lesson. <em>That's all.</em></h2>
+      <div class="tour-eyebrow"
+        data-en="HOW IT WORKS"
+        data-ta="இது எப்படி வேலை செய்கிறது">HOW IT WORKS</div>
+      <h2 class="tour-h">
+        <span data-en="3–5 minutes per lesson. "
+              data-ta="ஒரு பாடம் 3–5 நிமிடங்கள். ">3–5 minutes per lesson. </span><em
+          data-en="That's all."
+          data-ta="அவ்வளவுதான்.">That's all.</em>
+      </h2>
       <div class="how-row">
         <div class="how-step">
           <div class="how-step-icon h1">📖</div>
-          <div class="how-step-label">Read</div>
-          <div class="how-step-sub">Short, clear concept</div>
+          <div class="how-step-label" data-en="Read" data-ta="படிக்க">Read</div>
+          <div class="how-step-sub" data-en="Short, clear concept" data-ta="சுருக்கமான கருத்து">Short, clear concept</div>
         </div>
         <div class="how-arrow">›</div>
         <div class="how-step">
           <div class="how-step-icon h2">🧩</div>
-          <div class="how-step-label">Quiz</div>
-          <div class="how-step-sub">2–3 quick questions</div>
+          <div class="how-step-label" data-en="Quiz" data-ta="வினாடி வினா">Quiz</div>
+          <div class="how-step-sub" data-en="2–3 quick questions" data-ta="2–3 வினாக்கள்">2–3 quick questions</div>
         </div>
         <div class="how-arrow">›</div>
         <div class="how-step">
           <div class="how-step-icon h3">⭐</div>
-          <div class="how-step-label">Earn XP</div>
-          <div class="how-step-sub">Build your streak</div>
+          <div class="how-step-label" data-en="Earn XP" data-ta="XP சம்பாதி">Earn XP</div>
+          <div class="how-step-sub" data-en="Build your streak" data-ta="streak தொடருங்கள்">Build your streak</div>
         </div>
       </div>
       <div class="lesson-mock">
-        <div class="lm-tag">📚 LESSON · FOUNDATION · 4 MIN READ</div>
-        <div class="lm-title">What is Compounding?</div>
-        <div class="lm-body">Money that earns returns — and those returns earn even more returns. The single most powerful idea in personal finance, finally explained simply...</div>
+        <div class="lm-tag"
+          data-en="📚 LESSON · FOUNDATION · 4 MIN READ"
+          data-ta="📚 பாடம் · அடித்தளம் · 4 நிமிட வாசிப்பு">📚 LESSON · FOUNDATION · 4 MIN READ</div>
+        <div class="lm-title"
+          data-en="What is Compounding?"
+          data-ta="Compounding என்றால் என்ன?">What is Compounding?</div>
+        <div class="lm-body"
+          data-en="Money that earns returns — and those returns earn even more returns. The single most powerful idea in personal finance, finally explained simply..."
+          data-ta="வருமானம் ஈட்டும் பணம் — அந்த வருமானமும் மேலும் வருமானம் ஈட்டுகிறது. தனிப்பட்ட நிதியில் மிக முக்கியமான கருத்து, எளிமையாக விளக்கப்பட்டுள்ளது...">
+          Money that earns returns — and those returns earn even more returns. The single most powerful idea in personal finance, finally explained simply...
+        </div>
         <div class="lm-bar"><div class="lm-fill"></div></div>
         <div class="lm-chips">
-          <span class="lm-chip">✓ Lesson complete</span>
-          <span class="lm-chip">+42 XP earned</span>
+          <span class="lm-chip" data-en="✓ Lesson complete" data-ta="✓ பாடம் முடிந்தது">✓ Lesson complete</span>
+          <span class="lm-chip" data-en="+42 XP earned" data-ta="+42 XP கிடைத்தது">+42 XP earned</span>
         </div>
       </div>
     </div>
 
     <!-- Slide 3: Three tracks -->
     <div class="tour-slide" id="tourSlide3">
-      <div class="tour-eyebrow">YOUR LEARNING PATH</div>
-      <h2 class="tour-h">3 tracks. <em>Start anywhere.</em></h2>
-      <p class="tour-p">Each track builds on the previous — or jump straight to what interests you most.</p>
+      <div class="tour-eyebrow"
+        data-en="YOUR LEARNING PATH"
+        data-ta="உங்கள் கற்றல் பாதை">YOUR LEARNING PATH</div>
+      <h2 class="tour-h">
+        <span data-en="3 tracks. " data-ta="3 பாதைகள். ">3 tracks. </span><em
+          data-en="Start anywhere."
+          data-ta="எங்கும் தொடங்கலாம்.">Start anywhere.</em>
+      </h2>
+      <p class="tour-p"
+        data-en="Each track builds on the previous — or jump straight to what interests you most."
+        data-ta="ஒவ்வொரு பாதையும் முந்தையதை அடிப்படையாக கொண்டது — அல்லது உங்களுக்கு விருப்பமான இடத்தில் நேரடியாக தொடங்குங்கள்.">
+        Each track builds on the previous — or jump straight to what interests you most.
+      </p>
       <div class="mini-tracks">
         <div class="mini-track">
           <div class="mt-icon">📚</div>
           <div class="mt-body">
-            <div class="mt-title">Foundation</div>
-            <div class="mt-sub">15 lessons · How money works, what markets are, SIP basics</div>
+            <div class="mt-title" data-en="Foundation" data-ta="அடித்தளம்">Foundation</div>
+            <div class="mt-sub"
+              data-en="15 lessons · How money works, what markets are, SIP basics"
+              data-ta="15 பாடங்கள் · பணம் எப்படி வேலை செய்கிறது, சந்தைகள் என்ன, SIP அடிப்படைகள்">15 lessons · How money works, what markets are, SIP basics</div>
           </div>
           <span class="mt-xp">510 XP</span>
         </div>
         <div class="mini-track">
           <div class="mt-icon">🔍</div>
           <div class="mt-body">
-            <div class="mt-title">Fundamental Analysis</div>
-            <div class="mt-sub">23 lessons · PE ratio, EPS, ROE, reading company results</div>
+            <div class="mt-title" data-en="Fundamental Analysis" data-ta="அடிப்படை பகுப்பாய்வு">Fundamental Analysis</div>
+            <div class="mt-sub"
+              data-en="23 lessons · PE ratio, EPS, ROE, reading company results"
+              data-ta="23 பாடங்கள் · PE ratio, EPS, ROE, நிறுவன முடிவுகளை படிக்க">23 lessons · PE ratio, EPS, ROE, reading company results</div>
           </div>
           <span class="mt-xp t2">935 XP</span>
         </div>
         <div class="mini-track">
           <div class="mt-icon">📊</div>
           <div class="mt-body">
-            <div class="mt-title">Technical Analysis</div>
-            <div class="mt-sub">21 lessons · Charts, candlesticks, support levels, breakouts</div>
+            <div class="mt-title" data-en="Technical Analysis" data-ta="தொழில்நுட்ப பகுப்பாய்வு">Technical Analysis</div>
+            <div class="mt-sub"
+              data-en="21 lessons · Charts, candlesticks, support levels, breakouts"
+              data-ta="21 பாடங்கள் · சார்ட்கள், candlesticks, support levels, breakouts">21 lessons · Charts, candlesticks, support levels, breakouts</div>
           </div>
           <span class="mt-xp t3">1075 XP</span>
         </div>
@@ -521,28 +564,49 @@ a { text-decoration: none; color: inherit; }
 
     <!-- Slide 4: Why it's different -->
     <div class="tour-slide" id="tourSlide4">
-      <div class="tour-eyebrow">BEFORE YOU START</div>
-      <h2 class="tour-h">Built different. <em>On purpose.</em></h2>
+      <div class="tour-eyebrow"
+        data-en="BEFORE YOU START"
+        data-ta="தொடங்குவதற்கு முன்">BEFORE YOU START</div>
+      <h2 class="tour-h">
+        <span data-en="Built different. " data-ta="வித்தியாசமாக கட்டமைக்கப்பட்டது. ">Built different. </span><em
+          data-en="On purpose."
+          data-ta="நோக்கத்துடன்.">On purpose.</em>
+      </h2>
       <div class="benefit-list">
         <div class="benefit-item">
           <div class="benefit-check">✓</div>
-          <div class="benefit-text">Tamil + English — switch anytime <em>· no language barrier</em></div>
+          <div class="benefit-text">
+            <span data-en="Tamil + English — switch anytime" data-ta="தமிழ் + ஆங்கிலம் — எப்போதும் மாற்றலாம்">Tamil + English — switch anytime</span>
+            <em data-en=" · no language barrier" data-ta=" · மொழித் தடை இல்லை"> · no language barrier</em>
+          </div>
         </div>
         <div class="benefit-item">
           <div class="benefit-check">✓</div>
-          <div class="benefit-text">3–5 min lessons — fits any schedule <em>· no long lectures or commitments</em></div>
+          <div class="benefit-text">
+            <span data-en="3–5 min lessons — fits any schedule" data-ta="3–5 நிமிட பாடங்கள் — எந்த அட்டவணைக்கும் பொருந்தும்">3–5 min lessons — fits any schedule</span>
+            <em data-en=" · no long lectures or commitments" data-ta=" · நீண்ட விரிவுரைகள் இல்லை"> · no long lectures or commitments</em>
+          </div>
         </div>
         <div class="benefit-item">
           <div class="benefit-check">✓</div>
-          <div class="benefit-text">XP + streak system — knowledge compounds <em>· just like a good SIP</em></div>
+          <div class="benefit-text">
+            <span data-en="XP + streak system — knowledge compounds" data-ta="XP + streak முறை — அறிவும் கூட்டு வட்டியாக வளரும்">XP + streak system — knowledge compounds</span>
+            <em data-en=" · just like a good SIP" data-ta=" · ஒரு நல்ல SIP போல"> · just like a good SIP</em>
+          </div>
         </div>
         <div class="benefit-item">
           <div class="benefit-check">✓</div>
-          <div class="benefit-text">No tips, no signals — SEBI-compliant <em>· real understanding, not noise</em></div>
+          <div class="benefit-text">
+            <span data-en="No tips, no signals — SEBI-compliant" data-ta="டிப்ஸ் இல்லை, சிக்னல் இல்லை — SEBI இணங்கிய கல்வி">No tips, no signals — SEBI-compliant</span>
+            <em data-en=" · real understanding, not noise" data-ta=" · உண்மையான புரிதல், சத்தம் அல்ல"> · real understanding, not noise</em>
+          </div>
         </div>
         <div class="benefit-item">
           <div class="benefit-check">✓</div>
-          <div class="benefit-text">Completely free <em>· create an account in under 30 seconds</em></div>
+          <div class="benefit-text">
+            <span data-en="Completely free" data-ta="முற்றிலும் இலவசம்">Completely free</span>
+            <em data-en=" · create an account in under 30 seconds" data-ta=" · 30 விநாடிகளில் கணக்கு உருவாக்குங்கள்"> · create an account in under 30 seconds</em>
+          </div>
         </div>
       </div>
     </div>
@@ -556,8 +620,10 @@ a { text-decoration: none; color: inherit; }
         <div class="tour-dot" data-slide="4"></div>
       </div>
       <div class="tour-btns">
-        <button class="tour-prev" id="tourPrev" style="display:none;">← Back</button>
-        <button class="tour-next" id="tourNext">Next →</button>
+        <button class="tour-prev" id="tourPrev" style="display:none;"
+          data-en="← Back" data-ta="← பின்னால்">← Back</button>
+        <button class="tour-next" id="tourNext"
+          data-en="Next →" data-ta="அடுத்து →">Next →</button>
       </div>
     </div>
   </div>
@@ -817,19 +883,22 @@ applyLang();
     for (let i = 1; i <= TOTAL; i++) {
       document.getElementById('tourSlide' + i).classList.toggle('t-active', i === _slide);
     }
-    document.querySelectorAll('.tour-dot').forEach((d, i) => {
+    document.querySelectorAll('.tour-dot').forEach(function(d, i) {
       d.classList.toggle('td-active', i + 1 === _slide);
     });
     const prev = document.getElementById('tourPrev');
     const next = document.getElementById('tourNext');
     prev.style.display = _slide > 1 ? 'inline-block' : 'none';
     if (_slide === TOTAL) {
-      next.textContent = 'Start Learning →';
+      next.dataset.en = 'Start Learning →';
+      next.dataset.ta = 'கற்றல் தொடங்குங்கள் →';
       next.style.background = 'linear-gradient(135deg,var(--accent),var(--accent2))';
     } else {
-      next.textContent = 'Next →';
+      next.dataset.en = 'Next →';
+      next.dataset.ta = 'அடுத்து →';
       next.style.background = 'var(--accent)';
     }
+    applyLang();
   }
 
   function endTour() {
