@@ -104,6 +104,12 @@ def _ensure_tables(conn: sqlite3.Connection):
             created_at      TEXT,
             updated_at      TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS orb_settings (
+            key        TEXT PRIMARY KEY,
+            value      TEXT NOT NULL,
+            updated_at TEXT
+        );
     """)
     conn.commit()
 
@@ -297,4 +303,41 @@ def orb_update_trade(conn, trade_id: str, updates: dict):
     cols  = ", ".join(f"{k}=?" for k in updates)
     vals  = list(updates.values()) + [trade_id]
     conn.execute(f"UPDATE orb_stock_trades SET {cols} WHERE id=?", vals)
+    conn.commit()
+
+
+# ── ORB Settings helpers ───────────────────────────────────────────────────────
+
+ORB_SETTING_DEFAULTS: dict = {
+    "target_rupees":   "900",
+    "universe":        "nifty500_fno",
+    "price_min":       "700",
+    "price_max":       "7000",
+    "dom_min_pct":     "60",
+    "max_slots":       "5",
+    "default_sl_basis": "VWAP",
+    "candidate_cap":   "25",
+}
+
+
+def orb_get_settings(conn) -> dict:
+    cur = conn.execute("SELECT key, value FROM orb_settings")
+    stored = {r["key"]: r["value"] for r in cur.fetchall()}
+    result = dict(ORB_SETTING_DEFAULTS)
+    result.update(stored)
+    result["target_rupees"] = float(result["target_rupees"])
+    result["price_min"]     = float(result["price_min"])
+    result["price_max"]     = float(result["price_max"])
+    result["dom_min_pct"]   = float(result["dom_min_pct"])
+    result["max_slots"]     = int(result["max_slots"])
+    result["candidate_cap"] = int(result["candidate_cap"])
+    return result
+
+
+def orb_upsert_settings(conn, updates: dict):
+    now = datetime.utcnow().isoformat()
+    conn.executemany(
+        "INSERT OR REPLACE INTO orb_settings (key, value, updated_at) VALUES (?,?,?)",
+        [(k, str(v), now) for k, v in updates.items()],
+    )
     conn.commit()

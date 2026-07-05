@@ -1026,6 +1026,25 @@ router.post("/simulator/square-off", async (req, res) => {
   }
 });
 
+// ─── GET /api/simulator/settings ─────────────────────────────────────────────
+router.get("/simulator/settings", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/simulator/settings", 8000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── POST /api/simulator/settings ────────────────────────────────────────────
+router.post("/simulator/settings", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/simulator/settings", 8000, req.body);
+    res.json(data);
+  } catch (err) {
+    const status = err.status === 400 ? 400 : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/stock/health/:symbol ───────────────────────────────────────────
 // 4-persona fundamental health report (Stock Health Story tool)
 router.get("/stock/health/:symbol", async (req, res) => {

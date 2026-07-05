@@ -205,6 +205,41 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .sum-sep{width:1px;background:var(--border);align-self:stretch;margin:0 4px}
 @media(max-width:600px){.summary-strip{gap:10px}.sum-item{min-width:70px;padding:0 10px}.sum-sep{display:none}}
 
+/* ── SETTINGS BUTTON (ctrl-bar) ── */
+.settings-btn{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);
+  color:var(--dim);padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;
+  gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;
+  transition:all .15s}
+.settings-btn:hover{color:var(--text);border-color:var(--accent);background:rgba(124,106,247,0.08)}
+
+/* ── SETTINGS OFFCANVAS ── */
+.settings-canvas .offcanvas-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 20px}
+.settings-canvas .offcanvas-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.settings-canvas .offcanvas-body{background:var(--bg1);padding:20px;overflow-y:auto}
+.settings-canvas{background:var(--bg1);border-left:1px solid var(--border);width:340px !important}
+.sett-notice{background:var(--yellow-bg);border:1px solid rgba(245,166,35,0.3);border-radius:var(--r2);
+  padding:9px 12px;font-size:11px;color:var(--yellow);margin-bottom:18px;line-height:1.5}
+.sett-group{margin-bottom:16px}
+.sett-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
+.sett-hint{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4}
+.sett-inp,.sett-sel{width:100%;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);color:var(--text);font-family:'JetBrains Mono',monospace;
+  font-size:12px;padding:6px 10px;outline:none;transition:border-color .15s}
+.sett-inp:focus,.sett-sel:focus{border-color:var(--accent)}
+.sett-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sett-divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+.save-btn{width:100%;background:linear-gradient(135deg,var(--accent),#5b8af5);
+  border:none;border-radius:var(--r2);color:#fff;font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;padding:10px;cursor:pointer;transition:opacity .15s;
+  letter-spacing:.3px}
+.save-btn:hover{opacity:.85}
+.save-btn:disabled{opacity:.4;cursor:default}
+.sett-ok{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);
+  text-align:center;padding:6px;display:none}
+.sett-err{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);
+  text-align:center;padding:6px;display:none}
+
 /* ── LIGHT THEME ── */
 [data-theme="light"]:root,
 :root[data-theme="light"]{
@@ -268,9 +303,97 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="ctrl-lbl" data-en="SESSION DATE" data-ta="தேதி">SESSION DATE</div>
     <input type="date" id="datePicker" class="date-input" />
   </div>
+  <button class="settings-btn" type="button"
+    data-bs-toggle="offcanvas" data-bs-target="#settingsPanel" aria-label="Engine settings">
+    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+    </svg>
+    SETTINGS
+  </button>
   <div class="ctrl-status">
     <span class="pulse-dot" id="pulseDot"></span>
     <span id="statusText">Connecting…</span>
+  </div>
+</div>
+
+<!-- SETTINGS OFFCANVAS -->
+<div class="offcanvas offcanvas-end settings-canvas" tabindex="-1" id="settingsPanel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Engine Settings</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="sett-notice">
+      Settings apply from the <strong>next session's 09:16 capture</strong>. They do not change today's candidates or open trades.
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-target">Target per trade (₹)</label>
+      <input type="number" id="sett-target" class="sett-inp" min="100" max="10000" step="50" placeholder="900" />
+      <div class="sett-hint">Study P/L target in ₹ per simulated trade. Default: ₹900.</div>
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-slots">Max concurrent slots</label>
+      <input type="number" id="sett-slots" class="sett-inp" min="1" max="20" step="1" placeholder="5" />
+      <div class="sett-hint">Maximum number of open simulated trades at once. Default: 5.</div>
+    </div>
+
+    <hr class="sett-divider" />
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-universe">Stock universe</label>
+      <select id="sett-universe" class="sett-sel">
+        <option value="nifty500_fno">Nifty 500 F&amp;O (~500 stocks)</option>
+        <option value="nifty100_fno">Nifty 100 F&amp;O (~100 stocks)</option>
+        <option value="nifty50">Nifty 50 F&amp;O (~50 stocks)</option>
+      </select>
+      <div class="sett-hint">Stocks scanned at 09:16. Smaller universe = fewer candidates, less noise.</div>
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-sl">Default SL basis</label>
+      <select id="sett-sl" class="sett-sel">
+        <option value="VWAP">VWAP (volume-weighted avg price)</option>
+        <option value="DAY_HIGH">Day High (for SELL candidates)</option>
+        <option value="DAY_LOW">Day Low (for BUY candidates)</option>
+      </select>
+      <div class="sett-hint">Default invalidation reference applied at capture. You can still change it per-stock before trigger.</div>
+    </div>
+
+    <hr class="sett-divider" />
+
+    <div class="sett-group">
+      <label class="sett-label">Price range filter (₹)</label>
+      <div class="sett-row">
+        <div>
+          <input type="number" id="sett-pmin" class="sett-inp" min="100" max="5000" step="50" placeholder="700" />
+          <div class="sett-hint">Min ₹</div>
+        </div>
+        <div>
+          <input type="number" id="sett-pmax" class="sett-inp" min="1000" max="50000" step="100" placeholder="7000" />
+          <div class="sett-hint">Max ₹</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-dom">Order-book dominance filter (%)</label>
+      <input type="number" id="sett-dom" class="sett-inp" min="30" max="90" step="5" placeholder="60" />
+      <div class="sett-hint">Min % on dominant side (buy% for BUY, sell% for SELL). Default: 60%.</div>
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-cap">Candidate cap (per side)</label>
+      <input type="number" id="sett-cap" class="sett-inp" min="5" max="100" step="5" placeholder="25" />
+      <div class="sett-hint">Max BUY + max SELL candidates kept after sorting by dominance strength. Default: 25.</div>
+    </div>
+
+    <hr class="sett-divider" />
+
+    <button class="save-btn" id="saveSettBtn" onclick="saveSettings()">Apply Settings</button>
+    <div id="settOk"  class="sett-ok">✓ Settings saved — takes effect from next session</div>
+    <div id="settErr" class="sett-err"></div>
   </div>
 </div>
 
@@ -735,7 +858,76 @@ function _fmt2(n)    { return n != null ? Number(n).toFixed(2) : '—'; }
 function _fmtInr(n)  { return n != null ? Math.round(Number(n)).toLocaleString('en-IN') : '—'; }
 function _esc(s)     { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// ── Settings ──────────────────────────────────────────────────────────────
+let _settings = null;
+
+async function loadSettings() {
+  try {
+    const r = await fetch(`${API}/settings`);
+    const d = await r.json();
+    if (d.error) return;
+    _settings = d;
+    renderSettings(d);
+  } catch (_) {}
+}
+
+function renderSettings(s) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  set('sett-target',   s.target_rupees);
+  set('sett-slots',    s.max_slots);
+  set('sett-universe', s.universe);
+  set('sett-sl',       s.default_sl_basis);
+  set('sett-pmin',     s.price_min);
+  set('sett-pmax',     s.price_max);
+  set('sett-dom',      s.dom_min_pct);
+  set('sett-cap',      s.candidate_cap);
+}
+
+async function saveSettings() {
+  const btn = document.getElementById('saveSettBtn');
+  const ok  = document.getElementById('settOk');
+  const err = document.getElementById('settErr');
+  ok.style.display = 'none';
+  err.style.display = 'none';
+  btn.disabled = true;
+
+  const val = id => { const el = document.getElementById(id); return el ? el.value : null; };
+  const body = {};
+  const tgt = parseFloat(val('sett-target')); if (tgt)  body.target_rupees    = tgt;
+  const slt = parseInt(val('sett-slots'));    if (slt)  body.max_slots         = slt;
+  const uni = val('sett-universe');           if (uni)  body.universe          = uni;
+  const slb = val('sett-sl');                if (slb)  body.default_sl_basis  = slb;
+  const pmn = parseFloat(val('sett-pmin'));  if (pmn)  body.price_min         = pmn;
+  const pmx = parseFloat(val('sett-pmax'));  if (pmx)  body.price_max         = pmx;
+  const dom = parseFloat(val('sett-dom'));   if (dom)  body.dom_min_pct       = dom;
+  const cap = parseInt(val('sett-cap'));     if (cap)  body.candidate_cap     = cap;
+
+  try {
+    const r = await fetch(`${API}/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      err.textContent = d.error || 'Failed to save settings';
+      err.style.display = 'block';
+    } else {
+      _settings = d;
+      renderSettings(d);
+      ok.style.display = 'block';
+      setTimeout(() => { ok.style.display = 'none'; }, 3500);
+    }
+  } catch (_) {
+    err.textContent = 'Network error';
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────
+loadSettings();
 loadState();
 startPolling();
 </script>

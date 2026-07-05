@@ -62,6 +62,27 @@ scripts: bootstrap, halo-aurora.js, inline JS
 | `GET /api/simulator/state?date=` | `GET /simulator/state?date=` | GET | Returns `{date, candidates, trades, summary, window}` |
 | `POST /api/simulator/sl-basis` | `POST /simulator/sl-basis` | POST | Sets SL basis for a WAITING candidate; body: `{date, symbol, side, basis, custom_price?}` |
 | `POST /api/simulator/square-off` | `POST /simulator/square-off` | POST | Squares off an OPEN trade at live LTP; body: `{trade_id}` |
+| `GET /api/simulator/settings` | `GET /simulator/settings` | GET | Returns all engine settings (with defaults) |
+| `POST /api/simulator/settings` | `POST /simulator/settings` | POST | Updates one or more settings; returns full settings object |
+
+## Engine Settings
+
+Stored in `orb_settings` SQLite table (key-value). Read by the background engine at each capture/trigger cycle — changes take effect from the **next session's 09:16 capture**.
+
+| Setting | Default | Description |
+|---|---|---|
+| `target_rupees` | 900 | Study P/L target ₹ per trade |
+| `max_slots` | 5 | Max concurrent open simulated trades |
+| `universe` | nifty500_fno | Stock universe: `nifty500_fno` / `nifty100_fno` / `nifty50` |
+| `default_sl_basis` | VWAP | SL basis applied to candidates at capture; per-stock override still possible |
+| `price_min` | 700 | Min price filter (₹) |
+| `price_max` | 7000 | Max price filter (₹) |
+| `dom_min_pct` | 60 | Min order-book dominance % to qualify as candidate |
+| `candidate_cap` | 25 | Max candidates kept per side (after sorting by dominance strength) |
+
+Helper functions in `storage/sqlite_store.py`: `orb_get_settings(conn)` (returns typed dict with defaults), `orb_upsert_settings(conn, updates)`.
+
+Universe symbol sets defined as frozen sets in `main.py`: `_NIFTY50_SYMS` (~50), `_NIFTY100_SYMS` (~100). Applied by filtering the Nifty500 F&O stocks at capture time.
 
 ---
 

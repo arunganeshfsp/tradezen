@@ -6574,7 +6574,34 @@ from storage.sqlite_store import (
     orb_get_candidates, orb_upsert_candidate, orb_update_candidate_sl,
     orb_update_candidate_status, orb_insert_trade,
     orb_get_trades, orb_get_open_trades, orb_update_trade,
+    orb_get_settings, orb_upsert_settings,
 )
+
+# Nifty index symbol sets — used for universe filtering at capture time.
+# Lists are approximate constituents; union with the F&O universe at runtime.
+_NIFTY50_SYMS: frozenset = frozenset({
+    "ADANIPORTS","ADANIENT","APOLLOHOSP","ASIANPAINT","AXISBANK",
+    "BAJAJ-AUTO","BAJAJFINSV","BAJFINANCE","BHARTIARTL","BPCL",
+    "BRITANNIA","CIPLA","COALINDIA","DIVISLAB","DRREDDY","EICHERMOT",
+    "GRASIM","HCLTECH","HDFCBANK","HDFCLIFE","HEROMOTOCO","HINDALCO",
+    "HINDUNILVR","ICICIBANK","INDUSINDBK","INFY","ITC","JSWSTEEL",
+    "KOTAKBANK","LT","M&M","MARUTI","NESTLEIND","NTPC","ONGC",
+    "POWERGRID","RELIANCE","SBILIFE","SBIN","SHREECEM","SUNPHARMA",
+    "TATAMOTORS","TATASTEEL","TCS","TECHM","TITAN","TATACONSUM",
+    "ULTRACEMCO","UPL","WIPRO",
+})
+
+_NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
+    "AMBUJACEM","AUROPHARMA","BAJAJHLDNG","BERGEPAINT","BOSCHLTD",
+    "CHOLAFIN","COLPAL","CONCOR","CUMMINSIND","DLF","GODREJCP",
+    "GODREJPROP","HAVELLS","ICICIPRULI","ICICIGI","INDUSTOWER","IOCL",
+    "IRCTC","JUBLFOOD","LUPIN","MARICO","MUTHOOTFIN","PAGEIND",
+    "PETRONET","PIIND","PIDILITE","PNB","RECLTD","SAIL","SBICARD",
+    "SIEMENS","SRF","TATACOMM","TATAPOWER","TORNTPHARM","TRENT",
+    "VEDL","VOLTAS","ZYDUSLIFE","HAL","BEL","NAUKRI","ZOMATO",
+    "ADANIGREEN","ADANITRANS","MCDOWELL-N","BANDHANBNK","ABBOTINDIA",
+    "POLYCAB","GLAND",
+})
 
 
 def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
@@ -6611,7 +6638,7 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
 
 
 def _orb_capture_sync(today: str):
-    """09:16 capture: quote Nifty500 F&O universe, filter/rank/cut, fetch 09:15 candles, persist."""
+    """09:16 capture: quote F&O universe, filter/rank/cut, fetch 09:15 candles, persist."""
     import time as _t
     log.info(f"[ORB-SIM] capture starting for {today}")
     smart_s = _get_smart()
@@ -6619,11 +6646,27 @@ def _orb_capture_sync(today: str):
         log.error("[ORB-SIM] capture aborted — no SmartAPI session")
         return
 
-    all_fno      = _load_fno_stocks()
-    n500         = _fetch_nifty500_symbols()
-    stocks       = [s for s in all_fno if s["symbol"].upper() in n500]
+    conn     = get_conn()
+    settings = orb_get_settings(conn)
+    conn.close()
+    price_min     = settings["price_min"]
+    price_max     = settings["price_max"]
+    dom_min       = settings["dom_min_pct"]
+    cap           = settings["candidate_cap"]
+    universe      = settings["universe"]
+    default_sl    = settings["default_sl_basis"]
+
+    all_fno = _load_fno_stocks()
+    n500    = _fetch_nifty500_symbols()
+    stocks  = [s for s in all_fno if s["symbol"].upper() in n500]
+
+    if universe == "nifty50":
+        stocks = [s for s in stocks if s["symbol"].upper() in _NIFTY50_SYMS]
+    elif universe == "nifty100_fno":
+        stocks = [s for s in stocks if s["symbol"].upper() in _NIFTY100_SYMS]
+
     if not stocks:
-        log.error("[ORB-SIM] no Nifty500 F&O stocks available")
+        log.error(f"[ORB-SIM] no stocks available for universe '{universe}'")
         return
 
     all_tokens   = [s["token"] for s in stocks]
@@ -6636,21 +6679,21 @@ def _orb_capture_sync(today: str):
         if not q:
             continue
         ltp = q["ltp"]
-        if not _orb_in_band(ltp):
+        if not (price_min <= ltp <= price_max):
             continue
         bp, sp   = q["buy_pct"], q["sell_pct"]
         strength = round(abs(bp - sp), 1)
         base     = {"symbol": s["symbol"], "token": s["token"],
                     "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength}
-        if _orb_dom_ok("BUY",  bp, sp):
+        if bp >= dom_min:
             buy_cands.append(base)
-        if _orb_dom_ok("SELL", bp, sp):
+        if sp >= dom_min:
             sell_cands.append(base)
 
     buy_cands.sort(key=lambda x: -x["strength"])
     sell_cands.sort(key=lambda x: -x["strength"])
-    buy_cands  = buy_cands[:SIM_CANDIDATE_CAP]
-    sell_cands = sell_cands[:SIM_CANDIDATE_CAP]
+    buy_cands  = buy_cands[:cap]
+    sell_cands = sell_cands[:cap]
     log.info(f"[ORB-SIM] filter result — {len(buy_cands)} BUY, {len(sell_cands)} SELL candidates")
 
     unique_tokens = {c["token"] for c in buy_cands + sell_cands}
@@ -6676,7 +6719,8 @@ def _orb_capture_sync(today: str):
     for c, side in ([(c, "BUY") for c in buy_cands] + [(c, "SELL") for c in sell_cands]):
         if c["token"] in candle_map:
             orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
-                                 {**c, **candle_map[c["token"]], "status": "WAITING"})
+                                 {**c, **candle_map[c["token"]], "status": "WAITING",
+                                  "sl_basis": default_sl})
             saved += 1
         else:
             orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
@@ -6688,7 +6732,10 @@ def _orb_capture_sync(today: str):
 def _orb_trigger_poll_sync(today: str, now_ist):
     """Check WAITING candidates vs benchmark; auto-create trades within slot cap."""
     import uuid as _uuid
-    conn    = get_conn()
+    conn     = get_conn()
+    settings = orb_get_settings(conn)
+    max_slots     = settings["max_slots"]
+    target_rupees = settings["target_rupees"]
     waiting = [c for c in orb_get_candidates(conn, today) if c["status"] == "WAITING"]
     if not waiting:
         conn.close()
@@ -6723,9 +6770,9 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                                         "SKIPPED", "Already traded today")
             continue
 
-        if open_count >= SIM_MAX_SLOTS:
+        if open_count >= max_slots:
             orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
-                                        f"All {SIM_MAX_SLOTS} slots occupied at trigger")
+                                        f"All {max_slots} slots occupied at trigger")
             continue
 
         sl_price, sl_err = _orb_resolve_sl(
@@ -6745,7 +6792,7 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                                         "SKIPPED", f"Qty 0 at price ₹{ltp}")
             continue
 
-        tgt_pts, tgt_price = _orb_target(side, ltp, qty)
+        tgt_pts, tgt_price = _orb_target(side, ltp, qty, target_rupees=target_rupees)
         sl_pts             = _orb_sl_pts(side, ltp, sl_price)
         rr                 = _orb_rr(tgt_pts, sl_pts)
         investment         = round(qty * ltp, 2)
@@ -6986,6 +7033,7 @@ async def simulator_state(date: str = ""):
         conn       = get_conn()
         candidates = orb_get_candidates(conn, date)
         trades     = orb_get_trades(conn, date)
+        settings   = orb_get_settings(conn)
         conn.close()
 
         open_trades = [t for t in trades if t["outcome"] == "OPEN"]
@@ -7011,7 +7059,7 @@ async def simulator_state(date: str = ""):
             "window": {
                 "phase":      _orb_window_phase(),
                 "slots_used": len(open_trades),
-                "slots_total": SIM_MAX_SLOTS,
+                "slots_total": settings["max_slots"],
             },
         }
     except Exception as e:
@@ -7104,6 +7152,53 @@ async def simulator_square_off(body: _OrbSquareOffBody):
                 "exit_price": exit_price, "pnl": pnl, "return_amount": return_amount}
     except Exception as e:
         log.error(f"[SIM-SQUAREOFF] {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+class _OrbSettingsBody(BaseModel):
+    target_rupees:    float | None = None
+    universe:         str   | None = None
+    price_min:        float | None = None
+    price_max:        float | None = None
+    dom_min_pct:      float | None = None
+    max_slots:        int   | None = None
+    default_sl_basis: str   | None = None
+    candidate_cap:    int   | None = None
+
+
+@app.get("/simulator/settings")
+async def simulator_get_settings():
+    try:
+        conn = get_conn()
+        s    = orb_get_settings(conn)
+        conn.close()
+        return s
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/simulator/settings")
+async def simulator_post_settings(body: _OrbSettingsBody):
+    _VALID_UNI = {"nifty500_fno", "nifty100_fno", "nifty50"}
+    _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW"}
+    errs = []
+    if body.universe         and body.universe         not in _VALID_UNI: errs.append("universe")
+    if body.default_sl_basis and body.default_sl_basis not in _VALID_SL:  errs.append("default_sl_basis")
+    if body.target_rupees    is not None and body.target_rupees  <= 0:     errs.append("target_rupees must be > 0")
+    if body.max_slots        is not None and not (1 <= body.max_slots <= 20): errs.append("max_slots must be 1–20")
+    if body.candidate_cap    is not None and not (5 <= body.candidate_cap <= 100): errs.append("candidate_cap must be 5–100")
+    if body.dom_min_pct      is not None and not (30 <= body.dom_min_pct <= 90):   errs.append("dom_min_pct must be 30–90")
+    if errs:
+        return JSONResponse(status_code=400, content={"error": f"Invalid: {', '.join(errs)}"})
+    updates = {k: v for k, v in body.dict(exclude_none=True).items()}
+    try:
+        conn = get_conn()
+        orb_upsert_settings(conn, updates)
+        s    = orb_get_settings(conn)
+        conn.close()
+        log.info(f"[SIM-SETTINGS] updated: {list(updates.keys())}")
+        return s
+    except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
