@@ -6717,10 +6717,11 @@ def _orb_capture_sync(today: str):
     conn  = get_conn()
     saved = 0
     for c, side in ([(c, "BUY") for c in buy_cands] + [(c, "SELL") for c in sell_cands]):
+        resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
         if c["token"] in candle_map:
             orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
                                  {**c, **candle_map[c["token"]], "status": "WAITING",
-                                  "sl_basis": default_sl})
+                                  "sl_basis": resolved_sl})
             saved += 1
         else:
             orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
@@ -7251,11 +7252,12 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             "_tok":      s["token"],
             "ltp_0916":  ltp_0916, "buy_pct": 0.0, "sell_pct": 0.0,
             "strength":  strength, "bench_high": bench_high, "bench_low": bench_low,
-            "sl_basis":  default_sl,
         }
         for side, trig_dt in [("BUY", buy_dt), ("SELL", sell_dt)]:
+            resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
             all_cands[(s["symbol"], side)] = {
                 **base,
+                "sl_basis": resolved_sl,
                 "status": "WAITING" if trig_dt else "WINDOW_CLOSED",
                 "remark": None if trig_dt else "No breakout in entry window",
             }
@@ -7319,8 +7321,9 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             typical    = (pre["High"] + pre["Low"] + pre["Close"]) / 3
             vwap_entry = round(float((typical * pre["Volume"]).sum() / vol), 2)
 
+        cand_sl_basis = all_cands[key]["sl_basis"]   # already translated from DAY_SMART
         sl_price, sl_err = _orb_resolve_sl(
-            direction=side, sl_basis=default_sl,
+            direction=side, sl_basis=cand_sl_basis,
             bench_high=bench_high, bench_low=bench_low,
             vwap=vwap_entry, day_high=day_high_entry, day_low=day_low_entry,
             custom=None, entry_price=trigger_price,
@@ -7381,7 +7384,7 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             "vwap_at_entry":     vwap_entry,
             "trigger_price":     trigger_price,
             "entry_time":        f"{trigger_dt}:00",
-            "sl_basis":          default_sl,
+            "sl_basis":          cand_sl_basis,
             "stop_loss_price":   sl_price,
             "quantity":          qty,
             "investment":        investment,
@@ -7472,7 +7475,7 @@ async def simulator_get_settings():
 @app.post("/simulator/settings")
 async def simulator_post_settings(body: _OrbSettingsBody):
     _VALID_UNI = {"nifty500_fno", "nifty100_fno", "nifty50"}
-    _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW"}
+    _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW", "DAY_SMART"}
     errs = []
     if body.universe         and body.universe         not in _VALID_UNI: errs.append("universe")
     if body.default_sl_basis and body.default_sl_basis not in _VALID_SL:  errs.append("default_sl_basis")

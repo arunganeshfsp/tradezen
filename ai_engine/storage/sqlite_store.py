@@ -267,17 +267,18 @@ def orb_insert_trade(conn, trade: dict):
                (id, date, symbol, direction, day_high_at_entry, day_low_at_entry,
                 vwap_at_entry, trigger_price, entry_time, sl_basis, custom_sl_price,
                 stop_loss_price, quantity, investment, sl_points, target_points,
-                target_price, risk_reward, outcome, pnl, return_amount, remarks,
-                created_at, updated_at)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                target_price, risk_reward, exit_price, exit_time, outcome, pnl,
+                return_amount, close_price, remarks, created_at, updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (trade["id"], trade["date"], trade["symbol"], trade["direction"],
          trade.get("day_high_at_entry"), trade.get("day_low_at_entry"),
          trade.get("vwap_at_entry"), trade.get("trigger_price"), trade.get("entry_time"),
          trade.get("sl_basis"), trade.get("custom_sl_price"), trade.get("stop_loss_price"),
          trade.get("quantity"), trade.get("investment"), trade.get("sl_points"),
          trade.get("target_points"), trade.get("target_price"), trade.get("risk_reward"),
+         trade.get("exit_price"), trade.get("exit_time"),
          trade.get("outcome", "OPEN"), trade.get("pnl", 0), trade.get("return_amount"),
-         trade.get("remarks"), now, now),
+         trade.get("close_price"), trade.get("remarks"), now, now),
     )
     conn.commit()
 

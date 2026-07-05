@@ -423,8 +423,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <label class="sett-label" for="sett-sl">Default SL basis</label>
       <select id="sett-sl" class="sett-sel">
         <option value="VWAP">VWAP (volume-weighted avg price)</option>
-        <option value="DAY_HIGH">Day High (for SELL candidates)</option>
-        <option value="DAY_LOW">Day Low (for BUY candidates)</option>
+        <option value="DAY_SMART">Day Low (Bullish) / Day High (Bearish)</option>
       </select>
       <div class="sett-hint">Default invalidation reference applied at capture. You can still change it per-stock before trigger.</div>
     </div>
@@ -488,8 +487,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div class="bt-desc" id="btDesc">Run the ORB algorithm on historical candles to see what would have triggered.</div>
       </div>
       <div class="bt-actions">
-        <button class="bt-run-btn" id="btRunBtn" onclick="runBacktest(false)">Run Backtest</button>
-        <button class="bt-rerun-btn" id="btRerunBtn" style="display:none" onclick="runBacktest(true)">Re-run</button>
+        <button class="bt-run-btn" id="btRunBtn" onclick="runBacktest()">Run Backtest</button>
       </div>
       <div class="bt-note" id="btNote">DOM filter not applied — historical order-book data unavailable. All price-qualified breakouts are shown as candidates.</div>
     </div>
@@ -912,13 +910,13 @@ function renderVerify(tid, v) {
     <div class="vfy-row">
       <span class="vfy-label">Ref. Target ₹${_fmt2(v.target_price)}</span>
       ${tgtHit
-        ? `<span class="vfy-badge vfy-hit">REACHED ${hitTime(tgtHit)}${vout === 'TARGET_HIT' ? ' ← first' : ''}</span>`
+        ? `<span class="vfy-badge vfy-hit">REACHED ${hitTime(tgtHit)}${vout === 'TARGET_HIT' ? ' (1st)' : ''}</span>`
         : '<span class="vfy-badge vfy-miss">NOT REACHED</span>'}
     </div>
     <div class="vfy-row">
       <span class="vfy-label">Invalidation ₹${_fmt2(v.stop_loss_price)}</span>
       ${slHit
-        ? `<span class="vfy-badge vfy-sl">HIT ${hitTime(slHit)}${vout === 'SL_HIT' ? ' ← first' : ''}</span>`
+        ? `<span class="vfy-badge vfy-sl">HIT ${hitTime(slHit)}${vout === 'SL_HIT' ? ' (1st)' : ''}</span>`
         : '<span class="vfy-badge vfy-miss">NOT HIT</span>'}
     </div>
     <div class="vfy-outcome">Verified outcome: <span class="${vout === 'TARGET_HIT' ? 'vfy-g' : vout === 'SL_HIT' ? 'vfy-r' : 'vfy-d'}">${
@@ -1073,32 +1071,24 @@ function _updateBtPanel(hasCandidates) {
   const estMap = { nifty50: '~20s', nifty100_fno: '~50s', nifty500_fno: '~3 min' };
   const est = estMap[uni] || '';
 
-  if (!hasCandidates) {
-    runBtn.style.display = '';
-    rerunBtn.style.display = 'none';
-    desc.textContent = `No simulation data for ${_currentDate}. Run the ORB algorithm on historical candles to see what would have triggered. Estimated time: ${est}.`;
-    note.style.display = '';
-  } else {
-    runBtn.style.display = 'none';
-    rerunBtn.style.display = '';
-    desc.textContent = `Backtest data loaded for ${_currentDate}. Use Re-run to clear and simulate again.`;
-    note.style.display = '';
-  }
+  desc.textContent = hasCandidates
+    ? `Backtest data loaded for ${_currentDate}. Run again to re-simulate with current settings.`
+    : `No simulation data for ${_currentDate}. Run the ORB algorithm on historical candles. Est. ${est}.`;
+  note.style.display = '';
+  runBtn.style.display = '';
 }
 
-async function runBacktest(force) {
-  const loading  = document.getElementById('btLoading');
-  const runBtn   = document.getElementById('btRunBtn');
-  const rerunBtn = document.getElementById('btRerunBtn');
-  const msg      = document.getElementById('btLoadingMsg');
+async function runBacktest() {
+  const loading = document.getElementById('btLoading');
+  const runBtn  = document.getElementById('btRunBtn');
+  const msg     = document.getElementById('btLoadingMsg');
 
-  loading.style.display  = 'flex';
-  runBtn.disabled        = true;
-  rerunBtn.disabled      = true;
+  loading.style.display = 'flex';
+  runBtn.disabled       = true;
 
   const uni    = _settings?.universe || 'nifty500_fno';
   const estMap = { nifty50: '~20s', nifty100_fno: '~50s', nifty500_fno: '~3 min' };
-  msg.textContent = `Simulating ${_currentDate} · ${estMap[uni] || ''} · fetching candles from AngelOne…`;
+  msg.textContent = `Simulating ${_currentDate} · ${estMap[uni] || ''} · fetching candles…`;
 
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 315_000);
@@ -1107,21 +1097,16 @@ async function runBacktest(force) {
     const r = await fetch(`${API}/backtest`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date: _currentDate, force: !!force }),
+      body: JSON.stringify({ date: _currentDate, force: true }),
       signal: ctrl.signal,
     });
     clearTimeout(tid);
     const d = await r.json();
-    if (!r.ok) {
-      alert(d.error || 'Backtest failed');
-      return;
-    }
-    if (d.skipped) {
-      msg.textContent = 'Data already exists — loading…';
-    } else {
-      msg.textContent = `Done — ${d.trades} simulated trade${d.trades !== 1 ? 's' : ''} · reloading…`;
-      await new Promise(res => setTimeout(res, 1200));
-    }
+    if (!r.ok) { alert(d.error || 'Backtest failed'); return; }
+    msg.textContent = `Done — ${d.trades} simulated trade${d.trades !== 1 ? 's' : ''} · reloading…`;
+    await new Promise(res => setTimeout(res, 1200));
+    _verifyCache && Object.keys(_verifyCache).forEach(k => delete _verifyCache[k]);
+    _expandedTrades.clear();
     await loadState();
   } catch (e) {
     if (e.name === 'AbortError') {
@@ -1132,7 +1117,6 @@ async function runBacktest(force) {
   } finally {
     loading.style.display = 'none';
     runBtn.disabled       = false;
-    rerunBtn.disabled     = false;
   }
 }
 
