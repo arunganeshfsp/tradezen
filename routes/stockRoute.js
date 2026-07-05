@@ -1058,6 +1058,20 @@ router.post("/simulator/settings", async (req, res) => {
   }
 });
 
+// ─── GET /api/simulator/trade-verify?trade_id= ───────────────────────────────
+// Verifies whether SL/target was actually hit in candle data on the trade's date.
+router.get("/simulator/trade-verify", async (req, res) => {
+  try {
+    const tradeId = (req.query.trade_id || "").replace(/[^a-zA-Z0-9\-]/g, "");
+    if (!tradeId) return res.status(400).json({ error: "trade_id required" });
+    const data = await aiService.proxy("GET", `/simulator/trade-verify?trade_id=${encodeURIComponent(tradeId)}`, 30000);
+    res.json(data);
+  } catch (err) {
+    const status = (err.status === 404 || err.status === 503) ? err.status : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/stock/health/:symbol ───────────────────────────────────────────
 // 4-persona fundamental health report (Stock Health Story tool)
 router.get("/stock/health/:symbol", async (req, res) => {

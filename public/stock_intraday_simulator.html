@@ -273,6 +273,41 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .sett-err{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);
   text-align:center;padding:6px;display:none}
 
+/* ── TRADE EXPAND ROW ── */
+.trade-row{cursor:pointer}
+.trade-row:hover td{background:rgba(91,138,245,0.04)!important}
+.trade-row.expanded td{background:rgba(91,138,245,0.06)!important}
+.trade-expand-icon{display:inline-block;font-size:9px;color:var(--muted);margin-right:5px;
+  transition:transform .15s;vertical-align:middle;line-height:1}
+.trade-row.expanded .trade-expand-icon{transform:rotate(90deg);color:var(--accent)}
+.trade-detail-row td{padding:0!important;border:none!important}
+.td-wrap{display:flex;flex-wrap:wrap;gap:16px;padding:12px 16px 16px;
+  background:var(--bg2);border-top:1px solid rgba(91,138,245,0.15);border-bottom:1px solid var(--border)}
+.td-col{flex:1;min-width:220px}
+.td-heading{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:5px;
+  border-bottom:1px solid var(--border)}
+.td-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.025)}
+.td-lbl{font-size:11px;color:var(--dim)}
+.td-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);text-align:right}
+.vfy-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.025);gap:8px}
+.vfy-label{font-size:11px;color:var(--dim);flex:1}
+.vfy-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;
+  border-radius:3px;white-space:nowrap}
+.vfy-hit{background:rgba(46,204,113,0.12);color:var(--green);border:1px solid rgba(46,204,113,0.25)}
+.vfy-miss{background:rgba(123,132,168,0.08);color:var(--muted);border:1px solid rgba(123,132,168,0.18)}
+.vfy-sl{background:rgba(231,76,60,0.1);color:var(--red);border:1px solid rgba(231,76,60,0.22)}
+.vfy-outcome{margin-top:8px;font-size:11px;color:var(--dim);line-height:1.5}
+.vfy-g{color:var(--green);font-weight:600}
+.vfy-r{color:var(--red);font-weight:600}
+.vfy-d{color:var(--muted)}
+.vfy-mismatch{color:var(--yellow);font-size:10px;margin-left:4px}
+.vfy-loading{font-size:11px;color:var(--muted);font-style:italic;padding:6px 0;
+  display:flex;align-items:center;gap:8px}
+.vfy-err{font-size:11px;color:var(--red);padding:4px 0}
+
 /* ── LIGHT THEME ── */
 [data-theme="light"]:root,
 :root[data-theme="light"]{
@@ -467,6 +502,36 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
   </div>
 
+  <!-- TRADES PANEL -->
+  <div class="panel-card">
+    <div class="panel-hdr">
+      <span class="phdr-title" data-en="SIMULATED TRADES" data-ta="உருவக வர்த்தகம்">SIMULATED TRADES</span>
+      <span id="totalPnl" class="pnl-badge">₹0.00</span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="sim-tbl">
+        <thead>
+          <tr>
+            <th data-en="Direction" data-ta="திசை">Direction</th>
+            <th data-en="Symbol" data-ta="பங்கு">Symbol</th>
+            <th data-en="Sim. Fill" data-ta="நுழைவு விலை">Sim. Fill</th>
+            <th data-en="Invalidation" data-ta="SL விலை">Invalidation</th>
+            <th data-en="Ref. Target" data-ta="இலக்கு">Ref. Target</th>
+            <th data-en="Qty" data-ta="அளவு">Qty</th>
+            <th data-en="Investment" data-ta="முதலீடு">Investment</th>
+            <th>R:R</th>
+            <th data-en="Outcome" data-ta="முடிவு">Outcome</th>
+            <th data-en="Study P/L" data-ta="படிப்பு லாப/நஷ்டம்">Study P/L</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tradeBody">
+          <tr><td colspan="11" class="empty-cell">No simulated trades yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- CANDIDATES PANEL -->
   <div class="panel-card">
     <div class="panel-hdr">
@@ -494,36 +559,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </thead>
         <tbody id="candBody">
           <tr><td colspan="8" class="empty-cell">Loading candidates…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TRADES PANEL -->
-  <div class="panel-card">
-    <div class="panel-hdr">
-      <span class="phdr-title" data-en="SIMULATED TRADES" data-ta="உருவக வர்த்தகம்">SIMULATED TRADES</span>
-      <span id="totalPnl" class="pnl-badge">₹0.00</span>
-    </div>
-    <div class="tbl-wrap">
-      <table class="sim-tbl">
-        <thead>
-          <tr>
-            <th data-en="Direction" data-ta="திசை">Direction</th>
-            <th data-en="Symbol" data-ta="பங்கு">Symbol</th>
-            <th data-en="Sim. Fill" data-ta="நுழைவு விலை">Sim. Fill</th>
-            <th data-en="Invalidation" data-ta="SL விலை">Invalidation</th>
-            <th data-en="Ref. Target" data-ta="இலக்கு">Ref. Target</th>
-            <th data-en="Qty" data-ta="அளவு">Qty</th>
-            <th data-en="Investment" data-ta="முதலீடு">Investment</th>
-            <th>R:R</th>
-            <th data-en="Outcome" data-ta="முடிவு">Outcome</th>
-            <th data-en="Study P/L" data-ta="படிப்பு லாப/நஷ்டம்">Study P/L</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="tradeBody">
-          <tr><td colspan="11" class="empty-cell">No simulated trades yet</td></tr>
         </tbody>
       </table>
     </div>
@@ -577,12 +612,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 'use strict';
 
 const API = '/api/simulator';
-let _pollTimer = null;
-let _currentDate = '';
-let _todayDate   = '';
-let _isLive      = true;
-let _candFilter  = 'ALL';
-let _stateData   = null;
+let _pollTimer     = null;
+let _currentDate   = '';
+let _todayDate     = '';
+let _isLive        = true;
+let _candFilter    = 'ALL';
+let _stateData     = null;
+let _settings      = null;
+const _expandedTrades = new Set();
+const _verifyCache    = {};
 
 // ── Date init ──────────────────────────────────────────────────────────────
 function _istToday() {
@@ -760,6 +798,7 @@ function renderTrades(trades) {
     return;
   }
   body.innerHTML = trades.map(t => {
+    const tid    = t.id;
     const isBuy  = t.direction === 'BUY';
     const dirLbl = isBuy ? 'BULLISH ▲ (SIM)' : 'BEARISH ▼ (SIM)';
     const dirCls = isBuy ? 'dir-bull' : 'dir-bear';
@@ -767,11 +806,14 @@ function renderTrades(trades) {
     const pnlCls = pnl > 0 ? 'bull-val' : pnl < 0 ? 'bear-val' : '';
     const pnlStr = (pnl >= 0 ? '+' : '') + '₹' + _fmt2(pnl);
     const sqBtn  = (t.outcome === 'OPEN' && _isLive)
-      ? `<button class="sq-btn" onclick="squareOff('${_esc(t.id)}','${_esc(t.symbol)}')"
+      ? `<button class="sq-btn" onclick="event.stopPropagation();squareOff('${_esc(tid)}','${_esc(t.symbol)}')"
            data-en="Square Off" data-ta="மூடு">Square Off</button>`
       : '';
-    return `<tr>
-      <td><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
+    const entryTime = t.entry_time ? t.entry_time.slice(11, 16) + ' IST' : '—';
+    const exitTime  = t.exit_time  ? t.exit_time.slice(11, 16)  + ' IST' : '—';
+
+    const tradeRow = `<tr class="trade-row" id="trow-${_esc(tid)}" onclick="toggleTradeDetail('${_esc(tid)}')">
+      <td><span class="trade-expand-icon">▶</span><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
       <td class="sym-cell">${_esc(t.symbol)}</td>
       <td class="num-cell">₹${_fmt2(t.trigger_price)}</td>
       <td class="num-cell bear-val">₹${_fmt2(t.stop_loss_price)}</td>
@@ -783,7 +825,107 @@ function renderTrades(trades) {
       <td class="num-cell ${pnlCls}">${pnlStr}</td>
       <td>${sqBtn}</td>
     </tr>`;
+
+    const detailRow = `<tr class="trade-detail-row" id="detail-${_esc(tid)}" style="display:none">
+      <td colspan="11">
+        <div class="td-wrap">
+          <div class="td-col">
+            <div class="td-heading">ENTRY DETAILS</div>
+            <div class="td-item"><span class="td-lbl">Entry Time</span><span class="td-val">${entryTime}</span></div>
+            <div class="td-item"><span class="td-lbl">Sim. Fill</span><span class="td-val">₹${_fmt2(t.trigger_price)}</span></div>
+            <div class="td-item"><span class="td-lbl">Day High (at entry)</span><span class="td-val">${t.day_high_at_entry != null ? '₹'+_fmt2(t.day_high_at_entry) : '—'}</span></div>
+            <div class="td-item"><span class="td-lbl">Day Low (at entry)</span><span class="td-val">${t.day_low_at_entry  != null ? '₹'+_fmt2(t.day_low_at_entry)  : '—'}</span></div>
+            <div class="td-item"><span class="td-lbl">VWAP (at entry)</span><span class="td-val">${t.vwap_at_entry     != null ? '₹'+_fmt2(t.vwap_at_entry)     : '—'}</span></div>
+            <div class="td-item"><span class="td-lbl">Exit Time</span><span class="td-val">${exitTime}</span></div>
+            <div class="td-item"><span class="td-lbl">Exit Price</span><span class="td-val">${t.exit_price != null ? '₹'+_fmt2(t.exit_price) : '—'}</span></div>
+          </div>
+          <div class="td-col">
+            <div class="td-heading">PRICE VERIFICATION (CANDLE DATA)</div>
+            <div id="verify-${_esc(tid)}"></div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+
+    return tradeRow + detailRow;
   }).join('');
+
+  // Restore previously expanded rows
+  for (const tid of _expandedTrades) {
+    const detailRow = document.getElementById(`detail-${tid}`);
+    if (!detailRow) continue;
+    detailRow.style.display = '';
+    const tradeRow = document.getElementById(`trow-${tid}`);
+    if (tradeRow) tradeRow.classList.add('expanded');
+    if (_verifyCache[tid]) renderVerify(tid, _verifyCache[tid]);
+  }
+}
+
+async function toggleTradeDetail(tid) {
+  const detailRow = document.getElementById(`detail-${tid}`);
+  const tradeRow  = document.getElementById(`trow-${tid}`);
+  if (!detailRow) return;
+
+  const isOpen = detailRow.style.display !== 'none';
+  if (isOpen) {
+    detailRow.style.display = 'none';
+    if (tradeRow) tradeRow.classList.remove('expanded');
+    _expandedTrades.delete(tid);
+    return;
+  }
+
+  detailRow.style.display = '';
+  if (tradeRow) tradeRow.classList.add('expanded');
+  _expandedTrades.add(tid);
+
+  const verifyEl = document.getElementById(`verify-${tid}`);
+  if (!verifyEl) return;
+
+  if (_verifyCache[tid]) { renderVerify(tid, _verifyCache[tid]); return; }
+
+  verifyEl.innerHTML = `<div class="vfy-loading">
+    <div class="spinner-border spinner-border-sm" style="width:10px;height:10px;border-width:1.5px"></div>
+    Fetching candle data to verify levels…
+  </div>`;
+
+  try {
+    const r = await fetch(`${API}/trade-verify?trade_id=${encodeURIComponent(tid)}`);
+    const d = await r.json();
+    if (!r.ok) { verifyEl.innerHTML = `<div class="vfy-err">${_esc(d.error || 'Verification failed')}</div>`; return; }
+    _verifyCache[tid] = d;
+    renderVerify(tid, d);
+  } catch {
+    verifyEl.innerHTML = '<div class="vfy-err">Network error during verification</div>';
+  }
+}
+
+function renderVerify(tid, v) {
+  const el = document.getElementById(`verify-${tid}`);
+  if (!el) return;
+  const hitTime = dt => dt ? dt.slice(11, 16) + ' IST' : null;
+  const tgtHit = v.tgt_hit_at;
+  const slHit  = v.sl_hit_at;
+  const vout   = v.verified_outcome;
+  const rout   = v.recorded_outcome;
+
+  el.innerHTML = `
+    <div class="vfy-row">
+      <span class="vfy-label">Ref. Target ₹${_fmt2(v.target_price)}</span>
+      ${tgtHit
+        ? `<span class="vfy-badge vfy-hit">REACHED ${hitTime(tgtHit)}${vout === 'TARGET_HIT' ? ' ← first' : ''}</span>`
+        : '<span class="vfy-badge vfy-miss">NOT REACHED</span>'}
+    </div>
+    <div class="vfy-row">
+      <span class="vfy-label">Invalidation ₹${_fmt2(v.stop_loss_price)}</span>
+      ${slHit
+        ? `<span class="vfy-badge vfy-sl">HIT ${hitTime(slHit)}${vout === 'SL_HIT' ? ' ← first' : ''}</span>`
+        : '<span class="vfy-badge vfy-miss">NOT HIT</span>'}
+    </div>
+    <div class="vfy-outcome">Verified outcome: <span class="${vout === 'TARGET_HIT' ? 'vfy-g' : vout === 'SL_HIT' ? 'vfy-r' : 'vfy-d'}">${
+      vout === 'TARGET_HIT' ? 'TARGET REACHED FIRST' :
+      vout === 'SL_HIT'     ? 'INVALIDATION HIT FIRST' :
+                              'NEITHER HIT BY 15:30'
+    }</span>${(rout && rout !== vout && vout !== 'NEITHER') ? ' <span class="vfy-mismatch">⚠ differs from recorded</span>' : ''}</div>`;
 }
 
 // ── Summary ────────────────────────────────────────────────────────────────
@@ -995,8 +1137,6 @@ async function runBacktest(force) {
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────
-let _settings = null;
-
 async function loadSettings() {
   try {
     const r = await fetch(`${API}/settings`);

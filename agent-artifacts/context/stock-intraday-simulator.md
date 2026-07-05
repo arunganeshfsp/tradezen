@@ -7,7 +7,7 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-07-05
+**Last updated:** 2026-07-05 (trade expand + verify)
 
 ---
 
@@ -30,11 +30,14 @@ hero (htag + h1 + sub)
 ctrl-bar (date picker + live status dot)
 main-wrap (max-width 1260px)
   status-strip (phase-chip + slots bar 5 pips + sim-banner)
+  panel-card: SIMULATED TRADES  ← NOW FIRST
+    sim-tbl (11 cols: direction, symbol, fill, invalidation, ref target, qty, investment, R:R, outcome, study P/L, action)
+    each trade row is clickable → expands a detail row with:
+      Left col: entry time, sim fill, day high/low at entry, VWAP at entry, exit time/price
+      Right col: price verification (calls /api/simulator/trade-verify, cached per trade_id)
   panel-card: CANDIDATE STOCKS
     side-tabs: ALL | BULLISH ▲ | BEARISH ▼
     sim-tbl (8 cols: direction, symbol, 09:16 LTP, dominance, bench H/L, SL basis, status)
-  panel-card: SIMULATED TRADES
-    sim-tbl (11 cols: direction, symbol, fill, invalidation, ref target, qty, investment, R:R, outcome, study P/L, action)
   summary-strip (total P/L | open investment | win rate | open | target | SL | squared)
 disclaimer (SEBI one-liner)
 scripts: bootstrap, halo-aurora.js, inline JS
@@ -51,7 +54,10 @@ scripts: bootstrap, halo-aurora.js, inline JS
 | `_isLive` | `_currentDate === _todayDate`; controls polling, interactive controls |
 | `_candFilter` | `'ALL'` \| `'BUY'` \| `'SELL'`; filters candidates table |
 | `_stateData` | Last fetched state from `/api/simulator/state` |
+| `_settings` | Cached engine settings from `/api/simulator/settings` |
 | `_pollTimer` | `setInterval` handle; paused on `visibilitychange` when hidden |
+| `_expandedTrades` | `Set<trade_id>` of currently expanded detail rows; preserved across `renderTrades` calls |
+| `_verifyCache` | `{trade_id: verifyResult}` cache; populated on first expand, avoids re-fetching |
 
 ---
 
@@ -64,6 +70,7 @@ scripts: bootstrap, halo-aurora.js, inline JS
 | `POST /api/simulator/square-off` | `POST /simulator/square-off` | POST | Squares off an OPEN trade at live LTP; body: `{trade_id}` |
 | `GET /api/simulator/settings` | `GET /simulator/settings` | GET | Returns all engine settings (with defaults) |
 | `POST /api/simulator/settings` | `POST /simulator/settings` | POST | Updates one or more settings; returns full settings object |
+| `GET /api/simulator/trade-verify?trade_id=` | `GET /simulator/trade-verify?trade_id=` | GET | Fetches ONE_MINUTE candles (cached) for the trade's date, verifies if SL/target was actually hit; returns `{sl_hit_at, tgt_hit_at, verified_outcome, recorded_outcome, day_high_at_entry, …}` |
 
 ## Engine Settings
 

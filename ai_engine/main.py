@@ -7494,6 +7494,93 @@ async def simulator_post_settings(body: _OrbSettingsBody):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@app.get("/simulator/trade-verify")
+async def simulator_trade_verify(trade_id: str):
+    conn = get_conn()
+    cur  = conn.execute("SELECT * FROM orb_stock_trades WHERE id=?", (trade_id,))
+    row  = cur.fetchone()
+    if not row:
+        conn.close()
+        return JSONResponse(status_code=404, content={"error": "Trade not found"})
+    trade = dict(row)
+    cands = orb_get_candidates(conn, trade["date"])
+    conn.close()
+
+    tok = next((c["token"] for c in cands if c["symbol"] == trade["symbol"]), None)
+    if not tok:
+        return JSONResponse(status_code=404, content={"error": "Token not found in candidates for this date"})
+
+    smart_s = _get_smart()
+    if not smart_s:
+        return JSONResponse(status_code=503, content={"error": "SmartAPI session unavailable"})
+
+    date = trade["date"]
+    loop = asyncio.get_event_loop()
+    try:
+        df = await loop.run_in_executor(None, lambda: fetch_candles(
+            smart_s, tok, "NSE", "ONE_MINUTE",
+            f"{date} 09:15", f"{date} 15:30", use_cache=True,
+        ))
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Candle fetch failed: {e}"})
+
+    if df is None or df.empty:
+        return JSONResponse(status_code=404, content={"error": "No candle data found for this date"})
+
+    entry_dt  = (trade.get("entry_time") or "")[:16]   # "YYYY-MM-DD HH:MM"
+    side      = trade["direction"]
+    sl_price  = float(trade["stop_loss_price"] or 0)
+    tgt_price = float(trade["target_price"]    or 0)
+
+    pre = df[df["DateTime"] <= entry_dt] if entry_dt else df.iloc[:0]
+    if pre.empty:
+        day_high_entry = trade.get("day_high_at_entry")
+        day_low_entry  = trade.get("day_low_at_entry")
+        vwap_entry     = trade.get("vwap_at_entry")
+    else:
+        day_high_entry = round(float(pre["High"].max()), 2)
+        day_low_entry  = round(float(pre["Low"].min()),  2)
+        vol = float(pre["Volume"].sum())
+        if vol > 0:
+            typical    = (pre["High"] + pre["Low"] + pre["Close"]) / 3
+            vwap_entry = round(float((typical * pre["Volume"]).sum() / vol), 2)
+        else:
+            vwap_entry = trade.get("vwap_at_entry")
+
+    post = df[df["DateTime"] > entry_dt] if entry_dt else df
+    sl_hit_at = tgt_hit_at = None
+    for _, candle in post.iterrows():
+        h, l = float(candle["High"]), float(candle["Low"])
+        if side == "BUY":
+            if sl_hit_at  is None and l <= sl_price:  sl_hit_at  = candle["DateTime"]
+            if tgt_hit_at is None and h >= tgt_price: tgt_hit_at = candle["DateTime"]
+        else:
+            if sl_hit_at  is None and h >= sl_price:  sl_hit_at  = candle["DateTime"]
+            if tgt_hit_at is None and l <= tgt_price: tgt_hit_at = candle["DateTime"]
+
+    if tgt_hit_at and (not sl_hit_at or tgt_hit_at <= sl_hit_at):
+        verified_outcome = "TARGET_HIT"
+    elif sl_hit_at:
+        verified_outcome = "SL_HIT"
+    else:
+        verified_outcome = "NEITHER"
+
+    return {
+        "trade_id":          trade_id,
+        "entry_time":        trade.get("entry_time"),
+        "trigger_price":     trade.get("trigger_price"),
+        "day_high_at_entry": day_high_entry,
+        "day_low_at_entry":  day_low_entry,
+        "vwap_at_entry":     vwap_entry,
+        "stop_loss_price":   sl_price,
+        "target_price":      tgt_price,
+        "sl_hit_at":         sl_hit_at,
+        "tgt_hit_at":        tgt_hit_at,
+        "verified_outcome":  verified_outcome,
+        "recorded_outcome":  trade.get("outcome"),
+    }
+
+
 @app.get("/mgmt/logs/{srv}")
 async def mgmt_logs(srv: str, request: Request):
     if not _check_token(request):
