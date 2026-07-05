@@ -277,6 +277,138 @@ a { text-decoration: none; color: inherit; }
 }
 .cta-sub { font-size: 14px; color: var(--dim); margin-bottom: 32px; }
 
+/* ── Tour Overlay ── */
+.tour-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(6,7,15,.96); backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; animation: tFadeIn .3s ease;
+}
+@keyframes tFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.tour-dialog {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 20px; width: 100%; max-width: 540px;
+  padding: 36px 36px 26px; position: relative;
+  animation: tSlideUp .35s ease;
+}
+@keyframes tSlideUp { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.tour-skip {
+  position: absolute; top: 13px; right: 14px;
+  background: none; border: none;
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+  letter-spacing: .1em; color: var(--muted); cursor: pointer;
+  padding: 4px 8px; border-radius: 5px; transition: color .15s;
+}
+.tour-skip:hover { color: var(--text); }
+
+.tour-slide { display: none; }
+.tour-slide.t-active { display: block; }
+
+.tour-eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+  font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 8px;
+}
+.tour-h { font-size: clamp(18px, 3.5vw, 22px); font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 10px; }
+.tour-h em { font-style: normal; color: var(--accent); }
+.tour-p { font-size: 13.5px; color: var(--dim); line-height: 1.7; margin-bottom: 18px; }
+
+.tour-stats { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 22px; }
+.tour-stat {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700;
+  padding: 5px 12px; border-radius: 20px;
+  background: rgba(124,106,247,.1); border: 1px solid rgba(124,106,247,.2); color: var(--accent);
+}
+
+.how-row { display: flex; align-items: center; gap: 0; margin-bottom: 16px; }
+.how-step { flex: 1; text-align: center; padding: 0 6px; }
+.how-step-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin: 0 auto 8px; border: 1px solid var(--border);
+}
+.how-step-icon.h1 { background: rgba(124,106,247,.12); }
+.how-step-icon.h2 { background: rgba(91,138,245,.12); }
+.how-step-icon.h3 { background: rgba(52,211,153,.12); }
+.how-step-label { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700; color: var(--text); }
+.how-step-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.how-arrow { color: var(--muted); font-size: 18px; padding-bottom: 22px; flex-shrink: 0; }
+
+.lesson-mock {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 15px 17px;
+}
+.lm-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 7px;
+}
+.lm-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.lm-body { font-size: 12px; color: var(--dim); line-height: 1.6; margin-bottom: 10px; }
+.lm-bar { height: 3px; background: var(--bg); border-radius: 2px; margin-bottom: 10px; }
+.lm-fill { height: 100%; width: 65%; background: var(--accent); border-radius: 2px; }
+.lm-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.lm-chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+  padding: 3px 9px; border-radius: 20px;
+  background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.2); color: var(--green);
+}
+
+.mini-tracks { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.mini-track {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.mt-icon { font-size: 20px; flex-shrink: 0; }
+.mt-body { flex: 1; min-width: 0; }
+.mt-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.mt-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.mt-xp {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
+  background: rgba(124,106,247,.1); border: 1px solid rgba(124,106,247,.2); color: var(--accent);
+}
+.mt-xp.t2 { background: rgba(91,138,245,.1); border-color: rgba(91,138,245,.2); color: var(--accent2); }
+.mt-xp.t3 { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.2); color: var(--green); }
+
+.benefit-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.benefit-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--bg3); border: 1px solid var(--border);
+}
+.benefit-check { color: var(--green); font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.benefit-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.benefit-text em { font-style: normal; color: var(--dim); font-size: 11.5px; }
+
+.tour-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.tour-dots { display: flex; gap: 6px; align-items: center; }
+.tour-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border2); transition: all .25s;
+}
+.tour-dot.td-active { width: 22px; border-radius: 4px; background: var(--accent); }
+.tour-btns { display: flex; gap: 8px; }
+.tour-prev {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  padding: 9px 16px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--border2); background: transparent; color: var(--dim);
+  transition: all .15s;
+}
+.tour-prev:hover { border-color: var(--accent); color: var(--text); }
+.tour-next {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  padding: 9px 22px; border-radius: 9px; cursor: pointer;
+  border: none; background: var(--accent); color: #fff; transition: opacity .15s;
+}
+.tour-next:hover { opacity: .88; }
+
 /* ── Disclaimer ── */
 .disclaimer-bar {
   background: var(--bg2); border-top: 1px solid var(--border);
@@ -299,6 +431,137 @@ a { text-decoration: none; color: inherit; }
 </style>
 </head>
 <body>
+
+<!-- ── First-visit Tour Overlay ─────────────────────────────── -->
+<div id="tourOverlay" class="tour-overlay" style="display:none;">
+  <div class="tour-dialog">
+    <button class="tour-skip" id="tourSkip">SKIP TOUR ✕</button>
+
+    <!-- Slide 1: Welcome -->
+    <div class="tour-slide t-active" id="tourSlide1">
+      <div class="tour-eyebrow">WELCOME TO TRADEZEN LEARN</div>
+      <h2 class="tour-h">Financial education that <em>actually makes sense.</em></h2>
+      <p class="tour-p">Built for people who want to understand money — not just follow someone else's tips. Learn at your own pace, in your language, completely free.</p>
+      <div class="tour-stats">
+        <span class="tour-stat">59 Lessons</span>
+        <span class="tour-stat">3 Tracks</span>
+        <span class="tour-stat">2520 XP</span>
+        <span class="tour-stat">Tamil + English</span>
+        <span class="tour-stat">Free</span>
+      </div>
+    </div>
+
+    <!-- Slide 2: How a lesson works -->
+    <div class="tour-slide" id="tourSlide2">
+      <div class="tour-eyebrow">HOW IT WORKS</div>
+      <h2 class="tour-h">3–5 minutes per lesson. <em>That's all.</em></h2>
+      <div class="how-row">
+        <div class="how-step">
+          <div class="how-step-icon h1">📖</div>
+          <div class="how-step-label">Read</div>
+          <div class="how-step-sub">Short, clear concept</div>
+        </div>
+        <div class="how-arrow">›</div>
+        <div class="how-step">
+          <div class="how-step-icon h2">🧩</div>
+          <div class="how-step-label">Quiz</div>
+          <div class="how-step-sub">2–3 quick questions</div>
+        </div>
+        <div class="how-arrow">›</div>
+        <div class="how-step">
+          <div class="how-step-icon h3">⭐</div>
+          <div class="how-step-label">Earn XP</div>
+          <div class="how-step-sub">Build your streak</div>
+        </div>
+      </div>
+      <div class="lesson-mock">
+        <div class="lm-tag">📚 LESSON · FOUNDATION · 4 MIN READ</div>
+        <div class="lm-title">What is Compounding?</div>
+        <div class="lm-body">Money that earns returns — and those returns earn even more returns. The single most powerful idea in personal finance, finally explained simply...</div>
+        <div class="lm-bar"><div class="lm-fill"></div></div>
+        <div class="lm-chips">
+          <span class="lm-chip">✓ Lesson complete</span>
+          <span class="lm-chip">+42 XP earned</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Three tracks -->
+    <div class="tour-slide" id="tourSlide3">
+      <div class="tour-eyebrow">YOUR LEARNING PATH</div>
+      <h2 class="tour-h">3 tracks. <em>Start anywhere.</em></h2>
+      <p class="tour-p">Each track builds on the previous — or jump straight to what interests you most.</p>
+      <div class="mini-tracks">
+        <div class="mini-track">
+          <div class="mt-icon">📚</div>
+          <div class="mt-body">
+            <div class="mt-title">Foundation</div>
+            <div class="mt-sub">15 lessons · How money works, what markets are, SIP basics</div>
+          </div>
+          <span class="mt-xp">510 XP</span>
+        </div>
+        <div class="mini-track">
+          <div class="mt-icon">🔍</div>
+          <div class="mt-body">
+            <div class="mt-title">Fundamental Analysis</div>
+            <div class="mt-sub">23 lessons · PE ratio, EPS, ROE, reading company results</div>
+          </div>
+          <span class="mt-xp t2">935 XP</span>
+        </div>
+        <div class="mini-track">
+          <div class="mt-icon">📊</div>
+          <div class="mt-body">
+            <div class="mt-title">Technical Analysis</div>
+            <div class="mt-sub">21 lessons · Charts, candlesticks, support levels, breakouts</div>
+          </div>
+          <span class="mt-xp t3">1075 XP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Why it's different -->
+    <div class="tour-slide" id="tourSlide4">
+      <div class="tour-eyebrow">BEFORE YOU START</div>
+      <h2 class="tour-h">Built different. <em>On purpose.</em></h2>
+      <div class="benefit-list">
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <div class="benefit-text">Tamil + English — switch anytime <em>· no language barrier</em></div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <div class="benefit-text">3–5 min lessons — fits any schedule <em>· no long lectures or commitments</em></div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <div class="benefit-text">XP + streak system — knowledge compounds <em>· just like a good SIP</em></div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <div class="benefit-text">No tips, no signals — SEBI-compliant <em>· real understanding, not noise</em></div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <div class="benefit-text">Completely free <em>· create an account in under 30 seconds</em></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer: dots + nav buttons -->
+    <div class="tour-footer">
+      <div class="tour-dots">
+        <div class="tour-dot td-active" data-slide="1"></div>
+        <div class="tour-dot" data-slide="2"></div>
+        <div class="tour-dot" data-slide="3"></div>
+        <div class="tour-dot" data-slide="4"></div>
+      </div>
+      <div class="tour-btns">
+        <button class="tour-prev" id="tourPrev" style="display:none;">← Back</button>
+        <button class="tour-next" id="tourNext">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ── Nav ────────────────────────────────────────────────────── -->
 <nav class="lnav">
@@ -542,6 +805,58 @@ function applyLang() {
 }
 
 applyLang();
+
+// ── First-visit tour ──────────────────────────────────────────────────────────
+(function() {
+  const TOUR_KEY = 'tz_tour_seen_v1';
+  const TOTAL    = 4;
+  let _slide     = 1;
+
+  function goTo(n) {
+    _slide = Math.max(1, Math.min(TOTAL, n));
+    for (let i = 1; i <= TOTAL; i++) {
+      document.getElementById('tourSlide' + i).classList.toggle('t-active', i === _slide);
+    }
+    document.querySelectorAll('.tour-dot').forEach((d, i) => {
+      d.classList.toggle('td-active', i + 1 === _slide);
+    });
+    const prev = document.getElementById('tourPrev');
+    const next = document.getElementById('tourNext');
+    prev.style.display = _slide > 1 ? 'inline-block' : 'none';
+    if (_slide === TOTAL) {
+      next.textContent = 'Start Learning →';
+      next.style.background = 'linear-gradient(135deg,var(--accent),var(--accent2))';
+    } else {
+      next.textContent = 'Next →';
+      next.style.background = 'var(--accent)';
+    }
+  }
+
+  function endTour() {
+    document.getElementById('tourOverlay').style.display = 'none';
+    localStorage.setItem(TOUR_KEY, '1');
+  }
+
+  if (!localStorage.getItem(TOUR_KEY)) {
+    setTimeout(function() {
+      document.getElementById('tourOverlay').style.display = 'flex';
+    }, 350);
+  }
+
+  document.getElementById('tourSkip').addEventListener('click', endTour);
+  document.getElementById('tourPrev').addEventListener('click', function() { goTo(_slide - 1); });
+  document.getElementById('tourNext').addEventListener('click', function() {
+    if (_slide < TOTAL) {
+      goTo(_slide + 1);
+    } else {
+      endTour();
+      window.location.href = '/learn/auth.html';
+    }
+  });
+  document.querySelectorAll('.tour-dot').forEach(function(dot) {
+    dot.addEventListener('click', function() { goTo(parseInt(dot.dataset.slide)); });
+  });
+})();
 </script>
 </body>
 </html>
