@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2026-08-06",
+    "time": "10:00",
+    "label": "RBI Monetary Policy Decision",
+    "severity": "HIGH"
+  },
+  {
+    "date": "2026-07-30",
+    "time": "21:30",
+    "label": "US FOMC Rate Decision (overnight)",
+    "severity": "HIGH"
+  },
+  {
+    "date": "2026-07-14",
+    "time": "18:30",
+    "label": "US CPI Inflation Print (overnight)",
+    "severity": "CAUTION"
+  }
+]

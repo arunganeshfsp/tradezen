@@ -1205,6 +1205,13 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// ── Capture-window guard (09:14–09:17 IST) ────────────────────────────────
+function _inCaptureWindow() {
+  const ist = new Date(new Date().getTime() + 5.5 * 3600000);
+  const h = ist.getUTCHours(), m = ist.getUTCMinutes();
+  return h === 9 && m >= 14 && m < 18;
+}
+
 // ── Formatters ────────────────────────────────────────────────────────────
 function _fmt2(n)    { return n != null ? Number(n).toFixed(2) : '—'; }
 function _fmtInr(n)  { return n != null ? Math.round(Number(n)).toLocaleString('en-IN') : '—'; }
@@ -1224,15 +1231,28 @@ function _updateBtPanel(hasCandidates) {
   const uni = _settings?.universe || 'nifty500_fno';
   const estMap = { nifty50: '~20s', nifty100_fno: '~50s', nifty500_fno: '~3 min' };
   const est = estMap[uni] || '';
+  const blocked = _inCaptureWindow();
 
-  desc.textContent = hasCandidates
-    ? `Backtest data loaded for ${_currentDate}. Run again to re-simulate with current settings.`
-    : `No simulation data for ${_currentDate}. Run the ORB algorithm on historical candles. Est. ${est}.`;
+  if (blocked) {
+    desc.textContent = 'Backtest paused — live capture in progress (09:14–09:17 IST). Live session has priority.';
+    note.textContent = 'The server is scanning today\'s candidates right now. Backtest will be available from 09:18.';
+    note.style.cssText = 'background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.3);border-radius:var(--r2);padding:5px 10px;font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--yellow);line-height:1.4';
+  } else {
+    desc.textContent = hasCandidates
+      ? `Backtest data loaded for ${_currentDate}. Run again to re-simulate with current settings.`
+      : `No simulation data for ${_currentDate}. Run the ORB algorithm on historical candles. Est. ${est}.`;
+    note.textContent = 'DOM filter not applied — historical order-book data unavailable. All price-qualified breakouts are shown as candidates.';
+    note.style.cssText = '';
+  }
+  runBtn.disabled = blocked;
   note.style.display = '';
-  runBtn.style.display = '';
 }
 
 async function runBacktest() {
+  if (_inCaptureWindow()) {
+    alert('Backtest is paused during the live capture window (09:14–09:17 IST).\nLive session has priority. Please try again after 09:18.');
+    return;
+  }
   const loading = document.getElementById('btLoading');
   const runBtn  = document.getElementById('btRunBtn');
   const msg     = document.getElementById('btLoadingMsg');

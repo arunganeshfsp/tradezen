@@ -2400,6 +2400,1099 @@ async def fii_dii():
         return {"error": str(e)}
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Trend Tool — Phase 1 Signal Endpoints
+# 1.4 Event Risk · 1.1 Breadth · 1.2 BNF Alignment · 1.3 OI Walls
+# ══════════════════════════════════════════════════════════════════════════════
+
+import time as _trend_time
+import calendar as _calendar
+
+# ── Shared helpers ────────────────────────────────────────────────────────────
+
+def _ist_now():
+    IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+    return _dt.datetime.now(IST)
+
+
+def _nse_holidays() -> set:
+    """Known NSE trading holidays 2026. Expand yearly. Returns set of date objects."""
+    return {
+        _dt.date(2026, 1, 26),
+        _dt.date(2026, 3, 25),
+        _dt.date(2026, 4, 10),
+        _dt.date(2026, 4, 14),
+        _dt.date(2026, 5, 1),
+        _dt.date(2026, 8, 15),
+        _dt.date(2026, 10, 2),
+        _dt.date(2026, 10, 24),
+        _dt.date(2026, 11, 5),
+        _dt.date(2026, 12, 25),
+    }
+
+
+def _nearest_tuesday(ref: _dt.date) -> _dt.date:
+    """Return the nearest upcoming Tuesday on or after ref, shifted earlier if it's a holiday."""
+    days_ahead = (1 - ref.weekday()) % 7  # Tuesday = weekday 1
+    d = ref + _dt.timedelta(days=days_ahead)
+    holidays = _nse_holidays()
+    while d in holidays or d.weekday() >= 5:
+        d -= _dt.timedelta(days=1)
+    return d
+
+
+def _monthly_expiry(ref: _dt.date) -> _dt.date:
+    """Last Tuesday of the month, holiday-shifted to previous trading day."""
+    last_day = _dt.date(ref.year, ref.month, _calendar.monthrange(ref.year, ref.month)[1])
+    days_back = (last_day.weekday() - 1) % 7  # find last Tuesday
+    d = last_day - _dt.timedelta(days=days_back)
+    holidays = _nse_holidays()
+    while d in holidays or d.weekday() >= 5:
+        d -= _dt.timedelta(days=1)
+    return d
+
+
+# ── 1.4 Event Risk ─────────────────────────────────────────────────────────────
+
+_EVENTS_PATH = os.path.join(os.path.dirname(__file__), "config", "events.json")
+_event_risk_cache: dict = {}
+_event_risk_ts: float = 0.0
+_EVENT_RISK_TTL = 300  # 5-min TTL — hot-reload without restart
+
+
+def _load_event_risk() -> dict:
+    global _event_risk_cache, _event_risk_ts
+    now = _trend_time.time()
+    if _event_risk_cache and (now - _event_risk_ts) < _EVENT_RISK_TTL:
+        return _event_risk_cache
+
+    today = _ist_now().date()
+
+    events: list = []
+    try:
+        with open(_EVENTS_PATH, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        for ev in raw:
+            try:
+                ev_date = _dt.date.fromisoformat(ev["date"])
+                if ev_date == today:
+                    events.append({
+                        "label":    ev["label"],
+                        "time":     ev.get("time", ""),
+                        "severity": ev["severity"],
+                    })
+            except Exception:
+                pass
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        log.warning(f"[EVENT-RISK] config read error: {e}")
+
+    monthly = _monthly_expiry(today)
+    if monthly == today:
+        events.append({
+            "label":    "Monthly Expiry Day",
+            "time":     "15:30",
+            "severity": "HIGH",
+        })
+
+    severity = "NONE"
+    for ev in events:
+        s = ev["severity"]
+        if s == "HIGH":
+            severity = "HIGH"
+            break
+        if s == "CAUTION" and severity == "NONE":
+            severity = "CAUTION"
+
+    result = {
+        "date":     today.isoformat(),
+        "severity": severity,
+        "events":   events,
+    }
+    _event_risk_cache = result
+    _event_risk_ts = now
+    return result
+
+
+@app.get("/trend/event-risk")
+async def trend_event_risk():
+    """Today's event risk — manual JSON events + auto-detected monthly expiry."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _load_event_risk)
+    except Exception as e:
+        log.warning(f"[EVENT-RISK] {e}")
+        return {"error": str(e), "severity": "NONE", "events": []}
+
+
+# ── 1.1 Nifty 50 Breadth ──────────────────────────────────────────────────────
+
+_N50_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "nifty50_constituents.json")
+_breadth_cache: dict = {}
+_breadth_ts: float = 0.0
+_BREADTH_TTL = 60
+
+
+def _load_breadth_sync() -> dict:
+    global _breadth_cache, _breadth_ts
+    now = _trend_time.time()
+    if _breadth_cache and (now - _breadth_ts) < _BREADTH_TTL:
+        return _breadth_cache
+
+    now_ist = _ist_now()
+    h, m = now_ist.hour, now_ist.minute
+
+    if h < 9 or (h == 9 and m < 15):
+        return {"status": "waiting", "note": "Market opens at 9:15 AM"}
+
+    try:
+        with open(_N50_CONFIG_PATH, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        symbols = cfg["symbols"]
+    except Exception as e:
+        return {"error": f"Constituents config unavailable: {e}"}
+
+    import yfinance as yf
+    try:
+        tickers_str = " ".join(f"{s}.NS" for s in symbols)
+        data = yf.download(tickers_str, period="2d", interval="1d",
+                           progress=False, auto_adjust=True, threads=True)
+        closes = data["Close"] if "Close" in data else data.get("Adj Close")
+        if closes is None or closes.empty:
+            raise ValueError("yfinance: no close data")
+
+        advancing = declining = unchanged = 0
+        for sym in symbols:
+            col = f"{sym}.NS"
+            if col not in closes.columns:
+                continue
+            series = closes[col].dropna()
+            if len(series) < 2:
+                continue
+            today_c = float(series.iloc[-1])
+            prev_c  = float(series.iloc[-2])
+            if today_c > prev_c:
+                advancing += 1
+            elif today_c < prev_c:
+                declining += 1
+            else:
+                unchanged += 1
+
+        total = advancing + declining + unchanged
+        if total == 0:
+            return {"error": "No constituent data available"}
+
+        if advancing >= 35:
+            classification = "strong_bullish"
+        elif advancing >= 30:
+            classification = "moderate_bullish"
+        elif declining >= 35:
+            classification = "strong_bearish"
+        elif declining >= 30:
+            classification = "moderate_bearish"
+        else:
+            classification = "mixed"
+
+        result = {
+            "advancing":      advancing,
+            "declining":      declining,
+            "unchanged":      unchanged,
+            "total":          total,
+            "classification": classification,
+            "as_of":          now_ist.strftime("%H:%M"),
+        }
+        _breadth_cache = result
+        _breadth_ts = now
+        return result
+    except Exception as e:
+        log.warning(f"[BREADTH] {e}")
+        if _breadth_cache:
+            return {**_breadth_cache, "stale": True}
+        return {"error": str(e)}
+
+
+@app.get("/trend/breadth")
+async def trend_breadth():
+    """Nifty 50 advance/decline breadth — 60s TTL cache."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _load_breadth_sync)
+    except Exception as e:
+        log.warning(f"[BREADTH] {e}")
+        return {"error": str(e)}
+
+
+# ── 1.2 BNF Alignment ─────────────────────────────────────────────────────────
+
+_bnf_cache: dict = {}
+_bnf_ts: float = 0.0
+_BNF_TTL = 60
+
+
+def _load_bnf_sync() -> dict:
+    global _bnf_cache, _bnf_ts
+    now = _trend_time.time()
+    if _bnf_cache and (now - _bnf_ts) < _BNF_TTL:
+        return _bnf_cache
+
+    import yfinance as yf
+    now_ist = _ist_now()
+    h, m = now_ist.hour, now_ist.minute
+
+    try:
+        ticker = yf.Ticker("^NSEBANK")
+
+        hist_d = ticker.history(period="5d", interval="1d").dropna()
+        if len(hist_d) < 2:
+            raise ValueError("Not enough BNF daily data")
+        prev_row = hist_d.iloc[-2]
+        BH = round(float(prev_row["High"]),  2)
+        BL = round(float(prev_row["Low"]),   2)
+        BC_raw = round((BH + BL) / 2, 2)
+        BPP    = round((BH + BL + float(prev_row["Close"])) / 3, 2)
+        BTC_raw = round(2 * BPP - BC_raw, 2)
+        BTC = max(BTC_raw, BC_raw)
+        BBC = min(BTC_raw, BC_raw)
+
+        ltp = None
+        if h >= 9:
+            hist_5m = ticker.history(period="1d", interval="5m").dropna()
+            if not hist_5m.empty:
+                ltp = round(float(hist_5m["Close"].iloc[-1]), 2)
+
+        orb_high = orb_low = None
+        if h > 9 or (h == 9 and m >= 30):
+            IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+            t_open = now_ist.replace(hour=9, minute=15, second=0, microsecond=0)
+            t_end  = now_ist.replace(hour=9, minute=30, second=0, microsecond=0)
+            hist_1m = ticker.history(period="1d", interval="1m").dropna()
+            if not hist_1m.empty:
+                hist_1m.index = hist_1m.index.tz_convert("Asia/Kolkata")
+                orb_data = hist_1m[(hist_1m.index >= t_open) & (hist_1m.index <= t_end)]
+                if not orb_data.empty:
+                    orb_high = round(float(orb_data["High"].max()), 2)
+                    orb_low  = round(float(orb_data["Low"].min()),  2)
+
+        alignment = "neutral"
+        if ltp is not None:
+            nifty_cpr = None
+            prev_n = trade_flow_data.get("prev_ohlc")
+            if prev_n:
+                NH, NL, NC = prev_n["high"], prev_n["low"], prev_n["close"]
+                NPP   = (NH + NL + NC) / 3
+                NTC_r = 2 * NPP - (NH + NL) / 2
+                NBC_r = (NH + NL) / 2
+                NTC = max(NTC_r, NBC_r)
+                NBC = min(NTC_r, NBC_r)
+                nifty_cpr = {"tc": NTC, "bc": NBC}
+
+            nifty_ltp = trade_flow_data.get("last_ltp")
+            spot = market_state.get(SPOT_TOKEN)
+            if spot and spot.get("price"):
+                nifty_ltp = spot["price"]
+
+            bnf_pos   = "above_tc" if ltp > BTC else ("below_bc" if ltp < BBC else "inside")
+            nifty_pos = None
+            if nifty_ltp and nifty_cpr:
+                nifty_pos = "above_tc" if nifty_ltp > nifty_cpr["tc"] else (
+                    "below_bc" if nifty_ltp < nifty_cpr["bc"] else "inside")
+
+            if bnf_pos == "inside" or nifty_pos == "inside":
+                alignment = "neutral"
+            elif bnf_pos == nifty_pos:
+                alignment = "aligned"
+            else:
+                alignment = "diverging"
+
+        result = {
+            "ltp":       ltp,
+            "cpr":       {"tc": BTC, "bc": BBC, "pp": BPP},
+            "orb":       {"high": orb_high, "low": orb_low} if orb_high else None,
+            "alignment": alignment,
+            "as_of":     now_ist.strftime("%H:%M"),
+        }
+        _bnf_cache = result
+        _bnf_ts = now
+        return result
+    except Exception as e:
+        log.warning(f"[BNF-ALIGN] {e}")
+        if _bnf_cache:
+            return {**_bnf_cache, "stale": True}
+        return {"error": str(e)}
+
+
+@app.get("/trend/bnf-alignment")
+async def trend_bnf_alignment():
+    """Bank Nifty alignment vs Nifty — 60s TTL cache."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _load_bnf_sync)
+    except Exception as e:
+        log.warning(f"[BNF-ALIGN] {e}")
+        return {"error": str(e)}
+
+
+# ── 1.3 OI Walls ──────────────────────────────────────────────────────────────
+
+_oi_walls_cache: dict = {}
+_oi_walls_ts: float = 0.0
+_OI_WALLS_TTL = 300  # 5-min TTL
+_oi_walls_baseline: dict = {}  # strike → {"ce_oi": n, "pe_oi": n} at 9:20 snapshot
+
+
+def _get_weekly_expiry_str() -> str:
+    """Nearest weekly expiry (Tuesday, holiday-shifted) as DDMMMYYYY string."""
+    today = _ist_now().date()
+    d = _nearest_tuesday(today)
+    return d.strftime("%d%b%Y").upper()
+
+
+def _load_oi_walls_sync() -> dict:
+    global _oi_walls_cache, _oi_walls_ts, _oi_walls_baseline
+    now = _trend_time.time()
+    if _oi_walls_cache and (now - _oi_walls_ts) < _OI_WALLS_TTL:
+        return _oi_walls_cache
+
+    now_ist = _ist_now()
+    h, m = now_ist.hour, now_ist.minute
+
+    if h < 9 or (h == 9 and m < 15):
+        return {"status": "waiting", "note": "Market opens at 9:15 AM"}
+
+    try:
+        spot = market_state.get(SPOT_TOKEN)
+        ltp  = spot["price"] if spot and spot.get("price") else trade_flow_data.get("last_ltp")
+        if not ltp:
+            return {"error": "Spot price unavailable"}
+
+        expiry_str = _get_weekly_expiry_str()
+        chain = im.get_option_chain(float(ltp), range_size=10, expiry=expiry_str)
+        if not chain:
+            return {"error": f"No option chain data for expiry {expiry_str}"}
+
+        rows_data = []
+        for row in chain:
+            ce_tok = str(row["ce"]["token"])
+            pe_tok = str(row["pe"]["token"])
+            ce_state = market_state.data.get(ce_tok) or {}
+            pe_state = market_state.data.get(pe_tok) or {}
+
+            ce_oi = ce_state.get("oi") or 0
+            pe_oi = pe_state.get("oi") or 0
+
+            strike = row["strike"]
+            baseline = _oi_walls_baseline.get(strike, {})
+            ce_base = baseline.get("ce_oi", ce_oi)
+            pe_base = baseline.get("pe_oi", pe_oi)
+
+            rows_data.append({
+                "strike":    strike,
+                "ce_oi":     ce_oi,
+                "pe_oi":     pe_oi,
+                "ce_oi_chg": ce_oi - ce_base,
+                "pe_oi_chg": pe_oi - pe_base,
+            })
+
+        if h == 9 and m >= 20 and not _oi_walls_baseline:
+            _oi_walls_baseline = {r["strike"]: {"ce_oi": r["ce_oi"], "pe_oi": r["pe_oi"]}
+                                  for r in rows_data}
+
+        ce_wall = max(rows_data, key=lambda r: r["ce_oi"], default=None)
+        pe_wall = max(rows_data, key=lambda r: r["pe_oi"], default=None)
+
+        result = {
+            "expiry":       expiry_str,
+            "spot":         round(ltp, 2),
+            "ce_wall":      {"strike": ce_wall["strike"], "oi": ce_wall["ce_oi"],
+                             "oi_chg": ce_wall["ce_oi_chg"]} if ce_wall else None,
+            "pe_wall":      {"strike": pe_wall["strike"], "oi": pe_wall["pe_oi"],
+                             "oi_chg": pe_wall["pe_oi_chg"]} if pe_wall else None,
+            "strikes":      rows_data,
+            "as_of":        now_ist.strftime("%H:%M"),
+        }
+        _oi_walls_cache = result
+        _oi_walls_ts = now
+        return result
+    except Exception as e:
+        log.warning(f"[OI-WALLS] {e}")
+        if _oi_walls_cache:
+            return {**_oi_walls_cache, "stale": True}
+        return {"error": str(e)}
+
+
+@app.get("/trend/oi-walls")
+async def trend_oi_walls():
+    """Strike-level OI walls for the nearest weekly NIFTY expiry — 5-min TTL cache."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _load_oi_walls_sync)
+    except Exception as e:
+        log.warning(f"[OI-WALLS] {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Phase 2 — Signal Quality & Scoring
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── 2.1 Previous Day Type Classification ──────────────────────────────────────
+
+_day_type_cache: dict = {}
+_day_type_ts: float = 0.0
+_DAY_TYPE_TTL = 300  # 5-min TTL — daily data changes rarely
+
+
+def _classify_day_type(H, L, O, C, pH, pL) -> str:
+    """Classify a trading day given its OHLC and the prior day's H/L."""
+    if H < pH and L > pL:
+        return "inside"
+    if H > pH and L < pL:
+        return "outside"
+    rng = H - L
+    if rng > 0:
+        body_ratio = abs(C - O) / rng
+        close_pct  = (C - L) / rng
+        if body_ratio >= 0.7 and (close_pct >= 0.75 or close_pct <= 0.25):
+            return "trend"
+    return "range"
+
+
+def _load_day_type_sync() -> dict:
+    global _day_type_cache, _day_type_ts
+    now = _trend_time.time()
+    if _day_type_cache and (now - _day_type_ts) < _DAY_TYPE_TTL:
+        return _day_type_cache
+
+    import yfinance as yf
+    try:
+        ticker = yf.Ticker("^NSEI")
+        hist = ticker.history(period="10d", interval="1d").dropna()
+        if len(hist) < 3:
+            raise ValueError("Not enough daily data")
+
+        # yesterday = iloc[-2], day-before = iloc[-3]
+        yd  = hist.iloc[-2]
+        dby = hist.iloc[-3]
+
+        YH, YL, YO, YC = float(yd["High"]), float(yd["Low"]), float(yd["Open"]), float(yd["Close"])
+        pH, pL          = float(dby["High"]), float(dby["Low"])
+
+        day_type = _classify_day_type(YH, YL, YO, YC, pH, pL)
+
+        # CPR width classification — replicate the same formula used in get_trade_flow
+        prev = trade_flow_data.get("prev_ohlc")
+        cpr_type = None
+        if prev:
+            PH, PL, PC = prev["high"], prev["low"], prev["close"]
+            PP  = (PH + PL + PC) / 3
+            TC_ = 2 * PP - (PH + PL) / 2
+            BC_ = (PH + PL) / 2
+            width = abs(TC_ - BC_)
+            cpr_type = "narrow" if width < 40 else ("moderate" if width <= 80 else "wide")
+
+        # Interpretation matrix from plan §2.1
+        interpretation = None
+        if day_type in ("range", "inside"):
+            if cpr_type == "narrow":
+                interpretation = "breakout watch — narrow CPR after range/inside session"
+            elif cpr_type == "wide":
+                interpretation = "wide CPR after range session — no directional edge"
+            else:
+                interpretation = "moderate CPR — watch for breakout above/below CPR"
+        elif day_type == "trend":
+            if cpr_type == "narrow":
+                interpretation = "narrow CPR after trend session — continuation or exhaustion"
+            elif cpr_type == "wide":
+                interpretation = "wide CPR after trend session — range-bound likely"
+            else:
+                interpretation = "moderate CPR after trend session"
+        elif day_type == "outside":
+            interpretation = "outside session — expect volatility compression today"
+
+        result = {
+            "day_type":       day_type,
+            "cpr_type":       cpr_type,
+            "interpretation": interpretation,
+            "prev_ohlc":      {"high": YH, "low": YL, "open": YO, "close": YC},
+            "as_of":          _ist_now().strftime("%H:%M"),
+        }
+        _day_type_cache = result
+        _day_type_ts = now
+        return result
+    except Exception as e:
+        log.warning(f"[DAY-TYPE] {e}")
+        if _day_type_cache:
+            return {**_day_type_cache, "stale": True}
+        return {"error": str(e)}
+
+
+@app.get("/trend/day-type")
+async def trend_day_type():
+    """Previous day type classification (Inside/Outside/Trend/Range) + CPR context."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _load_day_type_sync)
+    except Exception as e:
+        log.warning(f"[DAY-TYPE] {e}")
+        return {"error": str(e)}
+
+
+# ── 2.2 Weights endpoint (hot-reload) ─────────────────────────────────────────
+
+_WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), "config", "trend_weights.json")
+
+
+@app.get("/trend/weights")
+def trend_weights():
+    """Serve trend_weights.json — re-read on each call for zero-downtime config changes."""
+    try:
+        with open(_WEIGHTS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        log.warning(f"[TREND-WEIGHTS] {e}")
+        return {"error": str(e)}
+
+
+# ── 2.4 Opening Volume Filter ──────────────────────────────────────────────────
+
+_vol_cache: dict = {}
+_vol_ts: float = 0.0
+_VOL_TTL = 120  # 2-min TTL within market hours
+
+_OPENING_VOL_DDL = """
+CREATE TABLE IF NOT EXISTS opening_volume (
+    date   TEXT PRIMARY KEY,
+    volume REAL NOT NULL
+);
+"""
+
+
+def _ensure_opening_vol_table():
+    from storage.sqlite_store import get_conn
+    conn = get_conn()
+    conn.execute(_OPENING_VOL_DDL)
+    conn.commit()
+    conn.close()
+
+
+def _load_opening_volume_sync() -> dict:
+    global _vol_cache, _vol_ts
+    now = _trend_time.time()
+    if _vol_cache and (now - _vol_ts) < _VOL_TTL:
+        return _vol_cache
+
+    now_ist = _ist_now()
+    h, m = now_ist.hour, now_ist.minute
+
+    if h < 9 or (h == 9 and m < 30):
+        return {"status": "waiting", "note": "Opening volume available after 9:30 AM"}
+
+    today_str = now_ist.strftime("%Y-%m-%d")
+
+    try:
+        _ensure_opening_vol_table()
+        from storage.sqlite_store import get_conn
+        conn = get_conn()
+
+        # Check if today's row already stored
+        row = conn.execute(
+            "SELECT volume FROM opening_volume WHERE date=?", (today_str,)
+        ).fetchone()
+        today_vol = float(row["volume"]) if row else None
+
+        if today_vol is None:
+            # Fetch from SmartAPI: 1-min candles for nearest NIFTY future 9:15–9:29
+            fut_token = im.get_nifty_futures_token()
+            if not fut_token:
+                conn.close()
+                return {"error": "Futures token unavailable — cannot fetch opening volume"}
+
+            smart = _get_smart()
+            t_from = now_ist.replace(hour=9, minute=15, second=0, microsecond=0)
+            t_to   = now_ist.replace(hour=9, minute=29, second=0, microsecond=0)
+            params = {
+                "exchange": "NFO",
+                "symboltoken": str(fut_token),
+                "interval": "ONE_MINUTE",
+                "fromdate": t_from.strftime("%Y-%m-%d %H:%M"),
+                "todate":   t_to.strftime("%Y-%m-%d %H:%M"),
+            }
+            resp = smart.getCandleData(params)
+            if not resp or resp.get("status") is False:
+                conn.close()
+                return {"error": f"SmartAPI candle fetch failed: {resp}"}
+            candles = resp.get("data") or []
+            if not candles:
+                conn.close()
+                return {"error": "No 1-min candles returned for 9:15–9:29"}
+
+            today_vol = sum(float(c[5]) for c in candles if len(c) > 5)
+            conn.execute(
+                "INSERT OR REPLACE INTO opening_volume (date, volume) VALUES (?, ?)",
+                (today_str, today_vol),
+            )
+            conn.commit()
+
+        # 10-day average from prior rows
+        rows = conn.execute(
+            "SELECT volume FROM opening_volume WHERE date < ? ORDER BY date DESC LIMIT 10",
+            (today_str,),
+        ).fetchall()
+        conn.close()
+
+        avg10 = None
+        if rows:
+            vols = [float(r["volume"]) for r in rows]
+            avg10 = sum(vols) / len(vols)
+
+        vol_ratio = round(today_vol / avg10, 2) if avg10 and avg10 > 0 else None
+
+        if vol_ratio is None:
+            classification = "insufficient_history"
+        elif vol_ratio >= 1.3:
+            classification = "strong"
+        elif vol_ratio >= 0.8:
+            classification = "normal"
+        else:
+            classification = "weak"
+
+        result = {
+            "date":           today_str,
+            "volume":         today_vol,
+            "avg10":          round(avg10, 0) if avg10 else None,
+            "vol_ratio":      vol_ratio,
+            "classification": classification,
+            "as_of":          now_ist.strftime("%H:%M"),
+        }
+        _vol_cache = result
+        _vol_ts = now
+        return result
+
+    except Exception as e:
+        log.warning(f"[OPENING-VOL] {e}")
+        if _vol_cache:
+            return {**_vol_cache, "stale": True}
+        return {"error": str(e)}
+
+
+@app.get("/trend/opening-volume")
+async def trend_opening_volume():
+    """First-15-min NIFTY futures volume vs 10-day average — lazy SQLite persistence."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _load_opening_volume_sync)
+    except Exception as e:
+        log.warning(f"[OPENING-VOL] {e}")
+        return {"error": str(e)}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Phase 3 — Feedback Loop & Polish
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── 3.1 Historical Conviction Accuracy Log ────────────────────────────────────
+
+_TREND_LOG_DDL = """
+CREATE TABLE IF NOT EXISTS trend_log (
+    date                  TEXT PRIMARY KEY,
+    conviction_label      TEXT NOT NULL,
+    weighted_score        REAL NOT NULL,
+    signal_snapshot       TEXT NOT NULL,
+    actual_day_type       TEXT,
+    orb_breakout_result   TEXT,
+    kingfisher_trade_taken INTEGER,
+    trade_result          REAL
+);
+"""
+
+_GIFT_DEV_DDL = """
+CREATE TABLE IF NOT EXISTS gift_deviation (
+    date             TEXT PRIMARY KEY,
+    gift_implied_open REAL NOT NULL,
+    actual_open      REAL NOT NULL,
+    deviation        REAL NOT NULL
+);
+"""
+
+_GIFT_DEV_RELIABLE_THRESHOLD = 25.0
+_GIFT_DEV_NOISY_THRESHOLD    = 40.0
+
+
+def _ensure_trend_log_tables():
+    from storage.sqlite_store import get_conn
+    conn = get_conn()
+    conn.execute(_TREND_LOG_DDL)
+    conn.execute(_GIFT_DEV_DDL)
+    conn.commit()
+    conn.close()
+
+
+def _classify_actual_day_type(date_str: str) -> str | None:
+    """Classify actual day type for a past date via yfinance daily OHLC."""
+    import yfinance as yf
+    import datetime as _dt
+    try:
+        end = (_dt.datetime.strptime(date_str, "%Y-%m-%d") + _dt.timedelta(days=2)).strftime("%Y-%m-%d")
+        start = (_dt.datetime.strptime(date_str, "%Y-%m-%d") - _dt.timedelta(days=5)).strftime("%Y-%m-%d")
+        hist = yf.download("^NSEI", start=start, end=end, interval="1d",
+                           progress=False, auto_adjust=True)
+        if hist.empty or len(hist) < 2:
+            return None
+        # Find the row for the target date
+        idx = None
+        for i, row_date in enumerate(hist.index):
+            d = row_date.strftime("%Y-%m-%d") if hasattr(row_date, "strftime") else str(row_date)[:10]
+            if d == date_str:
+                idx = i
+                break
+        if idx is None or idx == 0:
+            return None
+        today_row = hist.iloc[idx]
+        prev_row  = hist.iloc[idx - 1]
+        H, L, O, C = float(today_row["High"]), float(today_row["Low"]), float(today_row["Open"]), float(today_row["Close"])
+        pH, pL = float(prev_row["High"]), float(prev_row["Low"])
+        rng = H - L
+        if rng < 1:
+            return "range"
+        if H < pH and L > pL:
+            return "inside"
+        if H > pH and L < pL:
+            return "outside"
+        body_pct = abs(C - O) / rng
+        if body_pct >= 0.7:
+            return "trend_up" if C > O else "trend_down"
+        return "range"
+    except Exception:
+        return None
+
+
+def _classify_orb_result(date_str: str, signal_snapshot: dict) -> str | None:
+    """Try to determine ORB breakout result for a past date via yfinance intraday."""
+    import yfinance as yf
+    import datetime as _dt
+    try:
+        snap = signal_snapshot or {}
+        orb_high = snap.get("orb_high")
+        orb_low  = snap.get("orb_low")
+        if not orb_high or not orb_low:
+            return None
+        target_dt = _dt.datetime.strptime(date_str, "%Y-%m-%d")
+        end   = target_dt + _dt.timedelta(days=1)
+        hist_5m = yf.download("^NSEI",
+                              start=date_str, end=end.strftime("%Y-%m-%d"),
+                              interval="5m", progress=False, auto_adjust=True)
+        if hist_5m.empty:
+            return None
+        IST = _dt.timezone(_dt.timedelta(hours=5, minutes=30))
+        broke_high = False
+        broke_low  = False
+        sustained_high = False
+        sustained_low  = False
+        prev_above = prev_below = False
+        for ts, row in hist_5m.iterrows():
+            try:
+                row_time = ts.astimezone(IST) if hasattr(ts, "astimezone") else ts
+                h_val = row_time.hour if hasattr(row_time, "hour") else 0
+                m_val = row_time.minute if hasattr(row_time, "minute") else 0
+            except Exception:
+                continue
+            if h_val < 9 or (h_val == 9 and m_val < 30) or h_val >= 15:
+                continue
+            close = float(row["Close"])
+            if close > orb_high:
+                if prev_above:
+                    sustained_high = True
+                prev_above = True
+                broke_high = True
+            else:
+                prev_above = False
+            if close < orb_low:
+                if prev_below:
+                    sustained_low = True
+                prev_below = True
+                broke_low = True
+            else:
+                prev_below = False
+        if sustained_high:
+            return "breakout_held"
+        if sustained_low:
+            return "breakdown_held"
+        if broke_high or broke_low:
+            return "breakout_failed"
+        return "no_breakout"
+    except Exception:
+        return None
+
+
+def _log_snapshot_sync(conviction_label: str, weighted_score: float, signal_snapshot: dict) -> dict:
+    _ensure_trend_log_tables()
+    from storage.sqlite_store import get_conn
+    now_ist = _ist_now()
+    today_str = now_ist.strftime("%Y-%m-%d")
+    conn = get_conn()
+    try:
+        existing = conn.execute(
+            "SELECT date FROM trend_log WHERE date=?", (today_str,)
+        ).fetchone()
+        if existing:
+            return {"status": "already_logged", "date": today_str}
+        conn.execute(
+            """INSERT OR IGNORE INTO trend_log
+               (date, conviction_label, weighted_score, signal_snapshot)
+               VALUES (?, ?, ?, ?)""",
+            (today_str, conviction_label, weighted_score, json.dumps(signal_snapshot)),
+        )
+        conn.commit()
+        return {"status": "logged", "date": today_str}
+    finally:
+        conn.close()
+
+
+def _accuracy_sync(days: int) -> dict:
+    _ensure_trend_log_tables()
+    from storage.sqlite_store import get_conn
+    import datetime as _dt
+    conn = get_conn()
+    try:
+        cutoff = (_ist_now() - _dt.timedelta(days=days)).strftime("%Y-%m-%d")
+        today_str = _ist_now().strftime("%Y-%m-%d")
+        rows = conn.execute(
+            "SELECT * FROM trend_log WHERE date >= ? ORDER BY date DESC",
+            (cutoff,)
+        ).fetchall()
+
+        # Lazy backfill: fill missing actual_day_type / orb_breakout_result for past dates
+        for row in rows:
+            row_date = row["date"]
+            if row_date >= today_str:
+                continue
+            needs_day_type = row["actual_day_type"] is None
+            needs_orb      = row["orb_breakout_result"] is None
+            if needs_day_type or needs_orb:
+                snap = {}
+                try:
+                    snap = json.loads(row["signal_snapshot"] or "{}")
+                except Exception:
+                    pass
+                updates = {}
+                if needs_day_type:
+                    dt = _classify_actual_day_type(row_date)
+                    if dt:
+                        updates["actual_day_type"] = dt
+                if needs_orb:
+                    orb_res = _classify_orb_result(row_date, snap)
+                    if orb_res:
+                        updates["orb_breakout_result"] = orb_res
+                if updates:
+                    set_clause = ", ".join(f"{k}=?" for k in updates)
+                    conn.execute(
+                        f"UPDATE trend_log SET {set_clause} WHERE date=?",
+                        (*updates.values(), row_date),
+                    )
+                    conn.commit()
+
+        # Re-fetch after backfill
+        rows = conn.execute(
+            "SELECT * FROM trend_log WHERE date >= ? ORDER BY date DESC",
+            (cutoff,)
+        ).fetchall()
+
+        result_rows = []
+        signal_hits: dict = {}
+        signal_totals: dict = {}
+
+        for row in rows:
+            snap = {}
+            try:
+                snap = json.loads(row["signal_snapshot"] or "{}")
+            except Exception:
+                pass
+            actual = row["actual_day_type"] or ""
+            conviction = row["conviction_label"] or ""
+            is_bullish_call = "BULL" in conviction.upper() or "HIGH" in conviction.upper()
+            is_bearish_call = "BEAR" in conviction.upper()
+            actual_up = actual in ("trend_up",)
+            actual_down = actual in ("trend_down",)
+
+            for sig_key, sig_val in snap.items():
+                if sig_key in ("orb_high", "orb_low", "gap_pts"):
+                    continue
+                if sig_val is None:
+                    continue
+                signal_totals[sig_key] = signal_totals.get(sig_key, 0) + 1
+                sig_bullish = None
+                if isinstance(sig_val, str):
+                    if sig_val in ("above_tc", "above", "strong_bullish", "moderate_bullish",
+                                   "long_buildup", "aligned"):
+                        sig_bullish = True
+                    elif sig_val in ("below_bc", "below", "strong_bearish", "moderate_bearish",
+                                     "short_buildup", "diverging"):
+                        sig_bullish = False
+                elif isinstance(sig_val, (int, float)):
+                    if sig_key == "gap_pts":
+                        sig_bullish = sig_val > 0
+                    elif sig_key == "pcr":
+                        sig_bullish = sig_val > 1.0
+                    elif sig_key == "vol_ratio":
+                        sig_bullish = sig_val >= 1.0
+                if sig_bullish is not None and (actual_up or actual_down):
+                    hit = (sig_bullish and actual_up) or (not sig_bullish and actual_down)
+                    if hit:
+                        signal_hits[sig_key] = signal_hits.get(sig_key, 0) + 1
+
+            result_rows.append({
+                "date":                 row["date"],
+                "conviction_label":     row["conviction_label"],
+                "weighted_score":       row["weighted_score"],
+                "actual_day_type":      row["actual_day_type"],
+                "orb_breakout_result":  row["orb_breakout_result"],
+                "kingfisher_trade_taken": row["kingfisher_trade_taken"],
+                "trade_result":         row["trade_result"],
+            })
+
+        hit_rate = {}
+        for k, total in signal_totals.items():
+            hits = signal_hits.get(k, 0)
+            hit_rate[k] = {"hits": hits, "total": total,
+                           "pct": round(hits / total * 100, 1) if total > 0 else None}
+
+        return {"rows": result_rows, "hit_rate": hit_rate, "days": days}
+    finally:
+        conn.close()
+
+
+@app.post("/trend/log-snapshot")
+async def trend_log_snapshot(payload: dict):
+    """Idempotent per-date conviction snapshot — called by frontend after 9:30 on first scored render."""
+    loop = asyncio.get_event_loop()
+    try:
+        conviction_label  = payload.get("conviction_label", "NONE")
+        weighted_score    = float(payload.get("weighted_score", 0))
+        signal_snapshot   = payload.get("signal_snapshot", {})
+        return await loop.run_in_executor(
+            None, _log_snapshot_sync, conviction_label, weighted_score, signal_snapshot
+        )
+    except Exception as e:
+        log.warning(f"[TREND-LOG] {e}")
+        return {"error": str(e)}
+
+
+@app.get("/trend/accuracy")
+async def trend_accuracy(days: int = 60, format: str = "json"):
+    """Per-conviction accuracy with lazy backfill of actual_day_type and orb_breakout_result."""
+    loop = asyncio.get_event_loop()
+    try:
+        data = await loop.run_in_executor(None, _accuracy_sync, days)
+        if format == "csv":
+            import io, csv
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(["date", "conviction_label", "weighted_score",
+                             "actual_day_type", "orb_breakout_result",
+                             "kingfisher_trade_taken", "trade_result"])
+            for r in data["rows"]:
+                writer.writerow([
+                    r["date"], r["conviction_label"], r["weighted_score"],
+                    r["actual_day_type"] or "", r["orb_breakout_result"] or "",
+                    r["kingfisher_trade_taken"] if r["kingfisher_trade_taken"] is not None else "",
+                    r["trade_result"] if r["trade_result"] is not None else "",
+                ])
+            from fastapi.responses import PlainTextResponse
+            return PlainTextResponse(buf.getvalue(), media_type="text/csv",
+                                     headers={"Content-Disposition": "attachment; filename=trend_accuracy.csv"})
+        return data
+    except Exception as e:
+        log.warning(f"[ACCURACY] {e}")
+        return {"error": str(e), "rows": [], "hit_rate": {}}
+
+
+# ── 3.3 GIFT Nifty Deviation Log ──────────────────────────────────────────────
+
+_gift_dev_cache: dict = {}
+_gift_dev_ts: float = 0.0
+_GIFT_DEV_TTL = 300  # 5-min TTL
+
+
+def _gift_deviation_sync() -> dict:
+    global _gift_dev_cache, _gift_dev_ts
+    now = _trend_time.time()
+    if _gift_dev_cache and (now - _gift_dev_ts) < _GIFT_DEV_TTL:
+        return _gift_dev_cache
+
+    _ensure_trend_log_tables()
+    from storage.sqlite_store import get_conn
+    now_ist = _ist_now()
+    h, m = now_ist.hour, now_ist.minute
+    today_str = now_ist.strftime("%Y-%m-%d")
+
+    conn = get_conn()
+    try:
+        # Lazy write for today when both gift_nifty and nifty_open are available (after 9:15)
+        if (h > 9 or (h == 9 and m >= 15)):
+            gift = trade_flow_data.get("gift_nifty")
+            nifty_open = trade_flow_data.get("nifty_open")
+            if gift and nifty_open:
+                existing = conn.execute(
+                    "SELECT date FROM gift_deviation WHERE date=?", (today_str,)
+                ).fetchone()
+                if not existing:
+                    dev = round(abs(gift - nifty_open), 2)
+                    conn.execute(
+                        """INSERT OR IGNORE INTO gift_deviation
+                           (date, gift_implied_open, actual_open, deviation)
+                           VALUES (?, ?, ?, ?)""",
+                        (today_str, gift, nifty_open, dev),
+                    )
+                    conn.commit()
+
+        today_row = conn.execute(
+            "SELECT * FROM gift_deviation WHERE date=?", (today_str,)
+        ).fetchone()
+
+        recent = conn.execute(
+            "SELECT deviation FROM gift_deviation WHERE date < ? ORDER BY date DESC LIMIT 20",
+            (today_str,)
+        ).fetchall()
+
+        avg_dev = None
+        if recent:
+            devs = [r["deviation"] for r in recent]
+            avg_dev = round(sum(devs) / len(devs), 1)
+
+        reliability = None
+        if avg_dev is not None:
+            if avg_dev <= _GIFT_DEV_RELIABLE_THRESHOLD:
+                reliability = "reliable"
+            elif avg_dev <= _GIFT_DEV_NOISY_THRESHOLD:
+                reliability = "moderate"
+            else:
+                reliability = "noisy"
+
+        result = {
+            "today": dict(today_row) if today_row else None,
+            "avg_deviation_20d": avg_dev,
+            "reliability": reliability,
+            "sample_count": len(recent),
+        }
+        _gift_dev_cache = result
+        _gift_dev_ts = now
+        return result
+    finally:
+        conn.close()
+
+
+@app.get("/trend/gift-deviation")
+async def trend_gift_deviation():
+    """GIFT Nifty deviation log — lazy write today + rolling 20-day reliability."""
+    loop = asyncio.get_event_loop()
+    try:
+        return await loop.run_in_executor(None, _gift_deviation_sync)
+    except Exception as e:
+        log.warning(f"[GIFT-DEV] {e}")
+        return {"error": str(e)}
+
+
 @app.get("/iv")
 async def fetch_iv():
     loop = asyncio.get_event_loop()

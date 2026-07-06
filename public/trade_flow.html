@@ -574,13 +574,14 @@ body.is-fullscreen .fs-close-btn{display:flex}
     <div class="live-chip" id="chip-vix" style="background:rgba(124,106,247,0.08);color:var(--accent);border-color:rgba(124,106,247,0.25);display:none">
       🌡 VIX <span id="chip-vix-val">--</span>
     </div>
-    <div class="live-chip" id="chip-iv" style="background:rgba(0,212,255,0.07);color:var(--cyan);border-color:rgba(0,212,255,0.25);display:none;cursor:pointer" onclick="openIvCard()" title="Click for ATM IV breakdown">
-      ◎ IV <span id="chip-iv-val">--</span>
+    <div class="live-chip" id="chip-iv" style="background:rgba(0,212,255,0.07);color:var(--cyan);border-color:rgba(0,212,255,0.25);display:none;cursor:pointer" onclick="openIvCard()">
+      ◎ <span id="chip-iv-val">--</span>
     </div>
     <div class="live-chip" id="chip-foi" style="display:none" title="NIFTY near-month futures open interest vs morning baseline">
       F-OI <span id="chip-foi-val">--</span>
     </div>
     <div class="live-chip" id="chip-cpr-confirm" style="display:none" title="CPR zone vs Futures OI — confirmation signal"></div>
+    <div class="live-chip" id="chip-kingfisher" style="display:none;background:rgba(167,139,250,.1);color:#a78bfa;border-color:rgba(167,139,250,.3);font-family:'JetBrains Mono',monospace;font-size:10px" title="Kingfisher strategy window — Wed/Thu 9:30 AM–1:00 PM"></div>
     <div class="live-chip" id="chip-alerts" onclick="toggleAlerts()" title="Price alerts for key levels" style="cursor:pointer;background:rgba(255,255,255,0.04);color:var(--dim);border-color:var(--border)">
       🔔 <span id="chip-alerts-label">Alerts Off</span>
     </div>
@@ -714,6 +715,7 @@ body.is-fullscreen .fs-close-btn{display:flex}
 <div class="app-main">
   <!-- TREND PANEL — today's market bias at-a-glance -->
   <div id="trend-panel" style="margin-bottom:16px;display:none">
+    <div id="tp-veto-banner" style="display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.4);border-radius:8px;padding:8px 14px;margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#f87171;text-align:center"></div>
     <div class="tp-card">
       <div class="tp-header">
         <div class="tp-header-left">
@@ -721,6 +723,7 @@ body.is-fullscreen .fs-close-btn{display:flex}
           <div id="tp-verdict" class="tp-verdict">—</div>
         </div>
         <div class="tp-header-right">
+          <div id="tp-event-badge" style="display:none;font-family:'JetBrains Mono',monospace;font-size:10px;border-radius:4px;padding:2px 7px;margin-bottom:4px"></div>
           <div id="tp-phase-tag" class="tp-phase-tag">—</div>
           <div id="tp-conviction" class="tp-conviction">conviction: <b>—</b></div>
         </div>
@@ -738,6 +741,25 @@ body.is-fullscreen .fs-close-btn{display:flex}
       <div id="tp-rows" class="tp-rows"></div>
     </div>
   </div>
+
+  <!-- Phase 3: Conviction Accuracy collapsible panel -->
+  <div id="accuracy-section" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;
+                background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+                font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)"
+         onclick="window._toggleAccuracy()">
+      <span>📊</span>
+      <span>Conviction Accuracy Log</span>
+      <span id="accuracy-toggle-icon" style="margin-left:auto">▶</span>
+    </div>
+    <div id="accuracy-body" style="display:none;background:var(--bg2);border:1px solid var(--border);
+                                   border-top:none;border-radius:0 0 8px 8px;padding:12px 14px">
+      <div id="tp-accuracy-panel">
+        <div style="color:var(--muted);font-size:12px">Click above to load accuracy data.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- OHLC entry banner — shown when CPR data is missing -->
   <div id="ohlc-banner" style="display:none">
     <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.3);border-radius:8px;padding:10px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
@@ -779,6 +801,8 @@ body.is-fullscreen .fs-close-btn{display:flex}
           <div>VIX data loading…</div>
         </div>
       </div>
+
+      <div id="gift-dev-footnote" style="display:none;font-size:11px;color:var(--muted);margin-top:8px;font-style:italic;padding:4px 0 0 2px"></div>
 
       <div class="tip-strip" style="margin-top:12px">
         <div class="tip-lbl">💡 Tip</div>
@@ -2683,46 +2707,98 @@ function _gapPts(d) {
   return d.nifty_open ? d.nifty_open.price - prevClose : null;
 }
 
-function _trendScore(d) {
-  let s = 0;
-  if (!d) return s;
-  const gap = _gapPts(d);
-  if (gap != null) {
-    if (gap > 50) s += 2; else if (gap > 20) s += 1;
-    else if (gap < -50) s -= 2; else if (gap < -20) s -= 1;
+function _updateGapState(d) {
+  if (!d || !d.nifty_open || !d.nifty_open.price || !d.prev_day || !d.nifty_ltp) return;
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  if (h < 9 || (h === 9 && m < 30)) return;
+
+  const prevClose = d.prev_day.close;
+  const openPrice = d.nifty_open.price;
+  const gap = openPrice - prevClose;
+  const ltp = d.nifty_ltp;
+
+  if (Math.abs(gap) < 5) { _gapState = null; return; }
+
+  const is9_45_or_later = h > 9 || (h === 9 && m >= 45);
+
+  if (gap > 0) {
+    if (ltp < prevClose) {
+      _gapState = 'filled';
+    } else if (is9_45_or_later && _gapState !== 'filled') {
+      const halfGap = prevClose + gap * 0.5;
+      if (ltp > halfGap) _gapState = 'holding';
+    }
+  } else {
+    if (ltp > prevClose) {
+      _gapState = 'filled';
+    } else if (is9_45_or_later && _gapState !== 'filled') {
+      const halfGap = prevClose + gap * 0.5;
+      if (ltp < halfGap) _gapState = 'holding';
+    }
   }
-  const ltp = d.nifty_ltp, cpr = d.cpr;
-  if (ltp && cpr) {
-    if (ltp > cpr.tc) s += 2; else if (ltp < cpr.bc) s -= 2;
-  }
-  const orb = d.orb, ltpS = d.nifty_ltp;
-  if (orb && ltpS) {
-    // post-9:30: score based on actual price position within the morning range
-    if (ltpS > orb.high) s += 2;
-    else if (ltpS < orb.low) s -= 2;
-    // inside ORB → 0 (ranging day, no directional edge)
-  }
+}
+
+function _buildSignalInputs(d) {
+  const gap    = _gapPts(d);
+  const ltp    = d.nifty_ltp, cpr = d.cpr, orb = d.orb;
+  const pcr    = d.oi_sentiment && d.oi_sentiment.pcr;
   const foiSig = d.fut_oi && d.fut_oi.signal;
-  if (foiSig === 'long_buildup') s += 2;
-  else if (foiSig === 'short_covering') s += 1;
-  else if (foiSig === 'long_unwinding') s -= 1;
-  else if (foiSig === 'short_buildup') s -= 2;
-  const pcr = d.oi_sentiment && d.oi_sentiment.pcr;
-  if (pcr != null) {
-    if (pcr > 1.3) s += 1; else if (pcr < 0.7) s -= 1;
+
+  let cpr_position = null;
+  if (ltp && cpr) {
+    cpr_position = ltp > cpr.tc ? 'above_tc' : ltp < cpr.bc ? 'below_bc' : 'inside';
   }
-  if (fiiDiiData && !fiiDiiData.error) {
-    if (fiiDiiData.bias === 'bullish') s += 1;
-    else if (fiiDiiData.bias === 'bearish') s -= 1;
+  let orb_position = null;
+  if (orb && ltp) {
+    orb_position = ltp > orb.high ? 'above' : ltp < orb.low ? 'below' : 'inside';
   }
+
+  let breadth_classification = null;
+  if (breadthData && !breadthData.error && breadthData.classification) {
+    breadth_classification = breadthData.classification;
+  }
+
+  let bnf_alignment = null;
+  if (bnfData && !bnfData.error && bnfData.alignment) {
+    bnf_alignment = bnfData.alignment;
+  }
+
+  let trend_ind_bulls = null, trend_ind_bears = null;
   if (indData && !indData.error) {
-    const sigs = [indData.vwap && indData.vwap.signal, indData.ema && indData.ema.signal,
-                  indData.macd && indData.macd.signal, indData.rsi && indData.rsi.signal];
-    const bulls = sigs.filter(x => x === 'bullish' || x === 'oversold' || x === 'recovering').length;
-    const bears = sigs.filter(x => x === 'bearish' || x === 'overbought' || x === 'weakening').length;
-    s += Math.max(-2, Math.min(2, bulls - bears));
+    const sigs = [
+      indData.vwap && indData.vwap.signal,
+      indData.ema  && indData.ema.signal,
+      indData.macd && indData.macd.signal,
+      indData.rsi  && indData.rsi.signal,
+    ];
+    trend_ind_bulls = sigs.filter(x => x === 'bullish' || x === 'oversold'  || x === 'recovering').length;
+    trend_ind_bears = sigs.filter(x => x === 'bearish' || x === 'overbought'|| x === 'weakening').length;
   }
-  return Math.max(-12, Math.min(12, s));
+
+  const vol_ratio = (openingVolData && !openingVolData.error && openingVolData.vol_ratio != null)
+    ? openingVolData.vol_ratio : null;
+
+  return {
+    gap_pts:               gap,
+    gapState:              _gapState,
+    cpr_position:          cpr_position,
+    orb_position:          orb_position,
+    breadth_classification: breadth_classification,
+    fut_oi_signal:         foiSig || null,
+    bnf_alignment:         bnf_alignment,
+    pcr:                   pcr != null ? pcr : null,
+    trend_ind_bulls:       trend_ind_bulls,
+    trend_ind_bears:       trend_ind_bears,
+    vol_ratio:             vol_ratio,
+  };
+}
+
+function _trendScore(d) {
+  if (!d) return 0;
+  const w = trendWeights && trendWeights.signals ? trendWeights.signals : null;
+  const result = TrendScoring.computeTrendScore(_buildSignalInputs(d), w);
+  return result.score;
 }
 
 function renderTrendPanel(d) {
@@ -2744,21 +2820,90 @@ function renderTrendPanel(d) {
   vdict.textContent = vtext;
   vdict.className   = 'tp-verdict ' + vcls;
 
-  // Phase tag + conviction
+  // Phase tag
   document.getElementById('tp-phase-tag').textContent = PHASE_LABELS[d.phase] || d.phase || '—';
-  const ps = calcPositionSize(d);
-  let convLabel = '—';
-  if (ps.label.includes('FULL'))  convLabel = 'HIGH';
-  else if (ps.label.includes('HALF')) convLabel = 'MEDIUM';
-  else if (ps.label.includes('LOW'))  convLabel = 'LOW';
-  else if (ps.label === 'NO SETUP')   convLabel = 'NONE';
-  document.getElementById('tp-conviction').innerHTML = `conviction: <b>${convLabel}</b>`;
 
-  // Score + meter needle
-  const score   = _trendScore(d);
-  const mPct    = 50 + (score / 12) * 50;
+  const evSeverity = eventRiskData && !eventRiskData.error ? eventRiskData.severity : 'NONE';
+  const bnfAlign   = bnfData && !bnfData.error ? bnfData.alignment : null;
+  const convOrder  = ['NONE', 'LOW', 'MEDIUM', 'HIGH'];
+  function _capConv(current, cap) {
+    const ci = convOrder.indexOf(current), capi = convOrder.indexOf(cap);
+    return ci > capi ? cap : current;
+  }
+
+  const vetoBanner = document.getElementById('tp-veto-banner');
+  if (evSeverity === 'HIGH' && eventRiskData.events && eventRiskData.events.length) {
+    const evLabels = eventRiskData.events.map(e => e.label).join(' · ');
+    vetoBanner.textContent = `⚠️ HIGH EVENT RISK — ${evLabels} — conviction held at NONE`;
+    vetoBanner.style.display = '';
+  } else {
+    vetoBanner.style.display = 'none';
+  }
+
+  const evBadge = document.getElementById('tp-event-badge');
+  if (evSeverity === 'HIGH') {
+    evBadge.textContent = 'EVENT: HIGH';
+    evBadge.style.cssText = 'display:block;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.4);font-family:"JetBrains Mono",monospace;font-size:10px;border-radius:4px;padding:2px 7px;margin-bottom:4px;text-align:center';
+  } else if (evSeverity === 'CAUTION') {
+    const evLabel = eventRiskData.events && eventRiskData.events[0] ? eventRiskData.events[0].label : 'CAUTION';
+    evBadge.textContent = `CAUTION: ${evLabel}`;
+    evBadge.style.cssText = 'display:block;background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.4);font-family:"JetBrains Mono",monospace;font-size:10px;border-radius:4px;padding:2px 7px;margin-bottom:4px;text-align:center';
+  } else {
+    evBadge.style.display = 'none';
+  }
+
+  // Weighted score via scoring engine
+  const _sigs   = _buildSignalInputs(d);
+  const _w      = trendWeights && trendWeights.signals ? trendWeights.signals : null;
+  const _scored = TrendScoring.computeTrendScore(_sigs, _w);
+  const score   = _scored.score;
+
+  // Map engine conviction to display label (after caps)
+  const _rawConv = _scored.conviction;
+  let convLabel = _rawConv === 'HIGH' ? 'HIGH'
+    : _rawConv === 'HIGH_BEAR'      ? 'HIGH'
+    : _rawConv === 'MODERATE'       ? 'MEDIUM'
+    : _rawConv === 'MODERATE_BEAR'  ? 'MEDIUM'
+    : _rawConv === 'LOW'            ? 'LOW'
+    : _rawConv === 'LOW_BEAR'       ? 'LOW'
+    : 'NONE';
+
+  if (evSeverity === 'HIGH')         convLabel = 'NONE';
+  else if (evSeverity === 'CAUTION') convLabel = _capConv(convLabel, 'LOW');
+  if (bnfAlign === 'diverging')      convLabel = _capConv(convLabel, 'MEDIUM');
+
+  const _convEl = document.getElementById('tp-conviction');
+  _convEl.innerHTML = `conviction: <b style="cursor:pointer;text-decoration:underline dotted" onclick="window._tpBreakdownToggle()">${convLabel}</b>`;
+
+  // Breakdown toggle
+  let _bkdHtml = '';
+  if (_breakdownOpen) {
+    const rows = _scored.contributions.map(c => {
+      const dir = c.weighted > 0.05 ? '▲' : c.weighted < -0.05 ? '▼' : '·';
+      const col = c.weighted > 0.05 ? 'var(--green)' : c.weighted < -0.05 ? 'var(--red)' : 'var(--muted)';
+      return `<div style="display:flex;justify-content:space-between;padding:1px 0">
+        <span style="color:var(--dim)">${c.name}</span>
+        <span style="color:${col};font-family:'JetBrains Mono',monospace">${dir} ${c.weighted >= 0 ? '+' : ''}${c.weighted.toFixed(2)}</span>
+      </div>`;
+    }).join('');
+    _bkdHtml = `<div id="tp-breakdown" style="font-size:10px;padding:6px 16px 4px;border-top:1px solid var(--border);margin-top:4px">${_bkdRows}<div style="margin-top:3px;color:var(--muted);font-family:'JetBrains Mono',monospace">weighted total: ${score >= 0 ? '+' : ''}${score.toFixed(2)}</div></div>`.replace('_bkdRows', rows);
+  }
+  let _bdEl = document.getElementById('tp-breakdown-area');
+  if (!_bdEl) {
+    _bdEl = document.createElement('div');
+    _bdEl.id = 'tp-breakdown-area';
+    _convEl.parentNode.appendChild(_bdEl);
+  }
+  _bdEl.innerHTML = _bkdHtml;
+
+  window._tpBreakdownToggle = function () {
+    _breakdownOpen = !_breakdownOpen;
+    renderTrendPanel(flowData);
+  };
+
+  const mPct = 50 + (score / 12) * 50;
   document.getElementById('tp-meter-dot').style.left = mPct + '%';
-  document.getElementById('tp-score-val').textContent = `alignment: ${score > 0 ? '+' : ''}${score}`;
+  document.getElementById('tp-score-val').textContent = `alignment: ${score > 0 ? '+' : ''}${score.toFixed(1)}`;
 
   // Signal rows
   const rows = [];
@@ -2770,7 +2915,9 @@ function renderTrendPanel(d) {
     const icon = isUp ? '✅' : isDn ? '❌' : isMild ? '🟡' : '⚪';
     const cls  = isUp ? 'tp-bull' : isDn ? 'tp-bear' : isMild ? 'tp-caution' : 'tp-neutral';
     const dir  = isUp ? ' · gap-up' : isDn ? ' · gap-down' : ' · mild';
-    rows.push([icon, 'Gap', `${gap >= 0 ? '+' : ''}${gap.toFixed(0)} pts${dir}`, cls]);
+    const gapStateSuffix = _gapState === 'holding' ? ' · holding ✓'
+      : _gapState === 'filled' ? ' · filling ✗' : '';
+    rows.push([icon, 'Gap', `${gap >= 0 ? '+' : ''}${gap.toFixed(0)} pts${dir}${gapStateSuffix}`, cls]);
   } else {
     rows.push(['⏳', 'Gap', d.phase === 'pre_market' ? 'enter GIFT Nifty above' : '—', 'tp-neutral']);
   }
@@ -2871,9 +3018,115 @@ function renderTrendPanel(d) {
     rows.push(['⚪', 'VIX', '—', 'tp-neutral']);
   }
 
+  // Breadth — A/D ratio
+  if (breadthData && !breadthData.error && breadthData.advancing != null) {
+    const cl = breadthData.classification || '';
+    const icon = cl.includes('strong_bull') ? '✅' : cl.includes('strong_bear') ? '❌'
+               : cl.includes('moderate_bull') ? '🟡' : cl.includes('moderate_bear') ? '🟡' : '⚪';
+    const cls  = cl.includes('bull') ? 'tp-bull' : cl.includes('bear') ? 'tp-bear' : 'tp-neutral';
+    const lbl  = cl.replace(/_/g, ' ');
+    rows.push([icon, 'Breadth', `A/D: ${breadthData.advancing}/${breadthData.declining} · ${lbl}`, cls]);
+  } else if (breadthData && breadthData.status === 'waiting') {
+    rows.push(['⏳', 'Breadth', 'market opens at 9:15 AM', 'tp-neutral']);
+  } else {
+    rows.push(['⚪', 'Breadth', breadthData && breadthData.error ? 'unavailable' : 'loading…', 'tp-neutral']);
+  }
+
+  // BNF Alignment
+  if (bnfData && !bnfData.error && bnfData.alignment) {
+    const alMap = {
+      aligned:   ['✅', 'aligned ✓', 'tp-bull'],
+      diverging: ['❌', 'diverging ✗', 'tp-bear'],
+      neutral:   ['🟡', 'neutral', 'tp-caution'],
+    };
+    const [icon, albl, cls] = alMap[bnfData.alignment] || ['⚪', bnfData.alignment, 'tp-neutral'];
+    const extra = bnfData.ltp ? ` · BNF ${bnfData.ltp.toLocaleString('en-IN')}` : '';
+    const cprtip = bnfData.cpr ? ` · TC ${bnfData.cpr.tc} BC ${bnfData.cpr.bc}` : '';
+    rows.push([icon, 'BNF', `${albl}${extra}${cprtip}`, cls]);
+  } else {
+    rows.push(['⚪', 'BNF', bnfData && bnfData.error ? 'unavailable' : 'loading…', 'tp-neutral']);
+  }
+
+  // OI Walls
+  if (oiWallsData && !oiWallsData.error && oiWallsData.ce_wall && oiWallsData.pe_wall) {
+    const _fmtWall = w => {
+      const chgStr = w.oi_chg != null
+        ? ` (${w.oi_chg >= 0 ? '+' : ''}${_fmtOI(Math.abs(w.oi_chg))} OI)`
+        : '';
+      return `${w.strike.toLocaleString('en-IN')}${chgStr}`;
+    };
+    const spot   = oiWallsData.spot;
+    const ceSt   = oiWallsData.ce_wall.strike;
+    const peSt   = oiWallsData.pe_wall.strike;
+    const posBar = (spot && ceSt && peSt && ceSt !== peSt)
+      ? ` · spot at ${Math.round((spot - peSt) / (ceSt - peSt) * 100)}%`
+      : '';
+    rows.push(['⚪', 'OI Walls',
+      `CE wall: ${_fmtWall(oiWallsData.ce_wall)} · PE wall: ${_fmtWall(oiWallsData.pe_wall)}${posBar}`,
+      'tp-neutral']);
+  } else if (oiWallsData && oiWallsData.status === 'waiting') {
+    rows.push(['⏳', 'OI Walls', 'market opens at 9:15 AM', 'tp-neutral']);
+  } else {
+    rows.push(['⚪', 'OI Walls', oiWallsData && oiWallsData.error ? 'unavailable' : 'loading…', 'tp-neutral']);
+  }
+
+  // Prev Day Type (2.1)
+  if (dayTypeData && !dayTypeData.error && dayTypeData.day_type) {
+    const dtMap = {
+      trend:   ['🟢', 'tp-bull'],
+      range:   ['🟡', 'tp-caution'],
+      inside:  ['⚪', 'tp-neutral'],
+      outside: ['🟡', 'tp-caution'],
+    };
+    const [dtIcon, dtCls] = dtMap[dayTypeData.day_type] || ['⚪', 'tp-neutral'];
+    const cprPart = dayTypeData.cpr_type ? ` · ${dayTypeData.cpr_type} CPR` : '';
+    const interpPart = dayTypeData.interpretation
+      ? ` → ${dayTypeData.interpretation.split('—')[0].trim()}`
+      : '';
+    rows.push([dtIcon, 'Prev Day', `${dayTypeData.day_type}${cprPart}${interpPart}`, dtCls]);
+  } else {
+    rows.push(['⚪', 'Prev Day', dayTypeData && dayTypeData.error ? 'unavailable' : 'loading…', 'tp-neutral']);
+  }
+
+  // IV / VIX reconciliation (2.3)
+  if (ivData && ivData.avg_iv != null && d.india_vix != null) {
+    const thresholds = (trendWeights && trendWeights.iv_premium_thresholds) || { elevated: 3, high: 6 };
+    const prem = Math.round((ivData.avg_iv - d.india_vix) * 10) / 10;
+    let premLabel, premCls;
+    if (prem > thresholds.high) {
+      premLabel = 'event priced'; premCls = 'tp-bear';
+    } else if (prem > thresholds.elevated) {
+      premLabel = 'elevated premium'; premCls = 'tp-caution';
+    } else {
+      premLabel = 'normal'; premCls = 'tp-neutral';
+    }
+    const premSign = prem >= 0 ? '+' : '';
+    rows.push(['⚪', 'IV/VIX',
+      `IV ${ivData.avg_iv}% · VIX ${d.india_vix} · premium ${premSign}${prem} (${premLabel})`,
+      premCls,
+      `IV premium over VIX measures how much the options market prices in above baseline volatility. >6 = event risk priced in; 3–6 = mildly elevated; <3 = normal.`
+    ]);
+  } else if (ivData && ivData.avg_iv != null) {
+    rows.push(['⚪', 'IV', `${ivData.avg_iv}% · ${ivData.status}`, 'tp-neutral']);
+  }
+
+  // Opening volume filter (2.4)
+  if (openingVolData && !openingVolData.error && openingVolData.vol_ratio != null) {
+    const vr = openingVolData.vol_ratio;
+    const vcl = openingVolData.classification;
+    const volIcon = vcl === 'strong' ? '✅' : vcl === 'weak' ? '⚠️' : '⚪';
+    const volCls  = vcl === 'strong' ? 'tp-bull' : vcl === 'weak' ? 'tp-caution' : 'tp-neutral';
+    const volDisc = vr < 0.8 ? ' · ORB discounted' : '';
+    rows.push([volIcon, 'Open Vol', `${vr}x avg · ${vcl}${volDisc}`, volCls]);
+  } else if (openingVolData && openingVolData.status === 'waiting') {
+    rows.push(['⏳', 'Open Vol', 'available after 9:30 AM', 'tp-neutral']);
+  } else {
+    rows.push(['⚪', 'Open Vol', openingVolData && openingVolData.error ? 'unavailable' : 'loading…', 'tp-neutral']);
+  }
+
   document.getElementById('tp-rows').innerHTML = rows.map(
-    ([icon, name, val, cls]) =>
-      `<div class="tp-row">
+    ([icon, name, val, cls, tip]) =>
+      `<div class="tp-row"${tip ? ` title="${tip}"` : ''}>
         <span class="tp-row-icon">${icon}</span>
         <span class="tp-row-name">${name}</span>
         <span class="tp-row-val ${cls}">${val}</span>
@@ -2913,6 +3166,7 @@ async function fetchFlowData() {
 
     updateHero(d);
     renderFlowData(d);
+    _updateGapState(d);
     renderTrendPanel(d);
     _updatePcrChip(d.oi_sentiment);
     renderFutOI(d.fut_oi);
@@ -2927,6 +3181,7 @@ async function fetchFlowData() {
     }
     _checkPriceAlerts(d.nifty_ltp);
     _evaluatePendingAlerts(d.nifty_ltp);
+    _sendSnapshotIfNeeded(d);
 
     const now = new Date();
     document.getElementById('refresh-note').textContent =
@@ -2958,8 +3213,24 @@ async function fetchFlowData() {
 // ─────────────────────────────────────────────
 // Indicator Confirmation
 // ─────────────────────────────────────────────
-let indData     = null;
-let fiiDiiData  = null;
+let indData      = null;
+let fiiDiiData   = null;
+let eventRiskData  = null;
+let breadthData    = null;
+let bnfData        = null;
+let oiWallsData    = null;
+// Phase 2
+let dayTypeData      = null;
+let openingVolData   = null;
+let trendWeights     = null;
+let _breakdownOpen   = false;
+// Phase 3
+let giftDeviationData  = null;
+let accuracyData       = null;
+let _accuracyOpen      = false;
+let _snapshotSentToday = false;
+let _gapState          = null;   // 'holding' | 'filled' | null
+let _gapStateLockedAt  = null;   // timestamp when state was locked at 9:45
 // ── NIFTY CHART ──────────────────────────────────────────────────────────────
 let _niftyChart        = null;
 let _niftyCandleSeries = null;
@@ -3300,15 +3571,253 @@ function renderIv(d) {
   document.getElementById('iv-summary').textContent = `${d.avg_iv ?? '—'}% · ${d.status}`;
   document.getElementById('iv-summary').style.color = statusColor;
 
-  // Update top chip
+  // Update top chip (combined IV/VIX premium)
   const chip = document.getElementById('chip-iv');
   const chipVal = document.getElementById('chip-iv-val');
   if (chip && chipVal && d.avg_iv != null) {
-    chipVal.textContent = `${d.avg_iv}% · ${d.status}`;
+    const vix2 = (flowData && flowData.india_vix != null) ? flowData.india_vix : null;
+    const thresholds2 = (trendWeights && trendWeights.iv_premium_thresholds) || { elevated: 3, high: 6 };
+    if (vix2 != null) {
+      const prem2 = Math.round((d.avg_iv - vix2) * 10) / 10;
+      const lbl2 = prem2 > thresholds2.high ? 'event priced' : prem2 > thresholds2.elevated ? 'elevated' : 'normal';
+      chipVal.textContent = `IV ${d.avg_iv}% · VIX ${vix2} · +${prem2} ${lbl2}`;
+    } else {
+      chipVal.textContent = `IV ${d.avg_iv}% · ${d.status}`;
+    }
     chip.style.display = '';
     chip.style.color = statusColor;
     chip.style.borderColor = statusColor + '55';
     chip.style.background  = statusColor + '12';
+  }
+}
+
+async function _fetchEventRiskSilent() {
+  try {
+    const r = await fetch('/api/trend/event-risk');
+    const d = await r.json();
+    eventRiskData = d;
+    if (flowData) renderTrendPanel(flowData);
+  } catch (_) {}
+}
+
+let _breadthStopped = false;
+async function _fetchBreadthSilent() {
+  if (_breadthStopped) return;
+  try {
+    const r = await fetch('/api/trend/breadth');
+    const d = await r.json();
+    breadthData = d;
+    const now = new Date();
+    if (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 45)) _breadthStopped = true;
+    if (flowData) renderTrendPanel(flowData);
+  } catch (_) {}
+}
+
+async function _fetchBnfSilent() {
+  try {
+    const r = await fetch('/api/trend/bnf-alignment');
+    const d = await r.json();
+    bnfData = d;
+    if (flowData) renderTrendPanel(flowData);
+  } catch (_) {}
+}
+
+async function _fetchOiWallsSilent() {
+  try {
+    const r = await fetch('/api/trend/oi-walls');
+    const d = await r.json();
+    oiWallsData = d;
+    if (flowData) renderTrendPanel(flowData);
+  } catch (_) {}
+}
+
+async function _fetchDayTypeSilent() {
+  try {
+    const r = await fetch('/api/trend/day-type');
+    const d = await r.json();
+    dayTypeData = d;
+    if (flowData) renderTrendPanel(flowData);
+  } catch (_) {}
+}
+
+async function _fetchOpeningVolSilent() {
+  try {
+    const r = await fetch('/api/trend/opening-volume');
+    const d = await r.json();
+    openingVolData = d;
+    if (flowData) renderTrendPanel(flowData);
+  } catch (_) {}
+}
+
+async function _fetchTrendWeights() {
+  try {
+    const r = await fetch('/api/trend/weights');
+    const d = await r.json();
+    if (!d.error) trendWeights = d;
+  } catch (_) {}
+}
+
+async function _sendSnapshotIfNeeded(d) {
+  if (_snapshotSentToday) return;
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  if (h < 9 || (h === 9 && m < 30)) return;
+  const todayKey = now.toISOString().slice(0, 10);
+  const storedKey = localStorage.getItem('tz_snapshot_date');
+  if (storedKey === todayKey) { _snapshotSentToday = true; return; }
+  const sigs = _buildSignalInputs(d);
+  const w = trendWeights && trendWeights.signals ? trendWeights.signals : null;
+  const scored = TrendScoring.computeTrendScore(sigs, w);
+  const snapPayload = Object.assign({}, sigs, {
+    orb_high: d.orb ? d.orb.high : null,
+    orb_low:  d.orb ? d.orb.low  : null,
+  });
+  try {
+    await fetch('/api/trend/log-snapshot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conviction_label: scored.conviction,
+        weighted_score:   scored.score,
+        signal_snapshot:  snapPayload,
+      }),
+    });
+    _snapshotSentToday = true;
+    localStorage.setItem('tz_snapshot_date', todayKey);
+  } catch (_) {}
+}
+
+async function _fetchGiftDeviationSilent() {
+  try {
+    const r = await fetch('/api/trend/gift-deviation');
+    const d = await r.json();
+    if (!d.error) {
+      giftDeviationData = d;
+      _renderGiftDeviationFootnote();
+    }
+  } catch (_) {}
+}
+
+function _renderGiftDeviationFootnote() {
+  const el = document.getElementById('gift-dev-footnote');
+  if (!el || !giftDeviationData) return;
+  const avg = giftDeviationData.avg_deviation_20d;
+  const rel = giftDeviationData.reliability;
+  if (avg == null || !rel) { el.style.display = 'none'; return; }
+  el.textContent = `20d avg deviation: ${avg} pts · ${rel}`;
+  el.style.display = '';
+}
+
+async function _fetchAccuracy() {
+  try {
+    const r = await fetch('/api/trend/accuracy?days=60');
+    const d = await r.json();
+    if (!d.error) {
+      accuracyData = d;
+      _renderAccuracyPanel();
+    }
+  } catch (_) {}
+}
+
+function _renderAccuracyPanel() {
+  const panel = document.getElementById('tp-accuracy-panel');
+  if (!panel) return;
+  if (!accuracyData) { panel.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">Loading…</div>'; return; }
+  const rows = accuracyData.rows || [];
+  const hitRate = accuracyData.hit_rate || {};
+  if (rows.length === 0) {
+    panel.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">No logged sessions yet. Snapshot is captured automatically after 9:30 AM.</div>';
+    return;
+  }
+  const hrRows = Object.entries(hitRate).filter(([, v]) => v.total > 0).map(([k, v]) =>
+    `<span style="font-size:10px;font-family:\'JetBrains Mono\',monospace;background:var(--bg3);
+      border:1px solid var(--border);border-radius:3px;padding:1px 6px;white-space:nowrap">
+      ${k}: ${v.pct != null ? v.pct + '%' : '—'} (${v.hits}/${v.total})</span>`
+  ).join(' ');
+  const tableRows = rows.slice(0, 30).map(r => {
+    const sc  = (r.weighted_score >= 0 ? '+' : '') + (r.weighted_score || 0).toFixed(1);
+    const act = r.actual_day_type || '—';
+    const orb = r.orb_breakout_result || '—';
+    return `<tr>
+      <td style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--dim)">${r.date}</td>
+      <td style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--cyan)">${r.conviction_label}</td>
+      <td style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--muted)">${sc}</td>
+      <td style="font-size:10px;color:var(--dim)">${act}</td>
+      <td style="font-size:10px;color:var(--dim)">${orb}</td>
+    </tr>`;
+  }).join('');
+  panel.innerHTML = `
+    <div style="margin-bottom:8px;font-size:11px;color:var(--muted);line-height:1.7">
+      <strong style="color:var(--dim)">Per-signal directional hit rate (vs actual day type):</strong><br>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${hrRows || '<span style="color:var(--muted)">Insufficient data</span>'}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr>
+        <th style="text-align:left;color:var(--muted);font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:1px;padding:0 0 4px">DATE</th>
+        <th style="text-align:left;color:var(--muted);font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:1px;padding:0 0 4px">CONVICTION</th>
+        <th style="text-align:left;color:var(--muted);font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:1px;padding:0 0 4px">SCORE</th>
+        <th style="text-align:left;color:var(--muted);font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:1px;padding:0 0 4px">ACTUAL</th>
+        <th style="text-align:left;color:var(--muted);font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:1px;padding:0 0 4px">ORB</th>
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <div style="margin-top:8px">
+      <a href="/api/trend/accuracy?days=60&format=csv" download="trend_accuracy.csv"
+         style="font-size:11px;color:var(--cyan);text-decoration:none;border:1px solid rgba(0,212,255,.3);
+                border-radius:4px;padding:3px 10px;display:inline-block">
+        ⬇ Download CSV
+      </a>
+    </div>
+    <div style="margin-top:6px;font-size:10px;color:var(--muted);font-style:italic">
+      For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+    </div>`;
+}
+
+window._toggleAccuracy = function () {
+  _accuracyOpen = !_accuracyOpen;
+  const body = document.getElementById('accuracy-body');
+  const icon = document.getElementById('accuracy-toggle-icon');
+  if (body) body.style.display = _accuracyOpen ? '' : 'none';
+  if (icon) icon.textContent = _accuracyOpen ? '▼' : '▶';
+  if (_accuracyOpen) _fetchAccuracy();
+};
+
+// ── 3.4 Kingfisher Window Countdown ──────────────────────────────────────────
+let _kfAlertFired = false;
+
+function _updateKingfisherChip() {
+  const chip = document.getElementById('chip-kingfisher');
+  if (!chip) return;
+  const now = new Date();
+  const dow = now.getDay();  // 0=Sun, 3=Wed, 4=Thu
+  const h = now.getHours(), m = now.getMinutes();
+  const isKfDay  = (dow === 3 || dow === 4);
+  const afterOpen = h > 9 || (h === 9 && m >= 30);
+  const beforeEnd  = h < 13;
+  if (!isKfDay || !afterOpen || !beforeEnd) {
+    chip.style.display = 'none';
+    _kfAlertFired = false;
+    return;
+  }
+  const closeMs = new Date(now);
+  closeMs.setHours(13, 0, 0, 0);
+  const diffMs = closeMs - now;
+  if (diffMs <= 0) { chip.style.display = 'none'; return; }
+  const totalMin = Math.floor(diffMs / 60000);
+  const hLeft = Math.floor(totalMin / 60);
+  const mLeft = totalMin % 60;
+  const label = hLeft > 0 ? `${hLeft}h ${mLeft}m left` : `${mLeft}m left`;
+  chip.textContent = `Kingfisher window: ${label}`;
+  chip.style.display = '';
+  if (!_kfAlertFired && diffMs <= 15 * 60 * 1000) {
+    _kfAlertFired = true;
+    _showToast('Kingfisher window closes in 15 minutes (1:00 PM)', 'info', 8000, '#a78bfa');
+    if (Notification.permission === 'granted') {
+      new Notification('TradeZen', {
+        body: 'Kingfisher window closes in 15 minutes. Review your analysis before 1:00 PM.',
+        icon: '/favicon.png',
+      });
+    }
   }
 }
 
@@ -3343,7 +3852,18 @@ async function _fetchIvSilent() {
     const chip    = document.getElementById('chip-iv');
     const chipVal = document.getElementById('chip-iv-val');
     if (chip && chipVal) {
-      chipVal.textContent    = `${d.avg_iv}% · ${d.status}`;
+      const vix = (flowData && flowData.india_vix != null) ? flowData.india_vix : null;
+      const thresholds = (trendWeights && trendWeights.iv_premium_thresholds) || { elevated: 3, high: 6 };
+      if (vix != null) {
+        const prem = Math.round((d.avg_iv - vix) * 10) / 10;
+        const premLabel = prem > thresholds.high ? 'event priced'
+          : prem > thresholds.elevated ? 'elevated' : 'normal';
+        chipVal.textContent = `IV ${d.avg_iv}% · VIX ${vix} · +${prem} ${premLabel}`;
+        chip.title = 'IV premium over VIX: >6 = event risk priced in; 3–6 = elevated; <3 = normal';
+      } else {
+        chipVal.textContent = `IV ${d.avg_iv}% · ${d.status}`;
+        chip.title = 'Click for ATM IV breakdown';
+      }
       chip.style.display     = '';
       chip.style.color       = statusColor;
       chip.style.borderColor = statusColor + '55';
@@ -3908,6 +4428,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(_fetchFiiDiiSilent, 30 * 60000); // FII/DII row: refresh every 30 min
   setTimeout(_fetchIndSilent, 4000);         // Trend Ind row: after 4s
   setInterval(_fetchIndSilent, 5 * 60000);   // Trend Ind row: refresh every 5 min
+  _fetchEventRiskSilent();                    // event risk: once on load
+  setTimeout(_fetchBreadthSilent, 5000);     // breadth: after 5s
+  setInterval(_fetchBreadthSilent, 60000);   // breadth: every 60s (stops after 9:45)
+  setTimeout(_fetchBnfSilent, 6000);         // BNF alignment: after 6s
+  setInterval(_fetchBnfSilent, 60000);       // BNF alignment: every 60s
+  setTimeout(_fetchOiWallsSilent, 7000);     // OI walls: after 7s
+  setInterval(_fetchOiWallsSilent, 5 * 60000); // OI walls: every 5 min
+  _fetchTrendWeights();                      // weights: once on load (hot-reload on demand)
+  setTimeout(_fetchDayTypeSilent, 8000);     // day type: after 8s
+  setInterval(_fetchDayTypeSilent, 5 * 60000); // day type: every 5 min
+  setTimeout(_fetchOpeningVolSilent, 9000);  // opening volume: after 9s
+  setInterval(_fetchOpeningVolSilent, 2 * 60000); // opening volume: every 2 min
+  // Phase 3
+  setTimeout(_fetchGiftDeviationSilent, 10000); // GIFT deviation: after 10s
+  setInterval(_fetchGiftDeviationSilent, 5 * 60000); // every 5 min
+  setInterval(_updateKingfisherChip, 30000);    // Kingfisher chip: every 30s
+  _updateKingfisherChip();                      // Kingfisher chip: immediate
 });
 
 // ── Mobile UX ────────────────────────────────────────────────────────────────
@@ -3980,6 +4517,7 @@ document.addEventListener('fullscreenchange', function () {
   document.getElementById('fs-btn').title = isFs ? 'Exit full screen' : 'Enter full screen';
 });
 </script>
+<script src="/js/trend-scoring.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="halo-aurora.js"></script>
 </body>

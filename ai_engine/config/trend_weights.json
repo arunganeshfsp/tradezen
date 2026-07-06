@@ -1,0 +1,23 @@
+{
+  "signals": {
+    "cpr":         2.0,
+    "orb":         2.0,
+    "breadth":     2.0,
+    "fut_oi":      1.5,
+    "bnf":         1.5,
+    "gap":         1.0,
+    "pcr":         1.0,
+    "trend_ind":   1.0
+  },
+  "conviction_thresholds": {
+    "high":     7.0,
+    "moderate": 4.0,
+    "low":      2.0,
+    "none_lo": -2.0,
+    "none_hi":  2.0
+  },
+  "iv_premium_thresholds": {
+    "elevated": 3,
+    "high":     6
+  }
+}

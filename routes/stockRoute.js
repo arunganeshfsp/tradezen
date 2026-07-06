@@ -639,6 +639,97 @@ router.post("/options/parse-bhavcopy", (req, res) => {
   req.pipe(proxyReq);
 });
 
+// ─── Trend Tool Phase 1 endpoints ────────────────────────────────────────────
+// Event risk flag, Nifty breadth, BNF alignment, OI walls
+router.get("/trend/event-risk", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/event-risk", 8000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get("/trend/breadth", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/breadth", 30000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get("/trend/bnf-alignment", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/bnf-alignment", 20000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get("/trend/oi-walls", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/oi-walls", 15000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Trend Tool Phase 2 endpoints ────────────────────────────────────────────
+// Day type, weights config, opening volume
+router.get("/trend/day-type", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/day-type", 20000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get("/trend/weights", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/weights", 5000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get("/trend/opening-volume", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/opening-volume", 20000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Trend Tool Phase 3 endpoints ────────────────────────────────────────────
+// Accuracy log, GIFT deviation
+router.post("/trend/log-snapshot", async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/trend/log-snapshot", 8000, req.body);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get("/trend/accuracy", async (req, res) => {
+  try {
+    const qs = new URLSearchParams(req.query).toString();
+    if (req.query.format === "csv") {
+      const http = require("http");
+      const proxyReq = http.request(
+        { host: "127.0.0.1", port: 8000, path: `/trend/accuracy${qs ? "?" + qs : ""}`, method: "GET" },
+        (proxyRes) => {
+          res.setHeader("Content-Type", "text/csv");
+          res.setHeader("Content-Disposition", "attachment; filename=trend_accuracy.csv");
+          proxyRes.pipe(res);
+        }
+      );
+      proxyReq.on("error", () => res.status(502).json({ error: "Python engine unreachable" }));
+      proxyReq.end();
+      return;
+    }
+    const data = await aiService.proxy("GET", `/trend/accuracy${qs ? "?" + qs : ""}`, 30000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get("/trend/gift-deviation", async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/trend/gift-deviation", 10000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── GET /api/fii-dii ────────────────────────────────────────────────────────
 // FII/DII daily provisional cash-market flows from NSE (previous session)
 router.get("/fii-dii", async (req, res) => {
