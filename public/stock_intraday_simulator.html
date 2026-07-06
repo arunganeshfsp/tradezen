@@ -483,8 +483,32 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <select id="sett-sl" class="sett-sel">
         <option value="VWAP">VWAP (volume-weighted avg price)</option>
         <option value="DAY_SMART">Day Low (Bullish) / Day High (Bearish)</option>
+        <option value="AMOUNT">Fixed ₹ amount (max study loss)</option>
       </select>
       <div class="sett-hint">Default invalidation reference applied at capture. You can still change it per-stock before trigger.</div>
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-slamt">SL amount per trade (₹)</label>
+      <input type="number" id="sett-slamt" class="sett-inp" min="100" max="10000" step="50" placeholder="900" />
+      <div class="sett-hint">Used when SL basis is "Fixed ₹ amount": invalidation is placed so the study loss equals this ₹ amount. Default: ₹900.</div>
+    </div>
+
+    <hr class="sett-divider" />
+
+    <div class="sett-group">
+      <label class="sett-label">Entry / exit window</label>
+      <div class="sett-row">
+        <div>
+          <input type="time" id="sett-entryend" class="sett-inp" min="09:17" max="15:00" />
+          <div class="sett-hint">Entry window closes (default 10:30)</div>
+        </div>
+        <div>
+          <input type="time" id="sett-sqoff" class="sett-inp" min="09:30" max="15:30" />
+          <div class="sett-hint">Auto square-off (default 15:30)</div>
+        </div>
+      </div>
+      <div class="sett-hint" style="margin-top:6px">No new simulated entries after the entry close; open trades are auto squared-off at the exit time.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -978,10 +1002,10 @@ function _downloadCsv(headers, rows, filename) {
 }
 
 function _slLabel(basis) {
-  return { VWAP: 'VWAP', DAY_HIGH: 'Day High', DAY_LOW: 'Day Low', CUSTOM: 'Custom' }[basis] || basis;
+  return { VWAP: 'VWAP', DAY_HIGH: 'Day High', DAY_LOW: 'Day Low', CUSTOM: 'Custom', AMOUNT: 'Fixed ₹' }[basis] || basis;
 }
 function _slOpts(sel) {
-  return [['VWAP','VWAP'],['DAY_HIGH','Day High'],['DAY_LOW','Day Low'],['CUSTOM','Custom']]
+  return [['VWAP','VWAP'],['DAY_HIGH','Day High'],['DAY_LOW','Day Low'],['CUSTOM','Custom'],['AMOUNT','Fixed ₹']]
     .map(([v, l]) => `<option value="${v}"${sel === v ? ' selected' : ''}>${l}</option>`).join('');
 }
 
@@ -1466,6 +1490,9 @@ function renderSettings(s) {
   set('sett-pmax',     s.price_max);
   set('sett-dom',      s.dom_min_pct);
   set('sett-cap',      s.candidate_cap);
+  set('sett-slamt',    s.sl_amount_rupees);
+  set('sett-entryend', s.entry_window_end);
+  set('sett-sqoff',    s.square_off_time);
 }
 
 async function saveSettings() {
@@ -1486,6 +1513,9 @@ async function saveSettings() {
   const pmx = parseFloat(val('sett-pmax'));  if (pmx)  body.price_max         = pmx;
   const dom = parseFloat(val('sett-dom'));   if (dom)  body.dom_min_pct       = dom;
   const cap = parseInt(val('sett-cap'));     if (cap)  body.candidate_cap     = cap;
+  const sla = parseFloat(val('sett-slamt')); if (sla)  body.sl_amount_rupees  = sla;
+  const ent = val('sett-entryend');          if (ent)  body.entry_window_end  = ent;
+  const sqo = val('sett-sqoff');             if (sqo)  body.square_off_time   = sqo;
 
   try {
     const r = await fetch(`${API}/settings`, {

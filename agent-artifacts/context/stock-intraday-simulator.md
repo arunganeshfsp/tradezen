@@ -11,6 +11,19 @@
 
 ---
 
+## 2026-07-06 (later) — Configurable Windows + Amount-Based SL
+
+**What changed**
+- **New per-session settings:** `entry_window_end` (default "10:30"), `square_off_time` (default "15:30"), `sl_amount_rupees` (default 900). Time settings are HH:MM strings, validated server-side (entry 09:17–15:00, square-off 09:30–15:30).
+- **Engine:** the loop now calls `_orb_trigger_poll_sync` every cycle until 15:30; the poll gates each session by its own `entry_window_end` and marks that session's WAITING candidates WINDOW_CLOSED itself (`_orb_window_close_sync` deleted). `_orb_outcome_poll_sync` auto-squares-off a session's OPEN trades once IST time ≥ its `square_off_time` (exit at live LTP, remark "Auto square-off at HH:MM") — this also fixes the old EOD gap where trades stayed OPEN. `_orb_window_phase(settings)` is session-aware for the UI phase chip. `_orb_parse_hhmm()` helper parses settings times with fallbacks.
+- **New SL basis `AMOUNT`:** `resolve_stop_loss()` in core/orb_simulator.py takes optional `amount`/`quantity`; SL = entry ∓ amount/qty snapped to tick. The bench-range validation is skipped for AMOUNT (₹-risk stop isn't tied to the 09:15 candle); direction + positive-price checks still apply. Trigger poll and backtest now compute qty BEFORE resolving SL. Valid in `default_sl_basis` ("AMOUNT") and the per-candidate sl-basis endpoint.
+- **Backtest** honors `entry_window_end` (breakout scan range) and `square_off_time` (outcome scan end + exit fallback candle).
+- **Frontend:** settings panel has SL amount ₹ input, two `<input type="time">` fields (entry close / auto square-off), and "Fixed ₹ amount" in both the default-SL select and the per-candidate dropdown (`_slOpts`/`_slLabel`).
+
+**Caveats:** capture time (09:16) is intentionally NOT configurable — it anchors to the 09:15 ORB candle. `in_entry_window`/`in_tracking_window` in core/orb_simulator.py still carry the old hardcoded times but are no longer imported by main.py (only used by old tests). All 61 tests in `test_orb_simulator.py` pass with the extended resolver signature.
+
+---
+
 ## 2026-07-06 — Per-User Sessions + Fixes
 
 **What changed**

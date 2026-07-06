@@ -7830,8 +7830,18 @@ def _orb_capture_sync(today: str):
              f"across {len(per_session)} session(s)")
 
 
+def _orb_parse_hhmm(value, default_h: int, default_m: int):
+    from datetime import time as dt_time
+    try:
+        hh, mm = str(value).split(":")
+        return dt_time(int(hh), int(mm))
+    except (ValueError, AttributeError):
+        return dt_time(default_h, default_m)
+
+
 def _orb_trigger_poll_sync(today: str, now_ist):
-    """Check WAITING candidates vs benchmark; auto-create trades within slot cap."""
+    """Check WAITING candidates vs benchmark; auto-create trades within slot cap.
+    Each session is gated by its own entry_window_end setting."""
     import uuid as _uuid
     conn        = get_conn()
     all_cands   = orb_get_candidates(conn, today)
@@ -7840,19 +7850,41 @@ def _orb_trigger_poll_sync(today: str, now_ist):
         conn.close()
         return
 
+    t_now = now_ist.time()
+    sess_settings  = {}
+    active_waiting = []
+    for u in sorted({c["user_id"] for c in waiting_all}):
+        st = orb_get_settings(conn, u)
+        sess_settings[u] = st
+        entry_end = _orb_parse_hhmm(st["entry_window_end"], 10, 30)
+        sess_waiting = [c for c in waiting_all if c["user_id"] == u]
+        if not _SIM_FORCE and t_now > entry_end:
+            for c in sess_waiting:
+                orb_update_candidate_status(conn, today, c["symbol"], c["side"], "WINDOW_CLOSED",
+                                            f"Entry window closed at {st['entry_window_end']}",
+                                            user_id=u)
+            log.info(f"[ORB-SIM] entry window closed ({u or 'shared'}) — "
+                     f"{len(sess_waiting)} candidates marked WINDOW_CLOSED")
+            continue
+        active_waiting.extend(sess_waiting)
+
+    if not active_waiting:
+        conn.close()
+        return
+
     smart_s = _get_smart()
     if not smart_s:
         conn.close()
         return
 
-    quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in waiting_all}))
+    quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in active_waiting}))
 
-    for u in sorted({c["user_id"] for c in waiting_all}):
-        st            = orb_get_settings(conn, u)
+    for u in sorted({c["user_id"] for c in active_waiting}):
+        st            = sess_settings[u]
         max_slots     = st["max_slots"]
         target_rupees = st["target_rupees"]
         sess_cands    = [c for c in all_cands if c["user_id"] == u]
-        waiting       = [c for c in sess_cands if c["status"] == "WAITING"]
+        waiting       = [c for c in active_waiting if c["user_id"] == u]
         trade_count   = len(orb_get_trades(conn, today, u))
         triggered_syms = {c["symbol"] for c in sess_cands if c["status"] == "TRIGGERED"}
 
@@ -7878,21 +7910,22 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                                             f"Daily cap of {max_slots} trades reached", user_id=u)
                 continue
 
+            qty = _orb_pos_size(ltp)
+            if qty <= 0:
+                orb_update_candidate_status(conn, today, c["symbol"], side,
+                                            "SKIPPED", f"Qty 0 at price ₹{ltp}", user_id=u)
+                continue
+
             sl_price, sl_err = _orb_resolve_sl(
                 direction=side, sl_basis=c["sl_basis"] or "VWAP",
                 bench_high=bh, bench_low=bl,
                 vwap=q.get("vwap"), day_high=q.get("high"), day_low=q.get("low"),
                 custom=c.get("custom_sl_price"), entry_price=ltp,
+                amount=st["sl_amount_rupees"], quantity=qty,
             )
             if sl_err:
                 orb_update_candidate_status(conn, today, c["symbol"], side,
                                             "SKIPPED", f"SL: {sl_err}", user_id=u)
-                continue
-
-            qty = _orb_pos_size(ltp)
-            if qty <= 0:
-                orb_update_candidate_status(conn, today, c["symbol"], side,
-                                            "SKIPPED", f"Qty 0 at price ₹{ltp}", user_id=u)
                 continue
 
             tgt_pts, tgt_price = _orb_target(side, ltp, qty, target_rupees=target_rupees)
@@ -7955,6 +7988,7 @@ def _orb_outcome_poll_sync(today: str, now_ist):
     quotes    = _orb_raw_quotes(smart_s, tokens_needed)
     exit_time = now_ist.strftime("%Y-%m-%d %H:%M:%S")
 
+    sess_settings = {}
     for trade in open_trades:
         tok = sym_to_token.get(trade["symbol"])
         q   = quotes.get(tok) if tok else None
@@ -7966,40 +8000,38 @@ def _orb_outcome_poll_sync(today: str, now_ist):
             target_price=trade["target_price"],
             stop_loss_price=trade["stop_loss_price"],
         )
+        auto_sq = False
         if not result:
-            continue
+            u = trade.get("user_id", "")
+            if u not in sess_settings:
+                sess_settings[u] = orb_get_settings(conn, u)
+            sq_time = _orb_parse_hhmm(sess_settings[u]["square_off_time"], 15, 30)
+            if _SIM_FORCE or now_ist.time() < sq_time:
+                continue
+            result  = "SQUARE_OFF"
+            auto_sq = True
         pnl = _orb_pnl(
             outcome=result, direction=trade["direction"],
             entry_price=trade["trigger_price"], exit_price=q["ltp"],
             quantity=trade["quantity"], target_points=trade["target_points"],
             sl_pts=trade["sl_points"],
         )
-        orb_update_trade(conn, trade["id"], {
+        updates = {
             "outcome":       result,
             "exit_price":    q["ltp"],
             "exit_time":     exit_time,
             "pnl":           pnl,
             "return_amount": round(trade["investment"] + pnl, 2),
-        })
+        }
+        if auto_sq:
+            updates["remarks"] = f"Auto square-off at {sess_settings[trade.get('user_id', '')]['square_off_time']}"
+        orb_update_trade(conn, trade["id"], updates)
         log.info(
             f"[ORB-SIM] RESOLVED {trade['direction']} {trade['symbol']} "
-            f"→ {result} | P/L ₹{pnl:+.2f}"
+            f"→ {result}{' (auto square-off)' if auto_sq else ''} | P/L ₹{pnl:+.2f}"
         )
 
     conn.close()
-
-
-def _orb_window_close_sync(today: str):
-    """Mark remaining WAITING candidates WINDOW_CLOSED after 10:30."""
-    conn    = get_conn()
-    waiting = [c for c in orb_get_candidates(conn, today) if c["status"] == "WAITING"]
-    for c in waiting:
-        orb_update_candidate_status(conn, today, c["symbol"], c["side"],
-                                    "WINDOW_CLOSED", "Entry window closed at 10:30",
-                                    user_id=c["user_id"])
-    conn.close()
-    if waiting:
-        log.info(f"[ORB-SIM] window closed — {len(waiting)} candidates marked WINDOW_CLOSED")
 
 
 def _orb_eod_sync(today: str):
@@ -8035,8 +8067,7 @@ async def _orb_simulator_loop():
     loop = asyncio.get_running_loop()
     log.info("[ORB-SIM] background task started")
 
-    _window_closed_today = None
-    _eod_done_today      = None
+    _eod_done_today = None
 
     while True:
         try:
@@ -8079,12 +8110,8 @@ async def _orb_simulator_loop():
                 await loop.run_in_executor(None, _orb_capture_sync, today)
                 continue
 
-            # Entry window: trigger poll
-            if _SIM_FORCE or t <= dt_time(10, 30):
-                await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
-            elif _window_closed_today != today:
-                await loop.run_in_executor(None, _orb_window_close_sync, today)
-                _window_closed_today = today
+            # Trigger poll — self-gates each session by its entry_window_end
+            await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
 
             # Outcome tracking until 15:30
             if _SIM_FORCE or t <= dt_time(15, 30):
@@ -8112,20 +8139,23 @@ class _OrbSquareOffBody(BaseModel):
     trade_id: str
 
 
-def _orb_window_phase() -> dict:
-    """Returns the current window phase + slot counts for the state endpoint."""
+def _orb_window_phase(settings: dict = None) -> str:
+    """Returns the current window phase for the state endpoint, using the
+    session's configured entry_window_end / square_off_time when provided."""
     from datetime import time as dt_time
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     if now_ist.weekday() >= 5:
         return "WEEKEND"
+    entry_end = _orb_parse_hhmm((settings or {}).get("entry_window_end"), 10, 30)
+    sq_time   = _orb_parse_hhmm((settings or {}).get("square_off_time"), 15, 30)
     t = now_ist.time()
     if t < dt_time(9, 15):
         return "PRE_MARKET"
     if t < dt_time(9, 16):
         return "CAPTURE_PENDING"
-    if t <= dt_time(10, 30):
+    if t <= entry_end:
         return "ENTRY_WINDOW"
-    if t <= dt_time(15, 30):
+    if t <= sq_time:
         return "TRACKING"
     return "EOD"
 
@@ -8186,7 +8216,7 @@ async def simulator_state(request: Request, date: str = ""):
             "trades":     trades,
             "summary":    summary,
             "window": {
-                "phase":      _orb_window_phase(),
+                "phase":      _orb_window_phase(settings),
                 "slots_used": len(trades),
                 "slots_total": settings["max_slots"],
             },
@@ -8198,7 +8228,7 @@ async def simulator_state(request: Request, date: str = ""):
 
 @app.post("/simulator/sl-basis")
 async def simulator_sl_basis(body: _OrbSlBasisBody, request: Request):
-    _VALID = {"VWAP", "DAY_HIGH", "DAY_LOW", "CUSTOM"}
+    _VALID = {"VWAP", "DAY_HIGH", "DAY_LOW", "CUSTOM", "AMOUNT"}
     if body.basis not in _VALID:
         return JSONResponse(status_code=400,
                             content={"error": f"basis must be one of {sorted(_VALID)}"})
@@ -8326,6 +8356,9 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
     target_rupees = settings["target_rupees"]
     max_slots     = settings["max_slots"]
     universe      = settings["universe"]
+    entry_end_s   = settings["entry_window_end"]
+    sq_time_s     = settings["square_off_time"]
+    sl_amount     = settings["sl_amount_rupees"]
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
@@ -8379,7 +8412,7 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             strength = round(max(0.0, 5.0 - orb_pct), 2)
 
             entry_df = df[(df["DateTime"] >= f"{date} 09:16") &
-                          (df["DateTime"] <= f"{date} 10:30")]
+                          (df["DateTime"] <= f"{date} {entry_end_s}")]
             buy_dt = sell_dt = None
             for _, row in entry_df.iterrows():
                 if buy_dt  is None and float(row["High"]) > bench_high:
@@ -8483,12 +8516,22 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             typical    = (pre["High"] + pre["Low"] + pre["Close"]) / 3
             vwap_entry = round(float((typical * pre["Volume"]).sum() / vol), 2)
 
+        qty = _orb_pos_size(trigger_price)
+        if qty <= 0:
+            all_cands[key]["status"] = "SKIPPED"
+            all_cands[key]["remark"] = "Qty 0"
+            conn = get_conn()
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Qty 0", user_id=user_id)
+            conn.close()
+            continue
+
         cand_sl_basis = all_cands[key]["sl_basis"]
         sl_price, sl_err = _orb_resolve_sl(
             direction=side, sl_basis=cand_sl_basis,
             bench_high=bench_high, bench_low=bench_low,
             vwap=vwap_entry, day_high=day_high_entry, day_low=day_low_entry,
             custom=None, entry_price=trigger_price,
+            amount=sl_amount, quantity=qty,
         )
         if sl_err:
             all_cands[key]["status"] = "SKIPPED"
@@ -8499,21 +8542,13 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             conn.close()
             continue
 
-        qty = _orb_pos_size(trigger_price)
-        if qty <= 0:
-            all_cands[key]["status"] = "SKIPPED"
-            all_cands[key]["remark"] = "Qty 0"
-            conn = get_conn()
-            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Qty 0", user_id=user_id)
-            conn.close()
-            continue
-
         tgt_pts, tgt_price = _orb_target(side, trigger_price, qty, target_rupees=target_rupees)
         sl_pts     = _orb_sl_pts(side, trigger_price, sl_price)
         rr         = _orb_rr(tgt_pts, sl_pts)
         investment = round(qty * trigger_price, 2)
 
-        post       = df[df["DateTime"] > trigger_dt]
+        post       = df[(df["DateTime"] > trigger_dt) &
+                        (df["DateTime"] <= f"{date} {sq_time_s}")]
         outcome    = "SQUARE_OFF"
         exit_price = None
         exit_dt    = None
@@ -8532,7 +8567,7 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
                     outcome, exit_price, exit_dt = "TARGET_HIT", tgt_price, row["DateTime"]; break
 
         if exit_price is None:
-            eod  = df[df["DateTime"] <= f"{date} 15:30"]
+            eod  = df[df["DateTime"] <= f"{date} {sq_time_s}"]
             last = eod.iloc[-1] if not eod.empty else None
             exit_price = round(float(last["Close"]), 2) if last is not None else trigger_price
             exit_dt    = last["DateTime"] if last is not None else trigger_dt
@@ -8627,6 +8662,16 @@ class _OrbSettingsBody(BaseModel):
     max_slots:        int   | None = None
     default_sl_basis: str   | None = None
     candidate_cap:    int   | None = None
+    entry_window_end: str   | None = None
+    square_off_time:  str   | None = None
+    sl_amount_rupees: float | None = None
+
+
+def _orb_valid_hhmm(value: str, lo: str, hi: str) -> bool:
+    import re
+    if not re.fullmatch(r"\d{2}:\d{2}", value or ""):
+        return False
+    return lo <= value <= hi
 
 
 @app.get("/simulator/settings")
@@ -8645,7 +8690,7 @@ async def simulator_get_settings(request: Request):
 @app.post("/simulator/settings")
 async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     _VALID_UNI = {"nifty500_fno", "nifty100_fno", "nifty50"}
-    _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW", "DAY_SMART"}
+    _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW", "DAY_SMART", "AMOUNT"}
     errs = []
     if body.universe         and body.universe         not in _VALID_UNI: errs.append("universe")
     if body.default_sl_basis and body.default_sl_basis not in _VALID_SL:  errs.append("default_sl_basis")
@@ -8653,6 +8698,11 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.max_slots        is not None and not (1 <= body.max_slots <= 20): errs.append("max_slots must be 1–20")
     if body.candidate_cap    is not None and not (5 <= body.candidate_cap <= 100): errs.append("candidate_cap must be 5–100")
     if body.dom_min_pct      is not None and not (30 <= body.dom_min_pct <= 90):   errs.append("dom_min_pct must be 30–90")
+    if body.sl_amount_rupees is not None and body.sl_amount_rupees <= 0:   errs.append("sl_amount_rupees must be > 0")
+    if body.entry_window_end is not None and not _orb_valid_hhmm(body.entry_window_end, "09:17", "15:00"):
+        errs.append("entry_window_end must be HH:MM between 09:17 and 15:00")
+    if body.square_off_time  is not None and not _orb_valid_hhmm(body.square_off_time, "09:30", "15:30"):
+        errs.append("square_off_time must be HH:MM between 09:30 and 15:30")
     if errs:
         return JSONResponse(status_code=400, content={"error": f"Invalid: {', '.join(errs)}"})
     updates = {k: v for k, v in body.dict(exclude_none=True).items()}

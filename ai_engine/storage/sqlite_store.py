@@ -388,14 +388,17 @@ def orb_update_trade(conn, trade_id: str, updates: dict):
 # ── ORB Settings helpers ───────────────────────────────────────────────────────
 
 ORB_SETTING_DEFAULTS: dict = {
-    "target_rupees":   "900",
-    "universe":        "nifty500_fno",
-    "price_min":       "700",
-    "price_max":       "7000",
-    "dom_min_pct":     "60",
-    "max_slots":       "5",
-    "default_sl_basis": "VWAP",
-    "candidate_cap":   "25",
+    "target_rupees":     "900",
+    "universe":          "nifty500_fno",
+    "price_min":         "700",
+    "price_max":         "7000",
+    "dom_min_pct":       "60",
+    "max_slots":         "5",
+    "default_sl_basis":  "VWAP",
+    "candidate_cap":     "25",
+    "entry_window_end":  "10:30",
+    "square_off_time":   "15:30",
+    "sl_amount_rupees":  "900",
 }
 
 
@@ -404,12 +407,13 @@ def orb_get_settings(conn, user_id: str = "") -> dict:
     stored = {r["key"]: r["value"] for r in cur.fetchall()}
     result = dict(ORB_SETTING_DEFAULTS)
     result.update(stored)
-    result["target_rupees"] = float(result["target_rupees"])
-    result["price_min"]     = float(result["price_min"])
-    result["price_max"]     = float(result["price_max"])
-    result["dom_min_pct"]   = float(result["dom_min_pct"])
-    result["max_slots"]     = int(result["max_slots"])
-    result["candidate_cap"] = int(result["candidate_cap"])
+    result["target_rupees"]    = float(result["target_rupees"])
+    result["price_min"]        = float(result["price_min"])
+    result["price_max"]        = float(result["price_max"])
+    result["dom_min_pct"]      = float(result["dom_min_pct"])
+    result["max_slots"]        = int(result["max_slots"])
+    result["candidate_cap"]    = int(result["candidate_cap"])
+    result["sl_amount_rupees"] = float(result["sl_amount_rupees"])
     return result
 
 

@@ -79,12 +79,16 @@ def resolve_stop_loss(
     day_low: float | None,
     custom: float | None,
     entry_price: float,
+    amount: float | None = None,
+    quantity: int | None = None,
 ) -> tuple[float | None, str | None]:
     """
     Returns (sl_price, error). sl_price is None on any validation failure.
 
     Validations:
-      1. sl_price must lie within [bench_low, bench_high] — the 09:15 candle range.
+      1. Structural bases (VWAP/DAY_*/CUSTOM): sl_price must lie within
+         [bench_low, bench_high] — the 09:15 candle range. AMOUNT is a ₹-risk
+         stop derived from entry price, so the bench-range check does not apply.
       2. BUY: sl must be < entry_price. SELL: sl must be > entry_price.
     """
     if sl_basis == "VWAP":
@@ -97,6 +101,14 @@ def resolve_stop_loss(
         if custom is None:
             return None, "Custom SL price required"
         sl = custom
+    elif sl_basis == "AMOUNT":
+        if not amount or amount <= 0:
+            return None, "SL amount (₹) required for amount-based stop"
+        if not quantity or quantity <= 0:
+            return None, "Quantity required for amount-based stop"
+        pts = amount / quantity
+        raw = entry_price - pts if direction == "BUY" else entry_price + pts
+        sl  = round(round(raw / SIM_TICK) * SIM_TICK, 2)
     else:
         return None, f"Unknown sl_basis '{sl_basis}'"
 
@@ -105,12 +117,14 @@ def resolve_stop_loss(
 
     sl = round(float(sl), 2)
 
-    if not (bench_low <= sl <= bench_high):
+    if sl_basis != "AMOUNT" and not (bench_low <= sl <= bench_high):
         return None, (
             f"SL {sl} is outside benchmark range "
             f"[{bench_low}, {bench_high}]"
         )
 
+    if sl <= 0:
+        return None, f"SL {sl} is not a valid price"
     if direction == "BUY" and sl >= entry_price:
         return None, f"SL {sl} must be below entry {entry_price} for BUY"
     if direction == "SELL" and sl <= entry_price:
