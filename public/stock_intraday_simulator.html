@@ -45,9 +45,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 /* ── CTRL BAR ── */
 .ctrl-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:10px 28px;
   display:flex;flex-wrap:wrap;gap:16px;align-items:center}
-.ctrl-grp{display:flex;flex-direction:column;gap:4px}
-.ctrl-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
-  text-transform:uppercase;color:var(--muted)}
+.ctrl-grp{display:flex;flex-direction:row;align-items:center;gap:8px}
+.ctrl-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .date-input{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
   color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;
   padding:5px 10px;cursor:pointer;outline:none}
@@ -419,7 +419,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </svg>
     SETTINGS
   </button>
-  <button class="live-btn" id="liveBtn" onclick="toggleLiveWatch()" style="display:none">
+  <button class="live-btn" id="liveBtn" onclick="toggleLiveWatch()">
     <span class="live-btn-dot"></span>
     LIVE WATCH
   </button>
@@ -709,7 +709,6 @@ function onDateChange() {
   _currentDate = document.getElementById('datePicker').value;
   _isLive      = (_currentDate === _todayDate);
   if (!_isLive && _liveWatchActive) _stopLiveWatch();
-  document.getElementById('liveBtn').style.display = _isLive ? '' : 'none';
   stopPolling();
   loadState();
   if (_isLive) startPolling();
@@ -1109,6 +1108,15 @@ async function squareOff(tradeId, symbol) {
 // ── Live Watch ────────────────────────────────────────────────────────────
 function toggleLiveWatch() {
   if (_liveWatchActive) { _stopLiveWatch(); return; }
+  // If on a historical date, jump to today first
+  if (!_isLive) {
+    _currentDate = _todayDate;
+    _isLive = true;
+    const dp = document.getElementById('datePicker');
+    dp.value = _currentDate;
+    stopPolling();
+    loadState();
+  }
   _liveWatchActive = true;
   const btn = document.getElementById('liveBtn');
   btn.classList.add('watching');
@@ -1353,7 +1361,6 @@ async function saveSettings() {
 loadSettings();
 loadState();
 startPolling();
-document.getElementById('liveBtn').style.display = _isLive ? '' : 'none';
 </script>
 </body>
 </html>
