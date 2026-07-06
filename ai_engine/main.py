@@ -7668,6 +7668,7 @@ from storage.sqlite_store import (
     orb_update_candidate_status, orb_insert_trade,
     orb_get_trades, orb_get_open_trades, orb_update_trade,
     orb_get_settings, orb_upsert_settings,
+    orb_has_own_settings, orb_list_setting_users,
 )
 
 # Nifty index symbol sets — used for universe filtering at capture time.
@@ -7744,56 +7745,54 @@ def _orb_capture_sync(today: str):
         return
 
     conn     = get_conn()
-    settings = orb_get_settings(conn)
+    sessions = [""] + orb_list_setting_users(conn)
+    sess_settings = {u: orb_get_settings(conn, u) for u in sessions}
     conn.close()
-    price_min     = settings["price_min"]
-    price_max     = settings["price_max"]
-    dom_min       = settings["dom_min_pct"]
-    cap           = settings["candidate_cap"]
-    universe      = settings["universe"]
-    default_sl    = settings["default_sl_basis"]
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
     stocks  = [s for s in all_fno if s["symbol"].upper() in n500]
 
-    if universe == "nifty50":
-        stocks = [s for s in stocks if s["symbol"].upper() in _NIFTY50_SYMS]
-    elif universe == "nifty100_fno":
-        stocks = [s for s in stocks if s["symbol"].upper() in _NIFTY100_SYMS]
-
     if not stocks:
-        log.error(f"[ORB-SIM] no stocks available for universe '{universe}'")
+        log.error("[ORB-SIM] no stocks available in F&O universe")
         return
 
-    all_tokens   = [s["token"] for s in stocks]
     token_to_sym = {s["token"]: s["symbol"] for s in stocks}
-    quotes       = _orb_raw_quotes(smart_s, all_tokens)
+    quotes       = _orb_raw_quotes(smart_s, [s["token"] for s in stocks])
 
-    buy_cands, sell_cands = [], []
-    for s in stocks:
-        q = quotes.get(s["token"])
-        if not q:
-            continue
-        ltp = q["ltp"]
-        if not (price_min <= ltp <= price_max):
-            continue
-        bp, sp   = q["buy_pct"], q["sell_pct"]
-        strength = round(abs(bp - sp), 1)
-        base     = {"symbol": s["symbol"], "token": s["token"],
-                    "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength}
-        if bp >= dom_min:
-            buy_cands.append(base)
-        if sp >= dom_min:
-            sell_cands.append(base)
+    per_session = {}
+    for u in sessions:
+        st = sess_settings[u]
+        pool = stocks
+        if st["universe"] == "nifty50":
+            pool = [s for s in stocks if s["symbol"].upper() in _NIFTY50_SYMS]
+        elif st["universe"] == "nifty100_fno":
+            pool = [s for s in stocks if s["symbol"].upper() in _NIFTY100_SYMS]
 
-    buy_cands.sort(key=lambda x: -x["strength"])
-    sell_cands.sort(key=lambda x: -x["strength"])
-    buy_cands  = buy_cands[:cap]
-    sell_cands = sell_cands[:cap]
-    log.info(f"[ORB-SIM] filter result — {len(buy_cands)} BUY, {len(sell_cands)} SELL candidates")
+        buy_cands, sell_cands = [], []
+        for s in pool:
+            q = quotes.get(s["token"])
+            if not q:
+                continue
+            ltp = q["ltp"]
+            if not (st["price_min"] <= ltp <= st["price_max"]):
+                continue
+            bp, sp   = q["buy_pct"], q["sell_pct"]
+            strength = round(abs(bp - sp), 1)
+            base     = {"symbol": s["symbol"], "token": s["token"],
+                        "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength}
+            if bp >= st["dom_min_pct"]:
+                buy_cands.append(base)
+            if sp >= st["dom_min_pct"]:
+                sell_cands.append(base)
 
-    unique_tokens = {c["token"] for c in buy_cands + sell_cands}
+        buy_cands.sort(key=lambda x: -x["strength"])
+        sell_cands.sort(key=lambda x: -x["strength"])
+        per_session[u] = (buy_cands[:st["candidate_cap"]], sell_cands[:st["candidate_cap"]])
+        log.info(f"[ORB-SIM] filter result ({u or 'shared'}) — "
+                 f"{len(per_session[u][0])} BUY, {len(per_session[u][1])} SELL candidates")
+
+    unique_tokens = {c["token"] for (b, s2) in per_session.values() for c in b + s2}
     candle_map    = {}
     for tok in unique_tokens:
         _t.sleep(0.35)
@@ -7813,119 +7812,126 @@ def _orb_capture_sync(today: str):
 
     conn  = get_conn()
     saved = 0
-    for c, side in ([(c, "BUY") for c in buy_cands] + [(c, "SELL") for c in sell_cands]):
-        resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
-        if c["token"] in candle_map:
-            orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
-                                 {**c, **candle_map[c["token"]], "status": "WAITING",
-                                  "sl_basis": resolved_sl})
-            saved += 1
-        else:
-            orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
-                                 {**c, "status": "SKIPPED", "remark": "09:15 candle unavailable"})
+    for u, (buy_cands, sell_cands) in per_session.items():
+        default_sl = sess_settings[u]["default_sl_basis"]
+        for c, side in ([(c, "BUY") for c in buy_cands] + [(c, "SELL") for c in sell_cands]):
+            resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
+            if c["token"] in candle_map:
+                orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
+                                     {**c, **candle_map[c["token"]], "status": "WAITING",
+                                      "sl_basis": resolved_sl}, user_id=u)
+                saved += 1
+            else:
+                orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
+                                     {**c, "status": "SKIPPED", "remark": "09:15 candle unavailable"},
+                                     user_id=u)
     conn.close()
-    log.info(f"[ORB-SIM] capture done — {saved} WAITING candidates persisted for {today}")
+    log.info(f"[ORB-SIM] capture done — {saved} WAITING candidates persisted for {today} "
+             f"across {len(per_session)} session(s)")
 
 
 def _orb_trigger_poll_sync(today: str, now_ist):
     """Check WAITING candidates vs benchmark; auto-create trades within slot cap."""
     import uuid as _uuid
-    conn     = get_conn()
-    settings = orb_get_settings(conn)
-    max_slots     = settings["max_slots"]
-    target_rupees = settings["target_rupees"]
-    waiting = [c for c in orb_get_candidates(conn, today) if c["status"] == "WAITING"]
-    if not waiting:
+    conn        = get_conn()
+    all_cands   = orb_get_candidates(conn, today)
+    waiting_all = [c for c in all_cands if c["status"] == "WAITING"]
+    if not waiting_all:
         conn.close()
         return
-
-    open_trades    = orb_get_open_trades(conn, today)
-    open_count     = len(open_trades)
-    triggered_syms = {c["symbol"] for c in orb_get_candidates(conn, today)
-                      if c["status"] == "TRIGGERED"}
 
     smart_s = _get_smart()
     if not smart_s:
         conn.close()
         return
 
-    quotes = _orb_raw_quotes(smart_s, [c["token"] for c in waiting])
+    quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in waiting_all}))
 
-    for c in waiting:
-        q    = quotes.get(c["token"])
-        if not q:
-            continue
-        ltp  = q["ltp"]
-        side = c["side"]
-        bh   = c["bench_high"]
-        bl   = c["bench_low"]
+    for u in sorted({c["user_id"] for c in waiting_all}):
+        st            = orb_get_settings(conn, u)
+        max_slots     = st["max_slots"]
+        target_rupees = st["target_rupees"]
+        sess_cands    = [c for c in all_cands if c["user_id"] == u]
+        waiting       = [c for c in sess_cands if c["status"] == "WAITING"]
+        trade_count   = len(orb_get_trades(conn, today, u))
+        triggered_syms = {c["symbol"] for c in sess_cands if c["status"] == "TRIGGERED"}
 
-        if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
-            continue
+        for c in waiting:
+            q    = quotes.get(c["token"])
+            if not q:
+                continue
+            ltp  = q["ltp"]
+            side = c["side"]
+            bh   = c["bench_high"]
+            bl   = c["bench_low"]
 
-        if c["symbol"] in triggered_syms:
-            orb_update_candidate_status(conn, today, c["symbol"], side,
-                                        "SKIPPED", "Already traded today")
-            continue
+            if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
+                continue
 
-        if open_count >= max_slots:
-            orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
-                                        f"All {max_slots} slots occupied at trigger")
-            continue
+            if c["symbol"] in triggered_syms:
+                orb_update_candidate_status(conn, today, c["symbol"], side,
+                                            "SKIPPED", "Already traded today", user_id=u)
+                continue
 
-        sl_price, sl_err = _orb_resolve_sl(
-            direction=side, sl_basis=c["sl_basis"] or "VWAP",
-            bench_high=bh, bench_low=bl,
-            vwap=q.get("vwap"), day_high=q.get("high"), day_low=q.get("low"),
-            custom=c.get("custom_sl_price"), entry_price=ltp,
-        )
-        if sl_err:
-            orb_update_candidate_status(conn, today, c["symbol"], side,
-                                        "SKIPPED", f"SL: {sl_err}")
-            continue
+            if trade_count >= max_slots:
+                orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
+                                            f"Daily cap of {max_slots} trades reached", user_id=u)
+                continue
 
-        qty = _orb_pos_size(ltp)
-        if qty <= 0:
-            orb_update_candidate_status(conn, today, c["symbol"], side,
-                                        "SKIPPED", f"Qty 0 at price ₹{ltp}")
-            continue
+            sl_price, sl_err = _orb_resolve_sl(
+                direction=side, sl_basis=c["sl_basis"] or "VWAP",
+                bench_high=bh, bench_low=bl,
+                vwap=q.get("vwap"), day_high=q.get("high"), day_low=q.get("low"),
+                custom=c.get("custom_sl_price"), entry_price=ltp,
+            )
+            if sl_err:
+                orb_update_candidate_status(conn, today, c["symbol"], side,
+                                            "SKIPPED", f"SL: {sl_err}", user_id=u)
+                continue
 
-        tgt_pts, tgt_price = _orb_target(side, ltp, qty, target_rupees=target_rupees)
-        sl_pts             = _orb_sl_pts(side, ltp, sl_price)
-        rr                 = _orb_rr(tgt_pts, sl_pts)
-        investment         = round(qty * ltp, 2)
+            qty = _orb_pos_size(ltp)
+            if qty <= 0:
+                orb_update_candidate_status(conn, today, c["symbol"], side,
+                                            "SKIPPED", f"Qty 0 at price ₹{ltp}", user_id=u)
+                continue
 
-        trade = {
-            "id":                str(_uuid.uuid4()),
-            "date":              today,
-            "symbol":            c["symbol"],
-            "direction":         side,
-            "day_high_at_entry": bh,
-            "day_low_at_entry":  bl,
-            "vwap_at_entry":     q.get("vwap"),
-            "trigger_price":     ltp,
-            "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
-            "sl_basis":          c["sl_basis"] or "VWAP",
-            "custom_sl_price":   c.get("custom_sl_price"),
-            "stop_loss_price":   sl_price,
-            "quantity":          qty,
-            "investment":        investment,
-            "sl_points":         sl_pts,
-            "target_points":     tgt_pts,
-            "target_price":      tgt_price,
-            "risk_reward":       rr,
-            "outcome":           "OPEN",
-            "pnl":               0.0,
-            "return_amount":     investment,
-        }
-        orb_insert_trade(conn, trade)
-        orb_update_candidate_status(conn, today, c["symbol"], side, "TRIGGERED")
-        triggered_syms.add(c["symbol"])
-        open_count += 1
-        log.info(
-            f"[ORB-SIM] TRIGGER {side} {c['symbol']} @ ₹{ltp} | "
-            f"SL ₹{sl_price} | Tgt ₹{tgt_price} | Qty {qty} | R:R {rr}"
-        )
+            tgt_pts, tgt_price = _orb_target(side, ltp, qty, target_rupees=target_rupees)
+            sl_pts             = _orb_sl_pts(side, ltp, sl_price)
+            rr                 = _orb_rr(tgt_pts, sl_pts)
+            investment         = round(qty * ltp, 2)
+
+            trade = {
+                "id":                str(_uuid.uuid4()),
+                "date":              today,
+                "user_id":           u,
+                "symbol":            c["symbol"],
+                "direction":         side,
+                "day_high_at_entry": bh,
+                "day_low_at_entry":  bl,
+                "vwap_at_entry":     q.get("vwap"),
+                "trigger_price":     ltp,
+                "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+                "sl_basis":          c["sl_basis"] or "VWAP",
+                "custom_sl_price":   c.get("custom_sl_price"),
+                "stop_loss_price":   sl_price,
+                "quantity":          qty,
+                "investment":        investment,
+                "sl_points":         sl_pts,
+                "target_points":     tgt_pts,
+                "target_price":      tgt_price,
+                "risk_reward":       rr,
+                "outcome":           "OPEN",
+                "pnl":               0.0,
+                "return_amount":     investment,
+            }
+            orb_insert_trade(conn, trade)
+            orb_update_candidate_status(conn, today, c["symbol"], side, "TRIGGERED", user_id=u)
+            triggered_syms.add(c["symbol"])
+            trade_count += 1
+            log.info(
+                f"[ORB-SIM] TRIGGER ({u or 'shared'}) {side} {c['symbol']} @ ₹{ltp} | "
+                f"SL ₹{sl_price} | Tgt ₹{tgt_price} | Qty {qty} | R:R {rr}"
+            )
 
     conn.close()
 
@@ -7989,7 +7995,8 @@ def _orb_window_close_sync(today: str):
     waiting = [c for c in orb_get_candidates(conn, today) if c["status"] == "WAITING"]
     for c in waiting:
         orb_update_candidate_status(conn, today, c["symbol"], c["side"],
-                                    "WINDOW_CLOSED", "Entry window closed at 10:30")
+                                    "WINDOW_CLOSED", "Entry window closed at 10:30",
+                                    user_id=c["user_id"])
     conn.close()
     if waiting:
         log.info(f"[ORB-SIM] window closed — {len(waiting)} candidates marked WINDOW_CLOSED")
@@ -8123,15 +8130,30 @@ def _orb_window_phase() -> dict:
     return "EOD"
 
 
+def _orb_session_id(request: Request) -> str:
+    """Resolve the simulator session for a request.
+
+    Logged-in users get their own session only after they save settings at least
+    once (that's the fork point); until then they see the shared '' session."""
+    uid = (request.headers.get("X-User-Id") or "").strip()
+    if not uid or uid == "anonymous":
+        return ""
+    conn = get_conn()
+    own  = orb_has_own_settings(conn, uid)
+    conn.close()
+    return uid if own else ""
+
+
 @app.get("/simulator/state")
-async def simulator_state(date: str = ""):
+async def simulator_state(request: Request, date: str = ""):
     if not date:
         date = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     try:
+        sess       = _orb_session_id(request)
         conn       = get_conn()
-        candidates = orb_get_candidates(conn, date)
-        trades     = orb_get_trades(conn, date)
-        settings   = orb_get_settings(conn)
+        candidates = orb_get_candidates(conn, date, sess)
+        trades     = orb_get_trades(conn, date, sess)
+        settings   = orb_get_settings(conn, sess)
         conn.close()
 
         today_ist = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
@@ -8159,12 +8181,13 @@ async def simulator_state(date: str = ""):
         }
         return {
             "date":       date,
+            "session":    "personal" if sess else "shared",
             "candidates": candidates,
             "trades":     trades,
             "summary":    summary,
             "window": {
                 "phase":      _orb_window_phase(),
-                "slots_used": len(open_trades),
+                "slots_used": len(trades),
                 "slots_total": settings["max_slots"],
             },
         }
@@ -8174,7 +8197,7 @@ async def simulator_state(date: str = ""):
 
 
 @app.post("/simulator/sl-basis")
-async def simulator_sl_basis(body: _OrbSlBasisBody):
+async def simulator_sl_basis(body: _OrbSlBasisBody, request: Request):
     _VALID = {"VWAP", "DAY_HIGH", "DAY_LOW", "CUSTOM"}
     if body.basis not in _VALID:
         return JSONResponse(status_code=400,
@@ -8183,9 +8206,10 @@ async def simulator_sl_basis(body: _OrbSlBasisBody):
         return JSONResponse(status_code=400,
                             content={"error": "custom_price required when basis=CUSTOM"})
     try:
+        sess    = _orb_session_id(request)
         conn    = get_conn()
         updated = orb_update_candidate_sl(conn, body.date, body.symbol, body.side,
-                                          body.basis, body.custom_price)
+                                          body.basis, body.custom_price, user_id=sess)
         conn.close()
         if not updated:
             return JSONResponse(
@@ -8199,10 +8223,11 @@ async def simulator_sl_basis(body: _OrbSlBasisBody):
 
 
 @app.post("/simulator/square-off")
-async def simulator_square_off(body: _OrbSquareOffBody):
+async def simulator_square_off(body: _OrbSquareOffBody, request: Request):
     from datetime import time as dt_time
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     try:
+        sess  = _orb_session_id(request)
         conn  = get_conn()
         cur   = conn.execute("SELECT * FROM orb_stock_trades WHERE id=?", (body.trade_id,))
         row   = cur.fetchone()
@@ -8211,6 +8236,9 @@ async def simulator_square_off(body: _OrbSquareOffBody):
 
         if not trade:
             return JSONResponse(status_code=404, content={"error": "Trade not found"})
+        if trade.get("user_id", "") != sess:
+            return JSONResponse(status_code=403,
+                                content={"error": "This trade belongs to another session"})
         if trade["outcome"] != "OPEN":
             return JSONResponse(status_code=409,
                                 content={"error": f"Trade already {trade['outcome']}"})
@@ -8261,7 +8289,7 @@ async def simulator_square_off(body: _OrbSquareOffBody):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
-def _orb_backtest_sync(date: str, force: bool = False) -> dict:
+def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dict:
     """
     Replay the ORB algorithm on historical candles for `date`.
     Fetches 09:15–15:30 ONE_MINUTE candles per stock, finds first bench crossing
@@ -8270,19 +8298,19 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
     """
     import time as _t, uuid as _uuid
 
-    log.info(f"[ORB-BT] starting backtest for {date} (force={force})")
+    log.info(f"[ORB-BT] starting backtest for {date} (force={force}, session={user_id or 'shared'})")
     conn     = get_conn()
-    settings = orb_get_settings(conn)
-    existing = orb_get_candidates(conn, date)
+    settings = orb_get_settings(conn, user_id)
+    existing = orb_get_candidates(conn, date, user_id)
 
     if existing and not force:
         conn.close()
         return {"skipped": True, "reason": "already_populated",
-                "candidates": len(existing), "trades": len(orb_get_trades(conn, date))}
+                "candidates": len(existing), "trades": len(orb_get_trades(conn, date, user_id))}
 
     if force:
-        conn.execute("DELETE FROM orb_candidates WHERE date=?", (date,))
-        conn.execute("DELETE FROM orb_stock_trades WHERE date=?", (date,))
+        conn.execute("DELETE FROM orb_candidates WHERE date=? AND user_id=?", (date, user_id))
+        conn.execute("DELETE FROM orb_stock_trades WHERE date=? AND user_id=?", (date, user_id))
         conn.commit()
         log.info(f"[ORB-BT] cleared existing data for {date}")
     conn.close()
@@ -8386,7 +8414,7 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
         for (sym, side), cand in batch_cands.items():
             tok  = cand["_tok"]
             data = {k: v for k, v in cand.items() if k != "_tok"}
-            orb_upsert_candidate(conn, date, sym, tok, side, data)
+            orb_upsert_candidate(conn, date, sym, tok, side, data, user_id=user_id)
         conn.close()
         all_cands.update(batch_cands)
         log.info(f"[ORB-BT] batch {batch_num+1} written — {len(batch_cands)//2} stocks")
@@ -8405,7 +8433,8 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
     conn = get_conn()
     for (sym, side), cand in all_cands.items():
         if cand.get("remark") == "Below candidate cap":
-            orb_update_candidate_status(conn, date, sym, side, "WINDOW_CLOSED", "Below candidate cap")
+            orb_update_candidate_status(conn, date, sym, side, "WINDOW_CLOSED",
+                                        "Below candidate cap", user_id=user_id)
     conn.close()
 
     trigger_events = [e for e in trigger_events
@@ -8426,14 +8455,16 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             all_cands[key]["status"] = "SKIPPED"
             all_cands[key]["remark"] = "Already traded today"
             conn = get_conn()
-            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Already traded today")
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Already traded today",
+                                        user_id=user_id)
             conn.close()
             continue
         if open_slots >= max_slots:
             all_cands[key]["status"] = "SKIPPED"
-            all_cands[key]["remark"] = f"All {max_slots} slots occupied"
+            all_cands[key]["remark"] = f"Daily cap of {max_slots} trades reached"
             conn = get_conn()
-            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", f"All {max_slots} slots occupied")
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED",
+                                        f"Daily cap of {max_slots} trades reached", user_id=user_id)
             conn.close()
             continue
 
@@ -8463,7 +8494,8 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             all_cands[key]["status"] = "SKIPPED"
             all_cands[key]["remark"] = f"SL error: {sl_err}"
             conn = get_conn()
-            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", f"SL error: {sl_err}")
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", f"SL error: {sl_err}",
+                                        user_id=user_id)
             conn.close()
             continue
 
@@ -8472,7 +8504,7 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
             all_cands[key]["status"] = "SKIPPED"
             all_cands[key]["remark"] = "Qty 0"
             conn = get_conn()
-            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Qty 0")
+            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", "Qty 0", user_id=user_id)
             conn.close()
             continue
 
@@ -8514,6 +8546,7 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
         trade = {
             "id":                str(_uuid.uuid4()),
             "date":              date,
+            "user_id":           user_id,
             "symbol":            sym,
             "direction":         side,
             "day_high_at_entry": day_high_entry,
@@ -8539,7 +8572,7 @@ def _orb_backtest_sync(date: str, force: bool = False) -> dict:
         }
         conn = get_conn()
         orb_insert_trade(conn, trade)
-        orb_update_candidate_status(conn, date, sym, side, "TRIGGERED")
+        orb_update_candidate_status(conn, date, sym, side, "TRIGGERED", user_id=user_id)
         conn.close()
 
         all_cands[key]["status"] = "TRIGGERED"
@@ -8565,7 +8598,7 @@ class _OrbBacktestBody(BaseModel):
 
 
 @app.post("/simulator/backtest")
-async def simulator_backtest(body: _OrbBacktestBody):
+async def simulator_backtest(body: _OrbBacktestBody, request: Request):
     try:
         dt = datetime.strptime(body.date, "%Y-%m-%d")
     except ValueError:
@@ -8575,9 +8608,10 @@ async def simulator_backtest(body: _OrbBacktestBody):
         return JSONResponse(status_code=400, content={"error": "Backtest requires a past date"})
     if dt.weekday() >= 5:
         return JSONResponse(status_code=400, content={"error": "Selected date is a weekend"})
+    sess = _orb_session_id(request)
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, lambda: _orb_backtest_sync(body.date, body.force))
+        result = await loop.run_in_executor(None, lambda: _orb_backtest_sync(body.date, body.force, sess))
         return result
     except Exception as e:
         log.error(f"[BT-API] {e}", exc_info=True)
@@ -8596,18 +8630,20 @@ class _OrbSettingsBody(BaseModel):
 
 
 @app.get("/simulator/settings")
-async def simulator_get_settings():
+async def simulator_get_settings(request: Request):
     try:
+        sess = _orb_session_id(request)
         conn = get_conn()
-        s    = orb_get_settings(conn)
+        s    = orb_get_settings(conn, sess)
         conn.close()
+        s["session"] = "personal" if sess else "shared"
         return s
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.post("/simulator/settings")
-async def simulator_post_settings(body: _OrbSettingsBody):
+async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     _VALID_UNI = {"nifty500_fno", "nifty100_fno", "nifty50"}
     _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW", "DAY_SMART"}
     errs = []
@@ -8621,11 +8657,20 @@ async def simulator_post_settings(body: _OrbSettingsBody):
         return JSONResponse(status_code=400, content={"error": f"Invalid: {', '.join(errs)}"})
     updates = {k: v for k, v in body.dict(exclude_none=True).items()}
     try:
+        uid  = (request.headers.get("X-User-Id") or "").strip()
+        if uid == "anonymous":
+            uid = ""
         conn = get_conn()
-        orb_upsert_settings(conn, updates)
-        s    = orb_get_settings(conn)
+        # First personal save forks the session: inherit current shared settings,
+        # then apply the user's changes on top.
+        if uid and not orb_has_own_settings(conn, uid):
+            shared = orb_get_settings(conn, "")
+            orb_upsert_settings(conn, shared, user_id=uid)
+        orb_upsert_settings(conn, updates, user_id=uid)
+        s    = orb_get_settings(conn, uid)
         conn.close()
-        log.info(f"[SIM-SETTINGS] updated: {list(updates.keys())}")
+        s["session"] = "personal" if uid else "shared"
+        log.info(f"[SIM-SETTINGS] updated ({uid or 'shared'}): {list(updates.keys())}")
         return s
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

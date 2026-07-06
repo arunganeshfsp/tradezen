@@ -1081,13 +1081,27 @@ router.post("/paper/reset", _paperAuth, async (req, res) => {
 // ORB Intraday Simulator routes
 // ══════════════════════════════════════════════════════════════════════════════
 
+// ─── Simulator optional auth ─────────────────────────────────────────────────
+// Unlike _paperAuth, a missing/invalid token is not an error — the request
+// falls back to the shared ('') simulator session.
+function _simAuth(req, _res, next) {
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) {
+    try {
+      req.simUserId = String(jwt.verify(header.slice(7), process.env.JWT_SECRET).user_id);
+    } catch {}
+  }
+  next();
+}
+const _simHdr = (req) => ({ "X-User-Id": req.simUserId || "" });
+
 // ─── GET /api/simulator/state?date=YYYY-MM-DD ────────────────────────────────
 // Today's (or any past date's) candidates, trades, summary, and window phase
-router.get("/simulator/state", async (req, res) => {
+router.get("/simulator/state", _simAuth, async (req, res) => {
   try {
     const params = new URLSearchParams();
     if (req.query.date) params.set("date", req.query.date);
-    const data = await aiService.proxy("GET", `/simulator/state?${params}`, 10000);
+    const data = await aiService.proxy("GET", `/simulator/state?${params}`, 10000, undefined, _simHdr(req));
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -1095,9 +1109,9 @@ router.get("/simulator/state", async (req, res) => {
 // ─── POST /api/simulator/sl-basis ────────────────────────────────────────────
 // Body: { date, symbol, side, basis, custom_price? }
 // Set SL basis for a WAITING candidate (locked once triggered)
-router.post("/simulator/sl-basis", async (req, res) => {
+router.post("/simulator/sl-basis", _simAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", "/simulator/sl-basis", 10000, req.body);
+    const data = await aiService.proxy("POST", "/simulator/sl-basis", 10000, req.body, _simHdr(req));
     res.json(data);
   } catch (err) {
     const status = (err.status === 409 || err.status === 400) ? err.status : 500;
@@ -1107,12 +1121,12 @@ router.post("/simulator/sl-basis", async (req, res) => {
 
 // ─── POST /api/simulator/square-off ──────────────────────────────────────────
 // Body: { trade_id }  — exits OPEN trade at live LTP (or stored close_price post-EOD)
-router.post("/simulator/square-off", async (req, res) => {
+router.post("/simulator/square-off", _simAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", "/simulator/square-off", 15000, req.body);
+    const data = await aiService.proxy("POST", "/simulator/square-off", 15000, req.body, _simHdr(req));
     res.json(data);
   } catch (err) {
-    const status = (err.status === 404 || err.status === 409 || err.status === 503) ? err.status : 500;
+    const status = (err.status === 403 || err.status === 404 || err.status === 409 || err.status === 503) ? err.status : 500;
     res.status(status).json({ error: err.message });
   }
 });
@@ -1120,9 +1134,9 @@ router.post("/simulator/square-off", async (req, res) => {
 // ─── POST /api/simulator/backtest ────────────────────────────────────────────
 // Body: { date: "YYYY-MM-DD", force?: bool }
 // Replays the ORB algorithm on historical candles. Timeout 5min (full universe).
-router.post("/simulator/backtest", async (req, res) => {
+router.post("/simulator/backtest", _simAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", "/simulator/backtest", 310000, req.body);
+    const data = await aiService.proxy("POST", "/simulator/backtest", 310000, req.body, _simHdr(req));
     res.json(data);
   } catch (err) {
     const status = err.status === 400 ? 400 : 500;
@@ -1131,17 +1145,17 @@ router.post("/simulator/backtest", async (req, res) => {
 });
 
 // ─── GET /api/simulator/settings ─────────────────────────────────────────────
-router.get("/simulator/settings", async (req, res) => {
+router.get("/simulator/settings", _simAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("GET", "/simulator/settings", 8000);
+    const data = await aiService.proxy("GET", "/simulator/settings", 8000, undefined, _simHdr(req));
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ─── POST /api/simulator/settings ────────────────────────────────────────────
-router.post("/simulator/settings", async (req, res) => {
+router.post("/simulator/settings", _simAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", "/simulator/settings", 8000, req.body);
+    const data = await aiService.proxy("POST", "/simulator/settings", 8000, req.body, _simHdr(req));
     res.json(data);
   } catch (err) {
     const status = err.status === 400 ? 400 : 500;

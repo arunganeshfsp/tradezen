@@ -7,7 +7,29 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-07-05 (trade expand + verify)
+**Last updated:** 2026-07-06 (per-user sessions, daily trade cap, live LTP, CSV export, live watch)
+
+---
+
+## 2026-07-06 — Per-User Sessions + Fixes
+
+**What changed**
+- **Per-user simulator sessions.** `orb_candidates`, `orb_stock_trades`, `orb_settings` all gained a `user_id` column (`''` = shared session). Migration `_migrate_orb_user_scope()` in `sqlite_store.py` rebuilds old tables on first `get_conn()`; existing rows land in the shared session. `orb_candidates` UNIQUE is now `(date, user_id, symbol, side)`; `orb_settings` PK is `(user_id, key)`. All `orb_*` helpers take `user_id` (`None` = all sessions, `''` = shared).
+- **Fork model:** a signed-in user stays on the shared session until they first save Settings — that POST copies current shared settings to their user_id and forks them. `_orb_session_id(request)` in main.py resolves the effective session from the `X-User-Id` header. From the next 09:16 capture they get their own candidates/trades (capture + trigger poll iterate `[''] + orb_list_setting_users()`; quotes fetched once for the full universe and filtered per session; 09:15 bench candles fetched once per unique token).
+- **Node:** `_simAuth` middleware in stockRoute.js (optional JWT — invalid/absent token falls back to shared) forwards `X-User-Id` on all `/api/simulator/*` routes except trade-verify. Frontend `_hdrs()` sends `Authorization: Bearer tz_learn_token` on every simulator fetch; `#sessBadge` in the status strip shows MY SESSION / SHARED SESSION from `state.session`.
+- **Daily trade cap (bug fix):** `max_slots` semantics changed from *max concurrent* to *max trades per day* — resolved trades no longer free a slot. `slots_used` in state = total trades today. Same daily-cap wording used in the backtest.
+- **Sticky Square Off column (bug fix):** trades table now has `.trades-tbl` class; last td/th is `position:sticky; right:0` so the button is never clipped on horizontal scroll.
+- **Live LTP:** `_orb_ltp_cache` (token → ltp) updated inside `_orb_raw_quotes`; `/simulator/state` merges `live_ltp` into candidates and trades for today only. Shown as columns in both tables (trades: OPEN rows only, direction-aware coloring).
+- **CSV export:** both panels have Export CSV buttons (`exportCandidates()` respects the side filter and joins trades by symbol+direction; `exportTrades()` dumps full trade records). Shared `_csvVal`/`_downloadCsv` helpers, UTF-8 BOM, disclaimer footer.
+- **Live Watch:** `toggleLiveWatch()` — 5s polling, signal monitor bar with IST clock + phase message, toast on newly-triggered trades. Backtest blocked 09:14–09:18 IST (`_inCaptureWindow()`) so live capture has priority.
+
+**Why** — user reported 6 trades with a 5-slot cap (concurrent semantics surprised them), clipped square-off column, and wanted multi-user tailored settings after realizing two machines share one backend state.
+
+**Known caveats**
+- Square-off enforces ownership (403 if trade belongs to another session). trade-verify is unauthenticated (read-only).
+- A forked user's session only diverges from the *next* capture; today's shared candidates/trades disappear from their view immediately after forking (their session has no rows for today).
+- Backtest is per-session: each user's backtest of the same date stores separate rows.
+- Capture cost grows with distinct forked users (candidate persistence + per-session filtering) but quote/candle fetches stay deduplicated.
 
 ---
 

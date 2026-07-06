@@ -58,6 +58,7 @@ def _ensure_tables(conn: sqlite3.Connection):
         CREATE TABLE IF NOT EXISTS orb_candidates (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,
             date           TEXT NOT NULL,
+            user_id        TEXT NOT NULL DEFAULT '',
             symbol         TEXT NOT NULL,
             token          TEXT NOT NULL,
             side           TEXT NOT NULL,
@@ -72,12 +73,13 @@ def _ensure_tables(conn: sqlite3.Connection):
             status         TEXT DEFAULT 'WAITING',
             remark         TEXT,
             updated_at     TEXT,
-            UNIQUE(date, symbol, side)
+            UNIQUE(date, user_id, symbol, side)
         );
 
         CREATE TABLE IF NOT EXISTS orb_stock_trades (
             id              TEXT PRIMARY KEY,
             date            TEXT NOT NULL,
+            user_id         TEXT NOT NULL DEFAULT '',
             symbol          TEXT NOT NULL,
             direction       TEXT NOT NULL,
             day_high_at_entry REAL,
@@ -106,11 +108,70 @@ def _ensure_tables(conn: sqlite3.Connection):
         );
 
         CREATE TABLE IF NOT EXISTS orb_settings (
-            key        TEXT PRIMARY KEY,
+            user_id    TEXT NOT NULL DEFAULT '',
+            key        TEXT NOT NULL,
             value      TEXT NOT NULL,
-            updated_at TEXT
+            updated_at TEXT,
+            PRIMARY KEY (user_id, key)
         );
     """)
+    conn.commit()
+    _migrate_orb_user_scope(conn)
+
+
+def _migrate_orb_user_scope(conn: sqlite3.Connection):
+    """One-time rebuild of pre-multi-user ORB tables; existing rows become the shared ('') session."""
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(orb_stock_trades)")}
+    if "user_id" not in cols:
+        conn.execute("ALTER TABLE orb_stock_trades ADD COLUMN user_id TEXT NOT NULL DEFAULT ''")
+
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(orb_candidates)")}
+    if "user_id" not in cols:
+        conn.executescript("""
+            ALTER TABLE orb_candidates RENAME TO _orb_candidates_v1;
+            CREATE TABLE orb_candidates (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                date           TEXT NOT NULL,
+                user_id        TEXT NOT NULL DEFAULT '',
+                symbol         TEXT NOT NULL,
+                token          TEXT NOT NULL,
+                side           TEXT NOT NULL,
+                ltp_0916       REAL,
+                buy_pct        REAL,
+                sell_pct       REAL,
+                strength       REAL,
+                bench_high     REAL,
+                bench_low      REAL,
+                sl_basis       TEXT DEFAULT 'VWAP',
+                custom_sl_price REAL,
+                status         TEXT DEFAULT 'WAITING',
+                remark         TEXT,
+                updated_at     TEXT,
+                UNIQUE(date, user_id, symbol, side)
+            );
+            INSERT INTO orb_candidates
+                (id, date, user_id, symbol, token, side, ltp_0916, buy_pct, sell_pct,
+                 strength, bench_high, bench_low, sl_basis, custom_sl_price, status, remark, updated_at)
+            SELECT id, date, '', symbol, token, side, ltp_0916, buy_pct, sell_pct,
+                   strength, bench_high, bench_low, sl_basis, custom_sl_price, status, remark, updated_at
+            FROM _orb_candidates_v1;
+            DROP TABLE _orb_candidates_v1;
+        """)
+
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(orb_settings)")}
+    if "user_id" not in cols:
+        conn.executescript("""
+            ALTER TABLE orb_settings RENAME TO _orb_settings_v1;
+            CREATE TABLE orb_settings (
+                user_id    TEXT NOT NULL DEFAULT '',
+                key        TEXT NOT NULL,
+                value      TEXT NOT NULL,
+                updated_at TEXT,
+                PRIMARY KEY (user_id, key)
+            );
+            INSERT INTO orb_settings SELECT '', key, value, updated_at FROM _orb_settings_v1;
+            DROP TABLE _orb_settings_v1;
+        """)
     conn.commit()
 
 
@@ -197,20 +258,21 @@ def upsert_profile(conn, symbol_token, exchange, date, tick_size, profile):
 
 # ── ORB Simulator helpers ──────────────────────────────────────────────────────
 
-def orb_upsert_candidate(conn, date: str, symbol: str, token: str, side: str, data: dict):
+def orb_upsert_candidate(conn, date: str, symbol: str, token: str, side: str, data: dict,
+                         user_id: str = ""):
     now = datetime.utcnow().isoformat()
     conn.execute(
         """INSERT INTO orb_candidates
-               (date, symbol, token, side, ltp_0916, buy_pct, sell_pct, strength,
+               (date, user_id, symbol, token, side, ltp_0916, buy_pct, sell_pct, strength,
                 bench_high, bench_low, sl_basis, custom_sl_price, status, remark, updated_at)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-           ON CONFLICT(date, symbol, side) DO UPDATE SET
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+           ON CONFLICT(date, user_id, symbol, side) DO UPDATE SET
                token=excluded.token, ltp_0916=excluded.ltp_0916,
                buy_pct=excluded.buy_pct, sell_pct=excluded.sell_pct,
                strength=excluded.strength, bench_high=excluded.bench_high,
                bench_low=excluded.bench_low, status=excluded.status,
                remark=excluded.remark, updated_at=excluded.updated_at""",
-        (date, symbol, token, side,
+        (date, user_id, symbol, token, side,
          data.get("ltp_0916"), data.get("buy_pct"), data.get("sell_pct"), data.get("strength"),
          data.get("bench_high"), data.get("bench_low"),
          data.get("sl_basis", "VWAP"), data.get("custom_sl_price"),
@@ -219,21 +281,29 @@ def orb_upsert_candidate(conn, date: str, symbol: str, token: str, side: str, da
     conn.commit()
 
 
-def orb_get_candidates(conn, date: str) -> list[dict]:
-    cur = conn.execute(
-        "SELECT * FROM orb_candidates WHERE date=? ORDER BY side, strength DESC",
-        (date,),
-    )
+def orb_get_candidates(conn, date: str, user_id: str = None) -> list[dict]:
+    """user_id=None returns all sessions; '' returns the shared session only."""
+    if user_id is None:
+        cur = conn.execute(
+            "SELECT * FROM orb_candidates WHERE date=? ORDER BY side, strength DESC",
+            (date,),
+        )
+    else:
+        cur = conn.execute(
+            "SELECT * FROM orb_candidates WHERE date=? AND user_id=? ORDER BY side, strength DESC",
+            (date, user_id),
+        )
     return [dict(r) for r in cur.fetchall()]
 
 
 def orb_update_candidate_sl(
-    conn, date: str, symbol: str, side: str, sl_basis: str, custom_sl_price=None
+    conn, date: str, symbol: str, side: str, sl_basis: str, custom_sl_price=None,
+    user_id: str = ""
 ) -> bool:
     """Returns False if candidate is already TRIGGERED (locked)."""
     cur = conn.execute(
-        "SELECT status FROM orb_candidates WHERE date=? AND symbol=? AND side=?",
-        (date, symbol, side),
+        "SELECT status FROM orb_candidates WHERE date=? AND user_id=? AND symbol=? AND side=?",
+        (date, user_id, symbol, side),
     )
     row = cur.fetchone()
     if not row or row["status"] == "TRIGGERED":
@@ -241,21 +311,22 @@ def orb_update_candidate_sl(
     conn.execute(
         """UPDATE orb_candidates
            SET sl_basis=?, custom_sl_price=?, updated_at=?
-           WHERE date=? AND symbol=? AND side=?""",
-        (sl_basis, custom_sl_price, datetime.utcnow().isoformat(), date, symbol, side),
+           WHERE date=? AND user_id=? AND symbol=? AND side=?""",
+        (sl_basis, custom_sl_price, datetime.utcnow().isoformat(), date, user_id, symbol, side),
     )
     conn.commit()
     return True
 
 
 def orb_update_candidate_status(
-    conn, date: str, symbol: str, side: str, status: str, remark: str = None
+    conn, date: str, symbol: str, side: str, status: str, remark: str = None,
+    user_id: str = ""
 ):
     conn.execute(
         """UPDATE orb_candidates
            SET status=?, remark=?, updated_at=?
-           WHERE date=? AND symbol=? AND side=?""",
-        (status, remark, datetime.utcnow().isoformat(), date, symbol, side),
+           WHERE date=? AND user_id=? AND symbol=? AND side=?""",
+        (status, remark, datetime.utcnow().isoformat(), date, user_id, symbol, side),
     )
     conn.commit()
 
@@ -264,13 +335,13 @@ def orb_insert_trade(conn, trade: dict):
     now = datetime.utcnow().isoformat()
     conn.execute(
         """INSERT OR IGNORE INTO orb_stock_trades
-               (id, date, symbol, direction, day_high_at_entry, day_low_at_entry,
+               (id, date, user_id, symbol, direction, day_high_at_entry, day_low_at_entry,
                 vwap_at_entry, trigger_price, entry_time, sl_basis, custom_sl_price,
                 stop_loss_price, quantity, investment, sl_points, target_points,
                 target_price, risk_reward, exit_price, exit_time, outcome, pnl,
                 return_amount, close_price, remarks, created_at, updated_at)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-        (trade["id"], trade["date"], trade["symbol"], trade["direction"],
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (trade["id"], trade["date"], trade.get("user_id", ""), trade["symbol"], trade["direction"],
          trade.get("day_high_at_entry"), trade.get("day_low_at_entry"),
          trade.get("vwap_at_entry"), trade.get("trigger_price"), trade.get("entry_time"),
          trade.get("sl_basis"), trade.get("custom_sl_price"), trade.get("stop_loss_price"),
@@ -283,19 +354,26 @@ def orb_insert_trade(conn, trade: dict):
     conn.commit()
 
 
-def orb_get_trades(conn, date: str) -> list[dict]:
-    cur = conn.execute(
-        "SELECT * FROM orb_stock_trades WHERE date=? ORDER BY entry_time",
-        (date,),
-    )
+def orb_get_trades(conn, date: str, user_id: str = None) -> list[dict]:
+    """user_id=None returns all sessions; '' returns the shared session only."""
+    if user_id is None:
+        cur = conn.execute(
+            "SELECT * FROM orb_stock_trades WHERE date=? ORDER BY entry_time", (date,))
+    else:
+        cur = conn.execute(
+            "SELECT * FROM orb_stock_trades WHERE date=? AND user_id=? ORDER BY entry_time",
+            (date, user_id))
     return [dict(r) for r in cur.fetchall()]
 
 
-def orb_get_open_trades(conn, date: str) -> list[dict]:
-    cur = conn.execute(
-        "SELECT * FROM orb_stock_trades WHERE date=? AND outcome='OPEN'",
-        (date,),
-    )
+def orb_get_open_trades(conn, date: str, user_id: str = None) -> list[dict]:
+    if user_id is None:
+        cur = conn.execute(
+            "SELECT * FROM orb_stock_trades WHERE date=? AND outcome='OPEN'", (date,))
+    else:
+        cur = conn.execute(
+            "SELECT * FROM orb_stock_trades WHERE date=? AND user_id=? AND outcome='OPEN'",
+            (date, user_id))
     return [dict(r) for r in cur.fetchall()]
 
 
@@ -321,8 +399,8 @@ ORB_SETTING_DEFAULTS: dict = {
 }
 
 
-def orb_get_settings(conn) -> dict:
-    cur = conn.execute("SELECT key, value FROM orb_settings")
+def orb_get_settings(conn, user_id: str = "") -> dict:
+    cur = conn.execute("SELECT key, value FROM orb_settings WHERE user_id=?", (user_id,))
     stored = {r["key"]: r["value"] for r in cur.fetchall()}
     result = dict(ORB_SETTING_DEFAULTS)
     result.update(stored)
@@ -335,10 +413,20 @@ def orb_get_settings(conn) -> dict:
     return result
 
 
-def orb_upsert_settings(conn, updates: dict):
+def orb_upsert_settings(conn, updates: dict, user_id: str = ""):
     now = datetime.utcnow().isoformat()
     conn.executemany(
-        "INSERT OR REPLACE INTO orb_settings (key, value, updated_at) VALUES (?,?,?)",
-        [(k, str(v), now) for k, v in updates.items()],
+        "INSERT OR REPLACE INTO orb_settings (user_id, key, value, updated_at) VALUES (?,?,?,?)",
+        [(user_id, k, str(v), now) for k, v in updates.items()],
     )
     conn.commit()
+
+
+def orb_has_own_settings(conn, user_id: str) -> bool:
+    return conn.execute(
+        "SELECT 1 FROM orb_settings WHERE user_id=? LIMIT 1", (user_id,)).fetchone() is not None
+
+
+def orb_list_setting_users(conn) -> list[str]:
+    cur = conn.execute("SELECT DISTINCT user_id FROM orb_settings WHERE user_id != ''")
+    return [r["user_id"] for r in cur.fetchall()]

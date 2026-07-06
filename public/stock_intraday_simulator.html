@@ -245,6 +245,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   transition:all .15s}
 .settings-btn:hover{color:var(--text);border-color:var(--accent);background:rgba(124,106,247,0.08)}
 
+/* ── STICKY SQUARE-OFF COLUMN ── */
+.trades-tbl td:last-child,.trades-tbl th:last-child{position:sticky;right:0;
+  background:var(--bg1);box-shadow:-8px 0 8px -8px rgba(0,0,0,0.6)}
+.trades-tbl th:last-child{background:var(--bg2)}
+.trades-tbl tr:hover td:last-child{background:var(--bg2)}
+
 /* ── EXPORT BUTTON ── */
 .export-btn{margin-left:auto;background:transparent;border:1px solid var(--border2);
   border-radius:var(--r2);color:var(--dim);padding:4px 10px;cursor:pointer;
@@ -445,6 +451,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   <div class="offcanvas-body">
     <div class="sett-notice">
       Settings apply from the <strong>next session's 09:16 capture</strong>. They do not change today's candidates or open trades.
+      Signed-in users get their <strong>own simulator session</strong> — saving here forks your personal candidates, trades and caps from the shared session.
     </div>
 
     <div class="sett-group">
@@ -454,9 +461,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
 
     <div class="sett-group">
-      <label class="sett-label" for="sett-slots">Max concurrent slots</label>
+      <label class="sett-label" for="sett-slots">Max trades per day</label>
       <input type="number" id="sett-slots" class="sett-inp" min="1" max="20" step="1" placeholder="5" />
-      <div class="sett-hint">Maximum number of open simulated trades at once. Default: 5.</div>
+      <div class="sett-hint">Maximum simulated trades per session day. Once reached, further breakouts are skipped. Default: 5.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -547,6 +554,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <span class="slots-bar" id="slotsBar"></span>
       <span id="slotsText">—</span>
     </span>
+    <span class="cnt-badge" id="sessBadge"></span>
     <span class="sim-banner">SIMULATOR · No real orders placed</span>
   </div>
 
@@ -586,7 +594,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       </button>
     </div>
     <div class="tbl-wrap">
-      <table class="sim-tbl">
+      <table class="sim-tbl trades-tbl">
         <thead>
           <tr>
             <th data-en="Direction" data-ta="திசை">Direction</th>
@@ -738,9 +746,16 @@ function onDateChange() {
 }
 
 // ── Fetch + render ─────────────────────────────────────────────────────────
+function _hdrs(json) {
+  const h = json ? { 'Content-Type': 'application/json' } : {};
+  const t = localStorage.getItem('tz_learn_token');
+  if (t) h['Authorization'] = 'Bearer ' + t;
+  return h;
+}
+
 async function loadState() {
   try {
-    const r = await fetch(`${API}/state?date=${_currentDate}`);
+    const r = await fetch(`${API}/state?date=${_currentDate}`, { headers: _hdrs(false) });
     const d = await r.json();
     if (d.error) { setStatus(d.error, false); return; }
     _stateData = d;
@@ -752,6 +767,11 @@ async function loadState() {
 
 function renderAll(d) {
   const hasCands = (d.candidates || []).length > 0;
+  const sb = document.getElementById('sessBadge');
+  if (sb && d.session) {
+    sb.textContent = d.session === 'personal' ? 'MY SESSION' : 'SHARED SESSION';
+    sb.style.color = d.session === 'personal' ? 'var(--accent)' : '';
+  }
   _updateBtPanel(hasCands);
   renderWindowStrip(d.window);
   renderCandidates(d.candidates || []);
@@ -1187,7 +1207,7 @@ async function _doSetSl(date, symbol, side, basis, customPrice, el) {
   try {
     const r = await fetch('/api/simulator/sl-basis', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: _hdrs(true),
       body: JSON.stringify({ date, symbol, side, basis, custom_price: customPrice }),
     });
     const d = await r.json();
@@ -1207,7 +1227,7 @@ async function squareOff(tradeId, symbol) {
   try {
     const r = await fetch('/api/simulator/square-off', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: _hdrs(true),
       body: JSON.stringify({ trade_id: tradeId }),
     });
     const d = await r.json();
@@ -1385,7 +1405,7 @@ async function runBacktest() {
   // Poll state every 3s so candidates and trades appear as each batch completes
   const progressPoll = setInterval(async () => {
     try {
-      const r = await fetch(`${API}/state?date=${_currentDate}`);
+      const r = await fetch(`${API}/state?date=${_currentDate}`, { headers: _hdrs(false) });
       const d = await r.json();
       if (d.error) return;
       const cCount = (d.candidates || []).length;
@@ -1401,7 +1421,7 @@ async function runBacktest() {
   try {
     const r = await fetch(`${API}/backtest`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: _hdrs(true),
       body: JSON.stringify({ date: _currentDate, force: true }),
       signal: ctrl.signal,
     });
@@ -1428,7 +1448,7 @@ async function runBacktest() {
 // ── Settings ──────────────────────────────────────────────────────────────
 async function loadSettings() {
   try {
-    const r = await fetch(`${API}/settings`);
+    const r = await fetch(`${API}/settings`, { headers: _hdrs(false) });
     const d = await r.json();
     if (d.error) return;
     _settings = d;
@@ -1470,7 +1490,7 @@ async function saveSettings() {
   try {
     const r = await fetch(`${API}/settings`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: _hdrs(true),
       body: JSON.stringify(body),
     });
     const d = await r.json();
