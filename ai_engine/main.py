@@ -8136,8 +8136,11 @@ async def simulator_state(date: str = ""):
 
         today_ist = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
         if date == today_ist:
+            tok_by_sym = {c["symbol"]: str(c["token"]) for c in candidates}
             for c in candidates:
                 c["live_ltp"] = _orb_ltp_cache.get(str(c["token"]))
+            for t in trades:
+                t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
 
         open_trades = [t for t in trades if t["outcome"] == "OPEN"]
         resolved    = [t for t in trades if t["outcome"] != "OPEN"]

@@ -577,6 +577,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="panel-hdr">
       <span class="phdr-title" data-en="SIMULATED TRADES" data-ta="உருவக வர்த்தகம்">SIMULATED TRADES</span>
       <span id="totalPnl" class="pnl-badge">₹0.00</span>
+      <button class="export-btn" onclick="exportTrades()" title="Download simulated trades as CSV">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+        </svg>
+        <span data-en="Export CSV" data-ta="CSV பதிவிறக்கு">Export CSV</span>
+      </button>
     </div>
     <div class="tbl-wrap">
       <table class="sim-tbl">
@@ -894,12 +901,6 @@ function exportCandidates() {
     'Outcome','Exit Price','Exit Time','Study P/L',
   ];
 
-  const csvVal = v => {
-    if (v == null || v === '') return '';
-    const s = String(v);
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
-
   const rows = filtered.map(c => {
     const t = tradeMap[c.symbol + '|' + c.side] || {};
     return [
@@ -909,15 +910,48 @@ function exportCandidates() {
       t.entry_time, t.trigger_price, t.day_high_at_entry, t.day_low_at_entry, t.vwap_at_entry,
       t.stop_loss_price, t.sl_points, t.target_price, t.target_points, t.quantity, t.investment, t.risk_reward,
       t.outcome, t.exit_price, t.exit_time, t.pnl,
-    ].map(csvVal).join(',');
+    ].map(_csvVal).join(',');
   });
 
-  const csv  = HEADERS.join(',') + '\n' + rows.join('\n') +
+  _downloadCsv(HEADERS, rows, `orb_sim_${_currentDate}_${_candFilter.toLowerCase()}.csv`);
+}
+
+function exportTrades() {
+  const trades = (_stateData && _stateData.trades) || [];
+  if (!trades.length) { alert('No simulated trades to export'); return; }
+
+  const HEADERS = [
+    'Date','Symbol','Direction','Entry Time','Sim. Fill (Entry)','Live LTP',
+    'Day High @ Entry','Day Low @ Entry','VWAP @ Entry',
+    'SL Basis','Custom SL','Invalidation (SL)','SL Points',
+    'Ref. Target','Target Points','Qty','Investment','R:R',
+    'Outcome','Exit Price','Exit Time','Close Price','Study P/L','Return Amount','Remarks',
+  ];
+
+  const rows = trades.map(t => [
+    t.date, t.symbol, t.direction === 'BUY' ? 'BULLISH' : 'BEARISH', t.entry_time, t.trigger_price, t.live_ltp,
+    t.day_high_at_entry, t.day_low_at_entry, t.vwap_at_entry,
+    _slLabel(t.sl_basis || 'VWAP'), t.custom_sl_price, t.stop_loss_price, t.sl_points,
+    t.target_price, t.target_points, t.quantity, t.investment, t.risk_reward,
+    t.outcome, t.exit_price, t.exit_time, t.close_price, t.pnl, t.return_amount, t.remarks,
+  ].map(_csvVal).join(','));
+
+  _downloadCsv(HEADERS, rows, `orb_sim_trades_${_currentDate}.csv`);
+}
+
+function _csvVal(v) {
+  if (v == null || v === '') return '';
+  const s = String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function _downloadCsv(headers, rows, filename) {
+  const csv  = headers.join(',') + '\n' + rows.join('\n') +
     '\n\nSimulated study data - For educational purposes only. Not investment advice.';
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = `orb_sim_${_currentDate}_${_candFilter.toLowerCase()}.csv`;
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(a.href);
 }
