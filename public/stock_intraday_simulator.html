@@ -322,6 +322,47 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 [data-theme="light"] body{background:var(--bg)}
 [data-theme="light"] .sim-tbl tr:hover td{background:rgba(0,0,0,0.02)}
 [data-theme="light"] .sim-tbl th{background:var(--bg2)}
+
+/* ── LIVE WATCH BUTTON ── */
+.live-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border2);
+  border-radius:var(--r2);color:var(--dim);padding:5px 14px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  transition:all .2s;white-space:nowrap}
+.live-btn:hover{color:var(--text);border-color:rgba(46,204,113,0.5)}
+.live-btn.watching{background:var(--green-bg);border-color:rgba(46,204,113,0.55);color:var(--green)}
+.live-btn-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.live-btn.watching .live-btn-dot{animation:pulseAnim 1.2s infinite}
+
+/* ── SIGNAL MONITOR BAR ── */
+.signal-monitor{background:rgba(46,204,113,0.05);border-bottom:1px solid rgba(46,204,113,0.18);
+  padding:9px 28px;display:flex;align-items:center;gap:14px}
+.sm-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;
+  animation:pulseAnim 1.2s infinite}
+.sm-text{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);flex:1}
+.sm-extra{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.sm-clock{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);
+  letter-spacing:.5px;margin-left:auto}
+
+/* ── SIGNAL TOAST ── */
+.signal-toast{position:fixed;top:80px;left:50%;
+  transform:translateX(-50%) translateY(-16px);z-index:9999;
+  background:rgba(10,12,24,0.97);border:1px solid rgba(46,204,113,0.5);
+  border-radius:10px;padding:14px 20px;min-width:280px;max-width:90vw;
+  box-shadow:0 8px 32px rgba(0,0,0,0.55);
+  transition:opacity .3s,transform .3s;opacity:0;pointer-events:none}
+.signal-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.st-header{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--green);margin-bottom:8px}
+.st-body{display:flex;align-items:center;gap:12px}
+.st-dir{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  padding:4px 10px;border-radius:6px;border:1px solid;white-space:nowrap}
+.st-dir.bull{color:var(--green);border-color:rgba(46,204,113,0.4);background:var(--green-bg)}
+.st-dir.bear{color:var(--red);border-color:rgba(231,76,60,0.4);background:var(--red-bg)}
+.st-info .st-sym{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)}
+.st-info .st-price{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:3px}
+[data-theme="light"] .signal-toast{background:rgba(255,255,255,0.98)}
+[data-theme="light"] .signal-monitor{background:rgba(46,204,113,0.04);border-color:rgba(46,204,113,0.2)}
 </style>
 </head>
 <body>
@@ -377,6 +418,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
     </svg>
     SETTINGS
+  </button>
+  <button class="live-btn" id="liveBtn" onclick="toggleLiveWatch()" style="display:none">
+    <span class="live-btn-dot"></span>
+    LIVE WATCH
   </button>
   <div class="ctrl-status">
     <span class="pulse-dot" id="pulseDot"></span>
@@ -461,6 +506,26 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <button class="save-btn" id="saveSettBtn" onclick="saveSettings()">Apply Settings</button>
     <div id="settOk"  class="sett-ok">✓ Settings saved — takes effect from next session</div>
     <div id="settErr" class="sett-err"></div>
+  </div>
+</div>
+
+<!-- SIGNAL MONITOR BAR -->
+<div class="signal-monitor" id="signalMonitor" style="display:none">
+  <span class="sm-dot"></span>
+  <span id="smText" class="sm-text">Watching for signals…</span>
+  <span id="smExtra" class="sm-extra"></span>
+  <span id="smClock" class="sm-clock"></span>
+</div>
+
+<!-- SIGNAL TOAST -->
+<div class="signal-toast" id="signalToast">
+  <div class="st-header">NEW SIGNAL TRIGGERED</div>
+  <div class="st-body">
+    <span class="st-dir" id="stDir"></span>
+    <div class="st-info">
+      <div class="st-sym" id="stSym"></div>
+      <div class="st-price" id="stPrice"></div>
+    </div>
   </div>
 </div>
 
@@ -619,6 +684,10 @@ let _stateData     = null;
 let _settings      = null;
 const _expandedTrades = new Set();
 const _verifyCache    = {};
+let _liveWatchActive  = false;
+const _knownTradeIds  = new Set();
+let _smClockTimer     = null;
+let _initialized      = false;
 
 // ── Date init ──────────────────────────────────────────────────────────────
 function _istToday() {
@@ -639,6 +708,8 @@ function _istToday() {
 function onDateChange() {
   _currentDate = document.getElementById('datePicker').value;
   _isLive      = (_currentDate === _todayDate);
+  if (!_isLive && _liveWatchActive) _stopLiveWatch();
+  document.getElementById('liveBtn').style.display = _isLive ? '' : 'none';
   stopPolling();
   loadState();
   if (_isLive) startPolling();
@@ -664,6 +735,8 @@ function renderAll(d) {
   renderCandidates(d.candidates || []);
   renderTrades(d.trades || []);
   renderSummary(d.summary || {});
+  _checkNewSignals(d.trades || []);
+  _updateSignalMonitor((d.window || {}).phase, d.candidates, d.trades);
   const ts = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
   setStatus(_isLive ? `Live · ${ts}` : `History · ${_currentDate}`, _isLive);
 }
@@ -1033,10 +1106,83 @@ async function squareOff(tradeId, symbol) {
   }
 }
 
+// ── Live Watch ────────────────────────────────────────────────────────────
+function toggleLiveWatch() {
+  if (_liveWatchActive) { _stopLiveWatch(); return; }
+  _liveWatchActive = true;
+  const btn = document.getElementById('liveBtn');
+  btn.classList.add('watching');
+  btn.innerHTML = '<span class="live-btn-dot"></span> WATCHING';
+  document.getElementById('signalMonitor').style.display = 'flex';
+  stopPolling();
+  startPolling();
+  _updateSmClock();
+  _smClockTimer = setInterval(_updateSmClock, 1000);
+}
+
+function _stopLiveWatch() {
+  _liveWatchActive = false;
+  const btn = document.getElementById('liveBtn');
+  btn.classList.remove('watching');
+  btn.innerHTML = '<span class="live-btn-dot"></span> LIVE WATCH';
+  document.getElementById('signalMonitor').style.display = 'none';
+  clearInterval(_smClockTimer);
+  stopPolling();
+  if (_isLive) startPolling();
+}
+
+function _updateSmClock() {
+  document.getElementById('smClock').textContent =
+    new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false,
+      hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' IST';
+}
+
+function _updateSignalMonitor(phase, candidates, trades) {
+  if (!_liveWatchActive) return;
+  const waiting  = (candidates || []).filter(c => c.status === 'WAITING').length;
+  const open     = (trades     || []).filter(t => t.outcome === 'OPEN').length;
+  const MSGS = {
+    PRE_MARKET:      ['Pre-market · ORB candidate capture at 09:16 AM', ''],
+    CAPTURE_PENDING: ['Scanning candidates at 09:16…', 'Stay tuned'],
+    ENTRY_WINDOW:    [`Entry window open · ${waiting} candidate${waiting !== 1 ? 's' : ''} watching`, 'Waiting for ORB breakout'],
+    TRACKING:        [`Tracking ${open} open trade${open !== 1 ? 's' : ''}`, 'Monitoring for ref. level / invalidation'],
+    EOD:             ['Session closed · 15:30 square-off done', ''],
+    WEEKEND:         ['Weekend · Markets reopen Monday', ''],
+  };
+  const [text, extra] = MSGS[phase] || ['Watching for signals…', ''];
+  document.getElementById('smText').textContent  = text;
+  document.getElementById('smExtra').textContent = extra;
+}
+
+function _checkNewSignals(trades) {
+  if (!_initialized) {
+    (trades || []).forEach(t => _knownTradeIds.add(t.id));
+    _initialized = true;
+    return;
+  }
+  const newTrades = (trades || []).filter(t => !_knownTradeIds.has(t.id));
+  newTrades.forEach(t => { _knownTradeIds.add(t.id); if (_liveWatchActive) _showSignalToast(t); });
+}
+
+function _showSignalToast(trade) {
+  const isBuy = trade.direction === 'BUY';
+  const dir   = document.getElementById('stDir');
+  dir.textContent = isBuy ? '▲ BULLISH' : '▼ BEARISH';
+  dir.className   = 'st-dir ' + (isBuy ? 'bull' : 'bear');
+  document.getElementById('stSym').textContent   = trade.symbol;
+  document.getElementById('stPrice').textContent =
+    `Triggered @ ₹${_fmt2(trade.trigger_price)}` +
+    (trade.entry_time ? ` · ${trade.entry_time.slice(11, 16)} IST` : '');
+  const toast = document.getElementById('signalToast');
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 7000);
+}
+
 // ── Polling ───────────────────────────────────────────────────────────────
 function startPolling() {
   stopPolling();
-  _pollTimer = setInterval(loadState, 10000);
+  _pollTimer = setInterval(loadState, _liveWatchActive ? 5000 : 10000);
 }
 function stopPolling() {
   if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
@@ -1207,6 +1353,7 @@ async function saveSettings() {
 loadSettings();
 loadState();
 startPolling();
+document.getElementById('liveBtn').style.display = _isLive ? '' : 'none';
 </script>
 </body>
 </html>
