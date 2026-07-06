@@ -7697,6 +7697,9 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 })
 
 
+_orb_ltp_cache: dict = {}
+
+
 def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
     """Batch FULL market quote → {token_str: {ltp, high, low, vwap, buy_pct, sell_pct}}."""
     import time as _t
@@ -7725,6 +7728,7 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
                     "buy_pct":  round(bq / total * 100, 1) if total else 0.0,
                     "sell_pct": round(sq / total * 100, 1) if total else 0.0,
                 }
+                _orb_ltp_cache[tok] = round(ltp, 2)
         except Exception as e:
             log.warning(f"[ORB-SIM] quote batch {i}: {e}")
     return result
@@ -8129,6 +8133,11 @@ async def simulator_state(date: str = ""):
         trades     = orb_get_trades(conn, date)
         settings   = orb_get_settings(conn)
         conn.close()
+
+        today_ist = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+        if date == today_ist:
+            for c in candidates:
+                c["live_ltp"] = _orb_ltp_cache.get(str(c["token"]))
 
         open_trades = [t for t in trades if t["outcome"] == "OPEN"]
         resolved    = [t for t in trades if t["outcome"] != "OPEN"]

@@ -245,6 +245,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   transition:all .15s}
 .settings-btn:hover{color:var(--text);border-color:var(--accent);background:rgba(124,106,247,0.08)}
 
+/* ── EXPORT BUTTON ── */
+.export-btn{margin-left:auto;background:transparent;border:1px solid var(--border2);
+  border-radius:var(--r2);color:var(--dim);padding:4px 10px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:.5px;transition:all .15s;white-space:nowrap}
+.export-btn:hover{color:var(--text);border-color:var(--accent);background:rgba(124,106,247,0.08)}
+
 /* ── SETTINGS OFFCANVAS ── */
 .settings-canvas .offcanvas-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 20px}
 .settings-canvas .offcanvas-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
@@ -605,6 +612,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <button class="side-tab bear" onclick="filterCands('SELL',this)" data-en="BEARISH ▼" data-ta="இறங்குமுகம் ▼">BEARISH ▼</button>
       </div>
       <span class="cnt-badge" id="candCount">0</span>
+      <button class="export-btn" onclick="exportCandidates()" title="Download filtered candidates + trade details as CSV">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+        </svg>
+        <span data-en="Export CSV" data-ta="CSV பதிவிறக்கு">Export CSV</span>
+      </button>
     </div>
     <div class="tbl-wrap">
       <table class="sim-tbl">
@@ -613,6 +627,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <th data-en="Direction" data-ta="திசை">Direction</th>
             <th data-en="Symbol" data-ta="பங்கு">Symbol</th>
             <th>09:16 LTP</th>
+            <th data-en="Live LTP" data-ta="நேரடி விலை">Live LTP</th>
             <th data-en="Dominance" data-ta="ஆதிக்கம்">Dominance</th>
             <th data-en="Bench High" data-ta="உச்சம்">Bench High</th>
             <th data-en="Bench Low" data-ta="தாழ்வு">Bench Low</th>
@@ -621,7 +636,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </tr>
         </thead>
         <tbody id="candBody">
-          <tr><td colspan="8" class="empty-cell">Loading candidates…</td></tr>
+          <tr><td colspan="9" class="empty-cell">Loading candidates…</td></tr>
         </tbody>
       </table>
     </div>
@@ -794,7 +809,7 @@ function renderCandidates(cands) {
   document.getElementById('candCount').textContent = filtered.length;
 
   if (!filtered.length) {
-    body.innerHTML = `<tr><td colspan="8" class="empty-cell">No candidates for this session</td></tr>`;
+    body.innerHTML = `<tr><td colspan="9" class="empty-cell">No candidates for this session</td></tr>`;
     return;
   }
 
@@ -839,10 +854,19 @@ function renderCandidates(cands) {
         </span>`;
     }
 
+    let liveHtml = '<span style="color:var(--muted)">—</span>';
+    if (c.live_ltp != null) {
+      const diff = c.ltp_0916 ? c.live_ltp - c.ltp_0916 : 0;
+      const cls  = diff > 0 ? 'bull-val' : diff < 0 ? 'bear-val' : '';
+      const pct  = c.ltp_0916 ? ` (${diff >= 0 ? '+' : ''}${(diff / c.ltp_0916 * 100).toFixed(1)}%)` : '';
+      liveHtml = `<span class="${cls}">₹${_fmt2(c.live_ltp)}<span style="font-size:10px">${pct}</span></span>`;
+    }
+
     return `<tr>
       <td><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
       <td class="sym-cell">${_esc(c.symbol)}</td>
       <td class="num-cell">₹${_fmt2(c.ltp_0916)}</td>
+      <td class="num-cell">${liveHtml}</td>
       <td>${domHtml}</td>
       <td class="num-cell bull-val">₹${_fmt2(c.bench_high)}</td>
       <td class="num-cell bear-val">₹${_fmt2(c.bench_low)}</td>
@@ -850,6 +874,52 @@ function renderCandidates(cands) {
       <td>${_statusBadge(c.status)}</td>
     </tr>`;
   }).join('');
+}
+
+function exportCandidates() {
+  const cands = (_stateData && _stateData.candidates) || [];
+  const trades = (_stateData && _stateData.trades) || [];
+  const filtered = _candFilter === 'ALL' ? cands : cands.filter(c => c.side === _candFilter);
+  if (!filtered.length) { alert('No candidates to export for the current filter'); return; }
+
+  const tradeMap = {};
+  trades.forEach(t => { tradeMap[t.symbol + '|' + t.direction] = t; });
+
+  const HEADERS = [
+    'Date','Symbol','Direction','Status','Remark',
+    '09:16 LTP','Live LTP','Buy %','Sell %','Dominance Strength',
+    'Bench High','Bench Low','SL Basis','Custom SL',
+    'Entry Time','Sim. Fill (Entry)','Day High @ Entry','Day Low @ Entry','VWAP @ Entry',
+    'Invalidation (SL)','SL Points','Ref. Target','Target Points','Qty','Investment','R:R',
+    'Outcome','Exit Price','Exit Time','Study P/L',
+  ];
+
+  const csvVal = v => {
+    if (v == null || v === '') return '';
+    const s = String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+
+  const rows = filtered.map(c => {
+    const t = tradeMap[c.symbol + '|' + c.side] || {};
+    return [
+      _currentDate, c.symbol, c.side === 'BUY' ? 'BULLISH' : 'BEARISH', c.status, c.remark,
+      c.ltp_0916, c.live_ltp, c.buy_pct, c.sell_pct, c.strength,
+      c.bench_high, c.bench_low, _slLabel(c.sl_basis || 'VWAP'), c.custom_sl_price,
+      t.entry_time, t.trigger_price, t.day_high_at_entry, t.day_low_at_entry, t.vwap_at_entry,
+      t.stop_loss_price, t.sl_points, t.target_price, t.target_points, t.quantity, t.investment, t.risk_reward,
+      t.outcome, t.exit_price, t.exit_time, t.pnl,
+    ].map(csvVal).join(',');
+  });
+
+  const csv  = HEADERS.join(',') + '\n' + rows.join('\n') +
+    '\n\nSimulated study data - For educational purposes only. Not investment advice.';
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `orb_sim_${_currentDate}_${_candFilter.toLowerCase()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function _slLabel(basis) {
@@ -1262,7 +1332,7 @@ async function runBacktest() {
   Object.keys(_verifyCache).forEach(k => delete _verifyCache[k]);
   _expandedTrades.clear();
   document.getElementById('tradeBody').innerHTML = '<tr><td colspan="11" class="empty-cell">Clearing previous backtest…</td></tr>';
-  document.getElementById('candBody').innerHTML  = '<tr><td colspan="8"  class="empty-cell">Clearing previous backtest…</td></tr>';
+  document.getElementById('candBody').innerHTML  = '<tr><td colspan="9"  class="empty-cell">Clearing previous backtest…</td></tr>';
 
   const uni    = _settings?.universe || 'nifty500_fno';
   const total  = { nifty50: 50, nifty100_fno: 100, nifty500_fno: 500 }[uni] || 500;
