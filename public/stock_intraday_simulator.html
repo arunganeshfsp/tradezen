@@ -592,6 +592,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <th data-en="Direction" data-ta="திசை">Direction</th>
             <th data-en="Symbol" data-ta="பங்கு">Symbol</th>
             <th data-en="Sim. Fill" data-ta="நுழைவு விலை">Sim. Fill</th>
+            <th data-en="Live LTP" data-ta="நேரடி விலை">Live LTP</th>
             <th data-en="Invalidation" data-ta="SL விலை">Invalidation</th>
             <th data-en="Ref. Target" data-ta="இலக்கு">Ref. Target</th>
             <th data-en="Qty" data-ta="அளவு">Qty</th>
@@ -603,7 +604,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </tr>
         </thead>
         <tbody id="tradeBody">
-          <tr><td colspan="11" class="empty-cell">No simulated trades yet</td></tr>
+          <tr><td colspan="12" class="empty-cell">No simulated trades yet</td></tr>
         </tbody>
       </table>
     </div>
@@ -921,7 +922,7 @@ function exportTrades() {
   if (!trades.length) { alert('No simulated trades to export'); return; }
 
   const HEADERS = [
-    'Date','Symbol','Direction','Entry Time','Sim. Fill (Entry)','Live LTP',
+    'Date','Symbol','Direction','Entry Time','Sim. Fill (Entry)',
     'Day High @ Entry','Day Low @ Entry','VWAP @ Entry',
     'SL Basis','Custom SL','Invalidation (SL)','SL Points',
     'Ref. Target','Target Points','Qty','Investment','R:R',
@@ -929,7 +930,7 @@ function exportTrades() {
   ];
 
   const rows = trades.map(t => [
-    t.date, t.symbol, t.direction === 'BUY' ? 'BULLISH' : 'BEARISH', t.entry_time, t.trigger_price, t.live_ltp,
+    t.date, t.symbol, t.direction === 'BUY' ? 'BULLISH' : 'BEARISH', t.entry_time, t.trigger_price,
     t.day_high_at_entry, t.day_low_at_entry, t.vwap_at_entry,
     _slLabel(t.sl_basis || 'VWAP'), t.custom_sl_price, t.stop_loss_price, t.sl_points,
     t.target_price, t.target_points, t.quantity, t.investment, t.risk_reward,
@@ -968,7 +969,7 @@ function _slOpts(sel) {
 function renderTrades(trades) {
   const body = document.getElementById('tradeBody');
   if (!trades.length) {
-    body.innerHTML = `<tr><td colspan="11" class="empty-cell">No simulated trades yet</td></tr>`;
+    body.innerHTML = `<tr><td colspan="12" class="empty-cell">No simulated trades yet</td></tr>`;
     return;
   }
   body.innerHTML = trades.map(t => {
@@ -986,10 +987,19 @@ function renderTrades(trades) {
     const entryTime = t.entry_time ? t.entry_time.slice(11, 16) + ' IST' : '—';
     const exitTime  = t.exit_time  ? t.exit_time.slice(11, 16)  + ' IST' : '—';
 
+    let liveTd = '<span style="color:var(--muted)">—</span>';
+    if (t.outcome === 'OPEN' && t.live_ltp != null) {
+      const mv  = isBuy ? t.live_ltp - t.trigger_price : t.trigger_price - t.live_ltp;
+      const cls = mv > 0 ? 'bull-val' : mv < 0 ? 'bear-val' : '';
+      const pct = t.trigger_price ? ` (${mv >= 0 ? '+' : ''}${(mv / t.trigger_price * 100).toFixed(1)}%)` : '';
+      liveTd = `<span class="${cls}">₹${_fmt2(t.live_ltp)}<span style="font-size:10px">${pct}</span></span>`;
+    }
+
     const tradeRow = `<tr class="trade-row" id="trow-${_esc(tid)}" onclick="toggleTradeDetail('${_esc(tid)}')">
       <td><span class="trade-expand-icon">▶</span><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
       <td class="sym-cell">${_esc(t.symbol)}</td>
       <td class="num-cell">₹${_fmt2(t.trigger_price)}</td>
+      <td class="num-cell">${liveTd}</td>
       <td class="num-cell bear-val">₹${_fmt2(t.stop_loss_price)}</td>
       <td class="num-cell bull-val">₹${_fmt2(t.target_price)}</td>
       <td class="num-cell">${t.quantity || 0}</td>
@@ -1001,7 +1011,7 @@ function renderTrades(trades) {
     </tr>`;
 
     const detailRow = `<tr class="trade-detail-row" id="detail-${_esc(tid)}" style="display:none">
-      <td colspan="11">
+      <td colspan="12">
         <div class="td-wrap">
           <div class="td-col">
             <div class="td-heading">ENTRY DETAILS</div>
@@ -1365,7 +1375,7 @@ async function runBacktest() {
   runBtn.disabled       = true;
   Object.keys(_verifyCache).forEach(k => delete _verifyCache[k]);
   _expandedTrades.clear();
-  document.getElementById('tradeBody').innerHTML = '<tr><td colspan="11" class="empty-cell">Clearing previous backtest…</td></tr>';
+  document.getElementById('tradeBody').innerHTML = '<tr><td colspan="12" class="empty-cell">Clearing previous backtest…</td></tr>';
   document.getElementById('candBody').innerHTML  = '<tr><td colspan="9"  class="empty-cell">Clearing previous backtest…</td></tr>';
 
   const uni    = _settings?.universe || 'nifty500_fno';
