@@ -402,6 +402,7 @@ ORB_SETTING_DEFAULTS: dict = {
     "buy_min_chg_pct":    "1.0",
     "sell_min_chg_pct":   "1.0",
     "auto_trigger_count": "5",
+    "rescan_interval_min": "5",
 }
 
 
@@ -417,9 +418,10 @@ def orb_get_settings(conn, user_id: str = "") -> dict:
     result["max_slots"]        = int(result["max_slots"])
     result["candidate_cap"]    = int(result["candidate_cap"])
     result["sl_amount_rupees"] = float(result["sl_amount_rupees"])
-    result["buy_min_chg_pct"]    = float(result.get("buy_min_chg_pct",  1.0))
-    result["sell_min_chg_pct"]   = float(result.get("sell_min_chg_pct", 1.0))
-    result["auto_trigger_count"] = int(result.get("auto_trigger_count", 5))
+    result["buy_min_chg_pct"]     = float(result.get("buy_min_chg_pct",  1.0))
+    result["sell_min_chg_pct"]    = float(result.get("sell_min_chg_pct", 1.0))
+    result["auto_trigger_count"]  = int(result.get("auto_trigger_count", 5))
+    result["rescan_interval_min"] = int(result.get("rescan_interval_min", 5))
     return result
 
 

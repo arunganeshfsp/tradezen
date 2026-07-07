@@ -560,6 +560,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div class="sett-hint" data-en="Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5." data-ta="தேர்ந்தெடுக்கப்பட்ட நுழைவு தொடக்க நேரத்தில் சிறந்த N BUY மற்றும் SELL வேட்பாளர்களை உள்ளிடுகிறது. முடக்க 0 அமைக்கவும். இயல்புநிலை: 5.">Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5.</div>
     </div>
 
+    <div class="sett-group">
+      <label class="sett-label" for="sett-rescan" data-en="Periodic rescan interval (minutes)" data-ta="கால இடைவெளி மறுஸ்கேன் (நிமிடங்கள்)">Periodic rescan interval (minutes)</label>
+      <input type="number" id="sett-rescan" class="sett-inp" min="0" max="60" step="1" placeholder="5" />
+      <div class="sett-hint" data-en="Re-scans for new qualifying stocks every N minutes until the entry window closes. Set to 0 for a single scan only. Default: 5." data-ta="நுழைவு சாளரம் மூடும் வரை ஒவ்வொரு N நிமிடமும் புதிய தகுதியான பங்குகளை மறுஸ்கேன் செய்கிறது. ஒற்றை ஸ்கேனுக்கு 0 அமைக்கவும். இயல்புநிலை: 5.">Re-scans for new qualifying stocks every N minutes until the entry window closes. Set to 0 for a single scan only. Default: 5.</div>
+    </div>
+
     <hr class="sett-divider" />
 
     <button class="save-btn" id="saveSettBtn" onclick="saveSettings()">Apply Settings</button>
@@ -1526,6 +1532,7 @@ function renderSettings(s) {
   set('sett-buyminchg',  s.buy_min_chg_pct);
   set('sett-sellminchg', s.sell_min_chg_pct);
   set('sett-autotrig',   s.auto_trigger_count);
+  set('sett-rescan',     s.rescan_interval_min);
 }
 
 async function saveSettings() {
@@ -1551,7 +1558,8 @@ async function saveSettings() {
   const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time   = sqo;
   const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
   const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
-  const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count = parseInt(atc);
+  const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count  = parseInt(atc);
+  const rsc = val('sett-rescan');      if (rsc !== null && rsc !== '') body.rescan_interval_min = parseInt(rsc);
 
   try {
     const r = await fetch(`${API}/settings`, {

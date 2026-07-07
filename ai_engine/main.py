@@ -7739,19 +7739,40 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
     return result
 
 
-def _orb_capture_sync(today: str):
-    """09:16 capture: quote F&O universe, filter/rank/cut, fetch 09:15 candles, persist."""
+def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None):
+    """Quote F&O universe, filter/rank/cut, fetch bench candles, persist candidates.
+    rescan=True: uses current-1min candle as bench; only inserts symbols not already WAITING/TRIGGERED."""
     import time as _t
-    log.info(f"[ORB-SIM] capture starting for {today}")
+    label = "rescan" if rescan else "capture"
+    log.info(f"[ORB-SIM] {label} starting for {today}")
     smart_s = _get_smart()
     if not smart_s:
-        log.error("[ORB-SIM] capture aborted — no SmartAPI session")
+        log.error(f"[ORB-SIM] {label} aborted — no SmartAPI session")
         return
 
     conn     = get_conn()
     sessions = [""] + orb_list_setting_users(conn)
     sess_settings = {u: orb_get_settings(conn, u) for u in sessions}
     conn.close()
+
+    # For rescan: determine bench candle window and existing candidates to skip
+    if rescan:
+        if now_ist is None:
+            now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+        bench_min   = now_ist.replace(second=0, microsecond=0) - timedelta(minutes=1)
+        candle_from = bench_min.strftime("%H:%M")
+        candle_to   = now_ist.replace(second=0, microsecond=0).strftime("%H:%M")
+        conn_ex = get_conn()
+        all_existing = orb_get_candidates(conn_ex, today)
+        conn_ex.close()
+        existing_by_sess: dict = {}
+        for cx in all_existing:
+            if cx["status"] in ("WAITING", "TRIGGERED"):
+                existing_by_sess.setdefault(cx["user_id"], set()).add((cx["symbol"], cx["side"]))
+    else:
+        candle_from = "09:15"
+        candle_to   = "09:16"
+        existing_by_sess = {}
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
@@ -7793,9 +7814,15 @@ def _orb_capture_sync(today: str):
 
         buy_cands.sort(key=lambda x: -x["strength"])
         sell_cands.sort(key=lambda x: -x["strength"])
+
+        if rescan:
+            ex = existing_by_sess.get(u, set())
+            buy_cands  = [c for c in buy_cands  if (c["symbol"], "BUY")  not in ex]
+            sell_cands = [c for c in sell_cands if (c["symbol"], "SELL") not in ex]
+
         per_session[u] = (buy_cands[:st["candidate_cap"]], sell_cands[:st["candidate_cap"]])
-        log.info(f"[ORB-SIM] filter result ({u or 'shared'}) — "
-                 f"{len(per_session[u][0])} BUY, {len(per_session[u][1])} SELL candidates")
+        log.info(f"[ORB-SIM] {label} filter ({u or 'shared'}) — "
+                 f"{len(per_session[u][0])} new BUY, {len(per_session[u][1])} new SELL")
 
     unique_tokens = {c["token"] for (b, s2) in per_session.values() for c in b + s2}
     candle_map    = {}
@@ -7803,7 +7830,7 @@ def _orb_capture_sync(today: str):
         _t.sleep(0.35)
         try:
             df = fetch_candles(smart_s, tok, "NSE", "ONE_MINUTE",
-                               f"{today} 09:15", f"{today} 09:16", use_cache=False)
+                               f"{today} {candle_from}", f"{today} {candle_to}", use_cache=False)
             if not df.empty:
                 row = df.iloc[0]
                 candle_map[tok] = {
@@ -7811,7 +7838,7 @@ def _orb_capture_sync(today: str):
                     "bench_low":  round(float(row["Low"]),  2),
                 }
             else:
-                log.debug(f"[ORB-SIM] no 09:15 candle: {token_to_sym.get(tok, tok)}")
+                log.debug(f"[ORB-SIM] no {candle_from} candle: {token_to_sym.get(tok, tok)}")
         except Exception as e:
             log.warning(f"[ORB-SIM] candle error {token_to_sym.get(tok, tok)}: {e}")
 
@@ -7828,10 +7855,10 @@ def _orb_capture_sync(today: str):
                 saved += 1
             else:
                 orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
-                                     {**c, "status": "SKIPPED", "remark": "09:15 candle unavailable"},
+                                     {**c, "status": "SKIPPED", "remark": f"{candle_from} candle unavailable"},
                                      user_id=u)
     conn.close()
-    log.info(f"[ORB-SIM] capture done — {saved} WAITING candidates persisted for {today} "
+    log.info(f"[ORB-SIM] {label} done — {saved} new WAITING candidates for {today} "
              f"across {len(per_session)} session(s)")
 
 
@@ -8175,13 +8202,20 @@ async def _orb_simulator_loop():
     loop = asyncio.get_running_loop()
     log.info("[ORB-SIM] background task started")
 
-    _eod_done_today = None
+    _eod_done_today     = None
+    _last_capture_today = None
+    _last_capture_time  = None   # datetime of last capture/rescan in IST
 
     while True:
         try:
             now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
             today   = now_ist.strftime("%Y-%m-%d")
             t       = now_ist.time()
+
+            # Reset capture tracking on new trading day
+            if _last_capture_today != today:
+                _last_capture_today = today
+                _last_capture_time  = None
 
             # Weekend gate
             if not _SIM_FORCE and now_ist.weekday() >= 5:
@@ -8209,18 +8243,36 @@ async def _orb_simulator_loop():
                 await asyncio.sleep(min((target - now_ist).total_seconds(), 60))
                 continue
 
-            # Ensure today's capture has run
-            conn       = get_conn()
+            # Capture / periodic rescan logic
+            conn      = get_conn()
             candidates = orb_get_candidates(conn, today)
+            shared_st  = orb_get_settings(conn, "")
             conn.close()
 
-            if not candidates:
+            rescan_iv    = shared_st["rescan_interval_min"]
+            entry_end    = _orb_parse_hhmm(shared_st.get("entry_window_end", "10:30"), 10, 30)
+            within_entry = _SIM_FORCE or t < entry_end
+
+            if _last_capture_time is None and candidates:
+                # Server restarted with existing candidates — anchor timestamp to now
+                _last_capture_time = now_ist
+            elif _last_capture_time is None:
+                # Initial capture
                 await loop.run_in_executor(None, _orb_capture_sync, today)
-                now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                now_ist = _last_capture_time
                 await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
-                # fall through — trigger poll runs immediately after scan
+            elif (rescan_iv > 0 and within_entry and
+                  (now_ist - _last_capture_time).total_seconds() / 60 >= rescan_iv):
+                # Periodic rescan — only adds newly qualifying symbols
+                rescan_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now)
+                _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                now_ist = _last_capture_time
+                await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
 
             # Trigger poll — self-gates each session by its entry_window_end
+            now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
             await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
 
             # Outcome tracking until 15:30
@@ -8776,9 +8828,10 @@ class _OrbSettingsBody(BaseModel):
     entry_window_end: str   | None = None
     square_off_time:  str   | None = None
     sl_amount_rupees: float | None = None
-    buy_min_chg_pct:    float | None = None
-    sell_min_chg_pct:   float | None = None
-    auto_trigger_count: int   | None = None
+    buy_min_chg_pct:     float | None = None
+    sell_min_chg_pct:    float | None = None
+    auto_trigger_count:  int   | None = None
+    rescan_interval_min: int   | None = None
 
 
 def _orb_valid_hhmm(value: str, lo: str, hi: str) -> bool:
@@ -8815,7 +8868,8 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.sl_amount_rupees is not None and body.sl_amount_rupees <= 0:   errs.append("sl_amount_rupees must be > 0")
     if body.buy_min_chg_pct    is not None and not (0 <= body.buy_min_chg_pct  <= 20): errs.append("buy_min_chg_pct must be 0–20")
     if body.sell_min_chg_pct   is not None and not (0 <= body.sell_min_chg_pct <= 20): errs.append("sell_min_chg_pct must be 0–20")
-    if body.auto_trigger_count is not None and not (0 <= body.auto_trigger_count <= 20): errs.append("auto_trigger_count must be 0–20")
+    if body.auto_trigger_count  is not None and not (0 <= body.auto_trigger_count  <= 20): errs.append("auto_trigger_count must be 0–20")
+    if body.rescan_interval_min is not None and not (0 <= body.rescan_interval_min <= 60): errs.append("rescan_interval_min must be 0–60")
     if body.entry_window_end is not None and not _orb_valid_hhmm(body.entry_window_end, "09:17", "15:00"):
         errs.append("entry_window_end must be HH:MM between 09:17 and 15:00")
     if body.square_off_time  is not None and not _orb_valid_hhmm(body.square_off_time, "09:30", "15:30"):

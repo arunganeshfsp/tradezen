@@ -7,7 +7,23 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-07-06 (per-user sessions, daily trade cap, live LTP, CSV export, live watch)
+**Last updated:** 2026-07-07 (day-high/low trigger, % change filter, auto-trigger, periodic rescan)
+
+---
+
+## 2026-07-07 — Periodic Rescan + Day H/L Trigger + % Change Filter
+
+**What changed**
+- **Trigger condition:** BUY fires when `ltp > session day_high`; SELL when `ltp < session day_low` (live from Angel One `getMarketData("FULL")` → `high`/`low` fields). Falls back to `bench_high`/`bench_low` if unavailable. This replaces the old "cut bench candle H/L" condition.
+- **% change filter:** BUY candidates require `change_pct >= buy_min_chg_pct` (default 1%); SELL require `change_pct <= -sell_min_chg_pct` (default 1%). Configurable in Settings. `_orb_chg_cache` (token → chg%) mirrors `_orb_ltp_cache`; surfaced as `change_pct` column in candidates table.
+- **Auto-trigger:** `_orb_auto_trigger_sync(today, now_ist)` runs after every capture/rescan. Enters the top N (default 5) strongest BUY and SELL WAITING candidates at their `ltp_0916` capture price. N = `auto_trigger_count` setting. 0 = disabled.
+- **Periodic rescan:** `_orb_capture_sync` gains `rescan=False, now_ist=None` params. When `rescan=True`: uses current-1min candle as bench; skips symbols already WAITING/TRIGGERED (per-session). Engine loop tracks `_last_capture_time` and `_last_capture_today`; triggers rescan every `rescan_interval_min` minutes (default 5) while within `entry_window_end`. Day rollover resets `_last_capture_time`. Server restart with existing candidates anchors timer to "now" (no immediate re-capture). `rescan_interval_min = 0` disables periodic rescan (single scan only).
+- **New settings:** `buy_min_chg_pct` (0–20, float), `sell_min_chg_pct` (0–20, float), `auto_trigger_count` (0–20, int), `rescan_interval_min` (0–60, int). All in Settings panel with `data-en`/`data-ta` i18n.
+
+**Known caveats**
+- Rescan bench candle: at T minutes, bench = T-1 minute candle (rolling ORB, not fixed 09:15). Existing WAITING candidates retain their original bench.
+- `ltp_0916` field stores the capture-time LTP for ALL scans (including rescans at 09:30+). The column name is slightly misleading for rescan rows but the value is correct as the entry reference price.
+- `_last_capture_time` is a local variable inside `_orb_simulator_loop`; resets on server restart. If candidates exist on restart, the engine anchors to "now" and waits one full `rescan_interval_min` before the next rescan.
 
 ---
 
@@ -121,6 +137,10 @@ Stored in `orb_settings` SQLite table (key-value). Read by the background engine
 | `price_max` | 7000 | Max price filter (₹) |
 | `dom_min_pct` | 60 | Min order-book dominance % to qualify as candidate |
 | `candidate_cap` | 25 | Max candidates kept per side (after sorting by dominance strength) |
+| `buy_min_chg_pct` | 1.0 | Min % gain from prev close to qualify as BUY candidate |
+| `sell_min_chg_pct` | 1.0 | Min % drop from prev close to qualify as SELL candidate |
+| `auto_trigger_count` | 5 | Top N candidates per side auto-entered at capture price; 0 = disabled |
+| `rescan_interval_min` | 5 | Re-scan every N minutes within entry window; 0 = single scan only |
 
 Helper functions in `storage/sqlite_store.py`: `orb_get_settings(conn)` (returns typed dict with defaults), `orb_upsert_settings(conn, updates)`.
 
