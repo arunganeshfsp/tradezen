@@ -7892,12 +7892,14 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             q    = quotes.get(c["token"])
             if not q:
                 continue
-            ltp  = q["ltp"]
-            side = c["side"]
-            bh   = c["bench_high"]
-            bl   = c["bench_low"]
+            ltp   = q["ltp"]
+            side  = c["side"]
+            bh    = c["bench_high"]
+            bl    = c["bench_low"]
+            day_h = q.get("high") or bh   # live session high; fallback to bench
+            day_l = q.get("low")  or bl   # live session low; fallback to bench
 
-            if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
+            if not ((side == "BUY" and ltp > day_h) or (side == "SELL" and ltp < day_l)):
                 continue
 
             if c["symbol"] in triggered_syms:
@@ -7939,8 +7941,8 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                 "user_id":           u,
                 "symbol":            c["symbol"],
                 "direction":         side,
-                "day_high_at_entry": bh,
-                "day_low_at_entry":  bl,
+                "day_high_at_entry": day_h,
+                "day_low_at_entry":  day_l,
                 "vwap_at_entry":     q.get("vwap"),
                 "trigger_price":     ltp,
                 "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
