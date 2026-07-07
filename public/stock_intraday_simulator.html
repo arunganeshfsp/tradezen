@@ -554,6 +554,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div class="sett-hint">Max BUY + max SELL candidates kept after sorting by dominance strength. Default: 25.</div>
     </div>
 
+    <div class="sett-group">
+      <label class="sett-label" for="sett-autotrig">Auto-trigger at capture (top N per side)</label>
+      <input type="number" id="sett-autotrig" class="sett-inp" min="0" max="20" step="1" placeholder="5" />
+      <div class="sett-hint">Immediately simulates trades for the top N strongest BUY and SELL candidates at the 09:16 capture price — no breakout wait. Set to 0 to disable. Default: 5.</div>
+    </div>
+
     <hr class="sett-divider" />
 
     <button class="save-btn" id="saveSettBtn" onclick="saveSettings()">Apply Settings</button>
@@ -1519,6 +1525,7 @@ function renderSettings(s) {
   set('sett-sqoff',      s.square_off_time);
   set('sett-buyminchg',  s.buy_min_chg_pct);
   set('sett-sellminchg', s.sell_min_chg_pct);
+  set('sett-autotrig',   s.auto_trigger_count);
 }
 
 async function saveSettings() {
@@ -1542,8 +1549,9 @@ async function saveSettings() {
   const sla = parseFloat(val('sett-slamt')); if (sla)  body.sl_amount_rupees  = sla;
   const ent = val('sett-entryend');               if (ent)  body.entry_window_end  = ent;
   const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time   = sqo;
-  const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct  = parseFloat(bmc);
-  const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct = parseFloat(smc);
+  const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
+  const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
+  const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count = parseInt(atc);
 
   try {
     const r = await fetch(`${API}/settings`, {

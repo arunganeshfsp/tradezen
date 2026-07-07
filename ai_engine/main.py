@@ -8064,6 +8064,107 @@ def _orb_eod_sync(today: str):
     log.info(f"[ORB-SIM] EOD fill done — {len(open_trades)} trade(s) updated with close_price")
 
 
+def _orb_auto_trigger_sync(today: str, now_ist):
+    """
+    Immediately after capture: enter trades for the top `auto_trigger_count` BUY
+    and SELL candidates per session at their ltp_0916 capture price.
+    Respects max_slots, SL validation, and dedup (won't re-trigger already triggered symbols).
+    """
+    conn      = get_conn()
+    all_cands = orb_get_candidates(conn, today)
+    waiting   = [c for c in all_cands if c["status"] == "WAITING"]
+    if not waiting:
+        conn.close()
+        return
+
+    smart_s = _get_smart()
+    quotes  = _orb_raw_quotes(smart_s, list({c["token"] for c in waiting})) if smart_s else {}
+
+    sessions = [""] + orb_list_setting_users(conn)
+    for u in sessions:
+        st  = orb_get_settings(conn, u)
+        N   = st["auto_trigger_count"]
+        if N <= 0:
+            continue
+
+        max_slots     = st["max_slots"]
+        target_rupees = st["target_rupees"]
+        sess_cands    = [c for c in all_cands  if c["user_id"] == u]
+        sess_wait     = [c for c in waiting    if c["user_id"] == u]
+        trade_count   = len(orb_get_trades(conn, today, u))
+        triggered_syms = {c["symbol"] for c in sess_cands if c["status"] == "TRIGGERED"}
+
+        buy_wait  = sorted([c for c in sess_wait if c["side"] == "BUY"],
+                           key=lambda x: -x.get("strength", 0))
+        sell_wait = sorted([c for c in sess_wait if c["side"] == "SELL"],
+                           key=lambda x: -x.get("strength", 0))
+
+        for c in buy_wait[:N] + sell_wait[:N]:
+            if trade_count >= max_slots:
+                break
+            if c["symbol"] in triggered_syms:
+                continue
+
+            ltp = c["ltp_0916"]
+            if not ltp:
+                continue
+            q   = quotes.get(str(c["token"]), {})
+            qty = _orb_pos_size(ltp)
+            if qty <= 0:
+                continue
+
+            sl_price, sl_err = _orb_resolve_sl(
+                direction=c["side"], sl_basis=c["sl_basis"] or "VWAP",
+                bench_high=c["bench_high"], bench_low=c["bench_low"],
+                vwap=q.get("vwap"), day_high=q.get("high") or c["bench_high"],
+                day_low=q.get("low") or c["bench_low"],
+                custom=c.get("custom_sl_price"), entry_price=ltp,
+                amount=st["sl_amount_rupees"], quantity=qty,
+            )
+            if sl_err:
+                orb_update_candidate_status(conn, today, c["symbol"], c["side"],
+                                            "SKIPPED", f"Auto-trigger SL: {sl_err}", user_id=u)
+                continue
+
+            tgt_pts, tgt_price = _orb_target(c["side"], ltp, qty, target_rupees=target_rupees)
+            sl_pts  = _orb_sl_pts(c["side"], ltp, sl_price)
+            rr      = _orb_rr(tgt_pts, sl_pts)
+
+            trade = {
+                "id":                str(_uuid.uuid4()),
+                "date":              today,
+                "user_id":           u,
+                "symbol":            c["symbol"],
+                "direction":         c["side"],
+                "day_high_at_entry": q.get("high") or c["bench_high"],
+                "day_low_at_entry":  q.get("low")  or c["bench_low"],
+                "vwap_at_entry":     q.get("vwap"),
+                "trigger_price":     ltp,
+                "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+                "sl_basis":          c["sl_basis"] or "VWAP",
+                "custom_sl_price":   c.get("custom_sl_price"),
+                "stop_loss_price":   sl_price,
+                "quantity":          qty,
+                "investment":        round(qty * ltp, 2),
+                "sl_points":         sl_pts,
+                "target_points":     tgt_pts,
+                "target_price":      tgt_price,
+                "risk_reward":       rr,
+                "outcome":           "OPEN",
+                "pnl":               0.0,
+                "return_amount":     round(qty * ltp, 2),
+            }
+            orb_insert_trade(conn, trade)
+            orb_update_candidate_status(conn, today, c["symbol"], c["side"],
+                                        "TRIGGERED", user_id=u)
+            triggered_syms.add(c["symbol"])
+            trade_count += 1
+            log.info(f"[ORB-SIM] AUTO-TRIGGER ({u or 'shared'}) {c['side']} {c['symbol']}"
+                     f" @ ₹{ltp} | SL ₹{sl_price} | Tgt ₹{tgt_price}")
+
+    conn.close()
+
+
 async def _orb_simulator_loop():
     """
     ORB simulator background task.
@@ -8115,7 +8216,9 @@ async def _orb_simulator_loop():
 
             if not candidates:
                 await loop.run_in_executor(None, _orb_capture_sync, today)
-                continue
+                now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
+                # fall through — trigger poll runs immediately after scan
 
             # Trigger poll — self-gates each session by its entry_window_end
             await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
@@ -8673,8 +8776,9 @@ class _OrbSettingsBody(BaseModel):
     entry_window_end: str   | None = None
     square_off_time:  str   | None = None
     sl_amount_rupees: float | None = None
-    buy_min_chg_pct:  float | None = None
-    sell_min_chg_pct: float | None = None
+    buy_min_chg_pct:    float | None = None
+    sell_min_chg_pct:   float | None = None
+    auto_trigger_count: int   | None = None
 
 
 def _orb_valid_hhmm(value: str, lo: str, hi: str) -> bool:
@@ -8709,8 +8813,9 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.candidate_cap    is not None and not (5 <= body.candidate_cap <= 100): errs.append("candidate_cap must be 5–100")
     if body.dom_min_pct      is not None and not (30 <= body.dom_min_pct <= 90):   errs.append("dom_min_pct must be 30–90")
     if body.sl_amount_rupees is not None and body.sl_amount_rupees <= 0:   errs.append("sl_amount_rupees must be > 0")
-    if body.buy_min_chg_pct  is not None and not (0 <= body.buy_min_chg_pct  <= 20): errs.append("buy_min_chg_pct must be 0–20")
-    if body.sell_min_chg_pct is not None and not (0 <= body.sell_min_chg_pct <= 20): errs.append("sell_min_chg_pct must be 0–20")
+    if body.buy_min_chg_pct    is not None and not (0 <= body.buy_min_chg_pct  <= 20): errs.append("buy_min_chg_pct must be 0–20")
+    if body.sell_min_chg_pct   is not None and not (0 <= body.sell_min_chg_pct <= 20): errs.append("sell_min_chg_pct must be 0–20")
+    if body.auto_trigger_count is not None and not (0 <= body.auto_trigger_count <= 20): errs.append("auto_trigger_count must be 0–20")
     if body.entry_window_end is not None and not _orb_valid_hhmm(body.entry_window_end, "09:17", "15:00"):
         errs.append("entry_window_end must be HH:MM between 09:17 and 15:00")
     if body.square_off_time  is not None and not _orb_valid_hhmm(body.square_off_time, "09:30", "15:30"):
