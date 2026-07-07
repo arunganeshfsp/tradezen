@@ -1174,6 +1174,15 @@ router.post("/simulator/scan-now", _simAuth, async (req, res) => {
   }
 });
 
+// ─── GET /api/simulator/history?days=30 ──────────────────────────────────────
+router.get("/simulator/history", _simAuth, async (req, res) => {
+  try {
+    const days = Math.min(365, Math.max(1, parseInt(req.query.days) || 30));
+    const data = await aiService.proxy("GET", `/simulator/history?days=${days}`, 10000, undefined, _simHdr(req));
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── GET /api/simulator/trade-verify?trade_id= ───────────────────────────────
 // Verifies whether SL/target was actually hit in candle data on the trade's date.
 router.get("/simulator/trade-verify", async (req, res) => {

@@ -7661,7 +7661,7 @@ from core.orb_simulator import (
     pnl_for              as _orb_pnl,
     in_price_band        as _orb_in_band,
     passes_volume_filter as _orb_dom_ok,
-    SIM_MAX_SLOTS, SIM_CANDIDATE_CAP,
+    SIM_MAX_SLOTS, SIM_CANDIDATE_CAP, SIM_TICK as _SIM_TICK,
     _IST as _SIM_IST, _FORCE as _SIM_FORCE,
 )
 from storage.sqlite_store import (
@@ -7701,8 +7701,9 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 
 _orb_ltp_cache:        dict = {}
 _orb_chg_cache:        dict = {}   # token → change_pct from yesterday's close
+_orb_trail_peaks:      dict = {}   # trade_id → best_price_seen (high for BUY, low for SELL)
 _orb_force_rescan:     bool = False  # set by scan-now endpoint; consumed by engine loop
-_orb_scan_bypass_win:  bool = False  # bypass entry-window close check on next trigger poll
+_orb_manual_symbols:   set  = set()  # (symbol, side, user_id) added via manual scan-now; never WINDOW_CLOSED
 
 
 def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
@@ -7742,9 +7743,10 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
     return result
 
 
-def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None):
+def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bool = False):
     """Quote F&O universe, filter/rank/cut, fetch bench candles, persist candidates.
-    rescan=True: uses current-1min candle as bench; only inserts symbols not already WAITING/TRIGGERED."""
+    rescan=True: uses current-1min candle as bench; only inserts symbols not already WAITING/TRIGGERED.
+    manual=True: adds newly inserted WAITING candidates to _orb_manual_symbols (never WINDOW_CLOSED)."""
     import time as _t
     label = "rescan" if rescan else "capture"
     log.info(f"[ORB-SIM] {label} starting for {today}")
@@ -7856,6 +7858,8 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None):
                                      {**c, **candle_map[c["token"]], "status": "WAITING",
                                       "sl_basis": resolved_sl}, user_id=u)
                 saved += 1
+                if manual:
+                    _orb_manual_symbols.add((c["symbol"], side, u))
             else:
                 orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
                                      {**c, "status": "SKIPPED", "remark": f"{candle_from} candle unavailable"},
@@ -7874,10 +7878,10 @@ def _orb_parse_hhmm(value, default_h: int, default_m: int):
         return dt_time(default_h, default_m)
 
 
-def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
+def _orb_trigger_poll_sync(today: str, now_ist):
     """Check WAITING candidates vs benchmark; auto-create trades within slot cap.
     Each session is gated by its own entry_window_end setting.
-    bypass_window=True skips the WINDOW_CLOSED marking (used by manual scan-now)."""
+    Candidates added via manual scan-now are never marked WINDOW_CLOSED."""
     import uuid as _uuid
     conn        = get_conn()
     all_cands   = orb_get_candidates(conn, today)
@@ -7894,13 +7898,36 @@ def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
         sess_settings[u] = st
         entry_end = _orb_parse_hhmm(st["entry_window_end"], 10, 30)
         sess_waiting = [c for c in waiting_all if c["user_id"] == u]
-        if not _SIM_FORCE and not bypass_window and t_now > entry_end:
-            for c in sess_waiting:
+
+        # Daily loss limit — if realized P/L ≤ -limit, stop all trading for this session today
+        daily_limit = float(st.get("daily_loss_limit", 0))
+        if daily_limit > 0:
+            sess_trades  = orb_get_trades(conn, today, u)
+            realized_pnl = sum((t.get("pnl") or 0) for t in sess_trades if t.get("outcome") != "OPEN")
+            if realized_pnl <= -daily_limit:
+                for c in sess_waiting:
+                    orb_update_candidate_status(conn, today, c["symbol"], c["side"], "WINDOW_CLOSED",
+                                                f"Daily loss limit ₹{daily_limit:.0f} reached",
+                                                user_id=u)
+                log.info(f"[ORB-SIM] daily loss limit hit ({u or 'shared'}) "
+                         f"realized P/L ₹{realized_pnl:.0f} — {len(sess_waiting)} candidates closed")
+                continue
+
+        if not _SIM_FORCE and t_now > entry_end:
+            # Manual-scan candidates are never WINDOW_CLOSED — they are an explicit second chance
+            to_close = [c for c in sess_waiting
+                        if (c["symbol"], c["side"], u) not in _orb_manual_symbols]
+            to_keep  = [c for c in sess_waiting
+                        if (c["symbol"], c["side"], u) in _orb_manual_symbols]
+            for c in to_close:
                 orb_update_candidate_status(conn, today, c["symbol"], c["side"], "WINDOW_CLOSED",
                                             f"Entry window closed at {st['entry_window_end']}",
                                             user_id=u)
-            log.info(f"[ORB-SIM] entry window closed ({u or 'shared'}) — "
-                     f"{len(sess_waiting)} candidates marked WINDOW_CLOSED")
+            if to_close:
+                log.info(f"[ORB-SIM] entry window closed ({u or 'shared'}) — "
+                         f"{len(to_close)} candidates marked WINDOW_CLOSED, "
+                         f"{len(to_keep)} manual candidates kept active")
+            active_waiting.extend(to_keep)
             continue
         active_waiting.extend(sess_waiting)
 
@@ -7948,17 +7975,22 @@ def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
                                             f"Daily cap of {max_slots} trades reached", user_id=u)
                 continue
 
-            qty = _orb_pos_size(ltp)
+            # Slippage: fill at ltp ± (ticks × tick_size); all trade maths use fill_price
+            slip_ticks = int(st.get("slippage_ticks", 1))
+            slip_amt   = round(slip_ticks * _SIM_TICK, 2)
+            fill_price = round(ltp + slip_amt, 2) if side == "BUY" else round(ltp - slip_amt, 2)
+
+            qty = _orb_pos_size(fill_price)
             if qty <= 0:
                 orb_update_candidate_status(conn, today, c["symbol"], side,
-                                            "SKIPPED", f"Qty 0 at price ₹{ltp}", user_id=u)
+                                            "SKIPPED", f"Qty 0 at price ₹{fill_price}", user_id=u)
                 continue
 
             sl_price, sl_err = _orb_resolve_sl(
                 direction=side, sl_basis=c["sl_basis"] or "VWAP",
                 bench_high=bh, bench_low=bl,
                 vwap=q.get("vwap"), day_high=q.get("high"), day_low=q.get("low"),
-                custom=c.get("custom_sl_price"), entry_price=ltp,
+                custom=c.get("custom_sl_price"), entry_price=fill_price,
                 amount=st["sl_amount_rupees"], quantity=qty,
             )
             if sl_err:
@@ -7966,10 +7998,10 @@ def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
                                             "SKIPPED", f"SL: {sl_err}", user_id=u)
                 continue
 
-            tgt_pts, tgt_price = _orb_target(side, ltp, qty, target_rupees=target_rupees)
-            sl_pts             = _orb_sl_pts(side, ltp, sl_price)
+            tgt_pts, tgt_price = _orb_target(side, fill_price, qty, target_rupees=target_rupees)
+            sl_pts             = _orb_sl_pts(side, fill_price, sl_price)
             rr                 = _orb_rr(tgt_pts, sl_pts)
-            investment         = round(qty * ltp, 2)
+            investment         = round(qty * fill_price, 2)
 
             trade = {
                 "id":                str(_uuid.uuid4()),
@@ -7980,7 +8012,7 @@ def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
                 "day_high_at_entry": day_h,
                 "day_low_at_entry":  day_l,
                 "vwap_at_entry":     q.get("vwap"),
-                "trigger_price":     ltp,
+                "trigger_price":     fill_price,
                 "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
                 "sl_basis":          c["sl_basis"] or "VWAP",
                 "custom_sl_price":   c.get("custom_sl_price"),
@@ -7994,13 +8026,15 @@ def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
                 "outcome":           "OPEN",
                 "pnl":               0.0,
                 "return_amount":     investment,
+                "remarks":           f"Slippage {slip_ticks}T (₹{slip_amt:+.2f} from ₹{ltp})" if slip_ticks > 0 else None,
             }
             orb_insert_trade(conn, trade)
             orb_update_candidate_status(conn, today, c["symbol"], side, "TRIGGERED", user_id=u)
             triggered_syms.add(c["symbol"])
             trade_count += 1
             log.info(
-                f"[ORB-SIM] TRIGGER ({u or 'shared'}) {side} {c['symbol']} @ ₹{ltp} | "
+                f"[ORB-SIM] TRIGGER ({u or 'shared'}) {side} {c['symbol']} @ ₹{fill_price}"
+                f"{f' (slip {slip_ticks}T from ₹{ltp})' if slip_ticks else ''} | "
                 f"SL ₹{sl_price} | Tgt ₹{tgt_price} | Qty {qty} | R:R {rr}"
             )
 
@@ -8008,7 +8042,7 @@ def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
 
 
 def _orb_outcome_poll_sync(today: str, now_ist):
-    """Check OPEN trades vs target/SL; resolve on hit."""
+    """Check OPEN trades vs target/SL (with optional trailing SL); resolve on hit."""
     conn        = get_conn()
     open_trades = orb_get_open_trades(conn, today)
     if not open_trades:
@@ -8032,41 +8066,71 @@ def _orb_outcome_poll_sync(today: str, now_ist):
         q   = quotes.get(tok) if tok else None
         if not q:
             continue
+        ltp = q["ltp"]
+        u   = trade.get("user_id", "")
+        if u not in sess_settings:
+            sess_settings[u] = orb_get_settings(conn, u)
+
+        # Trailing SL — track peak/trough and compute effective SL
+        trail_pts    = float(sess_settings[u].get("trailing_sl_points", 0))
+        tid          = trade["id"]
+        effective_sl = trade["stop_loss_price"]
+        if trail_pts > 0:
+            if trade["direction"] == "BUY":
+                _orb_trail_peaks[tid] = max(_orb_trail_peaks.get(tid, ltp), ltp)
+                trail_sl     = round(_orb_trail_peaks[tid] - trail_pts, 2)
+                effective_sl = round(max(effective_sl, trail_sl), 2)
+            else:
+                _orb_trail_peaks[tid] = min(_orb_trail_peaks.get(tid, ltp), ltp)
+                trail_sl     = round(_orb_trail_peaks[tid] + trail_pts, 2)
+                effective_sl = round(min(effective_sl, trail_sl), 2)
+
         result = _orb_check_out(
             direction=trade["direction"],
-            ltp=q["ltp"],
+            ltp=ltp,
             target_price=trade["target_price"],
-            stop_loss_price=trade["stop_loss_price"],
+            stop_loss_price=effective_sl,
         )
         auto_sq = False
         if not result:
-            u = trade.get("user_id", "")
-            if u not in sess_settings:
-                sess_settings[u] = orb_get_settings(conn, u)
             sq_time = _orb_parse_hhmm(sess_settings[u]["square_off_time"], 15, 30)
             if _SIM_FORCE or now_ist.time() < sq_time:
                 continue
             result  = "SQUARE_OFF"
             auto_sq = True
+
         pnl = _orb_pnl(
             outcome=result, direction=trade["direction"],
-            entry_price=trade["trigger_price"], exit_price=q["ltp"],
+            entry_price=trade["trigger_price"], exit_price=ltp,
             quantity=trade["quantity"], target_points=trade["target_points"],
             sl_pts=trade["sl_points"],
         )
+        # When trailing SL is hit, P/L is based on the actual trailing exit level
+        # (which can be positive if SL trailed above entry)
+        if result == "SL_HIT" and trail_pts > 0:
+            if trade["direction"] == "BUY":
+                pnl = round((effective_sl - trade["trigger_price"]) * trade["quantity"], 2)
+            else:
+                pnl = round((trade["trigger_price"] - effective_sl) * trade["quantity"], 2)
+
         updates = {
             "outcome":       result,
-            "exit_price":    q["ltp"],
+            "exit_price":    effective_sl if (result == "SL_HIT" and trail_pts > 0) else ltp,
             "exit_time":     exit_time,
             "pnl":           pnl,
             "return_amount": round(trade["investment"] + pnl, 2),
         }
         if auto_sq:
-            updates["remarks"] = f"Auto square-off at {sess_settings[trade.get('user_id', '')]['square_off_time']}"
+            updates["remarks"] = f"Auto square-off at {sess_settings[u]['square_off_time']}"
+        elif result == "SL_HIT" and trail_pts > 0:
+            updates["remarks"] = f"Trailing SL hit at ₹{effective_sl:.2f} (trail {trail_pts:.0f} pts)"
+
+        _orb_trail_peaks.pop(tid, None)
         orb_update_trade(conn, trade["id"], updates)
         log.info(
             f"[ORB-SIM] RESOLVED {trade['direction']} {trade['symbol']} "
-            f"→ {result}{' (auto square-off)' if auto_sq else ''} | P/L ₹{pnl:+.2f}"
+            f"→ {result}{' (trailing SL)' if (result == 'SL_HIT' and trail_pts > 0) else ''}"
+            f"{' (auto square-off)' if auto_sq else ''} | P/L ₹{pnl:+.2f}"
         )
 
     conn.close()
@@ -8140,7 +8204,12 @@ def _orb_auto_trigger_sync(today: str, now_ist):
             if not ltp:
                 continue
             q   = quotes.get(str(c["token"]), {})
-            qty = _orb_pos_size(ltp)
+
+            slip_ticks = int(st.get("slippage_ticks", 1))
+            slip_amt   = round(slip_ticks * _SIM_TICK, 2)
+            fill_price = round(ltp + slip_amt, 2) if c["side"] == "BUY" else round(ltp - slip_amt, 2)
+
+            qty = _orb_pos_size(fill_price)
             if qty <= 0:
                 continue
 
@@ -8149,7 +8218,7 @@ def _orb_auto_trigger_sync(today: str, now_ist):
                 bench_high=c["bench_high"], bench_low=c["bench_low"],
                 vwap=q.get("vwap"), day_high=q.get("high") or c["bench_high"],
                 day_low=q.get("low") or c["bench_low"],
-                custom=c.get("custom_sl_price"), entry_price=ltp,
+                custom=c.get("custom_sl_price"), entry_price=fill_price,
                 amount=st["sl_amount_rupees"], quantity=qty,
             )
             if sl_err:
@@ -8157,8 +8226,8 @@ def _orb_auto_trigger_sync(today: str, now_ist):
                                             "SKIPPED", f"Auto-trigger SL: {sl_err}", user_id=u)
                 continue
 
-            tgt_pts, tgt_price = _orb_target(c["side"], ltp, qty, target_rupees=target_rupees)
-            sl_pts  = _orb_sl_pts(c["side"], ltp, sl_price)
+            tgt_pts, tgt_price = _orb_target(c["side"], fill_price, qty, target_rupees=target_rupees)
+            sl_pts  = _orb_sl_pts(c["side"], fill_price, sl_price)
             rr      = _orb_rr(tgt_pts, sl_pts)
 
             trade = {
@@ -8170,20 +8239,21 @@ def _orb_auto_trigger_sync(today: str, now_ist):
                 "day_high_at_entry": q.get("high") or c["bench_high"],
                 "day_low_at_entry":  q.get("low")  or c["bench_low"],
                 "vwap_at_entry":     q.get("vwap"),
-                "trigger_price":     ltp,
+                "trigger_price":     fill_price,
                 "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
                 "sl_basis":          c["sl_basis"] or "VWAP",
                 "custom_sl_price":   c.get("custom_sl_price"),
                 "stop_loss_price":   sl_price,
                 "quantity":          qty,
-                "investment":        round(qty * ltp, 2),
+                "investment":        round(qty * fill_price, 2),
                 "sl_points":         sl_pts,
                 "target_points":     tgt_pts,
                 "target_price":      tgt_price,
                 "risk_reward":       rr,
                 "outcome":           "OPEN",
                 "pnl":               0.0,
-                "return_amount":     round(qty * ltp, 2),
+                "return_amount":     round(qty * fill_price, 2),
+                "remarks":           f"Slippage {slip_ticks}T (₹{slip_amt:+.2f} from ₹{ltp})" if slip_ticks > 0 else None,
             }
             orb_insert_trade(conn, trade)
             orb_update_candidate_status(conn, today, c["symbol"], c["side"],
@@ -8191,7 +8261,8 @@ def _orb_auto_trigger_sync(today: str, now_ist):
             triggered_syms.add(c["symbol"])
             trade_count += 1
             log.info(f"[ORB-SIM] AUTO-TRIGGER ({u or 'shared'}) {c['side']} {c['symbol']}"
-                     f" @ ₹{ltp} | SL ₹{sl_price} | Tgt ₹{tgt_price}")
+                     f" @ ₹{fill_price}{f' (slip {slip_ticks}T)' if slip_ticks else ''}"
+                     f" | SL ₹{sl_price} | Tgt ₹{tgt_price}")
 
     conn.close()
 
@@ -8202,7 +8273,7 @@ async def _orb_simulator_loop():
     Weekday-gated (bypassed with SIM_FORCE_WINDOW=1). SQLite state survives restarts.
     Crash-safe: outer while + try/except; each sync worker is independently guarded.
     """
-    global _orb_force_rescan, _orb_scan_bypass_win
+    global _orb_force_rescan
     from datetime import time as dt_time
     loop = asyncio.get_running_loop()
     log.info("[ORB-SIM] background task started")
@@ -8221,6 +8292,7 @@ async def _orb_simulator_loop():
             if _last_capture_today != today:
                 _last_capture_today = today
                 _last_capture_time  = None
+                _orb_manual_symbols.clear()
 
             # Weekend gate
             if not _SIM_FORCE and now_ist.weekday() >= 5:
@@ -8271,21 +8343,17 @@ async def _orb_simulator_loop():
                   (rescan_iv > 0 and within_entry and
                    (now_ist - _last_capture_time).total_seconds() / 60 >= rescan_iv)):
                 # Periodic rescan or manual scan-now — only adds newly qualifying symbols
-                if _orb_force_rescan:
-                    _orb_scan_bypass_win = True  # manual scan: bypass entry window once
+                is_manual = bool(_orb_force_rescan)
                 _orb_force_rescan = False
                 rescan_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now)
+                await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now, is_manual)
                 _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
                 now_ist = _last_capture_time
                 await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
 
-            # Trigger poll — self-gates each session by its entry_window_end
-            # (bypass_window=True on manual scan-now: don't close WAITING candidates)
-            bypass = _orb_scan_bypass_win
-            _orb_scan_bypass_win = False
+            # Trigger poll — manually-scanned candidates stay WAITING regardless of entry window
             now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
-            await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist, bypass)
+            await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
 
             # Outcome tracking until 15:30
             if _SIM_FORCE or t <= dt_time(15, 30):
@@ -8360,7 +8428,8 @@ async def simulator_state(request: Request, date: str = ""):
         settings   = orb_get_settings(conn, sess)
         conn.close()
 
-        today_ist = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+        today_ist  = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+        trail_pts  = float(settings.get("trailing_sl_points", 0))
         if date == today_ist:
             tok_by_sym = {c["symbol"]: str(c["token"]) for c in candidates}
             for c in candidates:
@@ -8368,14 +8437,40 @@ async def simulator_state(request: Request, date: str = ""):
                 c["change_pct"] = _orb_chg_cache.get(str(c["token"]))
             for t in trades:
                 t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
+                if t["outcome"] == "OPEN" and trail_pts > 0 and t["id"] in _orb_trail_peaks:
+                    peak = _orb_trail_peaks[t["id"]]
+                    if t["direction"] == "BUY":
+                        t["trail_sl"] = round(max(t["stop_loss_price"], peak - trail_pts), 2)
+                    else:
+                        t["trail_sl"] = round(min(t["stop_loss_price"], peak + trail_pts), 2)
 
         open_trades = [t for t in trades if t["outcome"] == "OPEN"]
         resolved    = [t for t in trades if t["outcome"] != "OPEN"]
         wins        = [t for t in resolved if t["outcome"] == "TARGET_HIT"]
 
+        daily_limit  = float(settings.get("daily_loss_limit", 0))
+        realized_pnl = round(sum((t.get("pnl") or 0) for t in trades if t.get("outcome") != "OPEN"), 2)
+        loss_limit_hit = daily_limit > 0 and realized_pnl <= -daily_limit
+
+        # Transaction cost per trade: brokerage (both legs) + STT (0.025% sell-side intraday)
+        brokerage_per_order = float(settings.get("brokerage_per_order", 20))
+        brokerage_round_trip = round(2 * brokerage_per_order, 2)
+        for t in trades:
+            qty = t.get("quantity") or 0
+            # Sell-side price: BUY → exit price (or live LTP for OPEN); SELL → entry price
+            if t["direction"] == "BUY":
+                sell_px = t.get("exit_price") or t.get("live_ltp") or t.get("trigger_price") or 0
+            else:
+                sell_px = t.get("trigger_price") or 0
+            stt = round(0.00025 * qty * sell_px, 2)
+            t["transaction_cost"] = round(brokerage_round_trip + stt, 2)
+            t["net_pnl"]          = round((t.get("pnl") or 0) - t["transaction_cost"], 2)
+
         summary = {
-            "total_pnl": round(sum(t["pnl"] for t in trades), 2),
-            "invested":  round(sum(t["investment"] for t in open_trades), 2),
+            "total_pnl":              round(sum(t["pnl"] for t in trades), 2),
+            "total_transaction_cost": round(sum(t["transaction_cost"] for t in trades), 2),
+            "total_net_pnl":          round(sum(t["net_pnl"] for t in trades), 2),
+            "invested":               round(sum(t["investment"] for t in open_trades), 2),
             "win_rate":  round(len(wins) / len(resolved) * 100, 1) if resolved else None,
             "counts": {
                 "OPEN":       sum(1 for t in trades if t["outcome"] == "OPEN"),
@@ -8391,9 +8486,11 @@ async def simulator_state(request: Request, date: str = ""):
             "trades":     trades,
             "summary":    summary,
             "window": {
-                "phase":      _orb_window_phase(settings),
-                "slots_used": len(trades),
-                "slots_total": settings["max_slots"],
+                "phase":            _orb_window_phase(settings),
+                "slots_used":       len(trades),
+                "slots_total":      settings["max_slots"],
+                "loss_limit_hit":   loss_limit_hit,
+                "daily_loss_limit": daily_limit,
             },
         }
     except Exception as e:
@@ -8844,6 +8941,10 @@ class _OrbSettingsBody(BaseModel):
     sell_min_chg_pct:    float | None = None
     auto_trigger_count:  int   | None = None
     rescan_interval_min: int   | None = None
+    daily_loss_limit:    float | None = None
+    trailing_sl_points:  float | None = None
+    slippage_ticks:      int   | None = None
+    brokerage_per_order: float | None = None
 
 
 def _orb_valid_hhmm(value: str, lo: str, hi: str) -> bool:
@@ -8866,6 +8967,82 @@ async def simulator_get_settings(request: Request):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@app.get("/simulator/history")
+async def simulator_history(request: Request, days: int = 30):
+    """Per-day performance summary for the cumulative P/L dashboard."""
+    try:
+        sess  = _orb_session_id(request)
+        days  = max(1, min(days, 365))
+        since = (datetime.utcnow() + timedelta(hours=5, minutes=30) - timedelta(days=days)).strftime("%Y-%m-%d")
+        conn  = get_conn()
+        settings = orb_get_settings(conn, sess)
+        rows = conn.execute(
+            "SELECT date, direction, outcome, pnl, quantity, trigger_price, exit_price "
+            "FROM orb_stock_trades WHERE user_id=? AND date>=? ORDER BY date",
+            (sess, since),
+        ).fetchall()
+        conn.close()
+
+        brokerage_rt = 2 * float(settings.get("brokerage_per_order", 20))
+
+        from collections import defaultdict
+        by_date: dict = defaultdict(list)
+        for r in rows:
+            by_date[r["date"]].append(dict(r))
+
+        hist  = []
+        cum_g = 0.0
+        cum_n = 0.0
+        for date in sorted(by_date):
+            day  = by_date[date]
+            res  = [t for t in day if t["outcome"] != "OPEN"]
+            wins = [t for t in res  if t["outcome"] == "TARGET_HIT"]
+            losses = [t for t in res if t["outcome"] == "SL_HIT"]
+            gross = round(sum(t["pnl"] for t in day), 2)
+            cost  = 0.0
+            for t in day:
+                qty     = t.get("quantity") or 0
+                sell_px = (t.get("exit_price") or t.get("trigger_price") or 0) \
+                          if t["direction"] == "BUY" else (t.get("trigger_price") or 0)
+                cost += brokerage_rt + 0.00025 * qty * sell_px
+            cost  = round(cost, 2)
+            net   = round(gross - cost, 2)
+            cum_g = round(cum_g + gross, 2)
+            cum_n = round(cum_n + net,   2)
+            hist.append({
+                "date":             date,
+                "trade_count":      len(day),
+                "resolved":         len(res),
+                "wins":             len(wins),
+                "losses":           len(losses),
+                "gross_pnl":        gross,
+                "transaction_cost": cost,
+                "net_pnl":          net,
+                "win_rate":         round(len(wins) / len(res) * 100, 1) if res else None,
+                "cumulative_gross": cum_g,
+                "cumulative_net":   cum_n,
+            })
+
+        all_res  = [t for d in by_date.values() for t in d if t["outcome"] != "OPEN"]
+        all_wins = [t for t in all_res if t["outcome"] == "TARGET_HIT"]
+        return {
+            "days": hist,
+            "summary": {
+                "total_days":       len(hist),
+                "total_trades":     sum(d["trade_count"] for d in hist),
+                "overall_win_rate": round(len(all_wins) / len(all_res) * 100, 1) if all_res else None,
+                "cumulative_gross": cum_g,
+                "cumulative_net":   cum_n,
+                "avg_gross_per_day": round(cum_g / len(hist), 2) if hist else 0,
+                "best_day":  max((d["gross_pnl"] for d in hist), default=0),
+                "worst_day": min((d["gross_pnl"] for d in hist), default=0),
+            },
+        }
+    except Exception as e:
+        log.error(f"[SIM-HISTORY] {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.post("/simulator/settings")
 async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     _VALID_UNI = {"nifty500_fno", "nifty100_fno", "nifty50"}
@@ -8882,6 +9059,10 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.sell_min_chg_pct   is not None and not (0 <= body.sell_min_chg_pct <= 20): errs.append("sell_min_chg_pct must be 0–20")
     if body.auto_trigger_count  is not None and not (0 <= body.auto_trigger_count  <= 20): errs.append("auto_trigger_count must be 0–20")
     if body.rescan_interval_min is not None and not (0 <= body.rescan_interval_min <= 60): errs.append("rescan_interval_min must be 0–60")
+    if body.daily_loss_limit    is not None and not (0 <= body.daily_loss_limit <= 100000): errs.append("daily_loss_limit must be 0–100000")
+    if body.trailing_sl_points  is not None and not (0 <= body.trailing_sl_points <= 500):  errs.append("trailing_sl_points must be 0–500")
+    if body.slippage_ticks      is not None and not (0 <= body.slippage_ticks <= 20):       errs.append("slippage_ticks must be 0–20")
+    if body.brokerage_per_order is not None and not (0 <= body.brokerage_per_order <= 500): errs.append("brokerage_per_order must be 0–500")
     if body.entry_window_end is not None and not _orb_valid_hhmm(body.entry_window_end, "09:17", "15:00"):
         errs.append("entry_window_end must be HH:MM between 09:17 and 15:00")
     if body.square_off_time  is not None and not _orb_valid_hhmm(body.square_off_time, "09:30", "15:30"):
@@ -8912,7 +9093,7 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
 @app.post("/simulator/scan-now")
 async def simulator_scan_now(request: Request):
     """Queue an immediate rescan. Returns 400 if the session is already at max slots."""
-    global _orb_force_rescan, _orb_scan_bypass_win
+    global _orb_force_rescan
     try:
         sess  = _orb_session_id(request)
         today = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
@@ -8923,8 +9104,7 @@ async def simulator_scan_now(request: Request):
         if len(trades) >= st["max_slots"]:
             return JSONResponse(status_code=400,
                                 content={"error": "Max simulated trades reached for today"})
-        _orb_force_rescan    = True
-        _orb_scan_bypass_win = True  # bypass entry-window close on the immediate trigger poll
+        _orb_force_rescan = True  # engine loop will set manual=True → candidates never WINDOW_CLOSED
         return {"ok": True}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
