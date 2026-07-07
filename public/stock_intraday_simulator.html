@@ -534,6 +534,21 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
 
     <div class="sett-group">
+      <label class="sett-label">Min % change from yesterday's close</label>
+      <div class="sett-row">
+        <div>
+          <input type="number" id="sett-buyminchg" class="sett-inp" min="0" max="10" step="0.1" placeholder="1.0" />
+          <div class="sett-hint">BUY candidates — min gain % (default 1%)</div>
+        </div>
+        <div>
+          <input type="number" id="sett-sellminchg" class="sett-inp" min="0" max="10" step="0.1" placeholder="1.0" />
+          <div class="sett-hint">SELL candidates — min drop % (default 1%)</div>
+        </div>
+      </div>
+      <div class="sett-hint" style="margin-top:6px">Set to 0 to disable. BUY shortlists only stocks up ≥ this %; SELL only stocks down ≥ this % from yesterday's close.</div>
+    </div>
+
+    <div class="sett-group">
       <label class="sett-label" for="sett-cap">Candidate cap (per side)</label>
       <input type="number" id="sett-cap" class="sett-inp" min="5" max="100" step="5" placeholder="25" />
       <div class="sett-hint">Max BUY + max SELL candidates kept after sorting by dominance strength. Default: 25.</div>
@@ -667,6 +682,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <th data-en="Direction" data-ta="திசை">Direction</th>
             <th data-en="Symbol" data-ta="பங்கு">Symbol</th>
             <th>09:16 LTP</th>
+            <th>Chg %</th>
             <th data-en="Live LTP" data-ta="நேரடி விலை">Live LTP</th>
             <th data-en="Dominance" data-ta="ஆதிக்கம்">Dominance</th>
             <th data-en="Bench High" data-ta="உச்சம்">Bench High</th>
@@ -676,7 +692,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </tr>
         </thead>
         <tbody id="candBody">
-          <tr><td colspan="9" class="empty-cell">Loading candidates…</td></tr>
+          <tr><td colspan="10" class="empty-cell">Loading candidates…</td></tr>
         </tbody>
       </table>
     </div>
@@ -861,7 +877,7 @@ function renderCandidates(cands) {
   document.getElementById('candCount').textContent = filtered.length;
 
   if (!filtered.length) {
-    body.innerHTML = `<tr><td colspan="9" class="empty-cell">No candidates for this session</td></tr>`;
+    body.innerHTML = `<tr><td colspan="10" class="empty-cell">No candidates for this session</td></tr>`;
     return;
   }
 
@@ -906,6 +922,13 @@ function renderCandidates(cands) {
         </span>`;
     }
 
+    let chgHtml = '<span style="color:var(--muted)">—</span>';
+    if (c.change_pct != null) {
+      const cls = c.change_pct > 0 ? 'bull-val' : c.change_pct < 0 ? 'bear-val' : '';
+      const sign = c.change_pct > 0 ? '+' : '';
+      chgHtml = `<span class="${cls}">${sign}${c.change_pct.toFixed(2)}%</span>`;
+    }
+
     let liveHtml = '<span style="color:var(--muted)">—</span>';
     if (c.live_ltp != null) {
       const diff = c.ltp_0916 ? c.live_ltp - c.ltp_0916 : 0;
@@ -918,6 +941,7 @@ function renderCandidates(cands) {
       <td><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
       <td class="sym-cell">${_esc(c.symbol)}</td>
       <td class="num-cell">₹${_fmt2(c.ltp_0916)}</td>
+      <td class="num-cell">${chgHtml}</td>
       <td class="num-cell">${liveHtml}</td>
       <td>${domHtml}</td>
       <td class="num-cell bull-val">₹${_fmt2(c.bench_high)}</td>
@@ -1420,7 +1444,7 @@ async function runBacktest() {
   Object.keys(_verifyCache).forEach(k => delete _verifyCache[k]);
   _expandedTrades.clear();
   document.getElementById('tradeBody').innerHTML = '<tr><td colspan="12" class="empty-cell">Clearing previous backtest…</td></tr>';
-  document.getElementById('candBody').innerHTML  = '<tr><td colspan="9"  class="empty-cell">Clearing previous backtest…</td></tr>';
+  document.getElementById('candBody').innerHTML  = '<tr><td colspan="10" class="empty-cell">Clearing previous backtest…</td></tr>';
 
   const uni    = _settings?.universe || 'nifty500_fno';
   const total  = { nifty50: 50, nifty100_fno: 100, nifty500_fno: 500 }[uni] || 500;
@@ -1490,9 +1514,11 @@ function renderSettings(s) {
   set('sett-pmax',     s.price_max);
   set('sett-dom',      s.dom_min_pct);
   set('sett-cap',      s.candidate_cap);
-  set('sett-slamt',    s.sl_amount_rupees);
-  set('sett-entryend', s.entry_window_end);
-  set('sett-sqoff',    s.square_off_time);
+  set('sett-slamt',      s.sl_amount_rupees);
+  set('sett-entryend',   s.entry_window_end);
+  set('sett-sqoff',      s.square_off_time);
+  set('sett-buyminchg',  s.buy_min_chg_pct);
+  set('sett-sellminchg', s.sell_min_chg_pct);
 }
 
 async function saveSettings() {
@@ -1514,8 +1540,10 @@ async function saveSettings() {
   const dom = parseFloat(val('sett-dom'));   if (dom)  body.dom_min_pct       = dom;
   const cap = parseInt(val('sett-cap'));     if (cap)  body.candidate_cap     = cap;
   const sla = parseFloat(val('sett-slamt')); if (sla)  body.sl_amount_rupees  = sla;
-  const ent = val('sett-entryend');          if (ent)  body.entry_window_end  = ent;
-  const sqo = val('sett-sqoff');             if (sqo)  body.square_off_time   = sqo;
+  const ent = val('sett-entryend');               if (ent)  body.entry_window_end  = ent;
+  const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time   = sqo;
+  const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct  = parseFloat(bmc);
+  const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct = parseFloat(smc);
 
   try {
     const r = await fetch(`${API}/settings`, {

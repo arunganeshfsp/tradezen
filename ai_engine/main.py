@@ -7699,6 +7699,7 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 
 
 _orb_ltp_cache: dict = {}
+_orb_chg_cache: dict = {}   # token → change_pct from yesterday's close
 
 
 def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
@@ -7721,15 +7722,18 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
                 bq    = int(item.get("totBuyQuan") or 0)
                 sq    = int(item.get("totSellQuan") or 0)
                 total = bq + sq
+                chg = round(float(item.get("percentChange") or 0), 2)
                 result[tok] = {
-                    "ltp":      round(ltp, 2),
-                    "high":     round(float(item.get("high")              or 0), 2),
-                    "low":      round(float(item.get("low")               or 0), 2),
-                    "vwap":     round(float(item.get("averageTradePrice") or 0), 2) or None,
-                    "buy_pct":  round(bq / total * 100, 1) if total else 0.0,
-                    "sell_pct": round(sq / total * 100, 1) if total else 0.0,
+                    "ltp":        round(ltp, 2),
+                    "high":       round(float(item.get("high")              or 0), 2),
+                    "low":        round(float(item.get("low")               or 0), 2),
+                    "vwap":       round(float(item.get("averageTradePrice") or 0), 2) or None,
+                    "buy_pct":    round(bq / total * 100, 1) if total else 0.0,
+                    "sell_pct":   round(sq / total * 100, 1) if total else 0.0,
+                    "change_pct": chg,
                 }
                 _orb_ltp_cache[tok] = round(ltp, 2)
+                _orb_chg_cache[tok] = chg
         except Exception as e:
             log.warning(f"[ORB-SIM] quote batch {i}: {e}")
     return result
@@ -7778,12 +7782,13 @@ def _orb_capture_sync(today: str):
             if not (st["price_min"] <= ltp <= st["price_max"]):
                 continue
             bp, sp   = q["buy_pct"], q["sell_pct"]
+            chg      = q.get("change_pct", 0)
             strength = round(abs(bp - sp), 1)
             base     = {"symbol": s["symbol"], "token": s["token"],
                         "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength}
-            if bp >= st["dom_min_pct"]:
+            if bp >= st["dom_min_pct"] and chg >= st["buy_min_chg_pct"]:
                 buy_cands.append(base)
-            if sp >= st["dom_min_pct"]:
+            if sp >= st["dom_min_pct"] and chg <= -st["sell_min_chg_pct"]:
                 sell_cands.append(base)
 
         buy_cands.sort(key=lambda x: -x["strength"])
@@ -8192,7 +8197,8 @@ async def simulator_state(request: Request, date: str = ""):
         if date == today_ist:
             tok_by_sym = {c["symbol"]: str(c["token"]) for c in candidates}
             for c in candidates:
-                c["live_ltp"] = _orb_ltp_cache.get(str(c["token"]))
+                c["live_ltp"]   = _orb_ltp_cache.get(str(c["token"]))
+                c["change_pct"] = _orb_chg_cache.get(str(c["token"]))
             for t in trades:
                 t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
 
@@ -8667,6 +8673,8 @@ class _OrbSettingsBody(BaseModel):
     entry_window_end: str   | None = None
     square_off_time:  str   | None = None
     sl_amount_rupees: float | None = None
+    buy_min_chg_pct:  float | None = None
+    sell_min_chg_pct: float | None = None
 
 
 def _orb_valid_hhmm(value: str, lo: str, hi: str) -> bool:
@@ -8701,6 +8709,8 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.candidate_cap    is not None and not (5 <= body.candidate_cap <= 100): errs.append("candidate_cap must be 5–100")
     if body.dom_min_pct      is not None and not (30 <= body.dom_min_pct <= 90):   errs.append("dom_min_pct must be 30–90")
     if body.sl_amount_rupees is not None and body.sl_amount_rupees <= 0:   errs.append("sl_amount_rupees must be > 0")
+    if body.buy_min_chg_pct  is not None and not (0 <= body.buy_min_chg_pct  <= 20): errs.append("buy_min_chg_pct must be 0–20")
+    if body.sell_min_chg_pct is not None and not (0 <= body.sell_min_chg_pct <= 20): errs.append("sell_min_chg_pct must be 0–20")
     if body.entry_window_end is not None and not _orb_valid_hhmm(body.entry_window_end, "09:17", "15:00"):
         errs.append("entry_window_end must be HH:MM between 09:17 and 15:00")
     if body.square_off_time  is not None and not _orb_valid_hhmm(body.square_off_time, "09:30", "15:30"):
