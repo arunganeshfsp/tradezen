@@ -534,18 +534,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
 
     <div class="sett-group">
-      <label class="sett-label">Min % change from yesterday's close</label>
+      <label class="sett-label" data-en="Min % change from yesterday's close" data-ta="நேற்றைய முடிவிலிருந்து குறைந்தபட்ச % மாற்றம்">Min % change from yesterday's close</label>
       <div class="sett-row">
         <div>
           <input type="number" id="sett-buyminchg" class="sett-inp" min="0" max="10" step="0.1" placeholder="1.0" />
-          <div class="sett-hint">BUY candidates — min gain % (default 1%)</div>
+          <div class="sett-hint" data-en="BUY — min gain % (default 1%)" data-ta="வாங்கல் — குறைந்தபட்ச ஆதாயம் % (இயல்புநிலை 1%)">BUY — min gain % (default 1%)</div>
         </div>
         <div>
           <input type="number" id="sett-sellminchg" class="sett-inp" min="0" max="10" step="0.1" placeholder="1.0" />
-          <div class="sett-hint">SELL candidates — min drop % (default 1%)</div>
+          <div class="sett-hint" data-en="SELL — min drop % (default 1%)" data-ta="விற்பனை — குறைந்தபட்ச வீழ்ச்சி % (இயல்புநிலை 1%)">SELL — min drop % (default 1%)</div>
         </div>
       </div>
-      <div class="sett-hint" style="margin-top:6px">Set to 0 to disable. BUY shortlists only stocks up ≥ this %; SELL only stocks down ≥ this % from yesterday's close.</div>
+      <div class="sett-hint" style="margin-top:6px" data-en="Set to 0 to disable. BUY: stocks up ≥ this % from prev close; SELL: stocks down ≥ this %." data-ta="முடக்க 0 அமைக்கவும். வாங்கல்: முந்தைய முடிவிலிருந்து ≥ இந்த % உயர்ந்தவை; விற்பனை: ≥ இந்த % குறைந்தவை.">Set to 0 to disable. BUY: stocks up ≥ this % from prev close; SELL: stocks down ≥ this %.</div>
     </div>
 
     <div class="sett-group">
@@ -555,9 +555,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
 
     <div class="sett-group">
-      <label class="sett-label" for="sett-autotrig">Auto-trigger at capture (top N per side)</label>
+      <label class="sett-label" for="sett-autotrig" data-en="Auto-trigger at entry start (top N per side)" data-ta="தானியங்கி தூண்டல் — நுழைவு தொடக்கத்தில் (ஒவ்வொரு பக்கம் N)">Auto-trigger at entry start (top N per side)</label>
       <input type="number" id="sett-autotrig" class="sett-inp" min="0" max="20" step="1" placeholder="5" />
-      <div class="sett-hint">Immediately simulates trades for the top N strongest BUY and SELL candidates at the 09:16 capture price — no breakout wait. Set to 0 to disable. Default: 5.</div>
+      <div class="sett-hint" data-en="Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5." data-ta="தேர்ந்தெடுக்கப்பட்ட நுழைவு தொடக்க நேரத்தில் சிறந்த N BUY மற்றும் SELL வேட்பாளர்களை உள்ளிடுகிறது. முடக்க 0 அமைக்கவும். இயல்புநிலை: 5.">Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -687,8 +687,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <tr>
             <th data-en="Direction" data-ta="திசை">Direction</th>
             <th data-en="Symbol" data-ta="பங்கு">Symbol</th>
-            <th>09:16 LTP</th>
-            <th>Chg %</th>
+            <th data-en="09:16 LTP" data-ta="09:16 விலை">09:16 LTP</th>
+            <th data-en="Chg %" data-ta="மாற்றம் %">Chg %</th>
             <th data-en="Live LTP" data-ta="நேரடி விலை">Live LTP</th>
             <th data-en="Dominance" data-ta="ஆதிக்கம்">Dominance</th>
             <th data-en="Bench High" data-ta="உச்சம்">Bench High</th>
