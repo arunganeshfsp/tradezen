@@ -1163,6 +1163,17 @@ router.post("/simulator/settings", _simAuth, async (req, res) => {
   }
 });
 
+// ─── POST /api/simulator/scan-now ────────────────────────────────────────────
+router.post("/simulator/scan-now", _simAuth, async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/simulator/scan-now", 8000, {}, _simHdr(req));
+    res.json(data);
+  } catch (err) {
+    const status = err.status === 400 ? 400 : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/simulator/trade-verify?trade_id= ───────────────────────────────
 // Verifies whether SL/target was actually hit in candle data on the trade's date.
 router.get("/simulator/trade-verify", async (req, res) => {

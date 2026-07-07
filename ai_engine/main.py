@@ -544,6 +544,7 @@ async def lifespan(app: FastAPI):
             # gift_nifty is NOT reset — user may have entered it pre-market before 8:30
             trade_flow_data["nifty_open"] = None
             trade_flow_data["orb"]        = None
+            trade_flow_data["_orb_acc"]   = {"high": None, "low": None}
             log.info("🔄 Intraday fields reset for new trading day")
 
     asyncio.create_task(_daily_instrument_refresh())
@@ -7698,8 +7699,9 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 })
 
 
-_orb_ltp_cache: dict = {}
-_orb_chg_cache: dict = {}   # token → change_pct from yesterday's close
+_orb_ltp_cache:   dict = {}
+_orb_chg_cache:   dict = {}   # token → change_pct from yesterday's close
+_orb_force_rescan: bool = False  # set by scan-now endpoint; consumed by engine loop
 
 
 def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
@@ -8198,6 +8200,7 @@ async def _orb_simulator_loop():
     Weekday-gated (bypassed with SIM_FORCE_WINDOW=1). SQLite state survives restarts.
     Crash-safe: outer while + try/except; each sync worker is independently guarded.
     """
+    global _orb_force_rescan
     from datetime import time as dt_time
     loop = asyncio.get_running_loop()
     log.info("[ORB-SIM] background task started")
@@ -8262,9 +8265,11 @@ async def _orb_simulator_loop():
                 _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
                 now_ist = _last_capture_time
                 await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
-            elif (rescan_iv > 0 and within_entry and
-                  (now_ist - _last_capture_time).total_seconds() / 60 >= rescan_iv):
-                # Periodic rescan — only adds newly qualifying symbols
+            elif (_orb_force_rescan or
+                  (rescan_iv > 0 and within_entry and
+                   (now_ist - _last_capture_time).total_seconds() / 60 >= rescan_iv)):
+                # Periodic rescan or manual scan-now — only adds newly qualifying symbols
+                _orb_force_rescan = False
                 rescan_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
                 await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now)
                 _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
@@ -8893,6 +8898,26 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
         s["session"] = "personal" if uid else "shared"
         log.info(f"[SIM-SETTINGS] updated ({uid or 'shared'}): {list(updates.keys())}")
         return s
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/simulator/scan-now")
+async def simulator_scan_now(request: Request):
+    """Queue an immediate rescan. Returns 400 if the session is already at max slots."""
+    global _orb_force_rescan
+    try:
+        sess  = _orb_session_id(request)
+        today = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+        conn  = get_conn()
+        trades = orb_get_trades(conn, today, sess)
+        st     = orb_get_settings(conn, sess)
+        conn.close()
+        if len(trades) >= st["max_slots"]:
+            return JSONResponse(status_code=400,
+                                content={"error": "Max simulated trades reached for today"})
+        _orb_force_rescan = True
+        return {"ok": True}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 

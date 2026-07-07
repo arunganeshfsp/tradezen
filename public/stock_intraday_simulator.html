@@ -257,6 +257,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
   font-size:10px;font-weight:600;letter-spacing:.5px;transition:all .15s;white-space:nowrap}
 .export-btn:hover{color:var(--text);border-color:var(--accent);background:rgba(124,106,247,0.08)}
+.scan-now-btn{background:transparent;border:1px solid rgba(241,196,15,0.35);
+  border-radius:var(--r2);color:rgba(241,196,15,0.7);padding:4px 11px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:700;letter-spacing:.7px;transition:all .2s;white-space:nowrap}
+.scan-now-btn:hover:not(:disabled){color:#f1c40f;border-color:rgba(241,196,15,0.7);background:rgba(241,196,15,0.06)}
+.scan-now-btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.scan-now-btn.scanning{color:rgba(241,196,15,0.5);border-color:rgba(241,196,15,0.2);cursor:not-allowed}
 
 /* ── SETTINGS OFFCANVAS ── */
 .settings-canvas .offcanvas-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 20px}
@@ -679,6 +686,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <button class="side-tab bear" onclick="filterCands('SELL',this)" data-en="BEARISH ▼" data-ta="இறங்குமுகம் ▼">BEARISH ▼</button>
       </div>
       <span class="cnt-badge" id="candCount">0</span>
+      <button class="scan-now-btn" id="scanNowBtn" onclick="scanNow()" style="display:none"
+              data-en="⟳ SCAN NOW" data-ta="⟳ இப்போது ஸ்கேன்">⟳ SCAN NOW</button>
       <button class="export-btn" onclick="exportCandidates()" title="Download filtered candidates + trade details as CSV">
         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
           <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
@@ -865,6 +874,18 @@ function renderWindowStrip(win) {
     `<span class="slot-pip${i < used ? ' used' : ''}"></span>`
   ).join('');
   stxt.textContent = ` ${used}/${total}`;
+
+  // Scan Now button: visible only on live view, disabled when slots full
+  const scanBtn = document.getElementById('scanNowBtn');
+  if (scanBtn) {
+    scanBtn.style.display = _isLive ? '' : 'none';
+    scanBtn.disabled = used >= total;
+    if (used >= total) {
+      scanBtn.title = 'Max simulated trades reached for today';
+    } else {
+      scanBtn.title = 'Immediately re-scan for new qualifying stocks';
+    }
+  }
 }
 
 // ── Candidates ─────────────────────────────────────────────────────────────
@@ -1331,6 +1352,32 @@ function _stopLiveWatch() {
   clearInterval(_smClockTimer);
   stopPolling();
   if (_isLive) startPolling();
+}
+
+async function scanNow() {
+  const btn = document.getElementById('scanNowBtn');
+  if (!btn || btn.disabled) return;
+  btn.classList.add('scanning');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '⟳ SCANNING…';
+  try {
+    const r = await fetch('/api/simulator/scan-now', { method: 'POST', headers: _hdrs(true), body: '{}' });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      alert(d.error || 'Scan failed');
+    }
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  } finally {
+    // Keep button in scanning state for 8s to let the engine loop pick up the flag
+    setTimeout(() => {
+      btn.classList.remove('scanning');
+      btn.textContent = origText;
+      // State will auto-update on next poll; force one immediately
+      loadState();
+    }, 8000);
+  }
 }
 
 function _updateSmClock() {
