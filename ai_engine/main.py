@@ -7699,9 +7699,10 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 })
 
 
-_orb_ltp_cache:   dict = {}
-_orb_chg_cache:   dict = {}   # token → change_pct from yesterday's close
-_orb_force_rescan: bool = False  # set by scan-now endpoint; consumed by engine loop
+_orb_ltp_cache:        dict = {}
+_orb_chg_cache:        dict = {}   # token → change_pct from yesterday's close
+_orb_force_rescan:     bool = False  # set by scan-now endpoint; consumed by engine loop
+_orb_scan_bypass_win:  bool = False  # bypass entry-window close check on next trigger poll
 
 
 def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
@@ -7873,9 +7874,10 @@ def _orb_parse_hhmm(value, default_h: int, default_m: int):
         return dt_time(default_h, default_m)
 
 
-def _orb_trigger_poll_sync(today: str, now_ist):
+def _orb_trigger_poll_sync(today: str, now_ist, bypass_window: bool = False):
     """Check WAITING candidates vs benchmark; auto-create trades within slot cap.
-    Each session is gated by its own entry_window_end setting."""
+    Each session is gated by its own entry_window_end setting.
+    bypass_window=True skips the WINDOW_CLOSED marking (used by manual scan-now)."""
     import uuid as _uuid
     conn        = get_conn()
     all_cands   = orb_get_candidates(conn, today)
@@ -7892,7 +7894,7 @@ def _orb_trigger_poll_sync(today: str, now_ist):
         sess_settings[u] = st
         entry_end = _orb_parse_hhmm(st["entry_window_end"], 10, 30)
         sess_waiting = [c for c in waiting_all if c["user_id"] == u]
-        if not _SIM_FORCE and t_now > entry_end:
+        if not _SIM_FORCE and not bypass_window and t_now > entry_end:
             for c in sess_waiting:
                 orb_update_candidate_status(conn, today, c["symbol"], c["side"], "WINDOW_CLOSED",
                                             f"Entry window closed at {st['entry_window_end']}",
@@ -8200,7 +8202,7 @@ async def _orb_simulator_loop():
     Weekday-gated (bypassed with SIM_FORCE_WINDOW=1). SQLite state survives restarts.
     Crash-safe: outer while + try/except; each sync worker is independently guarded.
     """
-    global _orb_force_rescan
+    global _orb_force_rescan, _orb_scan_bypass_win
     from datetime import time as dt_time
     loop = asyncio.get_running_loop()
     log.info("[ORB-SIM] background task started")
@@ -8269,6 +8271,8 @@ async def _orb_simulator_loop():
                   (rescan_iv > 0 and within_entry and
                    (now_ist - _last_capture_time).total_seconds() / 60 >= rescan_iv)):
                 # Periodic rescan or manual scan-now — only adds newly qualifying symbols
+                if _orb_force_rescan:
+                    _orb_scan_bypass_win = True  # manual scan: bypass entry window once
                 _orb_force_rescan = False
                 rescan_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
                 await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now)
@@ -8277,8 +8281,11 @@ async def _orb_simulator_loop():
                 await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
 
             # Trigger poll — self-gates each session by its entry_window_end
+            # (bypass_window=True on manual scan-now: don't close WAITING candidates)
+            bypass = _orb_scan_bypass_win
+            _orb_scan_bypass_win = False
             now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
-            await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
+            await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist, bypass)
 
             # Outcome tracking until 15:30
             if _SIM_FORCE or t <= dt_time(15, 30):
@@ -8905,7 +8912,7 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
 @app.post("/simulator/scan-now")
 async def simulator_scan_now(request: Request):
     """Queue an immediate rescan. Returns 400 if the session is already at max slots."""
-    global _orb_force_rescan
+    global _orb_force_rescan, _orb_scan_bypass_win
     try:
         sess  = _orb_session_id(request)
         today = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
@@ -8916,7 +8923,8 @@ async def simulator_scan_now(request: Request):
         if len(trades) >= st["max_slots"]:
             return JSONResponse(status_code=400,
                                 content={"error": "Max simulated trades reached for today"})
-        _orb_force_rescan = True
+        _orb_force_rescan    = True
+        _orb_scan_bypass_win = True  # bypass entry-window close on the immediate trigger poll
         return {"ok": True}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

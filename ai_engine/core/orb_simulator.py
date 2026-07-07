@@ -117,7 +117,10 @@ def resolve_stop_loss(
 
     sl = round(float(sl), 2)
 
-    if sl_basis != "AMOUNT" and not (bench_low <= sl <= bench_high):
+    # AMOUNT, DAY_LOW, DAY_HIGH are derived from live session data and naturally
+    # move outside the 09:15 bench candle range — skip the bench range check for them.
+    _skip_bench_check = sl_basis in ("AMOUNT", "DAY_LOW", "DAY_HIGH")
+    if not _skip_bench_check and not (bench_low <= sl <= bench_high):
         return None, (
             f"SL {sl} is outside benchmark range "
             f"[{bench_low}, {bench_high}]"

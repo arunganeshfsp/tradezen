@@ -482,7 +482,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <option value="nifty100_fno">Nifty 100 F&amp;O (~100 stocks)</option>
         <option value="nifty50">Nifty 50 F&amp;O (~50 stocks)</option>
       </select>
-      <div class="sett-hint">Stocks scanned at 09:16. Smaller universe = fewer candidates, less noise.</div>
+      <div class="sett-hint">Stocks scanned at capture / each rescan. Smaller universe = fewer candidates, less noise.</div>
     </div>
 
     <div class="sett-group">
@@ -702,7 +702,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <tr>
             <th data-en="Direction" data-ta="திசை">Direction</th>
             <th data-en="Symbol" data-ta="பங்கு">Symbol</th>
-            <th data-en="09:16 LTP" data-ta="09:16 விலை">09:16 LTP</th>
+            <th data-en="Scan LTP" data-ta="ஸ்கேன் விலை">Scan LTP</th>
             <th data-en="Chg %" data-ta="மாற்றம் %">Chg %</th>
             <th data-en="Live LTP" data-ta="நேரடி விலை">Live LTP</th>
             <th data-en="Dominance" data-ta="ஆதிக்கம்">Dominance</th>
@@ -996,7 +996,7 @@ function exportCandidates() {
 
   const HEADERS = [
     'Date','Symbol','Direction','Status','Remark',
-    '09:16 LTP','Live LTP','Buy %','Sell %','Dominance Strength',
+    'Scan LTP','Live LTP','Buy %','Sell %','Dominance Strength',
     'Bench High','Bench Low','SL Basis','Custom SL',
     'Entry Time','Sim. Fill (Entry)','Day High @ Entry','Day Low @ Entry','VWAP @ Entry',
     'Invalidation (SL)','SL Points','Ref. Target','Target Points','Qty','Investment','R:R',
