@@ -7775,8 +7775,10 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
             if cx["status"] in ("WAITING", "TRIGGERED"):
                 existing_by_sess.setdefault(cx["user_id"], set()).add((cx["symbol"], cx["side"]))
     else:
-        candle_from = "09:15"
-        candle_to   = "09:16"
+        entry_start = sess_settings.get("", {}).get("entry_window_start", "09:20")
+        h, m        = map(int, entry_start.split(":"))
+        candle_to   = entry_start
+        candle_from = f"{h:02d}:{m-1:02d}" if m > 0 else f"{h-1:02d}:59"
         existing_by_sess = {}
 
     all_fno = _load_fno_stocks()
@@ -8281,6 +8283,7 @@ async def _orb_simulator_loop():
     _eod_done_today     = None
     _last_capture_today = None
     _last_capture_time  = None   # datetime of last capture/rescan in IST
+    _capture_start      = None   # dt_time cached per day from settings
 
     while True:
         try:
@@ -8292,7 +8295,15 @@ async def _orb_simulator_loop():
             if _last_capture_today != today:
                 _last_capture_today = today
                 _last_capture_time  = None
+                _capture_start      = None
                 _orb_manual_symbols.clear()
+
+            # Load entry start time once per day from shared settings
+            if _capture_start is None:
+                _cs_conn  = get_conn()
+                _cs_sett  = orb_get_settings(_cs_conn, "")
+                _cs_conn.close()
+                _capture_start = _orb_parse_hhmm(_cs_sett.get("entry_window_start", "09:20"), 9, 20)
 
             # Weekend gate
             if not _SIM_FORCE and now_ist.weekday() >= 5:
@@ -8314,9 +8325,9 @@ async def _orb_simulator_loop():
                 await asyncio.sleep(min((target - now_ist).total_seconds(), 3600))
                 continue
 
-            # Pre-capture wait (before 09:16)
-            if not _SIM_FORCE and t < dt_time(9, 16):
-                target = now_ist.replace(hour=9, minute=16, second=0, microsecond=0)
+            # Pre-capture wait (before configured entry_window_start)
+            if not _SIM_FORCE and t < _capture_start:
+                target = now_ist.replace(hour=_capture_start.hour, minute=_capture_start.minute, second=0, microsecond=0)
                 await asyncio.sleep(min((target - now_ist).total_seconds(), 60))
                 continue
 
@@ -8926,8 +8937,9 @@ class _OrbSettingsBody(BaseModel):
     max_slots:        int   | None = None
     default_sl_basis: str   | None = None
     candidate_cap:    int   | None = None
-    entry_window_end: str   | None = None
-    square_off_time:  str   | None = None
+    entry_window_start: str | None = None
+    entry_window_end:   str | None = None
+    square_off_time:    str | None = None
     sl_amount_rupees: float | None = None
     buy_min_chg_pct:     float | None = None
     sell_min_chg_pct:    float | None = None
@@ -9053,6 +9065,8 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.trailing_sl_points  is not None and not (0 <= body.trailing_sl_points <= 500):  errs.append("trailing_sl_points must be 0–500")
     if body.slippage_ticks      is not None and not (0 <= body.slippage_ticks <= 20):       errs.append("slippage_ticks must be 0–20")
     if body.brokerage_per_order is not None and not (0 <= body.brokerage_per_order <= 500): errs.append("brokerage_per_order must be 0–500")
+    if body.entry_window_start is not None and not _orb_valid_hhmm(body.entry_window_start, "09:15", "10:30"):
+        errs.append("entry_window_start must be HH:MM between 09:15 and 10:30")
     if body.entry_window_end is not None and not _orb_valid_hhmm(body.entry_window_end, "09:17", "15:00"):
         errs.append("entry_window_end must be HH:MM between 09:17 and 15:00")
     if body.square_off_time  is not None and not _orb_valid_hhmm(body.square_off_time, "09:30", "15:30"):

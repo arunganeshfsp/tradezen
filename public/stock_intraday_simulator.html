@@ -541,6 +541,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <label class="sett-label">Entry / exit window</label>
       <div class="sett-row">
         <div>
+          <input type="time" id="sett-entrystart" class="sett-inp" min="09:15" max="10:30" />
+          <div class="sett-hint">Scan / capture time (default 09:20)</div>
+        </div>
+        <div>
           <input type="time" id="sett-entryend" class="sett-inp" min="09:17" max="15:00" />
           <div class="sett-hint">Entry window closes (default 10:30)</div>
         </div>
@@ -549,7 +553,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <div class="sett-hint">Auto square-off (default 15:30)</div>
         </div>
       </div>
-      <div class="sett-hint" style="margin-top:6px">No new simulated entries after the entry close; open trades are auto squared-off at the exit time.</div>
+      <div class="sett-hint" style="margin-top:6px">Tap <strong>Live Watch</strong> before the scan time to activate your session. No new entries after the entry close; open trades are squared-off at exit time.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -1432,9 +1436,10 @@ function _updateSignalMonitor(phase, candidates, trades) {
   if (!_liveWatchActive) return;
   const waiting  = (candidates || []).filter(c => c.status === 'WAITING').length;
   const open     = (trades     || []).filter(t => t.outcome === 'OPEN').length;
+  const capTime = (_settings && _settings.entry_window_start) || '09:20';
   const MSGS = {
-    PRE_MARKET:      ['Pre-market · ORB candidate capture at 09:16 AM', ''],
-    CAPTURE_PENDING: ['Scanning candidates at 09:16…', 'Stay tuned'],
+    PRE_MARKET:      [`Pre-market · ORB candidate capture at ${capTime}`, ''],
+    CAPTURE_PENDING: [`Scanning candidates at ${capTime}…`, 'Stay tuned'],
     ENTRY_WINDOW:    [`Entry window open · ${waiting} candidate${waiting !== 1 ? 's' : ''} watching`, 'Waiting for ORB breakout'],
     TRACKING:        [`Tracking ${open} open trade${open !== 1 ? 's' : ''}`, 'Monitoring for ref. level / invalidation'],
     EOD:             ['Session closed · 15:30 square-off done', ''],
@@ -1616,6 +1621,7 @@ function renderSettings(s) {
   set('sett-dom',      s.dom_min_pct);
   set('sett-cap',      s.candidate_cap);
   set('sett-slamt',      s.sl_amount_rupees);
+  set('sett-entrystart', s.entry_window_start);
   set('sett-entryend',   s.entry_window_end);
   set('sett-sqoff',      s.square_off_time);
   set('sett-buyminchg',  s.buy_min_chg_pct);
@@ -1642,8 +1648,9 @@ async function saveSettings() {
   const dom = parseFloat(val('sett-dom'));   if (dom)  body.dom_min_pct       = dom;
   const cap = parseInt(val('sett-cap'));     if (cap)  body.candidate_cap     = cap;
   const sla = parseFloat(val('sett-slamt')); if (sla)  body.sl_amount_rupees  = sla;
-  const ent = val('sett-entryend');               if (ent)  body.entry_window_end  = ent;
-  const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time   = sqo;
+  const est = val('sett-entrystart');              if (est)  body.entry_window_start = est;
+  const ent = val('sett-entryend');               if (ent)  body.entry_window_end   = ent;
+  const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time    = sqo;
   const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
   const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
   const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count  = parseInt(atc);
@@ -1684,8 +1691,8 @@ const _TUT_STEPS = [
              ta: 'ஆய்வு செய்ய ஏதேனும் வர்த்தக தேதியைத் தேர்ந்தெடுக்கவும். இன்றைய நேரடி அமர்வு தானாக புதுப்பிக்கப்படும். <strong>கடந்த தேதி</strong> தேர்ந்தெடுத்தால் வரலாற்று தரவு ஏற்றப்படும்.' } },
   { el: '#candPanel',   pos: 'top',
     title: { en: 'Candidate Stocks', ta: 'வேட்பாளர் பங்குகள்' },
-    body:  { en: 'At <strong>09:16 AM</strong> the engine scans all stocks and filters those that qualify by price range, order-book dominance, and % change from yesterday\'s close. Use <strong>Scan Now</strong> anytime to manually add more candidates — they are never blocked by the time window.',
-             ta: '<strong>காலை 09:16</strong> மணிக்கு இயந்திரம் அனைத்து பங்குகளையும் ஸ்கேன் செய்கிறது. விலை வரம்பு, ஆர்டர் புக் ஆதிக்கம், நேற்றிலிருந்து % மாற்றம் ஆகியவற்றால் தகுதியானவை தேர்ந்தெடுக்கப்படும். <strong>Scan Now</strong> மூலம் கைமுறையாக கூடுதல் வேட்பாளர்களை சேர்க்கலாம் — இவை நேர சாளரத்தால் மூடப்படாது.' } },
+    body:  { en: 'At your configured <strong>scan time</strong> (default 09:20 — set in Settings) the engine scans all stocks and filters those that qualify. Tap <strong>Live Watch</strong> before the scan time to activate your session. Use <strong>Scan Now</strong> anytime to manually add more candidates.',
+             ta: 'உங்கள் அமைப்புகளில் கொடுத்த <strong>ஸ்கேன் நேரத்தில்</strong> (இயல்புநிலை 09:20) இயந்திரம் பங்குகளை வடிகட்டுகிறது. ஸ்கேன் நேரத்திற்கு முன் <strong>Live Watch</strong> அழுத்தி உங்கள் அமர்வை தொடங்குங்கள். <strong>Scan Now</strong> மூலம் கைமுறையாக கூடுதல் வேட்பாளர்களை சேர்க்கலாம்.' } },
   { el: '#candPanel',   pos: 'top',
     title: { en: 'Entry Trigger: Bench High & Low', ta: 'நுழைவு தூண்டல்: Bench High & Low' },
     body:  { en: '<strong>Bench High</strong> is the fixed trigger for BULLISH setups — when live LTP crosses above this level, a paper trade is entered. <strong>Bench Low</strong> is the trigger for BEARISH setups. These levels are locked at scan time and never move during the session.',

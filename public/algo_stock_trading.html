@@ -538,6 +538,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <label class="sett-label">Entry / exit window</label>
       <div class="sett-row">
         <div>
+          <input type="time" id="sett-entrystart" class="sett-inp" min="09:15" max="10:30" />
+          <div class="sett-hint">Scan / capture time (default 09:20)</div>
+        </div>
+        <div>
           <input type="time" id="sett-entryend" class="sett-inp" min="09:17" max="15:00" />
           <div class="sett-hint">Entry window closes (default 10:30)</div>
         </div>
@@ -546,7 +550,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <div class="sett-hint">Auto square-off (default 15:30)</div>
         </div>
       </div>
-      <div class="sett-hint" style="margin-top:6px">No new simulated entries after the entry close; open trades are auto squared-off at the exit time.</div>
+      <div class="sett-hint" style="margin-top:6px">Tap <strong>Live Watch</strong> before the scan time to activate your session. No new entries after the entry close; open trades are squared-off at exit time.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -1691,6 +1695,7 @@ function renderSettings(s) {
   set('sett-dom',      s.dom_min_pct);
   set('sett-cap',      s.candidate_cap);
   set('sett-slamt',      s.sl_amount_rupees);
+  set('sett-entrystart', s.entry_window_start);
   set('sett-entryend',   s.entry_window_end);
   set('sett-sqoff',      s.square_off_time);
   set('sett-buyminchg',  s.buy_min_chg_pct);
@@ -1721,8 +1726,9 @@ async function saveSettings() {
   const dom = parseFloat(val('sett-dom'));   if (dom)  body.dom_min_pct       = dom;
   const cap = parseInt(val('sett-cap'));     if (cap)  body.candidate_cap     = cap;
   const sla = parseFloat(val('sett-slamt')); if (sla)  body.sl_amount_rupees  = sla;
-  const ent = val('sett-entryend');               if (ent)  body.entry_window_end  = ent;
-  const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time   = sqo;
+  const est = val('sett-entrystart');              if (est)  body.entry_window_start = est;
+  const ent = val('sett-entryend');               if (ent)  body.entry_window_end   = ent;
+  const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time    = sqo;
   const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
   const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
   const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count  = parseInt(atc);
