@@ -512,11 +512,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="sett-group">
       <label class="sett-label" for="sett-universe">Stock universe</label>
       <select id="sett-universe" class="sett-sel">
+        <option value="all_fno">All F&amp;O stocks — matches F&amp;O Scanner</option>
         <option value="nifty500_fno">Nifty 500 F&amp;O (~500 stocks)</option>
         <option value="nifty100_fno">Nifty 100 F&amp;O (~100 stocks)</option>
         <option value="nifty50">Nifty 50 F&amp;O (~50 stocks)</option>
       </select>
-      <div class="sett-hint">Stocks scanned at capture / each rescan. Smaller universe = fewer candidates, less noise.</div>
+      <div class="sett-hint">Stocks scanned at capture. All F&amp;O = same as F&amp;O Scanner; smaller universes reduce noise and scan time.</div>
     </div>
 
     <div class="sett-group">
@@ -1518,7 +1519,7 @@ function _updateBtPanel(hasCandidates) {
 
   panel.style.display = 'flex';
   const uni = _settings?.universe || 'nifty500_fno';
-  const estMap = { nifty50: '~20s', nifty100_fno: '~50s', nifty500_fno: '~3 min' };
+  const estMap = { all_fno: '~5 min', nifty500_fno: '~3 min', nifty100_fno: '~50s', nifty50: '~20s' };
   const est = estMap[uni] || '';
   const blocked = _inCaptureWindow();
 
@@ -1554,7 +1555,7 @@ async function runBacktest() {
   document.getElementById('candBody').innerHTML  = '<tr><td colspan="10" class="empty-cell">Clearing previous backtest…</td></tr>';
 
   const uni    = _settings?.universe || 'nifty500_fno';
-  const total  = { nifty50: 50, nifty100_fno: 100, nifty500_fno: 500 }[uni] || 500;
+  const total  = { all_fno: 700, nifty500_fno: 500, nifty100_fno: 100, nifty50: 50 }[uni] || 700;
   msg.textContent = `Batch 1 scanning… (0 / ~${total} stocks)`;
 
   // Poll state every 3s so candidates and trades appear as each batch completes

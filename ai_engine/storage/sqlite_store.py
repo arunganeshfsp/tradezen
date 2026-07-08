@@ -389,7 +389,7 @@ def orb_update_trade(conn, trade_id: str, updates: dict):
 
 ORB_SETTING_DEFAULTS: dict = {
     "target_rupees":     "900",
-    "universe":          "nifty500_fno",
+    "universe":          "all_fno",
     "price_min":         "700",
     "price_max":         "7000",
     "dom_min_pct":       "50",

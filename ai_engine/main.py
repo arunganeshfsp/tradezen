@@ -7783,7 +7783,7 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
-    stocks  = [s for s in all_fno if s["symbol"].upper() in n500]
+    stocks  = all_fno  # full F&O universe; per-session setting narrows below
 
     if not stocks:
         log.error("[ORB-SIM] no stocks available in F&O universe")
@@ -7800,6 +7800,12 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
             pool = [s for s in stocks if s["symbol"].upper() in _NIFTY50_SYMS]
         elif st["universe"] == "nifty100_fno":
             pool = [s for s in stocks if s["symbol"].upper() in _NIFTY100_SYMS]
+        elif st["universe"] == "nifty500_fno":
+            pool = [s for s in stocks if s["symbol"].upper() in n500]
+        # else "all_fno": pool = stocks (all F&O, same as F&O Scanner default)
+
+        dom_min = st["dom_min_pct"]
+        min_chg = st["buy_min_chg_pct"]  # single threshold for both sides, mirrors F&O Scanner
 
         buy_cands, sell_cands = [], []
         for s in pool:
@@ -7814,9 +7820,9 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
             strength = round(abs(bp - sp), 1)
             base     = {"symbol": s["symbol"], "token": s["token"],
                         "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength}
-            if bp >= st["dom_min_pct"] and chg >= st["buy_min_chg_pct"]:
+            if bp >= sp and bp >= dom_min and abs(chg) >= min_chg:
                 buy_cands.append(base)
-            if sp >= st["dom_min_pct"] and chg <= -st["sell_min_chg_pct"]:
+            elif sp > bp and sp >= dom_min and abs(chg) >= min_chg:
                 sell_cands.append(base)
 
         buy_cands.sort(key=lambda x: -x["strength"])
