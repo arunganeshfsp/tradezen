@@ -392,7 +392,7 @@ ORB_SETTING_DEFAULTS: dict = {
     "universe":          "nifty500_fno",
     "price_min":         "700",
     "price_max":         "7000",
-    "dom_min_pct":       "60",
+    "dom_min_pct":       "50",
     "max_slots":         "5",
     "default_sl_basis":  "VWAP",
     "candidate_cap":     "25",

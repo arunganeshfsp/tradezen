@@ -571,8 +571,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
     <div class="sett-group">
       <label class="sett-label" for="sett-dom">Order-book dominance filter (%)</label>
-      <input type="number" id="sett-dom" class="sett-inp" min="30" max="90" step="5" placeholder="60" />
-      <div class="sett-hint">Min % on dominant side (buy% for BUY, sell% for SELL). Default: 60%.</div>
+      <input type="number" id="sett-dom" class="sett-inp" min="30" max="90" step="5" placeholder="50" />
+      <div class="sett-hint">Min % on dominant side (buy% for BUY, sell% for SELL). Default: 50% — any majority, same as F&amp;O Scanner. Raise to 60–70% for high-conviction only.</div>
     </div>
 
     <div class="sett-group">
@@ -1069,15 +1069,16 @@ function renderCandidates(cands) {
       liveHtml = `<span class="${cls}">₹${_fmt2(c.live_ltp)}<span style="font-size:10px">${pct}</span></span>`;
     }
 
-    return `<tr>
+    const dimRow = (c.status === 'SKIPPED' || c.status === 'WINDOW_CLOSED') ? ' style="opacity:.45"' : '';
+    return `<tr${dimRow}>
       <td><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
       <td class="sym-cell">${_esc(c.symbol)}</td>
       <td class="num-cell">₹${_fmt2(c.ltp_0916)}</td>
       <td class="num-cell">${chgHtml}</td>
       <td class="num-cell">${liveHtml}</td>
       <td>${domHtml}</td>
-      <td class="num-cell bull-val">₹${_fmt2(c.bench_high)}</td>
-      <td class="num-cell bear-val">₹${_fmt2(c.bench_low)}</td>
+      <td class="num-cell bull-val">${c.bench_high != null ? '₹' + _fmt2(c.bench_high) : '—'}</td>
+      <td class="num-cell bear-val">${c.bench_low  != null ? '₹' + _fmt2(c.bench_low)  : '—'}</td>
       <td class="sl-cell">${slHtml}</td>
       <td>${_statusBadge(c.status)}</td>
     </tr>`;
