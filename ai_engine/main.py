@@ -9054,7 +9054,7 @@ async def simulator_history(request: Request, days: int = 30):
 
 @app.post("/simulator/settings")
 async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
-    _VALID_UNI = {"nifty500_fno", "nifty100_fno", "nifty50"}
+    _VALID_UNI = {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50"}
     _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW", "DAY_SMART", "AMOUNT"}
     errs = []
     if body.universe         and body.universe         not in _VALID_UNI: errs.append("universe")
