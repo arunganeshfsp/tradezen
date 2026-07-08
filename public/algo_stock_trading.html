@@ -598,12 +598,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div class="sett-hint" data-en="Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5." data-ta="தேர்ந்தெடுக்கப்பட்ட நுழைவு தொடக்க நேரத்தில் சிறந்த N BUY மற்றும் SELL வேட்பாளர்களை உள்ளிடுகிறது. முடக்க 0 அமைக்கவும். இயல்புநிலை: 5.">Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5.</div>
     </div>
 
-    <div class="sett-group">
-      <label class="sett-label" for="sett-rescan" data-en="Periodic rescan interval (minutes)" data-ta="கால இடைவெளி மறுஸ்கேன் (நிமிடங்கள்)">Periodic rescan interval (minutes)</label>
-      <input type="number" id="sett-rescan" class="sett-inp" min="0" max="60" step="1" placeholder="5" />
-      <div class="sett-hint" data-en="Re-scans for new qualifying stocks every N minutes until the entry window closes. Set to 0 for a single scan only. Default: 5." data-ta="நுழைவு சாளரம் மூடும் வரை ஒவ்வொரு N நிமிடமும் புதிய தகுதியான பங்குகளை மறுஸ்கேன் செய்கிறது. ஒற்றை ஸ்கேனுக்கு 0 அமைக்கவும். இயல்புநிலை: 5.">Re-scans for new qualifying stocks every N minutes until the entry window closes. Set to 0 for a single scan only. Default: 5.</div>
-    </div>
-
     <div class="sett-group" style="border-left:3px solid rgba(255,77,77,0.5);padding-left:12px">
       <label class="sett-label" for="sett-losslimit">Daily loss limit (₹)</label>
       <input type="number" id="sett-losslimit" class="sett-inp" min="0" max="100000" step="100" placeholder="0" />
@@ -1702,7 +1696,6 @@ function renderSettings(s) {
   set('sett-buyminchg',  s.buy_min_chg_pct);
   set('sett-sellminchg', s.sell_min_chg_pct);
   set('sett-autotrig',   s.auto_trigger_count);
-  set('sett-rescan',     s.rescan_interval_min);
   set('sett-losslimit',  s.daily_loss_limit);
   set('sett-trailsl',    s.trailing_sl_points);
   set('sett-slipticks',  s.slippage_ticks);
@@ -1733,7 +1726,6 @@ async function saveSettings() {
   const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
   const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
   const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count  = parseInt(atc);
-  const rsc = val('sett-rescan');      if (rsc !== null && rsc !== '') body.rescan_interval_min = parseInt(rsc);
   const dll = val('sett-losslimit');   if (dll !== null && dll !== '') body.daily_loss_limit    = parseFloat(dll);
   const tsl = val('sett-trailsl');     if (tsl !== null && tsl !== '') body.trailing_sl_points  = parseFloat(tsl);
   const slt = val('sett-slipticks');   if (slt !== null && slt !== '') body.slippage_ticks       = parseInt(slt);

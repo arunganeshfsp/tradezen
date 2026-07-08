@@ -383,6 +383,39 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .st-info .st-price{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:3px}
 [data-theme="light"] .signal-toast{background:rgba(255,255,255,0.98)}
 [data-theme="light"] .signal-monitor{background:rgba(46,204,113,0.04);border-color:rgba(46,204,113,0.2)}
+
+/* ── Tutorial ── */
+.tut-help-btn{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--accent);background:rgba(124,106,247,0.1);
+  border:1px solid rgba(124,106,247,0.3);border-radius:6px;padding:5px 12px;
+  cursor:pointer;transition:background .2s;white-space:nowrap}
+.tut-help-btn:hover{background:rgba(124,106,247,0.22)}
+#tutBackdrop{position:fixed;inset:0;z-index:9997;background:transparent;display:none}
+#tutSpotlight{position:fixed;z-index:9999;border-radius:10px;pointer-events:none;display:none;
+  box-shadow:0 0 0 9999px rgba(10,12,24,0.86),0 0 0 3px rgba(124,106,247,0.45);
+  transition:top .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1),
+             width .28s cubic-bezier(.4,0,.2,1),height .28s cubic-bezier(.4,0,.2,1)}
+#tutCard{position:fixed;z-index:10000;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:14px;padding:22px 24px 18px;width:340px;display:none;
+  box-shadow:0 12px 40px rgba(0,0,0,0.65);
+  transition:top .28s cubic-bezier(.4,0,.2,1),left .28s cubic-bezier(.4,0,.2,1)}
+.tut-step-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.tut-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;
+  margin-bottom:8px;line-height:1.25}
+.tut-body{font-size:13px;color:var(--dim);line-height:1.65;margin-bottom:18px}
+.tut-body strong{color:var(--text)}
+.tut-nav{display:flex;align-items:center;gap:8px}
+.tut-btn{font-family:'JetBrains Mono',monospace;font-size:10px;padding:7px 14px;
+  border-radius:7px;border:1px solid var(--border2);cursor:pointer;
+  background:var(--bg3);color:var(--text);transition:background .15s}
+.tut-btn:hover{background:var(--bg4)}
+.tut-btn:disabled{opacity:.35;cursor:default;pointer-events:none}
+.tut-btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.tut-btn-primary:hover{background:#6958e8}
+.tut-skip{margin-left:auto;font-size:11px;color:var(--muted);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;text-decoration:underline;text-underline-offset:3px}
+.tut-skip:hover{color:var(--text)}
 </style>
 </head>
 <body>
@@ -443,6 +476,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <span class="live-btn-dot"></span>
     LIVE WATCH
   </button>
+  <button class="tut-help-btn" onclick="startTutorial()" data-en="? How it works" data-ta="? இது எப்படி">? How it works</button>
   <div class="ctrl-status">
     <span class="pulse-dot" id="pulseDot"></span>
     <span id="statusText">Connecting…</span>
@@ -567,12 +601,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div class="sett-hint" data-en="Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5." data-ta="தேர்ந்தெடுக்கப்பட்ட நுழைவு தொடக்க நேரத்தில் சிறந்த N BUY மற்றும் SELL வேட்பாளர்களை உள்ளிடுகிறது. முடக்க 0 அமைக்கவும். இயல்புநிலை: 5.">Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5.</div>
     </div>
 
-    <div class="sett-group">
-      <label class="sett-label" for="sett-rescan" data-en="Periodic rescan interval (minutes)" data-ta="கால இடைவெளி மறுஸ்கேன் (நிமிடங்கள்)">Periodic rescan interval (minutes)</label>
-      <input type="number" id="sett-rescan" class="sett-inp" min="0" max="60" step="1" placeholder="5" />
-      <div class="sett-hint" data-en="Re-scans for new qualifying stocks every N minutes until the entry window closes. Set to 0 for a single scan only. Default: 5." data-ta="நுழைவு சாளரம் மூடும் வரை ஒவ்வொரு N நிமிடமும் புதிய தகுதியான பங்குகளை மறுஸ்கேன் செய்கிறது. ஒற்றை ஸ்கேனுக்கு 0 அமைக்கவும். இயல்புநிலை: 5.">Re-scans for new qualifying stocks every N minutes until the entry window closes. Set to 0 for a single scan only. Default: 5.</div>
-    </div>
-
     <hr class="sett-divider" />
 
     <button class="save-btn" id="saveSettBtn" onclick="saveSettings()">Apply Settings</button>
@@ -639,7 +667,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   </div>
 
   <!-- TRADES PANEL -->
-  <div class="panel-card">
+  <div class="panel-card" id="tradePanel">
     <div class="panel-hdr">
       <span class="phdr-title" data-en="SIMULATED TRADES" data-ta="உருவக வர்த்தகம்">SIMULATED TRADES</span>
       <span id="totalPnl" class="pnl-badge">₹0.00</span>
@@ -677,7 +705,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   </div>
 
   <!-- CANDIDATES PANEL -->
-  <div class="panel-card">
+  <div class="panel-card" id="candPanel">
     <div class="panel-hdr">
       <span class="phdr-title" data-en="CANDIDATE STOCKS" data-ta="தேர்ந்த பங்குகள்">CANDIDATE STOCKS</span>
       <div class="side-tabs">
@@ -759,6 +787,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <!-- DISCLAIMER -->
 <div style="text-align:center;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);border-top:1px solid var(--border);margin-top:8px">
   For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
+</div>
+
+<!-- Tutorial overlay -->
+<div id="tutBackdrop"></div>
+<div id="tutSpotlight"></div>
+<div id="tutCard">
+  <div class="tut-step-lbl" id="tutStepLbl"></div>
+  <div class="tut-title" id="tutTitle"></div>
+  <div class="tut-body" id="tutBody"></div>
+  <div class="tut-nav">
+    <button class="tut-btn" id="tutPrev">← Back</button>
+    <button class="tut-btn tut-btn-primary" id="tutNext">Next →</button>
+    <span class="tut-skip" id="tutSkip">Skip</span>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -1579,7 +1621,6 @@ function renderSettings(s) {
   set('sett-buyminchg',  s.buy_min_chg_pct);
   set('sett-sellminchg', s.sell_min_chg_pct);
   set('sett-autotrig',   s.auto_trigger_count);
-  set('sett-rescan',     s.rescan_interval_min);
 }
 
 async function saveSettings() {
@@ -1606,7 +1647,6 @@ async function saveSettings() {
   const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
   const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
   const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count  = parseInt(atc);
-  const rsc = val('sett-rescan');      if (rsc !== null && rsc !== '') body.rescan_interval_min = parseInt(rsc);
 
   try {
     const r = await fetch(`${API}/settings`, {
@@ -1632,10 +1672,153 @@ async function saveSettings() {
   }
 }
 
+// ── Tutorial ──────────────────────────────────────────────────────────────
+const _TUT_STEPS = [
+  { el: null,
+    title: { en: 'Welcome to ORB Simulator', ta: 'ORB சிமுலேட்டருக்கு வரவேற்கிறோம்' },
+    body:  { en: 'This tool studies the <strong>Opening Range Breakout (ORB)</strong> strategy on paper — no real orders are placed. Observe how stocks behave after breaking their 09:15–09:16 opening range.',
+             ta: 'இந்தக் கருவி <strong>Opening Range Breakout (ORB)</strong> உத்தியை காகிதத்தில் ஆய்வு செய்கிறது — உண்மையான ஆர்டர்கள் வைக்கப்படுவதில்லை. 09:15–09:16 ஆரம்ப வரம்பை உடைக்கும் பங்குகளை கவனிக்கலாம்.' } },
+  { el: '#datePicker',  pos: 'bottom',
+    title: { en: 'Session Date', ta: 'தேதி தேர்வு' },
+    body:  { en: 'Pick any trading date to study. Today\'s live session auto-refreshes every few seconds. Selecting a <strong>past date</strong> loads historical data and reveals the backtest panel.',
+             ta: 'ஆய்வு செய்ய ஏதேனும் வர்த்தக தேதியைத் தேர்ந்தெடுக்கவும். இன்றைய நேரடி அமர்வு தானாக புதுப்பிக்கப்படும். <strong>கடந்த தேதி</strong> தேர்ந்தெடுத்தால் வரலாற்று தரவு ஏற்றப்படும்.' } },
+  { el: '#candPanel',   pos: 'top',
+    title: { en: 'Candidate Stocks', ta: 'வேட்பாளர் பங்குகள்' },
+    body:  { en: 'At <strong>09:16 AM</strong> the engine scans all stocks and filters those that qualify by price range, order-book dominance, and % change from yesterday\'s close. Use <strong>Scan Now</strong> anytime to manually add more candidates — they are never blocked by the time window.',
+             ta: '<strong>காலை 09:16</strong> மணிக்கு இயந்திரம் அனைத்து பங்குகளையும் ஸ்கேன் செய்கிறது. விலை வரம்பு, ஆர்டர் புக் ஆதிக்கம், நேற்றிலிருந்து % மாற்றம் ஆகியவற்றால் தகுதியானவை தேர்ந்தெடுக்கப்படும். <strong>Scan Now</strong> மூலம் கைமுறையாக கூடுதல் வேட்பாளர்களை சேர்க்கலாம் — இவை நேர சாளரத்தால் மூடப்படாது.' } },
+  { el: '#candPanel',   pos: 'top',
+    title: { en: 'Entry Trigger: Bench High & Low', ta: 'நுழைவு தூண்டல்: Bench High & Low' },
+    body:  { en: '<strong>Bench High</strong> is the fixed trigger for BULLISH setups — when live LTP crosses above this level, a paper trade is entered. <strong>Bench Low</strong> is the trigger for BEARISH setups. These levels are locked at scan time and never move during the session.',
+             ta: '<strong>Bench High</strong> என்பது ஏறுமுக அமைப்புகளுக்கான நிலையான தூண்டல் — நேரடி விலை இதை தாண்டும்போது காகித வர்த்தகம் நுழைகிறது. <strong>Bench Low</strong> இறங்குமுக அமைப்புகளுக்கானது. இந்த நிலைகள் ஸ்கேன் நேரத்திலேயே நிர்ணயிக்கப்படும், மாறாது.' } },
+  { el: '#tradePanel',  pos: 'top',
+    title: { en: 'Simulated Trades', ta: 'உருவக வர்த்தகம்' },
+    body:  { en: 'When a candidate\'s live price crosses its trigger level, a <strong>paper trade</strong> appears here. Track the fill price, invalidation (SL), reference target, and live study P/L. You can manually square off any open position.',
+             ta: 'ஒரு வேட்பாளரின் நேரடி விலை தூண்டல் நிலையை தாண்டும்போது, இங்கே <strong>காகித வர்த்தகம்</strong> தோன்றுகிறது. நுழைவு விலை, SL, இலக்கு, நேரடி படிப்பு லாப/நஷ்டம் கண்காணிக்கலாம். திறந்த நிலைகளை கைமுறையாக முடிக்கலாம்.' } },
+  { el: '.summary-strip', pos: 'top',
+    title: { en: 'Session Summary', ta: 'அமர்வு சுருக்கம்' },
+    body:  { en: 'Track overall study P/L, how many setups reached the <strong>reference target</strong> (green) or were <strong>invalidated</strong> (red), open investment, and win rate — all for educational analysis only.',
+             ta: 'மொத்த படிப்பு லாப/நஷ்டம், <strong>இலக்கை அடைந்த</strong> (பச்சை) மற்றும் <strong>செல்லாமல் போன</strong> (சிவப்பு) அமைப்புகள், திறந்த முதலீடு, வெற்றி விகிதம் — அனைத்தும் கல்வி ஆய்வுக்கு மட்டுமே.' } },
+  { el: '.settings-btn', pos: 'bottom',
+    title: { en: 'Engine Settings', ta: 'இயந்திர அமைப்புகள்' },
+    body:  { en: 'Customise your session: set <strong>target & SL amounts</strong> per trade, filter stocks by price range and dominance %, cap daily trades, and define entry / square-off windows. Settings apply from the <strong>next day\'s 09:16 scan</strong>.',
+             ta: 'உங்கள் அமர்வை தனிப்பயனாக்குங்கள்: ஒவ்வொரு வர்த்தகத்திற்கும் <strong>இலக்கு & SL தொகைகள்</strong>, விலை வரம்பு மற்றும் ஆதிக்க % வடிகட்டிகள், தினசரி வர்த்தக வரம்பு, நுழைவு / முடிவு சாளரங்கள். அமைப்புகள் <strong>அடுத்த நாள் 09:16 ஸ்கேன்</strong> முதல் பயனாகும்.' } },
+  { el: '#btCard',      pos: 'bottom',
+    title: { en: 'Historical Backtest', ta: 'வரலாற்று பேக்டெஸ்ட்' },
+    body:  { en: 'Select a <strong>past date</strong> to reveal this panel. Run the ORB algorithm on historical candles to see which setups would have triggered — great for studying patterns without waiting for market hours.',
+             ta: '<strong>கடந்த தேதியை</strong> தேர்வு செய்தால் இந்த பேனல் தெரியும். வரலாற்று கேண்டிலில் ORB வழிமுறையை இயக்கி எந்த அமைப்புகள் தூண்டப்பட்டிருக்கும் என்று பாருங்கள் — சந்தை நேரம் தேவையில்லை.' } },
+];
+
+let _tutIdx   = 0;
+let _tutActive = false;
+
+function startTutorial(idx) {
+  _tutIdx    = idx != null ? idx : 0;
+  _tutActive = true;
+  document.getElementById('tutBackdrop').style.display  = 'block';
+  document.getElementById('tutSpotlight').style.display = 'block';
+  document.getElementById('tutCard').style.display      = 'block';
+  _tutRender(_tutIdx);
+}
+
+function _tutClose() {
+  _tutActive = false;
+  ['tutBackdrop','tutSpotlight','tutCard'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  try { localStorage.setItem('tz_orb_tut_done','1'); } catch(_) {}
+}
+
+function _tutRender(idx) {
+  const step = _TUT_STEPS[idx];
+  const lang = document.documentElement.getAttribute('data-lang') || 'en';
+  const isTa = lang === 'ta';
+  const spot = document.getElementById('tutSpotlight');
+  const card = document.getElementById('tutCard');
+
+  document.getElementById('tutStepLbl').textContent = `${idx + 1} / ${_TUT_STEPS.length}`;
+  document.getElementById('tutTitle').textContent   = step.title[lang] || step.title.en;
+  document.getElementById('tutBody').innerHTML      = step.body[lang]  || step.body.en;
+
+  const isFirst = idx === 0, isLast = idx === _TUT_STEPS.length - 1;
+  const prev = document.getElementById('tutPrev');
+  const next = document.getElementById('tutNext');
+  const skip = document.getElementById('tutSkip');
+
+  prev.disabled    = isFirst;
+  prev.textContent = isTa ? '← பின்' : '← Back';
+  next.textContent = isLast ? (isTa ? 'முடிந்தது ✓' : 'Finish ✓') : (isTa ? 'அடுத்து →' : 'Next →');
+  next.onclick     = isLast ? _tutClose : () => _tutRender(idx + 1);
+  prev.onclick     = () => _tutRender(idx - 1);
+  skip.textContent = isTa ? 'தவிர்' : 'Skip';
+  skip.onclick     = _tutClose;
+
+  if (!step.el) {
+    spot.style.display = 'none';
+    _tutCenter(card);
+    return;
+  }
+  const el = document.querySelector(step.el);
+  if (!el) { spot.style.display = 'none'; _tutCenter(card); return; }
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => _tutPositionAt(el, step.pos || 'bottom', spot, card), 320);
+}
+
+function _tutCenter(card) {
+  card.style.transform = 'translate(-50%,-50%)';
+  card.style.top  = '50%';
+  card.style.left = '50%';
+}
+
+function _tutPositionAt(el, pos, spot, card) {
+  const PAD = 8, GAP = 14, CW = 340;
+  const r  = el.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+
+  if (!r.width || !r.height) {
+    spot.style.display = 'none';
+    _tutCenter(card);
+    return;
+  }
+
+  spot.style.display = 'block';
+  spot.style.top    = (r.top    - PAD) + 'px';
+  spot.style.left   = (r.left   - PAD) + 'px';
+  spot.style.width  = (r.width  + PAD * 2) + 'px';
+  spot.style.height = (r.height + PAD * 2) + 'px';
+  card.style.transform = '';
+
+  const CH = card.offsetHeight || 230;
+  let top, left;
+
+  if (pos === 'top' || (pos === 'bottom' && r.bottom + GAP + CH > vh - 12)) {
+    top = r.top - PAD - GAP - CH;
+    if (top < 12) top = r.bottom + PAD + GAP;
+  } else {
+    top = r.bottom + PAD + GAP;
+  }
+
+  left = r.left + r.width / 2 - CW / 2;
+  left = Math.max(12, Math.min(left, vw - CW - 12));
+  top  = Math.max(12, Math.min(top,  vh - CH - 12));
+
+  card.style.left = left + 'px';
+  card.style.top  = top  + 'px';
+}
+
+// Re-render current step on language switch
+(function() {
+  const _prev = window.onLangChange;
+  window.onLangChange = function(lang) {
+    if (_prev) _prev(lang);
+    if (_tutActive) _tutRender(_tutIdx);
+  };
+})();
+
 // ── Boot ──────────────────────────────────────────────────────────────────
 loadSettings();
 loadState();
 startPolling();
+if (!localStorage.getItem('tz_orb_tut_done')) setTimeout(startTutorial, 900);
 </script>
 </body>
 </html>

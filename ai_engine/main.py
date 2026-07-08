@@ -7962,7 +7962,7 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             day_h = q.get("high") or bh   # live session high; fallback to bench
             day_l = q.get("low")  or bl   # live session low; fallback to bench
 
-            if not ((side == "BUY" and ltp > day_h) or (side == "SELL" and ltp < day_l)):
+            if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
                 continue
 
             if c["symbol"] in triggered_syms:
@@ -8323,12 +8323,7 @@ async def _orb_simulator_loop():
             # Capture / periodic rescan logic
             conn      = get_conn()
             candidates = orb_get_candidates(conn, today)
-            shared_st  = orb_get_settings(conn, "")
             conn.close()
-
-            rescan_iv    = shared_st["rescan_interval_min"]
-            entry_end    = _orb_parse_hhmm(shared_st.get("entry_window_end", "10:30"), 10, 30)
-            within_entry = _SIM_FORCE or t < entry_end
 
             if _last_capture_time is None and candidates:
                 # Server restarted with existing candidates — anchor timestamp to now
@@ -8339,14 +8334,11 @@ async def _orb_simulator_loop():
                 _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
                 now_ist = _last_capture_time
                 await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
-            elif (_orb_force_rescan or
-                  (rescan_iv > 0 and within_entry and
-                   (now_ist - _last_capture_time).total_seconds() / 60 >= rescan_iv)):
-                # Periodic rescan or manual scan-now — only adds newly qualifying symbols
-                is_manual = bool(_orb_force_rescan)
+            elif _orb_force_rescan:
+                # Manual scan-now only — no automatic timer-based rescan
                 _orb_force_rescan = False
                 rescan_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now, is_manual)
+                await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now, True)
                 _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
                 now_ist = _last_capture_time
                 await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
@@ -8940,7 +8932,6 @@ class _OrbSettingsBody(BaseModel):
     buy_min_chg_pct:     float | None = None
     sell_min_chg_pct:    float | None = None
     auto_trigger_count:  int   | None = None
-    rescan_interval_min: int   | None = None
     daily_loss_limit:    float | None = None
     trailing_sl_points:  float | None = None
     slippage_ticks:      int   | None = None
@@ -9058,7 +9049,6 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.buy_min_chg_pct    is not None and not (0 <= body.buy_min_chg_pct  <= 20): errs.append("buy_min_chg_pct must be 0–20")
     if body.sell_min_chg_pct   is not None and not (0 <= body.sell_min_chg_pct <= 20): errs.append("sell_min_chg_pct must be 0–20")
     if body.auto_trigger_count  is not None and not (0 <= body.auto_trigger_count  <= 20): errs.append("auto_trigger_count must be 0–20")
-    if body.rescan_interval_min is not None and not (0 <= body.rescan_interval_min <= 60): errs.append("rescan_interval_min must be 0–60")
     if body.daily_loss_limit    is not None and not (0 <= body.daily_loss_limit <= 100000): errs.append("daily_loss_limit must be 0–100000")
     if body.trailing_sl_points  is not None and not (0 <= body.trailing_sl_points <= 500):  errs.append("trailing_sl_points must be 0–500")
     if body.slippage_ticks      is not None and not (0 <= body.slippage_ticks <= 20):       errs.append("slippage_ticks must be 0–20")
