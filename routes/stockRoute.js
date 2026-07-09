@@ -1166,7 +1166,7 @@ router.post("/simulator/settings", _simAuth, async (req, res) => {
 // ─── POST /api/simulator/scan-now ────────────────────────────────────────────
 router.post("/simulator/scan-now", _simAuth, async (req, res) => {
   try {
-    const data = await aiService.proxy("POST", "/simulator/scan-now", 8000, {}, _simHdr(req));
+    const data = await aiService.proxy("POST", "/simulator/scan-now", 8000, req.body || {}, _simHdr(req));
     res.json(data);
   } catch (err) {
     const status = err.status === 400 ? 400 : 500;

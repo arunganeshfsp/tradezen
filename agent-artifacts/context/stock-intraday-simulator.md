@@ -7,7 +7,61 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-07-07 (day-high/low trigger, % change filter, auto-trigger, periodic rescan, scan-now button)
+**Last updated:** 2026-07-09 (strict rules: scan-price ±1 entry, manual scan popup, auto-trigger removed, fixed SL rule)
+
+---
+
+## 2026-07-09 (later) — Fixed SL Rule: VWAP-else-Day-Extreme
+
+User rule: "Stop loss should be vwap or day low for buy order and day high for sell order."
+
+**What changed**
+- SL basis is no longer a user choice. Decided at trigger time:
+  BUY → `VWAP` if `vwap < fill_price` else `DAY_LOW`; SELL → `VWAP` if `vwap > fill_price` else `DAY_HIGH`.
+  Applied in `_orb_trigger_poll_sync` (live) and backtest phase 2 (using entry-time VWAP/day extremes). Trade rows record the basis actually used.
+- Capture and backtest phase 1 store `sl_basis = "SMART"` on candidates (rule marker; resolved later).
+- Engine ignores `default_sl_basis` / `sl_amount_rupees` settings entirely (removed from backtest settings reads; AMOUNT/CUSTOM bases unreachable from the simulator engine).
+- Simulator UI: per-candidate SL dropdown + custom-SL input REMOVED (static label "VWAP / Day Low" or "VWAP / Day High"); settings "Default SL basis" select + "SL amount ₹" input replaced by a static rule description; related CSS (.sl-sel/.custom-sl-*/.sl-ok) and `onSlChange`/`commitCustomSl`/`_doSetSl` deleted.
+
+**Kept for algo-page compat (not dead code):** `POST /simulator/sl-basis` endpoint, `_OrbSlBasisBody`, `orb_update_candidate_sl`, and the `default_sl_basis`/`sl_amount_rupees` settings fields — algo_stock_trading.html still calls/sends them; the engine simply ignores stored basis at trigger time. Remove when the algo page is aligned.
+
+**Caveat:** day low/high come from the live quote; fallback to bench_low/bench_high (scan ± 1) when the quote lacks them — both always protect the trade given the entry is beyond scan ± 1.
+
+---
+
+## 2026-07-09 — Strict Rules: Scan-Price ±1 Entry + Manual Scan Popup
+
+User defined strict engine rules; several old behaviors violated them and were removed.
+
+**Entry/exit definition (replaces bench candle + day-H/L triggers)**
+- Each candidate's scan-time LTP (`ltp_0916`) is persisted; trigger levels locked at scan:
+  `bench_high = ltp + 1` (BUY triggers when live LTP > this), `bench_low = ltp − 1` (SELL when LTP < this).
+  Example: scanned at ₹1500 → BUY above ₹1501, SELL below ₹1499. Column names are legacy; UI shows "Trigger Above / Trigger Below".
+- No more bench-candle fetches in capture — the 0.35s/stock `fetch_candles` loop is gone; scans are quote-only and fast. "Candle unavailable" SKIPPED status no longer exists.
+- `resolve_stop_loss()` (core/orb_simulator.py): bench-range validation REMOVED (with a ±1 band it rejected every VWAP stop). Only direction checks remain (BUY: SL < entry; SELL: SL > entry).
+- Backtest phase 1 uses the same rule: `bench = ltp_0916 ± 1`; strength ranking heuristic still derived from 09:15 candle range (no historical order-book data).
+
+**Auto scan**
+- Fires once when IST clock reaches `entry_window_start` (default 09:20). ALL candidates then WAIT for their trigger — `_orb_auto_trigger_sync` (instant entries at capture price) DELETED, `auto_trigger_count` setting removed everywhere (sqlite defaults, settings body, validation, UI field; `orb_get_settings` pops legacy stored keys).
+- Engine loop rewritten: `_auto_scan_done`/`_seen_pre_capture` day-flags replace `_last_capture_time`. Restart mid-day with existing candidates ⇒ auto scan assumed done; restart pre-capture still auto-scans on time.
+
+**Manual scan (Scan Now)**
+- Frontend: `scanNow()` opens `#scanOverlay` popup (universe / price range / dominance min % / min move %), prefilled from saved settings. `runManualScan()` POSTs overrides to `/api/simulator/scan-now`. Overrides are session-only — never persisted to settings.
+- Backend: `_OrbScanNowBody` (price_min/price_max/dom_min_pct/min_chg_pct/universe); global `_orb_manual_scan_req = {"user", "overrides"}` replaces `_orb_force_rescan` bool. Engine consumes it anytime from 09:15 (works before auto-scan time too; pre-capture gate now also runs trigger/outcome polls when candidates exist).
+- Manual scan DELETES existing non-TRIGGERED candidates for that session and inserts the fresh list (TRIGGERED symbols keep trades, are not re-listed). `min_chg_pct` maps onto both buy/sell thresholds.
+- Endpoint 400s when: market closed (outside 09:15–15:30 / weekend, unless SIM_FORCE), session already at max_slots, invalid universe/ranges.
+- Node route now forwards `req.body`.
+
+**Slot budget** — unchanged mechanism, now rule-verified: trigger poll counts ALL trades today per session vs `max_slots`; trades from auto scan consume budget available for manual-scan candidates (2 used of 5 ⇒ only 3 more can trigger).
+
+**Frontend (stock_intraday_simulator.html)**
+- Table headers: Bench High/Low → "Trigger Above" / "Trigger Below" (CSV headers too); auto-trigger settings field removed; tutorial steps rewritten (scan-price ±1 rule, manual-scan-replaces-watchlist); SKIPPED/WINDOW_CLOSED rows render at 0.45 opacity; null trigger levels show "—" not "₹—".
+- `algo_stock_trading.html` was intentionally NOT updated this round (user scoped to simulator page) — its auto-trigger settings field is now a silent no-op (backend ignores unknown fields) and its scanNow() still posts `'{}'` (valid: empty overrides). Align it when asked.
+
+**Known caveats**
+- `bench_high`/`bench_low` DB columns retained (schema unchanged) but semantics are now "trigger above/below".
+- Manual scan request is a single-slot global; concurrent scans from two sessions within the same 5s tick — last one wins (first is dropped silently). Acceptable for current usage.
+- A manual scan pre-09:20 followed by the 09:20 auto scan: auto scan UPSERTS on top of the manual watch list (does not delete), so both sets coexist; manual symbols keep their never-WINDOW_CLOSED exemption.
 
 ---
 
@@ -135,16 +189,15 @@ Stored in `orb_settings` SQLite table (key-value). Read by the background engine
 |---|---|---|
 | `target_rupees` | 900 | Study P/L target ₹ per trade |
 | `max_slots` | 5 | Max concurrent open simulated trades |
-| `universe` | nifty500_fno | Stock universe: `nifty500_fno` / `nifty100_fno` / `nifty50` |
+| `universe` | all_fno | Stock universe: `all_fno` / `nifty500_fno` / `nifty100_fno` / `nifty50` |
 | `default_sl_basis` | VWAP | SL basis applied to candidates at capture; per-stock override still possible |
 | `price_min` | 700 | Min price filter (₹) |
 | `price_max` | 7000 | Max price filter (₹) |
-| `dom_min_pct` | 60 | Min order-book dominance % to qualify as candidate |
+| `dom_min_pct` | 50 | Min order-book dominance % to qualify as candidate (50 = any majority, matches F&O Scanner) |
 | `candidate_cap` | 25 | Max candidates kept per side (after sorting by dominance strength) |
-| `buy_min_chg_pct` | 1.0 | Min % gain from prev close to qualify as BUY candidate |
-| `sell_min_chg_pct` | 1.0 | Min % drop from prev close to qualify as SELL candidate |
-| `auto_trigger_count` | 5 | Top N candidates per side auto-entered at capture price; 0 = disabled |
-| `rescan_interval_min` | 5 | Re-scan every N minutes within entry window; 0 = single scan only |
+| `entry_window_start` | 09:20 | Auto-scan time (HH:MM); also drives status messages |
+| `buy_min_chg_pct` | 1.0 | Min abs % move from prev close (single threshold for both sides since 2026-07-08) |
+| `sell_min_chg_pct` | 1.0 | Legacy mirror of the above; kept for API compat |
 
 Helper functions in `storage/sqlite_store.py`: `orb_get_settings(conn)` (returns typed dict with defaults), `orb_upsert_settings(conn, updates)`.
 

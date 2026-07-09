@@ -7648,7 +7648,8 @@ async def stock_health(symbol: str):
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ORB Stock Intraday Simulator — server-side background engine
-# Capture: 09:16 IST · Entry window: 09:16–10:30 · Outcome tracking: 09:16–15:30
+# Auto scan at entry_window_start (settings) · Entry: LTP crosses scan price ± 1
+# Manual scan anytime with session-only filters · Outcome tracking until square-off
 # ══════════════════════════════════════════════════════════════════════════════
 
 from core.orb_simulator import (
@@ -7702,7 +7703,7 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 _orb_ltp_cache:        dict = {}
 _orb_chg_cache:        dict = {}   # token → change_pct from yesterday's close
 _orb_trail_peaks:      dict = {}   # trade_id → best_price_seen (high for BUY, low for SELL)
-_orb_force_rescan:     bool = False  # set by scan-now endpoint; consumed by engine loop
+_orb_manual_scan_req:  dict | None = None  # {"user": session_id, "overrides": {...}} set by scan-now; consumed by engine loop
 _orb_manual_symbols:   set  = set()  # (symbol, side, user_id) added via manual scan-now; never WINDOW_CLOSED
 
 
@@ -7743,12 +7744,18 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
     return result
 
 
-def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bool = False):
-    """Quote F&O universe, filter/rank/cut, fetch bench candles, persist candidates.
-    rescan=True: uses current-1min candle as bench; only inserts symbols not already WAITING/TRIGGERED.
-    manual=True: adds newly inserted WAITING candidates to _orb_manual_symbols (never WINDOW_CLOSED)."""
-    import time as _t
-    label = "rescan" if rescan else "capture"
+def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
+                      manual_user: str = "", overrides: dict | None = None):
+    """Quote F&O universe, filter/rank/cut, persist candidates.
+
+    Entry levels are locked at scan time: BUY triggers when LTP > scan price + 1,
+    SELL when LTP < scan price - 1 (levels stored in bench_high / bench_low).
+
+    manual=True: scans only `manual_user`'s session with session-only filter
+    `overrides` (never persisted to settings). The existing untriggered watch
+    list is replaced; TRIGGERED symbols keep their trades and are not re-listed.
+    Manual candidates never expire via WINDOW_CLOSED."""
+    label = "manual scan" if manual else "capture"
     log.info(f"[ORB-SIM] {label} starting for {today}")
     smart_s = _get_smart()
     if not smart_s:
@@ -7756,30 +7763,18 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
         return
 
     conn     = get_conn()
-    sessions = [""] + orb_list_setting_users(conn)
+    sessions = [manual_user] if manual else [""] + orb_list_setting_users(conn)
     sess_settings = {u: orb_get_settings(conn, u) for u in sessions}
     conn.close()
 
-    # For rescan: determine bench candle window and existing candidates to skip
-    if rescan:
-        if now_ist is None:
-            now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
-        bench_min   = now_ist.replace(second=0, microsecond=0) - timedelta(minutes=1)
-        candle_from = bench_min.strftime("%H:%M")
-        candle_to   = now_ist.replace(second=0, microsecond=0).strftime("%H:%M")
-        conn_ex = get_conn()
-        all_existing = orb_get_candidates(conn_ex, today)
-        conn_ex.close()
-        existing_by_sess: dict = {}
-        for cx in all_existing:
-            if cx["status"] in ("WAITING", "TRIGGERED"):
-                existing_by_sess.setdefault(cx["user_id"], set()).add((cx["symbol"], cx["side"]))
-    else:
-        entry_start = sess_settings.get("", {}).get("entry_window_start", "09:20")
-        h, m        = map(int, entry_start.split(":"))
-        candle_to   = entry_start
-        candle_from = f"{h:02d}:{m-1:02d}" if m > 0 else f"{h-1:02d}:59"
-        existing_by_sess = {}
+    if manual and overrides:
+        st_m = sess_settings[manual_user]
+        for k in ("price_min", "price_max", "dom_min_pct", "universe"):
+            if overrides.get(k) is not None:
+                st_m[k] = overrides[k]
+        if overrides.get("min_chg_pct") is not None:
+            st_m["buy_min_chg_pct"]  = overrides["min_chg_pct"]
+            st_m["sell_min_chg_pct"] = overrides["min_chg_pct"]
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
@@ -7789,8 +7784,16 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
         log.error("[ORB-SIM] no stocks available in F&O universe")
         return
 
-    token_to_sym = {s["token"]: s["symbol"] for s in stocks}
-    quotes       = _orb_raw_quotes(smart_s, [s["token"] for s in stocks])
+    quotes = _orb_raw_quotes(smart_s, [s["token"] for s in stocks])
+
+    # Symbols already TRIGGERED today keep their trades and are never re-listed
+    conn_ex = get_conn()
+    all_existing = orb_get_candidates(conn_ex, today)
+    conn_ex.close()
+    triggered_by_sess: dict = {}
+    for cx in all_existing:
+        if cx["status"] == "TRIGGERED":
+            triggered_by_sess.setdefault(cx["user_id"], set()).add(cx["symbol"])
 
     per_session = {}
     for u in sessions:
@@ -7804,13 +7807,14 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
             pool = [s for s in stocks if s["symbol"].upper() in n500]
         # else "all_fno": pool = stocks (all F&O, same as F&O Scanner default)
 
-        dom_min = st["dom_min_pct"]
-        min_chg = st["buy_min_chg_pct"]  # single threshold for both sides, mirrors F&O Scanner
+        dom_min   = st["dom_min_pct"]
+        min_chg   = st["buy_min_chg_pct"]  # single threshold for both sides, mirrors F&O Scanner
+        triggered = triggered_by_sess.get(u, set())
 
         buy_cands, sell_cands = [], []
         for s in pool:
             q = quotes.get(s["token"])
-            if not q:
+            if not q or s["symbol"] in triggered:
                 continue
             ltp = q["ltp"]
             if not (st["price_min"] <= ltp <= st["price_max"]):
@@ -7819,7 +7823,8 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
             chg      = q.get("change_pct", 0)
             strength = round(abs(bp - sp), 1)
             base     = {"symbol": s["symbol"], "token": s["token"],
-                        "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength}
+                        "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength,
+                        "bench_high": round(ltp + 1, 2), "bench_low": round(ltp - 1, 2)}
             if bp >= sp and bp >= dom_min and abs(chg) >= min_chg:
                 buy_cands.append(base)
             elif sp > bp and sp >= dom_min and abs(chg) >= min_chg:
@@ -7827,53 +7832,29 @@ def _orb_capture_sync(today: str, rescan: bool = False, now_ist=None, manual: bo
 
         buy_cands.sort(key=lambda x: -x["strength"])
         sell_cands.sort(key=lambda x: -x["strength"])
-
-        if rescan:
-            ex = existing_by_sess.get(u, set())
-            buy_cands  = [c for c in buy_cands  if (c["symbol"], "BUY")  not in ex]
-            sell_cands = [c for c in sell_cands if (c["symbol"], "SELL") not in ex]
-
         per_session[u] = (buy_cands[:st["candidate_cap"]], sell_cands[:st["candidate_cap"]])
         log.info(f"[ORB-SIM] {label} filter ({u or 'shared'}) — "
-                 f"{len(per_session[u][0])} new BUY, {len(per_session[u][1])} new SELL")
-
-    unique_tokens = {c["token"] for (b, s2) in per_session.values() for c in b + s2}
-    candle_map    = {}
-    for tok in unique_tokens:
-        _t.sleep(0.35)
-        try:
-            df = fetch_candles(smart_s, tok, "NSE", "ONE_MINUTE",
-                               f"{today} {candle_from}", f"{today} {candle_to}", use_cache=False)
-            if not df.empty:
-                row = df.iloc[0]
-                candle_map[tok] = {
-                    "bench_high": round(float(row["High"]), 2),
-                    "bench_low":  round(float(row["Low"]),  2),
-                }
-            else:
-                log.debug(f"[ORB-SIM] no {candle_from} candle: {token_to_sym.get(tok, tok)}")
-        except Exception as e:
-            log.warning(f"[ORB-SIM] candle error {token_to_sym.get(tok, tok)}: {e}")
+                 f"{len(per_session[u][0])} BUY, {len(per_session[u][1])} SELL")
 
     conn  = get_conn()
     saved = 0
     for u, (buy_cands, sell_cands) in per_session.items():
-        default_sl = sess_settings[u]["default_sl_basis"]
+        if manual:
+            # Rule: a manual scan replaces the untriggered watch list
+            conn.execute("DELETE FROM orb_candidates WHERE date=? AND user_id=? AND status != 'TRIGGERED'",
+                         (today, u))
+            conn.commit()
+            _orb_manual_symbols.difference_update({t for t in _orb_manual_symbols if t[2] == u})
         for c, side in ([(c, "BUY") for c in buy_cands] + [(c, "SELL") for c in sell_cands]):
-            resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
-            if c["token"] in candle_map:
-                orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
-                                     {**c, **candle_map[c["token"]], "status": "WAITING",
-                                      "sl_basis": resolved_sl}, user_id=u)
-                saved += 1
-                if manual:
-                    _orb_manual_symbols.add((c["symbol"], side, u))
-            else:
-                orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
-                                     {**c, "status": "SKIPPED", "remark": f"{candle_from} candle unavailable"},
-                                     user_id=u)
+            # Rule: SL basis is decided at trigger time — VWAP when it protects
+            # the trade, else day low (BUY) / day high (SELL)
+            orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
+                                 {**c, "status": "WAITING", "sl_basis": "SMART"}, user_id=u)
+            saved += 1
+            if manual:
+                _orb_manual_symbols.add((c["symbol"], side, u))
     conn.close()
-    log.info(f"[ORB-SIM] {label} done — {saved} new WAITING candidates for {today} "
+    log.info(f"[ORB-SIM] {label} done — {saved} WAITING candidates for {today} "
              f"across {len(per_session)} session(s)")
 
 
@@ -7887,7 +7868,8 @@ def _orb_parse_hhmm(value, default_h: int, default_m: int):
 
 
 def _orb_trigger_poll_sync(today: str, now_ist):
-    """Check WAITING candidates vs benchmark; auto-create trades within slot cap.
+    """Check WAITING candidates vs their locked trigger levels (scan price ± 1);
+    create paper trades within the max_slots cap.
     Each session is gated by its own entry_window_end setting.
     Candidates added via manual scan-now are never marked WINDOW_CLOSED."""
     import uuid as _uuid
@@ -7994,12 +7976,17 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                                             "SKIPPED", f"Qty 0 at price ₹{fill_price}", user_id=u)
                 continue
 
+            # Rule: SL = VWAP when it protects the trade, else day low (BUY) / day high (SELL)
+            vwap = q.get("vwap")
+            if side == "BUY":
+                sl_basis = "VWAP" if (vwap and vwap < fill_price) else "DAY_LOW"
+            else:
+                sl_basis = "VWAP" if (vwap and vwap > fill_price) else "DAY_HIGH"
             sl_price, sl_err = _orb_resolve_sl(
-                direction=side, sl_basis=c["sl_basis"] or "VWAP",
+                direction=side, sl_basis=sl_basis,
                 bench_high=bh, bench_low=bl,
-                vwap=q.get("vwap"), day_high=q.get("high"), day_low=q.get("low"),
-                custom=c.get("custom_sl_price"), entry_price=fill_price,
-                amount=st["sl_amount_rupees"], quantity=qty,
+                vwap=vwap, day_high=day_h, day_low=day_l,
+                custom=None, entry_price=fill_price,
             )
             if sl_err:
                 orb_update_candidate_status(conn, today, c["symbol"], side,
@@ -8022,8 +8009,8 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                 "vwap_at_entry":     q.get("vwap"),
                 "trigger_price":     fill_price,
                 "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
-                "sl_basis":          c["sl_basis"] or "VWAP",
-                "custom_sl_price":   c.get("custom_sl_price"),
+                "sl_basis":          sl_basis,
+                "custom_sl_price":   None,
                 "stop_loss_price":   sl_price,
                 "quantity":          qty,
                 "investment":        investment,
@@ -8167,128 +8154,21 @@ def _orb_eod_sync(today: str):
     log.info(f"[ORB-SIM] EOD fill done — {len(open_trades)} trade(s) updated with close_price")
 
 
-def _orb_auto_trigger_sync(today: str, now_ist):
-    """
-    Immediately after capture: enter trades for the top `auto_trigger_count` BUY
-    and SELL candidates per session at their ltp_0916 capture price.
-    Respects max_slots, SL validation, and dedup (won't re-trigger already triggered symbols).
-    """
-    conn      = get_conn()
-    all_cands = orb_get_candidates(conn, today)
-    waiting   = [c for c in all_cands if c["status"] == "WAITING"]
-    if not waiting:
-        conn.close()
-        return
-
-    smart_s = _get_smart()
-    quotes  = _orb_raw_quotes(smart_s, list({c["token"] for c in waiting})) if smart_s else {}
-
-    sessions = [""] + orb_list_setting_users(conn)
-    for u in sessions:
-        st  = orb_get_settings(conn, u)
-        N   = st["auto_trigger_count"]
-        if N <= 0:
-            continue
-
-        max_slots     = st["max_slots"]
-        target_rupees = st["target_rupees"]
-        sess_cands    = [c for c in all_cands  if c["user_id"] == u]
-        sess_wait     = [c for c in waiting    if c["user_id"] == u]
-        trade_count   = len(orb_get_trades(conn, today, u))
-        triggered_syms = {c["symbol"] for c in sess_cands if c["status"] == "TRIGGERED"}
-
-        buy_wait  = sorted([c for c in sess_wait if c["side"] == "BUY"],
-                           key=lambda x: -x.get("strength", 0))
-        sell_wait = sorted([c for c in sess_wait if c["side"] == "SELL"],
-                           key=lambda x: -x.get("strength", 0))
-
-        for c in buy_wait[:N] + sell_wait[:N]:
-            if trade_count >= max_slots:
-                break
-            if c["symbol"] in triggered_syms:
-                continue
-
-            ltp = c["ltp_0916"]
-            if not ltp:
-                continue
-            q   = quotes.get(str(c["token"]), {})
-
-            slip_ticks = int(st.get("slippage_ticks", 1))
-            slip_amt   = round(slip_ticks * _SIM_TICK, 2)
-            fill_price = round(ltp + slip_amt, 2) if c["side"] == "BUY" else round(ltp - slip_amt, 2)
-
-            qty = _orb_pos_size(fill_price)
-            if qty <= 0:
-                continue
-
-            sl_price, sl_err = _orb_resolve_sl(
-                direction=c["side"], sl_basis=c["sl_basis"] or "VWAP",
-                bench_high=c["bench_high"], bench_low=c["bench_low"],
-                vwap=q.get("vwap"), day_high=q.get("high") or c["bench_high"],
-                day_low=q.get("low") or c["bench_low"],
-                custom=c.get("custom_sl_price"), entry_price=fill_price,
-                amount=st["sl_amount_rupees"], quantity=qty,
-            )
-            if sl_err:
-                orb_update_candidate_status(conn, today, c["symbol"], c["side"],
-                                            "SKIPPED", f"Auto-trigger SL: {sl_err}", user_id=u)
-                continue
-
-            tgt_pts, tgt_price = _orb_target(c["side"], fill_price, qty, target_rupees=target_rupees)
-            sl_pts  = _orb_sl_pts(c["side"], fill_price, sl_price)
-            rr      = _orb_rr(tgt_pts, sl_pts)
-
-            trade = {
-                "id":                str(_uuid.uuid4()),
-                "date":              today,
-                "user_id":           u,
-                "symbol":            c["symbol"],
-                "direction":         c["side"],
-                "day_high_at_entry": q.get("high") or c["bench_high"],
-                "day_low_at_entry":  q.get("low")  or c["bench_low"],
-                "vwap_at_entry":     q.get("vwap"),
-                "trigger_price":     fill_price,
-                "entry_time":        now_ist.strftime("%Y-%m-%d %H:%M:%S"),
-                "sl_basis":          c["sl_basis"] or "VWAP",
-                "custom_sl_price":   c.get("custom_sl_price"),
-                "stop_loss_price":   sl_price,
-                "quantity":          qty,
-                "investment":        round(qty * fill_price, 2),
-                "sl_points":         sl_pts,
-                "target_points":     tgt_pts,
-                "target_price":      tgt_price,
-                "risk_reward":       rr,
-                "outcome":           "OPEN",
-                "pnl":               0.0,
-                "return_amount":     round(qty * fill_price, 2),
-                "remarks":           f"Slippage {slip_ticks}T (₹{slip_amt:+.2f} from ₹{ltp})" if slip_ticks > 0 else None,
-            }
-            orb_insert_trade(conn, trade)
-            orb_update_candidate_status(conn, today, c["symbol"], c["side"],
-                                        "TRIGGERED", user_id=u)
-            triggered_syms.add(c["symbol"])
-            trade_count += 1
-            log.info(f"[ORB-SIM] AUTO-TRIGGER ({u or 'shared'}) {c['side']} {c['symbol']}"
-                     f" @ ₹{fill_price}{f' (slip {slip_ticks}T)' if slip_ticks else ''}"
-                     f" | SL ₹{sl_price} | Tgt ₹{tgt_price}")
-
-    conn.close()
-
-
 async def _orb_simulator_loop():
     """
     ORB simulator background task.
     Weekday-gated (bypassed with SIM_FORCE_WINDOW=1). SQLite state survives restarts.
     Crash-safe: outer while + try/except; each sync worker is independently guarded.
     """
-    global _orb_force_rescan
+    global _orb_manual_scan_req
     from datetime import time as dt_time
     loop = asyncio.get_running_loop()
     log.info("[ORB-SIM] background task started")
 
     _eod_done_today     = None
     _last_capture_today = None
-    _last_capture_time  = None   # datetime of last capture/rescan in IST
+    _auto_scan_done     = False  # auto scan ran (or assumed ran after mid-day restart)
+    _seen_pre_capture   = False  # loop was alive before today's auto-scan start time
     _capture_start      = None   # dt_time cached per day from settings
 
     while True:
@@ -8300,7 +8180,8 @@ async def _orb_simulator_loop():
             # Reset capture tracking on new trading day
             if _last_capture_today != today:
                 _last_capture_today = today
-                _last_capture_time  = None
+                _auto_scan_done     = False
+                _seen_pre_capture   = False
                 _capture_start      = None
                 _orb_manual_symbols.clear()
 
@@ -8331,34 +8212,41 @@ async def _orb_simulator_loop():
                 await asyncio.sleep(min((target - now_ist).total_seconds(), 3600))
                 continue
 
-            # Pre-capture wait (before configured entry_window_start)
+            # Manual scan — allowed anytime during market hours (from 09:15),
+            # session-only filter overrides, replaces the untriggered watch list
+            if _orb_manual_scan_req is not None and (_SIM_FORCE or t >= dt_time(9, 15)):
+                req = _orb_manual_scan_req
+                _orb_manual_scan_req = None
+                scan_now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                await loop.run_in_executor(None, _orb_capture_sync, today, True, scan_now_ist,
+                                           req.get("user", ""), req.get("overrides"))
+
+            # Before the configured auto-scan start time: no auto scan yet, but
+            # manual-scan candidates are still monitored for entry triggers
             if not _SIM_FORCE and t < _capture_start:
-                target = now_ist.replace(hour=_capture_start.hour, minute=_capture_start.minute, second=0, microsecond=0)
-                await asyncio.sleep(min((target - now_ist).total_seconds(), 60))
+                _seen_pre_capture = True
+                conn = get_conn()
+                have_cands = bool(orb_get_candidates(conn, today))
+                conn.close()
+                if have_cands:
+                    await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
+                    await loop.run_in_executor(None, _orb_outcome_poll_sync, today, now_ist)
+                await asyncio.sleep(5)
                 continue
 
-            # Capture / periodic rescan logic
-            conn      = get_conn()
-            candidates = orb_get_candidates(conn, today)
-            conn.close()
-
-            if _last_capture_time is None and candidates:
-                # Server restarted with existing candidates — anchor timestamp to now
-                _last_capture_time = now_ist
-            elif _last_capture_time is None:
-                # Initial capture
-                await loop.run_in_executor(None, _orb_capture_sync, today)
-                _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                now_ist = _last_capture_time
-                await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
-            elif _orb_force_rescan:
-                # Manual scan-now only — no automatic timer-based rescan
-                _orb_force_rescan = False
-                rescan_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                await loop.run_in_executor(None, _orb_capture_sync, today, True, rescan_now, True)
-                _last_capture_time = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                now_ist = _last_capture_time
-                await loop.run_in_executor(None, _orb_auto_trigger_sync, today, now_ist)
+            # Auto scan — fires once when the clock reaches the configured start
+            # time; all candidates then wait for their entry trigger (scan price ± 1)
+            if not _auto_scan_done:
+                conn       = get_conn()
+                candidates = orb_get_candidates(conn, today)
+                conn.close()
+                if candidates and not _seen_pre_capture:
+                    # Server restarted mid-day with existing candidates —
+                    # today's auto scan already ran
+                    _auto_scan_done = True
+                else:
+                    await loop.run_in_executor(None, _orb_capture_sync, today)
+                    _auto_scan_done = True
 
             # Trigger poll — manually-scanned candidates stay WAITING regardless of entry window
             now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
@@ -8633,13 +8521,11 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
     price_min     = settings["price_min"]
     price_max     = settings["price_max"]
     cap           = settings["candidate_cap"]
-    default_sl    = settings["default_sl_basis"]
     target_rupees = settings["target_rupees"]
     max_slots     = settings["max_slots"]
     universe      = settings["universe"]
     entry_end_s   = settings["entry_window_end"]
     sq_time_s     = settings["square_off_time"]
-    sl_amount     = settings["sl_amount_rupees"]
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
@@ -8677,11 +8563,6 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             if r0915.empty:
                 continue
 
-            bench_high = round(float(r0915.iloc[0]["High"]), 2)
-            bench_low  = round(float(r0915.iloc[0]["Low"]),  2)
-            if bench_high <= bench_low:
-                continue
-
             r0916    = df[df["DateTime"] == f"{date} 09:16"]
             ltp_0916 = round(float(r0916.iloc[0]["Open"]) if not r0916.empty
                              else float(r0915.iloc[0]["Close"]), 2)
@@ -8689,8 +8570,14 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             if not (price_min <= ltp_0916 <= price_max):
                 continue
 
-            orb_pct  = (bench_high - bench_low) / ltp_0916 * 100
-            strength = round(max(0.0, 5.0 - orb_pct), 2)
+            # Entry levels follow the live-engine rule: scan price ± 1
+            bench_high = round(ltp_0916 + 1, 2)
+            bench_low  = round(ltp_0916 - 1, 2)
+
+            # Ranking heuristic (no order-book data historically): tighter
+            # opening candle range → higher strength
+            rng_pct  = (float(r0915.iloc[0]["High"]) - float(r0915.iloc[0]["Low"])) / ltp_0916 * 100
+            strength = round(max(0.0, 5.0 - rng_pct), 2)
 
             entry_df = df[(df["DateTime"] >= f"{date} 09:16") &
                           (df["DateTime"] <= f"{date} {entry_end_s}")]
@@ -8707,10 +8594,9 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
                 "strength": strength, "bench_high": bench_high, "bench_low": bench_low,
             }
             for side, trig_dt in [("BUY", buy_dt), ("SELL", sell_dt)]:
-                resolved_sl = ("DAY_LOW" if side == "BUY" else "DAY_HIGH") if default_sl == "DAY_SMART" else default_sl
                 batch_cands[(s["symbol"], side)] = {
                     **base,
-                    "sl_basis": resolved_sl,
+                    "sl_basis": "SMART",
                     "status":   "WAITING" if trig_dt else "WINDOW_CLOSED",
                     "remark":   None if trig_dt else "No breakout in entry window",
                 }
@@ -8806,13 +8692,16 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             conn.close()
             continue
 
-        cand_sl_basis = all_cands[key]["sl_basis"]
+        # Rule: SL = VWAP when it protects the trade, else day low (BUY) / day high (SELL)
+        if side == "BUY":
+            cand_sl_basis = "VWAP" if (vwap_entry and vwap_entry < trigger_price) else "DAY_LOW"
+        else:
+            cand_sl_basis = "VWAP" if (vwap_entry and vwap_entry > trigger_price) else "DAY_HIGH"
         sl_price, sl_err = _orb_resolve_sl(
             direction=side, sl_basis=cand_sl_basis,
             bench_high=bench_high, bench_low=bench_low,
             vwap=vwap_entry, day_high=day_high_entry, day_low=day_low_entry,
             custom=None, entry_price=trigger_price,
-            amount=sl_amount, quantity=qty,
         )
         if sl_err:
             all_cands[key]["status"] = "SKIPPED"
@@ -8949,7 +8838,6 @@ class _OrbSettingsBody(BaseModel):
     sl_amount_rupees: float | None = None
     buy_min_chg_pct:     float | None = None
     sell_min_chg_pct:    float | None = None
-    auto_trigger_count:  int   | None = None
     daily_loss_limit:    float | None = None
     trailing_sl_points:  float | None = None
     slippage_ticks:      int   | None = None
@@ -9066,7 +8954,6 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.sl_amount_rupees is not None and body.sl_amount_rupees <= 0:   errs.append("sl_amount_rupees must be > 0")
     if body.buy_min_chg_pct    is not None and not (0 <= body.buy_min_chg_pct  <= 20): errs.append("buy_min_chg_pct must be 0–20")
     if body.sell_min_chg_pct   is not None and not (0 <= body.sell_min_chg_pct <= 20): errs.append("sell_min_chg_pct must be 0–20")
-    if body.auto_trigger_count  is not None and not (0 <= body.auto_trigger_count  <= 20): errs.append("auto_trigger_count must be 0–20")
     if body.daily_loss_limit    is not None and not (0 <= body.daily_loss_limit <= 100000): errs.append("daily_loss_limit must be 0–100000")
     if body.trailing_sl_points  is not None and not (0 <= body.trailing_sl_points <= 500):  errs.append("trailing_sl_points must be 0–500")
     if body.slippage_ticks      is not None and not (0 <= body.slippage_ticks <= 20):       errs.append("slippage_ticks must be 0–20")
@@ -9100,13 +8987,29 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+class _OrbScanNowBody(BaseModel):
+    price_min:   float | None = None
+    price_max:   float | None = None
+    dom_min_pct: float | None = None
+    min_chg_pct: float | None = None
+    universe:    str   | None = None
+
+
 @app.post("/simulator/scan-now")
-async def simulator_scan_now(request: Request):
-    """Queue an immediate rescan. Returns 400 if the session is already at max slots."""
-    global _orb_force_rescan
+async def simulator_scan_now(request: Request, body: _OrbScanNowBody | None = None):
+    """Queue a manual scan with optional session-only filter overrides (never
+    persisted to settings). Replaces the untriggered watch list.
+    Returns 400 if the session is already at max slots."""
+    global _orb_manual_scan_req
+    from datetime import time as dt_time
     try:
-        sess  = _orb_session_id(request)
-        today = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+        sess    = _orb_session_id(request)
+        now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+        today   = now_ist.strftime("%Y-%m-%d")
+        if not _SIM_FORCE and (now_ist.weekday() >= 5 or
+                               not dt_time(9, 15) <= now_ist.time() <= dt_time(15, 30)):
+            return JSONResponse(status_code=400,
+                                content={"error": "Market closed — manual scan available 09:15–15:30 on trading days"})
         conn  = get_conn()
         trades = orb_get_trades(conn, today, sess)
         st     = orb_get_settings(conn, sess)
@@ -9114,7 +9017,14 @@ async def simulator_scan_now(request: Request):
         if len(trades) >= st["max_slots"]:
             return JSONResponse(status_code=400,
                                 content={"error": "Max simulated trades reached for today"})
-        _orb_force_rescan = True  # engine loop will set manual=True → candidates never WINDOW_CLOSED
+        ov = body.dict(exclude_none=True) if body else {}
+        if ov.get("universe") and ov["universe"] not in {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50"}:
+            return JSONResponse(status_code=400, content={"error": "Invalid universe"})
+        if ov.get("dom_min_pct") is not None and not (30 <= ov["dom_min_pct"] <= 90):
+            return JSONResponse(status_code=400, content={"error": "dom_min_pct must be 30–90"})
+        if ov.get("min_chg_pct") is not None and not (0 <= ov["min_chg_pct"] <= 20):
+            return JSONResponse(status_code=400, content={"error": "min_chg_pct must be 0–20"})
+        _orb_manual_scan_req = {"user": sess, "overrides": ov}
         return {"ok": True}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

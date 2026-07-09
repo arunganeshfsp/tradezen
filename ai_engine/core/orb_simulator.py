@@ -85,11 +85,9 @@ def resolve_stop_loss(
     """
     Returns (sl_price, error). sl_price is None on any validation failure.
 
-    Validations:
-      1. Structural bases (VWAP/DAY_*/CUSTOM): sl_price must lie within
-         [bench_low, bench_high] — the 09:15 candle range. AMOUNT is a ₹-risk
-         stop derived from entry price, so the bench-range check does not apply.
-      2. BUY: sl must be < entry_price. SELL: sl must be > entry_price.
+    Validation: BUY sl must be < entry_price; SELL sl must be > entry_price.
+    (bench_high / bench_low hold the scan-price ±1 trigger levels and are not
+    used for SL validation.)
     """
     if sl_basis == "VWAP":
         sl = vwap
@@ -116,15 +114,6 @@ def resolve_stop_loss(
         return None, f"SL basis '{sl_basis}' value is unavailable"
 
     sl = round(float(sl), 2)
-
-    # AMOUNT, DAY_LOW, DAY_HIGH are derived from live session data and naturally
-    # move outside the 09:15 bench candle range — skip the bench range check for them.
-    _skip_bench_check = sl_basis in ("AMOUNT", "DAY_LOW", "DAY_HIGH")
-    if not _skip_bench_check and not (bench_low <= sl <= bench_high):
-        return None, (
-            f"SL {sl} is outside benchmark range "
-            f"[{bench_low}, {bench_high}]"
-        )
 
     if sl <= 0:
         return None, f"SL {sl} is not a valid price"

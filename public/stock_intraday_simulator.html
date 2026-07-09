@@ -167,22 +167,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .dn-buy{color:var(--green)}
 .dn-sell{color:var(--red)}
 
-/* ── SL CONTROLS ── */
-.sl-sel{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);
-  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;
-  padding:3px 7px;cursor:pointer;outline:none;max-width:110px}
-.sl-sel:disabled{opacity:0.45;cursor:default}
+/* ── SL LABEL ── */
 .locked-sl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
-.custom-sl-wrap{display:inline-flex;align-items:center;gap:4px;margin-left:5px}
-.custom-sl-inp{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);
-  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;
-  padding:3px 6px;width:72px;outline:none}
-.custom-sl-inp:focus{border-color:var(--accent)}
-.sl-ok{background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.4);
-  color:var(--green);border-radius:var(--r2);font-size:11px;font-weight:700;
-  padding:2px 8px;cursor:pointer;transition:all .15s}
-.sl-ok:hover{background:rgba(46,204,113,0.2)}
-.sl-ok:disabled{opacity:0.4;cursor:default}
 
 /* ── SQUARE-OFF BUTTON ── */
 .sq-btn{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.4);
@@ -337,8 +323,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 }
 [data-theme="light"] .date-input{background:#fff;color:var(--text);border-color:var(--border2)}
 [data-theme="light"] .date-input::-webkit-calendar-picker-indicator{filter:none}
-[data-theme="light"] .sl-sel{background:#fff;color:var(--text)}
-[data-theme="light"] .custom-sl-inp{background:#fff;color:var(--text)}
 [data-theme="light"] body{background:var(--bg)}
 [data-theme="light"] .sim-tbl tr:hover td{background:rgba(0,0,0,0.02)}
 [data-theme="light"] .sim-tbl th{background:var(--bg2)}
@@ -385,6 +369,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 [data-theme="light"] .signal-monitor{background:rgba(46,204,113,0.04);border-color:rgba(46,204,113,0.2)}
 
 /* ── Tutorial ── */
+/* ── MANUAL SCAN POPUP ── */
+#scanOverlay{position:fixed;inset:0;z-index:9500;background:rgba(10,12,24,0.72);
+  backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+#scanOverlay.open{display:flex}
+.scan-modal{background:var(--bg1);border:1px solid var(--border2);border-radius:12px;
+  width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:20px 22px;
+  animation:scanSlideUp .2s ease}
+@keyframes scanSlideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.scan-modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px}
+.scan-modal-sub{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.scan-modal-foot{display:flex;gap:10px;margin-top:6px}
+.scan-cancel-btn{flex:1;background:transparent;border:1px solid var(--border2);
+  border-radius:var(--r2);color:var(--dim);font-family:'Syne',sans-serif;font-size:13px;
+  font-weight:700;padding:10px;cursor:pointer;transition:border-color .15s}
+.scan-cancel-btn:hover{border-color:var(--accent);color:var(--text)}
+.scan-run-btn{flex:2}
+
 .tut-help-btn{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;
   text-transform:uppercase;color:var(--accent);background:rgba(124,106,247,0.1);
   border:1px solid rgba(124,106,247,0.3);border-radius:6px;padding:5px 12px;
@@ -521,19 +522,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
 
     <div class="sett-group">
-      <label class="sett-label" for="sett-sl">Default SL basis</label>
-      <select id="sett-sl" class="sett-sel">
-        <option value="VWAP">VWAP (volume-weighted avg price)</option>
-        <option value="DAY_SMART">Day Low (Bullish) / Day High (Bearish)</option>
-        <option value="AMOUNT">Fixed ₹ amount (max study loss)</option>
-      </select>
-      <div class="sett-hint">Default invalidation reference applied at capture. You can still change it per-stock before trigger.</div>
-    </div>
-
-    <div class="sett-group">
-      <label class="sett-label" for="sett-slamt">SL amount per trade (₹)</label>
-      <input type="number" id="sett-slamt" class="sett-inp" min="100" max="10000" step="50" placeholder="900" />
-      <div class="sett-hint">Used when SL basis is "Fixed ₹ amount": invalidation is placed so the study loss equals this ₹ amount. Default: ₹900.</div>
+      <label class="sett-label" data-en="Invalidation (SL) rule" data-ta="செல்லாநிலை (SL) விதி">Invalidation (SL) rule</label>
+      <div class="sett-hint" data-en="Fixed rule: VWAP when it protects the position, otherwise Day Low (bullish) / Day High (bearish). Decided at trigger time." data-ta="நிலையான விதி: VWAP நிலையை பாதுகாக்கும்போது VWAP; இல்லையெனில் நாள் தாழ்வு (ஏறுமுகம்) / நாள் உச்சம் (இறங்குமுகம்). தூண்டல் நேரத்தில் தீர்மானிக்கப்படும்.">Fixed rule: VWAP when it protects the position, otherwise Day Low (bullish) / Day High (bearish). Decided at trigger time.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -598,12 +588,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <label class="sett-label" for="sett-cap">Candidate cap (per side)</label>
       <input type="number" id="sett-cap" class="sett-inp" min="5" max="100" step="5" placeholder="25" />
       <div class="sett-hint">Max BUY + max SELL candidates kept after sorting by dominance strength. Default: 25.</div>
-    </div>
-
-    <div class="sett-group">
-      <label class="sett-label" for="sett-autotrig" data-en="Auto-trigger at entry start (top N per side)" data-ta="தானியங்கி தூண்டல் — நுழைவு தொடக்கத்தில் (ஒவ்வொரு பக்கம் N)">Auto-trigger at entry start (top N per side)</label>
-      <input type="number" id="sett-autotrig" class="sett-inp" min="0" max="20" step="1" placeholder="5" />
-      <div class="sett-hint" data-en="Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5." data-ta="தேர்ந்தெடுக்கப்பட்ட நுழைவு தொடக்க நேரத்தில் சிறந்த N BUY மற்றும் SELL வேட்பாளர்களை உள்ளிடுகிறது. முடக்க 0 அமைக்கவும். இயல்புநிலை: 5.">Enters the top N strongest BUY and SELL candidates at the selected entry start time. Set to 0 to disable. Default: 5.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -739,8 +723,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <th data-en="Chg %" data-ta="மாற்றம் %">Chg %</th>
             <th data-en="Live LTP" data-ta="நேரடி விலை">Live LTP</th>
             <th data-en="Dominance" data-ta="ஆதிக்கம்">Dominance</th>
-            <th data-en="Bench High" data-ta="உச்சம்">Bench High</th>
-            <th data-en="Bench Low" data-ta="தாழ்வு">Bench Low</th>
+            <th data-en="Trigger Above" data-ta="தூண்டல் மேலே">Trigger Above</th>
+            <th data-en="Trigger Below" data-ta="தூண்டல் கீழே">Trigger Below</th>
             <th data-en="SL Basis" data-ta="SL அடிப்படை">SL Basis</th>
             <th data-en="Status" data-ta="நிலை">Status</th>
           </tr>
@@ -795,6 +779,50 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
 
 <!-- Tutorial overlay -->
+<div id="scanOverlay" onclick="if(event.target===this)closeScanPopup()">
+  <div class="scan-modal">
+    <div class="scan-modal-title" data-en="Manual Scan" data-ta="கைமுறை ஸ்கேன்">Manual Scan</div>
+    <div class="scan-modal-sub"
+      data-en="Filters below apply to this scan only — your saved settings are not changed. The current watch list is replaced; already-triggered trades are kept."
+      data-ta="கீழுள்ள வடிப்பான்கள் இந்த ஸ்கேனுக்கு மட்டுமே — சேமித்த அமைப்புகள் மாறாது. தற்போதைய கண்காணிப்பு பட்டியல் மாற்றப்படும்; ஏற்கனவே தூண்டப்பட்ட வர்த்தகங்கள் அப்படியே இருக்கும்.">
+      Filters below apply to this scan only — your saved settings are not changed. The current watch list is replaced; already-triggered trades are kept.</div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="mscan-universe" data-en="Stock universe" data-ta="பங்கு தொகுப்பு">Stock universe</label>
+      <select id="mscan-universe" class="sett-sel">
+        <option value="all_fno">All F&amp;O stocks — matches F&amp;O Scanner</option>
+        <option value="nifty500_fno">Nifty 500 F&amp;O (~500 stocks)</option>
+        <option value="nifty100_fno">Nifty 100 F&amp;O (~100 stocks)</option>
+        <option value="nifty50">Nifty 50 F&amp;O (~50 stocks)</option>
+      </select>
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" data-en="Price range (₹)" data-ta="விலை வரம்பு (₹)">Price range (₹)</label>
+      <div class="sett-row">
+        <input type="number" id="mscan-pmin" class="sett-inp" min="1" max="99999" placeholder="Min" />
+        <input type="number" id="mscan-pmax" class="sett-inp" min="1" max="99999" placeholder="Max" />
+      </div>
+    </div>
+
+    <div class="sett-row">
+      <div class="sett-group">
+        <label class="sett-label" for="mscan-dom" data-en="Dominance min (%)" data-ta="ஆதிக்கம் குறைந்தபட்சம் (%)">Dominance min (%)</label>
+        <input type="number" id="mscan-dom" class="sett-inp" min="30" max="90" step="5" placeholder="50" />
+      </div>
+      <div class="sett-group">
+        <label class="sett-label" for="mscan-chg" data-en="Min move (%)" data-ta="குறைந்தபட்ச நகர்வு (%)">Min move (%)</label>
+        <input type="number" id="mscan-chg" class="sett-inp" min="0" max="20" step="0.5" placeholder="1" />
+      </div>
+    </div>
+
+    <div class="scan-modal-foot">
+      <button class="scan-cancel-btn" onclick="closeScanPopup()" data-en="Cancel" data-ta="ரத்து">Cancel</button>
+      <button class="save-btn scan-run-btn" id="mscanRunBtn" onclick="runManualScan()" data-en="⟳ Scan" data-ta="⟳ ஸ்கேன்">⟳ Scan</button>
+    </div>
+  </div>
+</div>
+
 <div id="tutBackdrop"></div>
 <div id="tutSpotlight"></div>
 <div id="tutCard">
@@ -963,7 +991,6 @@ function renderCandidates(cands) {
 
   body.innerHTML = filtered.map(c => {
     const isBuy   = c.side === 'BUY';
-    const locked  = c.status !== 'WAITING';
     const dirLbl  = isBuy ? 'BULLISH ▲ (SIM)' : 'BEARISH ▼ (SIM)';
     const dirCls  = isBuy ? 'dir-bull' : 'dir-bear';
     const bp      = Math.round(c.buy_pct  || 0);
@@ -982,25 +1009,10 @@ function renderCandidates(cands) {
         </div>
       </div>`;
 
-    let slHtml;
-    if (locked) {
-      slHtml = `<span class="locked-sl">${_slLabel(sl)}</span>`;
-    } else {
-      const dis = !_isLive ? 'disabled' : '';
-      slHtml = `
-        <select class="sl-sel" ${dis}
-          data-sym="${_esc(c.symbol)}" data-date="${_esc(_currentDate)}" data-side="${c.side}"
-          onchange="onSlChange(this)">
-          ${_slOpts(sl)}
-        </select>
-        <span class="custom-sl-wrap" style="display:${sl === 'CUSTOM' ? 'inline-flex' : 'none'}">
-          <input type="number" class="custom-sl-inp" step="0.05" placeholder="₹"
-            value="${c.custom_sl_price != null ? c.custom_sl_price : ''}" ${dis} />
-          <button class="sl-ok" ${dis}
-            data-sym="${_esc(c.symbol)}" data-date="${_esc(_currentDate)}" data-side="${c.side}"
-            onclick="commitCustomSl(this)">✓</button>
-        </span>`;
-    }
+    // Fixed rule: VWAP when protective, else Day Low (bullish) / Day High (bearish)
+    const slHtml = `<span class="locked-sl">${sl === 'SMART'
+      ? (isBuy ? 'VWAP / Day Low' : 'VWAP / Day High')
+      : _slLabel(sl)}</span>`;
 
     let chgHtml = '<span style="color:var(--muted)">—</span>';
     if (c.change_pct != null) {
@@ -1045,7 +1057,7 @@ function exportCandidates() {
   const HEADERS = [
     'Date','Symbol','Direction','Status','Remark',
     'Scan LTP','Live LTP','Buy %','Sell %','Dominance Strength',
-    'Bench High','Bench Low','SL Basis','Custom SL',
+    'Trigger Above','Trigger Below','SL Basis','Custom SL',
     'Entry Time','Sim. Fill (Entry)','Day High @ Entry','Day Low @ Entry','VWAP @ Entry',
     'Invalidation (SL)','SL Points','Ref. Target','Target Points','Qty','Investment','R:R',
     'Outcome','Exit Price','Exit Time','Study P/L',
@@ -1107,11 +1119,8 @@ function _downloadCsv(headers, rows, filename) {
 }
 
 function _slLabel(basis) {
-  return { VWAP: 'VWAP', DAY_HIGH: 'Day High', DAY_LOW: 'Day Low', CUSTOM: 'Custom', AMOUNT: 'Fixed ₹' }[basis] || basis;
-}
-function _slOpts(sel) {
-  return [['VWAP','VWAP'],['DAY_HIGH','Day High'],['DAY_LOW','Day Low'],['CUSTOM','Custom'],['AMOUNT','Fixed ₹']]
-    .map(([v, l]) => `<option value="${v}"${sel === v ? ' selected' : ''}>${l}</option>`).join('');
+  return { VWAP: 'VWAP', DAY_HIGH: 'Day High', DAY_LOW: 'Day Low', CUSTOM: 'Custom',
+           AMOUNT: 'Fixed ₹', SMART: 'VWAP / Day-Extreme' }[basis] || basis;
 }
 
 // ── Trades ─────────────────────────────────────────────────────────────────
@@ -1311,43 +1320,6 @@ function _rrBadge(rr) {
   return `<span class="rr-badge ${bad ? 'rr-bad' : 'rr-ok'}" title="Risk:Reward ratio">${_fmt2(rr)}</span>`;
 }
 
-// ── SL Basis actions ───────────────────────────────────────────────────────
-function onSlChange(sel) {
-  const basis = sel.value;
-  const row   = sel.closest('tr');
-  const wrap  = row.querySelector('.custom-sl-wrap');
-  if (basis === 'CUSTOM') {
-    wrap.style.display = 'inline-flex';
-    return;
-  }
-  wrap.style.display = 'none';
-  _doSetSl(sel.dataset.date, sel.dataset.sym, sel.dataset.side, basis, null, sel);
-}
-
-function commitCustomSl(btn) {
-  const inp   = btn.previousElementSibling;
-  const price = parseFloat(inp.value);
-  if (!price || price <= 0) { inp.focus(); return; }
-  _doSetSl(btn.dataset.date, btn.dataset.sym, btn.dataset.side, 'CUSTOM', price, btn);
-}
-
-async function _doSetSl(date, symbol, side, basis, customPrice, el) {
-  el.disabled = true;
-  try {
-    const r = await fetch('/api/simulator/sl-basis', {
-      method: 'POST',
-      headers: _hdrs(true),
-      body: JSON.stringify({ date, symbol, side, basis, custom_price: customPrice }),
-    });
-    const d = await r.json();
-    if (!r.ok) alert(d.error || 'Failed to update SL basis');
-  } catch (_) {
-    alert('Network error while setting SL basis');
-  } finally {
-    el.disabled = false;
-  }
-}
-
 // ── Square-off ────────────────────────────────────────────────────────────
 async function squareOff(tradeId, symbol) {
   if (!confirm(`Square off ${symbol} at live price?\n\nThis will record the trade as SQUARED OFF.`)) return;
@@ -1402,29 +1374,61 @@ function _stopLiveWatch() {
   if (_isLive) startPolling();
 }
 
-async function scanNow() {
+function scanNow() {
   const btn = document.getElementById('scanNowBtn');
   if (!btn || btn.disabled) return;
-  btn.classList.add('scanning');
-  btn.disabled = true;
-  const origText = btn.textContent;
-  btn.textContent = '⟳ SCANNING…';
+  // Prefill session-only filters from current settings; user's saved settings are untouched
+  const s = _settings || {};
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+  set('mscan-universe', s.universe || 'all_fno');
+  set('mscan-pmin',     s.price_min);
+  set('mscan-pmax',     s.price_max);
+  set('mscan-dom',      s.dom_min_pct);
+  set('mscan-chg',      s.buy_min_chg_pct);
+  document.getElementById('scanOverlay').classList.add('open');
+}
+
+function closeScanPopup() {
+  document.getElementById('scanOverlay').classList.remove('open');
+}
+
+async function runManualScan() {
+  const runBtn = document.getElementById('mscanRunBtn');
+  const btn    = document.getElementById('scanNowBtn');
+  const val    = id => document.getElementById(id).value;
+  const body   = { universe: val('mscan-universe') };
+  const pmn = parseFloat(val('mscan-pmin')); if (pmn) body.price_min   = pmn;
+  const pmx = parseFloat(val('mscan-pmax')); if (pmx) body.price_max   = pmx;
+  const dom = parseFloat(val('mscan-dom'));  if (dom) body.dom_min_pct = dom;
+  const chg = val('mscan-chg');              if (chg !== '') body.min_chg_pct = parseFloat(chg);
+
+  runBtn.disabled = true;
   try {
-    const r = await fetch('/api/simulator/scan-now', { method: 'POST', headers: _hdrs(true), body: '{}' });
+    const r = await fetch('/api/simulator/scan-now', {
+      method: 'POST', headers: _hdrs(true), body: JSON.stringify(body),
+    });
     if (!r.ok) {
       const d = await r.json().catch(() => ({}));
       alert(d.error || 'Scan failed');
+      return;
+    }
+    closeScanPopup();
+    if (btn) {
+      btn.classList.add('scanning');
+      btn.disabled = true;
+      const origText = btn.textContent;
+      btn.textContent = '⟳ SCANNING…';
+      // Keep button in scanning state for 8s to let the engine loop pick up the request
+      setTimeout(() => {
+        btn.classList.remove('scanning');
+        btn.textContent = origText;
+        loadState();
+      }, 8000);
     }
   } catch (e) {
     alert('Network error: ' + e.message);
   } finally {
-    // Keep button in scanning state for 8s to let the engine loop pick up the flag
-    setTimeout(() => {
-      btn.classList.remove('scanning');
-      btn.textContent = origText;
-      // State will auto-update on next poll; force one immediately
-      loadState();
-    }, 8000);
+    runBtn.disabled = false;
   }
 }
 
@@ -1617,18 +1621,15 @@ function renderSettings(s) {
   set('sett-target',   s.target_rupees);
   set('sett-slots',    s.max_slots);
   set('sett-universe', s.universe);
-  set('sett-sl',       s.default_sl_basis);
   set('sett-pmin',     s.price_min);
   set('sett-pmax',     s.price_max);
   set('sett-dom',      s.dom_min_pct);
   set('sett-cap',      s.candidate_cap);
-  set('sett-slamt',      s.sl_amount_rupees);
   set('sett-entrystart', s.entry_window_start);
   set('sett-entryend',   s.entry_window_end);
   set('sett-sqoff',      s.square_off_time);
   set('sett-buyminchg',  s.buy_min_chg_pct);
   set('sett-sellminchg', s.sell_min_chg_pct);
-  set('sett-autotrig',   s.auto_trigger_count);
 }
 
 async function saveSettings() {
@@ -1644,18 +1645,15 @@ async function saveSettings() {
   const tgt = parseFloat(val('sett-target')); if (tgt)  body.target_rupees    = tgt;
   const slt = parseInt(val('sett-slots'));    if (slt)  body.max_slots         = slt;
   const uni = val('sett-universe');           if (uni)  body.universe          = uni;
-  const slb = val('sett-sl');                if (slb)  body.default_sl_basis  = slb;
   const pmn = parseFloat(val('sett-pmin'));  if (pmn)  body.price_min         = pmn;
   const pmx = parseFloat(val('sett-pmax'));  if (pmx)  body.price_max         = pmx;
   const dom = parseFloat(val('sett-dom'));   if (dom)  body.dom_min_pct       = dom;
   const cap = parseInt(val('sett-cap'));     if (cap)  body.candidate_cap     = cap;
-  const sla = parseFloat(val('sett-slamt')); if (sla)  body.sl_amount_rupees  = sla;
   const est = val('sett-entrystart');              if (est)  body.entry_window_start = est;
   const ent = val('sett-entryend');               if (ent)  body.entry_window_end   = ent;
   const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time    = sqo;
   const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
   const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
-  const atc = val('sett-autotrig');    if (atc !== null && atc !== '') body.auto_trigger_count  = parseInt(atc);
 
   try {
     const r = await fetch(`${API}/settings`, {
@@ -1693,12 +1691,12 @@ const _TUT_STEPS = [
              ta: 'ஆய்வு செய்ய ஏதேனும் வர்த்தக தேதியைத் தேர்ந்தெடுக்கவும். இன்றைய நேரடி அமர்வு தானாக புதுப்பிக்கப்படும். <strong>கடந்த தேதி</strong> தேர்ந்தெடுத்தால் வரலாற்று தரவு ஏற்றப்படும்.' } },
   { el: '#candPanel',   pos: 'top',
     title: { en: 'Candidate Stocks', ta: 'வேட்பாளர் பங்குகள்' },
-    body:  { en: 'At your configured <strong>scan time</strong> (default 09:20 — set in Settings) the engine scans all stocks and filters those that qualify. Tap <strong>Live Watch</strong> before the scan time to activate your session. Use <strong>Scan Now</strong> anytime to manually add more candidates.',
-             ta: 'உங்கள் அமைப்புகளில் கொடுத்த <strong>ஸ்கேன் நேரத்தில்</strong> (இயல்புநிலை 09:20) இயந்திரம் பங்குகளை வடிகட்டுகிறது. ஸ்கேன் நேரத்திற்கு முன் <strong>Live Watch</strong> அழுத்தி உங்கள் அமர்வை தொடங்குங்கள். <strong>Scan Now</strong> மூலம் கைமுறையாக கூடுதல் வேட்பாளர்களை சேர்க்கலாம்.' } },
+    body:  { en: 'At your configured <strong>scan time</strong> (default 09:20 — set in Settings) the engine auto-scans all stocks and lists those that qualify. Use <strong>Scan Now</strong> anytime for a manual scan with one-time filters — it replaces the untriggered watch list; triggered trades are kept.',
+             ta: 'உங்கள் அமைப்புகளில் கொடுத்த <strong>ஸ்கேன் நேரத்தில்</strong> (இயல்புநிலை 09:20) இயந்திரம் தானாக பங்குகளை வடிகட்டி பட்டியலிடுகிறது. <strong>Scan Now</strong> மூலம் எப்போது வேண்டுமானாலும் ஒருமுறை வடிப்பான்களுடன் கைமுறை ஸ்கேன் செய்யலாம் — தூண்டப்படாத கண்காணிப்பு பட்டியல் மாற்றப்படும்; தூண்டப்பட்ட வர்த்தகங்கள் அப்படியே இருக்கும்.' } },
   { el: '#candPanel',   pos: 'top',
-    title: { en: 'Entry Trigger: Bench High & Low', ta: 'நுழைவு தூண்டல்: Bench High & Low' },
-    body:  { en: '<strong>Bench High</strong> is the fixed trigger for BULLISH setups — when live LTP crosses above this level, a paper trade is entered. <strong>Bench Low</strong> is the trigger for BEARISH setups. These levels are locked at scan time and never move during the session.',
-             ta: '<strong>Bench High</strong> என்பது ஏறுமுக அமைப்புகளுக்கான நிலையான தூண்டல் — நேரடி விலை இதை தாண்டும்போது காகித வர்த்தகம் நுழைகிறது. <strong>Bench Low</strong> இறங்குமுக அமைப்புகளுக்கானது. இந்த நிலைகள் ஸ்கேன் நேரத்திலேயே நிர்ணயிக்கப்படும், மாறாது.' } },
+    title: { en: 'Entry Trigger: Scan Price ± ₹1', ta: 'நுழைவு தூண்டல்: ஸ்கேன் விலை ± ₹1' },
+    body:  { en: 'Each candidate\'s <strong>scan price is locked</strong> when it is listed. A BULLISH setup enters a paper trade when live LTP rises above <strong>scan price + ₹1</strong> (Trigger Above). A BEARISH setup enters when LTP falls below <strong>scan price − ₹1</strong> (Trigger Below). Example: scanned at ₹1500 → bullish entry above ₹1501, bearish entry below ₹1499.',
+             ta: 'ஒவ்வொரு வேட்பாளரின் <strong>ஸ்கேன் விலை</strong> பட்டியலிடும்போதே நிர்ணயிக்கப்படும். நேரடி விலை <strong>ஸ்கேன் விலை + ₹1</strong> தாண்டினால் ஏறுமுக காகித வர்த்தகம் நுழைகிறது. <strong>ஸ்கேன் விலை − ₹1</strong> கீழ் சென்றால் இறங்குமுக வர்த்தகம் நுழைகிறது. எ.கா: ₹1500-ல் ஸ்கேன் → ₹1501 மேலே ஏறுமுக நுழைவு, ₹1499 கீழே இறங்குமுக நுழைவு.' } },
   { el: '#tradePanel',  pos: 'top',
     title: { en: 'Simulated Trades', ta: 'உருவக வர்த்தகம்' },
     body:  { en: 'When a candidate\'s live price crosses its trigger level, a <strong>paper trade</strong> appears here. Track the fill price, invalidation (SL), reference target, and live study P/L. You can manually square off any open position.',
@@ -1709,8 +1707,8 @@ const _TUT_STEPS = [
              ta: 'மொத்த படிப்பு லாப/நஷ்டம், <strong>இலக்கை அடைந்த</strong> (பச்சை) மற்றும் <strong>செல்லாமல் போன</strong> (சிவப்பு) அமைப்புகள், திறந்த முதலீடு, வெற்றி விகிதம் — அனைத்தும் கல்வி ஆய்வுக்கு மட்டுமே.' } },
   { el: '.settings-btn', pos: 'bottom',
     title: { en: 'Engine Settings', ta: 'இயந்திர அமைப்புகள்' },
-    body:  { en: 'Customise your session: set <strong>target & SL amounts</strong> per trade, filter stocks by price range and dominance %, cap daily trades, and define entry / square-off windows. Settings apply from the <strong>next day\'s 09:16 scan</strong>.',
-             ta: 'உங்கள் அமர்வை தனிப்பயனாக்குங்கள்: ஒவ்வொரு வர்த்தகத்திற்கும் <strong>இலக்கு & SL தொகைகள்</strong>, விலை வரம்பு மற்றும் ஆதிக்க % வடிகட்டிகள், தினசரி வர்த்தக வரம்பு, நுழைவு / முடிவு சாளரங்கள். அமைப்புகள் <strong>அடுத்த நாள் 09:16 ஸ்கேன்</strong> முதல் பயனாகும்.' } },
+    body:  { en: 'Customise your session: set the <strong>target amount</strong> per trade, filter stocks by price range and dominance %, cap daily simulated trades, and define scan / square-off times. Invalidation (SL) follows a fixed rule: <strong>VWAP</strong> when it protects the position, else <strong>Day Low</strong> (bullish) / <strong>Day High</strong> (bearish). Settings apply from the <strong>next auto scan</strong>.',
+             ta: 'உங்கள் அமர்வை தனிப்பயனாக்குங்கள்: ஒவ்வொரு வர்த்தகத்திற்கும் <strong>இலக்கு தொகை</strong>, விலை வரம்பு மற்றும் ஆதிக்க % வடிகட்டிகள், தினசரி உருவக வர்த்தக வரம்பு, ஸ்கேன் / முடிவு நேரங்கள். செல்லாநிலை (SL) நிலையான விதி: நிலையை பாதுகாக்கும்போது <strong>VWAP</strong>, இல்லையெனில் <strong>நாள் தாழ்வு</strong> (ஏறுமுகம்) / <strong>நாள் உச்சம்</strong> (இறங்குமுகம்). அமைப்புகள் <strong>அடுத்த தானியங்கி ஸ்கேன்</strong> முதல் பயனாகும்.' } },
   { el: '#btCard',      pos: 'bottom',
     title: { en: 'Historical Backtest', ta: 'வரலாற்று பேக்டெஸ்ட்' },
     body:  { en: 'Select a <strong>past date</strong> to reveal this panel. Run the ORB algorithm on historical candles to see which setups would have triggered — great for studying patterns without waiting for market hours.',

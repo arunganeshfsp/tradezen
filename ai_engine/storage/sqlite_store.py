@@ -402,7 +402,6 @@ ORB_SETTING_DEFAULTS: dict = {
     "sl_amount_rupees":  "900",
     "buy_min_chg_pct":    "1.0",
     "sell_min_chg_pct":   "1.0",
-    "auto_trigger_count":   "5",
     "daily_loss_limit":     "0",
     "trailing_sl_points":   "0",
     "slippage_ticks":       "1",
@@ -424,7 +423,7 @@ def orb_get_settings(conn, user_id: str = "") -> dict:
     result["sl_amount_rupees"] = float(result["sl_amount_rupees"])
     result["buy_min_chg_pct"]     = float(result.get("buy_min_chg_pct",  1.0))
     result["sell_min_chg_pct"]    = float(result.get("sell_min_chg_pct", 1.0))
-    result["auto_trigger_count"]  = int(result.get("auto_trigger_count", 5))
+    result.pop("auto_trigger_count", None)  # legacy: instant entries removed, all candidates wait for trigger
     result["daily_loss_limit"]    = float(result.get("daily_loss_limit", 0))
     result["trailing_sl_points"]  = float(result.get("trailing_sl_points", 0))
     result["slippage_ticks"]      = int(result.get("slippage_ticks", 1))
