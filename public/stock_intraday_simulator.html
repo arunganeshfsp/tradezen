@@ -522,8 +522,19 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
 
     <div class="sett-group">
-      <label class="sett-label" data-en="Invalidation (SL) rule" data-ta="செல்லாநிலை (SL) விதி">Invalidation (SL) rule</label>
-      <div class="sett-hint" data-en="Fixed rule: VWAP when it protects the position, otherwise Day Low (bullish) / Day High (bearish). Decided at trigger time." data-ta="நிலையான விதி: VWAP நிலையை பாதுகாக்கும்போது VWAP; இல்லையெனில் நாள் தாழ்வு (ஏறுமுகம்) / நாள் உச்சம் (இறங்குமுகம்). தூண்டல் நேரத்தில் தீர்மானிக்கப்படும்.">Fixed rule: VWAP when it protects the position, otherwise Day Low (bullish) / Day High (bearish). Decided at trigger time.</div>
+      <label class="sett-label" for="sett-sl" data-en="Invalidation (SL) rule" data-ta="செல்லாநிலை (SL) விதி">Invalidation (SL) rule</label>
+      <select id="sett-sl" class="sett-sel">
+        <option value="DAY_SMART">Day Low (bullish) / Day High (bearish) — before entry</option>
+        <option value="AMOUNT">Flat ₹ amount (max study loss per trade)</option>
+        <option value="VWAP">VWAP — falls back to Day Low / Day High</option>
+      </select>
+      <div class="sett-hint" data-en="Decided at trigger time. Default: the day's low before entry invalidates a bullish study; the day's high invalidates a bearish study." data-ta="தூண்டல் நேரத்தில் தீர்மானிக்கப்படும். இயல்புநிலை: நுழைவுக்கு முந்தைய நாள் தாழ்வு (ஏறுமுகம்) / நாள் உச்சம் (இறங்குமுகம்).">Decided at trigger time. Default: the day's low before entry invalidates a bullish study; the day's high invalidates a bearish study.</div>
+    </div>
+
+    <div class="sett-group">
+      <label class="sett-label" for="sett-slamt" data-en="Flat SL amount (₹)" data-ta="நிலையான SL தொகை (₹)">Flat SL amount (₹)</label>
+      <input type="number" id="sett-slamt" class="sett-inp" min="100" max="10000" step="50" placeholder="900" />
+      <div class="sett-hint" data-en="Used only when the SL rule is Flat ₹ amount: the invalidation level is placed so the study loss equals this amount. Default: ₹900." data-ta="SL விதி நிலையான ₹ தொகையாக இருக்கும்போது மட்டும்: கற்கை இழப்பு இந்தத் தொகைக்கு சமமாகும் அளவில் SL நிலை அமைக்கப்படும். இயல்புநிலை: ₹900.">Used only when the SL rule is Flat ₹ amount: the invalidation level is placed so the study loss equals this amount. Default: ₹900.</div>
     </div>
 
     <hr class="sett-divider" />
@@ -995,7 +1006,7 @@ function renderCandidates(cands) {
     const dirCls  = isBuy ? 'dir-bull' : 'dir-bear';
     const bp      = Math.round(c.buy_pct  || 0);
     const sp      = Math.round(c.sell_pct || 0);
-    const sl      = c.sl_basis || 'VWAP';
+    const sl      = c.sl_basis || 'DAY_SMART';
 
     const domHtml = `
       <div class="dom-mini">
@@ -1009,9 +1020,9 @@ function renderCandidates(cands) {
         </div>
       </div>`;
 
-    // Fixed rule: VWAP when protective, else Day Low (bullish) / Day High (bearish)
-    const slHtml = `<span class="locked-sl">${sl === 'SMART'
-      ? (isBuy ? 'VWAP / Day Low' : 'VWAP / Day High')
+    const slHtml = `<span class="locked-sl">${
+      sl === 'DAY_SMART' ? (isBuy ? 'Day Low' : 'Day High')
+      : (sl === 'VWAP' || sl === 'SMART') ? (isBuy ? 'VWAP / Day Low' : 'VWAP / Day High')
       : _slLabel(sl)}</span>`;
 
     let chgHtml = '<span style="color:var(--muted)">—</span>';
@@ -1120,7 +1131,8 @@ function _downloadCsv(headers, rows, filename) {
 
 function _slLabel(basis) {
   return { VWAP: 'VWAP', DAY_HIGH: 'Day High', DAY_LOW: 'Day Low', CUSTOM: 'Custom',
-           AMOUNT: 'Fixed ₹', SMART: 'VWAP / Day-Extreme' }[basis] || basis;
+           AMOUNT: 'Flat ₹', DAY_SMART: 'Day Low / Day High',
+           SMART: 'VWAP / Day-Extreme' }[basis] || basis;
 }
 
 // ── Trades ─────────────────────────────────────────────────────────────────
@@ -1620,6 +1632,8 @@ function renderSettings(s) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
   set('sett-target',   s.target_rupees);
   set('sett-slots',    s.max_slots);
+  set('sett-sl',       s.default_sl_basis);
+  set('sett-slamt',    s.sl_amount_rupees);
   set('sett-universe', s.universe);
   set('sett-pmin',     s.price_min);
   set('sett-pmax',     s.price_max);
@@ -1644,6 +1658,8 @@ async function saveSettings() {
   const body = {};
   const tgt = parseFloat(val('sett-target')); if (tgt)  body.target_rupees    = tgt;
   const slt = parseInt(val('sett-slots'));    if (slt)  body.max_slots         = slt;
+  const slb = val('sett-sl');                 if (slb)  body.default_sl_basis  = slb;
+  const sla = parseFloat(val('sett-slamt'));  if (sla)  body.sl_amount_rupees  = sla;
   const uni = val('sett-universe');           if (uni)  body.universe          = uni;
   const pmn = parseFloat(val('sett-pmin'));  if (pmn)  body.price_min         = pmn;
   const pmx = parseFloat(val('sett-pmax'));  if (pmx)  body.price_max         = pmx;
@@ -1707,8 +1723,8 @@ const _TUT_STEPS = [
              ta: 'மொத்த படிப்பு லாப/நஷ்டம், <strong>இலக்கை அடைந்த</strong> (பச்சை) மற்றும் <strong>செல்லாமல் போன</strong> (சிவப்பு) அமைப்புகள், திறந்த முதலீடு, வெற்றி விகிதம் — அனைத்தும் கல்வி ஆய்வுக்கு மட்டுமே.' } },
   { el: '.settings-btn', pos: 'bottom',
     title: { en: 'Engine Settings', ta: 'இயந்திர அமைப்புகள்' },
-    body:  { en: 'Customise your session: set the <strong>target amount</strong> per trade, filter stocks by price range and dominance %, cap daily simulated trades, and define scan / square-off times. Invalidation (SL) follows a fixed rule: <strong>VWAP</strong> when it protects the position, else <strong>Day Low</strong> (bullish) / <strong>Day High</strong> (bearish). Settings apply from the <strong>next auto scan</strong>.',
-             ta: 'உங்கள் அமர்வை தனிப்பயனாக்குங்கள்: ஒவ்வொரு வர்த்தகத்திற்கும் <strong>இலக்கு தொகை</strong>, விலை வரம்பு மற்றும் ஆதிக்க % வடிகட்டிகள், தினசரி உருவக வர்த்தக வரம்பு, ஸ்கேன் / முடிவு நேரங்கள். செல்லாநிலை (SL) நிலையான விதி: நிலையை பாதுகாக்கும்போது <strong>VWAP</strong>, இல்லையெனில் <strong>நாள் தாழ்வு</strong> (ஏறுமுகம்) / <strong>நாள் உச்சம்</strong> (இறங்குமுகம்). அமைப்புகள் <strong>அடுத்த தானியங்கி ஸ்கேன்</strong> முதல் பயனாகும்.' } },
+    body:  { en: 'Customise your session: set the <strong>target amount</strong> per trade, filter stocks by price range and dominance %, cap daily simulated trades, and define scan / square-off times. Choose the invalidation (SL) rule: <strong>Day Low / Day High</strong> before entry (default), a <strong>flat ₹ amount</strong>, or <strong>VWAP</strong> with day-extreme fallback. Settings apply from the <strong>next auto scan</strong>.',
+             ta: 'உங்கள் அமர்வை தனிப்பயனாக்குங்கள்: ஒவ்வொரு வர்த்தகத்திற்கும் <strong>இலக்கு தொகை</strong>, விலை வரம்பு மற்றும் ஆதிக்க % வடிகட்டிகள், தினசரி உருவக வர்த்தக வரம்பு, ஸ்கேன் / முடிவு நேரங்கள். செல்லாநிலை (SL) விதியை தேர்வு செய்யுங்கள்: நுழைவுக்கு முந்தைய <strong>நாள் தாழ்வு / நாள் உச்சம்</strong> (இயல்புநிலை), <strong>நிலையான ₹ தொகை</strong>, அல்லது <strong>VWAP</strong>. அமைப்புகள் <strong>அடுத்த தானியங்கி ஸ்கேன்</strong> முதல் பயனாகும்.' } },
   { el: '#btCard',      pos: 'bottom',
     title: { en: 'Historical Backtest', ta: 'வரலாற்று பேக்டெஸ்ட்' },
     body:  { en: 'Select a <strong>past date</strong> to reveal this panel. Run the ORB algorithm on historical candles to see which setups would have triggered — great for studying patterns without waiting for market hours.',

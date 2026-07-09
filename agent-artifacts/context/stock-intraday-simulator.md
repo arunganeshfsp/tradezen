@@ -7,11 +7,31 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-07-09 (strict rules: scan-price ±1 entry, manual scan popup, auto-trigger removed, fixed SL rule)
+**Last updated:** 2026-07-09 (user-selectable SL rule: DAY_SMART default / AMOUNT / VWAP)
 
 ---
 
-## 2026-07-09 (later) — Fixed SL Rule: VWAP-else-Day-Extreme
+## 2026-07-09 (latest) — SL Rule is User-Selectable Again (3 options)
+
+User rule: "Stop loss option should be selected by user. There should be three option. By default, Day low is stop loss for buy order (Day low before the entry) and Day high for sell order. Second option be flat rupees." (Third option kept as VWAP — the previous rule.)
+
+**What changed** (supersedes the "Fixed SL Rule" section below)
+- `default_sl_basis` setting is honored again. Canonical values (validated in `_VALID_SL`): `DAY_SMART` (new default), `AMOUNT`, `VWAP`. Old `DAY_HIGH`/`DAY_LOW` values dropped from validation (no page ever sent them).
+- New helper `_orb_pick_sl_basis(setting, side, vwap, entry_price)` in main.py maps setting → concrete basis at trigger time:
+  - `DAY_SMART` → `DAY_LOW` (BUY) / `DAY_HIGH` (SELL) — day extreme *before entry* (live quote high/low at trigger).
+  - `AMOUNT` → flat ₹ study loss: `resolve_stop_loss` AMOUNT path (`pts = sl_amount_rupees / qty`, tick-snapped). Engine now passes `amount=` + `quantity=`.
+  - `VWAP` → VWAP when it protects the position, else falls back to day extreme (previous smart rule).
+- Applied in `_orb_trigger_poll_sync` (live) and backtest phase 2 (entry-time VWAP/day extremes). Trade rows record the concrete basis used (`DAY_LOW`/`DAY_HIGH`/`VWAP`/`AMOUNT`).
+- Candidates now store the session's *setting* value as `sl_basis` (e.g. `DAY_SMART`) instead of the `"SMART"` marker. Old rows with `SMART` still render (legacy label kept in `_slLabel`).
+- `sqlite_store.py`: `default_sl_basis` default `VWAP` → `DAY_SMART`.
+- Simulator UI: settings static rule description replaced by `#sett-sl` select (3 options, EN/TA hints) + `#sett-slamt` flat-amount input; render/save wired. SL column is side-aware: `DAY_SMART` → "Day Low"/"Day High", `VWAP`/`SMART` → "VWAP / Day Low(High)", `AMOUNT` → "Flat ₹". Tutorial settings step rewritten.
+- `algo_stock_trading.html` untouched — its dropdown already sends exactly these 3 values.
+
+**Caveat:** per-candidate SL override (`POST /simulator/sl-basis`, algo page) still updates the candidate row but the engine ignores it — trigger reads the session setting. Saved sessions on the deployed server keep their stored `default_sl_basis` (`VWAP` for anyone who saved before); only fresh sessions get the `DAY_SMART` default.
+
+---
+
+## 2026-07-09 (later) — Fixed SL Rule: VWAP-else-Day-Extreme (SUPERSEDED by section above)
 
 User rule: "Stop loss should be vwap or day low for buy order and day high for sell order."
 

@@ -7811,30 +7811,45 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
         min_chg   = st["buy_min_chg_pct"]  # single threshold for both sides, mirrors F&O Scanner
         triggered = triggered_by_sess.get(u, set())
 
+        n_noquote = n_trig = n_price = n_chg = n_dom = 0
         buy_cands, sell_cands = [], []
         for s in pool:
             q = quotes.get(s["token"])
-            if not q or s["symbol"] in triggered:
+            if not q:
+                n_noquote += 1
+                continue
+            if s["symbol"] in triggered:
+                n_trig += 1
                 continue
             ltp = q["ltp"]
             if not (st["price_min"] <= ltp <= st["price_max"]):
+                n_price += 1
                 continue
             bp, sp   = q["buy_pct"], q["sell_pct"]
             chg      = q.get("change_pct", 0)
+            if abs(chg) < min_chg:
+                n_chg += 1
+                continue
             strength = round(abs(bp - sp), 1)
             base     = {"symbol": s["symbol"], "token": s["token"],
                         "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength,
                         "bench_high": round(ltp + 1, 2), "bench_low": round(ltp - 1, 2)}
-            if bp >= sp and bp >= dom_min and abs(chg) >= min_chg:
+            if bp >= sp and bp >= dom_min:
                 buy_cands.append(base)
-            elif sp > bp and sp >= dom_min and abs(chg) >= min_chg:
+            elif sp > bp and sp >= dom_min:
                 sell_cands.append(base)
+            else:
+                n_dom += 1
 
         buy_cands.sort(key=lambda x: -x["strength"])
         sell_cands.sort(key=lambda x: -x["strength"])
         per_session[u] = (buy_cands[:st["candidate_cap"]], sell_cands[:st["candidate_cap"]])
         log.info(f"[ORB-SIM] {label} filter ({u or 'shared'}) — "
-                 f"{len(per_session[u][0])} BUY, {len(per_session[u][1])} SELL")
+                 f"universe={st['universe']} pool={len(pool)} price=₹{st['price_min']:.0f}–{st['price_max']:.0f} "
+                 f"dom≥{dom_min:.0f}% move≥{min_chg}% cap={st['candidate_cap']}/side | "
+                 f"rejected: no-quote {n_noquote}, traded {n_trig}, price {n_price}, move {n_chg}, dom {n_dom} | "
+                 f"kept {len(buy_cands)} BUY → {len(per_session[u][0])}, "
+                 f"{len(sell_cands)} SELL → {len(per_session[u][1])}")
 
     conn  = get_conn()
     saved = 0
@@ -7845,17 +7860,29 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
                          (today, u))
             conn.commit()
             _orb_manual_symbols.difference_update({t for t in _orb_manual_symbols if t[2] == u})
+        sl_setting = sess_settings[u]["default_sl_basis"]
         for c, side in ([(c, "BUY") for c in buy_cands] + [(c, "SELL") for c in sell_cands]):
-            # Rule: SL basis is decided at trigger time — VWAP when it protects
-            # the trade, else day low (BUY) / day high (SELL)
             orb_upsert_candidate(conn, today, c["symbol"], c["token"], side,
-                                 {**c, "status": "WAITING", "sl_basis": "SMART"}, user_id=u)
+                                 {**c, "status": "WAITING", "sl_basis": sl_setting}, user_id=u)
             saved += 1
             if manual:
                 _orb_manual_symbols.add((c["symbol"], side, u))
     conn.close()
     log.info(f"[ORB-SIM] {label} done — {saved} WAITING candidates for {today} "
              f"across {len(per_session)} session(s)")
+
+
+def _orb_pick_sl_basis(setting: str, side: str, vwap, entry_price: float) -> str:
+    """Map the user's SL setting to a concrete basis at trigger time.
+    DAY_SMART (default): day low before entry (BUY) / day high before entry (SELL).
+    AMOUNT: flat ₹ study loss. VWAP: VWAP when it protects, else day extreme."""
+    if setting == "AMOUNT":
+        return "AMOUNT"
+    if setting == "VWAP":
+        if side == "BUY":
+            return "VWAP" if (vwap and vwap < entry_price) else "DAY_LOW"
+        return "VWAP" if (vwap and vwap > entry_price) else "DAY_HIGH"
+    return "DAY_LOW" if side == "BUY" else "DAY_HIGH"
 
 
 def _orb_parse_hhmm(value, default_h: int, default_m: int):
@@ -7976,17 +8003,15 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                                             "SKIPPED", f"Qty 0 at price ₹{fill_price}", user_id=u)
                 continue
 
-            # Rule: SL = VWAP when it protects the trade, else day low (BUY) / day high (SELL)
             vwap = q.get("vwap")
-            if side == "BUY":
-                sl_basis = "VWAP" if (vwap and vwap < fill_price) else "DAY_LOW"
-            else:
-                sl_basis = "VWAP" if (vwap and vwap > fill_price) else "DAY_HIGH"
+            sl_basis = _orb_pick_sl_basis(st.get("default_sl_basis", "DAY_SMART"),
+                                          side, vwap, fill_price)
             sl_price, sl_err = _orb_resolve_sl(
                 direction=side, sl_basis=sl_basis,
                 bench_high=bh, bench_low=bl,
                 vwap=vwap, day_high=day_h, day_low=day_l,
                 custom=None, entry_price=fill_price,
+                amount=st.get("sl_amount_rupees"), quantity=qty,
             )
             if sl_err:
                 orb_update_candidate_status(conn, today, c["symbol"], side,
@@ -8526,6 +8551,8 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
     universe      = settings["universe"]
     entry_end_s   = settings["entry_window_end"]
     sq_time_s     = settings["square_off_time"]
+    sl_setting    = settings["default_sl_basis"]
+    sl_amount     = settings["sl_amount_rupees"]
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
@@ -8596,7 +8623,7 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             for side, trig_dt in [("BUY", buy_dt), ("SELL", sell_dt)]:
                 batch_cands[(s["symbol"], side)] = {
                     **base,
-                    "sl_basis": "SMART",
+                    "sl_basis": sl_setting,
                     "status":   "WAITING" if trig_dt else "WINDOW_CLOSED",
                     "remark":   None if trig_dt else "No breakout in entry window",
                 }
@@ -8692,16 +8719,13 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             conn.close()
             continue
 
-        # Rule: SL = VWAP when it protects the trade, else day low (BUY) / day high (SELL)
-        if side == "BUY":
-            cand_sl_basis = "VWAP" if (vwap_entry and vwap_entry < trigger_price) else "DAY_LOW"
-        else:
-            cand_sl_basis = "VWAP" if (vwap_entry and vwap_entry > trigger_price) else "DAY_HIGH"
+        cand_sl_basis = _orb_pick_sl_basis(sl_setting, side, vwap_entry, trigger_price)
         sl_price, sl_err = _orb_resolve_sl(
             direction=side, sl_basis=cand_sl_basis,
             bench_high=bench_high, bench_low=bench_low,
             vwap=vwap_entry, day_high=day_high_entry, day_low=day_low_entry,
             custom=None, entry_price=trigger_price,
+            amount=sl_amount, quantity=qty,
         )
         if sl_err:
             all_cands[key]["status"] = "SKIPPED"
@@ -8943,7 +8967,7 @@ async def simulator_history(request: Request, days: int = 30):
 @app.post("/simulator/settings")
 async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     _VALID_UNI = {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50"}
-    _VALID_SL  = {"VWAP", "DAY_HIGH", "DAY_LOW", "DAY_SMART", "AMOUNT"}
+    _VALID_SL  = {"VWAP", "DAY_SMART", "AMOUNT"}
     errs = []
     if body.universe         and body.universe         not in _VALID_UNI: errs.append("universe")
     if body.default_sl_basis and body.default_sl_basis not in _VALID_SL:  errs.append("default_sl_basis")
