@@ -16,6 +16,7 @@ python-multipart
 # Data processing
 pandas
 numpy
+openpyxl
 
 # Storage
 sqlalchemy
