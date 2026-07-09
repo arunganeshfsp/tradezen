@@ -7671,6 +7671,7 @@ from storage.sqlite_store import (
     orb_get_trades, orb_get_open_trades, orb_update_trade,
     orb_get_settings, orb_upsert_settings,
     orb_has_own_settings, orb_list_setting_users,
+    stock_universe_import, stock_universe_get, stock_universe_counts, stock_universe_clear,
 )
 
 # Nifty index symbol sets — used for universe filtering at capture time.
@@ -8961,6 +8962,72 @@ async def simulator_history(request: Request, days: int = 30):
         }
     except Exception as e:
         log.error(f"[SIM-HISTORY] {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ── Stock Universe Inventory ──────────────────────────────────────────────────
+
+_SYM_RE = __import__("re").compile(r"^[A-Z][A-Z0-9\-&\.]{1,19}$")
+
+
+@app.get("/stock-inventory")
+async def stock_inventory_get(source: str = "all"):
+    try:
+        conn = get_conn()
+        counts = stock_universe_counts(conn)
+        if source == "nifty500":
+            result = {"nifty500": stock_universe_get(conn, "nifty500"), "fno": [], "counts": counts}
+        elif source == "fno":
+            result = {"nifty500": [], "fno": stock_universe_get(conn, "fno"), "counts": counts}
+        else:
+            result = {
+                "nifty500": stock_universe_get(conn, "nifty500"),
+                "fno":      stock_universe_get(conn, "fno"),
+                "counts":   counts,
+            }
+        conn.close()
+        return result
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/stock-inventory/import")
+async def stock_inventory_import(file: UploadFile, source: str = "fno"):
+    if source not in ("nifty500", "fno"):
+        return JSONResponse(status_code=400, content={"error": "source must be nifty500 or fno"})
+    try:
+        import io
+        import pandas as _pd
+        contents = await file.read()
+        fname = (file.filename or "").lower()
+        if fname.endswith(".xlsx") or fname.endswith(".xls"):
+            df = _pd.read_excel(io.BytesIO(contents), header=None)
+            raw = df.iloc[:, 0].dropna().astype(str)
+        else:
+            df = _pd.read_csv(io.BytesIO(contents))
+            col = next((c for c in df.columns if str(c).strip().upper() == "SYMBOL"), df.columns[0])
+            raw = df[col].dropna().astype(str)
+        symbols = [s.strip().upper() for s in raw if _SYM_RE.match(s.strip().upper())]
+        conn = get_conn()
+        n = stock_universe_import(conn, symbols, source)
+        conn.close()
+        log.info(f"[STOCK-INV] imported {n} symbols into source={source}")
+        return {"imported": n, "source": source, "replaced": True}
+    except Exception as e:
+        log.error(f"[STOCK-INV] import error: {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.delete("/stock-inventory")
+async def stock_inventory_delete(source: str):
+    if source not in ("nifty500", "fno"):
+        return JSONResponse(status_code=400, content={"error": "source must be nifty500 or fno"})
+    try:
+        conn = get_conn()
+        n = stock_universe_clear(conn, source)
+        conn.close()
+        return {"deleted": n, "source": source}
+    except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 

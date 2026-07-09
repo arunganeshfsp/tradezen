@@ -114,6 +114,13 @@ def _ensure_tables(conn: sqlite3.Connection):
             updated_at TEXT,
             PRIMARY KEY (user_id, key)
         );
+
+        CREATE TABLE IF NOT EXISTS stock_universe (
+            symbol   TEXT NOT NULL,
+            source   TEXT NOT NULL,
+            added_at TEXT DEFAULT (datetime('now', 'localtime')),
+            PRIMARY KEY (symbol, source)
+        );
     """)
     conn.commit()
     _migrate_orb_user_scope(conn)
@@ -448,3 +455,39 @@ def orb_has_own_settings(conn, user_id: str) -> bool:
 def orb_list_setting_users(conn) -> list[str]:
     cur = conn.execute("SELECT DISTINCT user_id FROM orb_settings WHERE user_id != ''")
     return [r["user_id"] for r in cur.fetchall()]
+
+
+# ── Stock Universe helpers ─────────────────────────────────────────────────────
+
+def stock_universe_import(conn, symbols: list, source: str) -> int:
+    conn.execute("DELETE FROM stock_universe WHERE source=?", (source,))
+    conn.executemany(
+        "INSERT OR IGNORE INTO stock_universe (symbol, source) VALUES (?, ?)",
+        [(s, source) for s in symbols],
+    )
+    conn.commit()
+    return conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source=?", (source,)).fetchone()[0]
+
+
+def stock_universe_get(conn, source: str | None = None) -> list:
+    if source:
+        cur = conn.execute("SELECT symbol FROM stock_universe WHERE source=? ORDER BY symbol", (source,))
+    else:
+        cur = conn.execute("SELECT symbol FROM stock_universe ORDER BY symbol")
+    return [r[0] for r in cur.fetchall()]
+
+
+def stock_universe_counts(conn) -> dict:
+    n500 = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='nifty500'").fetchone()[0]
+    fno  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='fno'").fetchone()[0]
+    both = conn.execute(
+        "SELECT COUNT(*) FROM stock_universe WHERE source='nifty500' AND symbol IN "
+        "(SELECT symbol FROM stock_universe WHERE source='fno')"
+    ).fetchone()[0]
+    return {"nifty500": n500, "fno": fno, "both": both}
+
+
+def stock_universe_clear(conn, source: str) -> int:
+    cur = conn.execute("DELETE FROM stock_universe WHERE source=?", (source,))
+    conn.commit()
+    return cur.rowcount

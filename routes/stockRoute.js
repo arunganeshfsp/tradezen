@@ -1197,6 +1197,49 @@ router.get("/simulator/trade-verify", async (req, res) => {
   }
 });
 
+// ─── GET /api/stock-inventory?source=all|nifty500|fno ───────────────────────
+router.get("/stock-inventory", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stock-inventory?${params}`, 8000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── POST /api/stock-inventory/import?source=nifty500|fno  (multipart) ──────
+router.post("/stock-inventory/import", (req, res) => {
+  const params = new URLSearchParams(req.query);
+  const options = {
+    hostname: _PYTHON_HOST,
+    port:     _PYTHON_PORT,
+    path:     `/stock-inventory/import?${params}`,
+    method:   "POST",
+    headers:  { "content-type": req.headers["content-type"] },
+  };
+  const proxyReq = _http.request(options, (proxyRes) => {
+    let body = "";
+    proxyRes.on("data", (d) => { body += d; });
+    proxyRes.on("end", () => {
+      try { res.json(JSON.parse(body)); }
+      catch { res.status(502).json({ error: "Bad response from Python engine" }); }
+    });
+  });
+  proxyReq.on("error", (err) => {
+    console.error("stock-inventory/import proxy error:", err.message);
+    res.status(500).json({ error: "Python engine unreachable" });
+  });
+  req.pipe(proxyReq);
+});
+
+// ─── DELETE /api/stock-inventory?source=nifty500|fno ─────────────────────────
+router.delete("/stock-inventory", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("DELETE", `/stock-inventory?${params}`, 8000);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── GET /api/stock/health/:symbol ───────────────────────────────────────────
 // 4-persona fundamental health report (Stock Health Story tool)
 router.get("/stock/health/:symbol", async (req, res) => {
