@@ -194,7 +194,7 @@ Stored in `orb_settings` SQLite table (key-value). Read by the background engine
 | `price_min` | 700 | Min price filter (₹) |
 | `price_max` | 7000 | Max price filter (₹) |
 | `dom_min_pct` | 50 | Min order-book dominance % to qualify as candidate (50 = any majority, matches F&O Scanner) |
-| `candidate_cap` | 25 | Max candidates kept per side (after sorting by dominance strength) |
+| `candidate_cap` | 10 | Watch list size per side (10 BUY + 10 SELL, strongest dominance first) — changed from 25 on 2026-07-09 |
 | `entry_window_start` | 09:20 | Auto-scan time (HH:MM); also drives status messages |
 | `buy_min_chg_pct` | 1.0 | Min abs % move from prev close (single threshold for both sides since 2026-07-08) |
 | `sell_min_chg_pct` | 1.0 | Legacy mirror of the above; kept for API compat |

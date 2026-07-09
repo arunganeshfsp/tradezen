@@ -395,7 +395,7 @@ ORB_SETTING_DEFAULTS: dict = {
     "dom_min_pct":       "50",
     "max_slots":         "5",
     "default_sl_basis":  "VWAP",
-    "candidate_cap":     "25",
+    "candidate_cap":     "10",
     "entry_window_start": "09:20",
     "entry_window_end":   "10:30",
     "square_off_time":    "15:30",
