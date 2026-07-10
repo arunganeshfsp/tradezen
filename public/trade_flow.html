@@ -506,6 +506,13 @@ body.is-fullscreen .fs-close-btn{display:flex}
 :root[data-theme="light"] .tp-meter-rail{background:linear-gradient(to right,#ef4444 0%,#e5e7eb 50%,#22c55e 100%)}
 :root[data-theme="light"] .tp-meter-dot{border-color:#ffffff;background:var(--text)}
 @media(max-width:900px){.tp-header{flex-direction:column;gap:8px}.tp-header-right{text-align:left}}
+/* ── Momentum tabs + chips ── */
+.mtab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--dim);cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.mtab:hover{border-color:var(--border2);color:var(--text)}
+.mtab.active{border-color:var(--accent);background:rgba(124,106,247,.12);color:var(--accent)}
+.mchip{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);color:var(--dim);text-decoration:none;transition:border-color .14s,color .14s;white-space:nowrap}
+.mchip:hover{border-color:var(--accent);color:var(--accent)}
+.mchip-skel{display:inline-block;width:58px;height:26px;border-radius:20px;background:var(--bg3)}
 </style>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
@@ -756,6 +763,40 @@ body.is-fullscreen .fs-close-btn{display:flex}
                                    border-top:none;border-radius:0 0 8px 8px;padding:12px 14px">
       <div id="tp-accuracy-panel">
         <div style="color:var(--muted);font-size:12px">Click above to load accuracy data.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Momentum Index collapsible -->
+  <div id="momentum-section" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;
+                background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+                font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)"
+         onclick="_toggleMomentum()">
+      <span>📈</span>
+      <span>Momentum Index Stocks</span>
+      <span id="momentum-stale-badge" style="display:none;margin-left:4px;font-size:9px;
+            color:var(--yellow);border:1px solid var(--yellow);border-radius:20px;padding:1px 7px">stale</span>
+      <span id="momentum-toggle-icon" style="margin-left:auto">▶</span>
+    </div>
+    <div id="momentum-body" style="display:none;background:var(--bg2);border:1px solid var(--border);
+                                   border-top:none;border-radius:0 0 8px 8px;padding:12px 14px">
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="mtab active" data-index="NIFTY200_MOMENTUM_30"
+                onclick="_switchMomentumTab(this)">NF200 M30</button>
+        <button class="mtab" data-index="NIFTY500_MOMENTUM_50"
+                onclick="_switchMomentumTab(this)">NF500 M50</button>
+        <button class="mtab" data-index="NIFTYMIDCAP150_MOMENTUM_50"
+                onclick="_switchMomentumTab(this)">MidCap M50</button>
+      </div>
+      <div id="momentum-chips" style="display:flex;flex-wrap:wrap;gap:7px;min-height:30px">
+        <span class="mchip-skel"></span><span class="mchip-skel"></span>
+        <span class="mchip-skel"></span><span class="mchip-skel"></span>
+      </div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px;
+                  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <span id="momentum-ts" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)"></span>
+        <span style="font-size:10px;color:var(--muted);font-style:italic">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</span>
       </div>
     </div>
   </div>
@@ -3781,6 +3822,57 @@ window._toggleAccuracy = function () {
   if (icon) icon.textContent = _accuracyOpen ? '▼' : '▶';
   if (_accuracyOpen) _fetchAccuracy();
 };
+
+// ── Momentum Index ────────────────────────────────────────────────────────────
+var _momentumOpen   = false;
+var _momentumActive = 'NIFTY200_MOMENTUM_30';
+var _momentumCache  = {};
+
+function _toggleMomentum() {
+  _momentumOpen = !_momentumOpen;
+  document.getElementById('momentum-body').style.display = _momentumOpen ? '' : 'none';
+  document.getElementById('momentum-toggle-icon').textContent = _momentumOpen ? '▼' : '▶';
+  if (_momentumOpen && !_momentumCache[_momentumActive]) _fetchMomentumIndex(_momentumActive);
+}
+
+function _switchMomentumTab(btn) {
+  document.querySelectorAll('.mtab').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  _fetchMomentumIndex(btn.dataset.index);
+}
+
+function _fetchMomentumIndex(indexName) {
+  _momentumActive = indexName;
+  if (_momentumCache[indexName]) { _renderMomentumChips(_momentumCache[indexName]); return; }
+  document.getElementById('momentum-chips').innerHTML =
+    '<span class="mchip-skel"></span><span class="mchip-skel"></span>' +
+    '<span class="mchip-skel"></span><span class="mchip-skel"></span>' +
+    '<span class="mchip-skel"></span><span class="mchip-skel"></span>';
+  fetch('/api/momentum-index/' + indexName)
+    .then(function(r) { return r.json(); })
+    .then(function(d) { _momentumCache[indexName] = d; if (_momentumActive === indexName) _renderMomentumChips(d); })
+    .catch(function() {});
+}
+
+function _renderMomentumChips(result) {
+  var el      = document.getElementById('momentum-chips');
+  var staleEl = document.getElementById('momentum-stale-badge');
+  var tsEl    = document.getElementById('momentum-ts');
+  staleEl.style.display = result.stale ? '' : 'none';
+  if (result.lastUpdated) {
+    var d = new Date(result.lastUpdated);
+    tsEl.textContent = 'Updated ' + d.toLocaleDateString('en-IN') + ' ' +
+      d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+  }
+  if (!result.stocks || !result.stocks.length) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--muted)">No data available</span>';
+    return;
+  }
+  el.innerHTML = result.stocks.map(function(s) {
+    return '<a href="/stock_analyser.html?symbol=' + encodeURIComponent(s.symbol) +
+           '" class="mchip" title="' + (s.name || s.symbol) + '">' + s.symbol + '</a>';
+  }).join('');
+}
 
 // ── 3.4 Kingfisher Window Countdown ──────────────────────────────────────────
 let _kfAlertFired = false;
