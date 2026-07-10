@@ -9227,6 +9227,39 @@ async def simulator_trade_verify(trade_id: str):
     }
 
 
+_momentum_cache: dict = {}  # {index_name: {"stocks": [...], "ts": datetime}}
+
+_MOMENTUM_INDEX_MAP = {
+    "NIFTY200_MOMENTUM_30":       ("NIFTY200 MOMENTUM 30",       "NIFTY200 Momentum 30"),
+    "NIFTY500_MOMENTUM_50":       ("NIFTY500 MOMENTUM 50",       "NIFTY500 Momentum 50"),
+    "NIFTYMIDCAP150_MOMENTUM_50": ("NIFTYMIDCAP150 MOMENTUM 50", "NiftyMidcap150 Momentum 50"),
+}
+
+@app.get("/momentum-constituents/{index_name}")
+async def momentum_constituents(index_name: str):
+    if index_name not in _MOMENTUM_INDEX_MAP:
+        raise HTTPException(status_code=400, detail="Unknown index name")
+    nse_name, label = _MOMENTUM_INDEX_MAP[index_name]
+    cached = _momentum_cache.get(index_name)
+    if cached and (datetime.utcnow() - cached["ts"]).total_seconds() < 86400:
+        return {"stocks": cached["stocks"], "stale": False,
+                "lastUpdated": cached["ts"].isoformat(), "label": label}
+    try:
+        from core.movers import _fetch_nse
+        rows   = _fetch_nse(nse_name)
+        stocks = [{"symbol": r["symbol"], "name": ""} for r in rows if r.get("symbol")]
+        if stocks:
+            _momentum_cache[index_name] = {"stocks": stocks, "ts": datetime.utcnow()}
+            return {"stocks": stocks, "stale": False,
+                    "lastUpdated": _momentum_cache[index_name]["ts"].isoformat(), "label": label}
+    except Exception as e:
+        log.warning(f"[MOMENTUM] {index_name}: {e}")
+    if cached:
+        return {"stocks": cached["stocks"], "stale": True,
+                "lastUpdated": cached["ts"].isoformat(), "label": label}
+    return {"stocks": [], "stale": True, "lastUpdated": None, "label": label}
+
+
 @app.get("/mgmt/logs/{srv}")
 async def mgmt_logs(srv: str, request: Request):
     if not _check_token(request):

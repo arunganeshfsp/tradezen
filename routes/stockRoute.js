@@ -1252,7 +1252,6 @@ router.get("/stock/health/:symbol", async (req, res) => {
 });
 
 // ─── GET /api/momentum-index/:indexName ──────────────────────────────────────
-const momentumIndex   = require('../services/nseMomentumIndex');
 const _VALID_MOMENTUM = new Set(['NIFTY200_MOMENTUM_30','NIFTY500_MOMENTUM_50','NIFTYMIDCAP150_MOMENTUM_50']);
 
 router.get('/momentum-index/:indexName', async (req, res) => {
@@ -1260,7 +1259,8 @@ router.get('/momentum-index/:indexName', async (req, res) => {
     return res.status(400).json({ error: 'Unknown index name' });
   }
   try {
-    res.json(await momentumIndex.getConstituents(req.params.indexName));
+    const data = await aiService.proxy('GET', `/momentum-constituents/${req.params.indexName}`, 20000);
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

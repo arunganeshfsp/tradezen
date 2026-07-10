@@ -1,8 +1,9 @@
 # Context: momentum-index
 
 **Files:**
-- `services/nseMomentumIndex.js` — Node.js service; fetches + caches constituent lists
-- `routes/stockRoute.js` — `GET /api/momentum-index/:indexName` route (before `module.exports`)
+- `ai_engine/main.py` — `GET /momentum-constituents/{index_name}` FastAPI endpoint; 24h in-memory cache; uses `_fetch_nse()` from `core/movers.py` for NSE session-gated API
+- `services/nseMomentumIndex.js` — Node.js service file (no longer used by route; route proxies directly to Python)
+- `routes/stockRoute.js` — `GET /api/momentum-index/:indexName` proxies to Python via `aiService.proxy()`
 - `public/trade_flow.html` — collapsible "Momentum Index Stocks" section inside `app-main`
 
 **Last updated:** 2026-07-10 (initial implementation)
@@ -11,16 +12,18 @@
 
 ## 2026-07-10 — Initial Implementation
 
-**What changed**
-- New `services/nseMomentumIndex.js`: singleton class, dual-layer cache (in-memory dict + `cache/momentum-index.json`), 24h TTL.
-- Fetches constituent list for 3 indices: `NIFTY200_MOMENTUM_30`, `NIFTY500_MOMENTUM_50`, `NIFTYMIDCAP150_MOMENTUM_50`.
-- Primary source: CSV download from niftyindices.com (browser-like headers + Referer).
-- Fallback: NSE API — GET nseindia.com home page for session cookies, then GET `/api/equity-stockIndices?index=`.
-- If both fail: returns stale cache with `stale: true`; if no cache at all, returns empty array.
-- New Express route: `GET /api/momentum-index/:indexName` in `stockRoute.js`, validated against allowlist.
-- New collapsible section in `trade_flow.html` (after `#accuracy-section`, before `#ohlc-banner`): toggle pattern mirrors `#accuracy-section`. Lazy fetch — data loads only when user opens the panel.
-- CSS `.mtab`, `.mchip`, `.mchip-skel` appended to `trade_flow.html` style block; uses existing tokens (`--bg2`, `--bg3`, `--border`, `--border2`, `--dim`, `--accent`, `--muted`).
-- JS: `_toggleMomentum`, `_switchMomentumTab`, `_fetchMomentumIndex`, `_renderMomentumChips` added before the Kingfisher section.
+**What changed — initial (2026-07-10)**
+- New collapsible "Momentum Index Stocks" section in `trade_flow.html` (after `#accuracy-section`, before `#ohlc-banner`).
+- CSS `.mtab`, `.mchip`, `.mchip-skel` using existing page tokens.
+- JS: `_toggleMomentum`, `_switchMomentumTab`, `_fetchMomentumIndex`, `_renderMomentumChips` (lazy load on panel open).
+- `services/nseMomentumIndex.js` created (Node-side fetcher — superseded by Python approach below).
+
+**What changed — fix (2026-07-10)**
+- Both original fetch sources failed: niftyindices.com CSV URLs return 404 (path changed); NSE website API blocked by Imperva JS challenge at HTTP level.
+- Added `GET /momentum-constituents/{index_name}` to Python `main.py`. Uses `_fetch_nse()` from `core/movers.py` which has a proper NSE session warmup (visits home page + market-data page first, accumulates cookies in a persistent `requests.Session`).
+- `_MOMENTUM_INDEX_MAP` in `main.py` maps `NIFTY200_MOMENTUM_30` → `"NIFTY200 MOMENTUM 30"` (NSE parameter name).
+- `_momentum_cache` dict in `main.py` provides 24h in-memory cache on the Python side.
+- Node route now proxies directly to Python via `aiService.proxy()` — `nseMomentumIndex.js` is no longer called.
 
 **Why**
 User wants to see which stocks are in NSE's momentum indices while reviewing today's trend in the Trade Decision Flow page.
