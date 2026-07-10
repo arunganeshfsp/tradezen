@@ -163,9 +163,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .dom-fill{height:100%}
 .dom-fill.buy-fill{background:linear-gradient(90deg,var(--green2),var(--green));border-radius:3px 0 0 3px}
 .dom-fill.sell-fill{background:linear-gradient(270deg,var(--red2),var(--red));border-radius:0 3px 3px 0;margin-left:auto}
-.dom-nums{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px}
+.dom-nums{display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px}
 .dn-buy{color:var(--green)}
 .dn-sell{color:var(--red)}
+.dom-weak{border:1px solid var(--orange);border-radius:4px;padding:2px 3px}
+.live-dot{color:var(--green);font-size:7px;vertical-align:middle;margin-left:3px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── SL LABEL ── */
 .locked-sl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
@@ -1004,12 +1007,17 @@ function renderCandidates(cands) {
     const isBuy   = c.side === 'BUY';
     const dirLbl  = isBuy ? 'BULLISH ▲ (SIM)' : 'BEARISH ▼ (SIM)';
     const dirCls  = isBuy ? 'dir-bull' : 'dir-bear';
-    const bp      = Math.round(c.buy_pct  || 0);
-    const sp      = Math.round(c.sell_pct || 0);
+    const isWaiting = c.status === 'WAITING';
+    const bp = Math.round((isWaiting && c.live_buy_pct  != null ? c.live_buy_pct  : c.buy_pct)  || 0);
+    const sp = Math.round((isWaiting && c.live_sell_pct != null ? c.live_sell_pct : c.sell_pct) || 0);
+    const domMin  = (_settings && _settings.dom_min_pct) || 50;
+    const domWeak = isWaiting && ((isBuy && bp < domMin) || (!isBuy && sp < domMin));
+    const liveDot = (isWaiting && c.live_buy_pct != null)
+      ? `<span class="live-dot" title="Live dominance — updates every 5s">●</span>` : '';
     const sl      = c.sl_basis || 'DAY_SMART';
 
     const domHtml = `
-      <div class="dom-mini">
+      <div class="dom-mini${domWeak ? ' dom-weak' : ''}">
         <div class="dom-bar-sm">
           <div class="dom-fill buy-fill"  style="width:${bp}%"></div>
           <div class="dom-fill sell-fill" style="width:${sp}%"></div>
@@ -1017,6 +1025,7 @@ function renderCandidates(cands) {
         <div class="dom-nums">
           <span class="dn-buy">${bp}%</span>
           <span class="dn-sell">${sp}%</span>
+          ${liveDot}
         </div>
       </div>`;
 

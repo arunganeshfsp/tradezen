@@ -7703,6 +7703,7 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 
 _orb_ltp_cache:        dict = {}
 _orb_chg_cache:        dict = {}   # token → change_pct from yesterday's close
+_orb_dom_cache:        dict = {}   # token → {"buy_pct": X, "sell_pct": Y} live dominance
 _orb_trail_peaks:      dict = {}   # trade_id → best_price_seen (high for BUY, low for SELL)
 _orb_manual_scan_req:  dict | None = None  # {"user": session_id, "overrides": {...}} set by scan-now; consumed by engine loop
 _orb_manual_symbols:   set  = set()  # (symbol, side, user_id) added via manual scan-now; never WINDOW_CLOSED
@@ -7740,6 +7741,8 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
                 }
                 _orb_ltp_cache[tok] = round(ltp, 2)
                 _orb_chg_cache[tok] = chg
+                _orb_dom_cache[tok] = {"buy_pct": result[tok]["buy_pct"],
+                                       "sell_pct": result[tok]["sell_pct"]}
         except Exception as e:
             log.warning(f"[ORB-SIM] quote batch {i}: {e}")
     return result
@@ -7981,6 +7984,19 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             day_l = q.get("low")  or bl   # live session low; fallback to bench
 
             if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
+                continue
+
+            # Volume gate: dominance must still satisfy dom_min_pct at trigger time
+            dom_min   = st["dom_min_pct"]
+            live_buy  = q.get("buy_pct", 0)
+            live_sell = q.get("sell_pct", 0)
+            if side == "BUY" and live_buy < dom_min:
+                orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
+                    f"Volume gate: buy% {live_buy:.0f}% < {dom_min:.0f}% at trigger", user_id=u)
+                continue
+            if side == "SELL" and live_sell < dom_min:
+                orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
+                    f"Volume gate: sell% {live_sell:.0f}% < {dom_min:.0f}% at trigger", user_id=u)
                 continue
 
             if c["symbol"] in triggered_syms:
@@ -8356,8 +8372,11 @@ async def simulator_state(request: Request, date: str = ""):
         if date == today_ist:
             tok_by_sym = {c["symbol"]: str(c["token"]) for c in candidates}
             for c in candidates:
-                c["live_ltp"]   = _orb_ltp_cache.get(str(c["token"]))
-                c["change_pct"] = _orb_chg_cache.get(str(c["token"]))
+                c["live_ltp"]    = _orb_ltp_cache.get(str(c["token"]))
+                c["change_pct"]  = _orb_chg_cache.get(str(c["token"]))
+                dom = _orb_dom_cache.get(str(c["token"]), {})
+                c["live_buy_pct"]  = dom.get("buy_pct")
+                c["live_sell_pct"] = dom.get("sell_pct")
             for t in trades:
                 t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
                 if t["outcome"] == "OPEN" and trail_pts > 0 and t["id"] in _orb_trail_peaks:
