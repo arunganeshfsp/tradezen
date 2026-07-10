@@ -31,17 +31,14 @@
       text-decoration: none; color: var(--tz-fg-1); overflow: hidden;
       transition: border-color .18s var(--tz-ease-out), background .18s var(--tz-ease-out), transform .18s var(--tz-ease-out);
     }
-    .strategy-card::before {
-      content: ''; position: absolute; inset: 0; opacity: 0;
-      transition: opacity .22s var(--tz-ease-out); pointer-events: none;
+    .strategy-card::before, .strategy-card::after {
+      content: ''; position: absolute; width: 14px; height: 14px; opacity: 0;
+      transition: opacity .18s var(--tz-ease-out); pointer-events: none;
     }
-    .strategy-card.kf-card::before { background: radial-gradient(ellipse at top left, rgba(124,106,247,.14) 0%, transparent 65%); }
-    .strategy-card.orca-card::before { background: radial-gradient(ellipse at top right, rgba(91,138,245,.14) 0%, transparent 65%); }
-    .strategy-card.osprey-card::before { background: radial-gradient(ellipse at bottom center, rgba(0,212,255,.12) 0%, transparent 65%); }
-    .strategy-card.cup-card::before { background: radial-gradient(ellipse at top left, rgba(16,185,129,.13) 0%, transparent 65%); }
-    .strategy-card.rev-card::before { background: radial-gradient(ellipse at top right, rgba(245,165,36,.13) 0%, transparent 65%); }
+    .strategy-card::before { top: 10px; left: 10px; border-top: 1.5px solid var(--tz-accent-1); border-left: 1.5px solid var(--tz-accent-1); }
+    .strategy-card::after  { bottom: 10px; right: 10px; border-bottom: 1.5px solid var(--tz-accent-1); border-right: 1.5px solid var(--tz-accent-1); }
     .strategy-card:hover { border-color: var(--tz-border-strong); background: var(--tz-surface-2); transform: translateY(-3px); color: var(--tz-fg-1); }
-    .strategy-card:hover::before { opacity: 1; }
+    .strategy-card:hover::before, .strategy-card:hover::after { opacity: .7; }
     .strategy-icon {
       width: 52px; height: 52px; border-radius: var(--tz-radius-md);
       display: flex; align-items: center; justify-content: center; margin-bottom: 22px;
@@ -96,24 +93,27 @@
     .title-panel {
       padding: 40px 0 32px;
       border-bottom: 1px solid var(--tz-border);
-      background: radial-gradient(ellipse 80% 60% at 50% -10%,
-        rgba(var(--tz-accent-rgb), .08) 0%, transparent 70%);
+      background:
+        repeating-linear-gradient(to right,  rgba(255,255,255,.022) 0 1px, transparent 1px 44px),
+        repeating-linear-gradient(to bottom, rgba(255,255,255,.022) 0 1px, transparent 1px 44px);
       text-align: center;
     }
     .title-panel-eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       font-family: var(--tz-font-mono);
       font-size: 9.5px;
-      letter-spacing: 2px;
+      letter-spacing: .18em;
       text-transform: uppercase;
-      color: var(--tz-accent-1);
-      background: rgba(var(--tz-accent-rgb), .08);
-      border: 1px solid rgba(var(--tz-accent-rgb), .2);
-      padding: 4px 14px;
-      border-radius: var(--tz-radius-full);
+      color: var(--tz-fg-3);
       margin-bottom: 16px;
+    }
+    .title-panel-eyebrow::before {
+      content: '';
+      width: 28px;
+      height: 1px;
+      background: var(--tz-accent-1);
     }
     .title-panel h1 {
       font-size: clamp(28px, 5vw, 48px);
@@ -124,12 +124,18 @@
       margin-bottom: 10px;
     }
     .title-panel h1 em {
+      font-family: var(--tz-font-display);
       font-style: italic;
-      background: var(--tz-grad);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-weight: 400;
+      font-size: 1.06em;
+      color: var(--tz-fg-1);
     }
+    .btn-aurora, .btn-aurora:hover, .btn-aurora:focus { box-shadow: none !important; }
+    .section-header h2 { font-family: var(--tz-font-display); font-weight: 400; letter-spacing: -.01em; }
+    .cpr-motif { max-width: 280px; margin: 28px auto 0; display: flex; flex-direction: column; gap: 7px; opacity: .45; }
+    .cpr-line { position: relative; border-top: 1px dashed var(--tz-border-strong); }
+    .cpr-line.cpr-mid { border-top-color: rgba(var(--tz-accent-rgb), .5); }
+    .cpr-line i { position: absolute; right: -30px; top: -7px; font-family: var(--tz-font-mono); font-style: normal; font-size: 8px; letter-spacing: .1em; color: var(--tz-fg-3); }
     .title-panel-sub {
       font-size: 14px;
       color: var(--tz-fg-3);
@@ -605,6 +611,11 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
     </div>
+    <div class="cpr-motif" aria-hidden="true">
+      <span class="cpr-line"><i>TC</i></span>
+      <span class="cpr-line cpr-mid"><i>PIVOT</i></span>
+      <span class="cpr-line"><i>BC</i></span>
+    </div>
   </div>
 </div>
 
@@ -750,13 +761,13 @@
   <div class="container">
     <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 section-header">
       <div>
-        <span class="eyebrow">
+        <span class="kicker">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           TOOLS · LIVE
         </span>
         <h2>
           <span data-en="Eleven engines," data-ta="பதினொரு இயந்திரங்கள்,">Eleven engines,</span>
-          <span class="text-gradient fst-italic" data-en=" One workspace." data-ta=" ஒரு வேலை இடம்."> One workspace.</span>
+          <span class="text-serif" data-en=" One workspace." data-ta=" ஒரு வேலை இடம்."> One workspace.</span>
         </h2>
       </div>
       <div class="filter-bar">
@@ -1055,13 +1066,13 @@
   <div class="container">
     <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 section-header">
       <div>
-        <span class="eyebrow">
+        <span class="kicker">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           STRATEGIES
         </span>
         <h2>
           <span data-en="Study the" data-ta="இந்த">Study the</span>
-          <span class="text-gradient fst-italic" data-en=" setups." data-ta=" அமைப்புகளை ஆய்வு செய்யுங்கள்."> setups.</span>
+          <span class="text-serif" data-en=" setups." data-ta=" அமைப்புகளை ஆய்வு செய்யுங்கள்."> setups.</span>
         </h2>
       </div>
     </div>
@@ -1132,13 +1143,13 @@
 <section id="learn" class="py-5 py-md-6">
   <div class="container">
     <div class="section-header">
-      <span class="eyebrow">
+      <span class="kicker">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         LEARN
       </span>
       <h2>
         <span data-en="Master the markets, " data-ta="சந்தைகளை தேர்ச்சி செய்க, ">Master the markets, </span>
-        <span class="text-gradient fst-italic" data-en="at your pace." data-ta="உங்கள் வேகத்தில்.">at your pace.</span>
+        <span class="text-serif" data-en="at your pace." data-ta="உங்கள் வேகத்தில்.">at your pace.</span>
       </h2>
     </div>
 
@@ -1189,10 +1200,10 @@
 <section id="faq" class="halo-faq py-5 py-md-6">
   <div class="container" style="max-width:980px">
     <div class="text-center section-header">
-      <span class="eyebrow">FAQ</span>
+      <span class="kicker">FAQ</span>
       <h2>
         Frequently asked,
-        <span class="fst-italic text-gradient">calmly answered.</span>
+        <span class="text-serif">calmly answered.</span>
       </h2>
     </div>
 
@@ -1263,7 +1274,7 @@
           <img src="/app-icon.svg" width="32" height="32" alt="TradeZen" style="border-radius:8px" data-app-logo />
           <span style="font-weight:700;font-size:18px">TradeZen</span>
         </div>
-        <h3 class="footer-lead">Trade with <span class="text-gradient fst-italic">clarity.</span></h3>
+        <h3 class="footer-lead">Trade with <span class="text-serif">clarity.</span></h3>
         <div class="d-flex gap-2 mt-3">
           <a href="/contact.html" class="btn btn-aurora btn-sm text-decoration-none">Contact</a>
           <a href="#tools" class="btn btn-quiet text-decoration-none">Explore tools</a>

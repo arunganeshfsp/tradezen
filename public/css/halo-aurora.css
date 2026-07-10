@@ -73,6 +73,33 @@ body { overflow-x: hidden; }
   color: transparent;
 }
 
+.text-serif {
+  font-family: var(--tz-font-display);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: var(--tz-fg-1);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--tz-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tz-fg-3);
+}
+.kicker::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: var(--tz-accent-1);
+  flex-shrink: 0;
+}
+
 .text-fg-1 { color: var(--tz-fg-1) !important; }
 .text-fg-2 { color: var(--tz-fg-2) !important; }
 .text-fg-3 { color: var(--tz-fg-3) !important; }
