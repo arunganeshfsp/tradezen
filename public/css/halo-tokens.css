@@ -7,13 +7,13 @@
 
 :root {
   /* ── Brand accents (dark mode defaults) ─────────────────── */
-  --tz-accent-1:        #7c6af7;
-  --tz-accent-2:        #5b8af5;
-  --tz-accent-rgb:      124, 106, 247;
-  --tz-grad:            linear-gradient(135deg, #7c6af7 0%, #5b8af5 100%);
-  --tz-grad-h:          linear-gradient(90deg,  #7c6af7 0%, #5b8af5 100%);
-  --tz-glow:            0 12px 36px rgba(124,106,247,0.4);
-  --tz-glow-soft:       0 6px 18px rgba(124,106,247,0.28);
+  --tz-accent-1:        #D97706;
+  --tz-accent-2:        #FBBF24;
+  --tz-accent-rgb:      217, 119, 6;
+  --tz-grad:            linear-gradient(135deg, #D97706 0%, #FBBF24 100%);
+  --tz-grad-h:          linear-gradient(90deg,  #D97706 0%, #FBBF24 100%);
+  --tz-glow:            0 12px 36px rgba(217,119,6,0.35);
+  --tz-glow-soft:       0 6px 18px rgba(217,119,6,0.22);
 
   /* ── Dark surfaces ─────────────────────────────────────── */
   --tz-bg:              #06070f;
@@ -22,7 +22,7 @@
   --tz-surface-2:       #161a32;
   --tz-border:          rgba(255,255,255,0.07);
   --tz-border-strong:   rgba(255,255,255,0.15);
-  --tz-border-accent:   rgba(124,106,247,0.35);
+  --tz-border-accent:   rgba(217,119,6,0.3);
 
   /* ── Dark foregrounds ──────────────────────────────────── */
   --tz-fg-1:            #f0f1f8;
@@ -34,9 +34,9 @@
   --dim:                #9ba3bf;
 
   /* ── Aurora gradients for halo bg layers ──────────────── */
-  --tz-halo-a:          radial-gradient(60% 60% at 20% 0%,  rgba(124,106,247,0.28) 0%, rgba(124,106,247,0) 60%);
-  --tz-halo-b:          radial-gradient(50% 50% at 80% 10%, rgba(91,138,245,0.22) 0%,  rgba(91,138,245,0) 60%);
-  --tz-halo-footer:     radial-gradient(40% 60% at 50% 100%, rgba(124,106,247,0.18) 0%, transparent 70%);
+  --tz-halo-a:          radial-gradient(60% 60% at 20% 0%,  rgba(217,119,6,0.18) 0%, rgba(217,119,6,0) 60%);
+  --tz-halo-b:          radial-gradient(50% 50% at 80% 10%, rgba(251,191,36,0.12) 0%, rgba(251,191,36,0) 60%);
+  --tz-halo-footer:     radial-gradient(40% 60% at 50% 100%, rgba(217,119,6,0.12) 0%, transparent 70%);
 
   /* ── Semantic ──────────────────────────────────────────── */
   --tz-gain:            #34d399;
@@ -83,43 +83,3 @@
   --tz-duration-slow:   400ms;
 }
 
-/* ============================================================
-   LIGHT MODE OVERRIDES
-   Triggered via Bootstrap's data-bs-theme="light" on <html>
-   ============================================================ */
-[data-bs-theme="light"] {
-  /* Blue accent — clean, no purple tint */
-  --tz-accent-1:        #3563e9;
-  --tz-accent-2:        #2952c8;
-  --tz-accent-rgb:      53, 99, 233;
-  --tz-grad:            linear-gradient(135deg, #3563e9 0%, #2952c8 100%);
-  --tz-grad-h:          linear-gradient(90deg,  #3563e9 0%, #2952c8 100%);
-  --tz-glow:            0 4px 14px rgba(53,99,233,0.18);
-  --tz-glow-soft:       0 2px 8px  rgba(53,99,233,0.10);
-
-  /* Pure white cards, neutral gray page background */
-  --tz-bg:              #f3f4f6;
-  --tz-bg-elev:         #ffffff;
-  --tz-surface:         #ffffff;
-  --tz-surface-2:       #f3f4f6;
-  --tz-border:          rgba(0,0,0,0.07);
-  --tz-border-strong:   rgba(0,0,0,0.13);
-  --tz-border-accent:   rgba(53,99,233,0.28);
-
-  /* Neutral text — no blue/purple tint */
-  --tz-fg-1:            #111827;
-  --tz-fg-2:            #4b5563;
-  --tz-fg-3:            #9ca3af;
-
-  /* No decorative gradients in light mode */
-  --tz-halo-a:          none;
-  --tz-halo-b:          none;
-  --tz-halo-footer:     none;
-
-  --tz-gain:            #0e9966;
-  --tz-gain-dim:        rgba(14,153,102,0.10);
-  --tz-loss:            #dc2626;
-  --tz-loss-dim:        rgba(220,38,38,0.08);
-  --tz-warning:         #d97706;
-  --tz-info:            #2563eb;
-}

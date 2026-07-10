@@ -1,17 +1,5 @@
 (function () {
-  // ── Theme ──────────────────────────────────────────────────────────────
-  // Light theme disabled — pending redesign. Always dark.
-  var _theme = 'dark';
-  localStorage.removeItem('tz_theme');
-  document.documentElement.setAttribute('data-theme', _theme);
-
-  function _applyIconTheme(mode) {
-    document.querySelectorAll('[data-app-logo]').forEach(function (img) {
-      img.src = mode === 'light' ? '/favicon-light.svg' : '/favicon.svg';
-    });
-  }
-
-  // No-op — light theme disabled pending redesign.
+  document.documentElement.setAttribute('data-theme', 'dark');
   window.toggleTheme = function () {};
 
   // ── Language ───────────────────────────────────────────────────────────
@@ -84,7 +72,6 @@
 
   // ── Inject lang button + apply lang on DOMContentLoaded ────────────────
   document.addEventListener('DOMContentLoaded', function () {
-    _applyIconTheme(_theme);
     var themeBtn = document.getElementById('themeToggle');
     if (themeBtn) themeBtn.style.display = 'none';
     var navR = document.querySelector('.nav-r');
