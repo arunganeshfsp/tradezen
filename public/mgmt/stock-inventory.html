@@ -36,10 +36,13 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
 
 <nav class="navbar topbar px-3 py-0 d-flex align-items-center justify-content-between">
   <span class="navbar-brand mb-0 fw-semibold" style="font-size:15px;">Stock Universe Inventory</span>
-  <div class="d-flex align-items-center gap-2">
+  <div class="d-flex align-items-center gap-2 flex-wrap">
     <div class="count-badge">Nifty 500 <span class="num" id="cnt500">—</span></div>
     <div class="count-badge">F&amp;O <span class="num" id="cntFno">—</span></div>
     <div class="count-badge both">In Both <span class="num" id="cntBoth">—</span></div>
+    <div class="count-badge">NF200 M30 <span class="num" id="cntM200">—</span></div>
+    <div class="count-badge">NF500 M50 <span class="num" id="cntM500">—</span></div>
+    <div class="count-badge">MidCap M50 <span class="num" id="cntMmid">—</span></div>
     <button class="btn btn-sm btn-outline-secondary ms-2" onclick="loadAll()">&#8635; Refresh</button>
     <a href="/mgmt/learn-admin.html" class="btn btn-sm btn-outline-secondary">Admin</a>
   </div>
@@ -53,6 +56,15 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     </li>
     <li class="nav-item">
       <button class="nav-link" id="tabFno" onclick="switchTab('fno')">F&amp;O Stocks</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tabM200" onclick="switchTab('m200_30')">NF200 M30</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tabM500" onclick="switchTab('m500_50')">NF500 M50</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tabMmid" onclick="switchTab('mmid150_50')">MidCap M50</button>
     </li>
   </ul>
 
@@ -92,6 +104,63 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     </div>
   </div>
 
+  <!-- NF200 M30 Panel -->
+  <div id="panelM200" style="display:none;">
+    <div class="import-bar mb-3">
+      <input type="file" id="fileM200" class="form-control" style="max-width:300px;" accept=".csv,.xlsx,.xls">
+      <button class="btn btn-sm btn-primary" onclick="doImport('m200_30')">Import &amp; Replace</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="doClear('m200_30')">Clear All</button>
+      <span id="statusM200" class="status-msg"></span>
+    </div>
+    <p class="text-muted" style="font-size:11px;">Download from NSE → Indices → NIFTY200 MOMENTUM 30 → Download CSV, then import here.</p>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <input type="text" id="searchM200" class="form-control form-control-sm" style="max-width:240px;"
+             placeholder="Search symbols…" oninput="filterChips('M200')">
+      <span class="text-muted" id="shownM200" style="font-size:11px;"></span>
+    </div>
+    <div class="sym-grid" id="gridM200">
+      <div class="empty-msg">No NF200 M30 symbols loaded. Import a CSV file above.</div>
+    </div>
+  </div>
+
+  <!-- NF500 M50 Panel -->
+  <div id="panelM500" style="display:none;">
+    <div class="import-bar mb-3">
+      <input type="file" id="fileM500" class="form-control" style="max-width:300px;" accept=".csv,.xlsx,.xls">
+      <button class="btn btn-sm btn-primary" onclick="doImport('m500_50')">Import &amp; Replace</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="doClear('m500_50')">Clear All</button>
+      <span id="statusM500" class="status-msg"></span>
+    </div>
+    <p class="text-muted" style="font-size:11px;">Download from NSE → Indices → NIFTY500 MOMENTUM 50 → Download CSV, then import here.</p>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <input type="text" id="searchM500" class="form-control form-control-sm" style="max-width:240px;"
+             placeholder="Search symbols…" oninput="filterChips('M500')">
+      <span class="text-muted" id="shownM500" style="font-size:11px;"></span>
+    </div>
+    <div class="sym-grid" id="gridM500">
+      <div class="empty-msg">No NF500 M50 symbols loaded. Import a CSV file above.</div>
+    </div>
+  </div>
+
+  <!-- MidCap M50 Panel -->
+  <div id="panelMmid" style="display:none;">
+    <div class="import-bar mb-3">
+      <input type="file" id="fileMmid" class="form-control" style="max-width:300px;" accept=".csv,.xlsx,.xls">
+      <button class="btn btn-sm btn-primary" onclick="doImport('mmid150_50')">Import &amp; Replace</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="doClear('mmid150_50')">Clear All</button>
+      <span id="statusMmid" class="status-msg"></span>
+    </div>
+    <p class="text-muted" style="font-size:11px;">Download from NSE → Indices → NIFTYMIDCAP150 MOMENTUM 50 → Download CSV, then import here.</p>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <input type="text" id="searchMmid" class="form-control form-control-sm" style="max-width:240px;"
+             placeholder="Search symbols…" oninput="filterChips('Mmid')">
+      <span class="text-muted" id="shownMmid" style="font-size:11px;"></span>
+    </div>
+    <div class="sym-grid" id="gridMmid">
+      <div class="empty-msg">No MidCap M50 symbols loaded. Import a CSV file above.</div>
+    </div>
+  </div>
+
   <div class="text-muted mt-4" style="font-size:11px;border-top:1px solid var(--bdr);padding-top:10px;">
     For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
   </div>
@@ -101,26 +170,47 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
 
 <script>
 const API = '/api';
-let _n500 = [], _fno = [], _bothSet = new Set();
+let _n500 = [], _fno = [], _m200 = [], _m500 = [], _mmid = [], _bothSet = new Set();
 let _activeTab = 'nifty500';
+
+const _SRC = {
+  nifty500:   { fileId: 'file500',  statusId: 'status500', key: '500',  label: 'Nifty 500' },
+  fno:        { fileId: 'fileFno',  statusId: 'statusFno', key: 'Fno',  label: 'F&O' },
+  m200_30:    { fileId: 'fileM200', statusId: 'statusM200', key: 'M200', label: 'NF200 M30' },
+  m500_50:    { fileId: 'fileM500', statusId: 'statusM500', key: 'M500', label: 'NF500 M50' },
+  mmid150_50: { fileId: 'fileMmid', statusId: 'statusMmid', key: 'Mmid', label: 'MidCap M50' },
+};
 
 async function loadAll() {
   try {
     const r = await fetch(`${API}/stock-inventory`);
     const d = await r.json();
     if (d.error) { toast(d.error, 'danger'); return; }
-    _n500   = d.nifty500 || [];
-    _fno    = d.fno      || [];
+    _n500 = d.nifty500   || [];
+    _fno  = d.fno        || [];
+    _m200 = d.m200_30    || [];
+    _m500 = d.m500_50    || [];
+    _mmid = d.mmid150_50 || [];
     _bothSet = new Set(_n500.filter(s => _fno.includes(s)));
     const c = d.counts || {};
-    document.getElementById('cnt500').textContent  = c.nifty500 ?? '0';
-    document.getElementById('cntFno').textContent  = c.fno      ?? '0';
-    document.getElementById('cntBoth').textContent = c.both     ?? '0';
-    renderGrid('500', _n500);
-    renderGrid('Fno', _fno);
+    document.getElementById('cnt500').textContent  = c.nifty500   ?? '0';
+    document.getElementById('cntFno').textContent  = c.fno        ?? '0';
+    document.getElementById('cntBoth').textContent = c.both       ?? '0';
+    document.getElementById('cntM200').textContent = c.m200_30    ?? '0';
+    document.getElementById('cntM500').textContent = c.m500_50    ?? '0';
+    document.getElementById('cntMmid').textContent = c.mmid150_50 ?? '0';
+    renderGrid('500',  _n500);
+    renderGrid('Fno',  _fno);
+    renderGrid('M200', _m200);
+    renderGrid('M500', _m500);
+    renderGrid('Mmid', _mmid);
   } catch (e) {
     toast('Failed to load inventory: ' + e.message, 'danger');
   }
+}
+
+function _arrForKey(key) {
+  return { '500': _n500, 'Fno': _fno, 'M200': _m200, 'M500': _m500, 'Mmid': _mmid }[key] || [];
 }
 
 function renderGrid(key, symbols) {
@@ -134,37 +224,36 @@ function renderGrid(key, symbols) {
     return;
   }
   grid.innerHTML = filtered.map(s => {
-    const cls = _bothSet.has(s) ? 'sym-chip in-both' : 'sym-chip';
-    return `<span class="${cls}" title="${_bothSet.has(s) ? 'In both Nifty 500 & F&O' : ''}">${s}</span>`;
+    const inBoth = _bothSet.has(s);
+    return `<span class="sym-chip${inBoth ? ' in-both' : ''}" title="${inBoth ? 'In both Nifty 500 & F&O' : ''}">${s}</span>`;
   }).join('');
   const shown = document.getElementById('shown' + key);
   if (shown) shown.textContent = `${filtered.length} / ${symbols.length}`;
 }
 
 function filterChips(key) {
-  renderGrid(key, key === '500' ? _n500 : _fno);
+  renderGrid(key, _arrForKey(key));
 }
 
 function switchTab(tab) {
   _activeTab = tab;
-  document.getElementById('panel500').style.display  = tab === 'nifty500' ? '' : 'none';
-  document.getElementById('panelFno').style.display  = tab === 'fno'      ? '' : 'none';
-  document.getElementById('tab500').classList.toggle('active', tab === 'nifty500');
-  document.getElementById('tabFno').classList.toggle('active', tab === 'fno');
+  const panels = { nifty500: 'panel500', fno: 'panelFno', m200_30: 'panelM200', m500_50: 'panelM500', mmid150_50: 'panelMmid' };
+  const tabIds = { nifty500: 'tab500', fno: 'tabFno', m200_30: 'tabM200', m500_50: 'tabM500', mmid150_50: 'tabMmid' };
+  Object.entries(panels).forEach(([s, id]) => document.getElementById(id).style.display = s === tab ? '' : 'none');
+  Object.entries(tabIds).forEach(([s, id]) => document.getElementById(id).classList.toggle('active', s === tab));
 }
 
 async function doImport(source) {
-  const fileId  = source === 'nifty500' ? 'file500' : 'fileFno';
-  const statusId = source === 'nifty500' ? 'status500' : 'statusFno';
-  const input   = document.getElementById(fileId);
-  const status  = document.getElementById(statusId);
+  const { fileId, statusId } = _SRC[source];
+  const input  = document.getElementById(fileId);
+  const status = document.getElementById(statusId);
   if (!input.files.length) { showStatus(status, 'Please select a file first.', false); return; }
   showStatus(status, 'Importing…', null);
   const fd = new FormData();
   fd.append('file', input.files[0]);
   try {
-    const r  = await fetch(`${API}/stock-inventory/import?source=${source}`, { method: 'POST', body: fd });
-    const d  = await r.json();
+    const r = await fetch(`${API}/stock-inventory/import?source=${source}`, { method: 'POST', body: fd });
+    const d = await r.json();
     if (!r.ok || d.error) { showStatus(status, d.error || 'Import failed', false); return; }
     showStatus(status, `Imported ${d.imported} symbols.`, true);
     input.value = '';
@@ -175,9 +264,9 @@ async function doImport(source) {
 }
 
 async function doClear(source) {
-  if (!confirm(`Clear all ${source === 'nifty500' ? 'Nifty 500' : 'F&O'} symbols? This cannot be undone.`)) return;
-  const statusId = source === 'nifty500' ? 'status500' : 'statusFno';
-  const status   = document.getElementById(statusId);
+  const { label, statusId } = _SRC[source];
+  if (!confirm(`Clear all ${label} symbols? This cannot be undone.`)) return;
+  const status = document.getElementById(statusId);
   try {
     const r = await fetch(`${API}/stock-inventory?source=${source}`, { method: 'DELETE' });
     const d = await r.json();

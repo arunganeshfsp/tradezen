@@ -8999,10 +8999,16 @@ async def stock_inventory_get(source: str = "all"):
         elif source == "fno":
             result = {"nifty500": [], "fno": stock_universe_get(conn, "fno"), "counts": counts}
         else:
+            m200_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='m200_30'").fetchone()[0]
+            m500_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='m500_50'").fetchone()[0]
+            mmid_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='mmid150_50'").fetchone()[0]
             result = {
-                "nifty500": stock_universe_get(conn, "nifty500"),
-                "fno":      stock_universe_get(conn, "fno"),
-                "counts":   counts,
+                "nifty500":   stock_universe_get(conn, "nifty500"),
+                "fno":        stock_universe_get(conn, "fno"),
+                "m200_30":    stock_universe_get(conn, "m200_30"),
+                "m500_50":    stock_universe_get(conn, "m500_50"),
+                "mmid150_50": stock_universe_get(conn, "mmid150_50"),
+                "counts":     {**counts, "m200_30": m200_cnt, "m500_50": m500_cnt, "mmid150_50": mmid_cnt},
             }
         conn.close()
         return result
@@ -9012,8 +9018,8 @@ async def stock_inventory_get(source: str = "all"):
 
 @app.post("/stock-inventory/import")
 async def stock_inventory_import(file: UploadFile, source: str = "fno"):
-    if source not in ("nifty500", "fno"):
-        return JSONResponse(status_code=400, content={"error": "source must be nifty500 or fno"})
+    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50"):
+        return JSONResponse(status_code=400, content={"error": "unknown source"})
     try:
         import io
         import pandas as _pd
@@ -9039,8 +9045,8 @@ async def stock_inventory_import(file: UploadFile, source: str = "fno"):
 
 @app.delete("/stock-inventory")
 async def stock_inventory_delete(source: str):
-    if source not in ("nifty500", "fno"):
-        return JSONResponse(status_code=400, content={"error": "source must be nifty500 or fno"})
+    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50"):
+        return JSONResponse(status_code=400, content={"error": "unknown source"})
     try:
         conn = get_conn()
         n = stock_universe_clear(conn, source)
@@ -9227,36 +9233,26 @@ async def simulator_trade_verify(trade_id: str):
     }
 
 
-_momentum_cache: dict = {}  # {index_name: {"stocks": [...], "ts": datetime}}
-
 _MOMENTUM_INDEX_MAP = {
-    "NIFTY200_MOMENTUM_30":       ("NIFTY200 MOMENTUM 30",       "NIFTY200 Momentum 30"),
-    "NIFTY500_MOMENTUM_50":       ("NIFTY500 MOMENTUM 50",       "NIFTY500 Momentum 50"),
-    "NIFTYMIDCAP150_MOMENTUM_50": ("NIFTYMIDCAP150 MOMENTUM 50", "NiftyMidcap150 Momentum 50"),
+    "NIFTY200_MOMENTUM_30":       ("m200_30",    "NIFTY200 Momentum 30"),
+    "NIFTY500_MOMENTUM_50":       ("m500_50",    "NIFTY500 Momentum 50"),
+    "NIFTYMIDCAP150_MOMENTUM_50": ("mmid150_50", "NiftyMidcap150 Momentum 50"),
 }
 
 @app.get("/momentum-constituents/{index_name}")
 async def momentum_constituents(index_name: str):
     if index_name not in _MOMENTUM_INDEX_MAP:
         raise HTTPException(status_code=400, detail="Unknown index name")
-    nse_name, label = _MOMENTUM_INDEX_MAP[index_name]
-    cached = _momentum_cache.get(index_name)
-    if cached and (datetime.utcnow() - cached["ts"]).total_seconds() < 86400:
-        return {"stocks": cached["stocks"], "stale": False,
-                "lastUpdated": cached["ts"].isoformat(), "label": label}
+    db_source, label = _MOMENTUM_INDEX_MAP[index_name]
     try:
-        from core.movers import _fetch_nse
-        rows   = _fetch_nse(nse_name)
-        stocks = [{"symbol": r["symbol"], "name": ""} for r in rows if r.get("symbol")]
-        if stocks:
-            _momentum_cache[index_name] = {"stocks": stocks, "ts": datetime.utcnow()}
-            return {"stocks": stocks, "stale": False,
-                    "lastUpdated": _momentum_cache[index_name]["ts"].isoformat(), "label": label}
+        conn = get_conn()
+        symbols = stock_universe_get(conn, db_source)
+        conn.close()
+        if symbols:
+            return {"stocks": [{"symbol": s, "name": ""} for s in symbols],
+                    "stale": False, "lastUpdated": None, "label": label}
     except Exception as e:
         log.warning(f"[MOMENTUM] {index_name}: {e}")
-    if cached:
-        return {"stocks": cached["stocks"], "stale": True,
-                "lastUpdated": cached["ts"].isoformat(), "label": label}
     return {"stocks": [], "stale": True, "lastUpdated": None, "label": label}
 
 
