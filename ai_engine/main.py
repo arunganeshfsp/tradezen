@@ -7860,9 +7860,12 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
                  f"{len(sell_cands)} SELL → {len(per_session[u][1])}")
 
     # SmartAPI FULL quote "high"/"low" includes pre-market call-auction (09:00–09:15),
-    # which can set artificially low bench_low values. Correct by fetching the actual
-    # 09:15 minute candle for each candidate — only the intraday session.
+    # which can set wrong bench levels. Correct by fetching all 1-min candles from
+    # 09:15 up to the scan time — bench_high = max high, bench_low = min low over
+    # that range, so a 09:22 high is correctly captured when scanning at 09:25.
     import time as _t2
+    _scan_ist   = now_ist or (datetime.utcnow() + timedelta(hours=5, minutes=30))
+    _scan_str   = _scan_ist.strftime("%Y-%m-%d %H:%M")
     unique_tok = {}
     for buy_cands_u, sell_cands_u in per_session.values():
         for c in buy_cands_u + sell_cands_u:
@@ -7871,12 +7874,12 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
     for tok, sym in unique_tok.items():
         try:
             _t2.sleep(0.12)
-            df0915 = fetch_candles(smart_s, tok, "NSE", "ONE_MINUTE",
-                                   f"{today} 09:15", f"{today} 09:16", use_cache=False)
-            if not df0915.empty:
+            df_scan = fetch_candles(smart_s, tok, "NSE", "ONE_MINUTE",
+                                    f"{today} 09:15", _scan_str, use_cache=False)
+            if not df_scan.empty:
                 intraday_hl[tok] = (
-                    round(float(df0915["High"].max()), 2),
-                    round(float(df0915["Low"].min()),  2),
+                    round(float(df_scan["High"].max()), 2),
+                    round(float(df_scan["Low"].min()),  2),
                 )
         except Exception as e:
             log.warning(f"[ORB-SIM] candle-hl fetch {sym}: {e}")
