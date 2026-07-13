@@ -7858,6 +7858,33 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
                  f"kept {len(buy_cands)} BUY → {len(per_session[u][0])}, "
                  f"{len(sell_cands)} SELL → {len(per_session[u][1])}")
 
+    # SmartAPI FULL quote "high"/"low" includes pre-market call-auction (09:00–09:15),
+    # which can set artificially low bench_low values. Correct by fetching the actual
+    # 09:15 minute candle for each candidate — only the intraday session.
+    import time as _t2
+    unique_tok = {}
+    for buy_cands_u, sell_cands_u in per_session.values():
+        for c in buy_cands_u + sell_cands_u:
+            unique_tok[c["token"]] = c["symbol"]
+    intraday_hl: dict = {}
+    for tok, sym in unique_tok.items():
+        try:
+            _t2.sleep(0.12)
+            df0915 = fetch_candles(smart_s, tok, "NSE", "ONE_MINUTE",
+                                   f"{today} 09:15", f"{today} 09:16", use_cache=False)
+            if not df0915.empty:
+                intraday_hl[tok] = (
+                    round(float(df0915["High"].max()), 2),
+                    round(float(df0915["Low"].min()),  2),
+                )
+        except Exception as e:
+            log.warning(f"[ORB-SIM] candle-hl fetch {sym}: {e}")
+    for u in per_session:
+        for c in per_session[u][0] + per_session[u][1]:
+            if c["token"] in intraday_hl:
+                c["bench_high"], c["bench_low"] = intraday_hl[c["token"]]
+                log.debug(f"[ORB-SIM] {c['symbol']} hl corrected → H={c['bench_high']} L={c['bench_low']}")
+
     conn  = get_conn()
     saved = 0
     for u, (buy_cands, sell_cands) in per_session.items():
@@ -7966,6 +7993,8 @@ def _orb_trigger_poll_sync(today: str, now_ist):
 
     quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in active_waiting}))
 
+    culled_sessions: set = set()
+
     for u in sorted({c["user_id"] for c in active_waiting}):
         st            = sess_settings[u]
         max_slots     = st["max_slots"]
@@ -7986,20 +8015,22 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             day_h = q.get("high") or bh   # live session high; fallback to bench
             day_l = q.get("low")  or bl   # live session low; fallback to bench
 
-            if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
-                continue
-
-            # Volume gate: dominance must still satisfy dom_min_pct at trigger time
+            # Continuous eligibility: cull candidates whose dominance has flipped
             dom_min   = st["dom_min_pct"]
             live_buy  = q.get("buy_pct", 0)
             live_sell = q.get("sell_pct", 0)
             if side == "BUY" and live_buy < dom_min:
                 orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
-                    f"Volume gate: buy% {live_buy:.0f}% < {dom_min:.0f}% at trigger", user_id=u)
+                    f"Dominance flipped: buy {live_buy:.0f}% < {dom_min:.0f}% threshold", user_id=u)
+                culled_sessions.add(u)
                 continue
             if side == "SELL" and live_sell < dom_min:
                 orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
-                    f"Volume gate: sell% {live_sell:.0f}% < {dom_min:.0f}% at trigger", user_id=u)
+                    f"Dominance flipped: sell {live_sell:.0f}% < {dom_min:.0f}% threshold", user_id=u)
+                culled_sessions.add(u)
+                continue
+
+            if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
                 continue
 
             if c["symbol"] in triggered_syms:
@@ -8079,6 +8110,18 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             )
 
     conn.close()
+
+    # Auto-rescan sessions where ineligible stocks were culled — pull fresh candidates
+    if culled_sessions and in_entry_window():
+        import threading
+        for u_r in culled_sessions:
+            log.info(f"[ORB-SIM] auto-rescan triggered after dominance cull ({u_r or 'shared'})")
+            threading.Thread(
+                target=_orb_capture_sync,
+                args=(today,),
+                kwargs={"manual": True, "manual_user": u_r},
+                daemon=True,
+            ).start()
 
 
 def _orb_outcome_poll_sync(today: str, now_ist):
