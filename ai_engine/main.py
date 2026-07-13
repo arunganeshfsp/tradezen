@@ -7752,8 +7752,8 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
                       manual_user: str = "", overrides: dict | None = None):
     """Quote F&O universe, filter/rank/cut, persist candidates.
 
-    Entry levels are locked at scan time: BUY triggers when LTP > scan price + 1,
-    SELL when LTP < scan price - 1 (levels stored in bench_high / bench_low).
+    Entry levels are locked at scan time: BUY triggers when LTP > day high at scan time,
+    SELL when LTP < day low at scan time (levels stored in bench_high / bench_low).
 
     manual=True: scans only `manual_user`'s session with session-only filter
     `overrides` (never persisted to settings). The existing untriggered watch
@@ -7834,10 +7834,13 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
             if abs(chg) < min_chg:
                 n_chg += 1
                 continue
-            strength = round(abs(bp - sp), 1)
+            strength   = round(abs(bp - sp), 1)
+            day_high_q = q.get("high")
+            day_low_q  = q.get("low")
             base     = {"symbol": s["symbol"], "token": s["token"],
                         "ltp_0916": ltp, "buy_pct": bp, "sell_pct": sp, "strength": strength,
-                        "bench_high": round(ltp + 1, 2), "bench_low": round(ltp - 1, 2)}
+                        "bench_high": round(float(day_high_q or ltp + 1), 2),
+                        "bench_low":  round(float(day_low_q  or ltp - 1), 2)}
             if bp >= sp and bp >= dom_min:
                 buy_cands.append(base)
             elif sp > bp and sp >= dom_min:
@@ -8617,9 +8620,10 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             if not (price_min <= ltp_0916 <= price_max):
                 continue
 
-            # Entry levels follow the live-engine rule: scan price ± 1
-            bench_high = round(ltp_0916 + 1, 2)
-            bench_low  = round(ltp_0916 - 1, 2)
+            # Trigger = day high / day low at scan time (new-day-high/low breakout)
+            scan_df    = df[df["DateTime"] <= f"{date} 09:16"]
+            bench_high = round(float(scan_df["High"].max()), 2)
+            bench_low  = round(float(scan_df["Low"].min()),  2)
 
             # Ranking heuristic (no order-book data historically): tighter
             # opening candle range → higher strength
