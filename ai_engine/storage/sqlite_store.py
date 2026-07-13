@@ -413,6 +413,7 @@ ORB_SETTING_DEFAULTS: dict = {
     "trailing_sl_points":   "0",
     "slippage_ticks":       "1",
     "brokerage_per_order":  "20",
+    "min_vol_lakh":         "0",
 }
 
 
@@ -435,6 +436,7 @@ def orb_get_settings(conn, user_id: str = "") -> dict:
     result["trailing_sl_points"]  = float(result.get("trailing_sl_points", 0))
     result["slippage_ticks"]      = int(result.get("slippage_ticks", 1))
     result["brokerage_per_order"] = float(result.get("brokerage_per_order", 20))
+    result["min_vol_lakh"]        = float(result.get("min_vol_lakh", 0))
     return result
 
 

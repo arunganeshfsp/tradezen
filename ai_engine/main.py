@@ -7739,6 +7739,7 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
                     "buy_pct":    round(bq / total * 100, 1) if total else 0.0,
                     "sell_pct":   round(sq / total * 100, 1) if total else 0.0,
                     "change_pct": chg,
+                    "volume":     int(item.get("tradeVolume") or 0),
                 }
                 _orb_ltp_cache[tok] = round(ltp, 2)
                 _orb_chg_cache[tok] = chg
@@ -7774,7 +7775,7 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
 
     if manual and overrides:
         st_m = sess_settings[manual_user]
-        for k in ("price_min", "price_max", "dom_min_pct", "universe"):
+        for k in ("price_min", "price_max", "dom_min_pct", "universe", "min_vol_lakh"):
             if overrides.get(k) is not None:
                 st_m[k] = overrides[k]
         if overrides.get("min_chg_pct") is not None:
@@ -7814,9 +7815,10 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
 
         dom_min   = st["dom_min_pct"]
         min_chg   = st["buy_min_chg_pct"]  # single threshold for both sides, mirrors F&O Scanner
+        min_vol   = float(st.get("min_vol_lakh", 0)) * 1e5  # convert Lakh → shares; 0 = disabled
         triggered = triggered_by_sess.get(u, set())
 
-        n_noquote = n_trig = n_price = n_chg = n_dom = 0
+        n_noquote = n_trig = n_price = n_chg = n_vol = n_dom = 0
         buy_cands, sell_cands = [], []
         for s in pool:
             q = quotes.get(s["token"])
@@ -7835,6 +7837,9 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
             if abs(chg) < min_chg:
                 n_chg += 1
                 continue
+            if min_vol > 0 and q.get("volume", 0) < min_vol:
+                n_vol += 1
+                continue
             strength   = round(abs(bp - sp), 1)
             day_high_q = q.get("high")
             day_low_q  = q.get("low")
@@ -7852,10 +7857,11 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
         buy_cands.sort(key=lambda x: -x["strength"])
         sell_cands.sort(key=lambda x: -x["strength"])
         per_session[u] = (buy_cands[:st["candidate_cap"]], sell_cands[:st["candidate_cap"]])
+        vol_label = f" vol≥{st.get('min_vol_lakh',0):.0f}L" if min_vol > 0 else ""
         log.info(f"[ORB-SIM] {label} filter ({u or 'shared'}) — "
                  f"universe={st['universe']} pool={len(pool)} price=₹{st['price_min']:.0f}–{st['price_max']:.0f} "
-                 f"dom≥{dom_min:.0f}% move≥{min_chg}% cap={st['candidate_cap']}/side | "
-                 f"rejected: no-quote {n_noquote}, traded {n_trig}, price {n_price}, move {n_chg}, dom {n_dom} | "
+                 f"dom≥{dom_min:.0f}% move≥{min_chg}%{vol_label} cap={st['candidate_cap']}/side | "
+                 f"rejected: no-quote {n_noquote}, traded {n_trig}, price {n_price}, move {n_chg}, vol {n_vol}, dom {n_dom} | "
                  f"kept {len(buy_cands)} BUY → {len(per_session[u][0])}, "
                  f"{len(sell_cands)} SELL → {len(per_session[u][1])}")
 
@@ -8942,6 +8948,7 @@ class _OrbSettingsBody(BaseModel):
     trailing_sl_points:  float | None = None
     slippage_ticks:      int   | None = None
     brokerage_per_order: float | None = None
+    min_vol_lakh:        float | None = None
 
 
 def _orb_valid_hhmm(value: str, lo: str, hi: str) -> bool:
@@ -9130,6 +9137,7 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
     if body.trailing_sl_points  is not None and not (0 <= body.trailing_sl_points <= 500):  errs.append("trailing_sl_points must be 0–500")
     if body.slippage_ticks      is not None and not (0 <= body.slippage_ticks <= 20):       errs.append("slippage_ticks must be 0–20")
     if body.brokerage_per_order is not None and not (0 <= body.brokerage_per_order <= 500): errs.append("brokerage_per_order must be 0–500")
+    if body.min_vol_lakh        is not None and body.min_vol_lakh < 0: errs.append("min_vol_lakh must be ≥ 0")
     if body.entry_window_start is not None and not _orb_valid_hhmm(body.entry_window_start, "09:15", "10:30"):
         errs.append("entry_window_start must be HH:MM between 09:15 and 10:30")
     if body.entry_window_end is not None and not _orb_valid_hhmm(body.entry_window_end, "09:17", "15:00"):

@@ -578,6 +578,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
 
     <div class="sett-group">
+      <label class="sett-label" for="sett-minvol">Min daily volume</label>
+      <select id="sett-minvol" class="sett-sel">
+        <option value="0">No filter (all volumes)</option>
+        <option value="25">Above 25L</option>
+        <option value="50">Above 50L</option>
+        <option value="75">Above 75L</option>
+        <option value="100">Above 1 Cr</option>
+      </select>
+      <div class="sett-hint">Minimum shares traded so far today at scan time. Default: no filter.</div>
+    </div>
+
+    <div class="sett-group">
       <label class="sett-label" for="sett-dom">Order-book dominance filter (%)</label>
       <input type="number" id="sett-dom" class="sett-inp" min="30" max="90" step="5" placeholder="50" />
       <div class="sett-hint">Min % on dominant side (buy% for BUY, sell% for SELL). Default: 50% — any majority, same as F&amp;O Scanner. Raise to 60–70% for high-conviction only.</div>
@@ -1653,6 +1665,7 @@ function renderSettings(s) {
   set('sett-sqoff',      s.square_off_time);
   set('sett-buyminchg',  s.buy_min_chg_pct);
   set('sett-sellminchg', s.sell_min_chg_pct);
+  set('sett-minvol',     s.min_vol_lakh || 0);
 }
 
 async function saveSettings() {
@@ -1679,6 +1692,7 @@ async function saveSettings() {
   const sqo = val('sett-sqoff');                  if (sqo)  body.square_off_time    = sqo;
   const bmc = val('sett-buyminchg');   if (bmc !== null && bmc !== '') body.buy_min_chg_pct    = parseFloat(bmc);
   const smc = val('sett-sellminchg');  if (smc !== null && smc !== '') body.sell_min_chg_pct   = parseFloat(smc);
+  const mvl = val('sett-minvol');      if (mvl !== null && mvl !== '') body.min_vol_lakh        = parseFloat(mvl);
 
   try {
     const r = await fetch(`${API}/settings`, {
