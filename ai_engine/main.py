@@ -7707,6 +7707,7 @@ _orb_dom_cache:        dict = {}   # token → {"buy_pct": X, "sell_pct": Y} liv
 _orb_trail_peaks:      dict = {}   # trade_id → best_price_seen (high for BUY, low for SELL)
 _orb_manual_scan_req:  dict | None = None  # {"user": session_id, "overrides": {...}} set by scan-now; consumed by engine loop
 _orb_manual_symbols:   set  = set()  # (symbol, side, user_id) added via manual scan-now; never WINDOW_CLOSED
+_orb_rescan_cooldown:  dict = {}     # user_id → epoch of last auto-rescan (5-min cooldown)
 
 
 def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
@@ -8015,18 +8016,17 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             day_h = q.get("high") or bh   # live session high; fallback to bench
             day_l = q.get("low")  or bl   # live session low; fallback to bench
 
-            # Continuous eligibility: cull candidates whose dominance has flipped
+            # Dominance gate: if current dominance no longer supports direction,
+            # skip the trigger for this poll but keep status WAITING — dominance
+            # fluctuates tick-to-tick. Flag the session for a background rescan
+            # (with cooldown) which will naturally replace persistently-bad candidates.
             dom_min   = st["dom_min_pct"]
             live_buy  = q.get("buy_pct", 0)
             live_sell = q.get("sell_pct", 0)
             if side == "BUY" and live_buy < dom_min:
-                orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
-                    f"Dominance flipped: buy {live_buy:.0f}% < {dom_min:.0f}% threshold", user_id=u)
                 culled_sessions.add(u)
                 continue
             if side == "SELL" and live_sell < dom_min:
-                orb_update_candidate_status(conn, today, c["symbol"], side, "SKIPPED",
-                    f"Dominance flipped: sell {live_sell:.0f}% < {dom_min:.0f}% threshold", user_id=u)
                 culled_sessions.add(u)
                 continue
 
@@ -8111,11 +8111,17 @@ def _orb_trigger_poll_sync(today: str, now_ist):
 
     conn.close()
 
-    # Auto-rescan sessions where ineligible stocks were culled — pull fresh candidates
+    # Auto-rescan for sessions with dominance-weak candidates — 5-min cooldown so we
+    # don't spam the API on every poll. The rescan replaces all WAITING candidates with
+    # stocks that currently qualify; persistently-bad ones are naturally dropped.
     if culled_sessions and in_entry_window():
-        import threading
+        import threading, time as _time
+        now_ts = _time.time()
         for u_r in culled_sessions:
-            log.info(f"[ORB-SIM] auto-rescan triggered after dominance cull ({u_r or 'shared'})")
+            if now_ts - _orb_rescan_cooldown.get(u_r, 0) < 300:
+                continue
+            _orb_rescan_cooldown[u_r] = now_ts
+            log.info(f"[ORB-SIM] auto-rescan triggered after dominance dip ({u_r or 'shared'})")
             threading.Thread(
                 target=_orb_capture_sync,
                 args=(today,),
