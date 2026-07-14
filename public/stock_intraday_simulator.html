@@ -1184,6 +1184,11 @@ function renderTrades(trades) {
       const cls = mv > 0 ? 'bull-val' : mv < 0 ? 'bear-val' : '';
       const pct = t.trigger_price ? ` (${mv >= 0 ? '+' : ''}${(mv / t.trigger_price * 100).toFixed(1)}%)` : '';
       liveTd = `<span class="${cls}">₹${_fmt2(t.live_ltp)}<span style="font-size:10px">${pct}</span></span>`;
+    } else if (t.outcome !== 'OPEN' && t.exit_price != null) {
+      const mv  = isBuy ? t.exit_price - t.trigger_price : t.trigger_price - t.exit_price;
+      const cls = mv > 0 ? 'bull-val' : mv < 0 ? 'bear-val' : '';
+      const pct = t.trigger_price ? ` (${mv >= 0 ? '+' : ''}${(mv / t.trigger_price * 100).toFixed(1)}%)` : '';
+      liveTd = `<span class="${cls}">₹${_fmt2(t.exit_price)}<span style="font-size:10px">${pct}</span></span>`;
     }
 
     const tradeRow = `<tr class="trade-row" id="trow-${_esc(tid)}" onclick="toggleTradeDetail('${_esc(tid)}')">
