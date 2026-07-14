@@ -8438,8 +8438,21 @@ async def simulator_state(request: Request, date: str = ""):
                 dom = _orb_dom_cache.get(str(c["token"]), {})
                 c["live_buy_pct"]  = dom.get("buy_pct")
                 c["live_sell_pct"] = dom.get("sell_pct")
+            # For open trades fetch LTP directly — the polling cache can go stale
+            # if outcome poll hits a transient API error; _paper_stock_ltps has its
+            # own 8s TTL cache and is independent of the background loop.
+            open_syms = [t["symbol"] for t in trades if t["outcome"] == "OPEN"]
+            if open_syms:
+                loop = asyncio.get_running_loop()
+                fresh_ltps = await loop.run_in_executor(None, _paper_stock_ltps, open_syms)
+            else:
+                fresh_ltps = {}
             for t in trades:
-                t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
+                if t["outcome"] == "OPEN":
+                    t["live_ltp"] = (fresh_ltps.get(t["symbol"])
+                                     or _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], "")))
+                else:
+                    t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
                 if t["outcome"] == "OPEN" and trail_pts > 0 and t["id"] in _orb_trail_peaks:
                     peak = _orb_trail_peaks[t["id"]]
                     if t["direction"] == "BUY":
