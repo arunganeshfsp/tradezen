@@ -8144,6 +8144,15 @@ def _orb_outcome_poll_sync(today: str, now_ist):
     """Check OPEN trades vs target/SL (with optional trailing SL); resolve on hit."""
     conn        = get_conn()
     open_trades = orb_get_open_trades(conn, today)
+
+    # Diagnostic: find any OPEN trades in DB not matching today's date
+    all_open_rows = conn.execute(
+        "SELECT symbol, date, user_id FROM orb_stock_trades WHERE outcome='OPEN'"
+    ).fetchall()
+    missed = [(r[0], r[1], r[2]) for r in all_open_rows if r[1] != today]
+    if missed:
+        log.warning(f"[ORB-OUT] {len(missed)} OPEN trade(s) with wrong date (today={today}): {missed}")
+
     if not open_trades:
         conn.close()
         return
