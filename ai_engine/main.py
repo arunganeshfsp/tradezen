@@ -8156,26 +8156,21 @@ def _orb_outcome_poll_sync(today: str, now_ist):
     sym_to_token  = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
     tokens_needed = list({sym_to_token[t["symbol"]] for t in open_trades
                           if t["symbol"] in sym_to_token})
+    smart_s = _get_smart()
+    if not smart_s or not tokens_needed:
+        conn.close()
+        return
 
-    ltp_by_tok: dict = {}
-    if tokens_needed:
-        try:
-            ltp_by_tok = get_provider().get_ltp(tokens_needed, "NSE")
-            for tok_k, ltp_v in ltp_by_tok.items():
-                if ltp_v:
-                    _orb_ltp_cache[tok_k] = ltp_v
-        except Exception as e:
-            log.warning(f"[ORB-SIM] outcome poll ltp fetch failed: {e}")
-
+    quotes    = _orb_raw_quotes(smart_s, tokens_needed)
     exit_time = now_ist.strftime("%Y-%m-%d %H:%M:%S")
 
     sess_settings = {}
     for trade in open_trades:
         tok = sym_to_token.get(trade["symbol"])
-        ltp = (ltp_by_tok.get(tok) or _orb_ltp_cache.get(tok)) if tok else None
-        if not ltp:
-            log.debug(f"[ORB-SIM] no LTP for {trade['symbol']} (tok={tok}) — skipping")
+        q   = quotes.get(tok) if tok else None
+        if not q:
             continue
+        ltp = q["ltp"]
         u   = trade.get("user_id", "")
         if u not in sess_settings:
             sess_settings[u] = orb_get_settings(conn, u)
