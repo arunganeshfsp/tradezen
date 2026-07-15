@@ -36,6 +36,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | stock-reversal | `stock-reversal.md` | active |
 | stock-breakout | `stock_breakout.md` | active |
 | stock-intraday-simulator | `stock-intraday-simulator.md` | active |
+| stock-intraday-live | `stock-intraday-live.md` | active |
 | stock-universe-inventory | `stock-universe-inventory.md` | active |
 | momentum-index | `momentum-index.md` | active |
 

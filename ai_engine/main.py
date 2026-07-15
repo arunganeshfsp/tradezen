@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from config.credentials import get_smart_api
+from config.credentials import get_smart_api, get_live_smart_api, live_credentials_configured
 from data.instrument_master import InstrumentMaster
 from data.websocket_client import start_websocket
 from core.market_state import MarketState
@@ -1196,6 +1196,34 @@ def _get_smart(force: bool = False):
             return smart
         except Exception as e:
             log.warning(f"[SmartAPI] re-auth failed: {e}")
+            return None
+
+
+_live_smart         = None
+_live_smart_lock    = threading.Lock()
+_live_smart_auth_ts = 0.0
+
+
+def _get_live_smart():
+    """Session for the funded live-trading account — used only for order placement."""
+    import time as _t
+    global _live_smart, _live_smart_auth_ts
+    if not live_credentials_configured():
+        return None
+    now = _t.time()
+    if _live_smart and (now - _live_smart_auth_ts) < _SMART_TTL:
+        return _live_smart
+    with _live_smart_lock:
+        now = _t.time()
+        if _live_smart and (now - _live_smart_auth_ts) < _SMART_TTL:
+            return _live_smart
+        try:
+            _live_smart = get_live_smart_api()
+            _live_smart_auth_ts = now
+            log.info("[SmartAPI-LIVE] live account session refreshed")
+            return _live_smart
+        except Exception as e:
+            log.warning(f"[SmartAPI-LIVE] live account auth failed: {e}")
             return None
 
 
@@ -8373,6 +8401,12 @@ class _OrbSquareOffBody(BaseModel):
     trade_id: str
 
 
+class _OrbLiveOrderBody(BaseModel):
+    symbol: str
+    token: str
+    side: str
+
+
 def _orb_window_phase(settings: dict = None) -> str:
     """Returns the current window phase for the state endpoint, using the
     session's configured entry_window_end / square_off_time when provided."""
@@ -8606,6 +8640,104 @@ async def simulator_square_off(body: _OrbSquareOffBody, request: Request):
                 "exit_price": exit_price, "pnl": pnl, "return_amount": return_amount}
     except Exception as e:
         log.error(f"[SIM-SQUAREOFF] {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+_live_tsym_cache: dict = {}
+
+
+def _live_tradingsymbol(token: str) -> str | None:
+    """token → NSE trading symbol with -EQ suffix (e.g. 'POLICYBZR-EQ'), from instrument master."""
+    global _live_tsym_cache
+    if not _live_tsym_cache:
+        try:
+            with open(os.path.join("data", "instrument_master.json"), "r") as f:
+                raw = json.load(f)
+            _live_tsym_cache = {
+                str(inst["token"]): inst["symbol"]
+                for inst in raw
+                if inst.get("exch_seg") == "NSE"
+                and inst.get("instrumenttype") == ""
+                and inst.get("symbol", "").endswith("-EQ")
+            }
+            log.info(f"[LIVE-ORDER] tradingsymbol map loaded — {len(_live_tsym_cache)} NSE EQ entries")
+        except Exception as e:
+            log.error(f"[LIVE-ORDER] instrument master load failed: {e}")
+            return None
+    return _live_tsym_cache.get(str(token))
+
+
+def _live_place_order_sync(symbol: str, token: str, side: str) -> dict:
+    smart_live = _get_live_smart()
+    if not smart_live:
+        return {"status_code": 503, "error": "Live trading credentials not configured (LIVE_* in .env)"}
+
+    ltp = None
+    try:
+        ltp = get_provider().get_ltp([token], "NSE").get(str(token))
+    except Exception as e:
+        log.warning(f"[LIVE-ORDER] ltp fetch failed for {symbol}: {e}")
+    if not ltp:
+        ltp = _orb_ltp_cache.get(str(token))
+    if not ltp:
+        return {"status_code": 503, "error": f"Live price unavailable for {symbol}"}
+
+    qty = _orb_pos_size(ltp)
+    if qty <= 0:
+        return {"status_code": 400, "error": f"Quantity 0 at price ₹{ltp}"}
+
+    tsym = _live_tradingsymbol(token)
+    if not tsym:
+        return {"status_code": 400, "error": f"Trading symbol not found for {symbol} (token {token})"}
+
+    params = {
+        "variety":         "NORMAL",
+        "tradingsymbol":   tsym,
+        "symboltoken":     str(token),
+        "transactiontype": side,
+        "exchange":        "NSE",
+        "ordertype":       "MARKET",
+        "producttype":     "INTRADAY",
+        "duration":        "DAY",
+        "quantity":        str(qty),
+    }
+    log.info(f"[LIVE-ORDER] placing: {params}")
+    try:
+        resp = smart_live.placeOrder(params)
+    except Exception as e:
+        log.error(f"[LIVE-ORDER] placeOrder raised: {e}")
+        return {"status_code": 502, "error": str(e)}
+    log.info(f"[LIVE-ORDER] response: {resp}")
+
+    # SDK returns the orderid string on success; some versions return the full response dict
+    if isinstance(resp, dict):
+        if resp.get("status") in (True, "true") and resp.get("data"):
+            order_id = resp["data"].get("orderid")
+        else:
+            return {"status_code": 502, "error": str(resp.get("message") or resp)}
+    else:
+        order_id = str(resp) if resp else None
+    if not order_id:
+        return {"status_code": 502, "error": "Broker did not return an order id"}
+
+    return {"ok": True, "order_id": order_id, "qty": qty, "ltp": ltp, "tradingsymbol": tsym}
+
+
+@app.post("/simulator/live-order")
+async def simulator_live_order(body: _OrbLiveOrderBody):
+    side = body.side.upper()
+    if side not in ("BUY", "SELL"):
+        return JSONResponse(status_code=400, content={"error": f"Invalid side '{body.side}'"})
+    try:
+        loop   = asyncio.get_running_loop()
+        result = await loop.run_in_executor(
+            None, _live_place_order_sync, body.symbol, str(body.token), side)
+        if result.get("ok"):
+            return result
+        return JSONResponse(status_code=result.get("status_code", 500),
+                            content={"error": result.get("error", "Unknown error")})
+    except Exception as e:
+        log.error(f"[LIVE-ORDER] {e}", exc_info=True)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
