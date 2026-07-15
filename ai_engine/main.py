@@ -8144,15 +8144,6 @@ def _orb_outcome_poll_sync(today: str, now_ist):
     """Check OPEN trades vs target/SL (with optional trailing SL); resolve on hit."""
     conn        = get_conn()
     open_trades = orb_get_open_trades(conn, today)
-
-    # Diagnostic: find any OPEN trades in DB not matching today's date
-    all_open_rows = conn.execute(
-        "SELECT symbol, date, user_id FROM orb_stock_trades WHERE outcome='OPEN'"
-    ).fetchall()
-    missed = [(r[0], r[1], r[2]) for r in all_open_rows if r[1] != today]
-    if missed:
-        log.warning(f"[ORB-OUT] {len(missed)} OPEN trade(s) with wrong date (today={today}): {missed}")
-
     if not open_trades:
         conn.close()
         return
@@ -8160,15 +8151,10 @@ def _orb_outcome_poll_sync(today: str, now_ist):
     sym_to_token = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
     exit_time    = now_ist.strftime("%Y-%m-%d %H:%M:%S")
 
-    log.info(f"[ORB-OUT] checking {len(open_trades)} open trade(s) | cache size={len(_orb_ltp_cache)}")
     sess_settings = {}
     for trade in open_trades:
         tok = sym_to_token.get(trade["symbol"])
         ltp = _orb_ltp_cache.get(tok) if tok else None
-        log.info(
-            f"[ORB-OUT] {trade['symbol']} tok={tok} cache_ltp={ltp} "
-            f"target={trade['target_price']} sl={trade['stop_loss_price']} dir={trade['direction']}"
-        )
         if not ltp:
             continue
         u   = trade.get("user_id", "")
@@ -8458,7 +8444,6 @@ async def simulator_state(request: Request, date: str = ""):
                     for _tok, _ltp in ltp_by_tok.items():
                         if _ltp:
                             _orb_ltp_cache[_tok] = _ltp
-                    log.info(f"[ORB-STATE] cache updated: {len(ltp_by_tok)} token(s) → {ltp_by_tok}")
                 except Exception:
                     ltp_by_tok = {}
             else:
