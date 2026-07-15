@@ -7662,6 +7662,7 @@ from core.orb_simulator import (
     pnl_for              as _orb_pnl,
     in_price_band        as _orb_in_band,
     passes_volume_filter as _orb_dom_ok,
+    in_entry_window,
     SIM_MAX_SLOTS, SIM_CANDIDATE_CAP, SIM_TICK as _SIM_TICK,
     _IST as _SIM_IST, _FORCE as _SIM_FORCE,
 )
