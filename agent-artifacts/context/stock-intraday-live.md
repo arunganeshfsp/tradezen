@@ -13,20 +13,15 @@ A copy of `public/stock_intraday_simulator.html` that adds a **Place Order** but
 - Market orders only, product MIS (INTRADAY), exchange NSE
 - Quantity: same as simulator — `floor(100000 / live_ltp)` via `_orb_pos_size`
 - **Entries only.** Exits are manual in the Angel One app (broker auto-squares MIS ~15:20)
-- Orders go to a **separate funded Angel One account**, not the market-data account
+- Orders go to the **same Angel One account** as market data (user initially planned a separate funded account, then confirmed both client IDs are the same). The shared `_get_smart()` session is used for `placeOrder` — deliberately avoids a second session for the same client+key, which can invalidate tokens.
 
-## Backend (ai_engine)
+## Backend (`ai_engine/main.py`)
 
-### `config/credentials.py`
-- `LIVE_API_KEY` (falls back to `API_KEY`), `LIVE_CLIENT_ID`, `LIVE_PIN`, `LIVE_TOTP_SECRET` env vars
-- `live_credentials_configured()` — True when all three LIVE_* are set
-- `get_live_smart_api()` — SmartConnect session for the funded account; raises if unconfigured
-
-### `main.py`
-- `_get_live_smart()` (near `_get_smart`, ~line 1200) — cached live session, 8h TTL, returns None (logged) if LIVE_* not set. Used ONLY for order placement; market data stays on `_get_smart()`/provider.
 - `_live_tradingsymbol(token)` — token → `SYMBOL-EQ` map from `data/instrument_master.json`, module-cached (`_live_tsym_cache`)
-- `_live_place_order_sync()` — LTP via `get_provider().get_ltp` (fallback `_orb_ltp_cache`) → qty → `placeOrder({variety NORMAL, ordertype MARKET, producttype INTRADAY, duration DAY})`. Handles both SDK return shapes (orderid string / full dict). Logs full request+response with `[LIVE-ORDER]` prefix.
-- `POST /simulator/live-order` — body `{symbol, token, side}`; wraps sync fn in `run_in_executor`. 503 if creds missing or no LTP, 400 for bad side/qty/symbol, 502 for broker rejection.
+- `_live_place_order_sync()` — LTP via `get_provider().get_ltp` (fallback `_orb_ltp_cache`) → qty → `smart.placeOrder({variety NORMAL, ordertype MARKET, producttype INTRADAY, duration DAY})` on the shared `_get_smart()` session. Handles both SDK return shapes (orderid string / full dict). Logs full request+response with `[LIVE-ORDER]` prefix.
+- `POST /simulator/live-order` — body `{symbol, token, side}`; wraps sync fn in `run_in_executor`. 503 if session/LTP unavailable, 400 for bad side/qty/symbol, 502 for broker rejection.
+
+No changes to `config/credentials.py` — the existing `.env` (API_KEY, CLIENT_ID, PIN, TOTP_SECRET) is all that's needed. The account must have funds/margin for MIS orders.
 
 ## Frontend (`stock_intraday.html`)
 
@@ -37,16 +32,14 @@ A copy of `public/stock_intraday_simulator.html` that adds a **Place Order** but
 
 ## Setup Before First Use (user action)
 
-1. Enable TOTP for the funded account at smartapi.angelbroking.com/enable-totp
-2. Add to `ai_engine/.env`: `LIVE_CLIENT_ID`, `LIVE_PIN`, `LIVE_TOTP_SECRET` (optionally `LIVE_API_KEY`)
-3. Restart Python server
-4. Off-market smoke test: tap Place Order → expect broker "market closed" rejection (proves auth + order path)
+1. Load funds into the Angel One account (MIS ₹1L position needs ~₹20K margin)
+2. Off-market smoke test: tap Place Order → expect broker "market closed" rejection (proves order path end-to-end)
 
 ## Known Caveats
 
 - `_liveOrdersPlaced` resets on page refresh — duplicate orders possible if user refreshes and taps again
 - The simulated trade lifecycle (SL/target resolution) is entirely separate from the real position; the app does not know about fills, rejections after placement, or the real position's P/L
-- SEBI language rules don't apply to this page's Place Order action (user's own personal account, own orders), but the page keeps the educational disclaimer footer
+- SmartAPI key must be a "Trading API" app type for placeOrder to work (unverified until first order attempt)
 
 ## Open Issues
 

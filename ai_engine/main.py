@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from config.credentials import get_smart_api, get_live_smart_api, live_credentials_configured
+from config.credentials import get_smart_api
 from data.instrument_master import InstrumentMaster
 from data.websocket_client import start_websocket
 from core.market_state import MarketState
@@ -1196,34 +1196,6 @@ def _get_smart(force: bool = False):
             return smart
         except Exception as e:
             log.warning(f"[SmartAPI] re-auth failed: {e}")
-            return None
-
-
-_live_smart         = None
-_live_smart_lock    = threading.Lock()
-_live_smart_auth_ts = 0.0
-
-
-def _get_live_smart():
-    """Session for the funded live-trading account — used only for order placement."""
-    import time as _t
-    global _live_smart, _live_smart_auth_ts
-    if not live_credentials_configured():
-        return None
-    now = _t.time()
-    if _live_smart and (now - _live_smart_auth_ts) < _SMART_TTL:
-        return _live_smart
-    with _live_smart_lock:
-        now = _t.time()
-        if _live_smart and (now - _live_smart_auth_ts) < _SMART_TTL:
-            return _live_smart
-        try:
-            _live_smart = get_live_smart_api()
-            _live_smart_auth_ts = now
-            log.info("[SmartAPI-LIVE] live account session refreshed")
-            return _live_smart
-        except Exception as e:
-            log.warning(f"[SmartAPI-LIVE] live account auth failed: {e}")
             return None
 
 
@@ -8668,9 +8640,9 @@ def _live_tradingsymbol(token: str) -> str | None:
 
 
 def _live_place_order_sync(symbol: str, token: str, side: str) -> dict:
-    smart_live = _get_live_smart()
+    smart_live = _get_smart()
     if not smart_live:
-        return {"status_code": 503, "error": "Live trading credentials not configured (LIVE_* in .env)"}
+        return {"status_code": 503, "error": "SmartAPI session unavailable"}
 
     ltp = None
     try:
