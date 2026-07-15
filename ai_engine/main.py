@@ -8150,21 +8150,25 @@ def _orb_outcome_poll_sync(today: str, now_ist):
     sym_to_token  = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
     tokens_needed = list({sym_to_token[t["symbol"]] for t in open_trades
                           if t["symbol"] in sym_to_token})
-    smart_s = _get_smart()
-    if not smart_s or not tokens_needed:
+    if not tokens_needed:
         conn.close()
         return
 
-    quotes    = _orb_raw_quotes(smart_s, tokens_needed)
+    try:
+        ltp_by_tok = get_provider().get_ltp(tokens_needed, "NSE")
+    except Exception as e:
+        log.warning(f"[ORB-SIM] outcome poll ltp error: {e}")
+        conn.close()
+        return
+
     exit_time = now_ist.strftime("%Y-%m-%d %H:%M:%S")
 
     sess_settings = {}
     for trade in open_trades:
         tok = sym_to_token.get(trade["symbol"])
-        q   = quotes.get(tok) if tok else None
-        if not q:
+        ltp = ltp_by_tok.get(tok) if tok else None
+        if not ltp:
             continue
-        ltp = q["ltp"]
         u   = trade.get("user_id", "")
         if u not in sess_settings:
             sess_settings[u] = orb_get_settings(conn, u)
@@ -8438,19 +8442,26 @@ async def simulator_state(request: Request, date: str = ""):
                 dom = _orb_dom_cache.get(str(c["token"]), {})
                 c["live_buy_pct"]  = dom.get("buy_pct")
                 c["live_sell_pct"] = dom.get("sell_pct")
-            # For open trades fetch LTP directly — the polling cache can go stale
-            # if outcome poll hits a transient API error; _paper_stock_ltps has its
-            # own 8s TTL cache and is independent of the background loop.
-            open_syms = [t["symbol"] for t in trades if t["outcome"] == "OPEN"]
-            if open_syms:
+            # Fetch live LTP for open trades using session tokens directly — bypasses
+            # symbol-name lookup and the 8s cache in _paper_stock_ltps.
+            open_toks = [tok_by_sym[t["symbol"]]
+                         for t in trades
+                         if t["outcome"] == "OPEN" and t["symbol"] in tok_by_sym]
+            if open_toks:
                 loop = asyncio.get_running_loop()
-                fresh_ltps = await loop.run_in_executor(None, _paper_stock_ltps, open_syms)
+                try:
+                    ltp_by_tok = await loop.run_in_executor(
+                        None, lambda: get_provider().get_ltp(open_toks, "NSE")
+                    )
+                except Exception:
+                    ltp_by_tok = {}
             else:
-                fresh_ltps = {}
+                ltp_by_tok = {}
             for t in trades:
                 if t["outcome"] == "OPEN":
-                    t["live_ltp"] = (fresh_ltps.get(t["symbol"])
-                                     or _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], "")))
+                    tok = tok_by_sym.get(t["symbol"], "")
+                    t["live_ltp"] = (ltp_by_tok.get(tok)
+                                     or _orb_ltp_cache.get(tok))
                 else:
                     t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
                 if t["outcome"] == "OPEN" and trail_pts > 0 and t["id"] in _orb_trail_peaks:
