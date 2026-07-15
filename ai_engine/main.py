@@ -7946,12 +7946,8 @@ def _orb_trigger_poll_sync(today: str, now_ist):
     import uuid as _uuid
     conn        = get_conn()
     all_cands   = orb_get_candidates(conn, today)
-    waiting_all  = [c for c in all_cands if c["status"] == "WAITING"]
-    open_trades  = orb_get_open_trades(conn, today)
-    tok_all      = {c["symbol"]: c["token"] for c in all_cands}
-    open_toks    = {tok_all[t["symbol"]] for t in open_trades if t["symbol"] in tok_all}
-
-    if not waiting_all and not open_toks:
+    waiting_all = [c for c in all_cands if c["status"] == "WAITING"]
+    if not waiting_all:
         conn.close()
         return
 
@@ -7996,18 +7992,16 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             continue
         active_waiting.extend(sess_waiting)
 
+    if not active_waiting:
+        conn.close()
+        return
+
     smart_s = _get_smart()
     if not smart_s:
         conn.close()
         return
 
-    if not active_waiting:
-        if open_toks:
-            _orb_raw_quotes(smart_s, list(open_toks))
-        conn.close()
-        return
-
-    quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in active_waiting} | open_toks))
+    quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in active_waiting}))
 
     culled_sessions: set = set()
 
@@ -8153,24 +8147,15 @@ def _orb_outcome_poll_sync(today: str, now_ist):
         conn.close()
         return
 
-    sym_to_token  = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
-    tokens_needed = list({sym_to_token[t["symbol"]] for t in open_trades
-                          if t["symbol"] in sym_to_token})
-    smart_s = _get_smart()
-    if not smart_s or not tokens_needed:
-        conn.close()
-        return
-
-    quotes    = _orb_raw_quotes(smart_s, tokens_needed)
-    exit_time = now_ist.strftime("%Y-%m-%d %H:%M:%S")
+    sym_to_token = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
+    exit_time    = now_ist.strftime("%Y-%m-%d %H:%M:%S")
 
     sess_settings = {}
     for trade in open_trades:
         tok = sym_to_token.get(trade["symbol"])
-        q   = quotes.get(tok) if tok else None
-        if not q:
+        ltp = _orb_ltp_cache.get(tok) if tok else None
+        if not ltp:
             continue
-        ltp = q["ltp"]
         u   = trade.get("user_id", "")
         if u not in sess_settings:
             sess_settings[u] = orb_get_settings(conn, u)
@@ -8455,6 +8440,9 @@ async def simulator_state(request: Request, date: str = ""):
                     ltp_by_tok = await loop.run_in_executor(
                         None, lambda: get_provider().get_ltp(open_toks, "NSE")
                     )
+                    for _tok, _ltp in ltp_by_tok.items():
+                        if _ltp:
+                            _orb_ltp_cache[_tok] = _ltp
                 except Exception:
                     ltp_by_tok = {}
             else:
