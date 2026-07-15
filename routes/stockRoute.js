@@ -1131,6 +1131,18 @@ router.post("/simulator/square-off", _simAuth, async (req, res) => {
   }
 });
 
+// ─── POST /api/simulator/live-order ──────────────────────────────────────────
+// Body: { symbol, token, side } — places a REAL MIS market order on Angel One
+router.post("/simulator/live-order", _simAuth, async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/simulator/live-order", 20000, req.body, _simHdr(req));
+    res.json(data);
+  } catch (err) {
+    const status = (err.status === 400 || err.status === 502 || err.status === 503) ? err.status : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
 // ─── POST /api/simulator/backtest ────────────────────────────────────────────
 // Body: { date: "YYYY-MM-DD", force?: bool }
 // Replays the ORB algorithm on historical candles. Timeout 5min (full universe).
