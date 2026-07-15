@@ -20,14 +20,15 @@ A copy of `public/stock_intraday_simulator.html` that adds a **Place Order** but
 - `_live_tradingsymbol(token)` — token → `SYMBOL-EQ` map from `data/instrument_master.json`, module-cached (`_live_tsym_cache`)
 - `_live_place_order_sync()` — LTP via `get_provider().get_ltp` (fallback `_orb_ltp_cache`) → qty → `smart.placeOrder({variety NORMAL, ordertype MARKET, producttype INTRADAY, duration DAY})` on the shared `_get_smart()` session. Handles both SDK return shapes (orderid string / full dict). Logs full request+response with `[LIVE-ORDER]` prefix.
 - `POST /simulator/live-order` — body `{symbol, token, side}`; wraps sync fn in `run_in_executor`. 503 if session/LTP unavailable, 400 for bad side/qty/symbol, 502 for broker rejection.
+- Node proxy: route explicitly registered in `routes/stockRoute.js` (`POST /api/simulator/live-order`, 20s timeout) — the Node server whitelists each simulator route individually; without this the request falls through to static HTML.
 
 No changes to `config/credentials.py` — the existing `.env` (API_KEY, CLIENT_ID, PIN, TOTP_SECRET) is all that's needed. The account must have funds/margin for MIS orders.
 
 ## Frontend (`stock_intraday.html`)
 
 - Branding: title "ORB Live Intraday", red LIVE hero tag, `.live-banner` status chip replacing "SIMULATOR · No real orders placed"
-- Candidates table: 11th column "Order"; button rendered only for WAITING/TRIGGERED rows
-- `placeLiveOrder(symbol, token, side, btn)` — confirm() dialog with qty/price/value estimate → POST `/api/simulator/live-order` → success: green `✓ #orderid` disabled; failure: red + alert + re-enable after 3s
+- **SIMULATED TRADES table** (not candidates): Place Order button in the last cell (beside Square Off) for OPEN trades when `_isLive`. Mirrors what the algo actually entered.
+- `placeLiveOrder(symbol, side, btn)` — resolves token from `_stateData.candidates` by symbol, LTP from the open trade — confirm() dialog with qty/price/value estimate → POST `/api/simulator/live-order` → success: green `✓ #orderid` disabled; failure: red + alert + re-enable after 3s
 - `_liveOrdersPlaced` object (`"SYMBOL|SIDE"` → order id) keeps buttons in placed state across the 5s state-poll re-renders. **In-memory only — page refresh forgets placed orders (buttons reappear). Broker duplicate protection is the only backstop after refresh.**
 
 ## Setup Before First Use (user action)

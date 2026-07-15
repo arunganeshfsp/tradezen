@@ -763,11 +763,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <th data-en="Trigger Below" data-ta="தூண்டல் கீழே">Trigger Below</th>
             <th data-en="SL Basis" data-ta="SL அடிப்படை">SL Basis</th>
             <th data-en="Status" data-ta="நிலை">Status</th>
-            <th data-en="Order" data-ta="ஆர்டர்">Order</th>
           </tr>
         </thead>
         <tbody id="candBody">
-          <tr><td colspan="11" class="empty-cell">Loading candidates…</td></tr>
+          <tr><td colspan="10" class="empty-cell">Loading candidates…</td></tr>
         </tbody>
       </table>
     </div>
@@ -1015,10 +1014,15 @@ function filterCands(filter, btn) {
 
 const _liveOrdersPlaced = {};   // "SYMBOL|SIDE" → order id (survives 5s re-renders)
 
-async function placeLiveOrder(symbol, token, side, btn) {
+async function placeLiveOrder(symbol, side, btn) {
   const cand = ((_stateData && _stateData.candidates) || [])
-    .find(c => c.symbol === symbol && c.side === side);
-  const ltp  = cand ? (cand.live_ltp || cand.ltp_0916) : null;
+    .find(c => c.symbol === symbol);
+  const token = cand ? String(cand.token) : null;
+  if (!token) { alert(`Token not found for ${symbol} — cannot place order`); return; }
+
+  const trade = ((_stateData && _stateData.trades) || [])
+    .find(t => t.symbol === symbol && t.direction === side && t.outcome === 'OPEN');
+  const ltp  = (trade && trade.live_ltp) || (cand.live_ltp || cand.ltp_0916) || null;
   const qty  = ltp ? Math.floor(100000 / ltp) : '?';
   const val  = (ltp && qty !== '?') ? '₹' + Math.round(qty * ltp).toLocaleString('en-IN') : '—';
 
@@ -1073,7 +1077,7 @@ function renderCandidates(cands) {
   document.getElementById('candCount').textContent = filtered.length;
 
   if (!filtered.length) {
-    body.innerHTML = `<tr><td colspan="11" class="empty-cell">No candidates for this session</td></tr>`;
+    body.innerHTML = `<tr><td colspan="10" class="empty-cell">No candidates for this session</td></tr>`;
     return;
   }
 
@@ -1124,16 +1128,6 @@ function renderCandidates(cands) {
     }
 
     const dimRow = (c.status === 'SKIPPED' || c.status === 'WINDOW_CLOSED') ? ' style="opacity:.45"' : '';
-
-    let orderHtml = '<span style="color:var(--muted)">—</span>';
-    const okey = c.symbol + '|' + c.side;
-    if (_liveOrdersPlaced[okey]) {
-      orderHtml = `<button class="live-order-btn ok" disabled>✓ #${_esc(_liveOrdersPlaced[okey])}</button>`;
-    } else if (c.status === 'WAITING' || c.status === 'TRIGGERED') {
-      orderHtml = `<button class="live-order-btn"
-        onclick="placeLiveOrder('${_esc(c.symbol)}','${_esc(String(c.token))}','${c.side}',this)">Place Order</button>`;
-    }
-
     return `<tr${dimRow}>
       <td><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
       <td class="sym-cell">${_esc(c.symbol)}</td>
@@ -1145,7 +1139,6 @@ function renderCandidates(cands) {
       <td class="num-cell bear-val">${c.bench_low  != null ? '₹' + _fmt2(c.bench_low)  : '—'}</td>
       <td class="sl-cell">${slHtml}</td>
       <td>${_statusBadge(c.status)}</td>
-      <td>${orderHtml}</td>
     </tr>`;
   }).join('');
 }
@@ -1248,6 +1241,14 @@ function renderTrades(trades) {
       ? `<button class="sq-btn" onclick="event.stopPropagation();squareOff('${_esc(tid)}','${_esc(t.symbol)}')"
            data-en="Square Off" data-ta="மூடு">Square Off</button>`
       : '';
+    const okey = t.symbol + '|' + t.direction;
+    let orderBtn = '';
+    if (_liveOrdersPlaced[okey]) {
+      orderBtn = `<button class="live-order-btn ok" disabled>✓ #${_esc(_liveOrdersPlaced[okey])}</button>`;
+    } else if (t.outcome === 'OPEN' && _isLive) {
+      orderBtn = `<button class="live-order-btn"
+        onclick="event.stopPropagation();placeLiveOrder('${_esc(t.symbol)}','${t.direction}',this)">Place Order</button>`;
+    }
     const entryTime = t.entry_time ? t.entry_time.slice(11, 16) + ' IST' : '—';
     const exitTime  = t.exit_time  ? t.exit_time.slice(11, 16)  + ' IST' : '—';
 
@@ -1276,7 +1277,7 @@ function renderTrades(trades) {
       <td>${_rrBadge(t.risk_reward)}</td>
       <td>${_outcomeBadge(t.outcome)}</td>
       <td class="num-cell ${pnlCls}">${pnlStr}</td>
-      <td>${sqBtn}</td>
+      <td style="white-space:nowrap">${orderBtn} ${sqBtn}</td>
     </tr>`;
 
     const detailRow = `<tr class="trade-detail-row" id="detail-${_esc(tid)}" style="display:none">
@@ -1667,7 +1668,7 @@ async function runBacktest() {
   Object.keys(_verifyCache).forEach(k => delete _verifyCache[k]);
   _expandedTrades.clear();
   document.getElementById('tradeBody').innerHTML = '<tr><td colspan="12" class="empty-cell">Clearing previous backtest…</td></tr>';
-  document.getElementById('candBody').innerHTML  = '<tr><td colspan="11" class="empty-cell">Clearing previous backtest…</td></tr>';
+  document.getElementById('candBody').innerHTML  = '<tr><td colspan="10" class="empty-cell">Clearing previous backtest…</td></tr>';
 
   const uni    = _settings?.universe || 'nifty500_fno';
   const total  = { all_fno: 700, nifty500_fno: 500, nifty100_fno: 100, nifty50: 50 }[uni] || 700;

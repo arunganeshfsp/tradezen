@@ -8652,6 +8652,17 @@ def _live_place_order_sync(symbol: str, token: str, side: str) -> dict:
     if not ltp:
         ltp = _orb_ltp_cache.get(str(token))
     if not ltp:
+        # Off-market / post-restart fallback: today's scan price is close enough for sizing
+        today = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+        conn  = get_conn()
+        row   = conn.execute(
+            "SELECT ltp_0916 FROM orb_candidates WHERE date=? AND symbol=? LIMIT 1",
+            (today, symbol)).fetchone()
+        conn.close()
+        if row and row[0]:
+            ltp = float(row[0])
+            log.info(f"[LIVE-ORDER] using scan price ₹{ltp} for {symbol} (live LTP unavailable)")
+    if not ltp:
         return {"status_code": 503, "error": f"Live price unavailable for {symbol}"}
 
     qty = _orb_pos_size(ltp)
