@@ -7946,8 +7946,12 @@ def _orb_trigger_poll_sync(today: str, now_ist):
     import uuid as _uuid
     conn        = get_conn()
     all_cands   = orb_get_candidates(conn, today)
-    waiting_all = [c for c in all_cands if c["status"] == "WAITING"]
-    if not waiting_all:
+    waiting_all  = [c for c in all_cands if c["status"] == "WAITING"]
+    open_trades  = orb_get_open_trades(conn, today)
+    tok_all      = {c["symbol"]: c["token"] for c in all_cands}
+    open_toks    = {tok_all[t["symbol"]] for t in open_trades if t["symbol"] in tok_all}
+
+    if not waiting_all and not open_toks:
         conn.close()
         return
 
@@ -7992,16 +7996,18 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             continue
         active_waiting.extend(sess_waiting)
 
-    if not active_waiting:
-        conn.close()
-        return
-
     smart_s = _get_smart()
     if not smart_s:
         conn.close()
         return
 
-    quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in active_waiting}))
+    if not active_waiting:
+        if open_toks:
+            _orb_raw_quotes(smart_s, list(open_toks))
+        conn.close()
+        return
+
+    quotes = _orb_raw_quotes(smart_s, list({c["token"] for c in active_waiting} | open_toks))
 
     culled_sessions: set = set()
 
@@ -8148,25 +8154,13 @@ def _orb_outcome_poll_sync(today: str, now_ist):
         return
 
     sym_to_token  = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
-    tokens_needed = list({sym_to_token[t["symbol"]] for t in open_trades
-                          if t["symbol"] in sym_to_token})
-    if not tokens_needed:
-        conn.close()
-        return
-
-    try:
-        ltp_by_tok = get_provider().get_ltp(tokens_needed, "NSE")
-    except Exception as e:
-        log.warning(f"[ORB-SIM] outcome poll ltp error: {e}")
-        conn.close()
-        return
 
     exit_time = now_ist.strftime("%Y-%m-%d %H:%M:%S")
 
     sess_settings = {}
     for trade in open_trades:
         tok = sym_to_token.get(trade["symbol"])
-        ltp = ltp_by_tok.get(tok) if tok else None
+        ltp = _orb_ltp_cache.get(tok) if tok else None
         if not ltp:
             continue
         u   = trade.get("user_id", "")
