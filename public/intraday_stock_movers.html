@@ -336,7 +336,7 @@ async function placeLiveOrder(symbol, token, ltp, side, btn) {
       alert(`Order failed for ${symbol}:\n${d.error || 'Unknown error'}`);
       setTimeout(() => {
         btn.classList.remove('err');
-        btn.textContent = side === 'BUY' ? 'B' : 'S';
+        btn.textContent = side === 'BUY' ? 'Place Buy' : 'Place Sell';
         btn.disabled = false;
       }, 3000);
     }
@@ -345,7 +345,7 @@ async function placeLiveOrder(symbol, token, ltp, side, btn) {
     btn.textContent = 'ERR';
     setTimeout(() => {
       btn.classList.remove('err');
-      btn.textContent = side === 'BUY' ? 'B' : 'S';
+      btn.textContent = side === 'BUY' ? 'Place Buy' : 'Place Sell';
       btn.disabled = false;
     }, 3000);
   }
@@ -414,12 +414,11 @@ function _orderBtn(r, side) {
   if (_liveOrdersPlaced[okey]) {
     return `<button class="ord-btn ok" disabled>✓ #${_esc(_liveOrdersPlaced[okey])}</button>`;
   }
-  const cls  = side === 'BUY' ? 'buy' : 'sell';
-  const lbl  = side === 'BUY' ? 'B' : 'S';
-  const tok  = _esc(r.token || '');
-  const ltp  = r.ltp || 0;
+  const cls = side === 'BUY' ? 'buy' : 'sell';
+  const tok = _esc(r.token || '');
+  const ltp = r.ltp || 0;
   return `<button class="ord-btn ${cls}"
-    onclick="event.stopPropagation();placeLiveOrder('${_esc(r.symbol)}','${tok}',${ltp},'${side}',this)">${lbl}</button>`;
+    onclick="event.stopPropagation();placeLiveOrder('${_esc(r.symbol)}','${tok}',${ltp},'${side}',this)">Place ${side === 'BUY' ? 'Buy' : 'Sell'}</button>`;
 }
 
 function _renderRows(rows, isGainer) {
