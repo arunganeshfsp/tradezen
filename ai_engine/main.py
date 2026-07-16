@@ -5448,6 +5448,131 @@ def stocks_movers(index: str = "nifty50", min_price: float = 0,
     return result
 
 
+_INV_MOVERS_LABELS = {
+    "nifty500":   "Nifty 500",
+    "fno":        "F&O",
+    "m200_30":    "NF200 Momentum 30",
+    "m500_50":    "NF500 Momentum 50",
+    "mmid150_50": "MidCap150 Momentum 50",
+}
+_inv_movers_cache: dict = {}
+
+
+def _inventory_movers_sync(source: str) -> dict:
+    import time as _time
+    _TTL = 60
+    _STALE_OK = 1800
+    cached = _inv_movers_cache.get(source)
+    if cached and (_time.time() - cached["ts"]) < _TTL:
+        return cached["data"]
+
+    conn    = get_conn()
+    symbols = set(stock_universe_get(conn, source))
+    conn.close()
+
+    if not symbols:
+        return {"error": f"No symbols in '{source}' inventory — import them at /mgmt/stock-inventory.html"}
+
+    all_eq  = _load_all_eq_stocks()
+    matched = [s for s in all_eq if s["symbol"].upper() in symbols]
+    if not matched:
+        if cached and (_time.time() - cached["ts"]) < _STALE_OK:
+            return {**cached["data"], "stale": True}
+        return {"error": f"No instrument tokens found for {source} symbols"}
+
+    token_to_sym = {s["token"]: s["symbol"] for s in matched}
+    snapshots    = get_provider().get_market_data(list(token_to_sym.keys()), "NSE")
+
+    if not snapshots:
+        if cached and (_time.time() - cached["ts"]) < _STALE_OK:
+            log.warning(f"[INV-MOVERS:{source}] no data — serving stale cache")
+            return {**cached["data"], "stale": True}
+        return {"error": f"No market data available for {source}"}
+
+    rows = []
+    for snap in snapshots:
+        sym = token_to_sym.get(snap.token)
+        if not sym:
+            continue
+        rows.append({
+            "symbol":     sym,
+            "ltp":        snap.ltp,
+            "change":     round(snap.ltp - snap.prev_close, 2),
+            "pct_change": snap.pct_change,
+            "prev_close": snap.prev_close,
+            "open":       snap.open,
+            "high":       snap.high,
+            "low":        snap.low,
+            "volume":     snap.volume,
+            "buy_qty":    snap.buy_qty,
+            "sell_qty":   snap.sell_qty,
+            "buy_pct":    snap.buy_pct,
+            "sell_pct":   snap.sell_pct,
+        })
+
+    if not rows:
+        if cached and (_time.time() - cached["ts"]) < _STALE_OK:
+            return {**cached["data"], "stale": True}
+        return {"error": f"No market data rows for {source}"}
+
+    gainers_pool = [r for r in rows if r.get("pct_change", 0) > 0]
+    losers_pool  = [r for r in rows if r.get("pct_change", 0) < 0]
+    advancing    = sum(1 for r in rows if r["pct_change"] > 0)
+    declining    = sum(1 for r in rows if r["pct_change"] < 0)
+    now = _time.time()
+    result = {
+        "index":      _INV_MOVERS_LABELS.get(source, source),
+        "source":     "Live",
+        "count":      len(rows),
+        "advancing":  advancing,
+        "declining":  declining,
+        "unchanged":  len(rows) - advancing - declining,
+        "gainers":    _volume_rank(gainers_pool, True)[:10],
+        "losers":     _volume_rank(losers_pool, False)[:10],
+        "all_rows":   rows,
+        "fetched_at": int(now),
+    }
+    _inv_movers_cache[source] = {"data": result, "ts": now}
+    return result
+
+
+@app.get("/stocks/inventory-movers")
+def stocks_inventory_movers(source: str = "nifty500", min_price: float = 0,
+                             max_price: float = 0, min_change: float = 0):
+    if source not in _INV_MOVERS_LABELS:
+        return JSONResponse(status_code=400, content={"error": f"Unknown source '{source}'"})
+    try:
+        result = _inventory_movers_sync(source)
+    except Exception as e:
+        log.error(f"stocks/inventory-movers error: {e}")
+        return {"error": str(e)}
+
+    if result.get("error"):
+        return result
+
+    if min_price > 0 or max_price > 0 or min_change > 0:
+        all_rows = result.get("all_rows", [])
+        filtered = [r for r in all_rows
+                    if (min_price == 0 or r.get("ltp", 0) >= min_price)
+                    and (max_price == 0 or r.get("ltp", 0) <= max_price)
+                    and (min_change == 0 or abs(r.get("pct_change", 0)) >= min_change)]
+        advancing = sum(1 for r in filtered if r.get("pct_change", 0) > 0)
+        declining = sum(1 for r in filtered if r.get("pct_change", 0) < 0)
+        pos = [r for r in filtered if r.get("pct_change", 0) > 0]
+        neg = [r for r in filtered if r.get("pct_change", 0) < 0]
+        result = {**result,
+                  "count":     len(filtered),
+                  "advancing": advancing,
+                  "declining": declining,
+                  "unchanged": len(filtered) - advancing - declining,
+                  "gainers":   pos[:20],
+                  "losers":    neg[-20:] if neg else []}
+
+    result["gainers"] = _volume_rank(_enrich_with_depth(result.get("gainers", [])), True)[:10]
+    result["losers"]  = _volume_rank(_enrich_with_depth(result.get("losers",  [])), False)[:10]
+    return result
+
+
 @app.get("/stocks/live-prices")
 def stocks_live_prices(index: str = "nifty50"):
     """Current LTPs for index constituents. NSE primary, Yahoo fallback. 5-second cache."""

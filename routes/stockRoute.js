@@ -575,6 +575,17 @@ router.get("/stocks/movers", async (req, res) => {
   }
 });
 
+// ─── GET /api/stocks/inventory-movers ────────────────────────────────────────
+router.get("/stocks/inventory-movers", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/stocks/inventory-movers?${params}`, 75000);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/stocks/live-prices ─────────────────────────────────────────────
 router.get("/stocks/live-prices", async (req, res) => {
   try {
