@@ -430,7 +430,6 @@ function _renderRows(rows, isGainer) {
     const side    = isGainer ? 'BUY' : 'SELL';
     return `
     <tr data-sym="${r.symbol}" onclick="window.open('/stock-analyser.html?symbol=${encodeURIComponent(r.symbol)}','_blank')" title="Tap to analyse this stock" style="cursor:pointer">
-      <td><span class="rank ${isGainer?'top':'bot'}">${i+1}</span></td>
       <td>
         <div class="sym-cell">
           <span class="sym-name">${r.symbol}</span>
@@ -438,7 +437,6 @@ function _renderRows(rows, isGainer) {
         </div>
       </td>
       <td style="color:var(--text);font-weight:600"><span class="ltp-val" data-ltp="${r.ltp}">${_fmtPrice(r.ltp)}</span></td>
-      <td class="${chgCls}">${chgSign}${r.change != null ? r.change.toFixed(2) : '—'}</td>
       <td><span class="${_pctClass(r.pct_change)}">${sign}${r.pct_change.toFixed(2)}%</span></td>
       <td>${_rangeBar(r.ltp, r.low, r.high, isGainer)}</td>
       <td class="vol">${_fmtVol(r.volume)}</td>
@@ -465,10 +463,8 @@ function _renderPanel(rows, isGainer) {
     <table class="mv-table">
       <thead>
         <tr>
-          <th>#</th>
           <th>Symbol</th>
           <th>LTP</th>
-          <th>Chg ₹</th>
           <th>Chg %</th>
           <th>Day Range</th>
           <th>Volume</th>
