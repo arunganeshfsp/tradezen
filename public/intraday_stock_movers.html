@@ -196,6 +196,17 @@
     .inv-note{background:rgba(124,106,247,.08);border:1px solid rgba(124,106,247,.25);border-radius:8px;
               padding:12px 16px;font-size:12px;color:#9585f9;margin:0 28px 16px}
     .inv-note a{color:#b8aeff;text-decoration:underline}
+
+    /* ── Order buttons ── */
+    .ord-btn{border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+             letter-spacing:.5px;padding:3px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;border:1px solid}
+    .ord-btn.buy{background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.4);color:var(--green)}
+    .ord-btn.buy:hover{background:rgba(46,204,113,.22)}
+    .ord-btn.sell{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.4);color:var(--red)}
+    .ord-btn.sell:hover{background:rgba(231,76,60,.22)}
+    .ord-btn.ok{background:rgba(46,204,113,.15);border-color:rgba(46,204,113,.6);color:var(--green);cursor:default;opacity:.8}
+    .ord-btn.err{background:rgba(231,76,60,.25);border-color:var(--red);cursor:default}
+    .ord-btn:disabled{opacity:.5;cursor:default}
   </style>
 <link rel="stylesheet" href="css/halo-tokens.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
@@ -246,6 +257,7 @@
     <button class="f-btn"        data-source="m200_30"    onclick="selectSource('m200_30',this)">NF200 M30</button>
     <button class="f-btn"        data-source="m500_50"    onclick="selectSource('m500_50',this)">NF500 M50</button>
     <button class="f-btn"        data-source="mmid150_50" onclick="selectSource('mmid150_50',this)">MIDCAP M50</button>
+    <button class="f-btn"        data-source="favorites"  onclick="selectSource('favorites',this)">FAVORITES</button>
   </div>
 
   <!-- Filters -->
@@ -290,6 +302,54 @@ let _currentSource = 'nifty500';
 let _filterMinChg  = 0;
 
 const _rowCache = {};
+const _liveOrdersPlaced = {};  // "SYMBOL|SIDE" → order id
+
+function _esc(s) {
+  return String(s).replace(/['"<>&]/g, c =>
+    ({'\'':'&#39;','"':'&quot;','<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+}
+
+async function placeLiveOrder(symbol, token, ltp, side, btn) {
+  const qty = ltp ? Math.floor(100000 / ltp) : '?';
+  const val = (ltp && qty !== '?') ? '₹' + Math.round(qty * ltp).toLocaleString('en-IN') : '—';
+  if (!confirm(
+    `Place LIVE ${side} market order?\n\n` +
+    `${symbol}\nQty: ~${qty} @ ₹${ltp ? ltp.toFixed(2) : '?'}  (~${val})\n` +
+    `Product: MIS (intraday) · Exchange: NSE\n\nTHIS USES REAL MONEY.`)) return;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const r = await fetch('/api/simulator/live-order', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ symbol, token, side }),
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      _liveOrdersPlaced[symbol + '|' + side] = d.order_id;
+      btn.classList.add('ok');
+      btn.textContent = `✓ #${d.order_id}`;
+    } else {
+      btn.classList.add('err');
+      btn.textContent = 'ERR';
+      btn.title = d.error || 'Order rejected';
+      alert(`Order failed for ${symbol}:\n${d.error || 'Unknown error'}`);
+      setTimeout(() => {
+        btn.classList.remove('err');
+        btn.textContent = side === 'BUY' ? 'B' : 'S';
+        btn.disabled = false;
+      }, 3000);
+    }
+  } catch (e) {
+    btn.classList.add('err');
+    btn.textContent = 'ERR';
+    setTimeout(() => {
+      btn.classList.remove('err');
+      btn.textContent = side === 'BUY' ? 'B' : 'S';
+      btn.disabled = false;
+    }, 3000);
+  }
+}
 
 function _fmtPrice(n) {
   if (n == null) return '—';
@@ -349,14 +409,28 @@ function _depthCell(r) {
     </div>`;
 }
 
+function _orderBtn(r, side) {
+  const okey = r.symbol + '|' + side;
+  if (_liveOrdersPlaced[okey]) {
+    return `<button class="ord-btn ok" disabled>✓ #${_esc(_liveOrdersPlaced[okey])}</button>`;
+  }
+  const cls  = side === 'BUY' ? 'buy' : 'sell';
+  const lbl  = side === 'BUY' ? 'B' : 'S';
+  const tok  = _esc(r.token || '');
+  const ltp  = r.ltp || 0;
+  return `<button class="ord-btn ${cls}"
+    onclick="event.stopPropagation();placeLiveOrder('${_esc(r.symbol)}','${tok}',${ltp},'${side}',this)">${lbl}</button>`;
+}
+
 function _renderRows(rows, isGainer) {
   return rows.map((r, i) => {
     _rowCache[r.symbol] = r;
     const chgCls  = r.pct_change >= 0 ? 'chg-pos' : 'chg-neg';
     const sign    = r.pct_change >= 0 ? '+' : '';
     const chgSign = r.change >= 0 ? '+' : '';
+    const side    = isGainer ? 'BUY' : 'SELL';
     return `
-    <tr data-sym="${r.symbol}" style="cursor:pointer" onclick="window.open('/stock-analyser.html?symbol=${encodeURIComponent(r.symbol)}','_blank')" title="Tap to analyse this stock">
+    <tr data-sym="${r.symbol}" onclick="window.open('/stock-analyser.html?symbol=${encodeURIComponent(r.symbol)}','_blank')" title="Tap to analyse this stock" style="cursor:pointer">
       <td><span class="rank ${isGainer?'top':'bot'}">${i+1}</span></td>
       <td>
         <div class="sym-cell">
@@ -371,6 +445,7 @@ function _renderRows(rows, isGainer) {
       <td class="vol">${_fmtVol(r.volume)}</td>
       <td>${_depthCell(r)}</td>
       ${r.year_high ? `<td>${_ywBar(r.ltp, r.year_low, r.year_high)}</td>` : '<td></td>'}
+      <td>${_orderBtn(r, side)}</td>
     </tr>`;
   }).join('');
 }
@@ -400,6 +475,7 @@ function _renderPanel(rows, isGainer) {
           <th>Volume</th>
           <th>Buy / Sell</th>
           ${hasYW ? '<th>52W</th>' : '<th></th>'}
+          <th>Order</th>
         </tr>
       </thead>
       <tbody>${_renderRows(rows, isGainer)}</tbody>

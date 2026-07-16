@@ -43,6 +43,7 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     <div class="count-badge">NF200 M30 <span class="num" id="cntM200">—</span></div>
     <div class="count-badge">NF500 M50 <span class="num" id="cntM500">—</span></div>
     <div class="count-badge">MidCap M50 <span class="num" id="cntMmid">—</span></div>
+    <div class="count-badge">Favorites <span class="num" id="cntFav">—</span></div>
     <button class="btn btn-sm btn-outline-secondary ms-2" onclick="loadAll()">&#8635; Refresh</button>
     <a href="/mgmt/learn-admin.html" class="btn btn-sm btn-outline-secondary">Admin</a>
   </div>
@@ -65,6 +66,9 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     </li>
     <li class="nav-item">
       <button class="nav-link" id="tabMmid" onclick="switchTab('mmid150_50')">MidCap M50</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tabFav" onclick="switchTab('favorites')">Favorites</button>
     </li>
   </ul>
 
@@ -161,6 +165,25 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     </div>
   </div>
 
+  <!-- Favorites Panel -->
+  <div id="panelFav" style="display:none;">
+    <div class="import-bar mb-3">
+      <input type="file" id="fileFav" class="form-control" style="max-width:300px;" accept=".csv,.xlsx,.xls">
+      <button class="btn btn-sm btn-primary" onclick="doImport('favorites')">Import &amp; Replace</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="doClear('favorites')">Clear All</button>
+      <span id="statusFav" class="status-msg"></span>
+    </div>
+    <p class="text-muted" style="font-size:11px;">Your personal watchlist — import any CSV with a column of NSE symbols.</p>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <input type="text" id="searchFav" class="form-control form-control-sm" style="max-width:240px;"
+             placeholder="Search symbols…" oninput="filterChips('Fav')">
+      <span class="text-muted" id="shownFav" style="font-size:11px;"></span>
+    </div>
+    <div class="sym-grid" id="gridFav">
+      <div class="empty-msg">No favorites loaded. Import a CSV file above.</div>
+    </div>
+  </div>
+
   <div class="text-muted mt-4" style="font-size:11px;border-top:1px solid var(--bdr);padding-top:10px;">
     For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.
   </div>
@@ -170,7 +193,7 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
 
 <script>
 const API = '/api';
-let _n500 = [], _fno = [], _m200 = [], _m500 = [], _mmid = [], _bothSet = new Set();
+let _n500 = [], _fno = [], _m200 = [], _m500 = [], _mmid = [], _fav = [], _bothSet = new Set();
 let _activeTab = 'nifty500';
 
 const _SRC = {
@@ -179,6 +202,7 @@ const _SRC = {
   m200_30:    { fileId: 'fileM200', statusId: 'statusM200', key: 'M200', label: 'NF200 M30' },
   m500_50:    { fileId: 'fileM500', statusId: 'statusM500', key: 'M500', label: 'NF500 M50' },
   mmid150_50: { fileId: 'fileMmid', statusId: 'statusMmid', key: 'Mmid', label: 'MidCap M50' },
+  favorites:  { fileId: 'fileFav',  statusId: 'statusFav',  key: 'Fav',  label: 'Favorites' },
 };
 
 async function loadAll() {
@@ -191,6 +215,7 @@ async function loadAll() {
     _m200 = d.m200_30    || [];
     _m500 = d.m500_50    || [];
     _mmid = d.mmid150_50 || [];
+    _fav  = d.favorites  || [];
     _bothSet = new Set(_n500.filter(s => _fno.includes(s)));
     const c = d.counts || {};
     document.getElementById('cnt500').textContent  = c.nifty500   ?? '0';
@@ -199,18 +224,20 @@ async function loadAll() {
     document.getElementById('cntM200').textContent = c.m200_30    ?? '0';
     document.getElementById('cntM500').textContent = c.m500_50    ?? '0';
     document.getElementById('cntMmid').textContent = c.mmid150_50 ?? '0';
+    document.getElementById('cntFav').textContent  = c.favorites  ?? '0';
     renderGrid('500',  _n500);
     renderGrid('Fno',  _fno);
     renderGrid('M200', _m200);
     renderGrid('M500', _m500);
     renderGrid('Mmid', _mmid);
+    renderGrid('Fav',  _fav);
   } catch (e) {
     toast('Failed to load inventory: ' + e.message, 'danger');
   }
 }
 
 function _arrForKey(key) {
-  return { '500': _n500, 'Fno': _fno, 'M200': _m200, 'M500': _m500, 'Mmid': _mmid }[key] || [];
+  return { '500': _n500, 'Fno': _fno, 'M200': _m200, 'M500': _m500, 'Mmid': _mmid, 'Fav': _fav }[key] || [];
 }
 
 function renderGrid(key, symbols) {
@@ -237,8 +264,8 @@ function filterChips(key) {
 
 function switchTab(tab) {
   _activeTab = tab;
-  const panels = { nifty500: 'panel500', fno: 'panelFno', m200_30: 'panelM200', m500_50: 'panelM500', mmid150_50: 'panelMmid' };
-  const tabIds = { nifty500: 'tab500', fno: 'tabFno', m200_30: 'tabM200', m500_50: 'tabM500', mmid150_50: 'tabMmid' };
+  const panels = { nifty500: 'panel500', fno: 'panelFno', m200_30: 'panelM200', m500_50: 'panelM500', mmid150_50: 'panelMmid', favorites: 'panelFav' };
+  const tabIds = { nifty500: 'tab500', fno: 'tabFno', m200_30: 'tabM200', m500_50: 'tabM500', mmid150_50: 'tabMmid', favorites: 'tabFav' };
   Object.entries(panels).forEach(([s, id]) => document.getElementById(id).style.display = s === tab ? '' : 'none');
   Object.entries(tabIds).forEach(([s, id]) => document.getElementById(id).classList.toggle('active', s === tab));
 }

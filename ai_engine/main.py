@@ -5454,6 +5454,7 @@ _INV_MOVERS_LABELS = {
     "m200_30":    "NF200 Momentum 30",
     "m500_50":    "NF500 Momentum 50",
     "mmid150_50": "MidCap150 Momentum 50",
+    "favorites":  "Favorites",
 }
 _inv_movers_cache: dict = {}
 
@@ -5496,6 +5497,7 @@ def _inventory_movers_sync(source: str) -> dict:
             continue
         rows.append({
             "symbol":     sym,
+            "token":      str(snap.token),
             "ltp":        snap.ltp,
             "change":     round(snap.ltp - snap.prev_close, 2),
             "pct_change": snap.pct_change,
@@ -9344,13 +9346,15 @@ async def stock_inventory_get(source: str = "all"):
             m200_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='m200_30'").fetchone()[0]
             m500_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='m500_50'").fetchone()[0]
             mmid_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='mmid150_50'").fetchone()[0]
+            fav_cnt   = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='favorites'").fetchone()[0]
             result = {
                 "nifty500":   stock_universe_get(conn, "nifty500"),
                 "fno":        stock_universe_get(conn, "fno"),
                 "m200_30":    stock_universe_get(conn, "m200_30"),
                 "m500_50":    stock_universe_get(conn, "m500_50"),
                 "mmid150_50": stock_universe_get(conn, "mmid150_50"),
-                "counts":     {**counts, "m200_30": m200_cnt, "m500_50": m500_cnt, "mmid150_50": mmid_cnt},
+                "favorites":  stock_universe_get(conn, "favorites"),
+                "counts":     {**counts, "m200_30": m200_cnt, "m500_50": m500_cnt, "mmid150_50": mmid_cnt, "favorites": fav_cnt},
             }
         conn.close()
         return result
@@ -9360,7 +9364,7 @@ async def stock_inventory_get(source: str = "all"):
 
 @app.post("/stock-inventory/import")
 async def stock_inventory_import(file: UploadFile, source: str = "fno"):
-    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50"):
+    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50", "favorites"):
         return JSONResponse(status_code=400, content={"error": "unknown source"})
     try:
         import io
@@ -9387,7 +9391,7 @@ async def stock_inventory_import(file: UploadFile, source: str = "fno"):
 
 @app.delete("/stock-inventory")
 async def stock_inventory_delete(source: str):
-    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50"):
+    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50", "favorites"):
         return JSONResponse(status_code=400, content={"error": "unknown source"})
     try:
         conn = get_conn()
