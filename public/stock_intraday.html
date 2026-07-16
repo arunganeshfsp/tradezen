@@ -1265,6 +1265,11 @@ function renderTrades(trades) {
       liveTd = `<span class="${cls}">₹${_fmt2(t.exit_price)}<span style="font-size:10px">${pct}</span></span>`;
     }
 
+    const liveDom = (t.outcome === 'OPEN' && t.live_buy_pct != null)
+      ? `<span class="bull-val">${Math.round(t.live_buy_pct)}%</span> <span style="color:var(--muted)">/</span> <span class="bear-val">${Math.round(t.live_sell_pct || 0)}%</span>`
+      : '—';
+    const liveVol = (t.outcome === 'OPEN' && t.live_volume != null) ? _fmtVol(t.live_volume) : '—';
+
     const tradeRow = `<tr class="trade-row" id="trow-${_esc(tid)}" onclick="toggleTradeDetail('${_esc(tid)}')">
       <td><span class="trade-expand-icon">▶</span><span class="dir-badge ${dirCls}">${dirLbl}</span></td>
       <td class="sym-cell">${_esc(t.symbol)}</td>
@@ -1290,6 +1295,8 @@ function renderTrades(trades) {
             <div class="td-item"><span class="td-lbl">Day High (at entry)</span><span class="td-val">${t.day_high_at_entry != null ? '₹'+_fmt2(t.day_high_at_entry) : '—'}</span></div>
             <div class="td-item"><span class="td-lbl">Day Low (at entry)</span><span class="td-val">${t.day_low_at_entry  != null ? '₹'+_fmt2(t.day_low_at_entry)  : '—'}</span></div>
             <div class="td-item"><span class="td-lbl">VWAP (at entry)</span><span class="td-val">${t.vwap_at_entry     != null ? '₹'+_fmt2(t.vwap_at_entry)     : '—'}</span></div>
+            <div class="td-item"><span class="td-lbl">Buy / Sell Ratio (live)</span><span class="td-val">${liveDom}</span></div>
+            <div class="td-item"><span class="td-lbl">Volume (today)</span><span class="td-val">${liveVol}</span></div>
             <div class="td-item"><span class="td-lbl">Exit Time</span><span class="td-val">${exitTime}</span></div>
             <div class="td-item"><span class="td-lbl">Exit Price</span><span class="td-val">${t.exit_price != null ? '₹'+_fmt2(t.exit_price) : '—'}</span></div>
           </div>
@@ -1622,6 +1629,7 @@ function _inCaptureWindow() {
 function _fmt2(n)    { return n != null ? Number(n).toFixed(2) : '—'; }
 function _fmtInr(n)  { return n != null ? Math.round(Number(n)).toLocaleString('en-IN') : '—'; }
 function _esc(s)     { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _fmtVol(v)  { return v >= 1e7 ? (v/1e7).toFixed(2)+' Cr' : v >= 1e5 ? (v/1e5).toFixed(1)+' L' : Number(v).toLocaleString('en-IN'); }
 
 // ── Backtest ──────────────────────────────────────────────────────────────
 function _updateBtPanel(hasCandidates) {

@@ -24,6 +24,12 @@ A copy of `public/stock_intraday_simulator.html` that adds a **Place Order** but
 
 No changes to `config/credentials.py` — the existing `.env` (API_KEY, CLIENT_ID, PIN, TOTP_SECRET) is all that's needed. The account must have funds/margin for MIS orders.
 
+## Live Dominance + Volume in Trade Detail (2026-07-16)
+
+- State endpoint (`/simulator/state`) now fetches FULL quotes (`_orb_raw_quotes`) for OPEN-trade tokens in addition to LTP-mode quotes, adding `live_buy_pct` / `live_sell_pct` / `live_volume` to OPEN trades.
+- **Ordering constraint:** FULL fetch runs FIRST, LTP-mode fetch SECOND — `_orb_raw_quotes` writes FULL-mode LTPs into `_orb_ltp_cache` internally, and the outcome poll (target/SL triggers) reads that cache. LTP-mode values must land last. Do not reorder.
+- Frontend detail row shows "Buy / Sell Ratio (live)" (green/red %) and "Volume (today)" (`_fmtVol`: Cr/L formatting); values refresh every poll because `renderTrades` rebuilds detail rows and restores expanded state.
+
 ## Frontend (`stock_intraday.html`)
 
 - Branding: title "ORB Live Intraday", red LIVE hero tag, `.live-banner` status chip replacing "SIMULATOR · No real orders placed"

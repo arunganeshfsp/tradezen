@@ -8443,22 +8443,37 @@ async def simulator_state(request: Request, date: str = ""):
                          if t["outcome"] == "OPEN" and t["symbol"] in tok_by_sym]
             if open_toks:
                 loop = asyncio.get_running_loop()
+
+                # FULL quotes first (dominance + volume), LTP mode second — LTP-mode
+                # values must land in _orb_ltp_cache last, as the outcome poll reads it.
+                def _fetch_open_quotes():
+                    smart_s = _get_smart()
+                    full = _orb_raw_quotes(smart_s, open_toks) if smart_s else {}
+                    try:
+                        ltps = get_provider().get_ltp(open_toks, "NSE")
+                    except Exception:
+                        ltps = {}
+                    return full, ltps
+
                 try:
-                    ltp_by_tok = await loop.run_in_executor(
-                        None, lambda: get_provider().get_ltp(open_toks, "NSE")
-                    )
+                    full_by_tok, ltp_by_tok = await loop.run_in_executor(None, _fetch_open_quotes)
                     for _tok, _ltp in ltp_by_tok.items():
                         if _ltp:
                             _orb_ltp_cache[_tok] = _ltp
                 except Exception:
-                    ltp_by_tok = {}
+                    full_by_tok, ltp_by_tok = {}, {}
             else:
-                ltp_by_tok = {}
+                full_by_tok, ltp_by_tok = {}, {}
             for t in trades:
                 if t["outcome"] == "OPEN":
                     tok = tok_by_sym.get(t["symbol"], "")
                     t["live_ltp"] = (ltp_by_tok.get(tok)
                                      or _orb_ltp_cache.get(tok))
+                    q = full_by_tok.get(tok)
+                    if q:
+                        t["live_buy_pct"]  = q.get("buy_pct")
+                        t["live_sell_pct"] = q.get("sell_pct")
+                        t["live_volume"]   = q.get("volume")
                 else:
                     t["live_ltp"] = _orb_ltp_cache.get(tok_by_sym.get(t["symbol"], ""))
                 if t["outcome"] == "OPEN" and trail_pts > 0 and t["id"] in _orb_trail_peaks:
