@@ -52,3 +52,4 @@ No changes to `config/credentials.py` — the existing `.env` (API_KEY, CLIENT_I
 
 - No order book / fill status display after placement
 - No exit button (deliberate — user chose manual exits)
+- **Deferred (user-confirmed, may implement later): broker-level target + SL.** Current order is plain MIS market — real position has NO protection; sim SL/target resolve only the simulation. Preferred approach when picked up: switch `placeOrder` to variety `ROBO` (bracket) passing the sim's exact `target_price` and `stop_loss_price` (as `squareoff`/`stoploss` point offsets from entry), making the real trade a true mirror of the simulation. Alternative: follow-up STOPLOSS order after the market entry.

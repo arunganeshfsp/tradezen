@@ -1175,7 +1175,7 @@ def _resolve_token_and_exchange(symbol_token: str, exchange: str, smart):
 _smart_lock    = threading.Lock()
 _smart_auth_ts = 0.0
 _SMART_TTL     = 8 * 3600       # re-auth every 8 hours (token valid 24 h but refresh proactively)
-_SMART_AUTH_ERR_CODES = {"AB1010", "AG8001", "AB8050", "AB1011", "AB8051"}
+_SMART_AUTH_ERR_CODES = {"AB1007", "AB1010", "AG8001", "AB8050", "AB1011", "AB8051"}
 
 
 def _get_smart(force: bool = False):
@@ -8707,8 +8707,17 @@ def _live_place_order_sync(symbol: str, token: str, side: str) -> dict:
         return {"status_code": 502, "error": str(e)}
     log.info(f"[LIVE-ORDER] response: {resp}")
 
+    # SDK returns None when it swallows an error internally (e.g. AB1007 Invalid Token).
+    # Invalidate the cached session so the next call triggers a fresh login.
+    if resp is None:
+        global smart
+        smart = None
+        log.warning("[LIVE-ORDER] placeOrder returned None — session likely expired; cache cleared")
+        return {"status_code": 503, "error": "Angel One session expired — will reconnect automatically. Retry in a few seconds."}
+
     # SDK returns the orderid string on success; some versions return the full response dict
     if isinstance(resp, dict):
+        _invalidate_smart_on_auth_err(resp)
         if resp.get("status") in (True, "true") and resp.get("data"):
             order_id = resp["data"].get("orderid")
         else:
