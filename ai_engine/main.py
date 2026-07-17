@@ -1177,6 +1177,10 @@ _smart_auth_ts = 0.0
 _SMART_TTL     = 8 * 3600       # re-auth every 8 hours (token valid 24 h but refresh proactively)
 _SMART_AUTH_ERR_CODES = {"AB1007", "AB1010", "AG8001", "AB8050", "AB1011", "AB8051"}
 
+_live_smart          = None     # dedicated live-order session (LIVE_* credentials)
+_live_smart_auth_ts  = 0.0
+_live_smart_lock     = threading.Lock()
+
 
 def _get_smart(force: bool = False):
     """Return the shared SmartAPI session; re-auth on first call and every 8 hours."""
@@ -1196,6 +1200,34 @@ def _get_smart(force: bool = False):
             return smart
         except Exception as e:
             log.warning(f"[SmartAPI] re-auth failed: {e}")
+            return None
+
+
+def _get_live_smart(force: bool = False):
+    """Return the LIVE_ credentials session for order placement.
+    Falls back to None if LIVE_* env vars are not configured — caller uses _get_smart() instead."""
+    import time as _t
+    global _live_smart, _live_smart_auth_ts
+    now = _t.time()
+    if not force and _live_smart and (now - _live_smart_auth_ts) < _SMART_TTL:
+        return _live_smart
+    with _live_smart_lock:
+        now = _t.time()
+        if not force and _live_smart and (now - _live_smart_auth_ts) < _SMART_TTL:
+            return _live_smart
+        try:
+            from config.credentials import get_live_smart_api
+            _live_smart = get_live_smart_api()
+            _live_smart_auth_ts = now
+            log.info("[LiveSmartAPI] session refreshed (LIVE_* account)")
+            return _live_smart
+        except RuntimeError as e:
+            # LIVE_* vars not configured — not an error, just use data session
+            log.debug(f"[LiveSmartAPI] {e}")
+            return None
+        except Exception as e:
+            log.warning(f"[LiveSmartAPI] re-auth failed: {e}")
+            _live_smart = None
             return None
 
 
@@ -8782,7 +8814,14 @@ def _live_tradingsymbol(token: str) -> str | None:
 
 
 def _live_place_order_sync(symbol: str, token: str, side: str) -> dict:
-    smart_live = _get_smart()
+    _using_live_creds = False
+    smart_live = _get_live_smart()
+    if smart_live:
+        _using_live_creds = True
+        log.info("[LIVE-ORDER] using LIVE_* account session")
+    else:
+        smart_live = _get_smart()
+        log.info("[LIVE-ORDER] LIVE_* not configured — using data account session")
     if not smart_live:
         return {"status_code": 503, "error": "SmartAPI session unavailable"}
 
@@ -8835,11 +8874,15 @@ def _live_place_order_sync(symbol: str, token: str, side: str) -> dict:
     log.info(f"[LIVE-ORDER] response: {resp}")
 
     # SDK returns None when it swallows an error internally (e.g. AB1007 Invalid Token).
-    # Invalidate the cached session so the next call triggers a fresh login.
+    # Invalidate whichever session was used so the next call re-auths.
     if resp is None:
-        global smart
-        smart = None
-        log.warning("[LIVE-ORDER] placeOrder returned None — session likely expired; cache cleared")
+        global smart, _live_smart
+        if _using_live_creds:
+            _live_smart = None
+            log.warning("[LIVE-ORDER] LIVE_* session expired — cache cleared")
+        else:
+            smart = None
+            log.warning("[LIVE-ORDER] data session expired — cache cleared")
         return {"status_code": 503, "error": "Angel One session expired — will reconnect automatically. Retry in a few seconds."}
 
     # SDK returns the orderid string on success; some versions return the full response dict
