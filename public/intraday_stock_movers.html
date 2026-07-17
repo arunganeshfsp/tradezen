@@ -322,7 +322,7 @@ async function placeLiveOrder(symbol, token, ltp, side, btn, _isRetry = false) {
     const r = await fetch('/api/simulator/live-order', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ symbol, token, side, live_account: true }),
+      body: JSON.stringify({ symbol, token, side }),
     });
     const d = await r.json();
     if (r.ok && d.ok) {

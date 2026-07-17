@@ -1014,7 +1014,7 @@ function filterCands(filter, btn) {
 
 const _liveOrdersPlaced = {};   // "SYMBOL|SIDE" → order id (survives 5s re-renders)
 
-async function placeLiveOrder(symbol, side, btn) {
+async function placeLiveOrder(symbol, side, btn, _isRetry = false) {
   const cand = ((_stateData && _stateData.candidates) || [])
     .find(c => c.symbol === symbol);
   const token = cand ? String(cand.token) : null;
@@ -1033,7 +1033,7 @@ async function placeLiveOrder(symbol, side, btn) {
     `THIS USES REAL MONEY.`)) return;
 
   btn.disabled    = true;
-  btn.textContent = 'Placing…';
+  btn.textContent = _isRetry ? 'Reconnecting…' : 'Placing…';
   try {
     const r = await fetch('/api/simulator/live-order', {
       method: 'POST',
@@ -1045,6 +1045,9 @@ async function placeLiveOrder(symbol, side, btn) {
       _liveOrdersPlaced[symbol + '|' + side] = d.order_id;
       btn.classList.add('ok');
       btn.textContent = `✓ #${d.order_id}`;
+    } else if (r.status === 503 && !_isRetry) {
+      btn.textContent = 'Reconnecting…';
+      setTimeout(() => placeLiveOrder(symbol, side, btn, true), 4000);
     } else {
       btn.classList.add('err');
       btn.textContent = 'Failed';
