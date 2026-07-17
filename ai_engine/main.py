@@ -8536,6 +8536,7 @@ class _OrbLiveOrderBody(BaseModel):
     symbol: str
     token: str
     side: str
+    live_account: bool = False  # True → use LIVE_* credentials; False → use data session
 
 
 def _orb_window_phase(settings: dict = None) -> str:
@@ -8813,15 +8814,19 @@ def _live_tradingsymbol(token: str) -> str | None:
     return _live_tsym_cache.get(str(token))
 
 
-def _live_place_order_sync(symbol: str, token: str, side: str) -> dict:
+def _live_place_order_sync(symbol: str, token: str, side: str, prefer_live: bool = False) -> dict:
     _using_live_creds = False
-    smart_live = _get_live_smart()
-    if smart_live:
-        _using_live_creds = True
-        log.info("[LIVE-ORDER] using LIVE_* account session")
+    if prefer_live:
+        smart_live = _get_live_smart()
+        if smart_live:
+            _using_live_creds = True
+            log.info("[LIVE-ORDER] using LIVE_* account session")
+        else:
+            smart_live = _get_smart()
+            log.info("[LIVE-ORDER] LIVE_* not configured — falling back to data session")
     else:
         smart_live = _get_smart()
-        log.info("[LIVE-ORDER] LIVE_* not configured — using data account session")
+        log.info("[LIVE-ORDER] using data account session")
     if not smart_live:
         return {"status_code": 503, "error": "SmartAPI session unavailable"}
 
@@ -8908,7 +8913,7 @@ async def simulator_live_order(body: _OrbLiveOrderBody):
     try:
         loop   = asyncio.get_running_loop()
         result = await loop.run_in_executor(
-            None, _live_place_order_sync, body.symbol, str(body.token), side)
+            None, _live_place_order_sync, body.symbol, str(body.token), side, body.live_account)
         if result.get("ok"):
             return result
         return JSONResponse(status_code=result.get("status_code", 500),
