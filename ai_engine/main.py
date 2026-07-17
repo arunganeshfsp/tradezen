@@ -8879,16 +8879,37 @@ def _live_place_order_sync(symbol: str, token: str, side: str, prefer_live: bool
     log.info(f"[LIVE-ORDER] response: {resp}")
 
     # SDK returns None when it swallows an error internally (e.g. AB1007 Invalid Token).
-    # Invalidate whichever session was used so the next call re-auths.
+    # Re-auth immediately and retry once before returning to the caller.
     if resp is None:
         global smart, _live_smart
-        if _using_live_creds:
-            _live_smart = None
-            log.warning("[LIVE-ORDER] LIVE_* session expired — cache cleared")
-        else:
-            smart = None
-            log.warning("[LIVE-ORDER] data session expired — cache cleared")
-        return {"status_code": 503, "error": "Angel One session expired — will reconnect automatically. Retry in a few seconds."}
+        log.warning("[LIVE-ORDER] placeOrder returned None — re-authing and retrying once")
+        try:
+            if _using_live_creds:
+                from config.credentials import get_live_smart_api
+                smart_live = get_live_smart_api()
+                _live_smart = smart_live
+            else:
+                from config.credentials import get_smart_api as _gsa
+                import time as _t2
+                smart_live = _gsa()
+                smart = smart_live
+                _smart_auth_ts = _t2.time()
+            log.info("[LIVE-ORDER] re-auth succeeded — retrying order")
+            resp = smart_live.placeOrder(params)
+            log.info(f"[LIVE-ORDER] retry response: {resp}")
+        except Exception as _e:
+            log.error(f"[LIVE-ORDER] re-auth failed: {_e}")
+            if _using_live_creds:
+                _live_smart = None
+            else:
+                smart = None
+            return {"status_code": 503, "error": f"Session expired and re-auth failed: {_e}"}
+        if resp is None:
+            if _using_live_creds:
+                _live_smart = None
+            else:
+                smart = None
+            return {"status_code": 503, "error": "Angel One rejected the order after reconnecting — check logs"}
 
     # SDK returns the orderid string on success; some versions return the full response dict
     if isinstance(resp, dict):
