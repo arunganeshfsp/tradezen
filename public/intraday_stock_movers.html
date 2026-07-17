@@ -309,15 +309,15 @@ function _esc(s) {
     ({'\'':'&#39;','"':'&quot;','<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 }
 
-async function placeLiveOrder(symbol, token, ltp, side, btn) {
+async function placeLiveOrder(symbol, token, ltp, side, btn, _isRetry = false) {
   const qty = ltp ? Math.floor(100000 / ltp) : '?';
   const val = (ltp && qty !== '?') ? '₹' + Math.round(qty * ltp).toLocaleString('en-IN') : '—';
-  if (!confirm(
+  if (!_isRetry && !confirm(
     `Place LIVE ${side} market order?\n\n` +
     `${symbol}\nQty: ~${qty} @ ₹${ltp ? ltp.toFixed(2) : '?'}  (~${val})\n` +
     `Product: MIS (intraday) · Exchange: NSE\n\nTHIS USES REAL MONEY.`)) return;
   btn.disabled = true;
-  btn.textContent = '…';
+  btn.textContent = _isRetry ? 'Reconnecting…' : '…';
   try {
     const r = await fetch('/api/simulator/live-order', {
       method: 'POST',
@@ -329,6 +329,10 @@ async function placeLiveOrder(symbol, token, ltp, side, btn) {
       _liveOrdersPlaced[symbol + '|' + side] = d.order_id;
       btn.classList.add('ok');
       btn.textContent = `✓ #${d.order_id}`;
+    } else if (r.status === 503 && !_isRetry) {
+      // Session expired — backend already cleared the cache; auto-retry once after 4s
+      btn.textContent = 'Reconnecting…';
+      setTimeout(() => placeLiveOrder(symbol, token, ltp, side, btn, true), 4000);
     } else {
       btn.classList.add('err');
       btn.textContent = 'ERR';
