@@ -8873,7 +8873,7 @@ def _live_place_order_sync(symbol: str, token: str, side: str, prefer_live: bool
     }
     log.info(f"[LIVE-ORDER] placing: {params}")
     try:
-        resp = smart_live._postRequest('order.place', params)
+        resp = smart_live._postRequest('api.order.place', params)
     except Exception as e:
         log.error(f"[LIVE-ORDER] placeOrder raised: {e}")
         return {"status_code": 502, "error": str(e)}
