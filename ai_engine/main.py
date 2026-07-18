@@ -8791,6 +8791,7 @@ async def simulator_square_off(body: _OrbSquareOffBody, request: Request):
 
 
 _live_tsym_cache: dict = {}
+_SESSION_ERROR_CODES = {"AB1007", "AB2011", "AG8001"}  # session expiry; everything else is a broker rejection
 
 
 def _live_tradingsymbol(token: str) -> str | None:
@@ -8872,58 +8873,70 @@ def _live_place_order_sync(symbol: str, token: str, side: str, prefer_live: bool
     }
     log.info(f"[LIVE-ORDER] placing: {params}")
     try:
-        resp = smart_live.placeOrder(params)
+        resp = smart_live._postRequest('order.place', params)
     except Exception as e:
         log.error(f"[LIVE-ORDER] placeOrder raised: {e}")
         return {"status_code": 502, "error": str(e)}
     log.info(f"[LIVE-ORDER] response: {resp}")
 
-    # SDK returns None when it swallows an error internally (e.g. AB1007 Invalid Token).
-    # Re-auth immediately and retry once before returning to the caller.
-    if resp is None:
-        global smart, _live_smart
-        log.warning("[LIVE-ORDER] placeOrder returned None — re-authing and retrying once")
-        try:
-            if _using_live_creds:
-                from config.credentials import get_live_smart_api
-                smart_live = get_live_smart_api()
-                _live_smart = smart_live
-            else:
-                from config.credentials import get_smart_api as _gsa
-                import time as _t2
-                smart_live = _gsa()
-                smart = smart_live
-                _smart_auth_ts = _t2.time()
-            log.info("[LIVE-ORDER] re-auth succeeded — retrying order")
-            resp = smart_live.placeOrder(params)
-            log.info(f"[LIVE-ORDER] retry response: {resp}")
-        except Exception as _e:
-            log.error(f"[LIVE-ORDER] re-auth failed: {_e}")
-            if _using_live_creds:
-                _live_smart = None
-            else:
-                smart = None
-            return {"status_code": 503, "error": f"Session expired and re-auth failed: {_e}"}
-        if resp is None:
-            if _using_live_creds:
-                _live_smart = None
-            else:
-                smart = None
-            return {"status_code": 503, "error": "Angel One rejected the order after reconnecting — check logs"}
+    if not isinstance(resp, dict):
+        resp = {"status": False, "errorcode": "UNKNOWN", "message": str(resp)}
 
-    # SDK returns the orderid string on success; some versions return the full response dict
-    if isinstance(resp, dict):
-        _invalidate_smart_on_auth_err(resp)
-        if resp.get("status") in (True, "true") and resp.get("data"):
-            order_id = resp["data"].get("orderid")
+    if resp.get("status") in (True, "true"):
+        order_id = (resp.get("data") or {}).get("orderid")
+        if not order_id:
+            return {"status_code": 502, "error": "Broker did not return an order id"}
+        return {"ok": True, "order_id": order_id, "qty": qty, "ltp": ltp, "tradingsymbol": tsym}
+
+    error_code = resp.get("errorcode", "")
+    error_msg  = resp.get("message", "Unknown error")
+
+    if error_code not in _SESSION_ERROR_CODES:
+        # Broker rejection (e.g. AB4036 cautionary listing) — return error directly, no re-auth
+        log.warning(f"[LIVE-ORDER] broker rejected order [{error_code}]: {error_msg}")
+        return {"status_code": 400, "error": f"[{error_code}] {error_msg}"}
+
+    # Session error — re-auth and retry once
+    global smart, _live_smart
+    log.warning(f"[LIVE-ORDER] session error [{error_code}] — re-authing and retrying once")
+    try:
+        if _using_live_creds:
+            from config.credentials import get_live_smart_api
+            smart_live = get_live_smart_api()
+            _live_smart = smart_live
         else:
-            return {"status_code": 502, "error": str(resp.get("message") or resp)}
-    else:
-        order_id = str(resp) if resp else None
-    if not order_id:
-        return {"status_code": 502, "error": "Broker did not return an order id"}
+            from config.credentials import get_smart_api as _gsa
+            import time as _t2
+            smart_live = _gsa()
+            smart = smart_live
+            _smart_auth_ts = _t2.time()
+        log.info("[LIVE-ORDER] re-auth succeeded — retrying order")
+        resp2 = smart_live._postRequest('order.place', params)
+        log.info(f"[LIVE-ORDER] retry response: {resp2}")
+    except Exception as _e:
+        log.error(f"[LIVE-ORDER] re-auth failed: {_e}")
+        if _using_live_creds:
+            _live_smart = None
+        else:
+            smart = None
+        return {"status_code": 503, "error": f"Session expired and re-auth failed: {_e}"}
 
-    return {"ok": True, "order_id": order_id, "qty": qty, "ltp": ltp, "tradingsymbol": tsym}
+    if not isinstance(resp2, dict):
+        resp2 = {"status": False, "errorcode": "UNKNOWN", "message": str(resp2)}
+
+    if resp2.get("status") in (True, "true"):
+        order_id = (resp2.get("data") or {}).get("orderid")
+        if not order_id:
+            return {"status_code": 502, "error": "Broker did not return an order id"}
+        return {"ok": True, "order_id": order_id, "qty": qty, "ltp": ltp, "tradingsymbol": tsym}
+
+    ec2  = resp2.get("errorcode", "")
+    err2 = resp2.get("message", "Unknown error")
+    if _using_live_creds:
+        _live_smart = None
+    else:
+        smart = None
+    return {"status_code": 502, "error": f"Order failed after reconnect [{ec2}]: {err2}"}
 
 
 @app.post("/simulator/live-order")
