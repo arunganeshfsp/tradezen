@@ -446,6 +446,7 @@ function _renderRows(rows, isGainer) {
       <td class="vol">${_fmtVol(r.volume)}</td>
       <td>${_depthCell(r)}</td>
       ${r.year_high ? `<td>${_ywBar(r.ltp, r.year_low, r.year_high)}</td>` : '<td></td>'}
+      <td onclick="event.stopPropagation()">${_orderBtn(r, side)}</td>
     </tr>`;
   }).join('');
 }
@@ -473,6 +474,7 @@ function _renderPanel(rows, isGainer) {
           <th>Volume</th>
           <th>Buy / Sell</th>
           ${hasYW ? '<th>52W</th>' : '<th></th>'}
+          <th>Order</th>
         </tr>
       </thead>
       <tbody>${_renderRows(rows, isGainer)}</tbody>
