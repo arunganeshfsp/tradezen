@@ -310,7 +310,7 @@ function _esc(s) {
 }
 
 async function placeLiveOrder(symbol, token, ltp, side, btn, _isRetry = false) {
-  const qty = ltp ? Math.floor(100000 / ltp) : '?';
+  const qty = ltp ? Math.floor(10000 / ltp) : '?';
   const val = (ltp && qty !== '?') ? '₹' + Math.round(qty * ltp).toLocaleString('en-IN') : '—';
   if (!_isRetry && !confirm(
     `Place LIVE ${side} market order?\n\n` +

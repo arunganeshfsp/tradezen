@@ -8852,9 +8852,9 @@ def _live_place_order_sync(symbol: str, token: str, side: str, prefer_live: bool
     if not ltp:
         return {"status_code": 503, "error": f"Live price unavailable for {symbol}"}
 
-    qty = _orb_pos_size(ltp)
+    qty = int(10000 / ltp)
     if qty <= 0:
-        return {"status_code": 400, "error": f"Quantity 0 at price ₹{ltp}"}
+        return {"status_code": 400, "error": f"Price ₹{ltp} exceeds ₹10,000 live cap — cannot size a position"}
 
     tsym = _live_tradingsymbol(token)
     if not tsym:

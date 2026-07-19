@@ -1023,7 +1023,7 @@ async function placeLiveOrder(symbol, side, btn, _isRetry = false) {
   const trade = ((_stateData && _stateData.trades) || [])
     .find(t => t.symbol === symbol && t.direction === side && t.outcome === 'OPEN');
   const ltp  = (trade && trade.live_ltp) || (cand.live_ltp || cand.ltp_0916) || null;
-  const qty  = ltp ? Math.floor(100000 / ltp) : '?';
+  const qty  = ltp ? Math.floor(10000 / ltp) : '?';
   const val  = (ltp && qty !== '?') ? '₹' + Math.round(qty * ltp).toLocaleString('en-IN') : '—';
 
   if (!confirm(
