@@ -481,9 +481,14 @@ function _authHdr() {
   return t ? { 'Authorization': 'Bearer ' + t } : {};
 }
 
+function _handleUnauth() {
+  localStorage.removeItem('tz_learn_token');
+  window.location.href = '/learn/auth.html?next=' + encodeURIComponent(window.location.pathname + window.location.search);
+}
+
 function _requireAuth() {
   if (!localStorage.getItem('tz_learn_token')) {
-    window.location.href = '/learn/auth.html?next=' + encodeURIComponent(window.location.pathname);
+    _handleUnauth();
     return false;
   }
   return true;
@@ -554,6 +559,7 @@ async function closePosition(id, btn) {
       headers: { 'Content-Type': 'application/json', ..._authHdr() },
       body: '{}',
     });
+    if (r.status === 401) { _handleUnauth(); return; }
     const d = await r.json();
     if (d.error) throw new Error(d.error);
     const cls = d.pnl >= 0 ? 'profit' : 'loss';
@@ -573,6 +579,7 @@ async function resetAccount() {
       headers: { 'Content-Type': 'application/json', ..._authHdr() },
       body: '{}',
     });
+    if (r.status === 401) { _handleUnauth(); return; }
     const d = await r.json();
     if (d.error) throw new Error(d.error);
     toast(`Account reset — virtual cash ${fmt(d.starting_capital)}`);
@@ -600,9 +607,8 @@ async function refreshAll(manual = false) {
       fetch('/api/paper/positions', { headers: _authHdr() }),
       fetch('/api/paper/history',   { headers: _authHdr() }),
     ]);
-    if (acctR.status === 401) {
-      localStorage.removeItem('tz_learn_token');
-      window.location.href = '/learn/auth.html?next=' + encodeURIComponent(window.location.pathname);
+    if (acctR.status === 401 || posR.status === 401 || histR.status === 401) {
+      _handleUnauth();
       return;
     }
     const acct = await acctR.json();
