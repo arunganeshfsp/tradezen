@@ -1112,9 +1112,33 @@ router.get("/simulator/state", _simAuth, async (req, res) => {
   try {
     const params = new URLSearchParams();
     if (req.query.date) params.set("date", req.query.date);
+    if (req.query.tf)   params.set("tf",  req.query.tf);
+    if (req.query.uni)  params.set("uni", req.query.uni);
     const data = await aiService.proxy("GET", `/simulator/state?${params}`, 10000, undefined, _simHdr(req));
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Multi-timeframe matrix (3 scan times × 3 filters) — personal, login-gated ──
+router.get("/simulator/matrix", _simAuth, async (req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/simulator/matrix", 10000, undefined, _simHdr(req));
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+router.post("/simulator/matrix", _simAuth, async (req, res) => {
+  try {
+    const data = await aiService.proxy("POST", "/simulator/matrix", 10000, req.body, _simHdr(req));
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+router.delete("/simulator/matrix", _simAuth, async (req, res) => {
+  try {
+    const data = await aiService.proxy("DELETE", "/simulator/matrix", 10000, undefined, _simHdr(req));
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── POST /api/simulator/sl-basis ────────────────────────────────────────────

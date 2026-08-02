@@ -7830,9 +7830,16 @@ from storage.sqlite_store import (
     orb_update_candidate_status, orb_insert_trade,
     orb_get_trades, orb_get_open_trades, orb_update_trade,
     orb_get_settings, orb_upsert_settings,
-    orb_has_own_settings, orb_list_setting_users,
+    orb_has_own_settings, orb_list_setting_users, orb_delete_settings,
     stock_universe_import, stock_universe_get, stock_universe_counts, stock_universe_clear,
 )
+
+# ORB universes + multi-timeframe matrix axes (3 scan times × 3 filters).
+_ORB_VALID_UNI    = {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50"}
+_MATRIX_TIMES     = ["09:16", "10:15", "10:30"]
+_MATRIX_UNIS      = ["all_fno", "nifty500_fno", "nifty50"]
+_MATRIX_UNI_LABEL = {"all_fno": "F&O", "nifty500_fno": "Nifty 500",
+                     "nifty100_fno": "Nifty 100", "nifty50": "Nifty 50"}
 
 # Nifty index symbol sets — used for universe filtering at capture time.
 # Lists are approximate constituents; union with the F&O universe at runtime.
@@ -7911,7 +7918,8 @@ def _orb_raw_quotes(smart_s, tokens: list, exchange: str = "NSE") -> dict:
 
 
 def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
-                      manual_user: str = "", overrides: dict | None = None):
+                      manual_user: str = "", overrides: dict | None = None,
+                      only_sessions: list | None = None):
     """Quote F&O universe, filter/rank/cut, persist candidates.
 
     Entry levels are locked at scan time: BUY triggers when LTP > day high at scan time,
@@ -7929,7 +7937,12 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
         return
 
     conn     = get_conn()
-    sessions = [manual_user] if manual else [""] + orb_list_setting_users(conn)
+    if manual:
+        sessions = [manual_user]
+    elif only_sessions is not None:
+        sessions = only_sessions
+    else:
+        sessions = [""] + orb_list_setting_users(conn)
     sess_settings = {u: orb_get_settings(conn, u) for u in sessions}
     conn.close()
 
@@ -8421,9 +8434,8 @@ async def _orb_simulator_loop():
 
     _eod_done_today     = None
     _last_capture_today = None
-    _auto_scan_done     = False  # auto scan ran (or assumed ran after mid-day restart)
-    _seen_pre_capture   = False  # loop was alive before today's auto-scan start time
-    _capture_start      = None   # dt_time cached per day from settings
+    _captured_sessions  = set()  # session ids captured today (each fires at its own scan time)
+    _capture_seeded     = False  # seeded from existing candidates once per process/day (restart-safe)
 
     while True:
         try:
@@ -8434,17 +8446,9 @@ async def _orb_simulator_loop():
             # Reset capture tracking on new trading day
             if _last_capture_today != today:
                 _last_capture_today = today
-                _auto_scan_done     = False
-                _seen_pre_capture   = False
-                _capture_start      = None
+                _captured_sessions  = set()
+                _capture_seeded     = False
                 _orb_manual_symbols.clear()
-
-            # Load entry start time once per day from shared settings
-            if _capture_start is None:
-                _cs_conn  = get_conn()
-                _cs_sett  = orb_get_settings(_cs_conn, "")
-                _cs_conn.close()
-                _capture_start = _orb_parse_hhmm(_cs_sett.get("entry_window_start", "09:20"), 9, 20)
 
             # Weekend gate
             if not _SIM_FORCE and now_ist.weekday() >= 5:
@@ -8475,40 +8479,39 @@ async def _orb_simulator_loop():
                 await loop.run_in_executor(None, _orb_capture_sync, today, True, scan_now_ist,
                                            req.get("user", ""), req.get("overrides"))
 
-            # Before the configured auto-scan start time: no auto scan yet, but
-            # manual-scan candidates are still monitored for entry triggers
-            if not _SIM_FORCE and t < _capture_start:
-                _seen_pre_capture = True
-                conn = get_conn()
-                have_cands = bool(orb_get_candidates(conn, today))
-                conn.close()
-                if have_cands:
-                    await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
+            # Per-session timed capture — every session (shared, personal, and each
+            # matrix cell) captures once/day when the clock reaches ITS OWN
+            # entry_window_start. On the first pass this process sees today, seed
+            # already-captured sessions from existing candidates (mid-day restart safe).
+            conn         = get_conn()
+            sessions_all = [""] + orb_list_setting_users(conn)
+            if not _capture_seeded:
+                for cx in orb_get_candidates(conn, today):
+                    _captured_sessions.add(cx["user_id"])
+                _capture_seeded = True
+            due = []
+            for u in sessions_all:
+                if u in _captured_sessions:
+                    continue
+                st_u = orb_get_settings(conn, u)
+                if _SIM_FORCE or t >= _orb_parse_hhmm(st_u.get("entry_window_start", "09:20"), 9, 20):
+                    due.append(u)
+            have_cands = bool(orb_get_candidates(conn, today))
+            conn.close()
+
+            # One quote fetch covers all due sessions; levels lock at scan time
+            if due:
+                cap_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                await loop.run_in_executor(None, _orb_capture_sync, today, False, cap_now, "", None, due)
+                _captured_sessions.update(due)
+                have_cands = True
+
+            # Trigger + outcome polls — skip the quote fetch when nothing is watched yet
+            if have_cands:
+                now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
+                if _SIM_FORCE or t <= dt_time(15, 30):
                     await loop.run_in_executor(None, _orb_outcome_poll_sync, today, now_ist)
-                await asyncio.sleep(5)
-                continue
-
-            # Auto scan — fires once when the clock reaches the configured start
-            # time; all candidates then wait for their entry trigger (scan price ± 1)
-            if not _auto_scan_done:
-                conn       = get_conn()
-                candidates = orb_get_candidates(conn, today)
-                conn.close()
-                if candidates and not _seen_pre_capture:
-                    # Server restarted mid-day with existing candidates —
-                    # today's auto scan already ran
-                    _auto_scan_done = True
-                else:
-                    await loop.run_in_executor(None, _orb_capture_sync, today)
-                    _auto_scan_done = True
-
-            # Trigger poll — manually-scanned candidates stay WAITING regardless of entry window
-            now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
-            await loop.run_in_executor(None, _orb_trigger_poll_sync, today, now_ist)
-
-            # Outcome tracking until 15:30
-            if _SIM_FORCE or t <= dt_time(15, 30):
-                await loop.run_in_executor(None, _orb_outcome_poll_sync, today, now_ist)
 
             await asyncio.sleep(5)
 
@@ -8574,12 +8577,29 @@ def _orb_session_id(request: Request) -> str:
     return uid if own else ""
 
 
+def _orb_matrix_session_id(request: Request, tf: str, uni: str):
+    """Composite session id for one matrix cell: {uid}#{HHMM}#{universe}.
+    Returns None for anonymous users or an invalid cell (ownership is implicit —
+    the id is always prefixed with the authenticated uid)."""
+    uid = (request.headers.get("X-User-Id") or "").strip()
+    if not uid or uid == "anonymous":
+        return None
+    if not _orb_valid_hhmm(tf, "09:15", "10:30") or uni not in _ORB_VALID_UNI:
+        return None
+    return f"{uid}#{tf.replace(':', '')}#{uni}"
+
+
 @app.get("/simulator/state")
-async def simulator_state(request: Request, date: str = ""):
+async def simulator_state(request: Request, date: str = "", tf: str = "", uni: str = ""):
     if not date:
         date = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     try:
-        sess       = _orb_session_id(request)
+        if tf and uni:
+            sess = _orb_matrix_session_id(request, tf, uni)
+            if sess is None:
+                return JSONResponse(status_code=400, content={"error": "Invalid matrix cell"})
+        else:
+            sess   = _orb_session_id(request)
         conn       = get_conn()
         candidates = orb_get_candidates(conn, date, sess)
         trades     = orb_get_trades(conn, date, sess)
@@ -9528,6 +9548,143 @@ async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
         s["session"] = "personal" if uid else "shared"
         log.info(f"[SIM-SETTINGS] updated ({uid or 'shared'}): {list(updates.keys())}")
         return s
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+class _OrbMatrixBody(BaseModel):
+    timeframes: list[str] | None = None
+    universes:  list[str] | None = None
+    filters:    dict      | None = None
+
+
+def _orb_matrix_uid(request: Request):
+    uid = (request.headers.get("X-User-Id") or "").strip()
+    return None if (not uid or uid == "anonymous") else uid
+
+
+@app.post("/simulator/matrix")
+async def simulator_matrix_create(body: _OrbMatrixBody, request: Request):
+    """Create/replace the caller's timeframe×filter matrix. Each cell is a
+    personal ORB session keyed {uid}#{HHMM}#{universe}; the background loop then
+    captures each cell at its own scan time and tracks it independently."""
+    uid = _orb_matrix_uid(request)
+    if uid is None:
+        return JSONResponse(status_code=401, content={"error": "Login required"})
+    tfs  = body.timeframes or _MATRIX_TIMES
+    unis = body.universes  or _MATRIX_UNIS
+    for tf in tfs:
+        if not _orb_valid_hhmm(tf, "09:15", "10:30"):
+            return JSONResponse(status_code=400, content={"error": f"Invalid timeframe {tf}"})
+    for u in unis:
+        if u not in _ORB_VALID_UNI:
+            return JSONResponse(status_code=400, content={"error": f"Invalid universe {u}"})
+
+    f = body.filters or {}
+    _VALID_SL = {"VWAP", "DAY_SMART", "AMOUNT"}
+    base: dict = {}
+    try:
+        if "target_rupees" in f:
+            v = float(f["target_rupees"]);   assert v > 0;            base["target_rupees"] = v
+        if "price_min" in f:
+            base["price_min"] = float(f["price_min"])
+        if "price_max" in f:
+            base["price_max"] = float(f["price_max"])
+        if "dom_min_pct" in f:
+            v = float(f["dom_min_pct"]);      assert 30 <= v <= 90;   base["dom_min_pct"] = v
+        if "max_slots" in f:
+            v = int(f["max_slots"]);          assert 1 <= v <= 20;    base["max_slots"] = v
+        if "candidate_cap" in f:
+            v = int(f["candidate_cap"]);      assert 5 <= v <= 100;   base["candidate_cap"] = v
+        if "default_sl_basis" in f:
+            assert f["default_sl_basis"] in _VALID_SL;                base["default_sl_basis"] = f["default_sl_basis"]
+        if "sl_amount_rupees" in f:
+            v = float(f["sl_amount_rupees"]); assert v > 0;           base["sl_amount_rupees"] = v
+        if "buy_min_chg_pct" in f:
+            v = float(f["buy_min_chg_pct"]);  assert 0 <= v <= 20
+            base["buy_min_chg_pct"] = v;      base["sell_min_chg_pct"] = v
+        if "min_vol_lakh" in f:
+            v = float(f["min_vol_lakh"]);     assert v >= 0;          base["min_vol_lakh"] = v
+    except (ValueError, TypeError, AssertionError):
+        return JSONResponse(status_code=400, content={"error": "Invalid filter value"})
+
+    end = str(f.get("entry_window_end", "14:30"))
+    if not _orb_valid_hhmm(end, "09:17", "15:00"):
+        return JSONResponse(status_code=400, content={"error": "entry_window_end must be 09:17–15:00"})
+    sq = str(f.get("square_off_time", "15:30"))
+    if not _orb_valid_hhmm(sq, "09:30", "15:30"):
+        return JSONResponse(status_code=400, content={"error": "square_off_time must be 09:30–15:30"})
+
+    try:
+        conn = get_conn()
+        for tf in tfs:
+            for u in unis:
+                cell = dict(base)
+                cell["universe"]           = u
+                cell["entry_window_start"] = tf
+                cell["entry_window_end"]   = end
+                cell["square_off_time"]    = sq
+                orb_upsert_settings(conn, cell, user_id=f"{uid}#{tf.replace(':', '')}#{u}")
+        conn.close()
+        log.info(f"[SIM-MATRIX] created {len(tfs) * len(unis)} cells for {uid}")
+        return {"ok": True, "cells": len(tfs) * len(unis)}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/simulator/matrix")
+async def simulator_matrix_get(request: Request):
+    uid = _orb_matrix_uid(request)
+    if uid is None:
+        return JSONResponse(status_code=401, content={"error": "Login required"})
+    today  = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+    prefix = f"{uid}#"
+    try:
+        conn  = get_conn()
+        cells = []
+        for sess in orb_list_setting_users(conn):
+            if not sess.startswith(prefix):
+                continue
+            st       = orb_get_settings(conn, sess)
+            cands    = orb_get_candidates(conn, today, sess)
+            trades   = orb_get_trades(conn, today, sess)
+            uni      = st.get("universe", "all_fno")
+            tf       = st.get("entry_window_start", "09:16")
+            cells.append({
+                "tf":              tf,
+                "universe":        uni,
+                "label":           f"{tf} · {_MATRIX_UNI_LABEL.get(uni, uni)}",
+                "candidate_count": len(cands),
+                "open_trades":     sum(1 for t in trades if t["outcome"] == "OPEN"),
+                "resolved_trades": sum(1 for t in trades if t["outcome"] != "OPEN"),
+                "gross_pnl":       round(sum((t.get("pnl") or 0) for t in trades), 2),
+            })
+        conn.close()
+        cells.sort(key=lambda c: (c["tf"],
+                                  _MATRIX_UNIS.index(c["universe"]) if c["universe"] in _MATRIX_UNIS else 99))
+        return {"cells": cells, "times": _MATRIX_TIMES,
+                "universes": _MATRIX_UNIS, "uni_labels": _MATRIX_UNI_LABEL}
+    except Exception as e:
+        log.error(f"[SIM-MATRIX] {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.delete("/simulator/matrix")
+async def simulator_matrix_delete(request: Request):
+    uid = _orb_matrix_uid(request)
+    if uid is None:
+        return JSONResponse(status_code=401, content={"error": "Login required"})
+    prefix = f"{uid}#"
+    try:
+        conn    = get_conn()
+        removed = 0
+        for sess in orb_list_setting_users(conn):
+            if sess.startswith(prefix):
+                orb_delete_settings(conn, sess)
+                removed += 1
+        conn.close()
+        log.info(f"[SIM-MATRIX] removed {removed} cells for {uid}")
+        return {"ok": True, "removed": removed}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 

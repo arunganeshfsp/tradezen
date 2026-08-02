@@ -454,6 +454,11 @@ def orb_has_own_settings(conn, user_id: str) -> bool:
         "SELECT 1 FROM orb_settings WHERE user_id=? LIMIT 1", (user_id,)).fetchone() is not None
 
 
+def orb_delete_settings(conn, user_id: str):
+    conn.execute("DELETE FROM orb_settings WHERE user_id=?", (user_id,))
+    conn.commit()
+
+
 def orb_list_setting_users(conn) -> list[str]:
     cur = conn.execute("SELECT DISTINCT user_id FROM orb_settings WHERE user_id != ''")
     return [r["user_id"] for r in cur.fetchall()]

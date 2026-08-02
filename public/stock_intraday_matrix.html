@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Timeframe ORB Matrix | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<style>
+:root {
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--green-bg:rgba(46,204,113,0.08);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,0.08);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,0.08);
+  --orange:#f97316;--cyan:#00d4ff;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#7b84a8;
+  --r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:40px 28px 26px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 60% at 50% -5%,rgba(124,106,247,0.16) 0%,transparent 65%),var(--bg)}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--accent);background:rgba(124,106,247,0.09);border:1px solid rgba(124,106,247,0.25);
+  padding:5px 16px;border-radius:20px;margin-bottom:14px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(23px,4vw,40px);font-weight:800;color:#fff;line-height:1.1;
+  letter-spacing:-1.5px;margin-bottom:8px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--dim);max-width:600px;margin:0 auto}
+.hero-link{position:absolute;top:16px;left:20px;font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:4px 12px}
+.hero-link:hover{color:var(--text);border-color:var(--border2)}
+
+.main-wrap{max-width:1180px;margin:0 auto;padding:20px 24px 80px;display:flex;flex-direction:column;gap:16px}
+@media(max-width:600px){.main-wrap{padding:12px 12px 80px}}
+.disclaimer{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-align:center;
+  line-height:1.5;padding:2px 0}
+
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-hdr{padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid var(--border);background:var(--bg2)}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.3px}
+.card-body{padding:16px 18px}
+
+/* SETUP */
+.setup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 18px;margin-bottom:14px}
+.field label{display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.field input,.field select{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 9px;outline:none}
+.chk-row{display:flex;flex-wrap:wrap;gap:8px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--dim);background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:6px 11px;cursor:pointer}
+.chk input{accent-color:var(--accent)}
+.btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.5px;cursor:pointer;
+  border-radius:6px;padding:8px 16px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);transition:all .15s}
+.btn:hover{border-color:var(--accent)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-danger{color:var(--red);border-color:rgba(231,76,60,0.4)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* MATRIX GRID */
+.matrix{display:grid;gap:8px;grid-template-columns:64px repeat(3,1fr);align-items:stretch}
+.mx-corner{}
+.mx-colhdr,.mx-rowhdr{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.mx-rowhdr{justify-content:flex-end;padding-right:6px;font-size:12px;color:var(--dim)}
+.mx-cell{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;cursor:pointer;
+  text-align:center;transition:all .15s;min-height:60px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.mx-cell:hover{border-color:var(--border2)}
+.mx-cell.active{border-color:var(--accent);background:rgba(124,106,247,0.10);box-shadow:0 0 0 1px var(--accent) inset}
+.mx-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.mx-pnl{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700}
+.pos{color:var(--green)}.neg{color:var(--red)}.flat{color:var(--muted)}
+@media(max-width:560px){.matrix{grid-template-columns:52px repeat(3,1fr);gap:5px}.mx-cell{padding:8px 4px}.mx-colhdr{font-size:9px}}
+
+/* STATUS STRIP */
+.status-strip{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.phase-chip{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:4px 14px;border-radius:20px;border:1px solid;white-space:nowrap}
+.phase-dim{color:var(--muted);border-color:var(--border);background:rgba(255,255,255,.03)}
+.phase-yellow{color:var(--yellow);border-color:rgba(245,166,35,.4);background:var(--yellow-bg)}
+.phase-green{color:var(--green);border-color:rgba(46,204,113,.4);background:var(--green-bg)}
+.phase-blue{color:var(--blue);border-color:rgba(91,138,245,.4);background:rgba(91,138,245,.08)}
+.phase-orange{color:var(--orange);border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.07)}
+.stat-pill{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.stat-pill b{color:var(--text)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+.tbl-wrap::-webkit-scrollbar{height:5px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+.tbl th{background:var(--bg2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted);font-weight:600;padding:9px 14px;border-bottom:1px solid var(--border);text-align:left}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.sym{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+.num{font-family:'JetBrains Mono',monospace}
+.empty-cell{text-align:center;color:var(--muted);padding:26px 14px;font-size:12px}
+.dir-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.5px;
+  padding:3px 8px;border-radius:5px;white-space:nowrap}
+.dir-bull{color:var(--green);background:var(--green-bg);border:1px solid rgba(46,204,113,.3)}
+.dir-bear{color:var(--red);background:var(--red-bg);border:1px solid rgba(231,76,60,.3)}
+.bull-val{color:var(--green)}.bear-val{color:var(--red)}
+.dom-bar{width:74px;height:7px;border-radius:4px;overflow:hidden;display:flex;background:var(--bg3)}
+.dom-bar .b{background:var(--green)}.dom-bar .s{background:var(--red)}
+.dom-nums{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px}
+.oc-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:5px}
+.oc-open{color:var(--blue);background:rgba(91,138,245,.08);border:1px solid rgba(91,138,245,.3)}
+.oc-target{color:var(--green);background:var(--green-bg);border:1px solid rgba(46,204,113,.3)}
+.oc-sl{color:var(--red);background:var(--red-bg);border:1px solid rgba(231,76,60,.3)}
+.oc-sq{color:var(--yellow);background:var(--yellow-bg);border:1px solid rgba(245,166,35,.3)}
+.st-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:5px;
+  color:var(--dim);background:var(--bg3);border:1px solid var(--border)}
+.st-waiting{color:var(--yellow)}.st-triggered{color:var(--green)}
+.hint{font-size:11px;color:var(--muted);margin-top:2px}
+.loading{text-align:center;color:var(--muted);padding:30px;font-family:'JetBrains Mono',monospace;font-size:12px}
+</style>
+</head>
+<body>
+<a href="/stock_intraday_simulator.html" class="hero-link">← Simulator</a>
+<div class="hero">
+  <div class="htag">Multi-Timeframe · Simulation</div>
+  <h1>ORB <em>Matrix</em></h1>
+  <p class="hero-sub">Study opening-range breakout setups across three scan times (09:16 · 10:15 · 10:30)
+    and three universes at once. Each cell is an independent paper simulation — compare which timeframe and
+    filter combination behaves best. Descriptive study only, no orders are placed.</p>
+</div>
+
+<div class="main-wrap">
+  <p class="disclaimer">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</p>
+
+  <!-- SETUP -->
+  <div class="card" id="setupCard" style="display:none">
+    <div class="card-hdr"><span class="card-title">Matrix Setup</span></div>
+    <div class="card-body">
+      <div style="margin-bottom:14px">
+        <label class="mono" style="font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Scan times</label>
+        <div class="chk-row" id="tfChks"></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="mono" style="font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Filters (universes)</label>
+        <div class="chk-row" id="uniChks"></div>
+      </div>
+      <div class="setup-grid">
+        <div class="field"><label>Price min ₹</label><input id="f-price_min" type="number" value="700"></div>
+        <div class="field"><label>Price max ₹</label><input id="f-price_max" type="number" value="7000"></div>
+        <div class="field"><label>Dominance min %</label><input id="f-dom_min_pct" type="number" value="50"></div>
+        <div class="field"><label>Min move %</label><input id="f-buy_min_chg_pct" type="number" step="0.1" value="1.0"></div>
+        <div class="field"><label>Study target ₹</label><input id="f-target_rupees" type="number" value="900"></div>
+        <div class="field"><label>Max slots / cell</label><input id="f-max_slots" type="number" value="5"></div>
+        <div class="field"><label>Candidate cap</label><input id="f-candidate_cap" type="number" value="10"></div>
+        <div class="field"><label>SL basis</label>
+          <select id="f-default_sl_basis">
+            <option value="DAY_SMART">Day extreme (smart)</option>
+            <option value="VWAP">VWAP / day extreme</option>
+            <option value="AMOUNT">Flat ₹ amount</option>
+          </select></div>
+        <div class="field"><label>Entry window closes</label><input id="f-entry_window_end" type="time" value="14:30" min="09:17" max="15:00"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary" id="enableBtn" onclick="enableMatrix()">Enable Matrix</button>
+        <span class="hint" id="setupMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATRIX OVERVIEW -->
+  <div class="card" id="matrixCard" style="display:none">
+    <div class="card-hdr">
+      <span class="card-title">Active Cells</span>
+      <span class="stat-pill" id="matrixMeta"></span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn" onclick="showSetup()">Reconfigure</button>
+        <button class="btn btn-danger" onclick="disableMatrix()">Disable</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="matrix" id="matrixGrid"></div>
+    </div>
+  </div>
+
+  <!-- CELL DETAIL -->
+  <div id="detailWrap" style="display:none;flex-direction:column;gap:16px">
+    <div class="card">
+      <div class="card-hdr status-strip">
+        <span class="card-title" id="cellTitle">—</span>
+        <span class="phase-chip phase-dim" id="phaseChip">—</span>
+        <span class="stat-pill" id="slotStat"></span>
+        <span class="stat-pill" style="margin-left:auto" id="pnlStat"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Candidates</span>
+        <span class="stat-pill" id="candCount">0</span></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr>
+            <th>Setup</th><th>Symbol</th><th>Dominance</th><th>Change</th>
+            <th>Scan ₹</th><th>Live ₹</th><th>Ref levels</th><th>Status</th>
+          </tr></thead>
+          <tbody id="candBody"><tr><td colspan="8" class="empty-cell">—</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Simulated Trades</span></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr>
+            <th>Setup</th><th>Symbol</th><th>Fill ₹</th><th>Live/Exit ₹</th>
+            <th>SL ₹</th><th>Target ₹</th><th>Qty</th><th>Outcome</th><th>P/L</th>
+          </tr></thead>
+          <tbody id="tradeBody"><tr><td colspan="9" class="empty-cell">—</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="bootLoading">Loading matrix…</div>
+</div>
+
+<script>
+'use strict';
+const API = '/api/simulator';
+let _matrix   = null;   // { cells, times, universes, uni_labels }
+let _active   = null;   // { tf, uni }
+let _cellPoll = null;
+let _mxPoll   = null;
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+function _token(){ return localStorage.getItem('tz_learn_token'); }
+function _hdrs(json){
+  const h = json ? { 'Content-Type':'application/json' } : {};
+  const t = _token(); if (t) h['Authorization'] = 'Bearer ' + t;
+  return h;
+}
+function _handleUnauth(){
+  localStorage.removeItem('tz_learn_token');
+  window.location.href = '/learn/auth.html?next=' + encodeURIComponent(location.pathname + location.search);
+}
+if (!_token()) _handleUnauth();
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const _esc  = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const _f2   = n => (n==null?'—':Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}));
+const _pnlCls = n => n>0?'pos':n<0?'neg':'flat';
+const _pnlStr = n => (Number(n)>=0?'+₹':'−₹') + _f2(Math.abs(Number(n)||0));
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+async function boot(){
+  await loadMatrix(true);
+  document.getElementById('bootLoading').style.display = 'none';
+  _mxPoll = setInterval(()=>loadMatrix(false), 15000);
+  document.addEventListener('visibilitychange', ()=>{
+    if (document.hidden){ clearInterval(_cellPoll); clearInterval(_mxPoll); }
+    else { _mxPoll = setInterval(()=>loadMatrix(false), 15000); if(_active) startCellPoll(); }
+  });
+}
+
+async function loadMatrix(first){
+  try{
+    const r = await fetch(`${API}/matrix`, { headers:_hdrs(false) });
+    if (r.status === 401){ _handleUnauth(); return; }
+    const d = await r.json();
+    if (d.error){ return; }
+    _matrix = d;
+    if (!d.cells || !d.cells.length){
+      showSetup();
+      return;
+    }
+    document.getElementById('setupCard').style.display  = 'none';
+    document.getElementById('matrixCard').style.display = '';
+    renderMatrix();
+    if (first && !_active){
+      selectCell(d.cells[0].tf, d.cells[0].universe);
+    }
+  }catch(e){ /* engine unreachable — keep last view */ }
+}
+
+// ── Setup ────────────────────────────────────────────────────────────────────
+function showSetup(){
+  const times = (_matrix && _matrix.times) || ['09:16','10:15','10:30'];
+  const unis  = (_matrix && _matrix.universes) || ['all_fno','nifty500_fno','nifty50'];
+  const labels= (_matrix && _matrix.uni_labels) || {all_fno:'F&O',nifty500_fno:'Nifty 500',nifty50:'Nifty 50'};
+  document.getElementById('tfChks').innerHTML = times.map(t=>
+    `<label class="chk"><input type="checkbox" class="tf-chk" value="${t}" checked> ${t}</label>`).join('');
+  document.getElementById('uniChks').innerHTML = unis.map(u=>
+    `<label class="chk"><input type="checkbox" class="uni-chk" value="${u}" checked> ${_esc(labels[u]||u)}</label>`).join('');
+  document.getElementById('setupCard').style.display  = '';
+  document.getElementById('matrixCard').style.display = 'none';
+  document.getElementById('detailWrap').style.display = 'none';
+  clearInterval(_cellPoll); _active = null;
+}
+
+async function enableMatrix(){
+  const tfs  = [...document.querySelectorAll('.tf-chk:checked')].map(c=>c.value);
+  const unis = [...document.querySelectorAll('.uni-chk:checked')].map(c=>c.value);
+  const msg  = document.getElementById('setupMsg');
+  if (!tfs.length || !unis.length){ msg.textContent = 'Pick at least one scan time and one filter.'; return; }
+  const num = id => { const v = parseFloat(document.getElementById(id).value); return isNaN(v)?undefined:v; };
+  const filters = {
+    price_min:num('f-price_min'), price_max:num('f-price_max'), dom_min_pct:num('f-dom_min_pct'),
+    buy_min_chg_pct:num('f-buy_min_chg_pct'), target_rupees:num('f-target_rupees'),
+    max_slots:num('f-max_slots'), candidate_cap:num('f-candidate_cap'),
+    default_sl_basis:document.getElementById('f-default_sl_basis').value,
+    entry_window_end:document.getElementById('f-entry_window_end').value,
+  };
+  Object.keys(filters).forEach(k=>filters[k]===undefined&&delete filters[k]);
+  const btn = document.getElementById('enableBtn');
+  btn.disabled = true; msg.textContent = 'Creating cells…';
+  try{
+    const r = await fetch(`${API}/matrix`, { method:'POST', headers:_hdrs(true),
+      body:JSON.stringify({ timeframes:tfs, universes:unis, filters }) });
+    if (r.status === 401){ _handleUnauth(); return; }
+    const d = await r.json();
+    if (d.error){ msg.textContent = d.error; btn.disabled=false; return; }
+    _active = { tf:tfs[0], uni:unis[0] };
+    await loadMatrix(true);
+    if (_matrix.cells.length) selectCell(_active.tf, _active.uni);
+  }catch(e){ msg.textContent = 'Could not reach engine.'; }
+  finally{ btn.disabled = false; }
+}
+
+async function disableMatrix(){
+  if (!confirm('Disable the matrix and clear all cells for today? Simulated trades already recorded stay in history.')) return;
+  try{
+    const r = await fetch(`${API}/matrix`, { method:'DELETE', headers:_hdrs(false) });
+    if (r.status === 401){ _handleUnauth(); return; }
+    _active = null; clearInterval(_cellPoll);
+    document.getElementById('detailWrap').style.display = 'none';
+    await loadMatrix(true);
+  }catch(e){}
+}
+
+// ── Matrix grid ──────────────────────────────────────────────────────────────
+function renderMatrix(){
+  const { times, universes, uni_labels, cells } = _matrix;
+  const byKey = {};
+  cells.forEach(c => byKey[c.tf + '|' + c.universe] = c);
+  let html = `<div class="mx-corner"></div>`;
+  universes.forEach(u => html += `<div class="mx-colhdr">${_esc(uni_labels[u]||u)}</div>`);
+  times.forEach(t => {
+    html += `<div class="mx-rowhdr mono">${t}</div>`;
+    universes.forEach(u => {
+      const c = byKey[t + '|' + u];
+      if (!c){ html += `<div class="mx-cell" style="opacity:.35;cursor:default"><span class="mx-cnt">—</span></div>`; return; }
+      const act = (_active && _active.tf===t && _active.uni===u) ? ' active' : '';
+      html += `<div class="mx-cell${act}" onclick="selectCell('${t}','${u}')">
+        <span class="mx-cnt">${c.candidate_count} setups · ${c.open_trades+c.resolved_trades} trd</span>
+        <span class="mx-pnl ${_pnlCls(c.gross_pnl)}">${_pnlStr(c.gross_pnl)}</span>
+      </div>`;
+    });
+  });
+  document.getElementById('matrixGrid').innerHTML = html;
+  document.getElementById('matrixMeta').innerHTML =
+    `<b>${cells.length}</b> cells · ${times.length}×${universes.length}`;
+}
+
+// ── Cell selection + polling ─────────────────────────────────────────────────
+function selectCell(tf, uni){
+  _active = { tf, uni };
+  renderMatrix();
+  document.getElementById('detailWrap').style.display = 'flex';
+  loadCell();
+  startCellPoll();
+}
+function startCellPoll(){
+  clearInterval(_cellPoll);
+  _cellPoll = setInterval(loadCell, 7000);
+}
+
+async function loadCell(){
+  if (!_active) return;
+  try{
+    const r = await fetch(`${API}/state?tf=${encodeURIComponent(_active.tf)}&uni=${encodeURIComponent(_active.uni)}`,
+      { headers:_hdrs(false) });
+    if (r.status === 401){ _handleUnauth(); return; }
+    const d = await r.json();
+    if (d.error) return;
+    renderCell(d);
+  }catch(e){}
+}
+
+const _PHASES = {
+  PRE_MARKET:['PRE-MARKET','dim'], CAPTURE_PENDING:['AWAITING SCAN','yellow'],
+  ENTRY_WINDOW:['ENTRY WINDOW','green'], TRACKING:['TRACKING','blue'],
+  EOD:['DAY CLOSED','orange'], WEEKEND:['WEEKEND','dim'],
+};
+
+function renderCell(d){
+  const label = (_matrix.uni_labels[_active.uni] || _active.uni);
+  document.getElementById('cellTitle').textContent = `${_active.tf} · ${label}`;
+  const w = d.window || {};
+  const [pl, pc] = _PHASES[w.phase] || ['—','dim'];
+  const chip = document.getElementById('phaseChip');
+  chip.textContent = pl; chip.className = `phase-chip phase-${pc}`;
+  document.getElementById('slotStat').innerHTML =
+    `Slots <b>${w.slots_used||0}/${w.slots_total||0}</b>`;
+  const s = d.summary || {};
+  const net = s.total_net_pnl!=null ? s.total_net_pnl : s.total_pnl || 0;
+  document.getElementById('pnlStat').innerHTML =
+    `Net P/L <b class="${_pnlCls(net)}" style="font-size:13px">${_pnlStr(net)}</b>` +
+    (s.win_rate!=null ? ` · Win ${s.win_rate}%` : '');
+  renderCands(d.candidates || []);
+  renderTrades(d.trades || []);
+}
+
+function renderCands(cands){
+  document.getElementById('candCount').textContent = cands.length + ' setups';
+  const body = document.getElementById('candBody');
+  if (!cands.length){ body.innerHTML = `<tr><td colspan="8" class="empty-cell">No setups captured for this cell yet</td></tr>`; return; }
+  body.innerHTML = cands.map(c=>{
+    const isBuy = c.side === 'BUY';
+    const wait  = c.status === 'WAITING';
+    const bp = Math.round((wait && c.live_buy_pct !=null ? c.live_buy_pct : c.buy_pct)||0);
+    const sp = Math.round((wait && c.live_sell_pct!=null ? c.live_sell_pct: c.sell_pct)||0);
+    let chg = '<span style="color:var(--muted)">—</span>';
+    if (c.change_pct!=null){ const cl=c.change_pct>0?'bull-val':c.change_pct<0?'bear-val':''; chg=`<span class="${cl}">${c.change_pct>0?'+':''}${c.change_pct.toFixed(2)}%</span>`; }
+    let live = '<span style="color:var(--muted)">—</span>';
+    if (c.live_ltp!=null){ const diff=c.ltp_0916?c.live_ltp-c.ltp_0916:0; const cl=diff>0?'bull-val':diff<0?'bear-val':''; live=`<span class="${cl} num">₹${_f2(c.live_ltp)}</span>`; }
+    const st = c.status==='WAITING'?'st-waiting':c.status==='TRIGGERED'?'st-triggered':'';
+    const dim = (c.status==='SKIPPED'||c.status==='WINDOW_CLOSED')?' style="opacity:.45"':'';
+    const ref = isBuy ? `<span class="num bull-val">▲ ₹${_f2(c.bench_high)}</span>` : `<span class="num bear-val">▼ ₹${_f2(c.bench_low)}</span>`;
+    return `<tr${dim}>
+      <td><span class="dir-badge ${isBuy?'dir-bull':'dir-bear'}">${isBuy?'BULLISH ▲':'BEARISH ▼'}</span></td>
+      <td class="sym">${_esc(c.symbol)}</td>
+      <td><div class="dom-bar"><div class="b" style="width:${bp}%"></div><div class="s" style="width:${sp}%"></div></div>
+          <div class="dom-nums">${bp}% / ${sp}%</div></td>
+      <td>${chg}</td>
+      <td class="num">${c.ltp_0916!=null?'₹'+_f2(c.ltp_0916):'—'}</td>
+      <td>${live}</td>
+      <td>${ref}</td>
+      <td><span class="st-badge ${st}">${_esc(c.status||'')}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function _ocBadge(o){
+  const m = { OPEN:['oc-open','OPEN'], TARGET_HIT:['oc-target','TARGET'], SL_HIT:['oc-sl','SL HIT'], SQUARE_OFF:['oc-sq','SQ-OFF'] };
+  const [cl,lbl] = m[o] || ['','—'];
+  return `<span class="oc-badge ${cl}">${lbl}</span>`;
+}
+
+function renderTrades(trades){
+  const body = document.getElementById('tradeBody');
+  if (!trades.length){ body.innerHTML = `<tr><td colspan="9" class="empty-cell">No simulated trades yet</td></tr>`; return; }
+  body.innerHTML = trades.map(t=>{
+    const isBuy = t.direction === 'BUY';
+    const pnl = t.pnl||0; const cl = pnl>0?'bull-val':pnl<0?'bear-val':'';
+    let px = '<span style="color:var(--muted)">—</span>';
+    if (t.outcome==='OPEN' && t.live_ltp!=null){ const mv=isBuy?t.live_ltp-t.trigger_price:t.trigger_price-t.live_ltp; px=`<span class="num ${mv>0?'bull-val':mv<0?'bear-val':''}">₹${_f2(t.live_ltp)}</span>`; }
+    else if (t.outcome!=='OPEN' && t.exit_price!=null){ const mv=isBuy?t.exit_price-t.trigger_price:t.trigger_price-t.exit_price; px=`<span class="num ${mv>0?'bull-val':mv<0?'bear-val':''}">₹${_f2(t.exit_price)}</span>`; }
+    return `<tr>
+      <td><span class="dir-badge ${isBuy?'dir-bull':'dir-bear'}">${isBuy?'BULLISH ▲':'BEARISH ▼'}</span></td>
+      <td class="sym">${_esc(t.symbol)}</td>
+      <td class="num">₹${_f2(t.trigger_price)}</td>
+      <td>${px}</td>
+      <td class="num bear-val">₹${_f2(t.stop_loss_price)}</td>
+      <td class="num bull-val">₹${_f2(t.target_price)}</td>
+      <td class="num">${t.quantity||0}</td>
+      <td>${_ocBadge(t.outcome)}</td>
+      <td class="num ${cl}">${(pnl>=0?'+':'')}₹${_f2(pnl)}</td>
+    </tr>`;
+  }).join('');
+}
+
+boot();
+</script>
+</body>
+</html>

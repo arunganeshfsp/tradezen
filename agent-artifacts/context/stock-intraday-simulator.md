@@ -7,7 +7,36 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-07-09 (user-selectable SL rule: DAY_SMART default / AMOUNT / VWAP)
+**Last updated:** 2026-08-02 (Multi-Timeframe Matrix — 3 scan times × 3 filters run in parallel)
+
+Extra files added for the matrix feature:
+- `public/stock_intraday_matrix.html` — new login-gated page (tabbed 3×3 grid, personal only)
+
+---
+
+## 2026-08-02 (latest) — Multi-Timeframe ORB Matrix (parallel scans)
+
+User wanted to monitor 3 scan times (09:16, 10:15, 10:30) across all filters (F&O, Nifty 500, Nifty 50) **at the same time**, on a dedicated page, for their own logged-in account. Answers locked with user: full 3×3 matrix, personal scope, new page with tabs, "stick with existing logic" for breakout levels.
+
+**Core idea — each matrix cell is a synthetic ORB session.** A cell = one `orb_settings` row keyed by a **composite user_id** `{uid}#{HHMM}#{universe}` (e.g. `42#0916#all_fno`), whose `entry_window_start` is the scan time and `universe` is the filter. The capture/trigger/outcome engine already fans out over `orb_list_setting_users()`, so cells are processed automatically. Candidate/trade rows already carry `user_id`, so the same stock appears independently under each cell — **no schema change**. Breakout levels needed **no change**: capture sets `bench_high`/`bench_low` from the running intraday `q.get("high")/q.get("low")` at scan time, so a 10:30 scan naturally uses the 09:15→10:30 range.
+
+**What changed**
+- **`main.py` loop (`_orb_simulator_loop`) — per-session timed capture.** Replaced the single global `_auto_scan_done`/`_seen_pre_capture`/`_capture_start` logic. Now tracks `_captured_sessions: set` for the day; each tick, every uncaptured session whose `entry_window_start` has been crossed is collected into `due` and captured in ONE `_orb_capture_sync(..., only_sessions=due)` call (one quote fetch for all). On the first pass per process/day, `_captured_sessions` is seeded from sessions that already have candidates today (mid-day restart safety). This also fixed the old quirk where every personal session captured at the SHARED `""` start time — each session now captures at its own time.
+- **`_orb_capture_sync` gained `only_sessions: list | None`** — when provided, `sessions = only_sessions` instead of `[""] + orb_list_setting_users(conn)`.
+- **New endpoints** (`main.py`, near settings): `POST /simulator/matrix` (create/replace cells; body `{timeframes, universes, filters}`), `GET /simulator/matrix` (list cells + per-cell badge stats), `DELETE /simulator/matrix` (clear all `{uid}#` rows). All 401 for anonymous. `GET /simulator/state` extended with optional `tf`+`uni` query params → resolves `sess = {uid}#{tf}#{uni}` via `_orb_matrix_session_id()`; all existing state-building reused verbatim.
+- **Module constants** `_ORB_VALID_UNI`, `_MATRIX_TIMES=["09:16","10:15","10:30"]`, `_MATRIX_UNIS=["all_fno","nifty500_fno","nifty50"]`, `_MATRIX_UNI_LABEL` added after the sqlite import block.
+- **`sqlite_store.py`** — new `orb_delete_settings(conn, user_id)` (mirror of upsert).
+- **`routes/stockRoute.js`** — new `GET/POST/DELETE /api/simulator/matrix` (all `_simAuth` + `_simHdr`); `/api/simulator/state` now forwards `tf`+`uni`.
+- **`public/stock_intraday_matrix.html`** — new page. Login-gated (redirects to `/learn/auth.html?next=` when no `tz_learn_token`); Bearer-token auth like the simulator. Setup panel (timeframe/universe checkboxes + shared filters) → `POST /matrix`. 3×3 grid of clickable cell pills with live candidate-count + gross-P/L badges (from `GET /matrix`, polled 15s). Selecting a cell polls `GET /state?tf=&uni=` every 7s and renders candidates + simulated trades + phase/summary. Disclaimer line present; SEBI-safe language (Bullish/Bearish setup, "reference levels", no buy/sell directives). Link added from simulator hero.
+
+**Cell defaults:** `entry_window_end` defaults to `14:30` (so a 10:30 scan can still trigger later in the day); `square_off_time` 15:30. Shared filters (price band, dom %, min move %, target ₹, slots, cap, SL basis) apply to every cell — only scan time and universe vary.
+
+**Known caveats**
+- Efficiency: cell live caches are token-keyed, so 9 cells watching overlapping stocks cost ≈ the same quote volume as watching all-F&O alone (union of tokens). Capture happens at most once per distinct scan time per day.
+- Manual square-off is NOT wired for matrix cells — `/simulator/square-off` derives session from the base uid header, not the composite cell id, so it can't target a cell's trades. Matrix trades resolve only via target/SL/auto-square-off. Deliberate (study/compare tool, no live orders).
+- The `POST /simulator/matrix` filter validation uses `assert` for bounds; float/int coercion still guards malformed input. Personal tool — acceptable.
+- Pre-market, the loop reads settings for all uncaptured sessions every 5s; fine for a few users, could be batched later if user count grows.
+- Cells persist as settings rows until `DELETE /simulator/matrix`; they re-capture each trading day at their scan times until removed.
 
 ---
 
