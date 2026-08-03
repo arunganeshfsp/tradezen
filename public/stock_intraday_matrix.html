@@ -161,11 +161,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div class="field"><label>Max slots / cell</label><input id="f-max_slots" type="number" value="5"></div>
         <div class="field"><label>Candidate cap</label><input id="f-candidate_cap" type="number" value="10"></div>
         <div class="field"><label>SL basis</label>
-          <select id="f-default_sl_basis">
+          <select id="f-default_sl_basis" onchange="_toggleSlAmount()">
             <option value="DAY_SMART">Day extreme (smart)</option>
             <option value="VWAP">VWAP / day extreme</option>
             <option value="AMOUNT">Flat ₹ amount</option>
           </select></div>
+        <div class="field" id="slAmountField" style="display:none"><label>Flat SL amount ₹</label><input id="f-sl_amount_rupees" type="number" min="1" value="900"></div>
         <div class="field"><label>Entry window closes</label><input id="f-entry_window_end" type="time" value="14:30" min="09:17" max="15:00"></div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -181,6 +182,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <span class="card-title">Active Cells</span>
       <span class="stat-pill" id="matrixMeta"></span>
       <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn" id="exportBtn" onclick="exportEod()">⬇ Export EOD</button>
         <button class="btn" onclick="showSetup()">Reconfigure</button>
         <button class="btn btn-danger" onclick="disableMatrix()">Disable</button>
       </div>
@@ -291,6 +293,11 @@ async function loadMatrix(first){
 }
 
 // ── Setup ────────────────────────────────────────────────────────────────────
+function _toggleSlAmount(){
+  const show = document.getElementById('f-default_sl_basis').value === 'AMOUNT';
+  document.getElementById('slAmountField').style.display = show ? '' : 'none';
+}
+
 function showSetup(){
   const times = (_matrix && _matrix.times) || ['09:16','10:15','10:30'];
   const unis  = (_matrix && _matrix.universes) || ['all_fno','nifty500_fno','nifty50'];
@@ -302,6 +309,7 @@ function showSetup(){
   document.getElementById('setupCard').style.display  = '';
   document.getElementById('matrixCard').style.display = 'none';
   document.getElementById('detailWrap').style.display = 'none';
+  _toggleSlAmount();
   clearInterval(_cellPoll); _active = null;
 }
 
@@ -318,6 +326,11 @@ async function enableMatrix(){
     default_sl_basis:document.getElementById('f-default_sl_basis').value,
     entry_window_end:document.getElementById('f-entry_window_end').value,
   };
+  if (filters.default_sl_basis === 'AMOUNT'){
+    const amt = num('f-sl_amount_rupees');
+    if (!amt || amt <= 0){ msg.textContent = 'Enter a flat SL amount greater than ₹0.'; return; }
+    filters.sl_amount_rupees = amt;
+  }
   Object.keys(filters).forEach(k=>filters[k]===undefined&&delete filters[k]);
   const btn = document.getElementById('enableBtn');
   btn.disabled = true; msg.textContent = 'Creating cells…';
@@ -475,6 +488,86 @@ function renderTrades(trades){
       <td class="num ${cl}">${(pnl>=0?'+':'')}₹${_f2(pnl)}</td>
     </tr>`;
   }).join('');
+}
+
+// ── EOD export ───────────────────────────────────────────────────────────────
+function _istToday(){ return new Date(Date.now() + 5.5*3600000).toISOString().slice(0,10); }
+const _csv = v => { v = v==null?'':String(v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+function _downloadCsv(lines, filename){
+  const csv = lines.join('\n') +
+    '\n\nSimulated study data · For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.';
+  const blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function exportEod(){
+  if (!_matrix || !_matrix.cells || !_matrix.cells.length) return;
+  const btn = document.getElementById('exportBtn');
+  const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing…';
+  const labels = _matrix.uni_labels || {};
+  const date   = _istToday();
+  try{
+    const results = [];
+    for (const c of _matrix.cells){
+      const r = await fetch(`${API}/state?tf=${encodeURIComponent(c.tf)}&uni=${encodeURIComponent(c.universe)}`,
+        { headers:_hdrs(false) });
+      if (r.status === 401){ _handleUnauth(); return; }
+      const d = await r.json();
+      if (!d.error) results.push({ cell:c, state:d });
+    }
+    const uni = c => labels[c.universe] || c.universe;
+    const lines = [];
+    lines.push(`TradeZen ORB Matrix — EOD Export,${date}`);
+    lines.push('');
+
+    lines.push('SUMMARY');
+    lines.push(['Scan Time','Filter','Candidates','Trades','Open','Target Hit','SL Hit','Squared Off','Win %','Gross P/L','Net P/L'].join(','));
+    results.forEach(({cell,state})=>{
+      const s = state.summary||{}, ct = s.counts||{};
+      lines.push([cell.tf, uni(cell), (state.candidates||[]).length, (state.trades||[]).length,
+        ct.OPEN||0, ct.TARGET_HIT||0, ct.SL_HIT||0, ct.SQUARE_OFF||0,
+        s.win_rate==null?'':s.win_rate, s.total_pnl==null?'':s.total_pnl, s.total_net_pnl==null?'':s.total_net_pnl
+      ].map(_csv).join(','));
+    });
+    lines.push('');
+
+    lines.push('SIMULATED TRADES');
+    lines.push(['Scan Time','Filter','Symbol','Setup','Fill','Exit/Live','SL','Target','Qty','Investment','Outcome','Gross P/L','Txn Cost','Net P/L','Entry','Exit'].join(','));
+    results.forEach(({cell,state})=>{
+      (state.trades||[]).forEach(t=>{
+        const exit = t.outcome==='OPEN' ? (t.live_ltp==null?'':t.live_ltp) : (t.exit_price==null?'':t.exit_price);
+        lines.push([cell.tf, uni(cell), t.symbol, t.direction==='BUY'?'Bullish':'Bearish',
+          t.trigger_price, exit, t.stop_loss_price, t.target_price, t.quantity, t.investment,
+          t.outcome, t.pnl, t.transaction_cost==null?'':t.transaction_cost, t.net_pnl==null?'':t.net_pnl,
+          t.entry_time?t.entry_time.slice(11,16):'', t.exit_time?t.exit_time.slice(11,16):''
+        ].map(_csv).join(','));
+      });
+    });
+    lines.push('');
+
+    lines.push('CANDIDATES');
+    lines.push(['Scan Time','Filter','Symbol','Setup','Buy %','Sell %','Change %','Scan LTP','Live LTP','Ref Level','Status'].join(','));
+    results.forEach(({cell,state})=>{
+      (state.candidates||[]).forEach(c=>{
+        const isBuy = c.side==='BUY';
+        lines.push([cell.tf, uni(cell), c.symbol, isBuy?'Bullish':'Bearish',
+          c.buy_pct==null?'':Math.round(c.buy_pct), c.sell_pct==null?'':Math.round(c.sell_pct),
+          c.change_pct==null?'':c.change_pct, c.ltp_0916==null?'':c.ltp_0916, c.live_ltp==null?'':c.live_ltp,
+          isBuy?(c.bench_high==null?'':c.bench_high):(c.bench_low==null?'':c.bench_low), c.status||''
+        ].map(_csv).join(','));
+      });
+    });
+
+    _downloadCsv(lines, `orb_matrix_${date}.csv`);
+  }catch(e){
+    btn.textContent = 'Export failed'; setTimeout(()=>{ btn.textContent = orig; }, 2000);
+    return;
+  }finally{
+    btn.disabled = false;
+    if (btn.textContent === 'Preparing…') btn.textContent = orig;
+  }
 }
 
 boot();
