@@ -143,8 +143,11 @@ def target_levels(
     target_points: rounded to 2 decimal places.
     target_price: snapped to nearest ₹0.05 tick.
     Caller must ensure quantity > 0.
+
+    target_rupees <= 0 means "no target" — returns (0.0, 0.0); check_outcome then
+    never fires TARGET_HIT, so the trade only closes on SL or square-off.
     """
-    if quantity <= 0:
+    if quantity <= 0 or target_rupees <= 0:
         return 0.0, 0.0
     target_points = round(target_rupees / quantity, 2)
     if direction == "BUY":
@@ -178,16 +181,18 @@ def check_outcome(
     """
     Returns 'TARGET_HIT', 'SL_HIT', or None (still open).
     SL is checked before target — conservative tie-break on the same poll tick.
+    A falsy target_price / stop_loss_price (0 / None) means that leg is disabled —
+    with neither set the trade only closes on reverse or square-off.
     """
     if direction == "BUY":
-        if ltp <= stop_loss_price:
+        if stop_loss_price and ltp <= stop_loss_price:
             return "SL_HIT"
-        if ltp >= target_price:
+        if target_price and ltp >= target_price:
             return "TARGET_HIT"
     else:  # SELL
-        if ltp >= stop_loss_price:
+        if stop_loss_price and ltp >= stop_loss_price:
             return "SL_HIT"
-        if ltp <= target_price:
+        if target_price and ltp <= target_price:
             return "TARGET_HIT"
     return None
 

@@ -548,6 +548,7 @@ async def lifespan(app: FastAPI):
             log.info("🔄 Intraday fields reset for new trading day")
 
     asyncio.create_task(_daily_instrument_refresh())
+    _seed_strategies()
     asyncio.create_task(_orb_simulator_loop())
 
     log.info("✅ AI Engine ready — WebSocket + signal loop running")
@@ -7867,6 +7868,72 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
     "POLYCAB","GLAND",
 })
 
+# ── Strategy Lab — paper strategy experiments layered on the ORB engine ─────────
+# Each experiment is one dedicated shared ORB session (its user_id) seeded with a
+# fixed config that auto-runs via the background loop. Universe "inv_<source>"
+# resolves to a curated list from the Stock Inventory table.
+_STRATEGY_VALID_UNI = {"all_fno", "nifty500_fno", "nifty50", "inv_favorites"}
+_STRATEGIES: dict = {
+    "day_range_breakout": {
+        "session": "strat_day_range_breakout",
+        "label":   "Day-Range Breakout (10:15)",
+        "blurb":   "Scans at 10:15. Bullish (buy% > 55%) reference the day's high, "
+                   "bearish (sell% > 55%) the day's low; a setup activates only when "
+                   "price crosses that level. No target — manual exit or 15:30 square-off.",
+        "defaults": {
+            "entry_window_start": "10:15",
+            "entry_window_end":   "15:15",
+            "square_off_time":    "15:30",
+            "dom_min_pct":        "55",
+            "target_rupees":      "0",             # no profit target
+            "universe":           "inv_favorites",  # curated in Stock Inventory
+            "default_sl_basis":   "VWAP",
+            "price_min":          "100",
+            "price_max":          "1000000",
+            "candidate_cap":      "20",
+            "max_slots":          "20",
+            "require_live_dom":   "0",             # fill on price breakout alone
+            "entry_mode":         "breakout",
+        },
+    },
+    "day_range_reversal": {
+        "session": "strat_day_range_reversal",
+        "label":   "Day-Range Reversal (09:18)",
+        "blurb":   "Scans at 09:18 and enters immediately by dominance — buyers long, sellers short. "
+                   "If a long instead sinks to the day's low it flips to a short; if a short climbs to "
+                   "the day's high it flips to a long. No target, no stop loss — exits on manual close "
+                   "or 15:30 square-off. One reversal per stock per day.",
+        "defaults": {
+            "entry_window_start": "09:18",
+            "entry_window_end":   "15:15",
+            "square_off_time":    "15:30",
+            "dom_min_pct":        "55",
+            "target_rupees":      "0",             # no profit target
+            "universe":           "inv_favorites",
+            "default_sl_basis":   "NONE",          # no stop loss
+            "price_min":          "100",
+            "price_max":          "1000000",
+            "candidate_cap":      "20",
+            "max_slots":          "50",            # leg-1 entries across both sides
+            "require_live_dom":   "0",
+            "entry_mode":         "reversal",      # immediate entry + stop-and-reverse
+        },
+    },
+}
+
+
+def _seed_strategies():
+    """Idempotently seed each strategy's dedicated session so the background loop
+    captures it at its own scan time. Existing rows (admin edits) are preserved."""
+    conn = get_conn()
+    try:
+        for sid, meta in _STRATEGIES.items():
+            if not orb_has_own_settings(conn, meta["session"]):
+                orb_upsert_settings(conn, meta["defaults"], user_id=meta["session"])
+                log.info(f"[STRATEGY] seeded defaults for {sid} ({meta['session']})")
+    finally:
+        conn.close()
+
 
 _orb_ltp_cache:        dict = {}
 _orb_chg_cache:        dict = {}   # token → change_pct from yesterday's close
@@ -7957,13 +8024,43 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
-    stocks  = all_fno  # full F&O universe; per-session setting narrows below
 
-    if not stocks:
-        log.error("[ORB-SIM] no stocks available in F&O universe")
+    # Resolve any inventory-backed universes ("inv_<source>") to curated EQ stocks —
+    # the source is a Stock Inventory group (e.g. favorites), not necessarily F&O.
+    inv_sources = {str(st.get("universe", ""))[4:]
+                   for st in sess_settings.values()
+                   if str(st.get("universe", "")).startswith("inv_")}
+    inv_pool_by_src: dict = {}
+    if inv_sources:
+        all_eq = _load_all_eq_stocks()
+        conn_i = get_conn()
+        for src in inv_sources:
+            syms = {x.upper() for x in stock_universe_get(conn_i, src)}
+            inv_pool_by_src[src] = [s for s in all_eq if s["symbol"].upper() in syms]
+        conn_i.close()
+
+    # Per-session stock pool — the universe setting narrows the base list before quoting
+    pool_by_sess: dict = {}
+    for u in sessions:
+        uni = str(sess_settings[u]["universe"])
+        if uni == "nifty50":
+            pool = [s for s in all_fno if s["symbol"].upper() in _NIFTY50_SYMS]
+        elif uni == "nifty100_fno":
+            pool = [s for s in all_fno if s["symbol"].upper() in _NIFTY100_SYMS]
+        elif uni == "nifty500_fno":
+            pool = [s for s in all_fno if s["symbol"].upper() in n500]
+        elif uni.startswith("inv_"):
+            pool = inv_pool_by_src.get(uni[4:], [])
+        else:  # all_fno — full F&O universe, same as F&O Scanner default
+            pool = all_fno
+        pool_by_sess[u] = pool
+
+    union_tokens = list({s["token"] for pool in pool_by_sess.values() for s in pool})
+    if not union_tokens:
+        log.error("[ORB-SIM] no stocks in any session universe")
         return
 
-    quotes = _orb_raw_quotes(smart_s, [s["token"] for s in stocks])
+    quotes = _orb_raw_quotes(smart_s, union_tokens)
 
     # Symbols already TRIGGERED today keep their trades and are never re-listed
     conn_ex = get_conn()
@@ -7977,14 +8074,7 @@ def _orb_capture_sync(today: str, manual: bool = False, now_ist=None,
     per_session = {}
     for u in sessions:
         st = sess_settings[u]
-        pool = stocks
-        if st["universe"] == "nifty50":
-            pool = [s for s in stocks if s["symbol"].upper() in _NIFTY50_SYMS]
-        elif st["universe"] == "nifty100_fno":
-            pool = [s for s in stocks if s["symbol"].upper() in _NIFTY100_SYMS]
-        elif st["universe"] == "nifty500_fno":
-            pool = [s for s in stocks if s["symbol"].upper() in n500]
-        # else "all_fno": pool = stocks (all F&O, same as F&O Scanner default)
+        pool = pool_by_sess[u]
 
         dom_min   = st["dom_min_pct"]
         min_chg   = st["buy_min_chg_pct"]  # single threshold for both sides, mirrors F&O Scanner
@@ -8182,6 +8272,7 @@ def _orb_trigger_poll_sync(today: str, now_ist):
         st            = sess_settings[u]
         max_slots     = st["max_slots"]
         target_rupees = st["target_rupees"]
+        immediate     = st.get("entry_mode") == "reversal"  # enter at scan, not on breakout
         sess_cands    = [c for c in all_cands if c["user_id"] == u]
         waiting       = [c for c in active_waiting if c["user_id"] == u]
         trade_count   = len(orb_get_trades(conn, today, u))
@@ -8202,17 +8293,19 @@ def _orb_trigger_poll_sync(today: str, now_ist):
             # skip the trigger for this poll but keep status WAITING — dominance
             # fluctuates tick-to-tick. Flag the session for a background rescan
             # (with cooldown) which will naturally replace persistently-bad candidates.
-            dom_min   = st["dom_min_pct"]
-            live_buy  = q.get("buy_pct", 0)
-            live_sell = q.get("sell_pct", 0)
-            if side == "BUY" and live_buy < dom_min:
-                culled_sessions.add(u)
-                continue
-            if side == "SELL" and live_sell < dom_min:
-                culled_sessions.add(u)
-                continue
+            if st.get("require_live_dom", 1):
+                dom_min   = st["dom_min_pct"]
+                live_buy  = q.get("buy_pct", 0)
+                live_sell = q.get("sell_pct", 0)
+                if side == "BUY" and live_buy < dom_min:
+                    culled_sessions.add(u)
+                    continue
+                if side == "SELL" and live_sell < dom_min:
+                    culled_sessions.add(u)
+                    continue
 
-            if not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
+            # Breakout entry waits for the level; reversal mode enters immediately at scan.
+            if not immediate and not ((side == "BUY" and ltp > bh) or (side == "SELL" and ltp < bl)):
                 continue
 
             if c["symbol"] in triggered_syms:
@@ -8237,22 +8330,27 @@ def _orb_trigger_poll_sync(today: str, now_ist):
                 continue
 
             vwap = q.get("vwap")
-            sl_basis = _orb_pick_sl_basis(st.get("default_sl_basis", "DAY_SMART"),
-                                          side, vwap, fill_price)
-            sl_price, sl_err = _orb_resolve_sl(
-                direction=side, sl_basis=sl_basis,
-                bench_high=bh, bench_low=bl,
-                vwap=vwap, day_high=day_h, day_low=day_l,
-                custom=None, entry_price=fill_price,
-                amount=st.get("sl_amount_rupees"), quantity=qty,
-            )
-            if sl_err:
-                orb_update_candidate_status(conn, today, c["symbol"], side,
-                                            "SKIPPED", f"SL: {sl_err}", user_id=u)
-                continue
+            if st.get("default_sl_basis") == "NONE":
+                sl_basis = "NONE"
+                sl_price = None
+                sl_pts   = 0.0
+            else:
+                sl_basis = _orb_pick_sl_basis(st.get("default_sl_basis", "DAY_SMART"),
+                                              side, vwap, fill_price)
+                sl_price, sl_err = _orb_resolve_sl(
+                    direction=side, sl_basis=sl_basis,
+                    bench_high=bh, bench_low=bl,
+                    vwap=vwap, day_high=day_h, day_low=day_l,
+                    custom=None, entry_price=fill_price,
+                    amount=st.get("sl_amount_rupees"), quantity=qty,
+                )
+                if sl_err:
+                    orb_update_candidate_status(conn, today, c["symbol"], side,
+                                                "SKIPPED", f"SL: {sl_err}", user_id=u)
+                    continue
+                sl_pts = _orb_sl_pts(side, fill_price, sl_price)
 
             tgt_pts, tgt_price = _orb_target(side, fill_price, qty, target_rupees=target_rupees)
-            sl_pts             = _orb_sl_pts(side, fill_price, sl_price)
             rr                 = _orb_rr(tgt_pts, sl_pts)
             investment         = round(qty * fill_price, 2)
 
@@ -8313,14 +8411,18 @@ def _orb_trigger_poll_sync(today: str, now_ist):
 
 
 def _orb_outcome_poll_sync(today: str, now_ist):
-    """Check OPEN trades vs target/SL (with optional trailing SL); resolve on hit."""
+    """Check OPEN trades vs target/SL (with optional trailing SL); resolve on hit.
+    Reversal-mode leg-1 trades that reach the opposite day extreme are stopped-and-reversed."""
+    import uuid as _uuid
     conn        = get_conn()
     open_trades = orb_get_open_trades(conn, today)
     if not open_trades:
         conn.close()
         return
 
-    sym_to_token = {c["symbol"]: c["token"] for c in orb_get_candidates(conn, today)}
+    _all_cands   = orb_get_candidates(conn, today)
+    sym_to_token = {c["symbol"]: c["token"] for c in _all_cands}
+    cand_by_key  = {(c["user_id"], c["symbol"]): c for c in _all_cands}
     exit_time    = now_ist.strftime("%Y-%m-%d %H:%M:%S")
 
     sess_settings = {}
@@ -8332,6 +8434,57 @@ def _orb_outcome_poll_sync(today: str, now_ist):
         u   = trade.get("user_id", "")
         if u not in sess_settings:
             sess_settings[u] = orb_get_settings(conn, u)
+
+        # Stop-and-reverse: a leg-1 reversal trade (direction == its candidate's side)
+        # that reaches the opposite day extreme is closed and immediately re-opened
+        # in the opposite direction. Leg 2 (direction != candidate side) never reverses.
+        if sess_settings[u].get("entry_mode") == "reversal":
+            cand = cand_by_key.get((u, trade["symbol"]))
+            if cand and trade["direction"] == cand["side"]:
+                lvl = cand["bench_low"] if trade["direction"] == "BUY" else cand["bench_high"]
+                if ((trade["direction"] == "BUY"  and ltp <= lvl) or
+                        (trade["direction"] == "SELL" and ltp >= lvl)):
+                    opp = "SELL" if trade["direction"] == "BUY" else "BUY"
+                    qty = trade["quantity"]
+                    leg1_pnl = _orb_pnl(outcome="SQUARE_OFF", direction=trade["direction"],
+                                        entry_price=trade["trigger_price"], exit_price=ltp,
+                                        quantity=qty, target_points=0, sl_pts=0)
+                    orb_update_trade(conn, trade["id"], {
+                        "outcome":       "REVERSED",
+                        "exit_price":    ltp,
+                        "exit_time":     exit_time,
+                        "pnl":           leg1_pnl,
+                        "return_amount": round(trade["investment"] + leg1_pnl, 2),
+                        "remarks":       f"Reversed to {opp} at ₹{ltp}",
+                    })
+                    orb_insert_trade(conn, {
+                        "id":                str(_uuid.uuid4()),
+                        "date":              today,
+                        "user_id":           u,
+                        "symbol":            trade["symbol"],
+                        "direction":         opp,
+                        "day_high_at_entry": trade["day_high_at_entry"],
+                        "day_low_at_entry":  trade["day_low_at_entry"],
+                        "vwap_at_entry":     trade.get("vwap_at_entry"),
+                        "trigger_price":     ltp,
+                        "entry_time":        exit_time,
+                        "sl_basis":          "NONE",
+                        "custom_sl_price":   None,
+                        "stop_loss_price":   None,
+                        "quantity":          qty,
+                        "investment":        round(qty * ltp, 2),
+                        "sl_points":         0,
+                        "target_points":     0,
+                        "target_price":      0,
+                        "risk_reward":       0,
+                        "outcome":           "OPEN",
+                        "pnl":               0.0,
+                        "return_amount":     round(qty * ltp, 2),
+                        "remarks":           f"Reversed from {trade['direction']} leg",
+                    })
+                    log.info(f"[ORB-SIM] REVERSE ({u}) {trade['symbol']} "
+                             f"{trade['direction']}→{opp} @ ₹{ltp} | leg1 P/L ₹{leg1_pnl:+.2f}")
+                    continue
 
         # Trailing SL — track peak/trough and compute effective SL
         trail_pts    = float(sess_settings[u].get("trailing_sl_points", 0))
@@ -8533,6 +8686,7 @@ class _OrbSlBasisBody(BaseModel):
 
 class _OrbSquareOffBody(BaseModel):
     trade_id: str
+    strategy: str | None = None
 
 
 class _OrbLiveOrderBody(BaseModel):
@@ -8590,11 +8744,16 @@ def _orb_matrix_session_id(request: Request, tf: str, uni: str):
 
 
 @app.get("/simulator/state")
-async def simulator_state(request: Request, date: str = "", tf: str = "", uni: str = ""):
+async def simulator_state(request: Request, date: str = "", tf: str = "", uni: str = "", strategy: str = ""):
     if not date:
         date = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     try:
-        if tf and uni:
+        if strategy:
+            meta = _STRATEGIES.get(strategy)
+            if not meta:
+                return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
+            sess = meta["session"]
+        elif tf and uni:
             sess = _orb_matrix_session_id(request, tf, uni)
             if sess is None:
                 return JSONResponse(status_code=400, content={"error": "Invalid matrix cell"})
@@ -8748,7 +8907,13 @@ async def simulator_square_off(body: _OrbSquareOffBody, request: Request):
     from datetime import time as dt_time
     now_ist = datetime.utcnow() + timedelta(hours=5, minutes=30)
     try:
-        sess  = _orb_session_id(request)
+        if body.strategy:
+            meta = _STRATEGIES.get(body.strategy)
+            if not meta:
+                return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
+            sess = meta["session"]
+        else:
+            sess  = _orb_session_id(request)
         conn  = get_conn()
         cur   = conn.execute("SELECT * FROM orb_stock_trades WHERE id=?", (body.trade_id,))
         row   = cur.fetchone()
@@ -8808,6 +8973,90 @@ async def simulator_square_off(body: _OrbSquareOffBody, request: Request):
     except Exception as e:
         log.error(f"[SIM-SQUAREOFF] {e}", exc_info=True)
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ── Strategy Lab endpoints ──────────────────────────────────────────────────────
+class _StrategySettingsBody(BaseModel):
+    universe:           str   | None = None
+    default_sl_basis:   str   | None = None
+    sl_amount_rupees:   float | None = None
+    price_min:          float | None = None
+    price_max:          float | None = None
+    dom_min_pct:        float | None = None
+    max_slots:          int   | None = None
+    candidate_cap:      int   | None = None
+    entry_window_start: str   | None = None
+
+
+@app.get("/strategy/list")
+async def strategy_list():
+    today = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+    conn  = get_conn()
+    out   = []
+    try:
+        for sid, meta in _STRATEGIES.items():
+            sess   = meta["session"]
+            cands  = orb_get_candidates(conn, today, sess)
+            trades = orb_get_trades(conn, today, sess)
+            st     = orb_get_settings(conn, sess)
+            out.append({
+                "id":              sid,
+                "label":           meta["label"],
+                "blurb":           meta.get("blurb", ""),
+                "scan_time":       st.get("entry_window_start"),
+                "square_off_time": st.get("square_off_time"),
+                "universe":        st.get("universe"),
+                "waiting":         sum(1 for c in cands if c["status"] == "WAITING"),
+                "triggered":       sum(1 for c in cands if c["status"] == "TRIGGERED"),
+                "open_trades":     sum(1 for t in trades if t["outcome"] == "OPEN"),
+                "resolved_trades": sum(1 for t in trades if t["outcome"] != "OPEN"),
+            })
+    finally:
+        conn.close()
+    return {"strategies": out}
+
+
+@app.get("/strategy/settings")
+async def strategy_get_settings(id: str):
+    meta = _STRATEGIES.get(id)
+    if not meta:
+        return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
+    conn = get_conn()
+    s    = orb_get_settings(conn, meta["session"])
+    conn.close()
+    return s
+
+
+@app.post("/strategy/settings")
+async def strategy_post_settings(id: str, body: _StrategySettingsBody):
+    meta = _STRATEGIES.get(id)
+    if not meta:
+        return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
+    _VALID_SL = {"VWAP", "DAY_SMART", "AMOUNT", "NONE"}
+    errs = []
+    if body.universe         and body.universe         not in _STRATEGY_VALID_UNI: errs.append("universe")
+    if body.default_sl_basis and body.default_sl_basis not in _VALID_SL:           errs.append("default_sl_basis")
+    if body.sl_amount_rupees is not None and body.sl_amount_rupees <= 0:            errs.append("sl_amount_rupees must be > 0")
+    if body.price_min is not None and body.price_min < 0:                           errs.append("price_min must be ≥ 0")
+    if body.price_max is not None and body.price_max <= 0:                          errs.append("price_max must be > 0")
+    if (body.price_min is not None and body.price_max is not None
+            and body.price_min >= body.price_max):                                 errs.append("price_min must be < price_max")
+    if body.dom_min_pct   is not None and not (30 <= body.dom_min_pct <= 90):       errs.append("dom_min_pct must be 30–90")
+    if body.max_slots     is not None and not (1 <= body.max_slots <= 50):          errs.append("max_slots must be 1–50")
+    if body.candidate_cap is not None and not (5 <= body.candidate_cap <= 100):     errs.append("candidate_cap must be 5–100")
+    if body.entry_window_start is not None and not _orb_valid_hhmm(body.entry_window_start, "09:15", "14:00"):
+        errs.append("entry_window_start must be HH:MM between 09:15 and 14:00")
+    if errs:
+        return JSONResponse(status_code=400, content={"error": f"Invalid: {', '.join(errs)}"})
+    updates = {k: v for k, v in body.dict(exclude_none=True).items()}
+    if not updates:
+        return JSONResponse(status_code=400, content={"error": "No settings provided"})
+    conn = get_conn()
+    orb_upsert_settings(conn, updates, user_id=meta["session"])
+    s    = orb_get_settings(conn, meta["session"])
+    conn.close()
+    log.info(f"[STRATEGY] settings updated ({id}): {list(updates.keys())}")
+    return s
 
 
 _live_tsym_cache: dict = {}
@@ -9445,6 +9694,7 @@ async def stock_inventory_get(source: str = "all"):
         elif source == "fno":
             result = {"nifty500": [], "fno": stock_universe_get(conn, "fno"), "counts": counts}
         else:
+            n50_cnt   = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='nifty50'").fetchone()[0]
             m200_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='m200_30'").fetchone()[0]
             m500_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='m500_50'").fetchone()[0]
             mmid_cnt  = conn.execute("SELECT COUNT(*) FROM stock_universe WHERE source='mmid150_50'").fetchone()[0]
@@ -9452,11 +9702,12 @@ async def stock_inventory_get(source: str = "all"):
             result = {
                 "nifty500":   stock_universe_get(conn, "nifty500"),
                 "fno":        stock_universe_get(conn, "fno"),
+                "nifty50":    stock_universe_get(conn, "nifty50"),
                 "m200_30":    stock_universe_get(conn, "m200_30"),
                 "m500_50":    stock_universe_get(conn, "m500_50"),
                 "mmid150_50": stock_universe_get(conn, "mmid150_50"),
                 "favorites":  stock_universe_get(conn, "favorites"),
-                "counts":     {**counts, "m200_30": m200_cnt, "m500_50": m500_cnt, "mmid150_50": mmid_cnt, "favorites": fav_cnt},
+                "counts":     {**counts, "nifty50": n50_cnt, "m200_30": m200_cnt, "m500_50": m500_cnt, "mmid150_50": mmid_cnt, "favorites": fav_cnt},
             }
         conn.close()
         return result
@@ -9466,7 +9717,7 @@ async def stock_inventory_get(source: str = "all"):
 
 @app.post("/stock-inventory/import")
 async def stock_inventory_import(file: UploadFile, source: str = "fno"):
-    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50", "favorites"):
+    if source not in ("nifty500", "fno", "nifty50", "m200_30", "m500_50", "mmid150_50", "favorites"):
         return JSONResponse(status_code=400, content={"error": "unknown source"})
     try:
         import io
@@ -9493,7 +9744,7 @@ async def stock_inventory_import(file: UploadFile, source: str = "fno"):
 
 @app.delete("/stock-inventory")
 async def stock_inventory_delete(source: str):
-    if source not in ("nifty500", "fno", "m200_30", "m500_50", "mmid150_50", "favorites"):
+    if source not in ("nifty500", "fno", "nifty50", "m200_30", "m500_50", "mmid150_50", "favorites"):
         return JSONResponse(status_code=400, content={"error": "unknown source"})
     try:
         conn = get_conn()

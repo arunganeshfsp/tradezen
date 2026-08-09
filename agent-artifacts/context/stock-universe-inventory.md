@@ -31,3 +31,8 @@ User wants a managed master list of stock symbols imported from NSE CSV / exchan
 - This DB is standalone — `_load_fno_stocks()` and `_fetch_nifty500_symbols()` still use `instrument_master.json` and NSE live fetch respectively. The inventory does not feed the scanner/simulator yet.
 - Chips highlighted in amber on the UI indicate symbols present in both Nifty 500 and F&O.
 - No auth on the API endpoints; page is admin-accessible via `/mgmt/stock-inventory.html`.
+
+## 2026-08-09 — Nifty 50 source/tab added
+
+- New `nifty50` source across the three FastAPI endpoints (`GET/POST-import/DELETE /stock-inventory`) and a matching **Nifty 50** tab/badge/panel on `stock-inventory.html` (key `N50`). Import via NSE → Indices → NIFTY 50 → Download CSV.
+- Curated separately from the Strategy Lab's built-in `nifty50` universe (static `_NIFTY50_SYMS`). To let a strategy trade this *curated* list, an `inv_nifty50` group option would need to be added to `_STRATEGY_VALID_UNI` + the strategy_lab group dropdown (not done — only the inventory tab was requested).

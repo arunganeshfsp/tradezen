@@ -414,6 +414,8 @@ ORB_SETTING_DEFAULTS: dict = {
     "slippage_ticks":       "1",
     "brokerage_per_order":  "20",
     "min_vol_lakh":         "0",
+    "require_live_dom":     "1",
+    "entry_mode":           "breakout",
 }
 
 
@@ -437,6 +439,7 @@ def orb_get_settings(conn, user_id: str = "") -> dict:
     result["slippage_ticks"]      = int(result.get("slippage_ticks", 1))
     result["brokerage_per_order"] = float(result.get("brokerage_per_order", 20))
     result["min_vol_lakh"]        = float(result.get("min_vol_lakh", 0))
+    result["require_live_dom"]    = int(result.get("require_live_dom", 1))
     return result
 
 

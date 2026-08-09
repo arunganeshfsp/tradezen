@@ -40,6 +40,7 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     <div class="count-badge">Nifty 500 <span class="num" id="cnt500">—</span></div>
     <div class="count-badge">F&amp;O <span class="num" id="cntFno">—</span></div>
     <div class="count-badge both">In Both <span class="num" id="cntBoth">—</span></div>
+    <div class="count-badge">Nifty 50 <span class="num" id="cntN50">—</span></div>
     <div class="count-badge">NF200 M30 <span class="num" id="cntM200">—</span></div>
     <div class="count-badge">NF500 M50 <span class="num" id="cntM500">—</span></div>
     <div class="count-badge">MidCap M50 <span class="num" id="cntMmid">—</span></div>
@@ -57,6 +58,9 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     </li>
     <li class="nav-item">
       <button class="nav-link" id="tabFno" onclick="switchTab('fno')">F&amp;O Stocks</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tabN50" onclick="switchTab('nifty50')">Nifty 50</button>
     </li>
     <li class="nav-item">
       <button class="nav-link" id="tabM200" onclick="switchTab('m200_30')">NF200 M30</button>
@@ -105,6 +109,25 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
     </div>
     <div class="sym-grid" id="gridFno">
       <div class="empty-msg">No F&amp;O symbols loaded. Import an Excel file above.</div>
+    </div>
+  </div>
+
+  <!-- Nifty 50 Panel -->
+  <div id="panelN50" style="display:none;">
+    <div class="import-bar mb-3">
+      <input type="file" id="fileN50" class="form-control" style="max-width:300px;" accept=".csv,.xlsx,.xls">
+      <button class="btn btn-sm btn-primary" onclick="doImport('nifty50')">Import &amp; Replace</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="doClear('nifty50')">Clear All</button>
+      <span id="statusN50" class="status-msg"></span>
+    </div>
+    <p class="text-muted" style="font-size:11px;">Download from NSE → Indices → NIFTY 50 → Download CSV, then import here.</p>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <input type="text" id="searchN50" class="form-control form-control-sm" style="max-width:240px;"
+             placeholder="Search symbols…" oninput="filterChips('N50')">
+      <span class="text-muted" id="shownN50" style="font-size:11px;"></span>
+    </div>
+    <div class="sym-grid" id="gridN50">
+      <div class="empty-msg">No Nifty 50 symbols loaded. Import a CSV file above.</div>
     </div>
   </div>
 
@@ -193,12 +216,13 @@ body{background:var(--bg);color:var(--txt);font-size:13px;}
 
 <script>
 const API = '/api';
-let _n500 = [], _fno = [], _m200 = [], _m500 = [], _mmid = [], _fav = [], _bothSet = new Set();
+let _n500 = [], _fno = [], _n50 = [], _m200 = [], _m500 = [], _mmid = [], _fav = [], _bothSet = new Set();
 let _activeTab = 'nifty500';
 
 const _SRC = {
   nifty500:   { fileId: 'file500',  statusId: 'status500', key: '500',  label: 'Nifty 500' },
   fno:        { fileId: 'fileFno',  statusId: 'statusFno', key: 'Fno',  label: 'F&O' },
+  nifty50:    { fileId: 'fileN50',  statusId: 'statusN50', key: 'N50',  label: 'Nifty 50' },
   m200_30:    { fileId: 'fileM200', statusId: 'statusM200', key: 'M200', label: 'NF200 M30' },
   m500_50:    { fileId: 'fileM500', statusId: 'statusM500', key: 'M500', label: 'NF500 M50' },
   mmid150_50: { fileId: 'fileMmid', statusId: 'statusMmid', key: 'Mmid', label: 'MidCap M50' },
@@ -212,6 +236,7 @@ async function loadAll() {
     if (d.error) { toast(d.error, 'danger'); return; }
     _n500 = d.nifty500   || [];
     _fno  = d.fno        || [];
+    _n50  = d.nifty50    || [];
     _m200 = d.m200_30    || [];
     _m500 = d.m500_50    || [];
     _mmid = d.mmid150_50 || [];
@@ -221,12 +246,14 @@ async function loadAll() {
     document.getElementById('cnt500').textContent  = c.nifty500   ?? '0';
     document.getElementById('cntFno').textContent  = c.fno        ?? '0';
     document.getElementById('cntBoth').textContent = c.both       ?? '0';
+    document.getElementById('cntN50').textContent  = c.nifty50    ?? '0';
     document.getElementById('cntM200').textContent = c.m200_30    ?? '0';
     document.getElementById('cntM500').textContent = c.m500_50    ?? '0';
     document.getElementById('cntMmid').textContent = c.mmid150_50 ?? '0';
     document.getElementById('cntFav').textContent  = c.favorites  ?? '0';
     renderGrid('500',  _n500);
     renderGrid('Fno',  _fno);
+    renderGrid('N50',  _n50);
     renderGrid('M200', _m200);
     renderGrid('M500', _m500);
     renderGrid('Mmid', _mmid);
@@ -237,7 +264,7 @@ async function loadAll() {
 }
 
 function _arrForKey(key) {
-  return { '500': _n500, 'Fno': _fno, 'M200': _m200, 'M500': _m500, 'Mmid': _mmid, 'Fav': _fav }[key] || [];
+  return { '500': _n500, 'Fno': _fno, 'N50': _n50, 'M200': _m200, 'M500': _m500, 'Mmid': _mmid, 'Fav': _fav }[key] || [];
 }
 
 function renderGrid(key, symbols) {
@@ -264,8 +291,8 @@ function filterChips(key) {
 
 function switchTab(tab) {
   _activeTab = tab;
-  const panels = { nifty500: 'panel500', fno: 'panelFno', m200_30: 'panelM200', m500_50: 'panelM500', mmid150_50: 'panelMmid', favorites: 'panelFav' };
-  const tabIds = { nifty500: 'tab500', fno: 'tabFno', m200_30: 'tabM200', m500_50: 'tabM500', mmid150_50: 'tabMmid', favorites: 'tabFav' };
+  const panels = { nifty500: 'panel500', fno: 'panelFno', nifty50: 'panelN50', m200_30: 'panelM200', m500_50: 'panelM500', mmid150_50: 'panelMmid', favorites: 'panelFav' };
+  const tabIds = { nifty500: 'tab500', fno: 'tabFno', nifty50: 'tabN50', m200_30: 'tabM200', m500_50: 'tabM500', mmid150_50: 'tabMmid', favorites: 'tabFav' };
   Object.entries(panels).forEach(([s, id]) => document.getElementById(id).style.display = s === tab ? '' : 'none');
   Object.entries(tabIds).forEach(([s, id]) => document.getElementById(id).classList.toggle('active', s === tab));
 }

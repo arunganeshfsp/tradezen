@@ -1111,12 +1111,39 @@ const _simHdr = (req) => ({ "X-User-Id": req.simUserId || "" });
 router.get("/simulator/state", _simAuth, async (req, res) => {
   try {
     const params = new URLSearchParams();
-    if (req.query.date) params.set("date", req.query.date);
-    if (req.query.tf)   params.set("tf",  req.query.tf);
-    if (req.query.uni)  params.set("uni", req.query.uni);
+    if (req.query.date)     params.set("date",     req.query.date);
+    if (req.query.tf)       params.set("tf",       req.query.tf);
+    if (req.query.uni)      params.set("uni",      req.query.uni);
+    if (req.query.strategy) params.set("strategy", req.query.strategy);
     const data = await aiService.proxy("GET", `/simulator/state?${params}`, 10000, undefined, _simHdr(req));
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Strategy Lab (paper strategy experiments) — global/shared ────────────────
+router.get("/strategy/list", async (_req, res) => {
+  try {
+    const data = await aiService.proxy("GET", "/strategy/list", 10000);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+router.get("/strategy/settings", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.id) params.set("id", req.query.id);
+    const data = await aiService.proxy("GET", `/strategy/settings?${params}`, 8000);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
+router.post("/strategy/settings", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.id) params.set("id", req.query.id);
+    const data = await aiService.proxy("POST", `/strategy/settings?${params}`, 8000, req.body);
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 
 // ─── Multi-timeframe matrix (3 scan times × 3 filters) — personal, login-gated ──
