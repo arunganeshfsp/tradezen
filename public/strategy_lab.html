@@ -159,10 +159,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div class="field"><label>Scan time</label><input id="f-entry_window_start" type="time" min="09:15" max="14:00"></div>
         <div class="field"><label>Stock group</label>
           <select id="f-universe">
-            <option value="inv_favorites">Curated Inventory</option>
+            <option value="inv_nifty50">Nifty 50 (Inventory)</option>
+            <option value="inv_favorites">Favorites (Inventory)</option>
             <option value="all_fno">F&amp;O stocks</option>
             <option value="nifty500_fno">Nifty 500 (F&amp;O)</option>
-            <option value="nifty50">Nifty 50</option>
           </select></div>
         <div class="field"><label>Stop loss basis</label>
           <select id="f-default_sl_basis" onchange="_toggleSlAmount()">
@@ -226,8 +226,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <script>
 'use strict';
 const API      = '/api';
-const UNI_LABEL = { inv_favorites:'Curated Inventory', all_fno:'F&O', nifty500_fno:'Nifty 500',
-                    nifty100_fno:'Nifty 100', nifty50:'Nifty 50' };
+const UNI_LABEL = { inv_nifty50:'Nifty 50 (Inventory)', inv_favorites:'Favorites (Inventory)',
+                    all_fno:'F&O', nifty500_fno:'Nifty 500', nifty100_fno:'Nifty 100', nifty50:'Nifty 50' };
 let _strategies = [];
 let _current    = null;   // strategy id
 let _settings   = null;
@@ -299,7 +299,7 @@ async function loadSettings(){
     if (s.error) return;
     _settings = s;
     document.getElementById('f-entry_window_start').value = s.entry_window_start || '09:18';
-    document.getElementById('f-universe').value         = s.universe || 'inv_favorites';
+    document.getElementById('f-universe').value         = s.universe || 'inv_nifty50';
     document.getElementById('f-default_sl_basis').value = s.default_sl_basis || 'DAY_SMART';
     document.getElementById('f-sl_amount_rupees').value = s.sl_amount_rupees || 900;
     document.getElementById('f-price_min').value        = s.price_min;

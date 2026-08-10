@@ -69,3 +69,9 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 - Reversal candidates flip to TRIGGERED almost instantly (immediate entry), so the "Setups" table mostly shows TRIGGERED; the action is in the Trades table.
 - The reverse trigger reads `_orb_ltp_cache` (same source as the engine's SL/target checks). Once all candidates have triggered there are no WAITING rows, so the background trigger poll stops quoting those tokens — open-trade LTP is then refreshed mainly by the state endpoint being polled (page open). Pre-existing simulator characteristic; the reversal detects the day-extreme within a poll of the page being watched, and always resolves at the 15:30 square-off regardless.
 - Only breakout + reversal wired; registry + tabs ready for more.
+
+## 2026-08-10 — Nifty 50 group sourced from Stock Inventory
+
+- Both strategies now **default `universe="inv_nifty50"`** (was `inv_favorites`) — the curated Nifty 50 list from `/mgmt/stock-inventory.html` → Nifty 50 tab (`stock_universe_get(conn, "nifty50")`), not the static `_NIFTY50_SYMS`.
+- `_STRATEGY_VALID_UNI` now `{all_fno, nifty500_fno, inv_nifty50, inv_favorites}` (dropped static `nifty50`). Strategy Lab group dropdown: "Nifty 50 (Inventory)" = `inv_nifty50`, "Favorites (Inventory)" = `inv_favorites`, plus F&O / Nifty 500. Resolved via the existing `inv_<source>` capture branch against `_load_all_eq_stocks()`.
+- Idempotent seeding: existing installs keep their saved universe — pick "Nifty 50 (Inventory)" in each tab's settings, or the new default applies on a fresh seed. Empty inventory ⇒ no candidates until the Nifty 50 list is imported.

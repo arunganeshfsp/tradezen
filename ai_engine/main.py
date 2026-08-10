@@ -7872,7 +7872,7 @@ _NIFTY100_SYMS: frozenset = _NIFTY50_SYMS | frozenset({
 # Each experiment is one dedicated shared ORB session (its user_id) seeded with a
 # fixed config that auto-runs via the background loop. Universe "inv_<source>"
 # resolves to a curated list from the Stock Inventory table.
-_STRATEGY_VALID_UNI = {"all_fno", "nifty500_fno", "nifty50", "inv_favorites"}
+_STRATEGY_VALID_UNI = {"all_fno", "nifty500_fno", "inv_nifty50", "inv_favorites"}
 _STRATEGIES: dict = {
     "day_range_breakout": {
         "session": "strat_day_range_breakout",
@@ -7886,7 +7886,7 @@ _STRATEGIES: dict = {
             "square_off_time":    "15:30",
             "dom_min_pct":        "55",
             "target_rupees":      "0",             # no profit target
-            "universe":           "inv_favorites",  # curated in Stock Inventory
+            "universe":           "inv_nifty50",    # curated Nifty 50 in Stock Inventory
             "default_sl_basis":   "VWAP",
             "price_min":          "100",
             "price_max":          "1000000",
@@ -7909,7 +7909,7 @@ _STRATEGIES: dict = {
             "square_off_time":    "15:30",
             "dom_min_pct":        "55",
             "target_rupees":      "0",             # no profit target
-            "universe":           "inv_favorites",
+            "universe":           "inv_nifty50",   # curated Nifty 50 in Stock Inventory
             "default_sl_basis":   "NONE",          # no stop loss
             "price_min":          "100",
             "price_max":          "1000000",
