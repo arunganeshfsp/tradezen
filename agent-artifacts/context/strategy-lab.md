@@ -75,3 +75,9 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 - Both strategies now **default `universe="inv_nifty50"`** (was `inv_favorites`) — the curated Nifty 50 list from `/mgmt/stock-inventory.html` → Nifty 50 tab (`stock_universe_get(conn, "nifty50")`), not the static `_NIFTY50_SYMS`.
 - `_STRATEGY_VALID_UNI` now `{all_fno, nifty500_fno, inv_nifty50, inv_favorites}` (dropped static `nifty50`). Strategy Lab group dropdown: "Nifty 50 (Inventory)" = `inv_nifty50`, "Favorites (Inventory)" = `inv_favorites`, plus F&O / Nifty 500. Resolved via the existing `inv_<source>` capture branch against `_load_all_eq_stocks()`.
 - Idempotent seeding: existing installs keep their saved universe — pick "Nifty 50 (Inventory)" in each tab's settings, or the new default applies on a fresh seed. Empty inventory ⇒ no candidates until the Nifty 50 list is imported.
+
+## 2026-08-10 — Removed dominance + price-range filters; seed now reconciles engine keys
+
+- Both strategies: **dominance gate off** (`dom_min_pct=0` — every stock in the group is a candidate, side by whichever of buy%/sell% dominates) and **price range off** (`price_min=0`, `price_max=100000000`). The `buy_min_chg_pct` (≥1% move) filter and everything else stay.
+- Strategy Lab settings panel: **Price min/max fields removed** (and dropped from the save payload / load). Rule chip shows "Side by buyer/seller dominance" when `dom_min_pct=0`.
+- **`_seed_strategies()` reconciliation:** on every startup it now re-applies the registry's *engine-managed* keys to existing sessions, preserving only user knobs `_STRATEGY_USER_KEYS = {universe, default_sl_basis, sl_amount_rupees, entry_window_start}`. So registry default changes (filters, windows, VWAP SL, etc.) propagate on restart without a manual re-seed, while the user's group/SL/scan choices persist. `_StrategySettingsBody` still accepts price/dom keys (harmless) but the UI no longer sends them.

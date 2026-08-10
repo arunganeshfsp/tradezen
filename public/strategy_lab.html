@@ -172,8 +172,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <option value="NONE">None</option>
           </select></div>
         <div class="field" id="slAmountField" style="display:none"><label>Flat SL amount ₹</label><input id="f-sl_amount_rupees" type="number" min="1" value="900"></div>
-        <div class="field"><label>Price min ₹</label><input id="f-price_min" type="number" min="0" value="100"></div>
-        <div class="field"><label>Price max ₹</label><input id="f-price_max" type="number" min="1" value="1000000"></div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <span class="hint" id="setupMsg"></span>
@@ -302,8 +300,6 @@ async function loadSettings(){
     document.getElementById('f-universe').value         = s.universe || 'inv_nifty50';
     document.getElementById('f-default_sl_basis').value = s.default_sl_basis || 'DAY_SMART';
     document.getElementById('f-sl_amount_rupees').value = s.sl_amount_rupees || 900;
-    document.getElementById('f-price_min').value        = s.price_min;
-    document.getElementById('f-price_max').value        = s.price_max;
     _toggleSlAmount();
     renderRuleChips(s);
   }catch(e){}
@@ -313,9 +309,12 @@ function renderRuleChips(s){
   const noTarget  = !s.target_rupees || s.target_rupees <= 0;
   const noSl      = (s.default_sl_basis === 'NONE');
   const reversal  = (s.entry_mode === 'reversal');
+  const domChip = (s.dom_min_pct > 0)
+    ? `Buyer/Seller dominance <b>&gt; ${Math.round(s.dom_min_pct)}%</b>`
+    : `Side by <b>buyer/seller dominance</b>`;
   const chips = [
     `Scan <b>${_esc(s.entry_window_start||'—')}</b>`,
-    `Buyer/Seller dominance <b>&gt; ${Math.round(s.dom_min_pct)}%</b>`,
+    domChip,
     reversal ? `Enter <b>immediately at scan</b>` : `Entry <b>above day-high / below day-low</b>`,
     reversal ? `Reverses <b>at opposite day-extreme</b>` : null,
     noTarget ? `Target <b>none</b>` : `Target <b>₹${_esc(s.target_rupees)}</b>`,
@@ -332,16 +331,11 @@ async function saveSettings(){
     entry_window_start: document.getElementById('f-entry_window_start').value,
     universe:         document.getElementById('f-universe').value,
     default_sl_basis: document.getElementById('f-default_sl_basis').value,
-    price_min:        num('f-price_min'),
-    price_max:        num('f-price_max'),
   };
   if (body.default_sl_basis === 'AMOUNT'){
     const amt = num('f-sl_amount_rupees');
     if (!amt || amt <= 0){ msg.textContent = 'Enter a flat SL amount greater than ₹0.'; return; }
     body.sl_amount_rupees = amt;
-  }
-  if (body.price_min!=null && body.price_max!=null && body.price_min >= body.price_max){
-    msg.textContent = 'Price min must be below price max.'; return;
   }
   Object.keys(body).forEach(k=>body[k]===undefined&&delete body[k]);
   const btn = document.getElementById('saveBtn');

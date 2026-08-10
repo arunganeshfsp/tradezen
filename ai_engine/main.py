@@ -7877,19 +7877,20 @@ _STRATEGIES: dict = {
     "day_range_breakout": {
         "session": "strat_day_range_breakout",
         "label":   "Day-Range Breakout (10:15)",
-        "blurb":   "Scans at 10:15. Bullish (buy% > 55%) reference the day's high, "
-                   "bearish (sell% > 55%) the day's low; a setup activates only when "
-                   "price crosses that level. No target — manual exit or 15:30 square-off.",
+        "blurb":   "Scans at 10:15. Each stock in the group is marked bullish or bearish by "
+                   "buyer/seller dominance; bullish setups reference the day's high, bearish the "
+                   "day's low, and activate only when price crosses that level. No target — manual "
+                   "exit or 15:30 square-off.",
         "defaults": {
             "entry_window_start": "10:15",
             "entry_window_end":   "15:15",
             "square_off_time":    "15:30",
-            "dom_min_pct":        "55",
+            "dom_min_pct":        "0",
             "target_rupees":      "0",             # no profit target
             "universe":           "inv_nifty50",    # curated Nifty 50 in Stock Inventory
             "default_sl_basis":   "VWAP",
-            "price_min":          "100",
-            "price_max":          "1000000",
+            "price_min":          "0",
+            "price_max":          "100000000",
             "candidate_cap":      "20",
             "max_slots":          "20",
             "require_live_dom":   "0",             # fill on price breakout alone
@@ -7907,12 +7908,12 @@ _STRATEGIES: dict = {
             "entry_window_start": "09:18",
             "entry_window_end":   "15:15",
             "square_off_time":    "15:30",
-            "dom_min_pct":        "55",
+            "dom_min_pct":        "0",
             "target_rupees":      "0",             # no profit target
             "universe":           "inv_nifty50",   # curated Nifty 50 in Stock Inventory
             "default_sl_basis":   "NONE",          # no stop loss
-            "price_min":          "100",
-            "price_max":          "1000000",
+            "price_min":          "0",
+            "price_max":          "100000000",
             "candidate_cap":      "20",
             "max_slots":          "50",            # leg-1 entries across both sides
             "require_live_dom":   "0",
@@ -7922,13 +7923,24 @@ _STRATEGIES: dict = {
 }
 
 
+# Knobs the user can change on the Strategy Lab page — preserved across restarts.
+# Every other key is engine-managed: the registry is authoritative and reconciled
+# on each startup so default changes (filters, windows, etc.) actually propagate.
+_STRATEGY_USER_KEYS = {"universe", "default_sl_basis", "sl_amount_rupees", "entry_window_start"}
+
+
 def _seed_strategies():
-    """Idempotently seed each strategy's dedicated session so the background loop
-    captures it at its own scan time. Existing rows (admin edits) are preserved."""
+    """Seed each strategy's dedicated session so the background loop captures it at
+    its own scan time. On first run all defaults are written; on later runs only the
+    engine-managed keys are reconciled to the registry (user knobs are preserved)."""
     conn = get_conn()
     try:
         for sid, meta in _STRATEGIES.items():
-            if not orb_has_own_settings(conn, meta["session"]):
+            if orb_has_own_settings(conn, meta["session"]):
+                managed = {k: v for k, v in meta["defaults"].items()
+                           if k not in _STRATEGY_USER_KEYS}
+                orb_upsert_settings(conn, managed, user_id=meta["session"])
+            else:
                 orb_upsert_settings(conn, meta["defaults"], user_id=meta["session"])
                 log.info(f"[STRATEGY] seeded defaults for {sid} ({meta['session']})")
     finally:
