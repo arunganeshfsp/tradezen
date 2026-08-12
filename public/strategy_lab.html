@@ -196,8 +196,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="tbl-wrap">
       <table class="tbl">
         <thead><tr>
-          <th>Setup</th><th>Symbol</th><th>Dominance</th><th>Change</th>
-          <th>Scan ₹</th><th>Live ₹</th><th>Ref level</th><th>Status</th>
+          <th>Setup</th><th>Symbol</th><th>Change</th>
+          <th>Scan ₹</th><th>Live ₹</th><th>Day High</th><th>Day Low</th><th>Status</th>
         </tr></thead>
         <tbody id="candBody"><tr><td colspan="8" class="empty-cell">—</td></tr></tbody>
       </table>
@@ -392,25 +392,22 @@ function renderCands(cands){
   if (!cands.length){ body.innerHTML = `<tr><td colspan="8" class="empty-cell">No setups captured yet — the scan runs at 10:15</td></tr>`; return; }
   body.innerHTML = cands.map(c=>{
     const isBuy = c.side === 'BUY';
-    const wait  = c.status === 'WAITING';
-    const bp = Math.round((wait && c.live_buy_pct !=null ? c.live_buy_pct : c.buy_pct)||0);
-    const sp = Math.round((wait && c.live_sell_pct!=null ? c.live_sell_pct: c.sell_pct)||0);
     let chg = '<span style="color:var(--muted)">—</span>';
     if (c.change_pct!=null){ const cl=c.change_pct>0?'bull-val':c.change_pct<0?'bear-val':''; chg=`<span class="${cl}">${c.change_pct>0?'+':''}${c.change_pct.toFixed(2)}%</span>`; }
     let live = '<span style="color:var(--muted)">—</span>';
     if (c.live_ltp!=null){ const diff=c.ltp_0916?c.live_ltp-c.ltp_0916:0; const cl=diff>0?'bull-val':diff<0?'bear-val':''; live=`<span class="${cl} num">₹${_f2(c.live_ltp)}</span>`; }
     const st = c.status==='WAITING'?'st-waiting':c.status==='TRIGGERED'?'st-triggered':'';
     const dim = (c.status==='SKIPPED'||c.status==='WINDOW_CLOSED')?' style="opacity:.45"':'';
-    const ref = isBuy ? `<span class="num bull-val">▲ ₹${_f2(c.bench_high)}</span>` : `<span class="num bear-val">▼ ₹${_f2(c.bench_low)}</span>`;
+    const dHigh = c.bench_high!=null ? `<span class="num bull-val">₹${_f2(c.bench_high)}</span>` : '<span style="color:var(--muted)">—</span>';
+    const dLow  = c.bench_low !=null ? `<span class="num bear-val">₹${_f2(c.bench_low)}</span>` : '<span style="color:var(--muted)">—</span>';
     return `<tr${dim}>
       <td><span class="dir-badge ${isBuy?'dir-bull':'dir-bear'}">${isBuy?'BULLISH ▲':'BEARISH ▼'}</span></td>
       <td class="sym">${_esc(c.symbol)}</td>
-      <td><div class="dom-bar"><div class="b" style="width:${bp}%"></div><div class="s" style="width:${sp}%"></div></div>
-          <div class="dom-nums">${bp}% / ${sp}%</div></td>
       <td>${chg}</td>
       <td class="num">${c.ltp_0916!=null?'₹'+_f2(c.ltp_0916):'—'}</td>
       <td>${live}</td>
-      <td>${ref}</td>
+      <td>${dHigh}</td>
+      <td>${dLow}</td>
       <td><span class="st-badge ${st}">${_esc(c.status||'')}</span></td>
     </tr>`;
   }).join('');
