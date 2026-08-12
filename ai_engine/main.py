@@ -7830,6 +7830,7 @@ from storage.sqlite_store import (
     orb_get_candidates, orb_upsert_candidate, orb_update_candidate_sl,
     orb_update_candidate_status, orb_insert_trade,
     orb_get_trades, orb_get_open_trades, orb_update_trade,
+    orb_pnl_hwm_get, orb_pnl_hwm_update,
     orb_get_settings, orb_upsert_settings,
     orb_has_own_settings, orb_list_setting_users, orb_delete_settings,
     stock_universe_import, stock_universe_get, stock_universe_counts, stock_universe_clear,
@@ -8596,6 +8597,24 @@ def _orb_outcome_poll_sync(today: str, now_ist):
             f"{' (auto square-off)' if auto_sq else ''} | P/L ₹{pnl:+.2f}"
         )
 
+    # Fold each session's live total P/L into its intraday high/low water mark
+    # (open positions marked to the just-refreshed LTP cache + realized on closed),
+    # so the day's peak profit / max drawdown persist across page reloads. Runs 5s.
+    hwm_by_sess: dict = {}
+    for t in orb_get_trades(conn, today):
+        hwm_by_sess.setdefault(t.get("user_id", ""), []).append(t)
+    for u, ts in hwm_by_sess.items():
+        total = 0.0
+        for t in ts:
+            if t["outcome"] == "OPEN":
+                lp = _orb_ltp_cache.get(sym_to_token.get(t["symbol"]))
+                if lp:
+                    total += ((lp - t["trigger_price"]) if t["direction"] == "BUY"
+                              else (t["trigger_price"] - lp)) * (t["quantity"] or 0)
+            else:
+                total += t.get("pnl") or 0
+        orb_pnl_hwm_update(conn, today, u, round(total, 2))
+
     conn.close()
 
 
@@ -8905,6 +8924,9 @@ async def simulator_state(request: Request, date: str = "", tf: str = "", uni: s
                 "SQUARE_OFF": sum(1 for t in trades if t["outcome"] == "SQUARE_OFF"),
             },
         }
+        hconn = get_conn()
+        summary["pnl_day_high"], summary["pnl_day_low"] = orb_pnl_hwm_get(hconn, date, sess)
+        hconn.close()
         return {
             "date":       date,
             "session":    "personal" if sess else "shared",

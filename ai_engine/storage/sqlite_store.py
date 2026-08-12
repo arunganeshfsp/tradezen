@@ -121,6 +121,15 @@ def _ensure_tables(conn: sqlite3.Connection):
             added_at TEXT DEFAULT (datetime('now', 'localtime')),
             PRIMARY KEY (symbol, source)
         );
+
+        CREATE TABLE IF NOT EXISTS orb_pnl_hwm (
+            user_id    TEXT NOT NULL DEFAULT '',
+            date       TEXT NOT NULL,
+            pnl_high   REAL NOT NULL DEFAULT 0,
+            pnl_low    REAL NOT NULL DEFAULT 0,
+            updated_at TEXT,
+            PRIMARY KEY (user_id, date)
+        );
     """)
     conn.commit()
     _migrate_orb_user_scope(conn)
@@ -390,6 +399,35 @@ def orb_update_trade(conn, trade_id: str, updates: dict):
     vals  = list(updates.values()) + [trade_id]
     conn.execute(f"UPDATE orb_stock_trades SET {cols} WHERE id=?", vals)
     conn.commit()
+
+
+# ── ORB P/L high-water / low-water mark (intraday equity-curve extremes) ────────
+
+def orb_pnl_hwm_get(conn, date: str, user_id: str) -> tuple:
+    """Return (pnl_high, pnl_low) for the day; (0.0, 0.0) if not tracked yet."""
+    row = conn.execute("SELECT pnl_high, pnl_low FROM orb_pnl_hwm WHERE user_id=? AND date=?",
+                       (user_id, date)).fetchone()
+    return (row["pnl_high"], row["pnl_low"]) if row else (0.0, 0.0)
+
+
+def orb_pnl_hwm_update(conn, date: str, user_id: str, current_pnl: float) -> tuple:
+    """Fold current total P/L into the day's high/low water marks (both seeded at 0).
+    day_high = max ever seen (≥0), day_low = min ever seen (≤0). Returns (high, low)."""
+    row = conn.execute("SELECT pnl_high, pnl_low FROM orb_pnl_hwm WHERE user_id=? AND date=?",
+                       (user_id, date)).fetchone()
+    if row is None:
+        high, low = max(0.0, current_pnl), min(0.0, current_pnl)
+    else:
+        high, low = max(row["pnl_high"], current_pnl), min(row["pnl_low"], current_pnl)
+    high, low = round(high, 2), round(low, 2)
+    conn.execute(
+        """INSERT INTO orb_pnl_hwm (user_id, date, pnl_high, pnl_low, updated_at)
+           VALUES (?,?,?,?,datetime('now'))
+           ON CONFLICT(user_id, date) DO UPDATE SET
+             pnl_high=excluded.pnl_high, pnl_low=excluded.pnl_low, updated_at=excluded.updated_at""",
+        (user_id, date, high, low))
+    conn.commit()
+    return high, low
 
 
 # ── ORB Settings helpers ───────────────────────────────────────────────────────

@@ -395,9 +395,14 @@ function renderState(d){
     liveTotal += p;
     if (p > 0) posTotal += p; else if (p < 0) negTotal += p;
   });
+  // Day's P/L range = high/low water mark of the total P/L (server-tracked, persists
+  // across reloads), bracketed by the live total so the current figure always sits inside.
+  const dayHigh = Math.max(s.pnl_day_high || 0, liveTotal, 0);
+  const dayLow  = Math.min(s.pnl_day_low  || 0, liveTotal, 0);
   document.getElementById('pnlStat').innerHTML =
     `P/L <b class="${_pnlCls(liveTotal)}" style="font-size:13px">${_pnlStr(liveTotal)}</b>` +
-    ` · <span class="pos">▲ +₹${_f2(posTotal)}</span> <span class="neg">▼ −₹${_f2(Math.abs(negTotal))}</span>` +
+    ` · <span class="pos" title="Day's peak P/L">▲ +₹${_f2(dayHigh)}</span>` +
+    ` <span class="neg" title="Day's lowest P/L">▼ −₹${_f2(Math.abs(dayLow))}</span>` +
     (s.win_rate != null ? ` · Win ${s.win_rate}%` : '');
   renderCands(d.candidates || []);
   const benchBySym = {};
@@ -501,8 +506,12 @@ function _csvVal(v){
   const s = String(v);
   return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
 }
-function _downloadCsv(headers, rows, filename){
-  const csv  = headers.join(',') + '\n' + rows.join('\n') +
+function _downloadCsv(headers, rows, filename, summaryLines){
+  let csv = '';
+  if (summaryLines && summaryLines.length){
+    csv += 'DAY SUMMARY\n' + summaryLines.join('\n') + '\n\nTRADES\n';
+  }
+  csv += headers.join(',') + '\n' + rows.join('\n') +
     '\n\nSimulated study data — For educational purposes only. Not investment advice.';
   const blob = new Blob(['﻿'+csv], { type:'text/csv;charset=utf-8' });
   const a    = document.createElement('a');
@@ -518,6 +527,34 @@ function exportTrades(){
   const bench = {};
   (d.candidates || []).forEach(c => { bench[c.symbol] = { h:c.bench_high, l:c.bench_low }; });
   const date = d.date || new Date().toISOString().slice(0,10);
+
+  // Day summary — same figures as the status strip (live book + P/L high/low water marks).
+  let liveTotal = 0, posTotal = 0, negTotal = 0;
+  trades.forEach(t => {
+    const isBuy = t.direction === 'BUY';
+    let p;
+    if (t.outcome === 'OPEN') p = (t.live_ltp != null)
+      ? (isBuy ? t.live_ltp - t.trigger_price : t.trigger_price - t.live_ltp) * (t.quantity || 0) : 0;
+    else p = t.pnl || 0;
+    liveTotal += p; if (p > 0) posTotal += p; else if (p < 0) negTotal += p;
+  });
+  const sm      = d.summary || {};
+  const dayHigh = Math.max(sm.pnl_day_high || 0, liveTotal, 0);
+  const dayLow  = Math.min(sm.pnl_day_low  || 0, liveTotal, 0);
+  const meta    = _strategies.find(x => x.id === _current) || {};
+  const summaryLines = [
+    ['Strategy',           meta.label || _current],
+    ['Date',               date],
+    ['Total P/L (₹)',      liveTotal.toFixed(2)],
+    ["Day's peak P/L (₹)", dayHigh.toFixed(2)],
+    ["Day's lowest P/L (₹)", dayLow.toFixed(2)],
+    ['Total gains (₹)',    posTotal.toFixed(2)],
+    ['Total losses (₹)',   negTotal.toFixed(2)],
+    ['Trades',             trades.length],
+    ['Open',               trades.filter(t => t.outcome === 'OPEN').length],
+    ['Closed',             trades.filter(t => t.outcome !== 'OPEN').length],
+  ].map(r => r.map(_csvVal).join(','));
+
   const HEADERS = [
     'Date','Strategy','Symbol','Direction','Day High (scan)','Day Low (scan)',
     'Entry Time','Fill Price','SL Basis','SL Price','Target Price','Qty','Investment',
@@ -538,7 +575,7 @@ function exportTrades(){
       t.outcome, liveOrExit, t.exit_time, (open ? '' : t.pnl), unreal, t.return_amount, t.remarks,
     ].map(_csvVal).join(',');
   });
-  _downloadCsv(HEADERS, rows, `strategy_lab_${_current}_${date}.csv`);
+  _downloadCsv(HEADERS, rows, `strategy_lab_${_current}_${date}.csv`, summaryLines);
 }
 
 boot();
