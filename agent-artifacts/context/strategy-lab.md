@@ -89,3 +89,8 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 - **Unrealized** column: OPEN trades only, gross mark `(isBuy? live_ltp-trigger : trigger-live_ltp) * qty` via existing `_pnlStr`/`_pnlCls`; closed trades show `—`. The existing **P/L** column now shows `—` for OPEN (was a misleading `+₹0.00`) and the realized value once closed.
 - Status-strip "Net P/L" unchanged (still realized-only from backend `summary` — unrealized not folded in).
 - **Setups table:** dropped the **Dominance** column (dominance gate is off — `dom_min_pct=0`) and the single "Ref level" column; added explicit **Day High** / **Day Low** (green/red `bench_high`/`bench_low`) for parity with the Trades table. `renderCands` no longer reads `buy_pct`/`sell_pct`/`live_*_pct`. Column count stays 8: `Setup | Symbol | Change | Scan ₹ | Live ₹ | Day High | Day Low | Status`.
+
+## 2026-08-12 — Testing phase: cover the whole Nifty 50 inventory (no 20-cap)
+
+- Both strategies: `candidate_cap` 20 → **50** (per side) and breakout `max_slots` 20 → **50** (reversal was already 50). With the dominance gate off, every stock in the group becomes a candidate on one side, so 50/50 lets the full Nifty 50 inventory through instead of the top 20. Validation ceilings already allow it (`candidate_cap` 5–100, strategy `max_slots` 1–50).
+- Engine-managed keys, so `_seed_strategies()` reconciles them onto existing sessions on restart (not `_STRATEGY_USER_KEYS`). Reversal leg-2 trades are still inserted directly in the outcome poll (not counted against `max_slots`).

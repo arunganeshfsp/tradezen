@@ -7891,8 +7891,8 @@ _STRATEGIES: dict = {
             "default_sl_basis":   "VWAP",
             "price_min":          "0",
             "price_max":          "100000000",
-            "candidate_cap":      "20",
-            "max_slots":          "20",
+            "candidate_cap":      "50",            # testing: consider the whole Nifty 50 inventory
+            "max_slots":          "50",
             "require_live_dom":   "0",             # fill on price breakout alone
             "entry_mode":         "breakout",
         },
@@ -7914,7 +7914,7 @@ _STRATEGIES: dict = {
             "default_sl_basis":   "NONE",          # no stop loss
             "price_min":          "0",
             "price_max":          "100000000",
-            "candidate_cap":      "20",
+            "candidate_cap":      "50",            # testing: consider the whole Nifty 50 inventory
             "max_slots":          "50",            # leg-1 entries across both sides
             "require_live_dom":   "0",
             "entry_mode":         "reversal",      # immediate entry + stop-and-reverse
