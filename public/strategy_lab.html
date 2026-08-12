@@ -381,10 +381,24 @@ function renderState(d){
   chip.textContent = pl; chip.className = `phase-chip phase-${pc}`;
   document.getElementById('slotStat').innerHTML = `Slots <b>${w.slots_used||0}/${w.slots_total||0}</b>`;
   const s = d.summary || {};
-  const net = s.total_net_pnl!=null ? s.total_net_pnl : s.total_pnl || 0;
+  // Live book P/L computed from the trades themselves so the header matches the
+  // table exactly: OPEN positions mark to live LTP (unrealized), closed use realized.
+  // (The backend summary books round-trip costs on still-open trades, which understates it.)
+  let liveTotal = 0, posTotal = 0, negTotal = 0;
+  (d.trades || []).forEach(t => {
+    const isBuy = t.direction === 'BUY';
+    let p;
+    if (t.outcome === 'OPEN') p = (t.live_ltp != null)
+      ? (isBuy ? t.live_ltp - t.trigger_price : t.trigger_price - t.live_ltp) * (t.quantity || 0)
+      : 0;
+    else p = t.pnl || 0;
+    liveTotal += p;
+    if (p > 0) posTotal += p; else if (p < 0) negTotal += p;
+  });
   document.getElementById('pnlStat').innerHTML =
-    `Net P/L <b class="${_pnlCls(net)}" style="font-size:13px">${_pnlStr(net)}</b>` +
-    (s.win_rate!=null ? ` · Win ${s.win_rate}%` : '');
+    `P/L <b class="${_pnlCls(liveTotal)}" style="font-size:13px">${_pnlStr(liveTotal)}</b>` +
+    ` · <span class="pos">▲ +₹${_f2(posTotal)}</span> <span class="neg">▼ −₹${_f2(Math.abs(negTotal))}</span>` +
+    (s.win_rate != null ? ` · Win ${s.win_rate}%` : '');
   renderCands(d.candidates || []);
   const benchBySym = {};
   (d.candidates || []).forEach(c => { benchBySym[c.symbol] = { h:c.bench_high, l:c.bench_low }; });

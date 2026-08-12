@@ -119,3 +119,10 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 - The **existing 09:20 breakout was left untouched** and only **relabelled to "Day-Range Breakout (09:20)"** (was "(10:15)") so the two don't get confused — same id/session, no data migration.
 - Zero plumbing changes: `_seed_strategies`, `/strategy/list`, `/strategy/settings`, `/simulator/state`, the capture/trigger/outcome loop, and the frontend tabs are all `_STRATEGIES`-driven, so the new tab appears and auto-captures at 10:15 on its own. Each session captures at its own `entry_window_start`. Now three tabs total.
 - Hero copy on `strategy_lab.html` generalised (no longer pins to one strategy) so it doesn't go stale as experiments are added.
+
+## 2026-08-12 — Status-strip P/L fixed to live book + positive/negative range
+
+- **Bug:** the header "Net P/L" used the backend `summary.total_net_pnl`, which is `Σ(pnl − transaction_cost)`. Open trades store `pnl=0`, so it booked round-trip brokerage+STT on every still-open position while ignoring their unrealized gains → a book that was well in profit showed a large negative (e.g. −₹2,027 with 22 open trades mostly green).
+- **Fix (frontend `renderState`):** the header is now computed from `d.trades` directly — OPEN positions mark to `live_ltp` (unrealized `(isBuy?live-fill:fill-live)*qty`), closed use realized `t.pnl`. So it matches the Unrealized column exactly. Relabelled **"Net P/L" → "P/L"** (it's gross live book, not net-of-cost).
+- **Added the +/- range:** `▲ +₹<gains>` and `▼ −₹<losses>` = sum of every trade currently in profit vs. in loss (same per-trade figure), for at-a-glance tracking.
+- Backend `summary` untouched (only the strategy page consumed `total_net_pnl`; the CSV export already uses per-trade realized/unrealized, not the summary). `win_rate` still realized/TARGET_HIT-based → shows 0% for these no-target strategies (pre-existing, not in scope).
