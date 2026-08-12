@@ -130,9 +130,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   <div class="htag">Strategy Experiments · Simulation</div>
   <h1>Strategy <em>Lab</em></h1>
   <p class="hero-sub">A workbench for intraday strategy experiments on paper. The first study —
-    <b>Day-Range Breakout</b> — scans at 10:15, marks bullish setups (buyer dominance &gt; 55%) against the day's high
-    and bearish setups (seller dominance &gt; 55%) against the day's low, and activates a setup only when price crosses that
-    reference level. Descriptive study only — no orders are placed.</p>
+    <b>Day-Range Breakout</b> — locks each Nifty 50 stock's opening range at 09:20, then watches until 10:15 and
+    activates a setup when price breaks above the day's high (bullish) or below the day's low (bearish).
+    Descriptive study only — no orders are placed.</p>
 </div>
 
 <div class="main-wrap">
@@ -316,10 +316,12 @@ function renderRuleChips(s){
     ? `Buyer/Seller dominance <b>&gt; ${Math.round(s.dom_min_pct)}%</b>`
     : `Side by <b>buyer/seller dominance</b>`;
   const chips = [
-    `Scan <b>${_esc(s.entry_window_start||'—')}</b>`,
+    reversal ? `Scan <b>${_esc(s.entry_window_start||'—')}</b>`
+             : `Lock range <b>${_esc(s.entry_window_start||'—')}</b>`,
     domChip,
     reversal ? `Enter <b>immediately at scan</b>` : `Entry <b>above day-high / below day-low</b>`,
-    reversal ? `Reverses <b>at opposite day-extreme</b>` : null,
+    reversal ? `Reverses <b>at opposite day-extreme</b>`
+             : `Select until <b>${_esc(s.entry_window_end||'10:15')}</b>`,
     noTarget ? `Target <b>none</b>` : `Target <b>₹${_esc(s.target_rupees)}</b>`,
     noSl ? `Stop loss <b>none</b>` : `Stop loss <b>${_esc(s.default_sl_basis)}</b>`,
     `Exit <b>manual + ${_esc(s.square_off_time||'15:30')} square-off</b>`,
@@ -393,7 +395,7 @@ function renderState(d){
 function renderCands(cands){
   document.getElementById('candCount').textContent = cands.length + ' setups';
   const body = document.getElementById('candBody');
-  if (!cands.length){ body.innerHTML = `<tr><td colspan="8" class="empty-cell">No setups captured yet — the scan runs at 10:15</td></tr>`; return; }
+  if (!cands.length){ const t=(_settings&&_settings.entry_window_start)||'the scan time'; body.innerHTML = `<tr><td colspan="8" class="empty-cell">No setups captured yet — the scan runs at ${_esc(t)}</td></tr>`; return; }
   body.innerHTML = cands.map(c=>{
     const isBuy = c.side === 'BUY';
     let chg = '<span style="color:var(--muted)">—</span>';

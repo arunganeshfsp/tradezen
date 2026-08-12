@@ -7877,15 +7877,16 @@ _STRATEGIES: dict = {
     "day_range_breakout": {
         "session": "strat_day_range_breakout",
         "label":   "Day-Range Breakout (10:15)",
-        "blurb":   "Scans at 10:15. Each stock in the group is marked bullish or bearish by "
-                   "buyer/seller dominance; bullish setups reference the day's high, bearish the "
-                   "day's low, and activate only when price crosses that level. No target — manual "
-                   "exit or 15:30 square-off.",
+        "blurb":   "Locks each stock's opening range (day high / day low) at 09:20, then watches "
+                   "the whole Nifty 50 until 10:15: a setup activates when price breaks above the "
+                   "day's high (bullish) or below the day's low (bearish). No target — manual exit "
+                   "or 15:30 square-off.",
         "defaults": {
-            "entry_window_start": "10:15",
-            "entry_window_end":   "15:15",
+            "entry_window_start": "09:20",         # opening-range lock (day high/low frozen here)
+            "entry_window_end":   "10:15",         # selection window closes — no new entries after
             "square_off_time":    "15:30",
             "dom_min_pct":        "0",
+            "buy_min_chg_pct":    "0",             # no pre-move gate — watch the whole Nifty 50
             "target_rupees":      "0",             # no profit target
             "universe":           "inv_nifty50",    # curated Nifty 50 in Stock Inventory
             "default_sl_basis":   "VWAP",
@@ -8436,6 +8437,17 @@ def _orb_outcome_poll_sync(today: str, now_ist):
     sym_to_token = {c["symbol"]: c["token"] for c in _all_cands}
     cand_by_key  = {(c["user_id"], c["symbol"]): c for c in _all_cands}
     exit_time    = now_ist.strftime("%Y-%m-%d %H:%M:%S")
+
+    # Refresh live prices for open positions so server-side resolution (reversal
+    # flips, SL/target, trailing) fires every poll even when no page is watching.
+    # Once all candidates have TRIGGERED the trigger poll stops quoting these tokens,
+    # so without this the cache would only refresh while /simulator/state is polled.
+    open_toks = sorted({sym_to_token[t["symbol"]]
+                        for t in open_trades if t["symbol"] in sym_to_token})
+    if open_toks:
+        smart_s = _get_smart()
+        if smart_s:
+            _orb_raw_quotes(smart_s, open_toks)   # side-effect: updates _orb_ltp_cache
 
     sess_settings = {}
     for trade in open_trades:
