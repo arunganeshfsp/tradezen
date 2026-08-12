@@ -7876,7 +7876,7 @@ _STRATEGY_VALID_UNI = {"all_fno", "nifty500_fno", "inv_nifty50", "inv_favorites"
 _STRATEGIES: dict = {
     "day_range_breakout": {
         "session": "strat_day_range_breakout",
-        "label":   "Day-Range Breakout (10:15)",
+        "label":   "Day-Range Breakout (09:20)",
         "blurb":   "Locks each stock's opening range (day high / day low) at 09:20, then watches "
                    "the whole Nifty 50 until 10:15: a setup activates when price breaks above the "
                    "day's high (bullish) or below the day's low (bearish). No target — manual exit "
@@ -7884,6 +7884,30 @@ _STRATEGIES: dict = {
         "defaults": {
             "entry_window_start": "09:20",         # opening-range lock (day high/low frozen here)
             "entry_window_end":   "10:15",         # selection window closes — no new entries after
+            "square_off_time":    "15:30",
+            "dom_min_pct":        "0",
+            "buy_min_chg_pct":    "0",             # no pre-move gate — watch the whole Nifty 50
+            "target_rupees":      "0",             # no profit target
+            "universe":           "inv_nifty50",    # curated Nifty 50 in Stock Inventory
+            "default_sl_basis":   "VWAP",
+            "price_min":          "0",
+            "price_max":          "100000000",
+            "candidate_cap":      "50",            # testing: consider the whole Nifty 50 inventory
+            "max_slots":          "50",
+            "require_live_dom":   "0",             # fill on price breakout alone
+            "entry_mode":         "breakout",
+        },
+    },
+    "day_range_breakout_1015": {
+        "session": "strat_day_range_breakout_1015",
+        "label":   "Day-Range Breakout (10:15)",
+        "blurb":   "A separate study: locks each stock's range (day high / day low) at 10:15, then "
+                   "watches the whole Nifty 50 until 11:30: a setup activates when price breaks above "
+                   "the day's high (bullish) or below the day's low (bearish). No target — manual exit "
+                   "or 15:30 square-off.",
+        "defaults": {
+            "entry_window_start": "10:15",         # range lock (day high/low frozen here)
+            "entry_window_end":   "11:30",         # selection window closes — no new entries after
             "square_off_time":    "15:30",
             "dom_min_pct":        "0",
             "buy_min_chg_pct":    "0",             # no pre-move gate — watch the whole Nifty 50
