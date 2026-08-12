@@ -206,7 +206,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
   <!-- TRADES -->
   <div class="card">
-    <div class="card-hdr"><span class="card-title">Simulated Trades</span></div>
+    <div class="card-hdr"><span class="card-title">Simulated Trades</span>
+      <button class="btn" id="exportBtn" style="margin-left:auto;font-size:10px;padding:6px 12px"
+              onclick="exportTrades()" title="Download the day's simulated trades as CSV">↓ Export CSV</button></div>
     <div class="tbl-wrap">
       <table class="tbl">
         <thead><tr>
@@ -230,6 +232,7 @@ let _strategies = [];
 let _current    = null;   // strategy id
 let _settings   = null;
 let _poll       = null;
+let _lastState  = null;   // latest /simulator/state payload (for export)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const _esc  = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -370,6 +373,7 @@ async function loadState(){
 }
 
 function renderState(d){
+  _lastState = d;
   const w = d.window || {};
   const [pl, pc] = _PHASES[w.phase] || ['—','dim'];
   const chip = document.getElementById('phaseChip');
@@ -473,6 +477,53 @@ async function squareOff(tradeId, btn){
     if (d.error){ btn.textContent = 'Failed'; btn.disabled=false; return; }
     await loadState(); loadList();
   }catch(e){ btn.textContent = 'Failed'; btn.disabled=false; }
+}
+
+// ── Export ───────────────────────────────────────────────────────────────────
+const _SL_LABEL = { VWAP:'VWAP / day extreme', DAY_SMART:'Day extreme (smart)', AMOUNT:'Flat ₹', NONE:'None' };
+function _csvVal(v){
+  if (v==null || v==='') return '';
+  const s = String(v);
+  return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function _downloadCsv(headers, rows, filename){
+  const csv  = headers.join(',') + '\n' + rows.join('\n') +
+    '\n\nSimulated study data — For educational purposes only. Not investment advice.';
+  const blob = new Blob(['﻿'+csv], { type:'text/csv;charset=utf-8' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function exportTrades(){
+  const d      = _lastState || {};
+  const trades = d.trades || [];
+  if (!trades.length){ alert('No simulated trades to export yet.'); return; }
+  const bench = {};
+  (d.candidates || []).forEach(c => { bench[c.symbol] = { h:c.bench_high, l:c.bench_low }; });
+  const date = d.date || new Date().toISOString().slice(0,10);
+  const HEADERS = [
+    'Date','Strategy','Symbol','Direction','Day High (scan)','Day Low (scan)',
+    'Entry Time','Fill Price','SL Basis','SL Price','Target Price','Qty','Investment',
+    'Outcome','Live/Exit Price','Exit Time','Realized P/L','Unrealized P/L','Return Amount','Remarks',
+  ];
+  const rows = trades.map(t => {
+    const b     = bench[t.symbol] || {};
+    const isBuy = t.direction === 'BUY';
+    const open  = t.outcome === 'OPEN';
+    const liveOrExit = open ? t.live_ltp : t.exit_price;
+    const unreal = (open && t.live_ltp!=null)
+      ? Math.round((isBuy ? t.live_ltp - t.trigger_price : t.trigger_price - t.live_ltp) * (t.quantity||0) * 100) / 100
+      : '';
+    return [
+      date, _current, t.symbol, isBuy ? 'BULLISH' : 'BEARISH', b.h, b.l,
+      t.entry_time, t.trigger_price, _SL_LABEL[t.sl_basis] || t.sl_basis || 'None',
+      t.stop_loss_price, (t.target_price>0 ? t.target_price : ''), t.quantity, t.investment,
+      t.outcome, liveOrExit, t.exit_time, (open ? '' : t.pnl), unreal, t.return_amount, t.remarks,
+    ].map(_csvVal).join(',');
+  });
+  _downloadCsv(HEADERS, rows, `strategy_lab_${_current}_${date}.csv`);
 }
 
 boot();

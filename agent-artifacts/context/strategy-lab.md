@@ -94,3 +94,9 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 
 - Both strategies: `candidate_cap` 20 → **50** (per side) and breakout `max_slots` 20 → **50** (reversal was already 50). With the dominance gate off, every stock in the group becomes a candidate on one side, so 50/50 lets the full Nifty 50 inventory through instead of the top 20. Validation ceilings already allow it (`candidate_cap` 5–100, strategy `max_slots` 1–50).
 - Engine-managed keys, so `_seed_strategies()` reconciles them onto existing sessions on restart (not `_STRATEGY_USER_KEYS`). Reversal leg-2 trades are still inserted directly in the outcome poll (not counted against `max_slots`).
+
+## 2026-08-12 — EOD CSV export on the Trades card
+
+- Frontend-only (`public/strategy_lab.html`). Added a **↓ Export CSV** button on the Simulated Trades card header (`exportTrades()`), ported from `stock_intraday_simulator.html`'s pattern with `_csvVal`/`_downloadCsv` (UTF-8 BOM, educational-disclaimer footer). Works any time; intended for EOD capture.
+- Exports the current per-strategy `/simulator/state` payload — cached in new module var `_lastState` (set in `renderState`). Columns: Date, Strategy, Symbol, Direction, **Day High/Day Low (scan)** (joined from `d.candidates` `bench_*`), Entry Time, Fill, SL Basis/Price, Target, Qty, Investment, Outcome, Live/Exit, Exit Time, **Realized P/L** (blank while OPEN), **Unrealized P/L** (live mark for OPEN), Return Amount, Remarks. Filename `strategy_lab_<id>_<date>.csv`.
+- No open-slot cap on export; empty-trades alerts instead of downloading.
