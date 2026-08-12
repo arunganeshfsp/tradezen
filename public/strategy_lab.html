@@ -210,10 +210,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="tbl-wrap">
       <table class="tbl">
         <thead><tr>
-          <th>Setup</th><th>Symbol</th><th>Fill ₹</th><th>Live/Exit ₹</th>
-          <th>SL ₹</th><th>Target ₹</th><th>Qty</th><th>Outcome</th><th>P/L</th><th></th>
+          <th>Setup</th><th>Symbol</th><th>Day High</th><th>Day Low</th><th>Fill ₹</th><th>Live/Exit ₹</th>
+          <th>SL ₹</th><th>Target ₹</th><th>Qty</th><th>Outcome</th><th>Unrealized</th><th>P/L</th><th></th>
         </tr></thead>
-        <tbody id="tradeBody"><tr><td colspan="10" class="empty-cell">—</td></tr></tbody>
+        <tbody id="tradeBody"><tr><td colspan="13" class="empty-cell">—</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -381,7 +381,9 @@ function renderState(d){
     `Net P/L <b class="${_pnlCls(net)}" style="font-size:13px">${_pnlStr(net)}</b>` +
     (s.win_rate!=null ? ` · Win ${s.win_rate}%` : '');
   renderCands(d.candidates || []);
-  renderTrades(d.trades || []);
+  const benchBySym = {};
+  (d.candidates || []).forEach(c => { benchBySym[c.symbol] = { h:c.bench_high, l:c.bench_low }; });
+  renderTrades(d.trades || [], benchBySym);
 }
 
 function renderCands(cands){
@@ -421,30 +423,44 @@ function _ocBadge(o){
   return `<span class="oc-badge ${cl}">${lbl}</span>`;
 }
 
-function renderTrades(trades){
+function renderTrades(trades, benchBySym){
+  benchBySym = benchBySym || {};
   const body = document.getElementById('tradeBody');
-  if (!trades.length){ body.innerHTML = `<tr><td colspan="10" class="empty-cell">No simulated trades yet</td></tr>`; return; }
+  if (!trades.length){ body.innerHTML = `<tr><td colspan="13" class="empty-cell">No simulated trades yet</td></tr>`; return; }
+  const dash = '<span style="color:var(--muted)">—</span>';
   body.innerHTML = trades.map(t=>{
     const isBuy = t.direction === 'BUY';
-    const pnl = t.pnl||0; const cl = pnl>0?'bull-val':pnl<0?'bear-val':'';
-    let px = '<span style="color:var(--muted)">—</span>';
+    const bench = benchBySym[t.symbol] || {};
+    const dHigh = bench.h!=null ? `<span class="num bull-val">₹${_f2(bench.h)}</span>` : dash;
+    const dLow  = bench.l!=null ? `<span class="num bear-val">₹${_f2(bench.l)}</span>` : dash;
+    let px = dash;
     if (t.outcome==='OPEN' && t.live_ltp!=null){ const mv=isBuy?t.live_ltp-t.trigger_price:t.trigger_price-t.live_ltp; px=`<span class="num ${mv>0?'bull-val':mv<0?'bear-val':''}">₹${_f2(t.live_ltp)}</span>`; }
     else if (t.outcome!=='OPEN' && t.exit_price!=null){ const mv=isBuy?t.exit_price-t.trigger_price:t.trigger_price-t.exit_price; px=`<span class="num ${mv>0?'bull-val':mv<0?'bear-val':''}">₹${_f2(t.exit_price)}</span>`; }
     const tgt = (t.target_price && t.target_price>0) ? '₹'+_f2(t.target_price) : '<span style="color:var(--muted)">none</span>';
     const sl  = (t.stop_loss_price && t.stop_loss_price>0) ? '<span class="num bear-val">₹'+_f2(t.stop_loss_price)+'</span>' : '<span style="color:var(--muted)">none</span>';
+    let unr = dash;
+    if (t.outcome==='OPEN' && t.live_ltp!=null){
+      const u = (isBuy ? t.live_ltp - t.trigger_price : t.trigger_price - t.live_ltp) * (t.quantity||0);
+      unr = `<span class="num ${_pnlCls(u)}">${_pnlStr(u)}</span>`;
+    }
+    const pnl = t.pnl||0; const cl = pnl>0?'bull-val':pnl<0?'bear-val':'';
+    const pnlCell = t.outcome==='OPEN' ? dash : `<span class="num ${cl}">${(pnl>=0?'+':'')}₹${_f2(pnl)}</span>`;
     const act = t.outcome==='OPEN'
       ? `<button class="btn btn-sq" onclick="squareOff('${t.id}',this)">Square off</button>`
       : '';
     return `<tr>
       <td><span class="dir-badge ${isBuy?'dir-bull':'dir-bear'}">${isBuy?'BULLISH ▲':'BEARISH ▼'}</span></td>
       <td class="sym">${_esc(t.symbol)}</td>
+      <td>${dHigh}</td>
+      <td>${dLow}</td>
       <td class="num">₹${_f2(t.trigger_price)}</td>
       <td>${px}</td>
       <td>${sl}</td>
       <td class="num">${tgt}</td>
       <td class="num">${t.quantity||0}</td>
       <td>${_ocBadge(t.outcome)}</td>
-      <td class="num ${cl}">${(pnl>=0?'+':'')}₹${_f2(pnl)}</td>
+      <td>${unr}</td>
+      <td>${pnlCell}</td>
       <td>${act}</td>
     </tr>`;
   }).join('');
