@@ -155,3 +155,13 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 - The three entry_mode combos now: `breakout` (breakout entry, no reverse — 09:20 & 10:15), `breakout_reverse` (breakout entry + reverse — 09:18), `reversal` (immediate entry + reverse — engine capability, no strategy uses it now).
 - Frontend `renderRuleChips` (`strategy_lab.html:313`) split the single `reversal` flag into `immediate` (scan-entry copy) and `reverses` (shows "Reverses once at opposite day-extreme"); `breakout_reverse` shows breakout-entry chip + reverses chip. Hero copy restored to "breakout and break-and-reverse studies".
 - `entry_mode` is engine-managed (reconciled by `_seed_strategies` on `pm2 restart tradezen-python`). Trades already open today under the old immediate mode stay until manual/square-off; new triggers use the breakout gate.
+
+## 2026-08-13 — Removed the 09:20 Breakout tab
+
+- User dropped the **Day-Range Breakout (09:20)** experiment (`day_range_breakout` / session `strat_day_range_breakout`). Deleted its `_STRATEGIES` entry — no other references existed. Two tabs remain: **Break & Reverse (09:18)** and **Breakout (10:15)**.
+- No plumbing change: `/strategy/list`, seeding, capture loop, and the frontend tabs are `_STRATEGIES`-driven, so the tab just disappears. Frontend default tab is `_strategies[0]` → now the 09:18 tab.
+- The session's stored settings row + any prior trades stay in the DB (orphaned, harmless, never listed). Not purged — no destructive cleanup without a request.
+
+## 2026-08-13 — Tab labels shortened
+
+- Labels renamed: 09:18 tab (`day_range_reversal`) → **"Breakout & Reversal"**; 10:15 tab (`day_range_breakout_1015`) → **"Breakout"**. Session ids/behaviour unchanged.
