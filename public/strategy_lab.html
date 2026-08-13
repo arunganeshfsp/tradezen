@@ -129,9 +129,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <div class="hero">
   <div class="htag">Strategy Experiments · Simulation</div>
   <h1>Strategy <em>Lab</em></h1>
-  <p class="hero-sub">A workbench for intraday strategy experiments on paper — opening-range breakout and
-    stop-and-reverse studies on the Nifty 50. Pick an experiment below to see its live setups and simulated
-    trades. Descriptive study only — no orders are placed.</p>
+  <p class="hero-sub">A workbench for intraday strategy experiments on paper — opening-range breakout
+    and break-and-reverse studies on the Nifty 50. Pick an experiment below to see its live setups and
+    simulated trades. Descriptive study only — no orders are placed.</p>
 </div>
 
 <div class="main-wrap">
@@ -310,16 +310,17 @@ async function loadSettings(){
 function renderRuleChips(s){
   const noTarget  = !s.target_rupees || s.target_rupees <= 0;
   const noSl      = (s.default_sl_basis === 'NONE');
-  const reversal  = (s.entry_mode === 'reversal');
+  const immediate = (s.entry_mode === 'reversal');
+  const reverses  = (s.entry_mode === 'reversal' || s.entry_mode === 'breakout_reverse');
   const domChip = (s.dom_min_pct > 0)
     ? `Buyer/Seller dominance <b>&gt; ${Math.round(s.dom_min_pct)}%</b>`
     : `Side by <b>buyer/seller dominance</b>`;
   const chips = [
-    reversal ? `Scan <b>${_esc(s.entry_window_start||'—')}</b>`
-             : `Lock range <b>${_esc(s.entry_window_start||'—')}</b>`,
+    immediate ? `Scan <b>${_esc(s.entry_window_start||'—')}</b>`
+              : `Lock range <b>${_esc(s.entry_window_start||'—')}</b>`,
     domChip,
-    reversal ? `Enter <b>immediately at scan</b>` : `Entry <b>above day-high / below day-low</b>`,
-    reversal ? `Reverses <b>at opposite day-extreme</b>`
+    immediate ? `Enter <b>immediately at scan</b>` : `Entry <b>above day-high / below day-low</b>`,
+    reverses ? `Reverses once <b>at opposite day-extreme</b>`
              : `Select until <b>${_esc(s.entry_window_end||'10:15')}</b>`,
     noTarget ? `Target <b>none</b>` : `Target <b>₹${_esc(s.target_rupees)}</b>`,
     noSl ? `Stop loss <b>none</b>` : `Stop loss <b>${_esc(s.default_sl_basis)}</b>`,

@@ -7925,13 +7925,15 @@ _STRATEGIES: dict = {
     },
     "day_range_reversal": {
         "session": "strat_day_range_reversal",
-        "label":   "Day-Range Reversal (09:18)",
-        "blurb":   "Scans at 09:18 and enters immediately by dominance — buyers long, sellers short. "
-                   "If a long instead sinks to the day's low it flips to a short; if a short climbs to "
-                   "the day's high it flips to a long. No target, no stop loss — exits on manual close "
-                   "or 15:30 square-off. One reversal per stock per day.",
+        "label":   "Day-Range Break & Reverse (09:18)",
+        "blurb":   "Locks each stock's opening range (day high / day low) at 09:18, then watches the "
+                   "whole Nifty 50. First entry is a breakout — long when price breaks above the day's "
+                   "high, short when it breaks below the day's low. If that position later reaches the "
+                   "opposite extreme (a long sinking to the day's low, a short climbing to the day's "
+                   "high) it flips once to the other side — one reversal per stock per day. No target, "
+                   "no stop loss — exits on manual close or 15:30 square-off.",
         "defaults": {
-            "entry_window_start": "09:18",
+            "entry_window_start": "09:18",         # opening-range lock (day high/low frozen here)
             "entry_window_end":   "15:15",
             "square_off_time":    "15:30",
             "dom_min_pct":        "0",
@@ -7941,9 +7943,9 @@ _STRATEGIES: dict = {
             "price_min":          "0",
             "price_max":          "100000000",
             "candidate_cap":      "50",            # testing: consider the whole Nifty 50 inventory
-            "max_slots":          "50",            # leg-1 entries across both sides
-            "require_live_dom":   "0",
-            "entry_mode":         "reversal",      # immediate entry + stop-and-reverse
+            "max_slots":          "50",
+            "require_live_dom":   "0",             # fill on price breakout alone
+            "entry_mode":         "breakout_reverse",  # breakout first entry, then one-time stop-and-reverse
         },
     },
 }
@@ -8484,10 +8486,10 @@ def _orb_outcome_poll_sync(today: str, now_ist):
         if u not in sess_settings:
             sess_settings[u] = orb_get_settings(conn, u)
 
-        # Stop-and-reverse: a leg-1 reversal trade (direction == its candidate's side)
-        # that reaches the opposite day extreme is closed and immediately re-opened
-        # in the opposite direction. Leg 2 (direction != candidate side) never reverses.
-        if sess_settings[u].get("entry_mode") == "reversal":
+        # Stop-and-reverse: a leg-1 trade (direction == its candidate's side) that
+        # reaches the opposite day extreme is closed and immediately re-opened in the
+        # opposite direction. Leg 2 (direction != candidate side) never reverses.
+        if sess_settings[u].get("entry_mode") in ("reversal", "breakout_reverse"):
             cand = cand_by_key.get((u, trade["symbol"]))
             if cand and trade["direction"] == cand["side"]:
                 lvl = cand["bench_low"] if trade["direction"] == "BUY" else cand["bench_high"]
