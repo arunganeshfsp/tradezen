@@ -7913,6 +7913,7 @@ _STRATEGIES: dict = {
             "entry_window_end":   "15:15",
             "square_off_time":    "15:30",
             "dom_min_pct":        "0",
+            "buy_min_chg_pct":    "0",             # no pre-move gate — watch the whole Nifty 50
             "target_rupees":      "0",             # no profit target
             "universe":           "inv_nifty50",   # curated Nifty 50 in Stock Inventory
             "default_sl_basis":   "NONE",          # no stop loss

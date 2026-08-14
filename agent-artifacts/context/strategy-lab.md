@@ -165,3 +165,8 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 ## 2026-08-13 — Tab labels shortened
 
 - Labels renamed: 09:18 tab (`day_range_reversal`) → **"Breakout & Reversal"**; 10:15 tab (`day_range_breakout_1015`) → **"Breakout"**. Session ids/behaviour unchanged.
+
+## 2026-08-14 — Breakout & Reversal scanned only ~5 stocks (change-% gate, not volume)
+
+- Symptom: the 09:18 tab listed only ~5 setups instead of the whole Nifty 50. Root cause was **not** the volume filter (`min_vol_lakh` defaults to 0 = off) — it was `buy_min_chg_pct`, which **defaults to `"1.0"`** in `sqlite_store.py:448`. The two Breakout tabs set it to `"0"`; the `day_range_reversal` entry never did, so it inherited the 1% pre-move gate and only stocks already ≥1% from prior close qualified.
+- Fix: added `"buy_min_chg_pct": "0"` to `_STRATEGIES["day_range_reversal"].defaults`. It's an engine-managed key (not in `_STRATEGY_USER_KEYS`), so `_seed_strategies` reconciles it on `pm2 restart tradezen-python`. Now watches all 50.
