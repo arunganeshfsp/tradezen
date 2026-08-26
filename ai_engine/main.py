@@ -8790,11 +8790,16 @@ def _orb_matrix_session_id(request: Request, tf: str, uni: str):
 
 
 @app.get("/simulator/state")
-async def simulator_state(request: Request, date: str = "", tf: str = "", uni: str = "", strategy: str = ""):
+async def simulator_state(request: Request, date: str = "", tf: str = "", uni: str = "", strategy: str = "",
+                          backtest_of: str = ""):
     if not date:
         date = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     try:
-        if strategy:
+        if backtest_of:
+            if backtest_of not in _STRATEGIES:
+                return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
+            sess = f"bt_{backtest_of}"
+        elif strategy:
             meta = _STRATEGIES.get(strategy)
             if not meta:
                 return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
@@ -9275,18 +9280,62 @@ async def simulator_live_order(body: _OrbLiveOrderBody):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
-def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dict:
+def _orb_bt_run_leg(df, date: str, side: str, entry_price: float, entry_dt: str,
+                    sl_price, tgt_price, sq_time_s: str, reverse_level=None) -> dict:
+    """
+    Replay one leg forward from `entry_dt` on historical 1-min candles.
+    `reverse_level` (leg-1 of a breakout_reverse trade only) is the opposite
+    day extreme — a cross closes this leg as REVERSED so the caller can open
+    the opposite leg. Checked before SL/target each candle, mirroring the
+    live outcome poll's precedence (main.py _orb_outcome_poll_sync).
+    No SL/target set (both falsy) → the leg only closes on reversal or EOD.
+    """
+    post = df[(df["DateTime"] > entry_dt) & (df["DateTime"] <= f"{date} {sq_time_s}")]
+    for _, row in post.iterrows():
+        h, l = float(row["High"]), float(row["Low"])
+        if reverse_level is not None:
+            if (side == "BUY"  and l <= reverse_level) or (side == "SELL" and h >= reverse_level):
+                return {"outcome": "REVERSED", "exit_price": reverse_level,
+                        "exit_dt": row["DateTime"]}
+        if side == "BUY":
+            if sl_price and l <= sl_price:
+                return {"outcome": "SL_HIT", "exit_price": sl_price, "exit_dt": row["DateTime"]}
+            if tgt_price and h >= tgt_price:
+                return {"outcome": "TARGET_HIT", "exit_price": tgt_price, "exit_dt": row["DateTime"]}
+        else:
+            if sl_price and h >= sl_price:
+                return {"outcome": "SL_HIT", "exit_price": sl_price, "exit_dt": row["DateTime"]}
+            if tgt_price and l <= tgt_price:
+                return {"outcome": "TARGET_HIT", "exit_price": tgt_price, "exit_dt": row["DateTime"]}
+
+    # No SL/target/reversal hit — square off EOD at the last candle's close (≈ LTP).
+    eod  = df[df["DateTime"] <= f"{date} {sq_time_s}"]
+    last = eod.iloc[-1] if not eod.empty else None
+    exit_price = round(float(last["Close"]), 2) if last is not None else entry_price
+    exit_dt    = last["DateTime"] if last is not None else entry_dt
+    return {"outcome": "SQUARE_OFF", "exit_price": exit_price, "exit_dt": exit_dt}
+
+
+def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "",
+                       scan_time: str | None = None,
+                       settings_user: str | None = None) -> dict:
     """
     Replay the ORB algorithm on historical candles for `date`.
-    Fetches 09:15–15:30 ONE_MINUTE candles per stock, finds first bench crossing
-    in 09:16–10:30, applies slot cap by trigger time, simulates outcome.
-    Note: DOM filter is skipped (order-book snapshots unavailable historically).
+    Fetches 09:15–15:30 ONE_MINUTE candles per stock, locks the day range at
+    `scan_time` (default 09:16), finds the first bench crossing in the entry
+    window, applies slot cap by trigger time, simulates outcome.
+    entry_mode "breakout_reverse" replays the one-time stop-and-reverse leg.
+    `settings_user` lets Strategy Lab read a strategy session's rules while
+    writing results under an isolated `user_id` (bt_ namespace).
+    Note: DOM filter is skipped (order-book snapshots unavailable historically) —
+    both range edges are watched and the first crossing decides the side.
     """
     import time as _t, uuid as _uuid
 
-    log.info(f"[ORB-BT] starting backtest for {date} (force={force}, session={user_id or 'shared'})")
+    log.info(f"[ORB-BT] starting backtest for {date} (force={force}, session={user_id or 'shared'}, "
+             f"scan={scan_time or 'default'}, settings={settings_user or user_id or 'shared'})")
     conn     = get_conn()
-    settings = orb_get_settings(conn, user_id)
+    settings = orb_get_settings(conn, settings_user if settings_user is not None else user_id)
     existing = orb_get_candidates(conn, date, user_id)
 
     if existing and not force:
@@ -9315,6 +9364,8 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
     sq_time_s     = settings["square_off_time"]
     sl_setting    = settings["default_sl_basis"]
     sl_amount     = settings["sl_amount_rupees"]
+    entry_mode    = settings.get("entry_mode", "breakout")
+    scan_hhmm     = scan_time or settings.get("entry_window_start") or "09:16"
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
@@ -9323,8 +9374,18 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
         stocks = [s for s in stocks if s["symbol"].upper() in _NIFTY50_SYMS]
     elif universe == "nifty100_fno":
         stocks = [s for s in stocks if s["symbol"].upper() in _NIFTY100_SYMS]
+    elif str(universe).startswith("inv_"):
+        conn_i = get_conn()
+        syms   = {x.upper() for x in stock_universe_get(conn_i, universe[4:])}
+        conn_i.close()
+        stocks = [s for s in all_fno if s["symbol"].upper() in syms]
+        # Inventory groups may include non-F&O equities — widen to all EQ stocks for those.
+        if syms - {s["symbol"].upper() for s in stocks}:
+            all_eq = _load_all_eq_stocks()
+            have   = {s["symbol"].upper() for s in stocks}
+            stocks += [s for s in all_eq if s["symbol"].upper() in syms and s["symbol"].upper() not in have]
 
-    log.info(f"[ORB-BT] {len(stocks)} stocks · universe={universe}")
+    log.info(f"[ORB-BT] {len(stocks)} stocks · universe={universe} · scan={scan_hhmm} · mode={entry_mode}")
 
     # ── Phase 1: batch scan (100 stocks per batch), write candidates after each batch ──
     BATCH_SIZE     = 100
@@ -9348,28 +9409,25 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             if df.empty:
                 continue
 
-            r0915 = df[df["DateTime"] == f"{date} 09:15"]
-            if r0915.empty:
+            # Trigger = day high / day low locked as of the scan time (mirrors the
+            # live capture's 09:15→scan-time correction window, but for any HH:MM).
+            scan_df = df[df["DateTime"] <= f"{date} {scan_hhmm}"]
+            if scan_df.empty:
                 continue
-
-            r0916    = df[df["DateTime"] == f"{date} 09:16"]
-            ltp_0916 = round(float(r0916.iloc[0]["Open"]) if not r0916.empty
-                             else float(r0915.iloc[0]["Close"]), 2)
-
-            if not (price_min <= ltp_0916 <= price_max):
-                continue
-
-            # Trigger = day high / day low at scan time (new-day-high/low breakout)
-            scan_df    = df[df["DateTime"] <= f"{date} 09:16"]
             bench_high = round(float(scan_df["High"].max()), 2)
             bench_low  = round(float(scan_df["Low"].min()),  2)
+            ltp_scan   = round(float(scan_df.iloc[-1]["Close"]), 2)
+
+            if not (price_min <= ltp_scan <= price_max):
+                continue
 
             # Ranking heuristic (no order-book data historically): tighter
             # opening candle range → higher strength
-            rng_pct  = (float(r0915.iloc[0]["High"]) - float(r0915.iloc[0]["Low"])) / ltp_0916 * 100
+            first    = df.iloc[0]
+            rng_pct  = (float(first["High"]) - float(first["Low"])) / ltp_scan * 100 if ltp_scan else 0
             strength = round(max(0.0, 5.0 - rng_pct), 2)
 
-            entry_df = df[(df["DateTime"] >= f"{date} 09:16") &
+            entry_df = df[(df["DateTime"] > f"{date} {scan_hhmm}") &
                           (df["DateTime"] <= f"{date} {entry_end_s}")]
             buy_dt = sell_dt = None
             for _, row in entry_df.iterrows():
@@ -9380,7 +9438,7 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
 
             base = {
                 "_tok":     s["token"],
-                "ltp_0916": ltp_0916, "buy_pct": 0.0, "sell_pct": 0.0,
+                "ltp_0916": ltp_scan, "buy_pct": 0.0, "sell_pct": 0.0,
                 "strength": strength, "bench_high": bench_high, "bench_low": bench_low,
             }
             for side, trig_dt in [("BUY", buy_dt), ("SELL", sell_dt)]:
@@ -9482,58 +9540,46 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             conn.close()
             continue
 
-        cand_sl_basis = _orb_pick_sl_basis(sl_setting, side, vwap_entry, trigger_price)
-        sl_price, sl_err = _orb_resolve_sl(
-            direction=side, sl_basis=cand_sl_basis,
-            bench_high=bench_high, bench_low=bench_low,
-            vwap=vwap_entry, day_high=day_high_entry, day_low=day_low_entry,
-            custom=None, entry_price=trigger_price,
-            amount=sl_amount, quantity=qty,
-        )
-        if sl_err:
-            all_cands[key]["status"] = "SKIPPED"
-            all_cands[key]["remark"] = f"SL error: {sl_err}"
-            conn = get_conn()
-            orb_update_candidate_status(conn, date, sym, side, "SKIPPED", f"SL error: {sl_err}",
-                                        user_id=user_id)
-            conn.close()
-            continue
+        if sl_setting == "NONE":
+            cand_sl_basis, sl_price, sl_pts = "NONE", None, 0.0
+        else:
+            cand_sl_basis = _orb_pick_sl_basis(sl_setting, side, vwap_entry, trigger_price)
+            sl_price, sl_err = _orb_resolve_sl(
+                direction=side, sl_basis=cand_sl_basis,
+                bench_high=bench_high, bench_low=bench_low,
+                vwap=vwap_entry, day_high=day_high_entry, day_low=day_low_entry,
+                custom=None, entry_price=trigger_price,
+                amount=sl_amount, quantity=qty,
+            )
+            if sl_err:
+                all_cands[key]["status"] = "SKIPPED"
+                all_cands[key]["remark"] = f"SL error: {sl_err}"
+                conn = get_conn()
+                orb_update_candidate_status(conn, date, sym, side, "SKIPPED", f"SL error: {sl_err}",
+                                            user_id=user_id)
+                conn.close()
+                continue
+            sl_pts = _orb_sl_pts(side, trigger_price, sl_price)
 
         tgt_pts, tgt_price = _orb_target(side, trigger_price, qty, target_rupees=target_rupees)
-        sl_pts     = _orb_sl_pts(side, trigger_price, sl_price)
         rr         = _orb_rr(tgt_pts, sl_pts)
         investment = round(qty * trigger_price, 2)
 
-        post       = df[(df["DateTime"] > trigger_dt) &
-                        (df["DateTime"] <= f"{date} {sq_time_s}")]
-        outcome    = "SQUARE_OFF"
-        exit_price = None
-        exit_dt    = None
+        reverse_level = None
+        if entry_mode == "breakout_reverse":
+            reverse_level = bench_low if side == "BUY" else bench_high
 
-        for _, row in post.iterrows():
-            h, l = float(row["High"]), float(row["Low"])
-            if side == "BUY":
-                if l <= sl_price:
-                    outcome, exit_price, exit_dt = "SL_HIT",     sl_price,  row["DateTime"]; break
-                if h >= tgt_price:
-                    outcome, exit_price, exit_dt = "TARGET_HIT", tgt_price, row["DateTime"]; break
-            else:
-                if h >= sl_price:
-                    outcome, exit_price, exit_dt = "SL_HIT",     sl_price,  row["DateTime"]; break
-                if l <= tgt_price:
-                    outcome, exit_price, exit_dt = "TARGET_HIT", tgt_price, row["DateTime"]; break
-
-        if exit_price is None:
-            eod  = df[df["DateTime"] <= f"{date} {sq_time_s}"]
-            last = eod.iloc[-1] if not eod.empty else None
-            exit_price = round(float(last["Close"]), 2) if last is not None else trigger_price
-            exit_dt    = last["DateTime"] if last is not None else trigger_dt
-
+        leg1 = _orb_bt_run_leg(df, date, side, trigger_price, trigger_dt,
+                               sl_price, tgt_price, sq_time_s, reverse_level)
+        outcome, exit_price, exit_dt = leg1["outcome"], leg1["exit_price"], leg1["exit_dt"]
+        pnl_outcome = "SQUARE_OFF" if outcome == "REVERSED" else outcome
         pnl = _orb_pnl(
-            outcome=outcome, direction=side,
+            outcome=pnl_outcome, direction=side,
             entry_price=trigger_price, exit_price=exit_price,
             quantity=qty, target_points=tgt_pts, sl_pts=sl_pts,
         )
+        remark1 = (f"Reversed to {'SELL' if side == 'BUY' else 'BUY'} at ₹{exit_price} · backtest"
+                   if outcome == "REVERSED" else "backtest · DOM filter not applied")
 
         trade = {
             "id":                str(_uuid.uuid4()),
@@ -9560,12 +9606,57 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
             "pnl":               pnl,
             "return_amount":     round(investment + pnl, 2),
             "close_price":       exit_price,
-            "remarks":           "backtest · DOM filter not applied",
+            "remarks":           remark1,
         }
         conn = get_conn()
         orb_insert_trade(conn, trade)
         orb_update_candidate_status(conn, date, sym, side, "TRIGGERED", user_id=user_id)
         conn.close()
+
+        # Leg 2 — the one-time reverse: opens immediately opposite at the same
+        # crossing price, no SL/target, never reverses again (mirrors the live
+        # outcome poll's reverse-leg insert).
+        if outcome == "REVERSED":
+            opp  = "SELL" if side == "BUY" else "BUY"
+            leg2 = _orb_bt_run_leg(df, date, opp, exit_price, exit_dt,
+                                   None, None, sq_time_s, reverse_level=None)
+            pnl2 = _orb_pnl(
+                outcome="SQUARE_OFF", direction=opp,
+                entry_price=exit_price, exit_price=leg2["exit_price"],
+                quantity=qty, target_points=0, sl_pts=0,
+            )
+            investment2 = round(qty * exit_price, 2)
+            trade2 = {
+                "id":                str(_uuid.uuid4()),
+                "date":              date,
+                "user_id":           user_id,
+                "symbol":            sym,
+                "direction":         opp,
+                "day_high_at_entry": day_high_entry,
+                "day_low_at_entry":  day_low_entry,
+                "vwap_at_entry":     vwap_entry,
+                "trigger_price":     exit_price,
+                "entry_time":        f"{exit_dt}:00",
+                "sl_basis":          "NONE",
+                "stop_loss_price":   None,
+                "quantity":          qty,
+                "investment":        investment2,
+                "sl_points":         0,
+                "target_points":     0,
+                "target_price":      0,
+                "risk_reward":       0,
+                "outcome":           leg2["outcome"],
+                "exit_price":        leg2["exit_price"],
+                "exit_time":         f"{leg2['exit_dt']}:00" if leg2["exit_dt"] else None,
+                "pnl":               pnl2,
+                "return_amount":     round(investment2 + pnl2, 2),
+                "close_price":       leg2["exit_price"],
+                "remarks":           f"Reversed from {side} leg · backtest",
+            }
+            conn = get_conn()
+            orb_insert_trade(conn, trade2)
+            conn.close()
+            pnl += pnl2   # log combined round-trip P/L for this symbol
 
         all_cands[key]["status"] = "TRIGGERED"
         traded_syms.add(sym)
@@ -9585,8 +9676,10 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "") -> dic
 
 
 class _OrbBacktestBody(BaseModel):
-    date:  str
-    force: bool = False
+    date:      str
+    force:     bool = False
+    strategy:  str | None = None   # Strategy Lab tab id whose filters/entry_mode to replay
+    scan_time: str | None = None   # override the strategy's scan time, e.g. "11:30"
 
 
 @app.post("/simulator/backtest")
@@ -9600,10 +9693,28 @@ async def simulator_backtest(body: _OrbBacktestBody, request: Request):
         return JSONResponse(status_code=400, content={"error": "Backtest requires a past date"})
     if dt.weekday() >= 5:
         return JSONResponse(status_code=400, content={"error": "Selected date is a weekend"})
-    sess = _orb_session_id(request)
+
+    scan_time = body.scan_time
+    if scan_time:
+        try:
+            hh, mm = scan_time.split(":")
+            assert 0 <= int(hh) <= 23 and 0 <= int(mm) <= 59
+        except Exception:
+            return JSONResponse(status_code=400, content={"error": "scan_time must be HH:MM"})
+
+    if body.strategy:
+        meta = _STRATEGIES.get(body.strategy)
+        if not meta:
+            return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
+        settings_sess = meta["session"]
+        store_sess    = f"bt_{body.strategy}"
+    else:
+        settings_sess = store_sess = _orb_session_id(request)
+
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(None, lambda: _orb_backtest_sync(body.date, body.force, sess))
+        result = await loop.run_in_executor(None, lambda: _orb_backtest_sync(
+            body.date, body.force, store_sess, scan_time=scan_time, settings_user=settings_sess))
         return result
     except Exception as e:
         log.error(f"[BT-API] {e}", exc_info=True)

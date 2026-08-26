@@ -178,6 +178,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
   </div>
 
+  <!-- BACKTEST -->
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Backtest</span>
+      <span class="stat-pill" id="btBanner" style="margin-left:auto"></span></div>
+    <div class="card-body">
+      <div class="setup-grid" style="margin-bottom:12px">
+        <div class="field"><label>Date</label><input id="bt-date" type="date"></div>
+        <div class="field"><label>Scan time</label><input id="bt-time" type="time" min="09:15" max="15:00"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary" id="btRunBtn" onclick="runBacktest()">Run backtest</button>
+        <button class="btn" id="btExitBtn" style="display:none" onclick="exitBacktest()">← Back to live</button>
+        <span class="hint" id="btMsg"></span>
+      </div>
+    </div>
+  </div>
+
   <!-- STATUS -->
   <div class="card">
     <div class="card-hdr status-strip">
@@ -227,11 +244,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 const API      = '/api';
 const UNI_LABEL = { inv_nifty50:'Nifty 50 (Inventory)', inv_favorites:'Favorites (Inventory)',
                     all_fno:'F&O', nifty500_fno:'Nifty 500', nifty100_fno:'Nifty 100', nifty50:'Nifty 50' };
-let _strategies = [];
-let _current    = null;   // strategy id
-let _settings   = null;
-let _poll       = null;
-let _lastState  = null;   // latest /simulator/state payload (for export)
+let _strategies  = [];
+let _current     = null;   // strategy id
+let _settings    = null;
+let _poll        = null;
+let _lastState   = null;   // latest /simulator/state payload (for export)
+let _btMode      = false;  // showing a backtest snapshot instead of live state
+let _btStrategy  = null;   // strategy id the current backtest snapshot belongs to
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const _esc  = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -242,13 +261,20 @@ const _JSON   = { 'Content-Type':'application/json' };
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 async function boot(){
+  _initBtDate();
   await loadList();
   document.getElementById('bootLoading').style.display = 'none';
   if (_current){ await loadSettings(); await loadState(); startPoll(); }
   document.addEventListener('visibilitychange', ()=>{
     if (document.hidden){ clearInterval(_poll); }
-    else { loadList(); loadState(); startPoll(); }
+    else if (!_btMode){ loadList(); loadState(); startPoll(); }
   });
+}
+function _initBtDate(){
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  const iso = d.toISOString().slice(0, 10);
+  document.getElementById('bt-date').max   = iso;
+  document.getElementById('bt-date').value = iso;
 }
 function startPoll(){ clearInterval(_poll); _poll = setInterval(()=>{ loadList(); loadState(); }, 7000); }
 
@@ -281,6 +307,7 @@ function renderTabs(){
 async function selectStrategy(id){
   if (id===_current) return;
   _current = id;
+  if (_btMode) exitBacktest();
   renderTabs();
   await loadSettings();
   await loadState();
@@ -302,6 +329,7 @@ async function loadSettings(){
     document.getElementById('f-universe').value         = s.universe || 'inv_nifty50';
     document.getElementById('f-default_sl_basis').value = s.default_sl_basis || 'DAY_SMART';
     document.getElementById('f-sl_amount_rupees').value = s.sl_amount_rupees || 900;
+    document.getElementById('bt-time').value = s.entry_window_start || '09:18';
     _toggleSlAmount();
     renderRuleChips(s);
   }catch(e){}
@@ -498,6 +526,51 @@ async function squareOff(tradeId, btn){
     if (d.error){ btn.textContent = 'Failed'; btn.disabled=false; return; }
     await loadState(); loadList();
   }catch(e){ btn.textContent = 'Failed'; btn.disabled=false; }
+}
+
+// ── Backtest ─────────────────────────────────────────────────────────────────
+async function runBacktest(){
+  const date = document.getElementById('bt-date').value;
+  const time = document.getElementById('bt-time').value;
+  const msg  = document.getElementById('btMsg');
+  if (!date){ msg.textContent = 'Pick a date first.'; return; }
+  if (!time){ msg.textContent = 'Pick a scan time first.'; return; }
+  const btn = document.getElementById('btRunBtn');
+  btn.disabled = true;
+  msg.textContent = 'Running backtest — replaying the whole universe can take a minute…';
+  try{
+    const r = await fetch(`${API}/simulator/backtest`, { method:'POST', headers:_JSON,
+      body: JSON.stringify({ date, force:true, strategy:_current, scan_time:time }) });
+    const d = await r.json();
+    if (d.error){ msg.textContent = d.error; return; }
+    _btMode = true; _btStrategy = _current;
+    clearInterval(_poll);
+    document.getElementById('btExitBtn').style.display = '';
+    document.getElementById('btBanner').innerHTML =
+      `<span class="phase-chip phase-orange" style="padding:3px 10px">BACKTEST</span> ${_esc(date)} · scan ${_esc(time)}`;
+    msg.textContent = `Done — ${d.candidates||0} setups scanned, ${d.trades||0} symbols traded. All positions squared off at day close.`;
+    await loadBacktestState();
+  }catch(e){ msg.textContent = 'Could not reach engine.'; }
+  finally{ btn.disabled = false; }
+}
+
+async function loadBacktestState(){
+  if (!_btMode) return;
+  try{
+    const date = document.getElementById('bt-date').value;
+    const r = await fetch(`${API}/simulator/state?backtest_of=${encodeURIComponent(_btStrategy)}&date=${encodeURIComponent(date)}`);
+    const d = await r.json();
+    if (d.error) return;
+    renderState(d);
+  }catch(e){}
+}
+
+function exitBacktest(){
+  _btMode = false; _btStrategy = null;
+  document.getElementById('btExitBtn').style.display = 'none';
+  document.getElementById('btBanner').innerHTML = '';
+  document.getElementById('btMsg').textContent = '';
+  loadState(); startPoll();
 }
 
 // ── Export ───────────────────────────────────────────────────────────────────

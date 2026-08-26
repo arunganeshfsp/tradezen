@@ -170,3 +170,32 @@ A paper strategy-experiment page layered on the existing ORB simulator engine. E
 
 - Symptom: the 09:18 tab listed only ~5 setups instead of the whole Nifty 50. Root cause was **not** the volume filter (`min_vol_lakh` defaults to 0 = off) — it was `buy_min_chg_pct`, which **defaults to `"1.0"`** in `sqlite_store.py:448`. The two Breakout tabs set it to `"0"`; the `day_range_reversal` entry never did, so it inherited the 1% pre-move gate and only stocks already ≥1% from prior close qualified.
 - Fix: added `"buy_min_chg_pct": "0"` to `_STRATEGIES["day_range_reversal"].defaults`. It's an engine-managed key (not in `_STRATEGY_USER_KEYS`), so `_seed_strategies` reconciles it on `pm2 restart tradezen-python`. Now watches all 50.
+
+## 2026-08-25 - Algo mode (auto Angel One orders) designed, NOT implemented
+
+- User wants the engine to place real Angel One orders on triggers, two accounts (09:18 tab -> account A, 10:15 tab -> account B). Deliberately deferred: design only.
+- Full design in `agent-artifacts/strategy-lab-algo-plan.md` - covers the two-account static-IP blocker (Angel One rejects same IP for two accounts; fix = second proxy droplet), engine hook points, pre-implementation fixes (order rate limiter, main.py:9232 retry-route-key bug, order-id column, sizing), and safety rails (armed toggle, position caps).
+- Do not wire any live order calls into the trigger/outcome loop until that doc's open decisions are settled with the user.
+
+## 2026-08-25 - Backtest: pick a date + scan time, replays the current tab's filters, EOD square-off at close price
+
+**What changed**
+- New "Backtest" card on `strategy_lab.html`: date picker (max = yesterday) + scan-time picker (defaults to the active strategy tab's configured scan time, editable), "Run backtest" button. On success the page switches into a read-only backtest view (orange BACKTEST banner) showing that day's setups and trades in the *same* Setups/Trades tables the live view uses; "Back to Live" restores polling.
+- `_orb_backtest_sync()` (`main.py:9319`) now takes `scan_time` (overrides `entry_window_start`) and `settings_user` (which strategy session's rules to replay), and writes results under an **isolated `bt_<strategy_id>` user_id** rather than the live strategy session - a backtest can never delete or overwrite a day the live engine actually traded (`force=True` only clears the `bt_` rows for that date).
+- Added `entry_mode == "breakout_reverse"` replay: new helper `_orb_bt_run_leg()` (`main.py:9282`) simulates one leg forward from an entry, checking a reversal-level cross *before* SL/target each candle (mirrors the live outcome poll's precedence) - when it fires, leg-1 closes `REVERSED` and leg-2 opens opposite with no SL/target, exactly like the live reverse leg (`main.py:8469`).
+- All backtest trades resolve to a terminal outcome (SL_HIT/TARGET_HIT/SQUARE_OFF/REVERSED) - the EOD branch of `_orb_bt_run_leg` squares off at the last available candle's close (the LTP proxy), so nothing is ever left OPEN.
+- `GET /simulator/state` gained `backtest_of=<strategy_id>` (resolves to the `bt_<id>` session) so the existing state/render pipeline can show backtest results with zero duplicate rendering code.
+- `POST /simulator/backtest` gained `strategy` + `scan_time` body fields.
+
+**Why**
+User wants to pick an arbitrary historical date/time (e.g. "17 August, 11:30 AM"), replay either tab's exact filters against it, and see how the day would have played out with an automatic EOD close - a what-if tool, not a permanent record.
+
+**Bugs fixed while wiring this up (pre-existing, not new regressions)**
+- The old backtest hardcoded the scan moment at 09:16 regardless of the strategy's real `entry_window_start` - both tabs would have backtested the wrong scan time.
+- The old backtest never resolved `universe="inv_*"` (Stock Inventory groups) - since **both current strategies use `inv_nifty50`**, it was silently falling back to the full Nifty 500 F&O base list. Added the same inventory-resolution branch the live capture uses (`stock_universe_get`).
+- The old backtest never special-cased `default_sl_basis == "NONE"` - so the reversal strategy (which explicitly runs with no stop loss) would have gotten a fabricated day-extreme SL in backtest that doesn't exist live. Fixed to mirror the live trigger poll's NONE guard exactly.
+
+**Known caveats**
+- DOM/volume/change-% filters still aren't replayed (unavailable historically) - same disclosed limitation as before, just now also true for the reversal tab.
+- Backtest reads the strategy's *current* saved settings, not whatever was configured on the historical date.
+- Weekday-only guard, no market-holiday calendar check - a holiday date just returns 0 candidates/trades.

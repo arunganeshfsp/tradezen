@@ -1114,7 +1114,8 @@ router.get("/simulator/state", _simAuth, async (req, res) => {
     if (req.query.date)     params.set("date",     req.query.date);
     if (req.query.tf)       params.set("tf",       req.query.tf);
     if (req.query.uni)      params.set("uni",      req.query.uni);
-    if (req.query.strategy) params.set("strategy", req.query.strategy);
+    if (req.query.strategy)    params.set("strategy",    req.query.strategy);
+    if (req.query.backtest_of) params.set("backtest_of", req.query.backtest_of);
     const data = await aiService.proxy("GET", `/simulator/state?${params}`, 10000, undefined, _simHdr(req));
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
