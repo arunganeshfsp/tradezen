@@ -9327,8 +9327,11 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "",
     entry_mode "breakout_reverse" replays the one-time stop-and-reverse leg.
     `settings_user` lets Strategy Lab read a strategy session's rules while
     writing results under an isolated `user_id` (bt_ namespace).
-    Note: DOM filter is skipped (order-book snapshots unavailable historically) —
-    both range edges are watched and the first crossing decides the side.
+    Direction per stock is estimated from pre-scan candle volume (green candle
+    = buy pressure, red = sell pressure) since real order-book buy/sell
+    dominance isn't available historically — this mirrors the live capture's
+    "exactly one side per stock" rule, just with an estimated dominance signal
+    in place of the real one.
     """
     import time as _t, uuid as _uuid
 
@@ -9366,6 +9369,7 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "",
     sl_amount     = settings["sl_amount_rupees"]
     entry_mode    = settings.get("entry_mode", "breakout")
     scan_hhmm     = scan_time or settings.get("entry_window_start") or "09:16"
+    dom_min       = settings["dom_min_pct"]
 
     all_fno = _load_fno_stocks()
     n500    = _fetch_nifty500_symbols()
@@ -9421,41 +9425,47 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "",
             if not (price_min <= ltp_scan <= price_max):
                 continue
 
-            # Ranking heuristic (no order-book data historically): tighter
-            # opening candle range → higher strength
-            first    = df.iloc[0]
-            rng_pct  = (float(first["High"]) - float(first["Low"])) / ltp_scan * 100 if ltp_scan else 0
-            strength = round(max(0.0, 5.0 - rng_pct), 2)
+            # Direction proxy — order-book buy/sell dominance is unavailable
+            # historically, so approximate it from pre-scan candle volume:
+            # green candle = buy pressure, red candle = sell pressure. Live
+            # picks exactly one side per stock this way (the stronger side);
+            # this mirrors that structure instead of watching both breakout
+            # levels, which is what the live capture never does.
+            buy_vol  = float(scan_df.loc[scan_df["Close"] >= scan_df["Open"], "Volume"].sum())
+            sell_vol = float(scan_df.loc[scan_df["Close"] <  scan_df["Open"], "Volume"].sum())
+            tot_vol  = buy_vol + sell_vol
+            buy_pct  = round(buy_vol  / tot_vol * 100, 1) if tot_vol else 50.0
+            sell_pct = round(sell_vol / tot_vol * 100, 1) if tot_vol else 50.0
+            side     = "BUY" if buy_pct >= sell_pct else "SELL"
+            if (side == "BUY" and buy_pct < dom_min) or (side == "SELL" and sell_pct < dom_min):
+                continue   # neither side clears the dominance threshold — no candidate at all
+            strength = round(abs(buy_pct - sell_pct), 1)   # mirrors the live capture's ranking
 
             entry_df = df[(df["DateTime"] > f"{date} {scan_hhmm}") &
                           (df["DateTime"] <= f"{date} {entry_end_s}")]
-            buy_dt = sell_dt = None
+            trig_dt = None
             for _, row in entry_df.iterrows():
-                if buy_dt  is None and float(row["High"]) > bench_high:
-                    buy_dt  = row["DateTime"]
-                if sell_dt is None and float(row["Low"])  < bench_low:
-                    sell_dt = row["DateTime"]
+                if side == "BUY"  and float(row["High"]) > bench_high:
+                    trig_dt = row["DateTime"]; break
+                if side == "SELL" and float(row["Low"])  < bench_low:
+                    trig_dt = row["DateTime"]; break
 
-            base = {
+            batch_cands[(s["symbol"], side)] = {
                 "_tok":     s["token"],
-                "ltp_0916": ltp_scan, "buy_pct": 0.0, "sell_pct": 0.0,
+                "ltp_0916": ltp_scan, "buy_pct": buy_pct, "sell_pct": sell_pct,
                 "strength": strength, "bench_high": bench_high, "bench_low": bench_low,
+                "sl_basis": sl_setting,
+                "status":   "WAITING" if trig_dt else "WINDOW_CLOSED",
+                "remark":   None if trig_dt else "No breakout in entry window",
             }
-            for side, trig_dt in [("BUY", buy_dt), ("SELL", sell_dt)]:
-                batch_cands[(s["symbol"], side)] = {
-                    **base,
-                    "sl_basis": sl_setting,
-                    "status":   "WAITING" if trig_dt else "WINDOW_CLOSED",
-                    "remark":   None if trig_dt else "No breakout in entry window",
-                }
-                if trig_dt:
-                    trigger_events.append({
-                        "symbol": s["symbol"], "side": side,
-                        "trigger_dt":    trig_dt,
-                        "trigger_price": bench_high if side == "BUY" else bench_low,
-                        "bench_high": bench_high, "bench_low": bench_low,
-                        "df": df,
-                    })
+            if trig_dt:
+                trigger_events.append({
+                    "symbol": s["symbol"], "side": side,
+                    "trigger_dt":    trig_dt,
+                    "trigger_price": bench_high if side == "BUY" else bench_low,
+                    "bench_high": bench_high, "bench_low": bench_low,
+                    "df": df,
+                })
 
         # Write this batch's candidates to DB so the frontend can see them immediately
         conn = get_conn()
@@ -9465,7 +9475,7 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "",
             orb_upsert_candidate(conn, date, sym, tok, side, data, user_id=user_id)
         conn.close()
         all_cands.update(batch_cands)
-        log.info(f"[ORB-BT] batch {batch_num+1} written — {len(batch_cands)//2} stocks")
+        log.info(f"[ORB-BT] batch {batch_num+1} written — {len(batch_cands)} stocks")
 
     # ── Apply candidate cap globally (across all batches) ─────────────────────
     for side in ("BUY", "SELL"):
@@ -9579,7 +9589,7 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "",
             quantity=qty, target_points=tgt_pts, sl_pts=sl_pts,
         )
         remark1 = (f"Reversed to {'SELL' if side == 'BUY' else 'BUY'} at ₹{exit_price} · backtest"
-                   if outcome == "REVERSED" else "backtest · DOM filter not applied")
+                   if outcome == "REVERSED" else "backtest · direction estimated from pre-scan volume")
 
         trade = {
             "id":                str(_uuid.uuid4()),
@@ -9664,14 +9674,15 @@ def _orb_backtest_sync(date: str, force: bool = False, user_id: str = "",
         trade_count += 1
         log.info(f"[ORB-BT] {side} {sym} @ ₹{trigger_price} | {outcome} | ₹{pnl:+.2f}")
 
-    log.info(f"[ORB-BT] done — {len(all_cands)//2} stocks, {trade_count} trades · {len(batches)} batches for {date}")
+    log.info(f"[ORB-BT] done — {len(all_cands)} stocks, {trade_count} trades · {len(batches)} batches for {date}")
     return {
         "ok":         True,
         "date":       date,
         "candidates": len(all_cands),
         "trades":     trade_count,
         "batches":    len(batches),
-        "note":       "DOM filter not applied — historical order-book data unavailable. All price-qualified breakouts are shown.",
+        "note":       "Direction per stock is estimated from pre-scan candle volume (real order-book "
+                      "buy/sell dominance is unavailable historically) — treat results as approximate.",
     }
 
 

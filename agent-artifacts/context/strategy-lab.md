@@ -199,3 +199,16 @@ User wants to pick an arbitrary historical date/time (e.g. "17 August, 11:30 AM"
 - DOM/volume/change-% filters still aren't replayed (unavailable historically) - same disclosed limitation as before, just now also true for the reversal tab.
 - Backtest reads the strategy's *current* saved settings, not whatever was configured on the historical date.
 - Weekday-only guard, no market-holiday calendar check - a holiday date just returns 0 candidates/trades.
+
+## 2026-08-26 - Backtest direction now estimated from volume, not "watch both sides"
+
+**What changed**
+User compared a real 10:15 Breakout live day (2026-08-25, 12 trades, all BEARISH, net -Rs7,397.78) against the backtest replay of the same day/tab (12 trades, mixed BULLISH/BEARISH, net +Rs4,172.06) - only 5 of 12 trades matched in symbol+direction. Root cause: the backtest was generating a candidate for BOTH breakout directions per stock and letting whichever price level broke first win, while the live capture (`_orb_capture_sync`) always picks exactly ONE direction per stock from real-time order-book buy/sell dominance (`totBuyQuan`/`totSellQuan`) - data that doesn't exist in SmartAPI's historical candle API.
+
+Fixed by adding a volume-based direction proxy to `_orb_backtest_sync` (`main.py` phase-1 scan loop, ~9428): each pre-scan 1-min candle's volume is classified as buy pressure (green candle, Close>=Open) or sell pressure (red candle), summed from 09:15 to the scan time, then the stronger side wins - exactly one candidate per stock, same structure as live. `strength` (used for the candidate-cap ranking) now also matches live's formula (`abs(buy_pct - sell_pct)`) instead of the old opening-candle-range heuristic. The `dom_min_pct` threshold gate is applied too (a stock with no side clearing threshold gets no candidate at all), matching live.
+
+**Why**
+The old "watch both directions" approach could never match live's actual trade set - it wasn't just imprecise, it was a structurally different selection mechanism. This is still an approximation (candle-body volume isn't real order-book dominance), so backtest results should be treated as directionally-informed, not exact.
+
+**Explicitly NOT changed (user instruction): live trading logic**
+Found a likely separate, real bug while investigating: `_orb_raw_quotes` (`main.py:7989`) reads the live VWAP field as `item.get("averageTradePrice")`, which doesn't match Angel One's other verified field names in the same function (`totBuyQuan`, `totSellQuan`, `tradeVolume`, `percentChange` - all real SmartAPI keys) and appears nowhere else in the codebase. The likely correct key is `avgPrice`. Net effect if true: `vwap` has been silently `None` on every live trigger, so any strategy with `default_sl_basis: VWAP` (10:15 Breakout) has always silently fallen back to day-extreme SL, never actually used VWAP - matches the live CSV showing `DAY_HIGH` on all 12 trades. **User explicitly said not to touch live logic this session** - left as-is. Flagged for a future session: verify the correct field name against a real Angel One quote response, then fix `main.py:7989`.
