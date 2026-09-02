@@ -8733,6 +8733,8 @@ class _OrbSlBasisBody(BaseModel):
 class _OrbSquareOffBody(BaseModel):
     trade_id: str
     strategy: str | None = None
+    tf: str | None = None
+    uni: str | None = None
 
 
 class _OrbLiveOrderBody(BaseModel):
@@ -8966,6 +8968,10 @@ async def simulator_square_off(body: _OrbSquareOffBody, request: Request):
             if not meta:
                 return JSONResponse(status_code=400, content={"error": "Unknown strategy"})
             sess = meta["session"]
+        elif body.tf and body.uni:
+            sess = _orb_matrix_session_id(request, body.tf, body.uni)
+            if sess is None:
+                return JSONResponse(status_code=400, content={"error": "Invalid matrix cell"})
         else:
             sess  = _orb_session_id(request)
         conn  = get_conn()

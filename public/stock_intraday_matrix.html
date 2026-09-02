@@ -123,6 +123,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .st-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:5px;
   color:var(--dim);background:var(--bg3);border:1px solid var(--border)}
 .st-waiting{color:var(--yellow)}.st-triggered{color:var(--green)}
+.sq-btn{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.4);
+  color:var(--red);border-radius:var(--r2);font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:700;letter-spacing:.5px;padding:4px 10px;
+  cursor:pointer;transition:all .15s;white-space:nowrap}
+.sq-btn:hover{background:rgba(231,76,60,0.2);border-color:var(--red)}
+.sq-btn:disabled{opacity:0.4;cursor:default}
 .hint{font-size:11px;color:var(--muted);margin-top:2px}
 .loading{text-align:center;color:var(--muted);padding:30px;font-family:'JetBrains Mono',monospace;font-size:12px}
 </style>
@@ -224,9 +230,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <table class="tbl">
           <thead><tr>
             <th>Setup</th><th>Symbol</th><th>Fill ₹</th><th>Live/Exit ₹</th>
-            <th>SL ₹</th><th>Target ₹</th><th>Qty</th><th>Outcome</th><th>P/L</th>
+            <th>SL ₹</th><th>Target ₹</th><th>Qty</th><th>Outcome</th><th>P/L</th><th></th>
           </tr></thead>
-          <tbody id="tradeBody"><tr><td colspan="9" class="empty-cell">—</td></tr></tbody>
+          <tbody id="tradeBody"><tr><td colspan="10" class="empty-cell">—</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -470,13 +476,16 @@ function _ocBadge(o){
 
 function renderTrades(trades){
   const body = document.getElementById('tradeBody');
-  if (!trades.length){ body.innerHTML = `<tr><td colspan="9" class="empty-cell">No simulated trades yet</td></tr>`; return; }
+  if (!trades.length){ body.innerHTML = `<tr><td colspan="10" class="empty-cell">No simulated trades yet</td></tr>`; return; }
   body.innerHTML = trades.map(t=>{
     const isBuy = t.direction === 'BUY';
     const pnl = t.pnl||0; const cl = pnl>0?'bull-val':pnl<0?'bear-val':'';
     let px = '<span style="color:var(--muted)">—</span>';
     if (t.outcome==='OPEN' && t.live_ltp!=null){ const mv=isBuy?t.live_ltp-t.trigger_price:t.trigger_price-t.live_ltp; px=`<span class="num ${mv>0?'bull-val':mv<0?'bear-val':''}">₹${_f2(t.live_ltp)}</span>`; }
     else if (t.outcome!=='OPEN' && t.exit_price!=null){ const mv=isBuy?t.exit_price-t.trigger_price:t.trigger_price-t.exit_price; px=`<span class="num ${mv>0?'bull-val':mv<0?'bear-val':''}">₹${_f2(t.exit_price)}</span>`; }
+    const sqBtn = t.outcome==='OPEN'
+      ? `<button class="sq-btn" onclick="event.stopPropagation();squareOff('${_esc(t.id)}','${_esc(t.symbol)}')">Square Off</button>`
+      : '';
     return `<tr>
       <td><span class="dir-badge ${isBuy?'dir-bull':'dir-bear'}">${isBuy?'BULLISH ▲':'BEARISH ▼'}</span></td>
       <td class="sym">${_esc(t.symbol)}</td>
@@ -487,8 +496,29 @@ function renderTrades(trades){
       <td class="num">${t.quantity||0}</td>
       <td>${_ocBadge(t.outcome)}</td>
       <td class="num ${cl}">${(pnl>=0?'+':'')}₹${_f2(pnl)}</td>
+      <td>${sqBtn}</td>
     </tr>`;
   }).join('');
+}
+
+// ── Square-off ───────────────────────────────────────────────────────────────
+async function squareOff(tradeId, symbol){
+  if (!_active) return;
+  if (!confirm(`Square off ${symbol} at live price?\n\nThis will record the trade as SQUARED OFF.`)) return;
+  const btn = document.querySelector(`.sq-btn[onclick*="${tradeId}"]`);
+  if (btn) btn.disabled = true;
+  try{
+    const r = await fetch(`${API}/square-off`, { method:'POST', headers:_hdrs(true),
+      body: JSON.stringify({ trade_id: tradeId, tf: _active.tf, uni: _active.uni }) });
+    if (r.status === 401){ _handleUnauth(); return; }
+    const d = await r.json();
+    if (!r.ok){ alert(d.error || 'Square-off failed'); if (btn) btn.disabled = false; return; }
+    await loadCell();
+    await loadMatrix(false);
+  }catch(e){
+    alert('Network error during square-off');
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ── EOD export ───────────────────────────────────────────────────────────────
