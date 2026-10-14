@@ -603,7 +603,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
 
         <!-- ACTION BUTTONS -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px">
-          <button id="btnTakeTrade" onclick="takeTrade()" style="padding:10px;border:1px solid var(--green);background:rgba(46,204,113,0.1);color:var(--green);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">✓ TAKE</button>
+          <button id="btnTakeTrade" onclick="takeTrade()" style="padding:10px;border:1px solid var(--green);background:rgba(46,204,113,0.1);color:var(--green);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">+ ADD TO TRADE LAB</button>
           <button id="btnHold" onclick="holdTrade()" style="padding:10px;border:1px solid var(--yellow);background:rgba(245,166,35,0.1);color:var(--yellow);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">⏸ HOLD</button>
           <button id="btnSkip" onclick="skipTrade()" style="padding:10px;border:1px solid var(--red);background:rgba(231,76,60,0.1);color:var(--red);border-radius:var(--r2);cursor:pointer;font-weight:700;transition:all .2s">✕ SKIP</button>
         </div>
@@ -675,6 +675,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:14px 28p
 
 const logs = [];
 let lastSignal = null;
+let lastSignalResult = null;
 let s1Chart = null;
 let s1CandleSeries = null;
 let s1Ema9Series = null;
@@ -759,8 +760,10 @@ function updateSignalCard(result) {
   if (!result.signal) {
     card.style.display = 'none';
     lastSignal = null;
+    lastSignalResult = null;
     return;
   }
+  lastSignalResult = result;
 
   if (result.signal !== lastSignal) {
     addLog(
@@ -782,7 +785,7 @@ function updateSignalCard(result) {
   document.getElementById('sigTime').textContent = new Date().toLocaleTimeString('en-IN').slice(0, 5);
 
   // Entry Details
-  const expiry = '26 May 2026';
+  const expiry = result.expiry || '—';
   document.getElementById('sigInstrument').textContent = `NIFTY ${result.strike} ${isCE ? 'CE' : 'PE'} (${expiry})`;
   document.getElementById('sigPremium').textContent = `₹${result.entry_premium}`;
   document.getElementById('sigEntryTime').textContent = new Date().toLocaleTimeString('en-IN').slice(0, 5);
@@ -1137,14 +1140,63 @@ function saveLog() {
 }
 
 // Action button handlers
-function takeTrade() {
+function _s1AuthHdr() {
+  const t = localStorage.getItem('tz_learn_token');
+  return t ? { 'Authorization': 'Bearer ' + t } : {};
+}
+
+async function takeTrade() {
   const btn = document.getElementById('btnTakeTrade');
-  btn.textContent = '✓ TAKEN';
-  btn.style.background = 'rgba(46, 204, 113, 0.2)';
-  setTimeout(() => {
-    btn.textContent = '✓ TAKE';
-    btn.style.background = 'rgba(46,204,113,0.1)';
-  }, 3000);
+  const r = lastSignalResult;
+  if (!r || !r.signal) return;
+
+  if (!localStorage.getItem('tz_learn_token')) {
+    window.location.href = '/learn/auth.html?next=' + encodeURIComponent(location.pathname + location.search);
+    return;
+  }
+
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+  try {
+    const res = await fetch('/api/paper/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ..._s1AuthHdr() },
+      body: JSON.stringify({
+        instrument:   'OPTION',
+        symbol:       r.option_symbol || `NIFTY ${r.strike} ${r.signal}`,
+        side:         'BUY',
+        lots:         1,
+        lot_size:     65,
+        token:        r.option_token || undefined,
+        underlying:   'NIFTY',
+        expiry:       r.expiry || undefined,
+        strike:       r.strike,
+        option_type:  r.signal,
+        // Only when there's no token to re-price live server-side —
+        // otherwise let /paper/order fill at the current live LTP.
+        price:        r.option_token ? undefined : (r.entry_premium || undefined),
+      }),
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('tz_learn_token');
+      window.location.href = '/learn/auth.html?next=' + encodeURIComponent(location.pathname + location.search);
+      return;
+    }
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    btn.textContent = '✓ ADDED TO TRADE LAB';
+    btn.style.background = 'rgba(46, 204, 113, 0.25)';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.background = 'rgba(46,204,113,0.1)';
+      btn.disabled = false;
+    }, 4000);
+  } catch (e) {
+    alert('Could not add to Trade Lab: ' + e.message);
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
 }
 
 function holdTrade() {

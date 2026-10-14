@@ -242,6 +242,7 @@ Each module = one frontend page (or page group) + its backend routes + Python cl
 | `rsi.py` | RSI 14 |
 | `macd.py` | MACD (12, 26, 9) |
 | `market_profile.py` | TPO / Volume Profile |
+| `delta_matrix.py` | Per-candle buy/sell volume delta from 1-min intrabars (Delta Matrix page) |
 | `volume_spike.py` | Relative volume spike detection |
 | `pcr.py` | Put-Call Ratio from option chain |
 | `imbalance.py` | Order flow imbalance |

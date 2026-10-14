@@ -7,14 +7,24 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-08-02 (Multi-Timeframe Matrix — 3 scan times × 3 filters run in parallel)
+**Last updated:** 2026-10-14 (Matrix EOD close time moved to 15:10)
 
 Extra files added for the matrix feature:
 - `public/stock_intraday_matrix.html` — new login-gated page (tabbed 3×3 grid, personal only)
 
 ---
 
-## 2026-08-02 (latest) — Multi-Timeframe ORB Matrix (parallel scans)
+## 2026-10-14 — Matrix closing time 15:30 → 15:10
+
+User request: the ORB Matrix page should close positions at 03:10 PM, not 03:30 PM.
+
+**What changed:** `POST /simulator/matrix` (main.py, cell-creation handler) default for `f.get("square_off_time", ...)` changed from `"15:30"` to `"15:10"`. This only affects newly-created Matrix cells — existing cells already persisted with `"15:30"` keep that value until the matrix is reconfigured (Disable + Enable, or Reconfigure). The validation range (`09:30`–`15:30`) was left unchanged, so `square_off_time` can still be set up to 15:30 if ever exposed in the UI.
+
+**Scope note:** the shared engine-wide EOD safety net (`core/orb_simulator.py` `is_eod()`/`in_tracking_window()`, and the background loop's "Post-15:30 EOD gate" in `main.py`) still fires at 15:30 — this is a fallback that fills `close_price` on anything still OPEN at day end across ALL ORB-based tools (Matrix, Simulator, Strategy Lab), not the per-cell square-off time. It was intentionally left at 15:30 since Matrix cells now auto-square-off at 15:10, well before that fallback would ever trigger. Strategy Lab's own presets (`_STRATEGIES` dict) hardcode `square_off_time: "15:30"` independently and were not touched (not in scope of this request).
+
+---
+
+## 2026-08-02 — Multi-Timeframe ORB Matrix (parallel scans)
 
 User wanted to monitor 3 scan times (09:16, 10:15, 10:30) across all filters (F&O, Nifty 500, Nifty 50) **at the same time**, on a dedicated page, for their own logged-in account. Answers locked with user: full 3×3 matrix, personal scope, new page with tabs, "stick with existing logic" for breakout levels.
 
@@ -31,7 +41,7 @@ User wanted to monitor 3 scan times (09:16, 10:15, 10:30) across all filters (F&
   - **Flat SL fix (2026-08-03):** setup panel now has a `Flat SL amount ₹` input (`f-sl_amount_rupees`) revealed only when SL basis = AMOUNT (`_toggleSlAmount()`); `enableMatrix()` validates >₹0 and sends `sl_amount_rupees` in filters. Backend already accepted it — the field was just missing from the UI. Each cell stores its own AMOUNT basis + amount; the engine's existing AMOUNT SL path uses it.
   - **EOD export (2026-08-03):** `⬇ Export EOD` button in the matrix card header → `exportEod()` fetches every cell's `GET /state?tf=&uni=` sequentially and builds ONE CSV (`orb_matrix_<date>.csv`) with three blocks — SUMMARY (per-cell counts/win%/gross+net P/L), SIMULATED TRADES, CANDIDATES — every row tagged with scan time + filter. Client-side only (no backend), UTF-8 BOM, SEBI disclaimer footer. Helpers `_csv`/`_downloadCsv`/`_istToday` are local to the page.
 
-**Cell defaults:** `entry_window_end` defaults to `14:30` (so a 10:30 scan can still trigger later in the day); `square_off_time` 15:30. Shared filters (price band, dom %, min move %, target ₹, slots, cap, SL basis) apply to every cell — only scan time and universe vary.
+**Cell defaults:** `entry_window_end` defaults to `14:30` (so a 10:30 scan can still trigger later in the day); `square_off_time` 15:10 (changed from 15:30 on 2026-10-14 — Matrix cells now auto square-off 20 min earlier; validation range is still 09:30–15:30, so `square_off_time` remains user/matrix-overridable up to 15:30). Shared filters (price band, dom %, min move %, target ₹, slots, cap, SL basis) apply to every cell — only scan time and universe vary.
 
 **Known caveats**
 - Efficiency: cell live caches are token-keyed, so 9 cells watching overlapping stocks cost ≈ the same quote volume as watching all-F&O alone (union of tokens). Capture happens at most once per distinct scan time per day.

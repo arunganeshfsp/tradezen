@@ -14,6 +14,10 @@ Virtual portfolio simulator (tool #10, `public/paper_trading.html`). User places
 | Proxy helper | `services/aiService.js` `proxy()` | extended with optional `data` body param; now passes Python 4xx errors through (throws with `err.status`) instead of masking them as "unreachable" |
 | Frontend | `public/paper_trading.html` | order ticket, positions, history, Chart.js progress chart |
 
+## Other entry points into `/paper/order`
+
+- `public/s1_monitor.html` (added 2026-10-14) — the signal card's "+ ADD TO TRADE LAB" button places a 1-lot BUY on the fired CE/PE at the current strike, using the signal's resolved option token/symbol/expiry (see `agent-artifacts/context/s1-monitor.md`). Falls back to the signal's premium as the fill price only if no token was resolved; otherwise lets `/paper/order` price it live, same as every other caller.
+
 ## Endpoints
 
 - `GET /paper/account` — cash, realized P&L, counts
@@ -40,7 +44,7 @@ Virtual portfolio simulator (tool #10, `public/paper_trading.html`). User places
 
 ## Known caveats
 
-- No per-user accounts — one shared virtual account (site has no auth on tool pages).
+- **Stale note, corrected 2026-10-14:** this previously said "no per-user accounts — site has no auth on tool pages." That's no longer accurate — `_paper_user_id()` reads `X-User-Id` forwarded by Node after JWT verification (`tz_learn_token`), so accounts are per logged-in user; anonymous requests fall back to a shared `"anonymous"` account. Verify against `main.py` before trusting either description if this drifts again.
 - Contract picker uses `/options/search` which only returns the nearest weekly or monthly expiry (existing limitation of `search_contracts`).
 - Expired option positions are not auto-settled; user must close manually (LTP will go stale/None after expiry).
 - `aiService.proxy()` behavior change affects all callers: Python 4xx now surfaces real error messages via thrown error with `.status`. Existing routes catch and return 500 with the message — an improvement, but note if debugging.

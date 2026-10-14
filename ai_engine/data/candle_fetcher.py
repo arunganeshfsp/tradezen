@@ -35,6 +35,7 @@ def fetch_candles(
     from_date: str,
     to_date: str,
     use_cache: bool = True,
+    write_cache: bool = True,
 ) -> pd.DataFrame:
     """
     Fetch OHLCV candles for the given token/exchange/interval/range.
@@ -43,6 +44,8 @@ def fetch_candles(
     sorted ascending by DateTime (IST string "YYYY-MM-DD HH:MM").
 
     Caches results in SQLite to avoid redundant API calls on repeated requests.
+    Pass write_cache=False for a session still in progress: cache reads treat any
+    rows in range as a hit, so partial-day rows would later be served as a full day.
     """
     conn = get_conn()
 
@@ -57,7 +60,7 @@ def fetch_candles(
 
     rows = _fetch_from_api(smart, symbol_token, exchange, interval, from_date, to_date)
 
-    if rows:
+    if rows and write_cache:
         insert_candles(conn, symbol_token, exchange, interval, rows)
         log.info(f"💾 Cached {len(rows)} candles: {symbol_token}/{exchange}/{interval}")
 

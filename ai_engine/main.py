@@ -1533,6 +1533,28 @@ def _s1_monitor_state() -> dict:
             rsi_override=rsi_override,
         )
 
+        # Replace the synthetic premium estimate with the live option LTP for
+        # the actual strike, so the shown premium matches what the market is
+        # quoting rather than a generic intrinsic+time-value guess.
+        if result.get('signal') and result.get('strike'):
+            try:
+                expiry = im.get_nearest_expiry()
+                opt = next((o for o in im.data if o['expiry'] == expiry
+                            and o['strike'] == result['strike']
+                            and o['type'] == result['signal']), None)
+                if opt:
+                    live_ltp = get_provider().get_option_ltp([opt['token']]).get(str(opt['token']))
+                    if live_ltp:
+                        result['entry_premium'] = round(live_ltp, 2)
+                        result['sl']            = round(live_ltp * 0.65, 2)
+                        result['t1']            = round(live_ltp * 1.45, 2)
+                        result['capital']       = round(live_ltp * s1_monitor.LOT_SIZE, 0)
+                        result['option_token']  = opt['token']
+                        result['option_symbol'] = opt['symbol']
+                        result['expiry']        = expiry
+            except Exception as e:
+                print(f"[S1 Monitor] live premium fetch failed: {e}")
+
         result['status'] = 'online'
         result['nifty_price'] = round(nifty_price, 2)
         result['india_vix'] = round(india_vix, 2) if india_vix else None
@@ -5631,6 +5653,116 @@ def stocks_search(q: str = "", limit: int = 8):
     except Exception as e:
         log.error(f"stocks/search error: {e}")
         return {"error": str(e), "results": [], "count": 0}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Delta Matrix — per-column buy/sell volume estimate (NIFTY futures + NSE stocks)
+# ══════════════════════════════════════════════════════════════════════════════
+
+from core.indicators.delta_matrix import (
+    build_matrix as _dm_build, lookback_days as _dm_lookback,
+    TIMEFRAMES as _DM_TFS, METHODS as _DM_METHODS,
+)
+
+_dm_lock = threading.Lock()
+_dm_past: dict = {}      # (token, exch, from, to) → 1-min rows; finished sessions never change
+_dm_today: dict = {}     # (token, exch, date) → (fetched_ts, 1-min rows)
+_dm_fut_tok: dict = {}   # date → NIFTY futures token; the lookup parses the full 36 MB master
+_DM_PAST_MAX = 64
+_DM_TTL_OPEN, _DM_TTL_CLOSED = 15, 600
+
+
+def _dm_resolve(symbol: str):
+    sym = symbol.upper().strip()
+    if sym in ("NIFTY", "NIFTY FUT"):
+        day = _ist_now().date().isoformat()
+        tok = _dm_fut_tok.get(day)
+        if not tok:
+            tok = im.get_nifty_futures_token()
+            if not tok:
+                return None
+            _dm_fut_tok.clear()
+            _dm_fut_tok[day] = tok = str(tok)
+        return tok, "NFO", "NIFTY FUT"
+    for s in _load_all_eq_stocks():
+        if s["symbol"] == sym:
+            return s["token"], "NSE", sym
+    return None
+
+
+def _dm_fetch(smart_s, token: str, exch: str, from_dt: str, to_dt: str, finished: bool) -> list:
+    # The SQLite candle cache serves partial ranges as hits: never read it, and only
+    # write sessions that have closed so the ORB backtest never sees a half day.
+    df = fetch_candles(smart_s, token, exch, "ONE_MINUTE", from_dt, to_dt,
+                       use_cache=False, write_cache=finished)
+    return list(df.itertuples(index=False, name=None))
+
+
+def _dm_rows(smart_s, token: str, exch: str, days: int, now: datetime):
+    today = now.date()
+    first, last = today - timedelta(days=days), today - timedelta(days=1)
+    pkey = (token, exch, first.isoformat(), last.isoformat())
+    with _dm_lock:
+        past = _dm_past.get(pkey)
+    if past is None:
+        past = _dm_fetch(smart_s, token, exch, f"{first} 09:15", f"{last} 15:30", finished=True)
+        if past:
+            with _dm_lock:
+                if len(_dm_past) >= _DM_PAST_MAX:
+                    _dm_past.pop(next(iter(_dm_past)))
+                _dm_past[pkey] = past
+
+    market_open = now.weekday() < 5 and _dt.time(9, 15) <= now.time() <= _dt.time(15, 30)
+    tkey = (token, exch, today.isoformat())
+    with _dm_lock:
+        hit = _dm_today.get(tkey)
+    if hit and _time.time() - hit[0] < (_DM_TTL_OPEN if market_open else _DM_TTL_CLOSED):
+        today_rows = hit[1]
+    else:
+        today_rows = []
+        if now.time() >= _dt.time(9, 15):
+            today_rows = _dm_fetch(smart_s, token, exch, f"{today} 09:15", now.strftime("%Y-%m-%d %H:%M"),
+                                   finished=False)
+        with _dm_lock:
+            for k in [k for k in _dm_today if k[2] != tkey[2]]:
+                del _dm_today[k]
+            _dm_today[tkey] = (_time.time(), today_rows)
+    return past + today_rows, market_open
+
+
+@app.get("/delta-matrix")
+def delta_matrix(symbol: str = "NIFTY", tf: int = 30, cols: int = 16, method: str = "updown"):
+    """Per-column delta, running max/min, cum/session delta and volume from 1-min intrabars."""
+    if tf not in _DM_TFS or method not in _DM_METHODS:
+        return JSONResponse(status_code=400, content={
+            "error": f"tf must be one of {list(_DM_TFS)}; method one of {list(_DM_METHODS)}"})
+    cols = max(4, min(cols, 60))
+    resolved = _dm_resolve(symbol)
+    if not resolved:
+        return JSONResponse(status_code=404, content={"error": f"Unknown symbol: {symbol}"})
+    token, exch, label = resolved
+    smart_s = _get_smart()
+    if not smart_s:
+        return JSONResponse(status_code=503, content={"error": "Market data session unavailable"})
+
+    now = _ist_now().replace(tzinfo=None)
+    try:
+        rows, market_open = _dm_rows(smart_s, token, exch, _dm_lookback(tf, cols), now)
+        columns = _dm_build(rows, tf, method, now=now)
+    except Exception as e:
+        log.error(f"[DELTA-MATRIX] {label}: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+    return {
+        "symbol":      label,
+        "token":       token,
+        "exchange":    exch,
+        "tf":          tf,
+        "method":      method,
+        "as_of":       now.strftime("%Y-%m-%d %H:%M:%S"),
+        "market_open": market_open,
+        "cum_since":   columns[0]["date"] if columns else None,
+        "columns":     columns[-cols:],
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -10039,7 +10171,7 @@ async def simulator_matrix_create(body: _OrbMatrixBody, request: Request):
     end = str(f.get("entry_window_end", "14:30"))
     if not _orb_valid_hhmm(end, "09:17", "15:00"):
         return JSONResponse(status_code=400, content={"error": "entry_window_end must be 09:17–15:00"})
-    sq = str(f.get("square_off_time", "15:30"))
+    sq = str(f.get("square_off_time", "15:10"))
     if not _orb_valid_hhmm(sq, "09:30", "15:30"):
         return JSONResponse(status_code=400, content={"error": "square_off_time must be 09:30–15:30"})
 

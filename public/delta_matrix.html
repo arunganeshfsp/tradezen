@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delta Matrix | TradeZen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="stylesheet" href="css/halo-tokens.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/halo-aurora.css" />
+
+<style>
+/* halo-aurora.css supplies the light values of these; :not() keeps this block from outranking it */
+:root:not([data-bs-theme="light"]){
+  --bg:#0A0C18;--bg1:#0e1020;--bg2:#13162b;--bg3:#1a1e35;--bg4:#20253e;
+  --border:#252a44;--border2:#323868;
+  --text:#e8ecf4;--dim:#9ba3bf;--muted:#7b84a8;
+  --cell-neutral:rgba(255,255,255,0.03);
+}
+:root{
+  --accent:#7c6af7;--blue:#5b8af5;
+  --green:#2ecc71;--red:#e74c3c;--yellow:#f5a623;--cyan:#00d4ff;
+  --r:10px;--r2:6px;
+}
+[data-bs-theme="light"]{--cell-neutral:rgba(0,0,0,0.035);--green:#16a34a;--red:#dc2626}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;margin:0}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.hero{padding:30px 16px 20px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 80% 60% at 50% -5%,rgba(124,106,247,0.16) 0%,transparent 65%),var(--bg)}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--accent);background:rgba(124,106,247,0.09);border:1px solid rgba(124,106,247,0.25);
+  padding:5px 16px;border-radius:20px;margin-bottom:12px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,38px);font-weight:800;color:var(--text);letter-spacing:-1.2px;margin:0 0 8px}
+.hero-sub{font-size:13px;color:var(--dim);max-width:640px;margin:0 auto}
+
+.main-wrap{max-width:1320px;margin:0 auto;padding:18px 24px 80px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:600px){.main-wrap{padding:12px 16px 60px}}
+.disclaimer{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-align:center;line-height:1.5}
+
+.dm-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:visible}
+.dm-card-hdr{padding:11px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg2);border-radius:var(--r) var(--r) 0 0}
+.dm-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.3px}
+.dm-card-body{padding:14px 16px}
+
+/* CONTROLS */
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.field label{display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.field input,.field select{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);
+  font-family:'JetBrains Mono',monospace;font-size:12px;padding:7px 10px;outline:none;height:34px}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+#dmSym{width:190px;text-transform:uppercase}
+.seg{display:inline-flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden;height:34px}
+.seg button{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--bg2);color:var(--dim);border:none;padding:0 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--border2)}
+.seg button.on{background:rgba(124,106,247,0.18);color:var(--text)}
+.btn-x{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border-radius:6px;height:34px;padding:0 14px;
+  border:1px solid var(--border2);background:var(--bg3);color:var(--text)}
+.btn-x:hover{border-color:var(--accent)}
+.btn-x:disabled{opacity:.5;cursor:not-allowed}
+.chk{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);height:34px;cursor:pointer}
+.chk input{accent-color:var(--accent)}
+.ctl-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+@media(max-width:700px){.ctl-actions{margin-left:0}}
+
+.sym-wrap{position:relative}
+.sym-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:260px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
+  z-index:400;max-height:260px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.sym-dropdown.open{display:block}
+.sym-item{padding:8px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);cursor:pointer;border-bottom:1px solid var(--border)}
+.sym-item:last-child{border:none}
+.sym-item small{display:block;font-size:10px;color:var(--muted);font-family:'DM Sans',sans-serif}
+.sym-item:hover,.sym-item.ac-active{background:rgba(124,106,247,0.12);color:var(--text)}
+
+/* STATUS */
+.status-strip{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.st-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.st-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:4px 12px;border-radius:20px;border:1px solid;white-space:nowrap}
+.chip-live{color:var(--green);border-color:rgba(46,204,113,.4);background:rgba(46,204,113,.08)}
+.chip-closed{color:var(--muted);border-color:var(--border);background:rgba(255,255,255,.03)}
+.chip-err{color:var(--red);border-color:rgba(231,76,60,.4);background:rgba(231,76,60,.08)}
+.st-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.pos{color:var(--green)}.neg{color:var(--red)}.flat{color:var(--muted)}
+
+/* MATRIX */
+.mx-wrap{overflow-x:auto;border-radius:0 0 var(--r) var(--r)}
+.mx-wrap::-webkit-scrollbar{height:7px}
+.mx-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mx{border-collapse:separate;border-spacing:2px;font-family:'JetBrains Mono',monospace;font-size:11.5px;white-space:nowrap;margin:6px}
+.mx th,.mx td{padding:6px 9px;text-align:center;border-radius:3px}
+.mx thead th{font-size:10.5px;color:var(--dim);font-weight:600;background:var(--bg2)}
+.mx thead tr.dates th{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:transparent;padding:2px 9px}
+.mx thead th.live{background:rgba(0,212,255,0.22);color:var(--text)}
+.mx .rl{position:sticky;left:0;z-index:2;text-align:left;background:var(--bg1);color:var(--text);font-weight:600;font-size:11px;
+  padding-right:14px;box-shadow:-8px 0 0 var(--bg1),4px 0 6px -4px rgba(0,0,0,.4)}
+.mx thead .rl,.mx thead tr.dates th.rl{background:var(--bg1)}
+.mx td{background:var(--cell-neutral);color:var(--text);min-width:62px}
+.mx td.ss,.mx th.ss{box-shadow:inset 2px 0 0 var(--border2)}
+.mx td.lv{outline:1px dashed rgba(0,212,255,0.45);outline-offset:-1px}
+.mx td.hot{color:#fff}
+.mx td.pos{color:var(--green)}.mx td.neg{color:var(--red)}.mx td.flat{color:var(--muted)}
+.mx td.amber{background:rgba(245,166,35,.85);color:#1a1300;font-weight:700}
+.mx td.amber-lo{background:rgba(245,166,35,.30)}
+.mx tr.price td:not(.rl){background:transparent;font-size:11px}
+.mx-note{padding:8px 16px 12px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--border)}
+.empty{padding:40px 16px;text-align:center;color:var(--muted);font-size:13px}
+
+/* LEGEND */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px 22px;font-size:12.5px;color:var(--dim);line-height:1.5}
+.legend b{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11.5px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle;margin:0 3px 1px 0}
+</style>
+</head>
+<body>
+
+<nav class="halo-navbar">
+  <div class="container-fluid d-flex align-items-center justify-content-between px-4">
+    <a class="navbar-brand" href="/">
+      <img src="/app-icon.svg" width="32" height="32" alt="TradeZen" style="border-radius:8px" data-app-logo />
+      <span>TradeZen</span>
+    </a>
+    <ul class="navbar-nav d-none d-lg-flex flex-row align-items-center mb-0">
+      <li class="nav-item"><a class="nav-link" href="/trade_flow.html">Trade Flow</a></li>
+      <li class="nav-item"><a class="nav-link" href="/options_analysis.html">Options</a></li>
+      <li class="nav-item"><a class="nav-link" href="/cpr_monitor.html">CPR</a></li>
+      <li class="nav-item"><a class="nav-link" href="/fno_scanner.html">F&amp;O</a></li>
+      <li class="nav-item"><a class="nav-link" href="/stock_movers.html">Movers</a></li>
+      <li class="nav-item"><a class="nav-link" href="/market_psychology.html">TradeFun</a></li>
+      <li class="nav-item"><a class="nav-link" href="/swing_trading.html">Swing</a></li>
+      <li class="nav-item"><a class="nav-link" href="/learn/">Learn</a></li>
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="is-active">EN</button>
+        <button type="button" data-lang="ta">தமிழ்</button>
+      </div>
+      <button type="button" class="btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg data-icon="dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/></svg>
+        <svg data-icon="light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="/" class="btn btn-aurora btn-sm text-decoration-none">Home</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="htag">Order flow · 1-min intrabars</div>
+  <h1>Delta Matrix</h1>
+  <p class="hero-sub">Buyer- vs seller-initiated volume per candle for NIFTY futures and NSE stocks: the running high and low inside each candle, plus session and cumulative totals.</p>
+</header>
+
+<main class="main-wrap">
+  <p class="disclaimer">For educational purposes only. Not investment advice. Consult a SEBI-registered adviser before trading.</p>
+
+  <section class="dm-card">
+    <div class="dm-card-body">
+      <div class="controls">
+        <div class="field">
+          <label for="dmSym">Symbol</label>
+          <div class="sym-wrap">
+            <input id="dmSym" autocomplete="off" spellcheck="false" placeholder="NIFTY or stock"
+                   onfocus="this.select()" oninput="_dmSymInput(event)" onkeydown="_dmSymKeydown(event)">
+            <div class="sym-dropdown" id="dmSymDropdown"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Timeframe</label>
+          <div class="seg" id="dmTf">
+            <button type="button" data-tf="5">5m</button><button type="button" data-tf="15">15m</button><button type="button" data-tf="30">30m</button><button type="button" data-tf="60">1h</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="dmCols">Columns</label>
+          <select id="dmCols">
+            <option>8</option><option>12</option><option>16</option><option>24</option><option>32</option><option>48</option><option>60</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="dmMethod">Split method</label>
+          <select id="dmMethod">
+            <option value="updown">Up/down bars (TradingView-style)</option>
+            <option value="clv">Close location in range</option>
+          </select>
+        </div>
+        <label class="chk"><input type="checkbox" id="dmAuto"> Auto-refresh 15s</label>
+        <div class="ctl-actions">
+          <button type="button" class="btn-x" id="dmRefresh" onclick="loadMatrix()">Refresh</button>
+          <button type="button" class="btn-x" id="dmExport" onclick="exportCsv()" disabled>Export CSV</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dm-card">
+    <div class="dm-card-hdr">
+      <div class="status-strip" id="dmStatus" style="flex:1">
+        <span class="flat mono" style="font-size:12px">Loading…</span>
+      </div>
+    </div>
+    <div class="mx-wrap" id="dmWrap"><div class="empty">Loading…</div></div>
+    <div class="mx-note" id="dmNote" style="display:none"></div>
+  </section>
+
+  <section class="dm-card">
+    <div class="dm-card-hdr"><span class="dm-card-title">How to read the matrix</span></div>
+    <div class="dm-card-body legend">
+      <div><b>Delta</b> — buyer-initiated minus seller-initiated volume in the candle. Shade strength follows size relative to the other columns on screen.</div>
+      <div><b>Max Δ / Min Δ (Candle)</b> — the highest and lowest the running delta reached while the candle formed. A candle that closes near its Min Δ after a high Max Δ shows buying that faded.</div>
+      <div><b>Cum Delta</b> — running total from the first session loaded; coloured by that candle's delta. Read its direction rather than its level.</div>
+      <div><b>Delta/Vol %</b> — how one-sided the candle was: |delta| ÷ volume. <span class="sw" style="background:rgba(245,166,35,.85)"></span>50%+ <span class="sw" style="background:rgba(245,166,35,.30)"></span>30–50%</div>
+      <div><b>Session Δ</b> — running delta from the 09:15 open, reset each day. <span class="sw" style="background:rgba(91,138,245,.8)"></span>positive <span class="sw" style="background:rgba(231,76,60,.8)"></span>negative</div>
+      <div><b>Volume</b> — <span class="sw" style="background:rgba(245,166,35,.85)"></span>at least 1.5× the average of the previous 20 columns.</div>
+      <div><b>How the split is estimated</b> — the broker feed has no trade-side flag, so each 1-minute bar's volume is assigned from its own direction (up/down method) or from where it closed within its range. Treat values as an estimate of pressure, not exact order flow.</div>
+      <div><b>NIFTY FUT</b> uses the near-month contract (the index itself has no volume). Just after expiry, earlier sessions of the new contract show lighter volume.</div>
+    </div>
+  </section>
+</main>
+
+<script src="halo-aurora.js"></script>
+<script>
+const DM_TFS = [5, 15, 30, 60];
+const DM_COLS = [8, 12, 16, 24, 32, 48, 60];
+const DM_METHODS = ['updown', 'clv'];
+const DM = { symbol: 'NIFTY', tf: 30, cols: 16, method: 'updown', auto: true };
+let _dmData = null, _dmTimer = null, _dmSeq = 0, _dmScrollEnd = true, _dmLastTs = 0;
+
+function _dmLoadPrefs() {
+  try { Object.assign(DM, JSON.parse(localStorage.getItem('tz_delta_matrix') || '{}')); } catch (e) {}
+  const q = new URLSearchParams(location.search);
+  if (q.get('symbol')) DM.symbol = q.get('symbol');
+  if (q.get('tf')) DM.tf = +q.get('tf');
+  DM.symbol = String(DM.symbol || 'NIFTY').toUpperCase();
+  if (!DM_TFS.includes(+DM.tf)) DM.tf = 30;
+  if (!DM_COLS.includes(+DM.cols)) DM.cols = 16;
+  if (!DM_METHODS.includes(DM.method)) DM.method = 'updown';
+  DM.tf = +DM.tf; DM.cols = +DM.cols; DM.auto = DM.auto !== false;
+}
+function _dmSavePrefs() {
+  try { localStorage.setItem('tz_delta_matrix', JSON.stringify(DM)); } catch (e) {}
+}
+
+function _esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function _fmt(n, signed = true) {
+  const a = Math.abs(n);
+  let s;
+  if (a >= 1e9) s = (a / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
+  else if (a >= 1e6) s = (a / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  else if (a >= 1e3) s = (a / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  else s = String(Math.round(a));
+  if (n < 0) return '-' + s;
+  return (signed && n > 0 ? '+' : '') + s;
+}
+function _sgnCls(n) { return n > 0 ? 'pos' : n < 0 ? 'neg' : 'flat'; }
+
+const RGB_POS = '46,204,113', RGB_NEG = '231,76,60', RGB_BLUE = '91,138,245';
+function _heat(v, maxAbs, pos = RGB_POS, neg = RGB_NEG) {
+  if (!v) return { style: '', hot: false };
+  const a = 0.14 + 0.66 * Math.min(1, Math.abs(v) / (maxAbs || 1));
+  return { style: `background:rgba(${v > 0 ? pos : neg},${a.toFixed(2)})`, hot: a > 0.5 };
+}
+function _maxAbs(cols, key) { return cols.reduce((m, c) => Math.max(m, Math.abs(c[key])), 0); }
+
+function _cell(text, { style = '', hot = false, extra = '', title = '' } = {}) {
+  const cls = [extra, hot ? 'hot' : ''].filter(Boolean).join(' ');
+  return `<td${cls ? ` class="${cls}"` : ''}${style ? ` style="${style}"` : ''}${title ? ` title="${_esc(title)}"` : ''}>${text}</td>`;
+}
+
+function _dateLabel(d) {
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+}
+
+function renderMatrix(d) {
+  const wrap = document.getElementById('dmWrap');
+  const note = document.getElementById('dmNote');
+  const cols = d.columns || [];
+  if (!cols.length) {
+    wrap.innerHTML = '<div class="empty">No 1-minute data came back for this symbol. The market-data session may be down, or the symbol may not trade in the NSE equity segment.</div>';
+    note.style.display = 'none';
+    return;
+  }
+  const atEnd = wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 4;
+
+  const groups = [];
+  cols.forEach(c => {
+    const g = groups[groups.length - 1];
+    if (g && g.date === c.date) g.n++; else groups.push({ date: c.date, n: 1 });
+  });
+  const ssCls = c => (c.session_start ? 'ss' : '');
+
+  let h = '<table class="mx"><thead><tr class="dates"><th class="rl"></th>';
+  groups.forEach((g, i) => { h += `<th colspan="${g.n}" class="${i ? 'ss' : ''}">${_dateLabel(g.date)}</th>`; });
+  h += '</tr><tr><th class="rl">IST</th>';
+  cols.forEach(c => { h += `<th class="${[ssCls(c), c.live ? 'live' : ''].join(' ').trim()}">${c.label}</th>`; });
+  h += '</tr></thead><tbody>';
+
+  const mxDelta = _maxAbs(cols, 'delta'), mxMax = _maxAbs(cols, 'max_delta'),
+        mxMin = _maxAbs(cols, 'min_delta'), mxSess = _maxAbs(cols, 'session_delta');
+  const row = (label, fn, trCls = '') => {
+    h += `<tr${trCls ? ` class="${trCls}"` : ''}><td class="rl">${label}</td>`;
+    cols.forEach((c, i) => {
+      const r = fn(c, i);
+      r.extra = [r.extra, ssCls(c), c.live ? 'lv' : ''].filter(Boolean).join(' ');
+      h += _cell(r.text, r);
+    });
+    h += '</tr>';
+  };
+
+  row('Close', (c, i) => {
+    const prev = i ? cols[i - 1].close : c.open;
+    return { text: c.close.toFixed(2), extra: _sgnCls(c.close - prev),
+             title: `O ${c.open}  H ${c.high}  L ${c.low}  C ${c.close}` };
+  }, 'price');
+  row('Delta', c => ({ text: _fmt(c.delta), ..._heat(c.delta, mxDelta),
+    title: `Buyer-initiated ${_fmt(c.buy_vol, false)} · Seller-initiated ${_fmt(c.sell_vol, false)}` }));
+  row('Max Δ (Candle)', c => ({ text: _fmt(c.max_delta), ..._heat(c.max_delta, mxMax) }));
+  row('Min Δ (Candle)', c => ({ text: _fmt(c.min_delta), ..._heat(c.min_delta, mxMin) }));
+  row('Cum Delta', c => ({ text: _fmt(c.cum_delta),
+    style: c.delta ? `background:rgba(${c.delta > 0 ? RGB_POS : RGB_NEG},0.24)` : '' }));
+  row('Delta/Vol %', c => ({ text: Math.round(c.delta_pct) + '%',
+    extra: c.delta_pct >= 50 ? 'amber' : c.delta_pct >= 30 ? 'amber-lo' : '' }));
+  row('Session Δ', c => ({ text: _fmt(c.session_delta), ..._heat(c.session_delta, mxSess, RGB_BLUE, RGB_NEG) }));
+  row('Volume', c => ({ text: _fmt(c.volume, false), extra: c.vol_spike ? 'amber' : '',
+    title: c.vol_ratio != null ? `${c.vol_ratio}× the average of the previous columns` : '' }));
+
+  h += '</tbody></table>';
+  wrap.innerHTML = h;
+  if (_dmScrollEnd || atEnd) {
+    wrap.scrollLeft = wrap.scrollWidth;
+    // web-font swap widens the cells after first paint
+    document.fonts.ready.then(() => { wrap.scrollLeft = wrap.scrollWidth; });
+  }
+  _dmScrollEnd = false;
+
+  note.style.display = '';
+  note.textContent = `Cum Delta counts from ${_dateLabel(d.cum_since)}, the first session loaded. ` +
+    (cols.some(c => c.live) ? 'The dashed column is still forming.' : '');
+}
+
+function renderStatus(d, err) {
+  const el = document.getElementById('dmStatus');
+  if (err) {
+    el.innerHTML = `<span class="chip chip-err">Error</span><span class="mono" style="font-size:12px;color:var(--dim)">${_esc(err)}</span>`;
+    return;
+  }
+  const cols = d.columns || [];
+  const last = cols[cols.length - 1];
+  const stat = (label, val, cls = '') => `<div><div class="st-label">${label}</div><div class="st-val ${cls}">${val}</div></div>`;
+  let h = stat(`${_esc(d.exchange)} · ${d.tf}m`, _esc(d.symbol));
+  if (last) {
+    h += stat('Last', last.close.toFixed(2));
+    h += stat('Candle Δ', _fmt(last.delta), _sgnCls(last.delta));
+    h += stat('Session Δ', _fmt(last.session_delta), _sgnCls(last.session_delta));
+    h += stat('Cum Δ', _fmt(last.cum_delta), _sgnCls(last.cum_delta));
+  }
+  const chip = d.market_open
+    ? `<span class="chip chip-live">${DM.auto ? 'Live · 15s' : 'Market open'}</span>`
+    : '<span class="chip chip-closed">Market closed</span>';
+  h += `<div class="st-right"><span class="mono" style="font-size:11px;color:var(--muted)">as of ${_esc(d.as_of.slice(11, 19))} IST</span>${chip}</div>`;
+  el.innerHTML = h;
+}
+
+async function loadMatrix() {
+  const seq = ++_dmSeq;
+  clearTimeout(_dmTimer);
+  const btn = document.getElementById('dmRefresh');
+  btn.disabled = true;
+  try {
+    const qs = new URLSearchParams({ symbol: DM.symbol, tf: DM.tf, cols: DM.cols, method: DM.method });
+    const r = await fetch('/api/delta-matrix?' + qs);
+    const d = await r.json().catch(() => ({ error: 'HTTP ' + r.status }));
+    if (seq !== _dmSeq) return;
+    if (!r.ok || d.error) throw new Error(d.error || 'HTTP ' + r.status);
+    _dmData = d;
+    _dmLastTs = Date.now();
+    renderStatus(d);
+    renderMatrix(d);
+    document.getElementById('dmExport').disabled = !(d.columns || []).length;
+  } catch (e) {
+    if (seq !== _dmSeq) return;
+    renderStatus(null, e.message);
+    if (!_dmData) document.getElementById('dmWrap').innerHTML = '<div class="empty">Could not load the matrix.</div>';
+  } finally {
+    if (seq === _dmSeq) { btn.disabled = false; _dmSchedule(); }
+  }
+}
+
+function _dmSchedule() {
+  clearTimeout(_dmTimer);
+  if (!DM.auto || !_dmData || !_dmData.market_open) return;
+  _dmTimer = setTimeout(() => (document.hidden ? _dmSchedule() : loadMatrix()), 15000);
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && DM.auto && _dmData && _dmData.market_open && Date.now() - _dmLastTs > 15000) loadMatrix();
+});
+
+function _dmApply(changes) {
+  Object.assign(DM, changes);
+  _dmSavePrefs();
+  _dmSyncControls();
+  _dmScrollEnd = true;
+  loadMatrix();
+}
+
+function _dmSyncControls() {
+  document.getElementById('dmSym').value = DM.symbol === 'NIFTY' ? 'NIFTY FUT' : DM.symbol;
+  document.querySelectorAll('#dmTf button').forEach(b => b.classList.toggle('on', +b.dataset.tf === DM.tf));
+  document.getElementById('dmCols').value = String(DM.cols);
+  document.getElementById('dmMethod').value = DM.method;
+  document.getElementById('dmAuto').checked = DM.auto;
+}
+
+function exportCsv() {
+  if (!_dmData || !(_dmData.columns || []).length) return;
+  const keys = ['time', 'open', 'high', 'low', 'close', 'volume', 'buy_vol', 'sell_vol', 'delta',
+                'max_delta', 'min_delta', 'cum_delta', 'session_delta', 'delta_pct'];
+  const lines = [keys.join(',')].concat(_dmData.columns.map(c => keys.map(k => c[k]).join(',')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+  a.download = `delta_matrix_${_dmData.symbol.replace(/\s+/g, '_')}_${_dmData.tf}m_${_dmData.as_of.slice(0, 10)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// Symbol autocomplete: NIFTY FUT pinned, stocks from /api/stocks/search
+let _dmAcIdx = -1, _dmAcT = null, _dmAcSeq = 0;
+function _dmSymInput(e) {
+  const q = (e.target.value || '').trim().toUpperCase();
+  const dd = document.getElementById('dmSymDropdown');
+  clearTimeout(_dmAcT);
+  if (!q) { dd.classList.remove('open'); return; }
+  const seq = ++_dmAcSeq;
+  _dmAcT = setTimeout(async () => {
+    const items = [];
+    if ('NIFTY FUT'.startsWith(q)) items.push({ code: 'NIFTY', label: 'NIFTY FUT', name: 'NIFTY 50 futures · near month' });
+    try {
+      const r = await fetch('/api/stocks/search?' + new URLSearchParams({ q, limit: 8 }));
+      const d = await r.json();
+      (d.results || []).forEach(s => { if (s.code !== 'NIFTY') items.push({ code: s.code, label: s.code, name: s.name }); });
+    } catch (err) {}
+    if (seq !== _dmAcSeq) return;
+    if (!items.length) { dd.classList.remove('open'); return; }
+    dd.innerHTML = items.map(s =>
+      `<div class="sym-item" data-val="${_esc(s.code)}" onmousedown="event.preventDefault();_dmPickSym(this.dataset.val)">${_esc(s.label)}<small>${_esc(s.name || '')}</small></div>`
+    ).join('');
+    dd.classList.add('open');
+    _dmAcIdx = -1;
+  }, 180);
+}
+function _dmSymKeydown(e) {
+  const dd = document.getElementById('dmSymDropdown');
+  const items = dd.classList.contains('open') ? dd.querySelectorAll('.sym-item') : [];
+  if (e.key === 'ArrowDown' && items.length) {
+    e.preventDefault(); _dmAcIdx = Math.min(_dmAcIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('ac-active', i === _dmAcIdx));
+  } else if (e.key === 'ArrowUp' && items.length) {
+    e.preventDefault(); _dmAcIdx = Math.max(_dmAcIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('ac-active', i === _dmAcIdx));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (_dmAcIdx >= 0 && items.length) _dmPickSym(items[_dmAcIdx].dataset.val);
+    else {
+      const v = e.target.value.trim().toUpperCase();
+      if (v) _dmPickSym(v === 'NIFTY FUT' ? 'NIFTY' : v);
+    }
+  } else if (e.key === 'Escape') {
+    dd.classList.remove('open');
+  }
+}
+function _dmPickSym(sym) {
+  clearTimeout(_dmAcT); _dmAcSeq++;
+  document.getElementById('dmSymDropdown').classList.remove('open');
+  _dmData = null;
+  _dmApply({ symbol: sym.toUpperCase() });
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.sym-wrap')) document.getElementById('dmSymDropdown').classList.remove('open');
+});
+
+document.querySelectorAll('#dmTf button').forEach(b => b.addEventListener('click', () => _dmApply({ tf: +b.dataset.tf })));
+document.getElementById('dmCols').addEventListener('change', e => _dmApply({ cols: +e.target.value }));
+document.getElementById('dmMethod').addEventListener('change', e => _dmApply({ method: e.target.value }));
+document.getElementById('dmAuto').addEventListener('change', e => {
+  DM.auto = e.target.checked; _dmSavePrefs();
+  if (_dmData) renderStatus(_dmData);
+  _dmSchedule();
+});
+
+_dmLoadPrefs();
+_dmSyncControls();
+loadMatrix();
+</script>
+</body>
+</html>

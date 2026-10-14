@@ -609,6 +609,18 @@ router.get("/stocks/search", async (req, res) => {
   }
 });
 
+// ─── GET /api/delta-matrix?symbol=NIFTY&tf=30&cols=16&method=updown ─────────
+// Per-column buy/sell volume delta built from 1-min intrabars (delta_matrix.html)
+router.get("/delta-matrix", async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query);
+    const data = await aiService.proxy("GET", `/delta-matrix?${params}`, 30000);
+    res.json(data);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
 // ─── GET /api/options/contract-history-nse ───────────────────────────────────
 router.get("/options/contract-history-nse", async (req, res) => {
   try {

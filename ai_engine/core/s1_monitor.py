@@ -5,7 +5,7 @@ Watches 5-minute candles for OR breakout + EMA cross + RSI confirmation
 
 import math
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, time as dt_time
 from typing import Optional, Dict, Any
 from .indicators.ema import calculate_ema
 from .indicators.rsi import calculate_rsi
@@ -62,13 +62,17 @@ class S1StrategyMonitor:
 
         result['conditions']['day_ok'] = current_time.strftime('%A') in self.VALID_DAYS
 
-        # OR Formation — lock from first candle of the session
-        if not self.or_formed:
-            first = candles.iloc[0]
-            self.or_high = float(first['high'])
-            self.or_low  = float(first['low'])
-            self.or_formed = True
-            self.session_start_time = current_time
+        # OR Formation — high/low across the whole 09:15-09:30 opening range,
+        # not just the first candle. Recomputed every call (candles always
+        # carries the session so far) and only flagged "formed" once 09:30
+        # has actually elapsed.
+        or_window = candles[candles.index.time < dt_time(9, 30)]
+        if or_window.empty:
+            or_window = candles
+        self.or_high = float(or_window['high'].max())
+        self.or_low  = float(or_window['low'].min())
+        self.or_formed = current_hour >= self.OR_COMPLETE_HOUR
+        self.session_start_time = self.session_start_time or current_time
 
         result['conditions']['or_formed'] = self.or_formed
         result['indicators']['or_high'] = self.or_high
@@ -134,6 +138,8 @@ class S1StrategyMonitor:
                 return None
 
         strike  = int(round(price / 50) * 50)
+        # Fallback only — main.py overrides this with the live option LTP
+        # for this strike when a broker session is available.
         premium = self._estimate_premium(strike, direction, price)
 
         result = dict(base)

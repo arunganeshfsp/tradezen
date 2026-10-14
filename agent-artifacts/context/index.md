@@ -40,6 +40,7 @@ Module context files capture **non-obvious decisions, active bugs, in-progress w
 | stock-intraday-live | `stock-intraday-live.md` | active |
 | stock-universe-inventory | `stock-universe-inventory.md` | active |
 | momentum-index | `momentum-index.md` | active |
+| delta-matrix | `delta-matrix.md` | active |
 
 ---
 

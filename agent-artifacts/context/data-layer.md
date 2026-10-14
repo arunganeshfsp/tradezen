@@ -137,7 +137,8 @@ File is nearly empty (1 line). Parquet storage was planned but not implemented �
 
 ## Known Caveats
 
-- `candle_fetcher.py` cache uses string range matching (`datetime >= from_date`) — partial cache hits are not detected. If you request a wider range than what's cached, the full range is re-fetched from the API.
+- `candle_fetcher.py` cache uses string range matching (`datetime >= from_date`) — **any** cached row inside the range counts as a hit, and only those rows are returned. A wider range than what's cached, or a day cached mid-session, comes back partial with no API call. Callers that need the current session pass `use_cache=False`.
+- `fetch_candles(..., write_cache=False)` (added 2026-09-22 for Delta Matrix) skips the SQLite write. Use it for an in-progress session so partial-day rows never land in the cache — the ORB backtest (`use_cache=True`, whole day) would later read them as a full day. Other intraday callers (`/market-profile/live`, ORB scan) still write partial rows; not yet changed.
 - `InstrumentMaster.get_upcoming_expiries()` uses string lexicographic sort — **BUG if not fixed**: `"01MAY2026" < "24APR2026"` lexicographically. The code comment warns about this and uses `datetime.strptime` sort key.
 - `tick_buffer.py` and `parquet_store.py` are stub files — don't reference them for actual logic.
 - TOTP regenerates on every `get_smart_api()` call. Sessions are not cached — each startup logs in fresh.
