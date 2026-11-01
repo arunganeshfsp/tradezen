@@ -3,6 +3,11 @@
 **Page:** `public/stock_intraday.html` (direct URL only — NOT linked in any nav; personal use)
 **Status:** active
 **Created:** 2026-07-15
+**Last updated:** 2026-11-01 ("Favorites" admin-curated universe added to the Stock universe selector)
+
+## 2026-11-01 — "Favorites" universe option
+
+Added `<option value="inv_favorites">Favorites (Admin list)</option>` to both universe `<select>` elements (`#sett-universe` and `#mscan-universe`) — this page shares the simulator's `/simulator/settings` and `/simulator/scan-now` endpoints and backend universe-resolution logic 1:1, so the actual implementation (allow-list + `inv_` pool resolution) is documented in `agent-artifacts/context/stock-intraday-simulator.md` (2026-11-01 entry) rather than duplicated here. Net effect for this page: a Favorites-sourced candidate can now reach `placeLiveOrder()` like any other candidate — the admin-curated list (`public/mgmt/stock-inventory.html`) is not guaranteed to be F&O-only, so real MIS orders could be placed on non-F&O NSE equities if Favorites contains any. No change to order placement logic itself (`_live_place_order_sync` doesn't care which universe a symbol/token came from).
 
 ## What This Is
 

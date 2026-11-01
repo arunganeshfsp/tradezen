@@ -7968,12 +7968,13 @@ from storage.sqlite_store import (
     stock_universe_import, stock_universe_get, stock_universe_counts, stock_universe_clear,
 )
 
-# ORB universes + multi-timeframe matrix axes (3 scan times × 3 filters).
-_ORB_VALID_UNI    = {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50"}
+# ORB universes + multi-timeframe matrix axes (3 scan times × filters).
+_ORB_VALID_UNI    = {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50", "inv_favorites"}
 _MATRIX_TIMES     = ["09:16", "10:15", "10:30"]
-_MATRIX_UNIS      = ["all_fno", "nifty500_fno", "nifty50"]
+_MATRIX_UNIS      = ["all_fno", "nifty500_fno", "nifty50", "inv_favorites"]
 _MATRIX_UNI_LABEL = {"all_fno": "F&O", "nifty500_fno": "Nifty 500",
-                     "nifty100_fno": "Nifty 100", "nifty50": "Nifty 50"}
+                     "nifty100_fno": "Nifty 100", "nifty50": "Nifty 50",
+                     "inv_favorites": "Favorites (Admin list)"}
 
 # Nifty index symbol sets — used for universe filtering at capture time.
 # Lists are approximate constituents; union with the F&O universe at runtime.
@@ -10066,10 +10067,9 @@ async def stock_inventory_delete(source: str):
 
 @app.post("/simulator/settings")
 async def simulator_post_settings(body: _OrbSettingsBody, request: Request):
-    _VALID_UNI = {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50"}
     _VALID_SL  = {"VWAP", "DAY_SMART", "AMOUNT"}
     errs = []
-    if body.universe         and body.universe         not in _VALID_UNI: errs.append("universe")
+    if body.universe         and body.universe         not in _ORB_VALID_UNI: errs.append("universe")
     if body.default_sl_basis and body.default_sl_basis not in _VALID_SL:  errs.append("default_sl_basis")
     if body.target_rupees    is not None and body.target_rupees  <= 0:     errs.append("target_rupees must be > 0")
     if body.max_slots        is not None and not (1 <= body.max_slots <= 20): errs.append("max_slots must be 1–20")
@@ -10280,7 +10280,7 @@ async def simulator_scan_now(request: Request, body: _OrbScanNowBody | None = No
             return JSONResponse(status_code=400,
                                 content={"error": "Max simulated trades reached for today"})
         ov = body.dict(exclude_none=True) if body else {}
-        if ov.get("universe") and ov["universe"] not in {"all_fno", "nifty500_fno", "nifty100_fno", "nifty50"}:
+        if ov.get("universe") and ov["universe"] not in _ORB_VALID_UNI:
             return JSONResponse(status_code=400, content={"error": "Invalid universe"})
         if ov.get("dom_min_pct") is not None and not (30 <= ov["dom_min_pct"] <= 90):
             return JSONResponse(status_code=400, content={"error": "dom_min_pct must be 30–90"})

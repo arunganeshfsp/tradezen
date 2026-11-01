@@ -7,10 +7,26 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-10-14 (Matrix EOD close time moved to 15:10)
+**Last updated:** 2026-11-01 ("Favorites" admin-curated universe added)
 
 Extra files added for the matrix feature:
 - `public/stock_intraday_matrix.html` — new login-gated page (tabbed 3×3 grid, personal only)
+
+---
+
+## 2026-11-01 — "Favorites" added as a selectable Stock universe
+
+User request: add a "Favorites" option to the Stock universe selector, sourced from admin.
+
+**What changed:** The simulator's universe already had a generic `inv_<source>` resolution path (added for Strategy Lab — see `_orb_capture_sync` / `_orb_backtest_sync`, which pull symbols via `stock_universe_get(conn, source)` and widen to `_load_all_eq_stocks()` for non-F&O inventory groups). That `source` is the same admin-managed list editable at `public/mgmt/stock-inventory.html` (SQLite `stock_universe` table, `source='favorites'`). This update just opens the existing `inv_favorites` value up to the simulator/matrix endpoints that previously only accepted the four F&O-index universes:
+- `_ORB_VALID_UNI` (module constant) now includes `"inv_favorites"` — this is the single validation set used by `/simulator/settings` (full settings save), `/simulator/scan-now` (manual scan override), and `_orb_matrix_session_id` (matrix cell validation). The two inline duplicate sets that used to live inside the settings and scan-now handlers were removed in favor of referencing this one constant, so there's now one place to add a future universe.
+- `_MATRIX_UNIS` / `_MATRIX_UNI_LABEL` now include `"inv_favorites"` → `"Favorites (Admin list)"`. The Matrix setup page builds its universe checkboxes from these at runtime (no separate matrix-side change needed), so Favorites now appears as a 4th selectable filter column there, checked by default like the other three.
+- `public/stock_intraday_matrix.html`: the grid was hardcoded to `grid-template-columns:64px repeat(3,1fr)` (desktop + the 560px media query). Changed both to `repeat(var(--mx-cols,3),1fr)`, and `renderMatrix()` now does `grid.style.setProperty('--mx-cols', universes.length)` before building the cell HTML — the column count now tracks however many universes the backend returns instead of being frozen at 3.
+- `public/stock_intraday_simulator.html` and `public/stock_intraday.html`: added `<option value="inv_favorites">Favorites (Admin list)</option>` to both universe `<select>` elements on each page (the full-settings one and the manual "Scan Now" one).
+
+**Scope note:** no backend pool-resolution code changed — `_orb_capture_sync`/`_orb_backtest_sync` already handled any `inv_` prefixed universe generically before this request (that generic path was built for Strategy Lab's `inv_nifty50`/`inv_favorites`). This was purely an allow-list + UI exposure change so the simulator, live-trading tool, and matrix could reach a path that already worked.
+
+**Known caveat:** Favorites can contain non-F&O equities (it's resolved via `_load_all_eq_stocks`, not the F&O list), so a Favorites-scoped scan/backtest may include stocks the other universe options never would. This matches Strategy Lab's existing `inv_nifty50` behavior — not a new risk introduced here. If the admin's favorites list is empty, the resolved pool is empty and the session simply has no candidates (no error).
 
 ---
 

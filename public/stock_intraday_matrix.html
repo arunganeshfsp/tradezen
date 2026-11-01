@@ -68,7 +68,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
 /* MATRIX GRID */
-.matrix{display:grid;gap:8px;grid-template-columns:64px repeat(3,1fr);align-items:stretch}
+.matrix{display:grid;gap:8px;grid-template-columns:64px repeat(var(--mx-cols,3),1fr);align-items:stretch}
 .mx-corner{}
 .mx-colhdr,.mx-rowhdr{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;
   font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
@@ -80,7 +80,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .mx-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
 .mx-pnl{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700}
 .pos{color:var(--green)}.neg{color:var(--red)}.flat{color:var(--muted)}
-@media(max-width:560px){.matrix{grid-template-columns:52px repeat(3,1fr);gap:5px}.mx-cell{padding:8px 4px}.mx-colhdr{font-size:9px}}
+@media(max-width:560px){.matrix{grid-template-columns:52px repeat(var(--mx-cols,3),1fr);gap:5px}.mx-cell{padding:8px 4px}.mx-colhdr{font-size:9px}}
 
 /* STATUS STRIP */
 .status-strip{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
@@ -307,8 +307,8 @@ function _toggleSlAmount(){
 
 function showSetup(){
   const times = (_matrix && _matrix.times) || ['09:16','10:15','10:30'];
-  const unis  = (_matrix && _matrix.universes) || ['all_fno','nifty500_fno','nifty50'];
-  const labels= (_matrix && _matrix.uni_labels) || {all_fno:'F&O',nifty500_fno:'Nifty 500',nifty50:'Nifty 50'};
+  const unis  = (_matrix && _matrix.universes) || ['all_fno','nifty500_fno','nifty50','inv_favorites'];
+  const labels= (_matrix && _matrix.uni_labels) || {all_fno:'F&O',nifty500_fno:'Nifty 500',nifty50:'Nifty 50',inv_favorites:'Favorites (Admin list)'};
   document.getElementById('tfChks').innerHTML = times.map(t=>
     `<label class="chk"><input type="checkbox" class="tf-chk" value="${t}" checked> ${t}</label>`).join('');
   document.getElementById('uniChks').innerHTML = unis.map(u=>
@@ -370,6 +370,8 @@ function renderMatrix(){
   const { times, universes, uni_labels, cells } = _matrix;
   const byKey = {};
   cells.forEach(c => byKey[c.tf + '|' + c.universe] = c);
+  const grid = document.getElementById('matrixGrid');
+  grid.style.setProperty('--mx-cols', universes.length);
   let html = `<div class="mx-corner"></div>`;
   universes.forEach(u => html += `<div class="mx-colhdr">${_esc(uni_labels[u]||u)}</div>`);
   times.forEach(t => {
@@ -384,7 +386,7 @@ function renderMatrix(){
       </div>`;
     });
   });
-  document.getElementById('matrixGrid').innerHTML = html;
+  grid.innerHTML = html;
   document.getElementById('matrixMeta').innerHTML =
     `<b>${cells.length}</b> cells · ${times.length}×${universes.length}`;
 }
