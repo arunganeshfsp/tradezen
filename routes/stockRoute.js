@@ -1239,6 +1239,17 @@ router.get("/simulator/settings", _simAuth, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── GET /api/simulator/universe-stocks?universe= ────────────────────────────
+// Read-only preview: which symbols does this universe value resolve to.
+router.get("/simulator/universe-stocks", _simAuth, async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.universe) params.set("universe", req.query.universe);
+    const data = await aiService.proxy("GET", `/simulator/universe-stocks?${params}`, 10000, undefined, _simHdr(req));
+    res.json(data);
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+
 // ─── POST /api/simulator/settings ────────────────────────────────────────────
 router.post("/simulator/settings", _simAuth, async (req, res) => {
   try {

@@ -3,7 +3,11 @@
 **Page:** `public/stock_intraday.html` (direct URL only — NOT linked in any nav; personal use)
 **Status:** active
 **Created:** 2026-07-15
-**Last updated:** 2026-11-01 ("Favorites" admin-curated universe added to the Stock universe selector)
+**Last updated:** 2026-11-01 ("Show stocks in this universe" preview button)
+
+## 2026-11-01 — "Show stocks in this universe" button
+
+Added the same "👁 Show stocks in this universe" button + `#uniStocksOverlay` popup as the simulator page (see `stock-intraday-simulator.md`, 2026-11-01 entry, for the full implementation — new `GET /simulator/universe-stocks` endpoint, `_orb_resolve_universe()` helper, `showUniverseStocks()`/`closeUniverseStocks()` JS). Both pages' settings panels are near-identical copies, so this file just points at the shared writeup instead of duplicating it.
 
 ## 2026-11-01 — "Favorites" universe option
 

@@ -291,6 +291,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   text-align:center;padding:6px;display:none}
 .sett-err{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);
   text-align:center;padding:6px;display:none}
+.show-uni-btn{width:100%;background:transparent;border:1px solid var(--border2);
+  border-radius:var(--r2);color:var(--dim);font-family:'Syne',sans-serif;
+  font-size:12.5px;font-weight:700;padding:9px;cursor:pointer;transition:border-color .15s,color .15s;
+  margin-bottom:10px;letter-spacing:.3px}
+.show-uni-btn:hover{border-color:var(--accent);color:var(--text)}
+.uni-chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim);
+  background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:3px 8px}
 
 /* ── TRADE EXPAND ROW ── */
 .trade-row{cursor:pointer}
@@ -383,9 +390,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 /* ── Tutorial ── */
 /* ── MANUAL SCAN POPUP ── */
-#scanOverlay{position:fixed;inset:0;z-index:9500;background:rgba(10,12,24,0.72);
+#scanOverlay,#uniStocksOverlay{position:fixed;inset:0;z-index:9500;background:rgba(10,12,24,0.72);
   backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
-#scanOverlay.open{display:flex}
+#scanOverlay.open,#uniStocksOverlay.open{display:flex}
 .scan-modal{background:var(--bg1);border:1px solid var(--border2);border-radius:12px;
   width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:20px 22px;
   animation:scanSlideUp .2s ease}
@@ -629,6 +636,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
     <hr class="sett-divider" />
 
+    <button type="button" class="show-uni-btn" id="showUniBtn" onclick="showUniverseStocks()">👁 Show stocks in this universe</button>
     <button class="save-btn" id="saveSettBtn" onclick="saveSettings()">Apply Settings</button>
     <div id="settOk"  class="sett-ok">✓ Settings saved — takes effect from next session</div>
     <div id="settErr" class="sett-err"></div>
@@ -857,6 +865,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="scan-modal-foot">
       <button class="scan-cancel-btn" onclick="closeScanPopup()" data-en="Cancel" data-ta="ரத்து">Cancel</button>
       <button class="save-btn scan-run-btn" id="mscanRunBtn" onclick="runManualScan()" data-en="⟳ Scan" data-ta="⟳ ஸ்கேன்">⟳ Scan</button>
+    </div>
+  </div>
+</div>
+
+<div id="uniStocksOverlay" onclick="if(event.target===this)closeUniverseStocks()">
+  <div class="scan-modal" style="max-width:480px">
+    <div class="scan-modal-title">Stocks in this universe</div>
+    <div class="scan-modal-sub" id="uniStocksSub">Loading…</div>
+    <div id="uniStocksBody" style="max-height:48vh;overflow-y:auto;display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+    <div class="scan-modal-foot">
+      <button class="scan-cancel-btn" style="flex:1" onclick="closeUniverseStocks()">Close</button>
     </div>
   </div>
 </div>
@@ -1514,6 +1533,29 @@ function scanNow() {
 
 function closeScanPopup() {
   document.getElementById('scanOverlay').classList.remove('open');
+}
+
+async function showUniverseStocks() {
+  const uni  = document.getElementById('sett-universe').value;
+  const sub  = document.getElementById('uniStocksSub');
+  const body = document.getElementById('uniStocksBody');
+  sub.textContent = 'Loading…';
+  body.innerHTML = '';
+  document.getElementById('uniStocksOverlay').classList.add('open');
+  try {
+    const r = await fetch(`/api/simulator/universe-stocks?universe=${encodeURIComponent(uni)}`, { headers: _hdrs(false) });
+    const d = await r.json();
+    if (d.error) { sub.textContent = d.error; return; }
+    sub.textContent = `${d.count} stock${d.count === 1 ? '' : 's'} in this universe`;
+    body.innerHTML = d.symbols.map(s => `<span class="uni-chip">${_esc(s)}</span>`).join('')
+      || '<span style="color:var(--muted);font-size:11px">No stocks found for this universe.</span>';
+  } catch (e) {
+    sub.textContent = 'Could not load stock list.';
+  }
+}
+
+function closeUniverseStocks() {
+  document.getElementById('uniStocksOverlay').classList.remove('open');
 }
 
 async function runManualScan() {

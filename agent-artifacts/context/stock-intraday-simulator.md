@@ -7,10 +7,26 @@
 - `ai_engine/main.py` — background engine + 3 FastAPI endpoints
 - `routes/stockRoute.js` — 3 Node proxy routes under `/api/simulator/*`
 
-**Last updated:** 2026-11-01 ("Favorites" admin-curated universe added)
+**Last updated:** 2026-11-01 ("Show stocks in this universe" preview button)
 
 Extra files added for the matrix feature:
 - `public/stock_intraday_matrix.html` — new login-gated page (tabbed 3×3 grid, personal only)
+
+---
+
+## 2026-11-01 — "Show stocks in this universe" button
+
+User request: a button above "Apply Settings" that shows which stocks the currently-selected universe resolves to.
+
+**What changed:**
+- **New backend helper `_orb_resolve_universe(universe: str) -> list[dict]`** (main.py, right after the `_MATRIX_UNI_LABEL` constants) — single-universe version of the pool-resolution rules already duplicated across `_orb_capture_sync` (multi-session) and `_orb_backtest_sync` (single-session). Not a refactor of those two — they're untouched — this is a third, read-only caller of the same rules.
+- **New endpoint `GET /simulator/universe-stocks?universe=`** (main.py) — validates against `_ORB_VALID_UNI`, calls the helper, returns `{universe, count, symbols}` (sorted symbol list, no tokens/prices — this is a preview, not a quote fetch, so it's cheap and doesn't need a broker session).
+- **`routes/stockRoute.js`** — new `GET /api/simulator/universe-stocks` proxy route (`_simAuth`, same optional-auth pattern as the other simulator routes; this endpoint isn't actually user-scoped but kept consistent with its siblings).
+- **Frontend (`stock_intraday_simulator.html` and `stock_intraday.html` — both got the identical change):** a new "👁 Show stocks in this universe" button (`.show-uni-btn`, outline style) placed directly above the existing "Apply Settings" button. Reuses the page's existing `#scanOverlay`/`.scan-modal` CSS (originally built for the Manual Scan popup) for a second overlay, `#uniStocksOverlay`, listing the resolved symbols as small chips (`.uni-chip`). `showUniverseStocks()` reads the **current, unsaved** `#sett-universe` dropdown value (so the user can preview before hitting Apply) and calls the new endpoint; `closeUniverseStocks()` closes it.
+
+**Scope note:** `public/stock_intraday_matrix.html` was deliberately left out of this change — it has no single "Stock universe" dropdown + "Apply Settings" button to anchor to (its universes are a multi-select checkbox row feeding "Enable Matrix"/"Reconfigure" instead). If a similar preview is wanted there, it would need a per-checkbox or per-cell affordance rather than a single button, which is a different UI shape — ask before building it the same way.
+
+**Known caveat:** the preview endpoint resolves the SAME WAY `_orb_resolve_universe` does, which for `inv_` universes means `_load_all_eq_stocks()` (ALL NSE equities), not just F&O — so a Favorites preview can legitimately include non-F&O symbols. This matches the universe's actual scan behavior (see the "Favorites" entry above), it isn't a preview bug.
 
 ---
 

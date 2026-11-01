@@ -7976,6 +7976,28 @@ _MATRIX_UNI_LABEL = {"all_fno": "F&O", "nifty500_fno": "Nifty 500",
                      "nifty100_fno": "Nifty 100", "nifty50": "Nifty 50",
                      "inv_favorites": "Favorites (Admin list)"}
 
+
+def _orb_resolve_universe(universe: str) -> list[dict]:
+    """Resolve a universe value to its underlying stock list ({symbol, token, ...}),
+    mirroring the same rules `_orb_capture_sync`/`_orb_backtest_sync` use to build
+    their scan pool. Used by the read-only "preview this universe" endpoint."""
+    all_fno = _load_fno_stocks()
+    if universe == "nifty50":
+        return [s for s in all_fno if s["symbol"].upper() in _NIFTY50_SYMS]
+    if universe == "nifty100_fno":
+        return [s for s in all_fno if s["symbol"].upper() in _NIFTY100_SYMS]
+    if universe == "nifty500_fno":
+        n500 = _fetch_nifty500_symbols()
+        return [s for s in all_fno if s["symbol"].upper() in n500]
+    if universe.startswith("inv_"):
+        conn = get_conn()
+        syms = {x.upper() for x in stock_universe_get(conn, universe[4:])}
+        conn.close()
+        all_eq = _load_all_eq_stocks()
+        return [s for s in all_eq if s["symbol"].upper() in syms]
+    return all_fno  # "all_fno" — full F&O universe
+
+
 # Nifty index symbol sets — used for universe filtering at capture time.
 # Lists are approximate constituents; union with the F&O universe at runtime.
 _NIFTY50_SYMS: frozenset = frozenset({
@@ -9909,6 +9931,20 @@ async def simulator_get_settings(request: Request):
         conn.close()
         s["session"] = "personal" if sess else "shared"
         return s
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/simulator/universe-stocks")
+async def simulator_universe_stocks(universe: str = "all_fno"):
+    """Read-only preview of which stocks a universe value resolves to —
+    lets the settings page show the user what they're about to scan."""
+    if universe not in _ORB_VALID_UNI:
+        return JSONResponse(status_code=400, content={"error": "Invalid universe"})
+    try:
+        stocks  = _orb_resolve_universe(universe)
+        symbols = sorted({s["symbol"] for s in stocks})
+        return {"universe": universe, "count": len(symbols), "symbols": symbols}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
